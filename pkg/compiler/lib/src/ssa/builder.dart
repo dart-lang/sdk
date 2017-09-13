@@ -1496,7 +1496,7 @@ class SsaAstGraphBuilder extends ast.Visitor
           //
           //     class A {
           //       A(String foo) = A.b;
-          //       A(int foo) { print(foo); }
+          //       A.b(int foo) { print(foo); }
           //     }
           //     main() {
           //       new A(499);    // valid even in checked mode.

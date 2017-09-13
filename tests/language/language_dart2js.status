@@ -467,34 +467,34 @@ named_parameters_test/07: Crash # Issue 27394
 named_parameters_test/09: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-async_await_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_star_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_switch_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_switch_test/withDefault: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_test/type-mismatch1: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_test/type-mismatch2: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_test/type-mismatch3: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_test/type-mismatch4: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_this_bound_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_throw_in_catch_test/forceAwait: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_throw_in_catch_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-asyncstar_concat_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-asyncstar_throw_in_catch_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-asyncstar_yield_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-asyncstar_yieldstar_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_backwards_compatibility_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_exceptions_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_for_cancel_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_for_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_for_use_local_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_future_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_nonfuture_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_not_started_immediately_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_null_aware_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_postfix_expr_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_regression_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_star_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_switch_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_switch_test/withDefault: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_test/type-mismatch1: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_test/type-mismatch2: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_test/type-mismatch3: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_test/type-mismatch4: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_this_bound_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_throw_in_catch_test/forceAwait: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_throw_in_catch_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+asyncstar_concat_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+asyncstar_throw_in_catch_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+asyncstar_yield_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+asyncstar_yieldstar_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_backwards_compatibility_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_exceptions_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_for_cancel_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_for_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_for_use_local_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_future_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_nonfuture_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_not_started_immediately_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_null_aware_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_postfix_expr_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_regression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 check_member_static_test/02: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
@@ -506,13 +506,13 @@ conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_conditional_test/08: MissingCompileTimeError
-const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib1::f() (ShadowStaticInvocation)
+const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib2::f() (ShadowStaticInvocation)
 const_constructor_syntax_test/05: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_error_multiply_initialized_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_error_multiply_initialized_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_error_multiply_initialized_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_error_multiply_initialized_test/04: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_evaluation_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
+const_evaluation_test/01: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
@@ -534,13 +534,13 @@ constructor8_test: RuntimeError
 constructor_duplicate_final_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 constructor_duplicate_final_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 constructor_duplicate_final_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-constructor_named_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+constructor_named_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-custom_await_stack_trace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+custom_await_stack_trace_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: RuntimeError
 dangling_else_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
@@ -588,11 +588,11 @@ deferred_optimized_test: CompileTimeError
 deferred_redirecting_factory_test: CompileTimeError
 deferred_regression_22995_test: CompileTimeError
 deferred_regression_28678_test: CompileTimeError
-deferred_shadow_load_library_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+deferred_shadow_load_library_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 deferred_shared_and_unshared_classes_test: CompileTimeError
 deferred_static_seperate_test: CompileTimeError
 deferred_super_dependency_test/01: CompileTimeError
-deferred_super_dependency_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+deferred_super_dependency_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
@@ -605,7 +605,7 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+efficient_length_warning_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 enum_duplicate_test/01: RuntimeError
 enum_duplicate_test/02: RuntimeError
 enum_duplicate_test/none: RuntimeError
@@ -634,42 +634,42 @@ final_attempt_reinitialization_test/01: Crash # Internal problem: No constructor
 final_attempt_reinitialization_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 final_field_initialization_order_test: RuntimeError
 final_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-flatten_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/03: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/04: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/05: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/06: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/07: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/08: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/09: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/10: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/11: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/12: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-for_in2_test: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
+flatten_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/04: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/07: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/08: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/09: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/10: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/11: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/12: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+flatten_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+for_in2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 for_variable_capture_test: RuntimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
 function_malformed_result_type_test: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-function_subtype_cast2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-function_subtype_cast3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_cast2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#)) for j:closure_call(Class_test_closure.call).
+function_subtype_cast3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_inline0_test: RuntimeError
 function_subtype_local3_test: RuntimeError
 function_subtype_local4_test: RuntimeError
-function_subtype_not3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_not3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
 function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_syntax_test/none: RuntimeError
 function_test: RuntimeError
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
-infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
+infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
 inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-instance_creation_in_function_annotation_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
+instance_creation_in_function_annotation_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
@@ -682,10 +682,10 @@ is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
 is_object_test: RuntimeError
 issue13474_test: RuntimeError
-issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-issue15720_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-issue21079_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
-issue23244_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+issue14014_3_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+issue15720_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+issue21079_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
@@ -696,23 +696,23 @@ library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 list_literal4_test: RuntimeError
-list_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+list_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 local_function3_test: RuntimeError
 local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
-main_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/03: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/04: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/05: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/20: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/21: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/22: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/41: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/42: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/43: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/44: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/45: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/04: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/20: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/21: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/22: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/41: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/42: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/43: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/44: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+main_test/45: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 malformed_test/01: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/03: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
@@ -735,7 +735,7 @@ mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
-mixin_generic_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_generic_test: Crash # 'package:js_ast/src/nodes.dart': Failed assertion: line 1316 pos 12: '_identifierRE.hasMatch(name)': is not true.
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/03: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
@@ -870,14 +870,14 @@ named_parameters_type_test/03: MissingRuntimeError
 named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
 nan_identical_test: RuntimeError
-nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
+nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
-not_enough_positional_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-not_enough_positional_arguments_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-not_enough_positional_arguments_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-null_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-null_test/03: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-null_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+not_enough_positional_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+not_enough_positional_arguments_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+not_enough_positional_arguments_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+null_test/02: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+null_test/03: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+null_test/none: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 override_field_method1_negative_test: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
@@ -894,7 +894,7 @@ parameter_types_specialization_test: RuntimeError
 parse_closures_in_initializers_test: RuntimeError
 positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
-private_super_constructor_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+private_super_constructor_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
@@ -904,36 +904,36 @@ reg_exp_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_18535_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-regress_20394_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+regress_20394_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 regress_21795_test: RuntimeError
-regress_22438_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_22438_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 regress_22443_test: CompileTimeError
-regress_22445_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_22579_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_22728_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_22777_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_22445_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_22579_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_22728_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_22777_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 regress_22936_test/01: RuntimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
-regress_23498_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_23500_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_23500_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_23500_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_23996_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_23498_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_23500_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_23500_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_23500_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_23996_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 regress_24283_test: RuntimeError
-regress_24935_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_24935_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_26133_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_26175_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_26668_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_26948_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_24935_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_24935_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_26133_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_26175_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_26668_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_26948_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_27659_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_28217_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-regress_28217_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+regress_27659_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+regress_28217_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+regress_28217_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 regress_28255_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
@@ -983,13 +983,13 @@ switch_case_test/02: MissingCompileTimeError
 symbol_conflict_test: RuntimeError
 sync_generator1_test/01: RuntimeError
 sync_generator1_test/none: RuntimeError
-sync_generator2_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+sync_generator2_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 sync_generator3_test/test1: RuntimeError
 sync_generator3_test/test2: RuntimeError
 syncstar_less_than_test: RuntimeError
 syncstar_yield_test/copyParameters: RuntimeError
 syncstar_yield_test/none: RuntimeError
-syncstar_yieldstar_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+syncstar_yieldstar_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 syntax_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/03: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/27: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
@@ -1006,66 +1006,64 @@ syntax_test/60: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder
 syntax_test/61: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/62: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/none: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-temp_mangling_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+temp_mangling_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 top_level_getter_no_setter1_test/01: RuntimeError
 top_level_getter_no_setter2_test/01: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_checks_in_factory_method_test: RuntimeError
-type_parameter_test/01: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-type_parameter_test/02: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-type_parameter_test/03: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-type_parameter_test/04: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-type_parameter_test/05: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-type_parameter_test/06: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-type_parameter_test/none: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_parameter_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/04: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 type_variable_bounds_test/10: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-type_variable_closure2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-type_variable_closure3_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-type_variable_closure4_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-type_variable_closure_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+type_variable_closure2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.list#)) for j:closure_call(C_list_closure.call).
+type_variable_closure3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.a#)) for j:closure_call(C_a_closure.call).
+type_variable_closure4_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.map#)) for j:closure_call(C_map_closure.call).
+type_variable_closure_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 type_variable_conflict2_test/01: RuntimeError
 type_variable_conflict2_test/05: RuntimeError
 type_variable_conflict2_test/07: RuntimeError
 type_variable_conflict2_test/09: RuntimeError
-type_variable_field_initializer2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:constructor(B.).
-type_variable_field_initializer_closure2_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-type_variable_field_initializer_closure_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-type_variable_field_initializer_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:constructor(B.).
+type_variable_field_initializer_closure2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_closure.call).
+type_variable_field_initializer_closure_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_closure.call).
 type_variable_function_type_test: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-yieldstar_pause_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+yieldstar_pause_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-async_await_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_star_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_switch_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_switch_test/withDefault: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_test/type-mismatch1: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_test/type-mismatch2: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_test/type-mismatch3: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_test/type-mismatch4: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_this_bound_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_throw_in_catch_test/forceAwait: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-async_throw_in_catch_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-asyncstar_concat_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-asyncstar_throw_in_catch_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-asyncstar_yield_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-asyncstar_yieldstar_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_backwards_compatibility_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_exceptions_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_for_cancel_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_for_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_for_use_local_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_future_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_nonfuture_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_not_started_immediately_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_null_aware_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_postfix_expr_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_regression_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-await_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_await_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_switch_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_switch_test/withDefault: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_test/type-mismatch1: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_test/type-mismatch2: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_test/type-mismatch3: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_test/type-mismatch4: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_this_bound_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_throw_in_catch_test/forceAwait: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_throw_in_catch_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+asyncstar_concat_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+asyncstar_throw_in_catch_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+asyncstar_yield_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+asyncstar_yieldstar_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_backwards_compatibility_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_exceptions_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_for_cancel_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_for_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_for_use_local_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_future_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_nonfuture_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_not_started_immediately_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_null_aware_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_postfix_expr_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_regression_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 check_member_static_test/02: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
@@ -1083,7 +1081,7 @@ const_error_multiply_initialized_test/01: Crash # Internal problem: No construct
 const_error_multiply_initialized_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_error_multiply_initialized_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_error_multiply_initialized_test/04: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_evaluation_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
+const_evaluation_test/01: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
@@ -1110,7 +1108,7 @@ constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-custom_await_stack_trace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+custom_await_stack_trace_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: RuntimeError
 cyclic_type2_test: RuntimeError
@@ -1164,11 +1162,11 @@ deferred_optimized_test: CompileTimeError
 deferred_redirecting_factory_test: CompileTimeError
 deferred_regression_22995_test: CompileTimeError
 deferred_regression_28678_test: CompileTimeError
-deferred_shadow_load_library_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+deferred_shadow_load_library_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 deferred_shared_and_unshared_classes_test: CompileTimeError
 deferred_static_seperate_test: CompileTimeError
 deferred_super_dependency_test/01: CompileTimeError
-deferred_super_dependency_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+deferred_super_dependency_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
@@ -1181,7 +1179,7 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+efficient_length_warning_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 enum_duplicate_test/01: RuntimeError
 enum_duplicate_test/02: RuntimeError
 enum_duplicate_test/none: RuntimeError
@@ -1212,31 +1210,31 @@ final_attempt_reinitialization_test/01: Crash # Internal problem: No constructor
 final_attempt_reinitialization_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 final_field_initialization_order_test: RuntimeError
 final_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-flatten_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/03: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/04: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/05: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/06: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/07: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/08: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/09: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/10: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/11: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/12: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-flatten_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-for_in2_test: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
+flatten_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/03: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/04: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/07: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/08: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/09: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/10: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/11: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/12: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+flatten_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+for_in2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 for_variable_capture_test: RuntimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
-function_subtype_cast2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-function_subtype_cast3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_cast2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#)) for j:closure_call(Class_test_closure.call).
+function_subtype_cast3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_inline0_test: RuntimeError
 function_subtype_local3_test: RuntimeError
 function_subtype_local4_test: RuntimeError
-function_subtype_not3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_not3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
 function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_syntax_test/none: RuntimeError
@@ -1246,7 +1244,7 @@ function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-instance_creation_in_function_annotation_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
+instance_creation_in_function_annotation_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
@@ -1259,10 +1257,10 @@ is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
 is_object_test: RuntimeError
 issue13474_test: RuntimeError
-issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-issue15720_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-issue21079_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
-issue23244_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+issue14014_3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.#)) for j:closure_call(B_B_closure.call).
+issue15720_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+issue21079_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+issue23244_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
@@ -1273,23 +1271,23 @@ library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 list_literal4_test: RuntimeError
-list_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+list_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 local_function3_test: RuntimeError
 local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
-main_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/03: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/04: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/05: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/20: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/21: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/22: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/41: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/42: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/43: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/44: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-main_test/45: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/03: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/04: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/20: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/21: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/22: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/41: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/42: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/43: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/44: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+main_test/45: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 malformed_test/06: CompileTimeError
 malformed_test/none: RuntimeError
 many_named_arguments_test: RuntimeError
@@ -1443,9 +1441,9 @@ named_parameters_with_dollars_test: RuntimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
-null_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-null_test/03: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-null_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+null_test/02: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+null_test/03: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+null_test/none: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 override_field_method1_negative_test: Fail
@@ -1474,32 +1472,32 @@ regress_17382_test: RuntimeError
 regress_18535_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
-regress_22438_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_22438_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 regress_22443_test: CompileTimeError
-regress_22445_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_22579_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_22728_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_22777_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_22445_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_22579_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_22728_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_22777_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 regress_22936_test/01: RuntimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
-regress_23498_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_23500_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_23500_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_23500_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_23996_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_23498_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_23500_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_23500_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_23500_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_23996_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 regress_24283_test: RuntimeError
-regress_24935_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_24935_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_26133_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_26175_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_26668_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_26948_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_24935_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_24935_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_26133_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_26175_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_26668_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+regress_26948_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_27659_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_27659_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
@@ -1551,39 +1549,37 @@ switch_case_test/02: MissingCompileTimeError
 symbol_conflict_test: RuntimeError
 sync_generator1_test/01: RuntimeError
 sync_generator1_test/none: RuntimeError
-sync_generator2_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+sync_generator2_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 sync_generator3_test/test1: RuntimeError
 sync_generator3_test/test2: RuntimeError
 syncstar_less_than_test: RuntimeError
 syncstar_yield_test/copyParameters: RuntimeError
 syncstar_yield_test/none: RuntimeError
-syncstar_yieldstar_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+syncstar_yieldstar_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 syntax_test/none: CompileTimeError
-temp_mangling_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+temp_mangling_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 top_level_getter_no_setter1_test/01: RuntimeError
 top_level_getter_no_setter2_test/01: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_checks_in_factory_method_test: RuntimeError
-type_parameter_test/01: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_parameter_test/02: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_parameter_test/03: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_parameter_test/04: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_parameter_test/05: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_parameter_test/06: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_parameter_test/none: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_variable_closure2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-type_variable_closure3_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_variable_closure4_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-type_variable_closure_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+type_parameter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/03: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/04: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_variable_closure2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.list#)) for j:closure_call(C_list_closure.call).
+type_variable_closure3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.a#)) for j:closure_call(C_a_closure.call).
+type_variable_closure4_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.map#)) for j:closure_call(C_map_closure.call).
+type_variable_closure_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.baz#a), local(C.baz#)) for j:closure_call(C$baz_C$baz_closure.call).
 type_variable_conflict2_test/01: RuntimeError
 type_variable_conflict2_test/05: RuntimeError
 type_variable_conflict2_test/07: RuntimeError
 type_variable_conflict2_test/09: RuntimeError
-type_variable_field_initializer2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:constructor(B.).
-type_variable_field_initializer_closure2_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_variable_field_initializer_closure_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_variable_field_initializer_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:constructor(B.).
+type_variable_field_initializer_closure2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_closure.call).
+type_variable_field_initializer_closure_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_closure.call).
 type_variable_function_type_test: RuntimeError
-yieldstar_pause_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+yieldstar_pause_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 

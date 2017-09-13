@@ -325,9 +325,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     // TODO(sra): Checked mode parameter checks.
 
-    // Collect field values for the current class.
-    Map<FieldEntity, HInstruction> fieldValues =
-        _collectFieldValues(constructedClass);
+    // [fieldValues] accumulates the field initializer values, which may be
+    // overwritten by initializer-list initializers.
+    Map<FieldEntity, HInstruction> fieldValues = <FieldEntity, HInstruction>{};
     List<ir.Constructor> constructorChain = <ir.Constructor>[];
     _buildInitializers(constructor, constructorChain, fieldValues);
 
@@ -339,7 +339,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     _worldBuilder.forEachInstanceField(cls,
         (ClassEntity enclosingClass, FieldEntity member) {
       var value = fieldValues[member];
-      assert(value != null, 'No value for field ${member}');
+      assert(value != null, 'No initializer value for field ${member}');
       constructorArguments.add(value);
     });
 
@@ -460,11 +460,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     });
   }
 
-  /// Maps the instance fields of a class to their SSA values.
-  Map<FieldEntity, HInstruction> _collectFieldValues(ir.Class clazz) {
-    Map<FieldEntity, HInstruction> fieldValues = <FieldEntity, HInstruction>{};
+  /// Collects the values for field initializers for the direct fields of
+  /// [clazz].
+  void _collectFieldValues(
+      ir.Class clazz, Map<FieldEntity, HInstruction> fieldValues) {
     ClassEntity cls = _elementMap.getClass(clazz);
-    _worldBuilder.forEachInstanceField(cls, (_, FieldEntity field) {
+    _worldBuilder.forEachDirectInstanceField(cls, (FieldEntity field) {
       MemberDefinition definition = _elementMap.getMemberDefinition(field);
       ir.Field node;
       switch (definition.kind) {
@@ -477,16 +478,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (node.initializer == null) {
         fieldValues[field] = graph.addConstantNull(closedWorld);
       } else {
-        // Gotta update the current member when we're looking at field values
-        // outside the constructor.
+        // Compile the initializer in the context of the field so we know that
+        // class type parameters are accessed as values.
+        // TODO(sra): It would be sufficient to know the context was a field
+        // initializer.
         inlinedFrom(field, () {
           node.initializer.accept(this);
           fieldValues[field] = pop();
         });
       }
     });
-    return fieldValues;
   }
+
+  static bool isRedirectingConstructor(ir.Constructor constructor) =>
+      constructor.initializers
+          .any((initializer) => initializer is ir.RedirectingInitializer);
 
   /// Collects field initializers all the way up the inheritance chain.
   void _buildInitializers(
@@ -500,6 +506,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
             'Expected ${localsMap.currentMember} '
             'but found ${_elementMap.getConstructor(constructor)}.'));
     constructorChain.add(constructor);
+
+    if (!isRedirectingConstructor(constructor)) {
+      // Compute values for field initializers, but only if this is not a
+      // redirecting constructor, since the target will compute the fields.
+      _collectFieldValues(constructor.enclosingClass, fieldValues);
+    }
     var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
       if (initializer is ir.FieldInitializer) {
@@ -526,6 +538,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         letBindings[variable] = value;
       } else if (initializer is ir.InvalidInitializer) {
         assert(false, 'ir.InvalidInitializer not handled');
+      } else {
+        assert(false, 'Unhandled initializer ir.${initializer.runtimeType}');
       }
     }
 
@@ -634,19 +648,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ir.Class callerClass = caller.enclosingClass;
     ir.Supertype supertype = callerClass.supertype;
 
+    if (callerClass.mixedInType != null) {
+      _bindSupertypeTypeParameters(callerClass.mixedInType);
+      _collectFieldValues(callerClass.mixedInType.classNode, fieldValues);
+    }
+
     // The class of the super-constructor may not be the supertype class. In
     // this case, we must go up the class hierarchy until we reach the class
     // containing the super-constructor.
     while (supertype.classNode != target.enclosingClass) {
       _bindSupertypeTypeParameters(supertype);
+      _collectFieldValues(supertype.classNode, fieldValues);
       supertype = supertype.classNode.supertype;
     }
     _bindSupertypeTypeParameters(supertype);
     supertype = supertype.classNode.supertype;
-
-    if (callerClass.mixedInType != null) {
-      _bindSupertypeTypeParameters(callerClass.mixedInType);
-    }
 
     _inlineSuperOrRedirectCommon(
         initializer, target, arguments, constructorChain, fieldValues, caller);
