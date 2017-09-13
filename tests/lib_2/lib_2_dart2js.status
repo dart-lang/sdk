@@ -43,6 +43,8 @@ isolate/error_exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
 isolate/error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
 isolate/exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
 isolate/enum_const_test/02: RuntimeError # Issue 21817
+math/double_pow_test: RuntimeError
+math/low_test: RuntimeError
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
@@ -83,3 +85,10 @@ isolate/isolate_current_test: Fail  # please triage
 
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == drt || $runtime == chrome || $runtime == chromeOnAndroid) ]
 isolate/isolate_stress_test: Pass, Slow # Issue 10697
+
+[ $compiler == dart2js && ($runtime == drt || $runtime == ie11) ]
+math/math_test: RuntimeError
+math/math2_test: RuntimeError
+
+[ $compiler == dart2js && ($runtime != jsshell && $runtime != d8) ]
+js/null_test: RuntimeError # Issue 30652

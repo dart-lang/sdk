@@ -118,6 +118,13 @@ test() {
     }
     // if `x` is -Infinity or -0.0 and `y` is not an odd integer, then the
     // result is the same as `pow(-x , y)`.
+    if (d.isNaN) {
+      Expect.isTrue(pow(Infinity, d).isNaN);
+      Expect.isTrue(pow(-Infinity, d).isNaN);
+      Expect.isTrue(pow(0.0, d).isNaN);
+      Expect.isTrue(pow(-0.0, d).isNaN);
+      continue;
+    }
     Expect.identical(pow(Infinity, d), pow(-Infinity, d));
     Expect.identical(pow(0.0, d), pow(-0.0, d));
   }
@@ -136,7 +143,12 @@ test() {
       Expect.identical(1.0, pow(d, Infinity));
     }
     // if `y` is -Infinity, the result is `1/pow(x, Infinity)`.
-    Expect.identical(1 / pow(d, Infinity), pow(d, -Infinity));
+    if (d.isNaN) {
+      Expect.isTrue((1 / pow(d, Infinity)).isNaN);
+      Expect.isTrue(pow(d, -Infinity).isNaN);
+    } else {
+      Expect.identical(1 / pow(d, Infinity), pow(d, -Infinity));
+    }
   }
 
   // Some non-exceptional values.

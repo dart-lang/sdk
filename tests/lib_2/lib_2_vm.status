@@ -33,6 +33,8 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 [ $runtime == vm ]
 async/stream_timeout_test: RuntimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
+js/datetime_roundtrip_test: CompileTimeError
+js/null_test: CompileTimeError
 mirrors/deferred_type_test: CompileTimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 

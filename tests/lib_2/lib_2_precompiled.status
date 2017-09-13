@@ -16,3 +16,5 @@ convert/utf85_test: Pass, Timeout
 isolate/illegal_msg_function_test: SkipByDesign
 isolate/illegal_msg_mirror_test: SkipByDesign
 isolate/isolate_complex_messages_test: SkipByDesign
+js/datetime_roundtrip_test: CompileTimeError
+js/null_test: CompileTimeError

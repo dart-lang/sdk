@@ -136,8 +136,6 @@ html/typing_test: RuntimeError # Issue 29922
 html/websql_test/functional: RuntimeError # Issue 29922
 html/worker_api_test: RuntimeError # Issue 29922
 html/xhr_cross_origin_test/functional: RuntimeError # Issue 29922
-math/double_pow_test: RuntimeError # Issue 29922
-math/low_test: RuntimeError # Issue 29922
 mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 29922
 mirrors/class_mirror_location_test: RuntimeError # Issue 29922
 mirrors/class_mirror_type_variables_test: RuntimeError # Issue 29922
@@ -204,8 +202,6 @@ html/touchevent_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $runtime == drt ]
 html/svg_test: RuntimeError # Issue 29922
-math/math_test: RuntimeError # Issue 29922
-math/math2_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $system == windows ]
 html/xhr_test/xhr: Skip # Times out. Issue 21527
