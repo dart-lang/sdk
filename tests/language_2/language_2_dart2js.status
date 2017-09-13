@@ -389,9 +389,6 @@ function_subtype_inline2_test: RuntimeError
 
 [ $compiler == dart2js && !$checked && $minified && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
-named_parameters_passing_falsy_test: RuntimeError
-named_parameters_with_conversions_test: RuntimeError
-named_parameters_with_dollars_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
