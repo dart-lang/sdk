@@ -35,6 +35,14 @@ async/future_or_strong_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/utf85_test: Slow, Pass
+isolate/issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
+isolate/issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
+isolate/issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
+isolate/function_send1_test: SkipByDesign   # Test uses a ".dart" URI.
+isolate/error_exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+isolate/error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+isolate/exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+isolate/enum_const_test/02: RuntimeError # Issue 21817
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
@@ -52,6 +60,7 @@ async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 convert/utf85_test: Pass, Slow # Issue 12029.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
+isolate/isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
@@ -60,3 +69,17 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
+
+[ $compiler == dart2js && $runtime != d8 ]
+isolate/error_exit_at_spawn_test: Skip # Issue 23876
+isolate/error_at_spawn_test: Skip # Issue 23876
+isolate/exit_at_spawn_test: Skip # Issue 23876
+
+[ ($compiler == dart2js && $fast_startup) ]
+isolate/illegal_msg_mirror_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fast_startup && ! $browser ]
+isolate/isolate_current_test: Fail  # please triage
+
+[ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == drt || $runtime == chrome || $runtime == chromeOnAndroid) ]
+isolate/isolate_stress_test: Pass, Slow # Issue 10697

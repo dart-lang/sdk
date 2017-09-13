@@ -24,3 +24,6 @@ math/random_big_test: RuntimeError # Issue 29922
 typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
+
+[ $compiler == dartdevc ]
+isolate/*: SkipByDesign  # No support for dart:isolate in dart4web (http://dartbug.com/30538)
