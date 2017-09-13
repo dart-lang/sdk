@@ -180,11 +180,6 @@ mirrors/library_uri_package_test: DartkCompileTimeError
 mirrors/list_constructor_test/01: RuntimeError
 mirrors/list_constructor_test/none: RuntimeError
 mirrors/metadata_test: RuntimeError
-mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
-mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
-mirrors/mixin_simple_test: RuntimeError
-mirrors/mixin_test: RuntimeError
-mirrors/new_instance_with_type_arguments_test: RuntimeError
 mirrors/other_declarations_location_test: RuntimeError
 mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_metadata_test: Crash

@@ -62,11 +62,6 @@ mirrors/invoke_call_through_implicit_getter_previously_accessed_test: Skip
 mirrors/invoke_call_through_implicit_getter_test: Skip
 mirrors/lazy_static_test: Skip
 mirrors/mirrors_test: Skip
-mirrors/mixin_application_test: Skip
-mirrors/mixin_members_test: Skip
-mirrors/model_test: Skip
-mirrors/native_class_test: Skip
-mirrors/no_metadata_test: Skip
 mirrors/operator_test: Skip
 mirrors/parameter_is_const_test: Skip
 mirrors/parameter_of_mixin_app_constructor_test: Skip
@@ -167,10 +162,6 @@ mirrors/library_uri_io_test: RuntimeError # Issue 29922
 mirrors/library_uri_package_test: RuntimeError # Issue 29922
 mirrors/local_function_is_static_test: RuntimeError # Issue 29922
 mirrors/metadata_test: RuntimeError # Issue 29922
-mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError # Issue 29922
-mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError # Issue 29922
-mirrors/mixin_test: RuntimeError # Issue 29922
-mirrors/null2_test: RuntimeError # Issue 29922
 mirrors/null_test: RuntimeError # Issue 29922
 mirrors/other_declarations_location_test: RuntimeError # Issue 29922
 mirrors/parameter_annotation_mirror_test: RuntimeError # Issue 29922

@@ -87,8 +87,12 @@ mirrors/method_mirror_source_test: Crash
 mirrors/mirrors_nsm_test/dart2js: RuntimeError
 mirrors/mirrors_nsm_mismatch_test: RuntimeError
 mirrors/mirrors_reader_test: Crash
-mirrors/mirrors_test: Crash
 mirrors/mirrors_used_inheritance_test: RuntimeError
+mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
+mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
+mirrors/mixin_application_test: RuntimeError
+mirrors/mixin_test: RuntimeError
+mirrors/mirrors_test: Crash
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subclass_test: RuntimeError
@@ -143,6 +147,10 @@ mirrors/metadata_constructed_constant_test: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
 mirrors/method_mirror_source_test: Crash
+mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
+mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
+mirrors/mixin_simple_test: RuntimeError
+mirrors/mixin_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError

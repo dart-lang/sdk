@@ -104,3 +104,6 @@ isolate/spawn_uri_vm_test: Skip # Isolate.spawnUri
 isolate/stacktrace_message_test: Skip # Isolate.spawnUri
 isolate/static_function_test: Skip # Isolate.spawnUri
 isolate/unresolved_ports_test: Skip # Isolate.spawnUri
+
+[ $runtime == chrome && $system == linux ]
+mirrors/native_class_test: Pass, Slow
