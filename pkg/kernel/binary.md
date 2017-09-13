@@ -212,6 +212,7 @@ type Typedef {
   FileOffset fileOffset;
   StringReference name;
   UriReference fileUri;
+  List<Expression> annotations;
   List<TypeParameter> typeParameters;
   DartType type;
 }

@@ -4675,6 +4675,7 @@ void StreamingFlowGraphBuilder::SkipLibraryTypedef() {
   ReadPosition();                // read position.
   SkipStringReference();         // read name index.
   ReadUInt();                    // read source_uri_index.
+  SkipListOfExpressions();       // read annotations.
   SkipTypeParametersList();      // read type parameters.
   SkipDartType();                // read type.
 }

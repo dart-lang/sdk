@@ -405,6 +405,7 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
     writeUriReference(node.fileUri ?? '');
+    writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.type);

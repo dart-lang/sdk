@@ -552,6 +552,7 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     String name = readStringReference();
     String fileUri = readUriReference();
+    node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
     var type = readDartType();
     typeParameterStack.length = 0;
