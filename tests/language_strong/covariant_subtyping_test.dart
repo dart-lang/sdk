@@ -167,16 +167,9 @@ testMixinApplication() {
   Expect.throws(() {
     j.add('hi');
   }, isTypeError);
-  // TODO(jmesserly): this should also throw. It does not because DDC's
-  // technique for generating mixin aliases (mixin applications of the form
-  // `class X = Object with Y /* optional implements */;`) does not allow
-  // adding any methods in the class. The normal technique of generating
-  // a method that performs the check and then calls `super` will not work,
-  // because there is no superclass to call. We will need some sort of
-  // special case code to implement this, perhaps move the original
-  // method to a symbol, then generate a wrapper with the original method name,
-  // that checks and calls it.
-  k.add('hi');
+  Expect.throws(() {
+    k.add('hi');
+  }, isTypeError);
 }
 
 class GenericMethodBounds<T> {

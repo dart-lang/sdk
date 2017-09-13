@@ -832,7 +832,7 @@ _canonicalMember(obj, name) {
   // Private names are symbols and are already canonical.
   if (JS('bool', 'typeof # === "symbol"', name)) return name;
 
-  if (obj != null && getExtensionType(obj) != null) {
+  if (obj != null && JS('bool', '#[#] != null', obj, _extensionType)) {
     return JS('', 'dartx.#', name);
   }
 
