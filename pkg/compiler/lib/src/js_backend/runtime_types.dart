@@ -912,6 +912,9 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   }
 
   String getVariableName(String name) {
+    // Kernel type variable names for anonymous mixin applications have names
+    // canonicalized to a non-identified, e.g. '#U0'.
+    name = name.replaceAll('#', '_');
     return namer.safeVariableName(name);
   }
 
