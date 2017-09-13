@@ -45,13 +45,10 @@ class C1 extends core::Object {
 class C2<T extends core::Object> extends core::Object {
   field self::C2::T field;
 }
-static const field dynamic forClassField;
-static const field dynamic forMethod1;
-static const field dynamic forMethod2;
-static const field dynamic forSubexpression1;
-static const field dynamic forSubexpression2;
-static const field dynamic forTopLevelFunction;
-static const field dynamic forTypedef;
-@self::forTopLevelFunction
-static method publicFunction1(core::int p) → core::int;
+static const field dynamic forClassField = const core::Object::•();
+static const field dynamic forMethod1 = const core::Object::•();
+static const field dynamic forMethod2 = const core::Object::•();
+static const field dynamic forSubexpression1 = const core::Object::•();
+static const field dynamic forSubexpression2 = const core::Object::•();
+static const field dynamic forTypedef = const core::Object::•();
 

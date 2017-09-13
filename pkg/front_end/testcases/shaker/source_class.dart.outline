@@ -23,8 +23,6 @@ import "dart:core" as core;
 
 class A1 extends core::Object {
 }
-class A2 extends core::Object {
-}
 class A3 extends core::Object {
 }
 class A4 extends core::Object {

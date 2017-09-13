@@ -28,7 +28,7 @@ import '../problems.dart' show unimplemented, unsupported;
 /// any members of those libraries.
 void trimProgram(Program program, bool isIncluded(Uri uri)) {
   var data = new RetainedDataBuilder();
-  new RootsMarker(new CoreTypes(program), data, false).run(program, isIncluded);
+  new RootsMarker(new CoreTypes(program), data).run(program, isIncluded);
   new KernelOutlineShaker(data, isIncluded).transform(program);
 }
 
@@ -39,7 +39,39 @@ void trimProgram(Program program, bool isIncluded(Uri uri)) {
 void serializeTrimmedOutline(
     Sink<List<int>> sink, Program program, bool isIncluded(Uri uri)) {
   var data = new RetainedDataBuilder();
-  new RootsMarker(new CoreTypes(program), data, true).run(program, isIncluded);
+
+  var rootsMarker = new RootsMarker(new CoreTypes(program), data);
+  rootsMarker.markRequired(program);
+
+  for (var library in program.libraries) {
+    if (!isIncluded(library.importUri)) continue;
+    data.markAdditionalExports(library);
+    for (var clazz in library.classes) {
+      if (clazz.name.startsWith('_')) continue;
+      data.markClass(clazz);
+      for (var field in clazz.fields) {
+        if (field.name.isPrivate) continue;
+        data.markMember(field);
+      }
+      for (var constructor in clazz.constructors) {
+        if (constructor.name.isPrivate) continue;
+        data.markMember(constructor);
+      }
+    }
+    for (var field in library.fields) {
+      if (field.name.isPrivate) continue;
+      data.markMember(field);
+    }
+    for (var procedure in library.procedures) {
+      if (procedure.name.isPrivate) continue;
+      data.markMember(procedure);
+    }
+    for (var typedef in library.typedefs) {
+      if (typedef.name.startsWith('_')) continue;
+      data.markTypedef(typedef);
+    }
+  }
+
   new TrimmedBinaryPrinter(sink, isIncluded, data).writeProgramFile(program);
 }
 
@@ -53,6 +85,12 @@ abstract class RetainedData {
   /// supertypes will be preserved too, but some of it members may not be
   /// included.
   bool isClassUsed(Class cls);
+
+  /// Whether the field initializer should be preserved.
+  bool isFieldInitializerUsed(Field node);
+
+  /// Whether the parameter initializer should be preserved.
+  bool isParameterInitializerUsed(VariableDeclaration node);
 
   /// Whether a typedef should be preserved. If a typedef is preserved, its
   /// return type and types of parameters will be preserved too.
@@ -83,6 +121,15 @@ class RetainedDataBuilder extends RetainedData {
   /// Members that are transitively reachable from the included libraries.
   final Set<Member> members = new Set<Member>();
 
+  /// Fields for which initializers should be kept because they are constants,
+  /// or are final fields of classes with constant constructors.
+  final Set<Field> fieldsWithInitializers = new Set<Field>();
+
+  /// Parameters for which initializers should be kept because they are
+  /// parameters of a constant constructors.
+  final Set<VariableDeclaration> parametersWithInitializers =
+      new Set<VariableDeclaration>();
+
   TypeMarker typeMarker;
   RootsMarker rootsMarker;
 
@@ -91,6 +138,16 @@ class RetainedDataBuilder extends RetainedData {
 
   @override
   bool isClassUsed(Class cls) => classes.contains(cls);
+
+  @override
+  bool isFieldInitializerUsed(Field node) {
+    return fieldsWithInitializers.contains(node);
+  }
+
+  @override
+  bool isParameterInitializerUsed(VariableDeclaration node) {
+    return parametersWithInitializers.contains(node);
+  }
 
   @override
   bool isTypedefUsed(Typedef node) => typedefs.contains(node);
@@ -105,6 +162,21 @@ class RetainedDataBuilder extends RetainedData {
   /// Mark a library as used.
   void markLibrary(Library lib) {
     libraries.add(lib);
+  }
+
+  void markAdditionalExports(Library node) {
+    for (var reference in node.additionalExports) {
+      var node = reference.node;
+      if (node is Class) {
+        markClassForExport(node);
+      } else if (node is Member) {
+        markMember(node);
+      } else if (node is Typedef) {
+        markTypedef(node);
+      } else {
+        unimplemented('export ${node.runtimeType}', -1, null);
+      }
+    }
   }
 
   void markAnnotations(List<Expression> annotations) {
@@ -160,6 +232,15 @@ class RetainedDataBuilder extends RetainedData {
     if (node == null || !typedefs.add(node)) return;
     markLibrary(node.parent);
     markAnnotations(node.annotations);
+
+    FunctionType type = node.type;
+    type.returnType?.accept(typeMarker);
+    for (var positionalType in type.positionalParameters) {
+      positionalType.accept(typeMarker);
+    }
+    for (var namedType in type.namedParameters) {
+      namedType.type.accept(typeMarker);
+    }
   }
 
   /// Mark the class and type arguments of [node].
@@ -170,16 +251,25 @@ class RetainedDataBuilder extends RetainedData {
   }
 
   /// Mark a member and types mentioned on its interface.
-  void markMember(Member m) {
-    if (m == null || !members.add(m)) return;
-    markMemberInterface(m);
-    var parent = m.parent;
+  void markMember(Member node) {
+    if (node == null || !members.add(node)) return;
+
+    var parent = node.parent;
     if (parent is Library) {
       markLibrary(parent);
     } else if (parent is Class) {
       markClass(parent);
     }
-    markAnnotations(m.annotations);
+
+    markAnnotations(node.annotations);
+    markMemberInterface(node);
+
+    if (node is Field) {
+      if (_shouldKeepFieldInitializer(node)) {
+        fieldsWithInitializers.add(node);
+        node.initializer?.accept(rootsMarker);
+      }
+    }
   }
 
   void markMemberInterface(Member node) {
@@ -187,8 +277,18 @@ class RetainedDataBuilder extends RetainedData {
       node.type.accept(typeMarker);
     } else if (node is Constructor) {
       var function = node.function;
-      function.positionalParameters.forEach(markParameter);
-      function.namedParameters.forEach(markParameter);
+      for (var parameter in function.positionalParameters) {
+        markParameterType(parameter);
+        if (node.isConst) {
+          markParameterInitializer(parameter);
+        }
+      }
+      for (var parameter in function.namedParameters) {
+        markParameterType(parameter);
+        if (node.isConst) {
+          markParameterInitializer(parameter);
+        }
+      }
       // We don't mark automatically all constructors of classes.
       // So, we need transitively mark super/redirect initializers.
       for (var initializer in node.initializers) {
@@ -201,15 +301,32 @@ class RetainedDataBuilder extends RetainedData {
     } else if (node is Procedure) {
       var function = node.function;
       function.typeParameters.forEach((p) => p.bound.accept(typeMarker));
-      function.positionalParameters.forEach(markParameter);
-      function.namedParameters.forEach(markParameter);
+      function.positionalParameters.forEach(markParameterType);
+      function.namedParameters.forEach(markParameterType);
       function.returnType.accept(typeMarker);
     }
   }
 
-  void markParameter(VariableDeclaration parameter) {
-    parameter.initializer = null;
+  void markParameterType(VariableDeclaration parameter) {
     return parameter.type.accept(typeMarker);
+  }
+
+  void markParameterInitializer(VariableDeclaration parameter) {
+    parametersWithInitializers.add(parameter);
+    parameter.initializer?.accept(rootsMarker);
+  }
+
+  static bool _shouldKeepFieldInitializer(Field node) {
+    if (node.isConst) return true;
+    if (node.isFinal && !node.isStatic) {
+      var parent = node.parent;
+      if (parent is Class) {
+        for (var constructor in parent.constructors) {
+          if (constructor.isConst) return true;
+        }
+      }
+    }
+    return false;
   }
 }
 
@@ -251,9 +368,8 @@ class TypeMarker extends DartTypeVisitor {
 class RootsMarker extends RecursiveVisitor {
   final CoreTypes coreTypes;
   final RetainedDataBuilder data;
-  final bool forOutline;
 
-  RootsMarker(this.coreTypes, this.data, this.forOutline) {
+  RootsMarker(this.coreTypes, this.data) {
     data.rootsMarker = this;
   }
 
@@ -316,20 +432,7 @@ class RootsMarker extends RecursiveVisitor {
   }
 
   @override
-  visitClass(Class node) {
-    if (forOutline) {
-      if (node.name.startsWith('_')) return;
-      data.markClass(node);
-    }
-    super.visitClass(node);
-  }
-
-  @override
   visitConstructor(Constructor node) {
-    if (forOutline) {
-      if (node.name.isPrivate) return;
-      data.markMember(node);
-    }
     if (!node.initializers.any((i) => i is SuperInitializer)) {
       // super() is currently implicit.
       var supertype = node.enclosingClass.supertype;
@@ -350,18 +453,7 @@ class RootsMarker extends RecursiveVisitor {
 
   @override
   visitLibrary(Library node) {
-    for (var reference in node.additionalExports) {
-      var node = reference.node;
-      if (node is Class) {
-        data.markClassForExport(node);
-      } else if (node is Member) {
-        data.markMember(node);
-      } else if (node is Typedef) {
-        data.markTypedef(node);
-      } else {
-        unimplemented('export ${node.runtimeType}', -1, null);
-      }
-    }
+    data.markAdditionalExports(node);
     node.visitChildren(this);
   }
 
@@ -375,38 +467,6 @@ class RootsMarker extends RecursiveVisitor {
   visitConstructorInvocation(ConstructorInvocation node) {
     data.markMember(node.target);
     node.visitChildren(this);
-  }
-
-  @override
-  visitField(Field node) {
-    if (forOutline) {
-      if (node.name.isPrivate) return;
-      data.markMember(node);
-    }
-    // TODO(scheglov): Keep initializers for constant top-level variables and
-    // final fields of classes with constant constructors.
-    super.visitField(node);
-  }
-
-  @override
-  visitFunctionNode(FunctionNode node) {
-    if (!forOutline) {
-      super.visitFunctionNode(node);
-    } else {
-      var body = node.body;
-      node.body = null;
-      super.visitFunctionNode(node);
-      node.body = body;
-    }
-  }
-
-  @override
-  visitProcedure(Procedure node) {
-    if (forOutline) {
-      if (node.name.isPrivate) return;
-      data.markMember(node);
-    }
-    super.visitProcedure(node);
   }
 
   @override
@@ -543,11 +603,15 @@ class KernelOutlineShaker extends Transformer {
       return null;
     } else {
       if (node is Procedure) {
+        _clearParameterInitializers(node.function);
         node.function.body = null;
       } else if (node is Field) {
         if (node.name.name == '_exports#') return null;
         node.initializer = null;
       } else if (node is Constructor) {
+        if (!node.isConst) {
+          _clearParameterInitializers(node.function);
+        }
         node.initializers.clear();
         node.function.body = null;
       }
@@ -566,6 +630,15 @@ class KernelOutlineShaker extends Transformer {
   }
 
   TreeNode defaultTreeNode(TreeNode node) => node;
+
+  static void _clearParameterInitializers(FunctionNode function) {
+    for (var parameter in function.positionalParameters) {
+      parameter.initializer = null;
+    }
+    for (var parameter in function.namedParameters) {
+      parameter.initializer = null;
+    }
+  }
 }
 
 /// [BinaryPrinter] that serializes outlines of all nodes in included
@@ -658,12 +731,14 @@ class TrimmedBinaryPrinter extends BinaryPrinter {
 
   @override
   visitField(Field node) {
-    // TODO(scheglov): Keep initializers for constant top-level variables and
-    // final fields of classes with constant constructors.
-    var initializer = node.initializer;
-    node.initializer = null;
-    super.visitField(node);
-    node.initializer = initializer;
+    if (data.isFieldInitializerUsed(node)) {
+      super.visitField(node);
+    } else {
+      var initializer = node.initializer;
+      node.initializer = null;
+      super.visitField(node);
+      node.initializer = initializer;
+    }
   }
 
   @override
@@ -672,6 +747,18 @@ class TrimmedBinaryPrinter extends BinaryPrinter {
     node.body = null;
     super.visitFunctionNode(node);
     node.body = body;
+  }
+
+  @override
+  writeVariableDeclaration(VariableDeclaration node) {
+    if (data.isParameterInitializerUsed(node)) {
+      super.writeVariableDeclaration(node);
+    } else {
+      var initializer = node.initializer;
+      node.initializer = null;
+      super.writeVariableDeclaration(node);
+      node.initializer = initializer;
+    }
   }
 }
 

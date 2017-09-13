@@ -5,10 +5,3 @@ import self as self;
 
 static field dynamic v;
 
------ external pkg/front_end/testcases/shaker/lib/targets_top.dart
-library;
-import self as self;
-import "dart:core" as core;
-
-static field core::int myTopLevelVariable;
-

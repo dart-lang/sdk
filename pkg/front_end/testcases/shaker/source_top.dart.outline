@@ -61,8 +61,6 @@ class A7 extends core::Object {
 }
 class A8 extends core::Object {
 }
-class A9 extends core::Object {
-}
 class A10 extends core::Object {
 }
 class A11 extends core::Object {
