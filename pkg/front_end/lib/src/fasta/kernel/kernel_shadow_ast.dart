@@ -840,8 +840,14 @@ class ShadowFunctionDeclaration extends FunctionDeclaration
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.functionDeclarationEnter(this);
-    inferrer.inferLocalFunction(function, null, false, fileOffset,
-        _hasImplicitReturnType ? null : function.returnType);
+    inferrer.inferLocalFunction(
+        function,
+        null,
+        false,
+        fileOffset,
+        _hasImplicitReturnType
+            ? (inferrer.strongMode ? null : const DynamicType())
+            : function.returnType);
     variable.type = function.functionType;
     inferrer.listener.functionDeclarationExit(this);
   }

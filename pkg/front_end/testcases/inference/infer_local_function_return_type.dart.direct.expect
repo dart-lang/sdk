@@ -1,23 +1,22 @@
 library test;
 import self as self;
-import "dart:async" as asy;
 import "dart:core" as core;
 
 static method test() → dynamic {
   function f0() → dynamic
     return 42;
-  function f1() → asy::Future<dynamic> async 
+  function f1() → dynamic async 
     return 42;
   function f2() → dynamic {
     return 42;
   }
-  function f3() → asy::Future<dynamic> async {
+  function f3() → dynamic async {
     return 42;
   }
-  function f4() → core::Iterable<dynamic> sync* {
+  function f4() → dynamic sync* {
     yield 42;
   }
-  function f5() → asy::Stream<dynamic> async* {
+  function f5() → dynamic async* {
     yield 42;
   }
   function f6() → core::num
