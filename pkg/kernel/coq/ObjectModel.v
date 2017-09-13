@@ -5,14 +5,16 @@
 Require Import Common.
 Require Import Syntax.
 Import Common.OptionMonad.
-Module L := Common.ListExtensions.
 Require Import Coq.Strings.String.
+Require Import CpdtTactics.
+
+Module N := Coq.Arith.PeanoNat.Nat.
 
 Fixpoint type_equiv (s : dart_type) (t : dart_type) : bool :=
   match (s, t) with
   | (DT_Interface_Type (Interface_Type s_class),
      DT_Interface_Type (Interface_Type t_class)) =>
-    Nat.eqb s_class t_class
+    N.eqb s_class t_class
   | (DT_Function_Type (Function_Type s_param s_ret),
      DT_Function_Type (Function_Type t_param t_ret)) =>
     type_equiv s_param t_param && type_equiv s_ret t_ret
@@ -21,8 +23,66 @@ Fixpoint type_equiv (s : dart_type) (t : dart_type) : bool :=
 
 Notation "s ≡ t" := (type_equiv s t = true) (at level 70, no associativity).
 
-Lemma type_equiv_trans : forall s t r, s ≡ t /\ t ≡ r -> s ≡ r.
-Admitted.
+Section Type_Equivalence_Properties.
+
+  Ltac destruct_types :=
+    repeat match goal with
+           | [H : interface_type |- _] => destruct H
+           | [H : function_type |- _] => destruct H
+           end.
+
+  Hint Rewrite N.eqb_eq.
+  Hint Unfold type_equiv.
+
+  Lemma type_equiv_refl : forall s : dart_type, s ≡ s.
+    apply
+      (dart_type_ind_mutual
+         (fun s => s ≡ s)
+         (fun i => DT_Interface_Type i ≡ DT_Interface_Type i)
+         (fun f => DT_Function_Type f ≡ DT_Function_Type f)); crush.
+  Qed.
+
+  Definition trans_at t := forall s r, s ≡ t /\ t ≡ r -> s ≡ r.
+
+  Hint Unfold trans_at.
+
+  Lemma interface_type_trans : forall (n : nat), trans_at (DT_Interface_Type (Interface_Type n)).
+  Proof.
+    intros; unfold trans_at; intros; destruct s; destruct r; destruct_types; crush.
+  Qed.
+
+  Lemma function_type_trans :
+    forall d, trans_at d -> forall d', trans_at d' ->
+    trans_at (DT_Function_Type (Function_Type d d')).
+  Proof.
+    intros; unfold trans_at in *; intros; destruct s; destruct r.
+    crush.
+    crush.
+    crush.
+    destruct_types.
+    intuition.
+    repeat match goal with
+      | [ H : DT_Function_Type (Function_Type _ _) ≡ DT_Function_Type (Function_Type _ _) |- _ ] =>
+        unfold type_equiv in H;
+        apply Bool.andb_true_iff in H;
+        fold type_equiv in H;
+        destruct H
+      end.
+    assert (d3 ≡ d1 /\ d2 ≡ d0); crush.
+  Qed.
+
+  Lemma type_equiv_trans : forall t s r, s ≡ t /\ t ≡ r -> s ≡ r.
+    apply
+      (dart_type_ind_mutual trans_at
+         (fun i => trans_at (DT_Interface_Type i))
+         (fun f => trans_at (DT_Function_Type f))).
+    crush.
+    crush.
+    apply interface_type_trans.
+    apply function_type_trans.
+  Qed.
+
+End Type_Equivalence_Properties.
 
 (* Semantic Types *)
 Record procedure_desc : Type := mk_procedure_desc {
@@ -100,7 +160,8 @@ with statement_type (CE : class_env) (TE : type_env) (s : statement) :
     process_statements TE stmts
   end
 
-with expression_type (CE : class_env) (TE : type_env) (e : expression) : option dart_type :=
+with expression_type (CE : class_env) (TE : type_env) (e : expression) :
+    option dart_type :=
   match e with
   | E_Variable_Get (Variable_Get v) => NatMap.find v TE
   | E_Property_Get (Property_Get rec prop) =>
@@ -135,8 +196,49 @@ with expression_type (CE : class_env) (TE : type_env) (e : expression) : option 
   end
 .
 
-Lemma type_equiv_sanity1 :
-  forall CE TE e v s t et,
-    expression_type CE (NatMap.add v s TE) e = Some et /\ s ≡ t ->
-    exists es, expression_type CE (NatMap.add v t TE) e = Some es /\ et ≡ es.
-Admitted.
+Section Typing_Equivalence_Homomorphism.
+
+  Definition type_equiv_at_expr (e : expression) :=
+    forall CE TE v s t et,
+                 expression_type CE (NatMap.add v s TE) e = [et] /\ s ≡ t ->
+      exists es, expression_type CE (NatMap.add v t TE) e = [es] /\ et ≡ es.
+
+  Hint Resolve NatMap.add_1.
+  Hint Resolve NatMap.add_2.
+  Hint Resolve NatMap.find_1.
+  Hint Resolve type_equiv_refl.
+  Lemma type_equiv_at_variable_get :
+    forall v, type_equiv_at_expr (E_Variable_Get (Variable_Get v)).
+  Proof.
+    unfold type_equiv_at_expr.
+    intros.
+    destruct (N.eq_dec v v0).
+    rewrite e in *.
+    exists t.
+    assert (et = s).
+    unfold expression_type in H.
+    assert (NatMap.find v0 (NatMap.add v0 s TE) = Some s).
+    crush.
+    rewrite H0 in H.
+    crush.
+    intuition.
+    unfold expression_type.
+    crush.
+    crush.
+    destruct H.
+    unfold expression_type in H.
+    apply NatMap.find_2 in H.
+    exists et.
+    assert (NatMap.MapsTo v et (NatMap.add v0 t TE)); unfold expression_type in *.
+    pose proof (@NatMap.add_3 dart_type TE v0 v et s (not_eq_sym n) H).
+    crush.
+    crush.
+  Qed.
+
+  Theorem type_equiv_homo :
+    forall CE TE e v s t et,
+                 expression_type CE (NatMap.add v s TE) e = [et] /\ s ≡ t ->
+      exists es, expression_type CE (NatMap.add v t TE) e = [es] /\ et ≡ es.
+  Admitted.
+
+End Typing_Equivalence_Homomorphism.
