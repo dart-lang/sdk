@@ -352,6 +352,10 @@ class ScopedDecompress : public ValueObject {
   uint8_t* decompressed_;
 };
 
+static void ReleaseFetchedBytes(uint8_t* buffer) {
+  free(buffer);
+}
+
 bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // We have to copy everything we care about out of |result| because after
   // dropping the lock below |result| may no longer valid.
@@ -470,8 +474,9 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
         // isolates. We currently do not have support for neither
         // `Isolate.spawn()` nor `Isolate.spawnUri()` with kernel-based
         // frontend.
-        Dart_Handle kernel_binary = reinterpret_cast<Dart_Handle>(
-            Dart_ReadKernelBinary(payload, payload_length));
+        Dart_Handle kernel_binary =
+            reinterpret_cast<Dart_Handle>(Dart_ReadKernelBinary(
+                payload, payload_length, ReleaseFetchedBytes));
         dart_result = Dart_LoadScript(uri, resolved_uri, kernel_binary, 0, 0);
       } else {
         dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
