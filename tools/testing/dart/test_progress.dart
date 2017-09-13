@@ -693,8 +693,12 @@ class ResultLogWriter extends EventListener {
         'duration': output.time.inMilliseconds
       };
     }).toList();
-    _results.add(
-        {'configuration': key, 'name': test.displayName, 'commands': commands});
+    _results.add({
+      'configuration': key,
+      'name': test.displayName,
+      'result': test.lastCommandOutput.result(test).toString(),
+      'commands': commands
+    });
     _outputDirectory ??= test.configuration.outputDirectory;
   }
 
