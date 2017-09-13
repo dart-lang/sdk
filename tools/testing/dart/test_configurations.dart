@@ -64,7 +64,6 @@ Future testConfigurations(List<Configuration> configurations) async {
   var verbose = firstConf.isVerbose;
   var printTiming = firstConf.printTiming;
   var listTests = firstConf.listTests;
-  var listStatusFiles = firstConf.listStatusFiles;
 
   var reportInJson = firstConf.reportInJson;
 
@@ -124,7 +123,7 @@ Future testConfigurations(List<Configuration> configurations) async {
   }
 
   for (var configuration in configurations) {
-    if (!listTests && !listStatusFiles && runningBrowserTests) {
+    if (!listTests && runningBrowserTests) {
       serverFutures.add(configuration.startServers());
     }
 
@@ -185,18 +184,6 @@ Future testConfigurations(List<Configuration> configurations) async {
         }
       }
     }
-  }
-
-  // If we only need to print out status files for test suites
-  // we return from running here and just print.
-  if (firstConf.listStatusFiles) {
-    testSuites.forEach((suite) {
-      print(suite.suiteName);
-      suite.statusFilePaths
-          .toSet()
-          .forEach((statusFile) => print("\t$statusFile"));
-    });
-    return;
   }
 
   void allTestsFinished() {

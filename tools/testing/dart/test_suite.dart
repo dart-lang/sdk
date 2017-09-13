@@ -118,12 +118,11 @@ class FutureGroup {
 abstract class TestSuite {
   final Configuration configuration;
   final String suiteName;
-  final List<String> statusFilePaths;
   // This function is set by subclasses before enqueueing starts.
   Function doTest;
   Map<String, String> _environmentOverrides;
 
-  TestSuite(this.configuration, this.suiteName, this.statusFilePaths) {
+  TestSuite(this.configuration, this.suiteName) {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory
     };
@@ -442,12 +441,13 @@ class CCTestSuite extends TestSuite {
   String targetRunnerPath;
   String hostRunnerPath;
   final String dartDir;
+  List<String> statusFilePaths;
 
   CCTestSuite(Configuration configuration, String suiteName, String runnerName,
-      List<String> statusFilePaths,
+      this.statusFilePaths,
       {this.testPrefix: ''})
       : dartDir = TestUtils.dartDir.toNativePath(),
-        super(configuration, suiteName, statusFilePaths) {
+        super(configuration, suiteName) {
     // For running the tests we use the given '$runnerName' binary
     targetRunnerPath = '$buildDir/$runnerName';
 
@@ -554,6 +554,7 @@ class HtmlTestInformation extends TestInformation {
  */
 class StandardTestSuite extends TestSuite {
   final Path suiteDir;
+  final List<String> statusFilePaths;
   ExpectationSet testExpectations;
   List<TestInformation> cachedTests;
   final Path dartDir;
@@ -563,13 +564,13 @@ class StandardTestSuite extends TestSuite {
   List<Uri> _dart2JsBootstrapDependencies;
 
   StandardTestSuite(Configuration configuration, String suiteName,
-      Path suiteDirectory, List<String> statusFilePaths,
+      Path suiteDirectory, this.statusFilePaths,
       {this.isTestFilePredicate, bool recursive: false})
       : dartDir = TestUtils.dartDir,
         listRecursively = recursive,
         suiteDir = TestUtils.dartDir.join(suiteDirectory),
         extraVmOptions = configuration.vmOptions,
-        super(configuration, suiteName, statusFilePaths) {
+        super(configuration, suiteName) {
     if (!useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
