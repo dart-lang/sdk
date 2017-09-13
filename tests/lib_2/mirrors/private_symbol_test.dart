@@ -121,11 +121,4 @@ main() {
   // Private symbol without a library.
   Expect.throws(
       () => MirrorSystem.getSymbol('_private'), (e) => e is ArgumentError);
-
-  var notALibraryMirror = 7;
-  Expect.throws(() => MirrorSystem.getSymbol('_private', notALibraryMirror),
-      (e) => e is ArgumentError || e is TypeError);
-
-  Expect.throws(() => MirrorSystem.getSymbol('public', notALibraryMirror),
-      (e) => e is ArgumentError || e is TypeError);
 }

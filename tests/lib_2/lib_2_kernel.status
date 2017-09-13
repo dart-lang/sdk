@@ -93,6 +93,12 @@ mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_application_test: RuntimeError
 mirrors/mixin_test: RuntimeError
 mirrors/mirrors_test: Crash
+mirrors/other_declarations_location_test: RuntimeError
+mirrors/parameter_annotation_mirror_test: RuntimeError
+mirrors/parameter_metadata_test: RuntimeError
+mirrors/parameter_of_mixin_app_constructor_test: RuntimeError
+mirrors/private_class_field_test: RuntimeError
+mirrors/private_symbol_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subclass_test: RuntimeError
@@ -151,6 +157,11 @@ mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_simple_test: RuntimeError
 mirrors/mixin_test: RuntimeError
+mirrors/other_declarations_location_test: RuntimeError
+mirrors/parameter_annotation_mirror_test: RuntimeError
+mirrors/parameter_metadata_test: Crash
+mirrors/private_class_field_test: RuntimeError
+mirrors/private_field_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError
@@ -172,3 +183,6 @@ mirrors/invocation_fuzz_test/smi: Crash
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
+
+[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.

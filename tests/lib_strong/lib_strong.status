@@ -62,11 +62,6 @@ mirrors/invoke_call_through_implicit_getter_previously_accessed_test: Skip
 mirrors/invoke_call_through_implicit_getter_test: Skip
 mirrors/lazy_static_test: Skip
 mirrors/mirrors_test: Skip
-mirrors/operator_test: Skip
-mirrors/parameter_is_const_test: Skip
-mirrors/parameter_of_mixin_app_constructor_test: Skip
-mirrors/parameter_test: Skip
-mirrors/private_symbol_test: Skip
 mirrors/redirecting_factory_different_type_test: Skip
 mirrors/redirecting_factory_test: Skip
 mirrors/reflect_class_test: Skip
@@ -162,12 +157,6 @@ mirrors/library_uri_io_test: RuntimeError # Issue 29922
 mirrors/library_uri_package_test: RuntimeError # Issue 29922
 mirrors/local_function_is_static_test: RuntimeError # Issue 29922
 mirrors/metadata_test: RuntimeError # Issue 29922
-mirrors/null_test: RuntimeError # Issue 29922
-mirrors/other_declarations_location_test: RuntimeError # Issue 29922
-mirrors/parameter_annotation_mirror_test: RuntimeError # Issue 29922
-mirrors/parameter_metadata_test: RuntimeError # Issue 29922
-mirrors/private_class_field_test: RuntimeError # Issue 29922
-mirrors/private_symbol_mangling_test: RuntimeError # Issue 29922
 mirrors/private_types_test: RuntimeError # Issue 29922
 mirrors/reflect_runtime_type_test: RuntimeError # Issue 29922
 mirrors/reflect_uninstantiated_class_test: RuntimeError # Issue 29922
