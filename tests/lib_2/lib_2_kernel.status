@@ -34,6 +34,8 @@ mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading ke
 mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
+mirrors/hot_get_field_test: RuntimeError
+mirrors/hot_set_field_test: RuntimeError
 mirrors/intercepted_object_test: RuntimeError
 mirrors/invocation_fuzz_test/emptyarray: Crash
 mirrors/invocation_fuzz_test/false: Crash
@@ -122,6 +124,8 @@ mirrors/empty_test: RuntimeError
 mirrors/equality_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
+mirrors/hot_get_field_test: RuntimeError
+mirrors/hot_set_field_test: RuntimeError
 mirrors/invocation_fuzz_test/emptyarray: Crash
 mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash

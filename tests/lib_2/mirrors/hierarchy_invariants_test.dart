@@ -24,7 +24,8 @@ checkClass(classMirror) {
   }
   Expect.isTrue(classMirror.superinterfaces is List);
   if (classMirror.superclass == null) {
-    Expect.equals(reflectClass(Object), classMirror);
+    Expect.isTrue((reflectClass(Object) == classMirror) ||
+        (classMirror.toString() == "ClassMirror on 'FutureOr'"));
   } else {
     checkClass(classMirror.superclass);
   }

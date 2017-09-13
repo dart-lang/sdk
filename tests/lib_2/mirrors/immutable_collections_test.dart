@@ -7,9 +7,9 @@ library test.immutable_collections;
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
-someException(e) => e is Exception || e is Error;
+bool someException(e) => e is Exception || e is Error;
 
-checkList(Iterable l, String reason) {
+checkList(dynamic l, String reason) {
   Expect.throws(() => l[0] = 'value', someException, reason);
   Expect.throws(() => l.add('value'), someException, reason);
   Expect.throws(() => l.clear(), someException, reason);

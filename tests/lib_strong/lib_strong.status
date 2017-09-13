@@ -54,14 +54,12 @@ mirrors/generic_class_declaration_test: Skip
 mirrors/generic_f_bounded_mixin_application_test: Skip
 mirrors/generic_interface_test: Skip
 mirrors/generics_test: Skip
-mirrors/get_symbol_name_no_such_method_test: Skip
-mirrors/immutable_collections_test: Skip
-mirrors/inference_and_no_such_method_test: Skip
-mirrors/inherit_field_test: Skip
-mirrors/initializing_formals_test: Skip
-mirrors/instance_members_easier_test: Skip
-mirrors/instance_members_test: Skip
-mirrors/instance_members_with_override_test: Skip
+mirrors/intercepted_class_test: Skip
+mirrors/intercepted_object_test: Skip
+mirrors/invoke_call_through_getter_previously_accessed_test: Skip
+mirrors/invoke_call_through_getter_test: Skip
+mirrors/invoke_call_through_implicit_getter_previously_accessed_test: Skip
+mirrors/invoke_call_through_implicit_getter_test: Skip
 mirrors/lazy_static_test: Skip
 mirrors/mirrors_test: Skip
 mirrors/mixin_application_test: Skip
@@ -157,14 +155,6 @@ mirrors/generics_double_substitution_test/none: RuntimeError # Issue 29922
 mirrors/generics_dynamic_test: RuntimeError # Issue 29922
 mirrors/generics_special_types_test: RuntimeError # Issue 29922
 mirrors/generics_substitution_test: RuntimeError # Issue 29922
-mirrors/globalized_closures2_test/00: RuntimeError # Issue 29922
-mirrors/globalized_closures2_test/none: RuntimeError # Issue 29922
-mirrors/globalized_closures_test/00: RuntimeError # Issue 29922
-mirrors/globalized_closures_test/none: RuntimeError # Issue 29922
-mirrors/hot_get_field_test: RuntimeError # Issue 29922
-mirrors/hot_set_field_test: RuntimeError # Issue 29922
-mirrors/inherited_metadata_test: RuntimeError # Issue 29922
-mirrors/instance_members_unimplemented_interface_test: RuntimeError # Issue 29922
 mirrors/instantiate_abstract_class_test: RuntimeError # Issue 29922
 mirrors/invocation_fuzz_test/emptyarray: RuntimeError # Issue 29922
 mirrors/invocation_fuzz_test/false: RuntimeError # Issue 29922
