@@ -288,9 +288,10 @@ class FileSystemState {
   /// may contain an entry for `dart:core`.
   final Map<Uri, FileState> _uriToFile = {};
 
-  /// Mapping from file URIs to corresponding [FileState]s. This map should only
-  /// contain `file:*` URIs or custom URIs use for testing as keys, but no
-  /// `package:*` or `dart:*` URIs.
+  /// Mapping from file URIs to corresponding [FileState]s.
+  ///
+  /// This map should only contain URIs understood by [fileSystem], which
+  /// excludes `package:*` and `dart:*` URIs.
   final Map<Uri, FileState> _fileUriToFile = {};
 
   /// The set of absolute URIs with the `dart` scheme that should be skipped.
@@ -308,9 +309,7 @@ class FileSystemState {
     return _fileSystemView ??= new _FileSystemView(this);
   }
 
-  /// The URIs of all files currently tracked by this instance. This will
-  /// contain `file:*` URIs or custom URIs used for testing, but no `package:*`
-  /// or `dart:*` URIs.
+  /// The [fileSystem]'s URIs of all files currently tracked by this instance.
   Iterable<Uri> get fileUris => _fileUriToFile.keys;
 
   /// Perform mark and sweep garbage collection of [FileState]s.
