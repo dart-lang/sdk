@@ -4407,9 +4407,22 @@ class CodeGenerator extends Object
       return _emitSend(left, op.lexeme, [right]);
     }
 
-    // Equality on enums and primitives is identity.
-    // TODO(leafp): Walk the class hierarchy and check to see if == was
-    // overridden
+    // Conceptually `x == y` in Dart is defined as:
+    //
+    // If either x or y is null, then they are equal iff they are both null.
+    // Otherwise, equality is the result of calling `x.==(y)`.
+    //
+    // In practice, `x.==(y)` is equivalent to `identical(x, y)` in many cases:
+    // - when either side is known to be `null` (literal or Null type)
+    // - left side is an enum
+    // - left side is a primitive type
+    //
+    // We also compile `operator ==` methods to ensure they check the right side
+    // for null`. This allows us to skip the check at call sites.
+    //
+    // TODO(leafp,jmesserly): we could use class hierarchy analysis to check
+    // if `operator ==` was overridden, similar to how we devirtualize private
+    // fields.
     var isEnum = leftType is InterfaceType && leftType.element.isEnum;
     var usesIdentity = typeRep.isPrimitive(leftType) ||
         isEnum ||
@@ -4417,36 +4430,21 @@ class CodeGenerator extends Object
         _isNull(right);
 
     // If we know that the left type uses identity for equality, we can
-    // sometimes emit better code.
+    // sometimes emit better code, either `===` or `==`.
     if (usesIdentity) {
       return _emitCoreIdenticalCall([left, right], negated: negated);
     }
 
-    var leftElement = leftType.element;
-
-    // If either is null, we can use simple equality.
-    // We need to equate null and undefined, so if both are nullable
-    //  (but not known to be null), we cannot directly use JS ==
-    //  unless we know that conversion will not happen.
-    // Functions may or may not have an [dartx[`==`]] method attached.
-    //   - If they are tearoffs they will, otherwise they won't and equality is
-    // identity.
-    // TODO(leafp): consider fixing this.
-    //
-    // Native types may not have equality on the prototype.
-    // If left is not nullable, then we don't need to worry about
-    // null/undefined.
-    // TODO(leafp): consider using (left || dart.EQ)['=='](right))
-    // when left is nullable but not falsey
-    if ((leftElement is ClassElement && _isJSNative(leftElement)) ||
-        typeRep.isUnknown(leftType) ||
-        leftType is FunctionType ||
-        isNullable(left)) {
-      // Fall back to equality for now.
+    // If the left side is nullable, we need to use a runtime helper to check
+    // for null. We could inline the null check, but it did not seem to have
+    // a measurable performance effect (possibly the helper is simple enough to
+    // be inlined).
+    if (isNullable(left)) {
       var code = negated ? '!#.equals(#, #)' : '#.equals(#, #)';
       return js.call(code, [_runtimeModule, _visit(left), _visit(right)]);
     }
 
+    // Otherwise we emit a call to the == method.
     var name = _emitMemberName('==', type: leftType);
     var code = negated ? '!#[#](#)' : '#[#](#)';
     return js.call(code, [_visit(left), name, _visit(right)]);
@@ -5707,6 +5705,8 @@ class CodeGenerator extends Object
       return _emitPrivateNameSymbol(currentLibrary, name);
     }
 
+    useExtension ??= _isSymbolizedMember(type, name);
+
     // When generating synthetic names, we use _ as the prefix, since Dart names
     // won't have this (eliminated above), nor will static names reach here.
     switch (name) {
@@ -5728,7 +5728,7 @@ class CodeGenerator extends Object
         break;
     }
 
-    if (useExtension ?? _isSymbolizedMember(type, name)) {
+    if (useExtension) {
       return _getExtensionSymbolInternal(name);
     }
     return _propertyName(name);
@@ -5779,7 +5779,7 @@ class CodeGenerator extends Object
     while (type is TypeParameterType) {
       type = (type as TypeParameterType).bound;
     }
-    if (type == null || type.isDynamic) {
+    if (type == null || type.isDynamic || type.isObject) {
       return isObjectMember(name);
     } else if (type is InterfaceType) {
       var element = type.element;
@@ -5854,6 +5854,7 @@ class CodeGenerator extends Object
       case 'toString':
       case 'noSuchMethod':
       case 'runtimeType':
+      case '==':
         return true;
     }
     return false;

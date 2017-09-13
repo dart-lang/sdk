@@ -522,7 +522,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   bool contains(Object other) {
     var length = this.length;
     for (int i = 0; i < length; i++) {
-      E element = JS('-dynamic | Null', '#[#]', this, i);
+      E element = JS('Null', '#[#]', this, i);
       if (element == other) return true;
     }
     return false;
