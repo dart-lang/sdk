@@ -50,6 +50,8 @@ compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
+issue_25671a_test/01: CompileTimeError
+issue_25671b_test/01: CompileTimeError
 
 [ $compiler == dartdevc ]
 compile_time_constant_e_test: RuntimeError # Issue 30466

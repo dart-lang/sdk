@@ -128,4 +128,5 @@ identical_closure2_test: RuntimeError # Issue 29920
 infinite_switch_label_test: RuntimeError # Issue 29920
 infinity_test: RuntimeError # Issue 29920
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
+label_test/01: RuntimeError # Issue 30675
 yieldstar_pause_test: Pass, Timeout
