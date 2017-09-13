@@ -330,10 +330,6 @@ void outputCoqSyntax(CoqLibInfo info) {
   defkw() => defN++ > 0 ? "with" : "Inductive";
   for (var classInfo in info.classes.values) {
     bool isAbstract = classInfo.subs.length > 0;
-    // if (!isAbstract && !classInfo.cls.isAbstract) {
-    //   throw new Exception(
-    //       "ERROR: Cannot Coq-ify non-abstract non-final class ${classInfo.cls}.");
-    // }
 
     Class cls = classInfo.cls;
     var coqName = classInfo.coqType;
@@ -388,24 +384,6 @@ void outputCoqSyntax(CoqLibInfo info) {
       print("\n");
     }
   }
-  /*
-  for (var CI in info.classes.values) {
-    if (CI.needsList) {
-      var def = """${defkw()} ${CI.coqType}_list : Set :=
-  | ${CI.coqType}_nil : ${CI.coqType}_list
-  | ${CI.coqType}_cons : ${CI.refType} -> ${CI.coqType}_list -> ${CI.coqType}_list
-""";
-      print(def);
-    }
-    if (CI.needsOption) {
-      var def = """${defkw()} ${CI.coqType}_option : Set :=
-  | ${CI.coqType}_none : ${CI.coqType}_option
-  | ${CI.coqType}_some : ${CI.refType} -> ${CI.coqType}_option
-""";
-      print(def);
-    }
-  }
-  */
   print(".\n");
 }
 
@@ -545,11 +523,6 @@ Program transformProgram(CoreTypes coreTypes, Program program) {
     (new CoqPass2(info, coreTypes)).visitLibrary(lib);
     outputCoqImports();
     outputCoqSyntax(info);
-    // outputCoqStore(info);
-    // print("Module SyntacticValidity.");
-    // outputCoqSyntaxValidity(info);
-    // outputCoqStoreValidity(info);
-    // print("End SyntacticValidity.");
   }
   return program;
 }

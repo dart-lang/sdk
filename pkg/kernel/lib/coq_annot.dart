@@ -24,5 +24,5 @@ class CoqLib {
 // TODO(30609): Since fasta currently throws away annotations on Enums, we use a
 // list to identify which enums to convert.
 //
-// We'll uncomment these enums once the Coq formalization is complete.
+// We'll uncomment these enums once the Coq formalization is sufficiently complete.
 var coqEnums = [/*"kernel.ast::ProcedureKind", "kernel.ast::AsyncMarker"*/];

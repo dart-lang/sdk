@@ -33,7 +33,6 @@ with class : Set :=
 with member_data : Set :=
   | Member : 
       named_node_data
-      -> list expression (* annotations *)
       -> name (* name *)
       -> member_data
 
@@ -93,7 +92,6 @@ with method_invocation : Set :=
 with constructor_invocation : Set :=
   | Constructor_Invocation : 
       nat (* targetReference *)
-      -> arguments (* arguments *)
       -> constructor_invocation
 
 with statement : Set :=

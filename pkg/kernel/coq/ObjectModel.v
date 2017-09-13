@@ -33,7 +33,7 @@ Record procedure_desc : Type := mk_procedure_desc {
 
 Definition procedure_dissect (p : procedure) : procedure_desc :=
   let (memb, _, fn) := p in
-  let (nn, _, name) := memb in
+  let (nn, name) := memb in
   let (name_str) := name in
   let (ref) := nn in
   let (id) := ref in
@@ -107,7 +107,8 @@ with expression_type (CE : class_env) (TE : type_env) (e : expression) : option 
     rec_type <- expression_type CE TE rec;
     let (prop_name) := prop in
     match rec_type with
-    | DT_Function_Type _ => None
+    | DT_Function_Type _ =>
+      if string_dec prop_name "call" then [rec_type] else None
     | DT_Interface_Type (Interface_Type class) =>
       interface <- NatMap.find class CE;
       proc_desc <- List.find (fun P =>
@@ -115,7 +116,7 @@ with expression_type (CE : class_env) (TE : type_env) (e : expression) : option 
         (procedures interface);
       [DT_Function_Type (pr_type proc_desc)]
     end
-  | E_Invocation_Expression (IE_Constructor_Invocation (Constructor_Invocation class _)) =>
+  | E_Invocation_Expression (IE_Constructor_Invocation (Constructor_Invocation class)) =>
     _ <- NatMap.find class CE;
     [DT_Interface_Type (Interface_Type class)]
   | E_Invocation_Expression (IE_Method_Invocation (Method_Invocation rec method args _)) =>
