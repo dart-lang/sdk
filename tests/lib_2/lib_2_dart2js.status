@@ -53,6 +53,7 @@ typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 
 [ $compiler == dart2js ]
 async/future_or_strong_test: RuntimeError
+mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 profiler/metrics_num_test: Skip # Because of an int / double type test.
 
 [ $compiler != dart2js ]

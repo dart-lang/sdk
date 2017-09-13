@@ -33,6 +33,7 @@ mirrors/deferred_mirrors_test: CompileTimeError
 mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
@@ -186,3 +187,7 @@ mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
+
+[ $compiler == dartk && $runtime == vm ]
+mirrors/generic_mixin_applications_test: RuntimeError
+mirrors/generic_mixin_test: RuntimeError
