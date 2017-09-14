@@ -84,7 +84,7 @@ class ElementKindTest {
     expect(new ElementKind(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
     expect(() {
       new ElementKind('no-such-kind');
-    }, throwsA(new isInstanceOf<Exception>()));
+    }, throwsException);
   }
 
   void test_toString() {

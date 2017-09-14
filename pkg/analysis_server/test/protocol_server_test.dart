@@ -182,7 +182,7 @@ class EnumTester<EngineEnum, ApiEnum> {
         if (expectedResult == null) {
           expect(() {
             convert(engineValue);
-          }, throwsA(new isInstanceOf<Exception>()));
+          }, throwsException);
         } else {
           ApiEnum apiValue = convert(engineValue);
           expect(apiValue, equals(expectedResult));

@@ -681,7 +681,7 @@ class MemoryResourceProviderTest {
     provider.newFolder(path);
     expect(() {
       provider.deleteFile(path);
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
     expect(provider.getResource(path), new isInstanceOf<Folder>());
   }
 
@@ -689,7 +689,7 @@ class MemoryResourceProviderTest {
     String path = provider.convertPath('/my/file');
     expect(() {
       provider.deleteFile(path);
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
     Resource file = provider.getResource(path);
     expect(file, isNotNull);
     expect(file.exists, isFalse);
@@ -745,7 +745,7 @@ class MemoryResourceProviderTest {
     provider.newFolder(path);
     expect(() {
       provider.modifyFile(path, 'contents');
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
     expect(provider.getResource(path), new isInstanceOf<Folder>());
   }
 
@@ -753,7 +753,7 @@ class MemoryResourceProviderTest {
     String path = provider.convertPath('/my/file');
     expect(() {
       provider.modifyFile(path, 'contents');
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
     Resource file = provider.getResource(path);
     expect(file, isNotNull);
     expect(file.exists, isFalse);
@@ -784,7 +784,7 @@ class MemoryResourceProviderTest {
     provider.newFile(provider.convertPath('/my/file'), 'qwerty');
     expect(() {
       provider.newFolder(provider.convertPath('/my/file'));
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
   }
 
   void test_newFolder_alreadyExists_asFolder() {
@@ -797,13 +797,13 @@ class MemoryResourceProviderTest {
   void test_newFolder_emptyPath() {
     expect(() {
       provider.newFolder('');
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
   }
 
   void test_newFolder_notAbsolute() {
     expect(() {
       provider.newFolder('not/absolute');
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
   }
 
   test_watch_createFile() {

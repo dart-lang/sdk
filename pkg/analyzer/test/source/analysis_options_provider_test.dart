@@ -217,7 +217,7 @@ include: /foo.include
     pathTranslator.newFile('/$optionsFileName', r''':''');
     expect(() {
       _getOptions('/');
-    }, throwsA(new isInstanceOf<Exception>()));
+    }, throwsException);
   }
 
   void test_getOptions_simple() {
