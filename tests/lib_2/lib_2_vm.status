@@ -9,6 +9,15 @@ async/schedule_microtask2_test: RuntimeError
 async/schedule_microtask3_test: RuntimeError
 async/schedule_microtask5_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
+async/stream_iterator_test: RuntimeError
+async/stream_join_test: RuntimeError
+async/stream_last_where_test: RuntimeError
+async/stream_periodic2_test: RuntimeError
+async/stream_periodic3_test: RuntimeError
+async/stream_periodic4_test: RuntimeError
+async/stream_periodic5_test: RuntimeError
+async/stream_periodic6_test: RuntimeError
+async/stream_periodic_test: RuntimeError
 async/stream_transform_test: RuntimeError
 async/stream_transformation_broadcast_test: RuntimeError
 async/stream_state_test: RuntimeError

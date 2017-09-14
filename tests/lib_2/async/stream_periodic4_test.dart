@@ -6,7 +6,7 @@
 library dart.test.stream_from_iterable;
 
 import "dart:async";
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 void runTest(period, maxElapsed, pauseDuration) {
   Function done = expectAsync(() {});

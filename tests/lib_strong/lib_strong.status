@@ -166,8 +166,6 @@ mirrors/reflected_type_typedefs_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typevars_test: RuntimeError # Issue 29922
 mirrors/regress_14304_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
-
-async/stream_join_test: RuntimeError # Issue 29922, strong mode cast failure
 async/stream_transformer_from_handlers_test: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Timeout # Issue 29922, strong mode cast failure

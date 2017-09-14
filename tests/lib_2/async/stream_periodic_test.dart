@@ -6,18 +6,20 @@
 library dart.test.stream_from_iterable;
 
 import "dart:async";
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
-  test("stream-periodic2", () {
-    Stream stream =
-        new Stream.periodic(const Duration(milliseconds: 1), (x) => x);
+  test("stream-periodic1", () {
+    Stream stream = new Stream.periodic(const Duration(milliseconds: 1));
     int receivedCount = 0;
     var subscription;
     subscription = stream.listen(expectAsync((data) {
-      expect(data, receivedCount);
+      expect(data, isNull);
       receivedCount++;
-      if (receivedCount == 5) subscription.cancel();
+      if (receivedCount == 5) {
+        var future = subscription.cancel();
+        expect(future, completes);
+      }
     }, count: 5));
   });
 }
