@@ -11,8 +11,8 @@ class DecrementingTransformerSink implements EventSink {
   final outSink;
   DecrementingTransformerSink(this.outSink);
 
-  void add(int i) => outSink.add(i - 1);
-  void addError(int e, [st]) => outSink.addError(e - 1, st);
+  void add(dynamic i) => outSink.add(i - 1);
+  void addError(dynamic e, [st]) => outSink.addError(e - 1, st);
   void close() => outSink.close();
 }
 
@@ -21,11 +21,11 @@ class FutureWaitingTransformerSink implements EventSink {
   final closeFuture;
   FutureWaitingTransformerSink(this.outSink, this.closeFuture);
 
-  void add(Future future) {
+  void add(dynamic future) {
     future.then(outSink.add);
   }
 
-  void addError(Future e, [st]) {
+  void addError(dynamic e, [st]) {
     e.then((val) {
       outSink.addError(val, st);
     });

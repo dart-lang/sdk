@@ -7,7 +7,7 @@ library dart.test.stream_from_iterable;
 
 import "package:expect/expect.dart";
 import "dart:async";
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'event_helper.dart';
 
 class IterableTest<T> {
