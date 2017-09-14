@@ -109,6 +109,7 @@ deferred_inlined_test: RuntimeError
 deferred_load_inval_code_test: RuntimeError
 deferred_load_library_wrong_args_test/none: RuntimeError
 deferred_mixin_test: RuntimeError
+issue_1751477_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -311,6 +312,7 @@ cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel 
 compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
+issue_1751477_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError

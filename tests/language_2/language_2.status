@@ -36,6 +36,9 @@ deferred_load_constants_test: Crash # Requires deferred libraries
 deferred_load_inval_code_test: Crash # Requires deferred libraries
 deferred_load_library_wrong_args_test: Crash # Requires deferred libraries
 deferred_mixin_test: Crash # Requires deferred libraries
+issue21159_test: Pass, Crash # Issue 29094
+issue_22780_test/01: Pass, Crash # Issue 29094
+issue_1751477_test: Crash # Requires deferred libraries
 
 [ ! $checked && ! $strong ]
 closure_type_test: RuntimeError
@@ -62,6 +65,10 @@ compile_time_constant_static4_test: Skip # Requires strong mode
 compile_time_constant_static5_test: Skip # Requires strong mode
 wrong_number_type_arguments_test/none: Pass
 wrong_number_type_arguments_test/*: MissingCompileTimeError # Requires strong mode
+issue1363_test/01: MissingCompileTimeError # Requires strong mode
+issue15606_test/01: MissingCompileTimeError # Requires strong mode
+issue18628_1_test/01: MissingCompileTimeError # Requires strong mode
+issue18628_2_test/01: MissingCompileTimeError # Requires strong mode
 
 [ $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546

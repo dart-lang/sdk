@@ -385,6 +385,8 @@ deferred_constraints_constants_test/reference_after_load: Crash # Issue 27394
 deferred_constraints_type_annotation_test/as_operation: Crash # Issue 27394
 deferred_inheritance_constraints_test/mixin: Crash # Issue 27394
 deferred_load_constants_test/none: RuntimeError # Issue 27394
+issue21079_test: Crash # Issue 27394
+issue9602_test: Crash # Issue 27394
 
 [ $compiler == dart2js && !$checked ]
 function_subtype_inline2_test: RuntimeError
@@ -702,6 +704,12 @@ unused_overridden_async_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_buil
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 yieldstar_pause_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+issue14014_3_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+issue15720_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+issue21079_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+issue_1751477_test: CompileTimeError
+issue21079_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assert_message_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -925,6 +933,12 @@ regress_30339_test: Crash # Assertion failure: Cannot find value Instance of 'Th
 typevariable_substitution2_test/02: RuntimeError
 unused_overridden_async_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 yieldstar_pause_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+issue14014_3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.#)) for j:closure_call(B_B_closure.call).
+issue15720_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+issue21079_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+issue23244_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+issue_1751477_test: CompileTimeError
+issue21079_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash
@@ -1018,3 +1032,9 @@ await_future_test: Pass, Timeout # Issue 26735
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && !$dart2js_with_kernel ]
 deferred_global_test: Crash # Issue 27394
+
+[ $compiler == dart2js && $fast_startup && ! $dart2js_with_kernel ]
+issue21079_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $runtime != drt ]
+issue23244_test: RuntimeError # 23244

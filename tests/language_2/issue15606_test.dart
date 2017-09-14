@@ -6,17 +6,21 @@ class Foo<T> {}
 
 var a = [new Object(), 42];
 
+void bar(x, y) {}
+
 main() {
   while (false) {
     // Comply to inlining heuristics.
     // Use an unresolved prefix.
-    var foo = Unresolved.foo( //# 01: static type warning
-    // Make dart2js generate a call to setRuntimeTypeInfo.
-      new Foo<int>(), //# 01: continued
-    // Use a one-shot interceptor.
-      a[0].toString()); //# 01: continued
+    var foo =
+      Unresolved. //# 01: compile-time error
+        bar(
+      // Make dart2js generate a call to setRuntimeTypeInfo.
+      new Foo<int>(),
+      // Use a one-shot interceptor.
+      a[0].toString());
 
     // Do an is test on `Foo` to require setRuntimeTypeInfo.
-    print(foo is Foo<int>); //# 01: continued
+    print(foo is Foo<int>);
   }
 }

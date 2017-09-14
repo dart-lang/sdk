@@ -22,11 +22,6 @@ class C {
     libCup = new lib.Cup<lib.C>(new lib.C());
 
     C contents = myCup.getContents(); // expect no warning or error
-    bool hasThrown = false;
-    try {
-      contents = libCup.getContents(); //# static type warning
-    } on TypeError catch (e) {
-      hasThrown = true;
-    }
+    contents = libCup.getContents(); //# 01: compile-time error
   }
 }

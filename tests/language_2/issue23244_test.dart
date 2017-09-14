@@ -5,6 +5,7 @@
 // Regression test case for http://dartbug.com/23244
 import 'dart:async';
 import 'dart:isolate';
+import 'package:async_helper/async_helper.dart';
 
 enum Fisk {
   torsk,
@@ -27,6 +28,7 @@ isolate3(SendPort port) {
 
 main() async {
   var port = new ReceivePort();
+  asyncStart();
   await Isolate.spawn(isolate1, port.sendPort);
   Completer completer1 = new Completer();
   port.listen((message) {
@@ -53,6 +55,7 @@ main() async {
     port.close();
     expectTorsk(message[0]);
     expectTorsk(message[1]);
+    asyncEnd();
   });
 }
 

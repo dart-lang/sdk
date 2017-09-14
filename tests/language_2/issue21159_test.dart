@@ -10,7 +10,7 @@ class C {
 
 // Recurs outside the try-block to avoid disabling inlining.
 foo() {
-  var c = new C();
+  dynamic c = new C();
   c();
 }
 

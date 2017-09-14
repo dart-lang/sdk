@@ -5,7 +5,7 @@
 // Dart2js produced a statement in an expression context for this test.
 
 class A {
-  var foo = "foo";
+  dynamic foo = "foo";
   bar(x) {
     if (foo == 3) return;
     var t = x;

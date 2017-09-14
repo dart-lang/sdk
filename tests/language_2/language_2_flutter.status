@@ -62,6 +62,7 @@ deferred_constraints_type_annotation_test/none: Skip # Timeout
 deferred_constraints_type_annotation_test/static_method: Skip # Timeout
 deferred_constant_list_test: Skip # Timeout
 deferred_global_test: Skip # Timeout
+issue21079_test: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

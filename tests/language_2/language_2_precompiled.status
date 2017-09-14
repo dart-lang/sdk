@@ -249,6 +249,7 @@ instance_creation_in_function_annotation_test: SkipByDesign
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 deferred_constraints_constants_test: SkipByDesign
+issue21079_test: SkipByDesign
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError

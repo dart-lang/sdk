@@ -8,13 +8,13 @@
 //
 // https://code.google.com/p/dart/issues/detail?id=18628
 
-class C<T> {
-  // This line is supposed to cause the warning; the other commented
-  // line just doesn't make sense without this line.
-  T t = int; //# 01: static type warning
-}
+class X<T extends Type> {}
+
+// This line is supposed to cause the warning; the other lines are
+// marked because they don't make sense when [Y] is not defined.
+class Y<U> extends X<U> {} //# 01: compile-time error
 
 main() {
-  C<Type> c = new C<Type>();
-  print(c.t); //# 01: static type warning
+  X<Type> x = new X<Type>(); //# 01: compile-time error
+  Y<Type> y = new Y<Type>(); //# 01: compile-time error
 }

@@ -114,7 +114,9 @@ compile_time_constant_a_test: RuntimeError # Issue 30526
 compile_time_constant_b_test: RuntimeError # Issue 29920
 compile_time_constant_d_test: RuntimeError # Issue 29920
 compile_time_constant10_test/none: RuntimeError
+deferred_call_empty_before_load_test: RuntimeError # Issue 27777
 deferred_load_constants_test/none: RuntimeError # Issue 27394
+deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 function_subtype_inline2_test: RuntimeError
 function_type/function_type50_test: RuntimeError # Issue 29920
 function_type/function_type58_test: RuntimeError # Issue 29920
@@ -129,8 +131,8 @@ identical_closure2_test: RuntimeError # Issue 29920
 infinite_switch_label_test: RuntimeError # Issue 29920
 infinity_test: RuntimeError # Issue 29920
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
+issue21159_test: RuntimeError # Issue 30701
+issue23244_test: RuntimeError # Issue 29920
 label_test: RuntimeError # Issue 30675
 named_parameters_default_eq_test/none: RuntimeError
 yieldstar_pause_test: Pass, Timeout
-deferred_call_empty_before_load_test: RuntimeError # Issue 27777
-deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
