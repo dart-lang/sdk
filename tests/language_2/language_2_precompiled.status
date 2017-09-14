@@ -347,3 +347,6 @@ deferred_load_constants_test/03: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
 deferred_load_constants_test/05: Fail
+
+[ $runtime == dart_precompiled && $arch == arm64 ]
+large_class_declaration_test: SkipSlow # Uses too much memory.

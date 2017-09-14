@@ -439,3 +439,5 @@ generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 closure_cycles_test: Pass, Slow
+large_class_declaration_test: SkipSlow # Uses too much memory.
+

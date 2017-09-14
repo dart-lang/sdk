@@ -209,6 +209,8 @@ class Helper {
           while (doAgain()) {
             break L;
           }
+          i--;
+          break;
         default:
           i--;
       }

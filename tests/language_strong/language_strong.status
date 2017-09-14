@@ -221,13 +221,6 @@ issue18628_1_test: Skip
 issue18628_2_test: Skip
 issue21159_test: Skip
 issue3806_test: Skip
-keyword_type_expression_test: Skip
-label2_negative_test: Skip
-label3_negative_test: Skip
-label5_negative_test: Skip
-label6_negative_test: Skip
-label8_negative_test: Skip
-label_test: Skip
 least_upper_bound_expansive_test: Skip
 least_upper_bound_test: Skip
 library_ambiguous_test: Skip
