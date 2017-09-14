@@ -500,19 +500,17 @@ closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
 closure_in_field_test/none: RuntimeError
 compile_time_constant_m_test: RuntimeError
-compile_time_constant_p_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_conditional_test/08: MissingCompileTimeError
-const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib2::f() (ShadowStaticInvocation)
-const_constructor_syntax_test/05: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_error_multiply_initialized_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_error_multiply_initialized_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_error_multiply_initialized_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_error_multiply_initialized_test/04: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_evaluation_test/01: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib1::f() (ShadowStaticInvocation)
+const_error_multiply_initialized_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C:: (Constructor)
+const_error_multiply_initialized_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+const_error_multiply_initialized_test/03: Crash # Unsupported operation: Unexpected initializer #lib2::C:: (Constructor)
+const_error_multiply_initialized_test/04: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+const_evaluation_test/01: RuntimeError
 const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
@@ -523,7 +521,7 @@ const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
 const_syntax_test/05: MissingCompileTimeError
 const_syntax_test/08: Crash # Stack Overflow
-const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib3::C1:: (Constructor)
 const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor2_test: RuntimeError
@@ -531,9 +529,8 @@ constructor3_test: RuntimeError
 constructor5_test: RuntimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor8_test: RuntimeError
-constructor_duplicate_final_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-constructor_duplicate_final_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-constructor_duplicate_final_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+constructor_duplicate_final_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+constructor_duplicate_final_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 constructor_named_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Stack Overflow
@@ -608,7 +605,7 @@ efficient_length_warning_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_bui
 enum_duplicate_test/01: RuntimeError
 enum_duplicate_test/02: RuntimeError
 enum_duplicate_test/none: RuntimeError
-enum_mirror_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+enum_mirror_test: RuntimeError
 enum_private_test/01: RuntimeError
 enum_private_test/02: RuntimeError
 enum_private_test/none: RuntimeError
@@ -628,10 +625,10 @@ field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-final_attempt_reinitialization_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-final_attempt_reinitialization_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+final_attempt_reinitialization_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+final_attempt_reinitialization_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 final_field_initialization_order_test: RuntimeError
-final_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+final_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib1::C1:: (Constructor)
 flatten_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 flatten_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 flatten_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -664,7 +661,7 @@ function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemente
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
-instance_creation_in_function_annotation_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
@@ -679,7 +676,7 @@ is_object_test: RuntimeError
 issue13474_test: RuntimeError
 issue14014_3_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 issue15720_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-issue21079_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+issue21079_test: RuntimeError
 issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
@@ -780,7 +777,6 @@ mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
-mixin_mixin_type_arguments_test: Crash # 'package:js_ast/src/nodes.dart': Failed assertion: line 1316 pos 12: '_identifierRE.hasMatch(name)': is not true.
 mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/01: CompileTimeError
 mixin_of_mixin_test/02: CompileTimeError
@@ -866,9 +862,9 @@ no_main_test/01: CompileTimeError
 not_enough_positional_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 not_enough_positional_arguments_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 not_enough_positional_arguments_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-null_test/02: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-null_test/03: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-null_test/none: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+null_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+null_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+null_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 override_field_method1_negative_test: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
@@ -890,7 +886,7 @@ redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
-redirecting_factory_reflection_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+redirecting_factory_reflection_test: RuntimeError
 reg_exp_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
@@ -924,7 +920,7 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_27659_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 regress_28217_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 regress_28217_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-regress_28255_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+regress_28255_test: RuntimeError
 regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
 runtime_type_function_test: RuntimeError
@@ -939,12 +935,6 @@ stacktrace_rethrow_error_test/none: RuntimeError
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
 stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError
-const_evaluation_test/01: RuntimeError
-enum_mirror_test: RuntimeError
-instance_creation_in_function_annotation_test: RuntimeError
-issue21079_test: RuntimeError
-redirecting_factory_reflection_test: RuntimeError
-regress_28255_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
 string_join_test: RuntimeError
@@ -989,12 +979,12 @@ syncstar_yieldstar_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.d
 syntax_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/03: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/27: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/28: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/29: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/30: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/31: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/32: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/33: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/28: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/29: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/30: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/31: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/32: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/33: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
 syntax_test/49: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/54: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/59: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
@@ -1065,19 +1055,17 @@ closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
 closure_in_field_test/none: RuntimeError
 compile_time_constant_m_test: RuntimeError
-compile_time_constant_p_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_conditional_test/08: MissingCompileTimeError
-const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib1::f() (ShadowStaticInvocation)
-const_constructor_syntax_test/05: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_error_multiply_initialized_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_error_multiply_initialized_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_error_multiply_initialized_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_error_multiply_initialized_test/04: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-const_evaluation_test/01: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib3::f() (ShadowStaticInvocation)
+const_error_multiply_initialized_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C:: (Constructor)
+const_error_multiply_initialized_test/02: MissingCompileTimeError
+const_error_multiply_initialized_test/03: Crash # Unsupported operation: Unexpected initializer #lib1::C:: (Constructor)
+const_error_multiply_initialized_test/04: MissingCompileTimeError
+const_evaluation_test/01: RuntimeError
 const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
@@ -1088,7 +1076,7 @@ const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
 const_syntax_test/05: MissingCompileTimeError
 const_syntax_test/08: Crash # Stack Overflow
-const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib2::C1:: (Constructor)
 const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor2_test: RuntimeError
@@ -1096,9 +1084,6 @@ constructor3_test: RuntimeError
 constructor5_test: RuntimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor8_test: RuntimeError
-constructor_duplicate_final_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-constructor_duplicate_final_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-constructor_duplicate_final_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
@@ -1178,7 +1163,7 @@ efficient_length_warning_test: Crash # Assertion failure: Cannot find value Inst
 enum_duplicate_test/01: RuntimeError
 enum_duplicate_test/02: RuntimeError
 enum_duplicate_test/none: RuntimeError
-enum_mirror_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+enum_mirror_test: RuntimeError
 enum_private_test/01: RuntimeError
 enum_private_test/02: RuntimeError
 enum_private_test/none: RuntimeError
@@ -1200,10 +1185,10 @@ field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-final_attempt_reinitialization_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-final_attempt_reinitialization_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/02: MissingCompileTimeError
 final_field_initialization_order_test: RuntimeError
-final_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+final_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib1::C1:: (Constructor)
 flatten_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 flatten_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 flatten_test/03: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -1235,7 +1220,7 @@ function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemente
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
-instance_creation_in_function_annotation_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
@@ -1250,7 +1235,7 @@ is_object_test: RuntimeError
 issue13474_test: RuntimeError
 issue14014_3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.#)) for j:closure_call(B_B_closure.call).
 issue15720_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-issue21079_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+issue21079_test: RuntimeError
 issue23244_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
@@ -1430,9 +1415,9 @@ named_parameters_with_dollars_test: RuntimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
-null_test/02: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-null_test/03: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-null_test/none: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+null_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
+null_test/03: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
+null_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 override_field_method1_negative_test: Fail
@@ -1454,11 +1439,11 @@ redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
-redirecting_factory_reflection_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+redirecting_factory_reflection_test: RuntimeError
 reg_exp_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
-regress_18535_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+regress_18535_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
 regress_22438_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -1489,7 +1474,7 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_27659_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
-regress_28255_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+regress_28255_test: RuntimeError
 regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
 runtime_type_function_test: RuntimeError
@@ -1504,13 +1489,6 @@ stacktrace_rethrow_error_test/none: RuntimeError
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
 stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError
-const_evaluation_test/01: RuntimeError
-enum_mirror_test: RuntimeError
-instance_creation_in_function_annotation_test: RuntimeError
-issue21079_test: RuntimeError
-redirecting_factory_reflection_test: RuntimeError
-regress_18535_test: RuntimeError
-regress_28255_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
 string_join_test: RuntimeError
