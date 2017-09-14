@@ -105,14 +105,29 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
     return node.importUri == Uris.dart__foreign_helper;
   }
 
-  /// Looks up [typeName] for use in the spec-string of a `JS` called.
+  /// Looks up [typeName] for use in the spec-string of a `JS` call.
   // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling
   // the `ForeignResolver`.
-  // TODO(johnniwinther): Cache the result to avoid redundant lookups?
   native.TypeLookup typeLookup({bool resolveAsRaw: true}) {
+    return resolveAsRaw
+        ? (_cachedTypeLookupRaw ??= _typeLookup(resolveAsRaw: true))
+        : (_cachedTypeLookupFull ??= _typeLookup(resolveAsRaw: false));
+  }
+
+  native.TypeLookup _cachedTypeLookupRaw;
+  native.TypeLookup _cachedTypeLookupFull;
+
+  native.TypeLookup _typeLookup({bool resolveAsRaw: true}) {
+    bool cachedMayLookupInMain;
+    bool mayLookupInMain() {
+      var mainUri = elementEnvironment.mainLibrary.canonicalUri;
+      // Tests permit lookup outside of dart: libraries.
+      return mainUri.path.contains('sdk/tests/compiler/dart2js_native') ||
+          mainUri.path.contains('sdk/tests/compiler/dart2js_extra');
+    }
+
     DartType lookup(String typeName, {bool required}) {
-      DartType findIn(Uri uri) {
-        LibraryEntity library = elementEnvironment.lookupLibrary(uri);
+      DartType findInLibrary(LibraryEntity library) {
         if (library != null) {
           ClassEntity cls = elementEnvironment.lookupClass(library, typeName);
           if (cls != null) {
@@ -125,9 +140,18 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
         return null;
       }
 
-      // TODO(johnniwinther): Narrow the set of lookups base on the depending
+      DartType findIn(Uri uri) {
+        return findInLibrary(elementEnvironment.lookupLibrary(uri));
+      }
+
+      // TODO(johnniwinther): Narrow the set of lookups based on the depending
       // library.
-      DartType type = findIn(Uris.dart_core);
+      // TODO(johnniwinther): Cache more results to avoid redundant lookups?
+      DartType type;
+      if (cachedMayLookupInMain ??= mayLookupInMain()) {
+        type ??= findInLibrary(elementEnvironment.mainLibrary);
+      }
+      type ??= findIn(Uris.dart_core);
       type ??= findIn(Uris.dart__js_helper);
       type ??= findIn(Uris.dart__interceptors);
       type ??= findIn(Uris.dart__isolate_helper);

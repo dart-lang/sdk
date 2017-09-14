@@ -140,9 +140,7 @@ core_type_check_native_test: RuntimeError
 event_loop_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 fake_thing_test: RuntimeError
 internal_library_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-is_check_test: CompileTimeError
-load_elim_refinement_test: CompileTimeError
-mirror_intercepted_field_test: CompileTimeError
+mirror_intercepted_field_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 native_class_inheritance1_frog_test: RuntimeError
 native_class_inheritance2_frog_test: RuntimeError
 native_class_inheritance3_frog_test: RuntimeError
@@ -151,15 +149,12 @@ native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: RuntimeError
 native_mirror_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 native_mixin_field_test: RuntimeError
-native_named_constructors2_frog_test: CompileTimeError
-native_named_constructors3_frog_test: CompileTimeError
 native_no_such_method_exception3_frog_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
 native_property_frog_test: CompileTimeError
 native_wrapping_function3_frog_test: RuntimeError
 optimization_hints_test: RuntimeError
-runtimetype_test: CompileTimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_constructor_2_test: RuntimeError
 subclassing_super_call_test: RuntimeError
@@ -173,26 +168,20 @@ core_type_check_native_test: RuntimeError
 event_loop_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 fake_thing_test: RuntimeError
 internal_library_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-is_check_test: CompileTimeError
-load_elim_refinement_test: CompileTimeError
-mirror_intercepted_field_test: CompileTimeError
+mirror_intercepted_field_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 native_class_inheritance1_frog_test: RuntimeError
 native_class_inheritance2_frog_test: RuntimeError
 native_class_inheritance3_frog_test: RuntimeError
-native_exceptions1_frog_test: CompileTimeError
 native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: RuntimeError
 native_mirror_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 native_mixin_field_test: RuntimeError
-native_named_constructors2_frog_test: CompileTimeError
-native_named_constructors3_frog_test: CompileTimeError
 native_no_such_method_exception3_frog_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
 native_property_frog_test: CompileTimeError
 native_wrapping_function3_frog_test: RuntimeError
 optimization_hints_test: RuntimeError
-runtimetype_test: CompileTimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_constructor_2_test: RuntimeError
 subclassing_super_call_test: RuntimeError
