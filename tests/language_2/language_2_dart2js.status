@@ -255,6 +255,7 @@ deferred_constraints_type_annotation_test/type_annotation_top_level: MissingComp
 generic_methods_local_variable_declaration_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
+assertion_test: RuntimeError # Issue 30326
 bit_operations_test: RuntimeError, OK # Issue 1533
 generic_closure_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
@@ -398,17 +399,10 @@ function_subtype_inline2_test: RuntimeError
 assertion_initializer_const_function_test/none: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $checked ]
-assertion_test: RuntimeError
 regress_30339_test: RuntimeError # Issue 26429
 
 [ $compiler == dart2js && $runtime == drt && $checked ]
 regress_30339_test: RuntimeError # Issue 30393
-
-[ $compiler == dart2js && $runtime == jsshell && $checked ]
-assertion_test: RuntimeError
-
-[ $compiler == dart2js && $runtime == drt && $checked ]
-assertion_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && $checked ]
 function_type/function_type0_test: RuntimeError # Issue 30476
@@ -486,7 +480,6 @@ assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Une
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C::bc02 (Constructor)
 assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib2::C::cc01 (Constructor)
-assertion_test: RuntimeError
 async_and_or_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 async_await_catch_regression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 async_await_foreign_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -716,7 +709,6 @@ assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Une
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
 assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib2::C::cc01 (Constructor)
-assertion_test: RuntimeError
 async_and_or_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_catch_regression_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_foreign_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
