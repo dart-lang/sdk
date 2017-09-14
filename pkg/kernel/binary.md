@@ -783,7 +783,7 @@ type ExpressionStatement extends Statement {
 
 type Block extends Statement {
   Byte tag = 62;
-  List<Expression> expressions;
+  List<Statement> statements;
 }
 
 type EmptyStatement extends Statement {
