@@ -51,6 +51,12 @@ class ForwardingTestListener implements fasta.Listener {
     }
   }
 
+  void expectInOneOf(List<String> events) {
+    if (_stack.isEmpty || !events.contains(_stack.last)) {
+      fail('Expected one of $events, but found $_stack');
+    }
+  }
+
   void end(String event) {
     expectIn(event);
     _stack.removeLast();
@@ -614,12 +620,6 @@ class ForwardingTestListener implements fasta.Listener {
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     end('ClassBody');
     listener.endClassBody(memberCount, beginToken, endToken);
-  }
-
-  @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    expectIn('ClassDeclaration');
-    listener.handleNativeClause(nativeToken, hasName);
   }
 
   @override
@@ -1318,6 +1318,30 @@ class ForwardingTestListener implements fasta.Listener {
   void handleNamedArgument(Token colon) {
     listener.handleNamedArgument(colon);
     // TODO(danrubel): implement handleNamedArgument
+  }
+
+  @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    expectInOneOf(['ClassDeclaration', 'Method']);
+    listener.handleNativeClause(nativeToken, hasName);
+  }
+
+  @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    expectInOneOf(['Method']);
+    listener.handleNativeFunctionBody(nativeToken, semicolon);
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    expectInOneOf(['Method']);
+    listener.handleNativeFunctionBodyIgnored(nativeToken, semicolon);
+  }
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    expectInOneOf(['Method']);
+    listener.handleNativeFunctionBodySkipped(nativeToken, semicolon);
   }
 
   @override

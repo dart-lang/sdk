@@ -22,7 +22,12 @@ import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
-    show Code, Message, codeExpectedExpression, codeExpectedFunctionBody;
+    show
+        Code,
+        Message,
+        codeExpectedExpression,
+        codeExpectedFunctionBody,
+        messageNativeClauseShouldBeAnnotation;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, Scope;
 import 'package:front_end/src/fasta/quote.dart';
@@ -70,6 +75,8 @@ class AstBuilder extends ScopeListener {
   // * The current library is a platform library
   // * The current library has an import that uses the scheme "dart-ext".
   bool allowNativeClause = false;
+
+  StringLiteral nativeName;
 
   AstBuilder(this.errorReporter, this.library, this.member, Scope scope,
       this.isFullAst,
@@ -183,6 +190,16 @@ class AstBuilder extends ScopeListener {
     }
   }
 
+  @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+    if (hasName) {
+      nativeName = pop(); // StringLiteral
+    } else {
+      nativeName = null;
+    }
+  }
+
   void handleScript(Token token) {
     debugEvent("Script");
     scriptTag = ast.scriptTag(token);
@@ -263,6 +280,15 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBody");
+    // TODO(danrubel) Change the parser to not produce these modifiers.
+    pop(); // star
+    pop(); // async
+    push(ast.nativeFunctionBody(nativeToken, nativeName, semicolon));
+  }
+
+  @override
   void handleEmptyFunctionBody(Token semicolon) {
     debugEvent("EmptyFunctionBody");
     // TODO(scheglov) Change the parser to not produce these modifiers.
@@ -294,6 +320,8 @@ class AstBuilder extends ScopeListener {
     Statement bodyStatement;
     if (body is EmptyFunctionBody) {
       bodyStatement = ast.emptyStatement(body.semicolon);
+    } else if (body is NativeFunctionBody) {
+      // TODO(danrubel): what do we need to do with NativeFunctionBody?
     } else if (body is ExpressionFunctionBody) {
       bodyStatement = ast.returnStatement(null, body.expression, null);
     } else {
@@ -1297,11 +1325,6 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    push(ast.nativeClause(nativeToken, hasName ? pop() : null));
-  }
-
-  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
@@ -1312,7 +1335,10 @@ class AstBuilder extends ScopeListener {
       Token endToken) {
     debugEvent("ClassDeclaration");
     _ClassBody body = pop();
-    NativeClause nativeClause = nativeToken != null ? pop() : null;
+    NativeClause nativeClause;
+    if (nativeToken != null) {
+      nativeClause = ast.nativeClause(nativeToken, nativeName);
+    }
     ImplementsClause implementsClause;
     if (implementsKeyword != null) {
       List<TypeName> interfaces = popList(interfacesCount);
@@ -1416,6 +1442,16 @@ class AstBuilder extends ScopeListener {
     Comment comment = pop();
     directives.add(ast.libraryDirective(
         comment, metadata, libraryKeyword, name, semicolon));
+  }
+
+  @override
+  void handleRecoverableError(Token token, Message message) {
+    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
+    if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
+      return;
+    }
+    debugEvent("Error: ${message.message}");
+    addCompileTimeError(message, token.offset);
   }
 
   @override
@@ -1831,7 +1867,7 @@ class AstBuilder extends ScopeListener {
 
   @override
   void debugEvent(String name) {
-    // printEvent(name);
+    // printEvent('AstBuilder: $name');
   }
 
   @override
@@ -1955,12 +1991,8 @@ class AstBuilder extends ScopeListener {
             charOffset, text.length, [text]);
         return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
-        if (!allowNativeClause) {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
-              charOffset,
-              1);
-        }
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, charOffset, 1);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();

@@ -771,6 +771,7 @@ EnumDeclartionEmpty:
   template: "An enum declaration can't be empty."
 
 ExternalMethodWithBody:
+  # TODO(danrubel): remove reference to `native` once support has been removed
   template: "An external or native method can't have a body."
   analyzerCode: EXTERNAL_METHOD_WITH_BODY
   dart2jsCode: "*ignored*"

@@ -1094,6 +1094,22 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     super.test_getterInFunction_expression_returnType();
   }
 
+  @failingTest
+  void test_getterNativeWithBody() {
+    createParser('String get m native "str" => 0;');
+    parser.parseClassMember('C') as MethodDeclaration;
+    if (!allowNativeClause) {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+      ]);
+    } else {
+      assertErrorsWithCodes([
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+      ]);
+    }
+  }
+
   @override
   @failingTest
   void test_getterWithParameters() {

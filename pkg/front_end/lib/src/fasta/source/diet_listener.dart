@@ -20,7 +20,11 @@ import '../deprecated_problems.dart'
     show Crash, deprecated_InputError, deprecated_inputError;
 
 import '../fasta_codes.dart'
-    show Message, codeExpectedBlockToSkip, templateInternalProblemNotFound;
+    show
+        Message,
+        codeExpectedBlockToSkip,
+        messageExpectedBlockToSkip,
+        templateInternalProblemNotFound;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
@@ -288,6 +292,11 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+  }
+
+  @override
   void handleScript(Token token) {
     debugEvent("Script");
   }
@@ -409,6 +418,24 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBody");
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodyIgnored");
+  }
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodySkipped");
+    if (!enableNative) {
+      super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
+    }
+  }
+
+  @override
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     debugEvent("Method");
     Token bodyToken = pop();
@@ -498,11 +525,6 @@ class DietListener extends StackListener {
     debugEvent("ClassBody");
     currentClass = null;
     memberScope = library.scope;
-  }
-
-  @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    debugEvent("NativeClause");
   }
 
   @override

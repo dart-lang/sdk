@@ -16,6 +16,7 @@ import '../fasta_codes.dart'
     show
         Message,
         codeExpectedBlockToSkip,
+        messageExpectedBlockToSkip,
         messageOperatorWithOptionalFormals,
         messageTypedefNotFunction,
         templateDuplicatedParameterName,
@@ -237,6 +238,18 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+    if (hasName) {
+      // Pop the native clause which in this case is a StringLiteral.
+      pop(); // Char offset.
+      nativeMethodName = pop(); // String.
+    } else {
+      nativeMethodName = '';
+    }
+  }
+
+  @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
     List<String> list =
@@ -290,15 +303,6 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void beginNamedMixinApplication(Token beginToken, Token name) {
     library.currentDeclaration.name = name.lexeme;
-  }
-
-  @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    if (hasName) {
-      // Pop the native clause which in this case is a StringLiteral.
-      pop(); // Char offset.
-      pop(); // String.
-    }
   }
 
   @override
@@ -374,9 +378,36 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBody");
+    if (nativeMethodName != null) {
+      push(MethodBody.Regular);
+    } else {
+      push(MethodBody.Abstract);
+    }
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodyIgnored");
+  }
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    if (!enableNative) {
+      super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
+    }
+    push(MethodBody.Regular);
+  }
+
+  @override
   void handleNoFunctionBody(Token token) {
     debugEvent("NoFunctionBody");
-    push(MethodBody.Abstract);
+    if (nativeMethodName != null) {
+      push(MethodBody.Regular);
+    } else {
+      push(MethodBody.Abstract);
+    }
   }
 
   @override

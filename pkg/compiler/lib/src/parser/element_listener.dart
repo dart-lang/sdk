@@ -97,6 +97,8 @@ class ElementListener extends Listener {
   /// [handleInvalidFunctionBody] which is called immediately after.
   bool lastErrorWasNativeFunctionBody = false;
 
+  LiteralString nativeName;
+
   ElementListener(this.scannerOptions, DiagnosticReporter reporter,
       this.compilationUnitElement, this.idGenerator)
       : this.reporter = reporter,
@@ -280,11 +282,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    if (hasName) {
-      popNode(); // Pop the native clause which in this case is a StringLiteral.
-    }
-  }
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {}
 
   @override
   void endClassDeclaration(
@@ -528,6 +526,10 @@ class ElementListener extends Listener {
 
   @override
   void handleRecoverableError(Token token, Message message) {
+    if (message == codes.messageNativeClauseShouldBeAnnotation) {
+      native.checkAllowedLibrary(this, token);
+      return;
+    }
     handleError(token, message);
   }
 
@@ -553,7 +555,7 @@ class ElementListener extends Listener {
     switch (message.code.dart2jsCode) {
       case "MISSING_TOKEN_BEFORE_THIS":
         String expected = arguments["string"];
-        // TODO(danrubel) This functionality is being replaced by
+        // TODO(danrubel): This functionality is being replaced by
         // the parser's ensureSemicolon method.
         if (identical(";", expected)) {
           // When a semicolon is missing, it often leads to an error on the
@@ -875,14 +877,14 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endLiteralString(int count, Token endToken) {
+  void endLiteralString(int interpolationCount, Token endToken) {
     StringQuoting quoting = popQuoting();
 
     Link<StringInterpolationPart> parts = const Link<StringInterpolationPart>();
     // Parts of the string interpolation are popped in reverse order,
     // starting with the last literal string part.
     bool isLast = true;
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < interpolationCount; i++) {
       LiteralString string = popNode();
       DartString validation = stringValidator.validateInterpolationPart(
           string.token, quoting,
@@ -905,6 +907,15 @@ class ElementListener extends Listener {
     } else {
       NodeList partNodes = new NodeList(null, parts, null, "");
       pushNode(new StringInterpolation(string, partNodes));
+    }
+  }
+
+  @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    if (hasName) {
+      nativeName = popNode(); // LiteralString
+    } else {
+      nativeName = null;
     }
   }
 

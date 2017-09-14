@@ -319,6 +319,12 @@ class NodeListener extends ElementListener {
     pushNode(new RedirectingFactoryBody(beginToken, endToken, popNode()));
   }
 
+  @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    pushNode(new Return(nativeToken, semicolon, nativeName));
+  }
+
+  @override
   void handleEmptyFunctionBody(Token semicolon) {
     endBlockFunctionBody(0, null, semicolon);
   }
@@ -496,6 +502,14 @@ class NodeListener extends ElementListener {
 
   @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
+    pushNode(new Block(new NodeList.empty()));
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {}
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     pushNode(new Block(new NodeList.empty()));
   }
 

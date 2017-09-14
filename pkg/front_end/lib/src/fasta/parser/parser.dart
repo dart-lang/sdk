@@ -2633,6 +2633,20 @@ class Parser {
   Token skipFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     assert(!isExpression);
     token = skipAsyncModifier(token);
+    if (optional('native', token)) {
+      Token nativeToken = token;
+      // TODO(danrubel): skip the native clause rather than parsing it
+      // or remove this code completely when we remove support
+      // for the `native` clause.
+      token = parseNativeClause(token);
+      if (optional(';', token)) {
+        listener.handleNativeFunctionBodySkipped(nativeToken, token);
+        return token;
+      }
+      listener.handleNativeFunctionBodyIgnored(nativeToken, token);
+      // Fall through to recover and skip function body
+    }
+    token = token;
     String value = token.stringValue;
     if (identical(value, ';')) {
       if (!allowAbstract) {
@@ -2665,6 +2679,17 @@ class Parser {
   /// It's an error if there's no function body unless [allowAbstract] is true.
   Token parseFunctionBody(
       Token token, bool ofFunctionExpression, bool allowAbstract) {
+    if (optional('native', token)) {
+      Token nativeToken = token;
+      token = parseNativeClause(nativeToken);
+      if (optional(';', token)) {
+        listener.handleNativeFunctionBody(nativeToken, token);
+        return token;
+      }
+      reportRecoverableError(token, fasta.messageExternalMethodWithBody);
+      listener.handleNativeFunctionBodyIgnored(nativeToken, token);
+      // Ignore the native keyword and fall through to parse the body
+    }
     if (optional(';', token)) {
       if (!allowAbstract) {
         reportRecoverableError(token, fasta.messageExpectedBody);
