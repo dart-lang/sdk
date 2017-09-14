@@ -233,7 +233,7 @@ void checkElements(
   checkElementOutputUnits(compiler1, compiler2, element1, element2);
 }
 
-bool areLocalsEquivalent(Local a, Local b) {
+bool areLocalsEquivalent(LocalVariable a, LocalVariable b) {
   if (a == b) return true;
   if (a == null || b == null) return false;
 

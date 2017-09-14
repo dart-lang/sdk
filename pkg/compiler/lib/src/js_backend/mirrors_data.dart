@@ -566,13 +566,16 @@ abstract class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
 
     // Compute a mapping from class to the closures it contains, so we
     // can include the correct ones when including the class.
-    Map<ClassEntity, List<Local>> closureMap =
+    Map<ClassEntity, List<Local>> classToClosuresMap =
         new Map<ClassEntity, List<Local>>();
-    for (Local closure in worldBuilder.localFunctions) {
-      closureMap
-          .putIfAbsent(closure.memberContext.enclosingClass, () => [])
+    Map<Local, MemberEntity> closureToMemberMap =
+        new Map<Local, MemberEntity>();
+    worldBuilder.forEachLocalFunction((MemberEntity member, Local closure) {
+      closureToMemberMap[closure] = member;
+      classToClosuresMap
+          .putIfAbsent(member.enclosingClass, () => [])
           .add(closure);
-    }
+    });
     bool foundClosure = false;
     for (ClassEntity cls in worldBuilder.directlyInstantiatedClasses) {
       // Do not process internal classes.
@@ -611,7 +614,7 @@ abstract class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
           });
         }
         // 5) all its closures
-        List<Local> closures = closureMap[cls];
+        List<Local> closures = classToClosuresMap[cls];
         if (closures != null) {
           _closuresNeededForReflection.addAll(closures);
           foundClosure = true;
@@ -632,10 +635,10 @@ abstract class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
         });
         // Also add in closures. Those might be reflectable is their enclosing
         // member is.
-        List<Local> closures = closureMap[cls];
+        List<Local> closures = classToClosuresMap[cls];
         if (closures != null) {
           for (Local closure in closures) {
-            MemberEntity member = closure.memberContext;
+            MemberEntity member = closureToMemberMap[closure];
             if (_memberReferencedFromMirrorSystem(member)) {
               _closuresNeededForReflection.add(closure);
               foundClosure = true;
@@ -657,10 +660,10 @@ abstract class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
       });
     }
     // And closures inside top-level elements that do not have a surrounding
-    // class. These will be in the [:null:] bucket of the [closureMap].
-    if (closureMap.containsKey(null)) {
-      for (Local closure in closureMap[null]) {
-        if (isMemberReferencedFromMirrorSystem(closure.memberContext)) {
+    // class. These will be in the [:null:] bucket of the [classToClosureMap].
+    if (classToClosuresMap.containsKey(null)) {
+      for (Local closure in classToClosuresMap[null]) {
+        if (isMemberReferencedFromMirrorSystem(closureToMemberMap[closure])) {
           _closuresNeededForReflection.add(closure);
           foundClosure = true;
         }

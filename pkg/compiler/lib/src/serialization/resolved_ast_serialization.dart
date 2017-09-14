@@ -192,7 +192,7 @@ class ResolvedAstSerializer extends Visitor {
   }
 
   /// Serialize [target] into [encoder].
-  void serializeJumpTarget(JumpTarget jumpTarget, ObjectEncoder encoder) {
+  void serializeJumpTarget(JumpTargetX jumpTarget, ObjectEncoder encoder) {
     encoder.setElement(Key.EXECUTABLE_CONTEXT, jumpTarget.executableContext);
     encoder.setInt(Key.NODE, nodeIndices[jumpTarget.statement]);
     encoder.setInt(Key.NESTING_LEVEL, jumpTarget.nestingLevel);

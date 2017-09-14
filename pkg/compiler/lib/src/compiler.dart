@@ -1168,9 +1168,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
       SourceInformation position = spannable.sourceInformation;
       if (position != null) return position.sourceSpan;
       return _spanFromStrategy(element);
-    } else if (spannable is Local) {
-      Local local = spannable;
-      return _spanFromStrategy(local.executableContext);
     } else {
       return _spanFromStrategy(spannable);
     }

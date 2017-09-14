@@ -404,7 +404,7 @@ class LocalsHandler {
 
   Local getTypeVariableAsLocal(TypeVariableType type) {
     return typeVariableLocals.putIfAbsent(type, () {
-      return new TypeVariableLocal(type, executableContext, memberContext);
+      return new TypeVariableLocal(type);
     });
   }
 

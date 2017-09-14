@@ -5,9 +5,11 @@
 part of world_builder;
 
 abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
-  /// Set of all local functions in the program. Used by the mirror tracking
-  /// system to find all live closure instances.
-  Iterable<Local> get localFunctions;
+  /// Calls [f] for all local functions in the program together with the member
+  /// in which they are declared.
+  ///
+  /// Used by the mirror tracking system to find all live closure instances.
+  void forEachLocalFunction(void f(MemberEntity member, Local localFunction));
 
   /// Set of (live) local functions (closures) whose signatures reference type
   /// variables.

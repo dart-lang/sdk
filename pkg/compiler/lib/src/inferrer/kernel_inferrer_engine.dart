@@ -291,7 +291,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
 
   @override
   ParameterTypeInformation createParameterTypeInformation(
-      Local parameter, TypeSystem<ir.Node> types) {
+      covariant JLocal parameter, TypeSystem<ir.Node> types) {
     MemberEntity context = parameter.memberContext;
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(context);
     ir.FunctionNode functionNode =

@@ -322,9 +322,6 @@ class JJumpTarget extends JumpTarget<ir.Node> {
   bool isContinueTarget = false;
 
   @override
-  Entity get executableContext => memberContext;
-
-  @override
   LabelDefinition<ir.Node> addLabel(ir.Node label, String labelName,
       {bool isBreakTarget: false, bool isContinueTarget: false}) {
     _labels ??= <LabelDefinition<ir.Node>>[];
@@ -398,9 +395,6 @@ class JLocal extends IndexedLocal {
   final bool isRegularParameter;
 
   JLocal(this.name, this.memberContext, {this.isRegularParameter: false});
-
-  @override
-  Entity get executableContext => memberContext;
 
   String get _kind => 'local';
 

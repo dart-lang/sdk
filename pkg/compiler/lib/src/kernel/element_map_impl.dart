@@ -137,6 +137,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
           spannable.memberIndex < _members.length) {
         MemberData data = _members.getData(spannable);
         return data.definition.location;
+      } else if (spannable is KLocalFunction) {
+        return getSourceSpan(spannable.memberContext, currentElement);
+      } else if (spannable is JLocal) {
+        return getSourceSpan(spannable.memberContext, currentElement);
       }
       return null;
     }
@@ -1161,7 +1165,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         }
         if (parent is ir.FunctionDeclaration ||
             parent is ir.FunctionExpression) {
-          Local localFunction = getLocalFunction(parent);
+          KLocalFunction localFunction = getLocalFunction(parent);
           executableContext = localFunction;
           memberContext = localFunction.memberContext;
           break;
@@ -1660,6 +1664,13 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
   @override
   bool checkClass(ClassEntity cls) => true;
+
+  @override
+  void forEachLocalFunction(void f(MemberEntity member, Local localFunction)) {
+    for (KLocalFunction local in localFunctions) {
+      f(local.memberContext, local);
+    }
+  }
 }
 
 abstract class KernelClosedWorldMixin implements ClosedWorldBase {
@@ -2159,7 +2170,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       containerData.orderedTypeSet = setBuilder.createOrderedTypeSet(
           containerData.supertype, const Link<InterfaceType>());
 
-      BoxLocal boxLocal = new BoxLocal(box.name, member);
+      BoxLocal boxLocal = new BoxLocal(box.name);
       InterfaceType memberThisType = member.enclosingClass != null
           ? _elementEnvironment.getThisType(member.enclosingClass)
           : null;
