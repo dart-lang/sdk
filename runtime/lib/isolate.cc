@@ -447,6 +447,15 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 2) {
 
   PortMap::PostMessage(new Message(port.Id(), data, writer.BytesWritten(),
                                    Message::kOOBPriority));
+
+  // Drain interrupts before running so any IMMEDIATE operations on the current
+  // isolate happen synchronously.
+  const Error& error = Error::Handle(thread->HandleInterrupts());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
+
   return Object::null();
 }
 
