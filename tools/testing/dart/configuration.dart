@@ -456,7 +456,8 @@ class Configuration {
         'dart2js_with_kernel_in_ssa': useDart2JSWithKernelInSsa,
         'enable_asserts': useEnableAsserts,
         'hot_reload': hotReload,
-        'hot_reload_rollback': hotReloadRollback
+        'hot_reload_rollback': hotReloadRollback,
+        'selectors': selectors.keys.toList()
       };
     }
     return _summaryMap;
