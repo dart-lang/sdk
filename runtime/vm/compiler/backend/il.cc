@@ -1310,6 +1310,7 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
   const Object& constant = right()->definition()->AsConstant()->value();
   if (!constant.IsSmi()) return false;
   const intptr_t int_value = Smi::Cast(constant).Value();
+  ASSERT(int_value != kIntptrMin);
   return Utils::IsPowerOfTwo(Utils::Abs(int_value));
 }
 

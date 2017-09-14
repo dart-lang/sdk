@@ -3100,6 +3100,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kTRUNCDIV: {
         const intptr_t value = Smi::Cast(constant).Value();
+        ASSERT(value != kIntptrMin);
         ASSERT(Utils::IsPowerOfTwo(Utils::Abs(value)));
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
