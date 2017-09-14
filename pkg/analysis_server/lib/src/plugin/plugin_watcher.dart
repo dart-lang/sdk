@@ -59,17 +59,19 @@ class PluginWatcher implements DriverWatcher {
       //
       Source source =
           driver.sourceFactory.forUri('package:$package/$package.dart');
-      Context context = resourceProvider.pathContext;
-      String packageRoot = context.dirname(context.dirname(source.fullName));
-      String pluginPath = _locator.findPlugin(packageRoot);
-      if (pluginPath != null) {
-        //
-        // Add the plugin to the context root.
-        //
-        // TODO(brianwilkerson) Do we need to wait for the plugin to be added?
-        // If we don't, then tests don't have any way to know when to expect
-        // that the list of plugins has been updated.
-        manager.addPluginToContextRoot(contextRoot, pluginPath);
+      if (source != null) {
+        Context context = resourceProvider.pathContext;
+        String packageRoot = context.dirname(context.dirname(source.fullName));
+        String pluginPath = _locator.findPlugin(packageRoot);
+        if (pluginPath != null) {
+          //
+          // Add the plugin to the context root.
+          //
+          // TODO(brianwilkerson) Do we need to wait for the plugin to be added?
+          // If we don't, then tests don't have any way to know when to expect
+          // that the list of plugins has been updated.
+          manager.addPluginToContextRoot(contextRoot, pluginPath);
+        }
       }
     }
   }

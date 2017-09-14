@@ -81,6 +81,25 @@ class PluginWatcherTest {
     expect(manager.addedContextRoots, hasLength(1));
   }
 
+  test_addedDriver_missingPackage() async {
+    String pkg1Path = resourceProvider.convertPath('/pkg1');
+    resourceProvider.newFile(
+        resourceProvider.convertPath('/pkg1/lib/test1.dart'), '');
+
+    ContextRoot contextRoot = new ContextRoot(pkg1Path, []);
+    TestDriver driver = new TestDriver(resourceProvider, contextRoot);
+    driver.analysisOptions.enabledPluginNames = ['pkg3'];
+    watcher.addedDriver(driver, contextRoot);
+    expect(manager.addedContextRoots, isEmpty);
+    //
+    // Wait until the timer associated with the driver's FileSystemState is
+    // guaranteed to have expired and the list of changed files will have been
+    // delivered.
+    //
+    await new Future.delayed(new Duration(seconds: 1));
+    expect(manager.addedContextRoots, isEmpty);
+  }
+
   void test_creation() {
     expect(watcher.resourceProvider, resourceProvider);
     expect(watcher.manager, manager);
