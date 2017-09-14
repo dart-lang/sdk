@@ -5930,6 +5930,9 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   bool get isDeferred {
+    if (_kernel != null) {
+      return _kernel.isDeferred;
+    }
     if (_unlinkedImport != null) {
       return _unlinkedImport.isDeferred;
     }

@@ -407,11 +407,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_import_deferred() async {
-    await super.test_import_deferred();
-  }
-
-  @failingTest
   test_import_invalidUri_metadata() async {
     await super.test_import_invalidUri_metadata();
   }
