@@ -127,7 +127,7 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
         ..children = [new HeadingElement.h1()..text = "No isolate selected"]);
     } else {
       children.add(new MemoryProfileElement(
-          _isolate, _editor, _events, _allocations, _snapshots, _objects));
+          _isolate, _editor, _allocations, _snapshots, _objects));
     }
   }
 
