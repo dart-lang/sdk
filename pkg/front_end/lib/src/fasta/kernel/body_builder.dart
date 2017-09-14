@@ -1708,8 +1708,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Builder builder;
       if (prefix is Builder) {
         builder = prefix;
-      } else {
+      } else if (prefix is String) {
         builder = scope.lookup(prefix, beginToken.charOffset, uri);
+      } else {
+        push(const InvalidType());
+        deprecated_addCompileTimeError(
+            beginToken.charOffset, "Invalid type prefix: $prefix.");
+        return;
       }
       if (builder is PrefixBuilder) {
         name = scopeLookup(builder.exportScope, suffix, beginToken,

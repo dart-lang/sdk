@@ -422,16 +422,13 @@ rasta/unresolved_for_in: Crash
 rasta/unresolved_recovery: Crash
 redirecting_factory: Crash
 regress/issue_29937: Crash
-regress/issue_29940: Crash
 regress/issue_29941: Crash
 regress/issue_29942: Crash
 regress/issue_29943: Crash
 regress/issue_29944: Crash
-regress/issue_29945: Crash
 regress/issue_29977: Crash
 regress/issue_29978: Crash
 regress/issue_29979: Crash
-regress/issue_29980: Crash
 regress/issue_29981: Crash
 regress/issue_29984: Crash
 regress/issue_29985: Crash
