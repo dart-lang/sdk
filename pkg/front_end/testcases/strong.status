@@ -10,6 +10,7 @@ DeltaBlue: Fail
 accessors: Fail
 async_function: Fail
 await: Fail
+bug30695: RuntimeError
 call: Fail
 cascade: Fail
 casts: Fail

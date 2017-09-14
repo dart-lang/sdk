@@ -8,6 +8,7 @@ DeltaBlue: Crash
 accessors: Crash
 arithmetic: Crash
 bad_store: Crash
+bug30695: Crash
 call: Crash
 cascade: Crash
 casts: Crash

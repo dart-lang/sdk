@@ -1349,7 +1349,9 @@ abstract class ShadowMember implements Member {
     if (member._accessorNode != null) {
       member._accessorNode.overrides.add(overriddenMember);
     }
-    if (member is ShadowProcedure && member._methodNode != null) {
+    if (member is ShadowProcedure &&
+        overriddenMember is Procedure &&
+        member._methodNode != null) {
       member._methodNode.overrides.add(overriddenMember);
     }
   }
