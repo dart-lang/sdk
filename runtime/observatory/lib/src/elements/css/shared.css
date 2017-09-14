@@ -1626,6 +1626,12 @@ timeline-dashboard {
   margin-top: -30px;
 }
 
+memory-profile > div > h1,
+timeline-dashboard > div > h1 {
+  overflow: hidden;
+  border-bottom: 1px solid #d5d5d5;
+}
+
 memory-dashboard button:disabled,
 timeline-dashboard button:disabled,
 memory-dashboard button:disabled:hover,
@@ -1669,6 +1675,31 @@ memory-profile .header_button:first-child,
 timeline-dashboard .header_button:first-child {
   margin-left: 5px;
 }
+
+memory-profile .tab_buttons,
+timeline-dashboard .tab_buttons {
+  position: relative;
+  top: 1px;
+  float: right;
+}
+
+memory-profile .tab_buttons button,
+timeline-dashboard .tab_buttons button {
+  padding: 10px 5px;
+}
+
+memory-profile .tab_buttons button:not(:first-child),
+timeline-dashboard .tab_buttons button:not(:first-child) {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+
+memory-profile .tab_buttons button:not(:last-child),
+timeline-dashboard  .tab_buttons button:not(:last-child) {
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
 
 /* memory-dashboard */
 
@@ -1820,32 +1851,6 @@ memory-allocations .collection-item .group button:hover {
   border-radius: 0px;
 }
 
-/* memory-profile */
-
-memory-profile > div > h1 {
-  overflow: hidden;
-  border-bottom: 1px solid #d5d5d5;
-}
-
-memory-profile .tab_buttons {
-  position: relative;
-  top: 1px;
-  float: right;
-}
-
-memory-profile .tab_buttons button {
-  padding: 10px 5px;
-}
-
-memory-profile .tab_buttons button:not(:first-child) {
-  border-top-left-radius: 0px;
-  border-bottom-left-radius: 0px;
-}
-
-memory-profile .tab_buttons button:not(:last-child) {
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
-}
 
 /* memory-snapshot */
 
@@ -2549,9 +2554,14 @@ stack-trace-tree-config {
 /* timeline-dashboard */
 
 timeline-dashboard .iframe {
-  height: 100%;
-  width: 100%;
-  padding-top: 25px;
+  position: absolute;
+  top: 90px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+timeline-dashboard h1 {
+  margin-bottom: 5px;
 }
 timeline-dashboard .iframe iframe {
   width: 100%;

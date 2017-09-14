@@ -4742,6 +4742,10 @@ class TimelineFlags implements M.TimelineFlags {
   static final Set<String> _dart =
       new Set<String>.from(const <String>['GC', 'Compiler', 'Dart']);
 
+  // Dart developers care about the following streams:
+  static final Set<String> _flutter =
+      new Set<String>.from(const <String>['GC', 'Dart', 'Embedder']);
+
   // VM developers care about the following streams:
   static final Set<String> _vm = new Set<String>.from(const <String>[
     'GC',
@@ -4777,6 +4781,8 @@ class TimelineFlags implements M.TimelineFlags {
       const TimelineProfile('None', const []),
       new TimelineProfile('Dart Developer',
           streams.where((s) => _dart.contains(s.name)).toList()),
+      new TimelineProfile('Flutter Developer',
+          streams.where((s) => _flutter.contains(s.name)).toList()),
       new TimelineProfile(
           'VM Developer', streams.where((s) => _vm.contains(s.name)).toList()),
       new TimelineProfile('All', streams),

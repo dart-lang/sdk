@@ -149,7 +149,7 @@ class TimelineEventArguments {
  public:
   TimelineEventArguments() : buffer_(NULL), length_(0) {}
   ~TimelineEventArguments() { Free(); }
-  // Set the number of arguments in the event.
+  // Get/Set the number of arguments in the event.
   void SetNumArguments(intptr_t length);
   // |name| must be a compile time constant. Takes ownership of |argument|.
   void SetArgument(intptr_t i, const char* name, char* argument);
@@ -268,7 +268,8 @@ class TimelineEvent {
   // Completes this event with pre-serialized JSON. Copies |json|.
   void CompleteWithPreSerializedJSON(const char* json);
 
-  // Set the number of arguments in the event.
+  // Get/Set the number of arguments in the event.
+  intptr_t GetNumArguments() { return arguments_.length(); }
   void SetNumArguments(intptr_t length) { arguments_.SetNumArguments(length); }
   // |name| must be a compile time constant. Takes ownership of |argument|.
   void SetArgument(intptr_t i, const char* name, char* argument) {
@@ -457,9 +458,14 @@ class TimelineEvent {
 
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
   TimelineDurationScope tds(thread, Timeline::GetGCStream(), name);
+#define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)                      \
+  TIMELINE_FUNCTION_GC_DURATION(thread, name)                                  \
+  tds.SetNumArguments(1);                                                      \
+  tds.CopyArgument(0, "mode", "basic");
 #else
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)
+#define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)
 #endif  // !PRODUCT
 
 // See |TimelineDurationScope| and |TimelineBeginEndScope|.
@@ -467,6 +473,7 @@ class TimelineEventScope : public StackResource {
  public:
   bool enabled() const { return enabled_; }
 
+  intptr_t GetNumArguments() { return arguments_.length(); }
   void SetNumArguments(intptr_t length);
 
   void SetArgument(intptr_t i, const char* name, char* argument);
