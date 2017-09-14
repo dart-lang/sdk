@@ -686,7 +686,6 @@ inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range
 instance_creation_in_function_annotation_test: RuntimeError
 issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
-label_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
@@ -913,7 +912,6 @@ inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range
 instance_creation_in_function_annotation_test: RuntimeError
 issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
-label_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
