@@ -951,7 +951,8 @@ string_join_test: RuntimeError
 super_bound_closure_test/01: RuntimeError
 super_bound_closure_test/none: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_closure_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.buildClosures#)) for j:closure_call(Sub_buildClosures_closure.call).
+mixin_illegal_super_use_test/04: MissingCompileTimeError
+mixin_illegal_super_use_test/07: MissingCompileTimeError
 super_getter_setter_test: RuntimeError
 super_no_such_method1_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
 super_no_such_method4_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
@@ -1516,7 +1517,8 @@ string_join_test: RuntimeError
 super_bound_closure_test/01: RuntimeError
 super_bound_closure_test/none: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_closure_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.buildClosures#)) for j:closure_call(Sub_buildClosures_closure.call).
+mixin_illegal_super_use_test/04: MissingCompileTimeError
+mixin_illegal_super_use_test/07: MissingCompileTimeError
 super_getter_setter_test: RuntimeError
 super_no_such_method1_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
 super_no_such_method4_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.

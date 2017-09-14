@@ -613,7 +613,6 @@ closure_parameter_types_test: RuntimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
 closure_type_variable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#bar)) for j:closure_call(A_foo_closure.call).
 closure_type_variables_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
 closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
 closures_initializer2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 closures_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -673,8 +672,8 @@ getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
-if_null_assignment_behavior_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
+closure_with_super_send_test: RuntimeError
+if_null_assignment_behavior_test/06: RuntimeError
 if_null_assignment_behavior_test/12: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/03: RuntimeError
@@ -844,7 +843,6 @@ closure_parameter_types_test: RuntimeError
 closure_self_reference_test: RuntimeError
 closure_type_variable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#bar)) for j:closure_call(A_foo_closure.call).
 closure_type_variables_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#g)) for j:closure_call(A$bar_A$bar_closure.call).
-closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
 closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
 closures_initializer2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.#)) for j:closure_call(A_A_closure.call).
 closures_initializer_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.#)) for j:closure_call(B_B_closure.call).
@@ -904,8 +902,8 @@ getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
-if_null_assignment_behavior_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
+closure_with_super_send_test: RuntimeError
+if_null_assignment_behavior_test/06: RuntimeError
 if_null_assignment_behavior_test/12: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/03: RuntimeError

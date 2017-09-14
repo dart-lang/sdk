@@ -260,6 +260,21 @@ class CapturedScopeBuilder extends ir.Visitor {
         scope.hasThisLocal);
   }
 
+  void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
+    if (_hasThisLocal) _registerNeedsThis();
+    invocation.visitChildren(this);
+  }
+
+  void visitSuperPropertySet(ir.SuperPropertySet propertySet) {
+    if (_hasThisLocal) _registerNeedsThis();
+    propertySet.visitChildren(this);
+  }
+
+  void visitSuperPropertyGet(ir.SuperPropertyGet propertyGet) {
+    if (_hasThisLocal) _registerNeedsThis();
+    propertyGet.visitChildren(this);
+  }
+
   void visitInvokable(ir.TreeNode node) {
     assert(node is ir.Member ||
         node is ir.FunctionExpression ||
