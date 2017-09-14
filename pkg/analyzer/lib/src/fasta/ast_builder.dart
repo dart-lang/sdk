@@ -422,11 +422,9 @@ class AstBuilder extends ScopeListener {
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = popIfNotNull(elseToken);
     Statement thenPart = pop();
-    Expression condition = pop();
-    analyzer.BeginToken leftParenthesis =
-        unsafeToken(ifToken.next, TokenType.OPEN_PAREN);
-    push(ast.ifStatement(ifToken, ifToken.next, condition,
-        leftParenthesis.endGroup, thenPart, elseToken, elsePart));
+    ParenthesizedExpression condition = pop();
+    push(ast.ifStatement(ifToken, condition.leftParenthesis, condition,
+        condition.rightParenthesis, thenPart, elseToken, elsePart));
   }
 
   void handleNoInitializers() {
