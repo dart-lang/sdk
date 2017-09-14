@@ -11,6 +11,10 @@ async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
 async/schedule_microtask2_test: RuntimeError
 isolate/issue_21398_parent_isolate2_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/function_type_mirror_test: RuntimeError
+mirrors/generic_function_typedef_test: RuntimeError
+mirrors/generic_interface_test/01: RuntimeError
+mirrors/generic_interface_test/none: RuntimeError
 
 [ $compiler == dartkp ]
 async/stream_timeout_test: RuntimeError

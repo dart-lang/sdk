@@ -45,6 +45,6 @@ main() {
   ClassMirror km = cm.type;
   Expect.equals(reflectClass(WannabeFunction), km);
   Expect.equals(#WannabeFunction, km.simpleName);
-  Expect.equals(mm, km.declarations[#call]);
+  Expect.equals(mm.hashCode, km.declarations[#call].hashCode);
   Expect.setEquals([#call, #method], membersOf(km).keys);
 }
