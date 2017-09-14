@@ -6,6 +6,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show templateInternalProblemStackNotEmpty;
 import 'package:front_end/src/fasta/problems.dart' show internalProblem;
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
 
 /// Keeps track of the state necessary to perform type promotion.
@@ -132,6 +133,8 @@ class TypePromoterDisabled extends TypePromoter {
 /// possible without needing access to private members of shadow objects.  It
 /// defers to abstract methods for everything else.
 abstract class TypePromoterImpl extends TypePromoter {
+  final TypeSchemaEnvironment typeSchemaEnvironment;
+
   /// [TypePromotionFact] representing the initial state (no facts have been
   /// determined yet).
   ///
@@ -172,9 +175,10 @@ abstract class TypePromoterImpl extends TypePromoter {
   /// created.
   int _lastFactSequenceNumber = 0;
 
-  TypePromoterImpl() : this._(new _NullFact());
+  TypePromoterImpl(TypeSchemaEnvironment typeSchemaEnvironment)
+      : this._(typeSchemaEnvironment, new _NullFact());
 
-  TypePromoterImpl._(_NullFact this._nullFacts)
+  TypePromoterImpl._(this.typeSchemaEnvironment, _NullFact this._nullFacts)
       : _factCacheState = _nullFacts,
         _currentFacts = _nullFacts {
     _factCache[null] = _nullFacts;
@@ -622,21 +626,15 @@ class _IsCheck extends TypePromotionFact {
   @override
   DartType _computePromotedType(
       TypePromoterImpl promoter, TypePromotionScope scope) {
-    // TODO(paulberry): add a subtype check.  For example:
-    //     f(Object x) {
-    //       if (x is int) { // promotes x to int
-    //         if (x is String) { // does not promote x to String, since String
-    //                            // not a subtype of int
-    //         }
-    //       }
-    //     }
+    var previousPromotedType =
+        previousForVariable?._computePromotedType(promoter, scope);
 
     // If the variable was mutated somewhere in the scope of the potential
     // promotion, promotion does not occur.
     if (_mutatedInScopes != null) {
       for (var assignmentScope in _mutatedInScopes) {
         if (assignmentScope.containsScope(scope)) {
-          return previousForVariable?._computePromotedType(promoter, scope);
+          return previousPromotedType;
         }
       }
     }
@@ -648,10 +646,18 @@ class _IsCheck extends TypePromotionFact {
         _accessedInClosureInScopes != null) {
       for (var accessScope in _accessedInClosureInScopes) {
         if (accessScope.containsScope(scope)) {
-          return previousForVariable?._computePromotedType(promoter, scope);
+          return previousPromotedType;
         }
       }
     }
+
+    // If the type we are considering promoting to is not a subtype of the
+    // previous type of the variable, no promotion occurs.
+    if (!promoter.typeSchemaEnvironment
+        .isSubtypeOf(checkedType, previousPromotedType ?? variable.type)) {
+      return previousPromotedType;
+    }
+
     return checkedType;
   }
 }
