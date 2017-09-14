@@ -850,6 +850,7 @@ closure_with_super_send_test: RuntimeError
 closures_initializer2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.#)) for j:closure_call(A_A_closure.call).
 closures_initializer_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.#)) for j:closure_call(B_B_closure.call).
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
+cyclic_constructor_test/01: Crash # Stack Overflow
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
