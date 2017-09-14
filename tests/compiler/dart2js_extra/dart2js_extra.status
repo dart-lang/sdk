@@ -161,14 +161,12 @@ js_dispatch_property_test: Crash # Issue 27394
 regress/4562_test/01: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-16400_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 21666_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 22868_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 23404_test: RuntimeError
 23432_test: RuntimeError
 async_stacktrace_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 bound_closure_interceptor_methods_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 closure_capture2_test: RuntimeError
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
@@ -242,7 +240,16 @@ regress/4562_test/none: CompileTimeError
 regress/4639_test: RuntimeError
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
-switch_test/none: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+closure_type_reflection2_test: RuntimeError
+closure_type_reflection_test: RuntimeError
+deferred/deferred_mirrors2_test: RuntimeError
+invalid_annotation2_test/none: RuntimeError
+label_test/06: MissingCompileTimeError
+mirror_invalid_field_access2_test: RuntimeError
+mirror_invalid_field_access4_test: RuntimeError
+mirror_invalid_invoke2_test: RuntimeError
+mirrors_used_metatargets_test: RuntimeError
+mirrors_used_native_test: RuntimeError
 timer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 truncation_errors_test: RuntimeError
 type_argument_factory_crash_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -252,14 +259,12 @@ unconditional_dartio_import_test: CompileTimeError
 useful_error_message_1_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-16400_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 21666_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 22868_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 23404_test: RuntimeError
 23432_test: RuntimeError
 async_stacktrace_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 bound_closure_interceptor_methods_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 closure_type_reflection_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
@@ -331,7 +336,16 @@ regress/4562_test/none: CompileTimeError
 regress/4639_test: RuntimeError
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
-switch_test/none: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+closure_type_reflection2_test: RuntimeError
+closure_type_reflection_test: RuntimeError
+deferred/deferred_mirrors2_test: RuntimeError
+invalid_annotation2_test/none: RuntimeError
+label_test/06: MissingCompileTimeError
+mirror_invalid_field_access2_test: RuntimeError
+mirror_invalid_field_access4_test: RuntimeError
+mirror_invalid_invoke2_test: RuntimeError
+mirrors_used_metatargets_test: RuntimeError
+mirrors_used_native_test: RuntimeError
 timer_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 truncation_errors_test: RuntimeError
 type_argument_factory_crash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).

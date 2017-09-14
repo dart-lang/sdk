@@ -522,7 +522,7 @@ collection_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Fa
 collection_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 const_list_literal_test: RuntimeError
 core_runtime_types_test: RuntimeError
-data_uri_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+data_uri_test: RuntimeError
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError
 expando_test: RuntimeError
@@ -607,7 +607,7 @@ set_remove_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Fa
 set_retainAll_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 set_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 set_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-shuffle_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+shuffle_test: RuntimeError
 splay_tree_from_iterable_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 splay_tree_from_iterables_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 splay_tree_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -642,16 +642,16 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_file_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_http_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_ipv6_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_normalize_path_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_normalize_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+uri_file_test: RuntimeError
+uri_http_test: RuntimeError
+uri_ipv6_test: RuntimeError
+uri_normalize_path_test: RuntimeError
+uri_normalize_test: RuntimeError
 uri_parameters_all_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-uri_parse_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_path_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+uri_parse_test: RuntimeError
+uri_path_test: RuntimeError
 uri_query_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_scheme_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+uri_scheme_test: RuntimeError
 uri_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
@@ -672,7 +672,7 @@ collection_test: Crash # Assertion failure: Cannot find value Instance of 'ThisL
 collection_to_string_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 const_list_literal_test: RuntimeError
 core_runtime_types_test: RuntimeError
-data_uri_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+data_uri_test: RuntimeError
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError
 expando_test: RuntimeError
@@ -757,7 +757,7 @@ set_remove_test: Crash # Assertion failure: Cannot find value Instance of 'ThisL
 set_retainAll_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 set_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
 set_to_string_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
-shuffle_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+shuffle_test: RuntimeError
 splay_tree_from_iterable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeMap.#v), local(SplayTreeMap.#)) for j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
 splay_tree_from_iterables_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeMap.#v), local(SplayTreeMap.#)) for j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
 splay_tree_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
@@ -792,16 +792,16 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_file_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_http_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_ipv6_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_normalize_path_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_normalize_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+uri_file_test: RuntimeError
+uri_http_test: RuntimeError
+uri_ipv6_test: RuntimeError
+uri_normalize_path_test: RuntimeError
+uri_normalize_test: RuntimeError
 uri_parameters_all_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
-uri_parse_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_path_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+uri_parse_test: RuntimeError
+uri_path_test: RuntimeError
 uri_query_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_scheme_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+uri_scheme_test: RuntimeError
 uri_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [$arch == simdbc || $arch == simdbc64]

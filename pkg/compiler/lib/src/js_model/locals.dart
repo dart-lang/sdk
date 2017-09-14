@@ -226,8 +226,6 @@ class JumpVisitor extends ir.Visitor {
 
   @override
   visitBreakStatement(ir.BreakStatement node) {
-    // TODO(johnniwinther): Add labels if the enclosing loop is not the implicit
-    // break target.
     JJumpTarget target;
     ir.TreeNode body = node.target.body;
     ir.TreeNode parent = node.target.parent;
@@ -279,8 +277,17 @@ class JumpVisitor extends ir.Visitor {
         label.isContinueTarget = true;
       }
     } else {
+      // We have code like
+      //
+      //     label: if (c) {
+      //         if (c < 10) break label;
+      //     }
+      //
+      // and label is therefore always needed.
       target = _getJumpTarget(node.target);
       target.isBreakTarget = true;
+      JLabelDefinition label = _getOrCreateLabel(target, node.target);
+      label.isBreakTarget = true;
     }
     jumpTargetMap[node] = target;
     super.visitBreakStatement(node);

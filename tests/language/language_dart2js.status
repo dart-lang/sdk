@@ -543,7 +543,6 @@ constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Insta
 custom_await_stack_trace_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: RuntimeError
-dangling_else_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
@@ -616,7 +615,6 @@ enum_private_test/none: RuntimeError
 enum_test: RuntimeError
 example_constructor_test: RuntimeError
 execute_finally7_test: RuntimeError
-exhaustive_for_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -666,7 +664,6 @@ function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemente
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
-inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 instance_creation_in_function_annotation_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
@@ -687,7 +684,6 @@ issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Fa
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
-label_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
@@ -785,6 +781,7 @@ mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: Crash # 'package:js_ast/src/nodes.dart': Failed assertion: line 1316 pos 12: '_identifierRE.hasMatch(name)': is not true.
+mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/01: CompileTimeError
 mixin_of_mixin_test/02: CompileTimeError
 mixin_of_mixin_test/03: CompileTimeError
@@ -845,7 +842,6 @@ mixin_supertype_subclass_test/03: CompileTimeError
 mixin_supertype_subclass_test/04: CompileTimeError
 mixin_supertype_subclass_test/05: CompileTimeError
 mixin_supertype_subclass_test/none: CompileTimeError
-mixin_mixin_type_arguments_test: RuntimeError
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -898,7 +894,6 @@ redirecting_factory_reflection_test: Crash # RangeError (index): Invalid value: 
 reg_exp_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
-regress_18535_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 regress_20394_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 regress_21795_test: RuntimeError
 regress_22438_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -944,7 +939,12 @@ stacktrace_rethrow_error_test/none: RuntimeError
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
 stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError
-statement_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+const_evaluation_test/01: RuntimeError
+enum_mirror_test: RuntimeError
+instance_creation_in_function_annotation_test: RuntimeError
+issue21079_test: RuntimeError
+redirecting_factory_reflection_test: RuntimeError
+regress_28255_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
 string_join_test: RuntimeError
@@ -1112,7 +1112,6 @@ cyclic_type_test/01: RuntimeError
 cyclic_type_test/02: RuntimeError
 cyclic_type_test/03: RuntimeError
 cyclic_type_test/04: RuntimeError
-dangling_else_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
@@ -1185,7 +1184,6 @@ enum_private_test/none: RuntimeError
 enum_test: RuntimeError
 example_constructor_test: RuntimeError
 execute_finally7_test: RuntimeError
-exhaustive_for_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -1236,7 +1234,6 @@ function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemente
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
-inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 instance_creation_in_function_annotation_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
@@ -1257,7 +1254,6 @@ issue23244_test: Crash # Assertion failure: Cannot find value Instance of 'ThisL
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
-label_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
@@ -1507,7 +1503,13 @@ stacktrace_rethrow_error_test/none: RuntimeError
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
 stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError
-statement_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+const_evaluation_test/01: RuntimeError
+enum_mirror_test: RuntimeError
+instance_creation_in_function_annotation_test: RuntimeError
+issue21079_test: RuntimeError
+redirecting_factory_reflection_test: RuntimeError
+regress_18535_test: RuntimeError
+regress_28255_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
 string_join_test: RuntimeError
