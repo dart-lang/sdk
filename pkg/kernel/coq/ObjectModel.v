@@ -182,23 +182,28 @@ with expression_type (CE : class_env) (TE : type_env) (e : expression) :
     [DT_Interface_Type (Interface_Type class)]
   | E_Invocation_Expression (IE_Method_Invocation (Method_Invocation rec method args _)) =>
     rec_type <- expression_type CE TE rec;
+    let (arg_exp) := args in
+    arg_type <- expression_type CE TE arg_exp;
     let (method_name) := method in
-    match rec_type with
-    | DT_Function_Type fn_type =>
-      if string_dec "call" method_name then [rec_type] else None
-    | DT_Interface_Type (Interface_Type class) =>
-      interface <- NatMap.find class CE;
-      proc_desc <- List.find (fun P =>
-        if string_dec (pr_name P) method_name then true else false)
-        (procedures interface);
-      [DT_Function_Type (pr_type proc_desc)]
-    end
+    fun_type <-
+      match rec_type with
+      | DT_Function_Type fn_type =>
+        if string_dec "call" method_name then [fn_type] else None
+      | DT_Interface_Type (Interface_Type class) =>
+        interface <- NatMap.find class CE;
+        proc_desc <- List.find (fun P =>
+          if string_dec (pr_name P) method_name then true else false)
+          (procedures interface);
+        [pr_type proc_desc]
+      end;
+    let (param_type, ret_type) := fun_type in
+    if type_equiv param_type arg_type then [ret_type] else None
   end
 .
 
 Section Typing_Equivalence_Homomorphism.
 
-  Definition type_equiv_at_expr (e : expression) :=
+  Definition equiv_at (e : expression) :=
     forall CE TE v s t et,
                  expression_type CE (NatMap.add v s TE) e = [et] /\ s ≡ t ->
       exists es, expression_type CE (NatMap.add v t TE) e = [es] /\ et ≡ es.
@@ -208,9 +213,9 @@ Section Typing_Equivalence_Homomorphism.
   Hint Resolve NatMap.find_1.
   Hint Resolve type_equiv_refl.
   Lemma type_equiv_at_variable_get :
-    forall v, type_equiv_at_expr (E_Variable_Get (Variable_Get v)).
+    forall v, equiv_at (E_Variable_Get (Variable_Get v)).
   Proof.
-    unfold type_equiv_at_expr.
+    unfold equiv_at.
     intros.
     destruct (N.eq_dec v v0).
     rewrite e in *.
@@ -232,6 +237,91 @@ Section Typing_Equivalence_Homomorphism.
     assert (NatMap.MapsTo v et (NatMap.add v0 t TE)); unfold expression_type in *.
     pose proof (@NatMap.add_3 dart_type TE v0 v et s (not_eq_sym n) H).
     crush.
+    crush.
+  Qed.
+
+  Hint Rewrite N.eqb_eq.
+  Lemma type_equiv_at_property_get :
+    forall rec prop, equiv_at rec -> equiv_at (E_Property_Get (Property_Get rec prop)).
+    unfold equiv_at.
+    intros.
+    intuition.
+    unfold expression_type in H1.
+    fold expression_type in H1.
+    set (Orig := expression_type CE (NatMap.add v s TE) rec).
+    assert (Orig = expression_type CE (NatMap.add v s TE) rec); [auto|idtac].
+    apply eq_sym in H0.
+    rewrite H0 in H1.
+
+    (* Go by cases on the original type of the receiver. *)
+    destruct Orig.
+    Focus 2.
+    crush.
+    simpl in H1.
+
+    (* Case 1: receiver has interface type. *)
+    induction d.
+    destruct i.
+    set (iface := NatMap.find n CE).
+    assert (NatMap.find n CE = iface); [auto|idtac].
+    rewrite H3 in H1.
+
+    (* Case 1.1: interface exists. *)
+    destruct prop.
+    destruct iface.
+    simpl in H1.
+    pose proof (H CE TE v s t (DT_Interface_Type (Interface_Type n)) (conj H0 H2)).
+    destruct H4 as [new_rec_type].
+    destruct H4.
+    unfold type_equiv in H5.
+    (* We want to prove that the new interface is the same as the old. *)
+    destruct new_rec_type.
+    Focus 2.
+    crush.
+    destruct i0.
+    exists et.
+    intuition.
+    assert (n = n0).
+    crush.
+    rewrite H6 in H0.
+    unfold expression_type.
+    fold expression_type.
+    rewrite H4.
+    simpl.
+    rewrite H6 in H3.
+    rewrite H3.
+    simpl.
+    exact H1.
+
+    (* Case 1.2: interface doesn't exist. Reach a contradiction because the
+       expression was well-typed originally. *)
+    crush.
+
+    (* Case 2: receiver has function type. *)
+    destruct f.
+    destruct prop.
+    set (V := string_dec s0 "call").
+    assert (string_dec s0 "call" = V); [auto|idtac].
+    rewrite H3 in *.
+    destruct V.
+
+    (* Case 2.1: property get of ".call". *)
+    pose proof (H CE TE v s t (DT_Function_Type (Function_Type d d0)) (conj H0 H2)).
+    destruct H4 as [new_rec_type].
+    destruct H4.
+    exists new_rec_type.
+    intuition.
+    unfold expression_type.
+    fold expression_type.
+    rewrite H4.
+    simpl.
+    destruct new_rec_type.
+    crush.
+    rewrite H3; simpl.
+    crush.
+    assert (et = DT_Function_Type (Function_Type d d0)); crush.
+
+    (* Case 2.2: not ".call". Contradiction because no other properties exist on function types. *)
     crush.
   Qed.
 
