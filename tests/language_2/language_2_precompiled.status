@@ -106,6 +106,11 @@ closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
+cyclic_type_variable_test/01: MissingCompileTimeError
+cyclic_type_variable_test/02: MissingCompileTimeError
+cyclic_type_variable_test/03: MissingCompileTimeError
+cyclic_type_variable_test/04: MissingCompileTimeError
+cyclic_typedef_test/13: MissingCompileTimeError
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
@@ -352,3 +357,6 @@ deferred_load_constants_test/05: Fail
 
 [ $runtime == dart_precompiled && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
+
+[ $runtime == dart_precompiled && $minified ]
+cyclic_type_test/*: Skip

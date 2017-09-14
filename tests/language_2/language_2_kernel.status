@@ -18,7 +18,18 @@ assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
+cyclic_type2_test: CompileTimeError
+cyclic_type_test/02: CompileTimeError
+cyclic_type_test/04: CompileTimeError
 default_factory2_test/01: MissingCompileTimeError
+deferred_call_empty_before_load_test: RuntimeError
+deferred_closurize_load_library_test: DartkCrash
+deferred_constant_list_test: RuntimeError
+deferred_function_type_test: RuntimeError
+deferred_inlined_test: RuntimeError
+deferred_load_inval_code_test: RuntimeError
+deferred_load_library_wrong_args_test/none: RuntimeError
+deferred_mixin_test: RuntimeError
 deferred_constraints_type_annotation_test/as_operation: Pass
 deferred_constraints_type_annotation_test/catch_check: Pass
 deferred_constraints_type_annotation_test/is_check: Pass
@@ -37,6 +48,14 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: Pass
 deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_null: Pass
 deferred_constraints_type_annotation_test/type_annotation_top_level: Pass
+deferred_call_empty_before_load_test: RuntimeError
+deferred_closurize_load_library_test: DartkCrash
+deferred_constant_list_test: RuntimeError
+deferred_function_type_test: RuntimeError
+deferred_inlined_test: RuntimeError
+deferred_load_inval_code_test: RuntimeError
+deferred_load_library_wrong_args_test/none: RuntimeError
+deferred_mixin_test: RuntimeError
 generic_function_dcall_test: CompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
@@ -99,17 +118,9 @@ if_null_precedence_test/07: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
+issue_1751477_test: RuntimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
-deferred_call_empty_before_load_test: RuntimeError
-deferred_closurize_load_library_test: DartkCrash
-deferred_constant_list_test: RuntimeError
-deferred_function_type_test: RuntimeError
-deferred_inlined_test: RuntimeError
-deferred_load_inval_code_test: RuntimeError
-deferred_load_library_wrong_args_test/none: RuntimeError
-deferred_mixin_test: RuntimeError
-issue_1751477_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -310,6 +321,7 @@ cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel 
 cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+cyclic_constructor_test/01: MissingCompileTimeError # Fasta bug: Cyclic constructor redirection.
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
 issue_1751477_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -346,3 +358,15 @@ generic_field_mixin6_test/none: RuntimeError
 deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+
+[ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
+cyclic_type_test/02: Fail, OK
+cyclic_type_test/04: Fail, OK
+cyclic_type2_test: Fail, OK
+
+[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+cyclic_type_variable_test/01: Crash
+cyclic_type_variable_test/02: Crash
+cyclic_type_variable_test/03: Crash
+cyclic_type_variable_test/04: Crash
+cyclic_type_variable_test/none: Crash

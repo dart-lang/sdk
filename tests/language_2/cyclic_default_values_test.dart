@@ -15,7 +15,7 @@ main() {
   Expect.equals("bar", Function.apply(f, []));
   Expect.equals("main", Function.apply(f, [(_) => "main"]));
 
-  f = bar2;
-  Expect.equals("bar2", Function.apply(f, []));
-  Expect.equals("main2", Function.apply(f, [], {#f: ({f}) => "main2"}));
+  var f_2 = bar2;
+  Expect.equals("bar2", Function.apply(f_2, []));
+  Expect.equals("main2", Function.apply(f_2, [], {#f: ({f}) => "main2"}));
 }

@@ -49,7 +49,7 @@ C c //# 09: compile-time error
 Class c //# 12: ok
 
 // Reference through a class type bound is not a cyclic self-reference.
-Class c //# 13: ok
+Class c //# 13: compile-time error
 
     ); // The right parenthesis of the typedef arguments.
 

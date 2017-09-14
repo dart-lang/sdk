@@ -83,12 +83,6 @@ constructor_with_mixin_test: Skip
 crash_6725_test: Skip
 create_unresolved_type_test: Skip
 ct_const_test: Skip
-cyclic_class_member_test: Skip
-cyclic_constructor_test: Skip
-cyclic_default_values_test: Skip
-cyclic_import_test: Skip
-cyclic_type_variable_test: Skip
-cyclic_typedef_test: Skip
 deopt_inlined_function_test: Skip
 double_to_string_as_exponential2_test: Skip
 double_to_string_as_fixed2_test: Skip
@@ -566,11 +560,6 @@ const_evaluation_test/01: RuntimeError # Issue 29920
 const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
 constructor12_test: RuntimeError # Issue 29920
-custom_await_stack_trace_test: RuntimeError # Issue 29920
-cyclic_type2_test: RuntimeError # Issue 29920
-cyclic_type_test/02: RuntimeError # Issue 29920
-cyclic_type_test/03: RuntimeError # Issue 29920
-cyclic_type_test/04: RuntimeError # Issue 29920
 deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
 deferred_static_seperate_test: RuntimeError # Issue 27777

@@ -115,6 +115,11 @@ compile_time_constant_a_test: RuntimeError # Issue 30526
 compile_time_constant_b_test: RuntimeError # Issue 29920
 compile_time_constant_d_test: RuntimeError # Issue 29920
 compile_time_constant10_test/none: RuntimeError
+custom_await_stack_trace_test: RuntimeError # Issue 29920
+cyclic_type2_test: RuntimeError # Issue 29920
+cyclic_type_test/02: RuntimeError # Issue 29920
+cyclic_type_test/03: RuntimeError # Issue 29920
+cyclic_type_test/04: RuntimeError # Issue 29920
 deferred_call_empty_before_load_test: RuntimeError # Issue 27777
 deferred_load_constants_test/none: RuntimeError # Issue 27394
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
