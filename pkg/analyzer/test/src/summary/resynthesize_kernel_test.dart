@@ -25,6 +25,7 @@ import 'package:kernel/text/ast_to_text.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context/mock_sdk.dart';
@@ -407,32 +408,44 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_import_invalidUri_metadata() async {
+    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_import_invalidUri_metadata();
   }
 
   @failingTest
+  @fastaProblem
   test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
+    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_boundRefersToEarlierTypeArgument();
   }
 
   @failingTest
+  @fastaProblem
   test_instantiateToBounds_boundRefersToItself() async {
+    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_boundRefersToItself();
   }
 
   @failingTest
+  @fastaProblem
   test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
+    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
   }
 
   @failingTest
+  @fastaProblem
   test_instantiateToBounds_functionTypeAlias_simple() async {
+    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_functionTypeAlias_simple();
   }
 
   @failingTest
+  @fastaProblem
   test_instantiateToBounds_simple() async {
+    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_simple();
   }
 
@@ -448,11 +461,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_invalid_annotation_unprefixed_constructor() async {
     // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_annotation_unprefixed_constructor();
-  }
-
-  @failingTest
-  test_invalid_importPrefix_asTypeArgument() async {
-    await super.test_invalid_importPrefix_asTypeArgument();
   }
 
   @failingTest
@@ -611,21 +619,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_type_invalid_topLevelVariableElement_asType() async {
-    await super.test_type_invalid_topLevelVariableElement_asType();
-  }
-
-  @failingTest
-  test_type_invalid_topLevelVariableElement_asTypeArgument() async {
-    await super.test_type_invalid_topLevelVariableElement_asTypeArgument();
-  }
-
-  @failingTest
-  test_type_invalid_typeParameter_asPrefix() async {
-    await super.test_type_invalid_typeParameter_asPrefix();
-  }
-
-  @failingTest
   test_type_reference_to_typedef_with_type_arguments() async {
     await super.test_type_reference_to_typedef_with_type_arguments();
   }
@@ -633,16 +626,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_type_reference_to_typedef_with_type_arguments_implicit() async {
     await super.test_type_reference_to_typedef_with_type_arguments_implicit();
-  }
-
-  @failingTest
-  test_type_unresolved() async {
-    await super.test_type_unresolved();
-  }
-
-  @failingTest
-  test_type_unresolved_prefixed() async {
-    await super.test_type_unresolved_prefixed();
   }
 
   @failingTest
