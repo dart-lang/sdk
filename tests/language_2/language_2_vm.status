@@ -441,6 +441,9 @@ generic_methods_simple_as_expression_test/02: MissingRuntimeError
 
 [$runtime == vm && $compiler == none && $system == fuchsia]
 closure_cycles_test: Pass, Crash
+vm/causal_async_exception_stack_test: RuntimeError
+vm/causal_async_exception_stack2_test: RuntimeError
+vm/math_vm_test: Crash
 
 [ $compiler == none ]
 generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460

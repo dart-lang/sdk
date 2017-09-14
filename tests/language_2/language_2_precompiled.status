@@ -327,6 +327,7 @@ generic_methods_recursive_bound_test/03: Crash, Pass
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
+vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 generic_functions_test: Pass # Issue 25869
@@ -344,8 +345,8 @@ hello_dart_test: Skip # Incompatible flag: --compile_all
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 
 [ $compiler == precompiler ]
-implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 deferred_global_test: Fail
+implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 deferred_load_constants_test/02: Fail
@@ -360,3 +361,7 @@ large_class_declaration_test: SkipSlow # Uses too much memory.
 
 [ $runtime == dart_precompiled && $minified ]
 cyclic_type_test/*: Skip
+
+[ $runtime == dart_precompiled || $mode == product ]
+vm/causal_async_exception_stack_test: SkipByDesign
+vm/causal_async_exception_stack2_test: SkipByDesign
