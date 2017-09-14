@@ -175,7 +175,7 @@ class BinaryPrinter extends Visitor {
   void writeCanonicalNameEntry(CanonicalName node) {
     var parent = node.parent;
     if (parent.isRoot) {
-      writeByte(0);
+      writeUInt30(0);
     } else {
       writeUInt30(parent.index + 1);
     }
@@ -270,7 +270,7 @@ class BinaryPrinter extends Visitor {
 
   void writeReference(Reference reference) {
     if (reference == null) {
-      writeByte(0);
+      writeUInt30(0);
     } else {
       CanonicalName name = reference.canonicalName;
       if (name == null) {
@@ -294,7 +294,7 @@ class BinaryPrinter extends Visitor {
 
   void writeCanonicalNameReference(CanonicalName name) {
     if (name == null) {
-      writeByte(0);
+      writeUInt30(0);
     } else {
       checkCanonicalName(name);
       writeUInt30(name.index + 1);

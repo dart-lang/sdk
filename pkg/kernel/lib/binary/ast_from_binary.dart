@@ -521,7 +521,7 @@ class BinaryBuilder {
   }
 
   Combinator readCombinator() {
-    var isShow = readUInt() == 1;
+    var isShow = readByte() == 1;
     var names = readStringReferenceList();
     return new Combinator(isShow, names);
   }
