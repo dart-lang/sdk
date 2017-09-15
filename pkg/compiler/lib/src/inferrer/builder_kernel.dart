@@ -127,8 +127,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     DartType type = _localsMap.getLocalType(_elementMap, local);
     _locals.update(local, _inferrer.typeOfParameter(local), node, type);
     if (isOptional) {
-      TypeInformation type =
-          node.initializer != null ? visit(node.initializer) : _types.nullType;
+      TypeInformation type = visit(node.initializer);
       _inferrer.setDefaultTypeOfParameter(local, type,
           isInstanceMember: _analyzedMember.isInstanceMember);
     }
@@ -462,6 +461,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // TODO(redemption): Handle foreign constructors.
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
+    return handleConstructorInvoke(
+        node, selector, mask, constructor, arguments);
+  }
+
+  TypeInformation handleConstructorInvoke(ir.Node node, Selector selector,
+      TypeMask mask, ConstructorEntity constructor, ArgumentsTypes arguments) {
     TypeInformation returnType =
         handleStaticInvoke(node, selector, mask, constructor, arguments);
     // TODO(redemption): Special-case `List` constructors.
@@ -481,7 +486,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // TODO(redemption): Handle foreign functions.
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
-    if (member.isFunction) {
+    if (member.isConstructor) {
+      return handleConstructorInvoke(node, selector, mask, member, arguments);
+    } else if (member.isFunction) {
       return handleStaticInvoke(node, selector, mask, member, arguments);
     } else {
       handleStaticInvoke(node, selector, mask, member, arguments);
