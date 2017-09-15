@@ -18,6 +18,7 @@ import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
 import '../native/native.dart' as native;
+import '../ssa/type_builder.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -185,6 +186,11 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   /// Returns the type of `this` in [member], or `null` if member is defined in
   /// a static context.
   InterfaceType getMemberThisType(covariant MemberEntity member);
+
+  /// Returns how [member] has access to type variables of the this type
+  /// returned by [getMemberThisType].
+  ClassTypeVariableAccess getClassTypeVariableAccessForMember(
+      MemberEntity member);
 
   /// Returns the definition information for [cls].
   ClassDefinition getClassDefinition(covariant ClassEntity cls);

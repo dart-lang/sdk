@@ -14,6 +14,7 @@ import '../elements/names.dart' show Name;
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
+import '../ssa/type_builder.dart';
 import '../world.dart';
 import 'elements.dart';
 import 'closure_visitors.dart';
@@ -446,10 +447,7 @@ class NodeBox {
 }
 
 class JClosureClass extends JClass {
-  /// The member inside which the original closure occurred.
-  MemberEntity closureContext;
-
-  JClosureClass(JLibrary library, String name, this.closureContext)
+  JClosureClass(JLibrary library, String name)
       : super(library, name, isAbstract: false);
 
   @override
@@ -511,7 +509,7 @@ class ClosureClassDefinition implements ClassDefinition {
       'ClosureClassDefinition(kind:$kind,cls:$cls,location:$location)';
 }
 
-class ClosureMemberData implements MemberData {
+abstract class ClosureMemberData implements MemberData {
   final MemberDefinition definition;
   final InterfaceType memberThisType;
 
@@ -531,9 +529,14 @@ class ClosureMemberData implements MemberData {
 class ClosureFunctionData extends ClosureMemberData implements FunctionData {
   final FunctionType functionType;
   final ir.FunctionNode functionNode;
+  final ClassTypeVariableAccess classTypeVariableAccess;
 
-  ClosureFunctionData(ClosureMemberDefinition definition,
-      InterfaceType memberThisType, this.functionType, this.functionNode)
+  ClosureFunctionData(
+      ClosureMemberDefinition definition,
+      InterfaceType memberThisType,
+      this.functionType,
+      this.functionNode,
+      this.classTypeVariableAccess)
       : super(definition, memberThisType);
 
   void forEachParameter(KernelToElementMapForBuilding elementMap,
@@ -604,6 +607,10 @@ class ClosureFieldData extends ClosureMemberData implements FieldData {
   ConstantValue getFieldConstantValue(KernelToElementMap elementMap) {
     return null;
   }
+
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess =>
+      ClassTypeVariableAccess.none;
 }
 
 class ClosureMemberDefinition implements MemberDefinition {

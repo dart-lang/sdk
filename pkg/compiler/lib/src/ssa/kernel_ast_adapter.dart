@@ -24,6 +24,7 @@ import '../kernel/element_map_mixins.dart';
 import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
+import '../ssa/type_builder.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
 import '../types/types.dart';
@@ -159,6 +160,11 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
 
   InterfaceType getMemberThisType(MemberElement member) {
     return member.contextClass?.thisType;
+  }
+
+  ClassTypeVariableAccess getClassTypeVariableAccessForMember(
+      MemberEntity member) {
+    throw new UnsupportedError('KernelAstAdapter.getMemberTypeVariableAccess');
   }
 
   ir.Node getClassNode(ClassElement cls) {

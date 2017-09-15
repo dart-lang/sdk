@@ -39,6 +39,7 @@ import '../native/resolver.dart';
 import '../ordered_typeset.dart';
 import '../options.dart';
 import '../ssa/kernel_impact.dart';
+import '../ssa/type_builder.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -1997,6 +1998,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
     return _members.getData(member).getMemberThisType(this);
   }
 
+  ClassTypeVariableAccess getClassTypeVariableAccessForMember(
+      MemberEntity member) {
+    return _members.getData(member).classTypeVariableAccess;
+  }
+
   @override
   bool checkFamily(Entity entity) {
     assert(
@@ -2064,7 +2070,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       JConstructorBody constructorBody = createConstructorBody(constructor);
       _members.register<IndexedFunction, FunctionData>(
           constructorBody,
-          new FunctionDataImpl(
+          new ConstructorBodyDataImpl(
               node,
               node.function,
               new SpecialMemberDefinition(
@@ -2199,11 +2205,19 @@ class JsKernelToElementMap extends KernelToElementMapBase
     InterfaceType memberThisType = member.enclosingClass != null
         ? _elementEnvironment.getThisType(member.enclosingClass)
         : null;
+    ClassTypeVariableAccess typeVariableAccess =
+        _members.getData(member).classTypeVariableAccess;
+    if (typeVariableAccess == ClassTypeVariableAccess.instanceField) {
+      // A closure in a field initializer will only be executed in the
+      // constructor and type variables are therefore accessed through
+      // parameters.
+      typeVariableAccess = ClassTypeVariableAccess.parameter;
+    }
     String name = _computeClosureName(node);
     SourceSpan location = computeSourceSpanFromTreeNode(node);
     Map<String, MemberEntity> memberMap = <String, MemberEntity>{};
 
-    JClass classEntity = new JClosureClass(enclosingLibrary, name, member);
+    JClass classEntity = new JClosureClass(enclosingLibrary, name);
     // Create a classData and set up the interfaces and subclass
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
     var closureData =
@@ -2247,7 +2261,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
                 callMethod, location, MemberKind.closureCall, node.parent),
             memberThisType,
             getFunctionType(node),
-            node));
+            node,
+            typeVariableAccess));
     memberMap[callMethod.name] = cls.callMethod = callMethod;
     return cls;
   }

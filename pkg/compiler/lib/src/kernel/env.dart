@@ -15,6 +15,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ordered_typeset.dart';
+import '../ssa/type_builder.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'element_map_mixins.dart';
@@ -472,9 +473,11 @@ abstract class MemberData {
   Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap);
 
   InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap);
+
+  ClassTypeVariableAccess get classTypeVariableAccess;
 }
 
-class MemberDataImpl implements MemberData {
+abstract class MemberDataImpl implements MemberData {
   /// TODO(johnniwinther): Remove this from the [MemberData] interface. Use
   /// `definition.node` instead.
   final ir.Member node;
@@ -499,9 +502,7 @@ class MemberDataImpl implements MemberData {
     return null;
   }
 
-  MemberData copy() {
-    return new MemberDataImpl(node, definition);
-  }
+  MemberData copy();
 }
 
 abstract class FunctionData implements MemberData {
@@ -552,6 +553,12 @@ class FunctionDataImpl extends MemberDataImpl implements FunctionData {
   FunctionData copy() {
     return new FunctionDataImpl(node, functionNode, definition);
   }
+
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess {
+    if (node.isInstanceMember) return ClassTypeVariableAccess.property;
+    return ClassTypeVariableAccess.none;
+  }
 }
 
 abstract class ConstructorData extends FunctionData {
@@ -587,6 +594,22 @@ class ConstructorDataImpl extends FunctionDataImpl implements ConstructorData {
   ConstructorData copy() {
     return new ConstructorDataImpl(node, functionNode, definition);
   }
+
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess =>
+      ClassTypeVariableAccess.parameter;
+}
+
+class ConstructorBodyDataImpl extends FunctionDataImpl {
+  ConstructorBodyDataImpl(
+      ir.Member node, ir.FunctionNode functionNode, MemberDefinition definition)
+      : super(node, functionNode, definition);
+
+  // TODO(johnniwinther,sra): Constructor bodies should access type variables
+  // through `this`.
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess =>
+      ClassTypeVariableAccess.parameter;
 }
 
 abstract class FieldData extends MemberData {
@@ -658,6 +681,12 @@ class FieldDataImpl extends MemberDataImpl implements FieldData {
         failedAt(definition.member,
             "Field ${definition.member} doesn't have a constant initial value."));
     return value;
+  }
+
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess {
+    if (node.isInstanceMember) return ClassTypeVariableAccess.instanceField;
+    return ClassTypeVariableAccess.none;
   }
 
   @override
