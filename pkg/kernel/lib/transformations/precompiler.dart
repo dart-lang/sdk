@@ -60,13 +60,13 @@ class _DevirtualizationTransformer extends Transformer {
     if ((target != null) && (target is! Field)) {
       Member singleTarget =
           _hierarchy.getSingleTargetForInterfaceInvocation(target);
-      if (singleTarget != null) {
+      if ((singleTarget is Procedure) && !singleTarget.isGetter) {
         if (_trace) {
           print("[devirt] Replacing ${target} with ${singleTarget}");
         }
         // TODO(dartbug.com/30480): add annotation to check for null
         return new DirectMethodInvocation(
-            node.receiver, singleTarget as Procedure, node.arguments);
+            node.receiver, singleTarget, node.arguments);
       }
     }
 
