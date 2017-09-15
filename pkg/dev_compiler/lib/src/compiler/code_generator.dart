@@ -4052,12 +4052,8 @@ class CodeGenerator extends Object
     var conditionType = condition.staticType;
     JS.Expression jsCondition = _visit(condition);
 
-    if (conditionType is FunctionType &&
-        conditionType.parameters.isEmpty &&
-        conditionType.returnType == types.boolType) {
-      jsCondition = _callHelper('test(#())', jsCondition);
-    } else if (conditionType != types.boolType) {
-      jsCondition = _callHelper('dassert(#)', jsCondition);
+    if (conditionType != types.boolType) {
+      jsCondition = _callHelper('dtest(#)', jsCondition);
     } else if (isNullable(condition)) {
       jsCondition = _callHelper('test(#)', jsCondition);
     }

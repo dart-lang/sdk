@@ -48,18 +48,6 @@ class C {
   C.nc09(this.x, y) : assert(check(x, y), "$x < $y");
   C.nc10(this.x, y) : assert(check(x, y),);
   C.nc11(this.x, y) : assert(check(x, y), "$x < $y",);
-
-  C.fc01(this.x, y) : assert(() => x < y);
-  C.fc02(x, y) : x = x, assert(() => x < y);
-  C.fc03(x, y) : assert(() => x < y), x = x;
-  C.fc04(this.x, y) : super(), assert(() => x < y);
-  C.fc05(this.x, y) : assert(() => x < y), super();
-  C.fc06(x, y) : x = x, super(), assert(() => x < y);
-  C.fc07(x, y) : assert(() => x < y), super(), x = x;
-  C.fc08(x, y) : assert(() => x < y), super(), x = x, assert(y > x);
-  C.fc09(this.x, y) : assert(() => x < y, "$x < $y");
-  C.fc10(this.x, y) : assert(() => x < y,);
-  C.fc11(this.x, y) : assert(() => x < y, "$x < $y",);
 }
 
 
@@ -125,16 +113,5 @@ void test(int x, int y) {
   doTest(() => new C.nc09(x, y));
   doTest(() => new C.nc10(x, y));
   doTest(() => new C.nc11(x, y));
-  doTest(() => new C.fc01(x, y));
-  doTest(() => new C.fc02(x, y));
-  doTest(() => new C.fc03(x, y));
-  doTest(() => new C.fc04(x, y));
-  doTest(() => new C.fc05(x, y));
-  doTest(() => new C.fc06(x, y));
-  doTest(() => new C.fc07(x, y));
-  doTest(() => new C.fc08(x, y));
-  doTest(() => new C.fc09(x, y));
-  doTest(() => new C.fc10(x, y));
-  doTest(() => new C.fc11(x, y));
 }
 
