@@ -58,6 +58,9 @@ mirrors/native_class_test: SkipByDesign # Imports dart:html
 [ $runtime == vm && $checked ]
 html/*: Skip # dart:html will be a problem in the VM
 
+[ $runtime == flutter || $runtime == dart_precompiled || $arch == simarm64]
+html/*: Skip # dart:html will be a problem in the VM
+
 [ $runtime == vm && !$checked ]
 mirrors/inference_and_no_such_method_test: RuntimeError
 
