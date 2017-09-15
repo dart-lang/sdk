@@ -5355,6 +5355,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
+  Tag receiver_tag = PeekTag();               // peek tag for receiver.
   Fragment instructions = BuildExpression();  // read receiver.
   NameIndex kernel_name =
       ReadCanonicalNameReference();  // read target_reference.
@@ -5363,14 +5364,24 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   if (H.IsProcedure(kernel_name)) {
     if (H.IsGetter(kernel_name)) {
       target = LookupMethodByMember(kernel_name, H.DartGetterName(kernel_name));
-    } else {
+    } else if (receiver_tag == kThisExpression) {
       // Undo stack change for the BuildExpression.
       Pop();
 
       target = LookupMethodByMember(kernel_name, H.DartMethodName(kernel_name));
       target = target.ImplicitClosureFunction();
       ASSERT(!target.IsNull());
+
+      // Generate inline code for allocating closure object with context which
+      // captures `this`.
       return BuildImplicitClosureCreation(target);
+    } else {
+      // Need to create implicit closure (tear-off), receiver != this.
+      // Ensure method extractor exists and call it directly.
+      const Function& target_method = Function::ZoneHandle(
+          Z, LookupMethodByMember(kernel_name, H.DartMethodName(kernel_name)));
+      const String& getter_name = H.DartGetterName(kernel_name);
+      target = target_method.GetMethodExtractor(getter_name);
     }
   } else {
     ASSERT(H.IsField(kernel_name));
