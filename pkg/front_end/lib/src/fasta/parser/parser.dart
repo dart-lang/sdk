@@ -535,9 +535,7 @@ class Parser {
     return token;
   }
 
-  Token parseMetadataStar(Token token,
-      // TODO(ahe): Remove [forParameter].
-      {bool forParameter: false}) {
+  Token parseMetadataStar(Token token) {
     token = listener.injectGenericCommentTypeAssign(token);
     listener.beginMetadataStar(token);
     int count = 0;
@@ -545,7 +543,7 @@ class Parser {
       token = parseMetadata(token);
       count++;
     }
-    listener.endMetadataStar(count, forParameter);
+    listener.endMetadataStar(count);
     return token;
   }
 
@@ -671,7 +669,7 @@ class Parser {
 
   Token parseFormalParameter(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
-    token = parseMetadataStar(token, forParameter: true);
+    token = parseMetadataStar(token);
     listener.beginFormalParameter(token, memberKind);
     token = parseModifiers(token, memberKind, parameterKind: parameterKind);
     return token;

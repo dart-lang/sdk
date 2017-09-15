@@ -607,7 +607,7 @@ class Listener {
 
   void beginMetadataStar(Token token) {}
 
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     logEvent("MetadataStar");
   }
 

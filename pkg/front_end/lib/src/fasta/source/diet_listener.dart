@@ -85,7 +85,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     debugEvent("MetadataStar");
     push(popList(count)?.first ?? NullValue.Metadata);
   }

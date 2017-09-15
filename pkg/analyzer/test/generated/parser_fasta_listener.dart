@@ -916,9 +916,9 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     end('MetadataStar');
-    listener.endMetadataStar(count, forParameter);
+    listener.endMetadataStar(count);
   }
 
   @override

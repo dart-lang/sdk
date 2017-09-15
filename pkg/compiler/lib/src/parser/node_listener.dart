@@ -975,7 +975,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     if (0 == count) {
       pushNode(null);
     } else {
