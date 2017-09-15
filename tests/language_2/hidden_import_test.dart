@@ -12,6 +12,6 @@ import 'dart:async';
 import 'dart:async' as prefix;
 
 main() {
-  new Future(); //# 01: static type warning
-  new prefix.Future(); //# 02: static type warning
+  new Future(); //# 01: compile-time error
+  new prefix.Future(); //# 02: compile-time error
 }

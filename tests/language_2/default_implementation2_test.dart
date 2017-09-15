@@ -8,7 +8,7 @@ abstract class Point {
 }
 
 class PointImplementation implements Point {
-   PointImplementation(int x, int y) {} //# static type warning
+   PointImplementation(int x, int y) {} //# compile-time error
 }
 
 main() {

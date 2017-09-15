@@ -209,6 +209,15 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
+mixin_with_two_implicit_constructors_test: MissingCompileTimeError
+mixin_type_parameters_super_test: RuntimeError
+mock_writable_final_field_test: RuntimeError
+named_constructor_test/01: MissingCompileTimeError
+named_constructor_test/03: MissingCompileTimeError
+named_parameters2_test: MissingCompileTimeError
+named_parameters3_test: MissingCompileTimeError
+named_parameters4_test: MissingCompileTimeError
+named_parameters_aggregated_test/05: MissingCompileTimeError
 named_parameters_test/01: MissingCompileTimeError
 named_parameters_test/02: MissingCompileTimeError
 named_parameters_test/03: MissingCompileTimeError

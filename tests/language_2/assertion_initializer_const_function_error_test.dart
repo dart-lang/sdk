@@ -14,7 +14,7 @@ class C {
   // The expression *is* a compile-time constant, but not a bool value.
   // Static warning, assertion throws which makes it a compile-time error.
   const C.bc02(this.x, y)
-      : assert(staticTrue) //# 01: static type warning
+      : assert(staticTrue) //# 01: compile-time error
       ;
 }
 

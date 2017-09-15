@@ -5,7 +5,7 @@
 // incorrect:
 // - (a * (1.0 / b))
 //
-// VMOptions=--optimization-counter-threshold=8 --no-use-osr
+// VMOptions=--optimization-counter-threshold=8 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 

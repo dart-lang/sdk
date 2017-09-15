@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Regression test for generic mixin fields in checked mode.
+// Regression test for generic mixin fields.
 
 class A<T> {
   T field;

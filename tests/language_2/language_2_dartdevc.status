@@ -55,6 +55,17 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 const_objects_are_immutable_test: RuntimeError # Issue 29897
+multiline_newline_test/01: CompileTimeError
+multiline_newline_test/01r: CompileTimeError
+multiline_newline_test/02: CompileTimeError
+multiline_newline_test/02r: CompileTimeError
+multiline_newline_test/03: RuntimeError
+multiline_newline_test/03r: RuntimeError
+multiline_newline_test/04: MissingCompileTimeError
+multiline_newline_test/04r: MissingCompileTimeError
+multiline_newline_test/05: MissingCompileTimeError
+multiline_newline_test/05r: MissingCompileTimeError
+multiline_newline_test/none: RuntimeError
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
 void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
@@ -145,5 +156,10 @@ instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
 issue21159_test: RuntimeError # Issue 30701
 issue23244_test: RuntimeError # Issue 29920
 label_test: RuntimeError # Issue 30675
+modulo_test: RuntimeError # Issue 29920
+named_parameter_clash_test: RuntimeError # Issue 29920
 named_parameters_default_eq_test/none: RuntimeError
 yieldstar_pause_test: Skip # Times out
+
+[ $compiler == dartdevc && $system == windows ]
+multiline_strings_test: RuntimeError # Issue 30336
