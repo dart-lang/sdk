@@ -2134,18 +2134,21 @@ class CodeGenerator extends Object
     var staticFields = <JS.Property>[];
     for (var field in classElem.fields) {
       if (field.isSynthetic && !classElem.isEnum) continue;
-
       // Only instance fields need to be saved for dynamic dispatch.
       var isStatic = field.isStatic;
       if (!options.emitMetadata && isStatic) {
         continue;
       }
 
-      var annotationNode = annotatedMembers[field] as VariableDeclaration;
+      var fieldNode = annotatedMembers[field] as VariableDeclaration;
+      var metadata = fieldNode != null
+          ? (fieldNode.parent.parent as FieldDeclaration).metadata
+          : null;
+
       assert(field.getter != null, '$field in $classElem has no getter???');
       var memberName = _declareMemberName(field.getter);
       var fieldSig = _emitFieldSignature(field.type,
-          metadata: annotationNode?.metadata, isFinal: field.isFinal);
+          metadata: metadata, isFinal: field.isFinal);
       (isStatic ? staticFields : instanceFields)
           .add(new JS.Property(memberName, fieldSig));
     }
