@@ -393,5 +393,5 @@ cyclic_type_variable_test/04: Crash
 cyclic_type_variable_test/none: Crash
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
-constructor2_test: Fail, OK
+constructor2_test: Pass
 constructor3_test: Fail, OK
