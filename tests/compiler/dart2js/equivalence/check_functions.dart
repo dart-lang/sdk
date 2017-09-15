@@ -792,7 +792,7 @@ void checkResolutionEnqueuers(
     bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
     bool elementFilter(Entity element),
     bool verbose: false,
-    bool skipClassUsageTesting: false}) {
+    List<String> skipClassUsageTesting: const <String>[]}) {
   elementFilter ??= (_) => true;
 
   ResolutionWorldBuilderBase worldBuilder1 = enqueuer1.worldBuilder;
@@ -839,15 +839,15 @@ void checkResolutionEnqueuers(
       elementEquivalence,
       verbose: verbose);
 
-  if (!skipClassUsageTesting) {
-    checkMaps(
-        worldBuilder1.classUsageForTesting,
-        worldBuilder2.classUsageForTesting,
-        'classUsageForTesting',
-        elementEquivalence,
-        areAbstractUsagesEquivalent,
-        verbose: verbose);
-  }
+  checkMaps(
+      worldBuilder1.classUsageForTesting,
+      worldBuilder2.classUsageForTesting,
+      'classUsageForTesting',
+      elementEquivalence,
+      areAbstractUsagesEquivalent,
+      keyFilter: (c) => !skipClassUsageTesting.contains(c.name),
+      verbose: verbose);
+
   checkMaps(
       worldBuilder1.staticMemberUsageForTesting,
       worldBuilder2.staticMemberUsageForTesting,

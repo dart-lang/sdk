@@ -114,6 +114,23 @@ class ClassWithCall15 extends ClassWithCallBase
 
 class ClassImplementsFunction implements Function {}
 
+abstract class A {
+  // redirecting factory in abstract class to other class
+  factory A.a() = D.a;
+  // redirecting factory in abstract class to factory in abstract class
+  factory A.b() = B.a;
+}
+abstract class B implements A {
+  factory B.a() => null;
+}
+class C implements B {
+  // redirecting factory in concrete to other class
+  factory C.a() = D.a;
+}
+class D implements C {
+  D.a();
+}
+
 @NoInline()
 main() {
   print('Hello World');
@@ -145,6 +162,10 @@ main() {
   new ClassWithCall14();
   new ClassWithCall15();
   new ClassImplementsFunction();
+
+  new A.a();
+  new A.b();
+  new C.a();
 }
 '''
 };
@@ -239,6 +260,9 @@ Future<ResultKind> mainInternal(List<String> args,
         return equivalence.typeEquivalence(unalias(a), b);
       },
       elementFilter: elementFilter,
+      // TODO(johnniwinther): Support class usage testing in presence of
+      // redirecting constructors.
+      skipClassUsageTesting: ['C'],
       verbose: arguments.verbose);
 
   checkClosedWorlds(closedWorld1, closedWorld2,
