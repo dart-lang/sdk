@@ -106,6 +106,7 @@ html/custom/regress_194523002_test: Crash # Issue 29922
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
+async/stream_transformer_from_handlers_test: RuntimeError # Issue 29922, strong mode cast failure
 async/timer_not_available_test: RuntimeError # Issue 29922
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
@@ -115,16 +116,21 @@ html/custom_elements_23127_test: Skip # Issue 29922
 html/custom_elements_test: Skip # Issue 29922
 html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
+html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
+html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode cast failure
 html/input_element_test: RuntimeError # Issue 29922
+html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 html/isolates_test: RuntimeError # Issue 29922
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
 html/js_util_test: RuntimeError # Issue 29922
 html/media_stream_test: RuntimeError # Issue 29922
 html/mediasource_test: RuntimeError # Issue 29922
+html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 html/typing_test: RuntimeError # Issue 29922
 html/websql_test/functional: RuntimeError # Issue 29922
 html/worker_api_test: RuntimeError # Issue 29922
 html/xhr_cross_origin_test/functional: RuntimeError # Issue 29922
+html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
 mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 29922
 mirrors/class_mirror_location_test: RuntimeError # Issue 29922
 mirrors/class_mirror_type_variables_test: RuntimeError # Issue 29922
@@ -164,12 +170,6 @@ mirrors/reflected_type_special_types_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typedefs_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typevars_test: RuntimeError # Issue 29922
 mirrors/regress_14304_test: RuntimeError # Issue 29922
-html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
-async/stream_transformer_from_handlers_test: RuntimeError # Issue 29922, strong mode cast failure
-html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
-html/indexeddb_2_test: RuntimeError, Timeout # Issue 29922, strong mode cast failure
-html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
-html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 
 [ $compiler == dartdevc && $runtime == chrome ]
 html/css_test: RuntimeError # Issue 29922

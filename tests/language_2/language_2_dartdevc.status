@@ -146,4 +146,4 @@ issue21159_test: RuntimeError # Issue 30701
 issue23244_test: RuntimeError # Issue 29920
 label_test: RuntimeError # Issue 30675
 named_parameters_default_eq_test/none: RuntimeError
-yieldstar_pause_test: Pass, Timeout
+yieldstar_pause_test: Skip # Times out
