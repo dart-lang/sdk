@@ -72,6 +72,33 @@
   * Removed require.js module loading timeout for dartdevc, which resolves an
     issue where the initial load of an app might give a timeout error.
 
+  * There is now a default SDK constraint of `<2.0.0` for any package with
+    no existing upper bound. This allows us to move more safely to 2.0.0.
+
+  * All new packages published on pub will now require an upper bound SDK
+    constraint so future major releases of Dart don't destabilize the package
+    ecosystem.
+
+  * When on a pre-release SDK build, all upper bounds matching exactly the
+    current SDK version but with no pre-release or build modifier will be
+    upgraded to be <= the current SDK version. This allows early adopters to
+    try out packages that don't explicitly declare support yet. You can disable
+    this functionality by setting the PUB_ALLOW_PRERELEASE_SDK system
+    environment variable to `false`.
+
+  * Added `--executables` option to `pub deps` command. This will list all
+    available executables that can be run with `pub run`.
+
+  * Fixed https://github.com/dart-lang/pub/issues/1684 so root package analysis
+    options are not enforced for dependencies when compiling with dartdevc.
+
+  * Fixed https://github.com/dart-lang/sdk/issues/30246 so you can include dart
+    scripts from subdirectories with dartdevc.
+
+  * Added a PUB_MAX_WORKERS_PER_TASK system environment variable which can be
+    set to configure the number of dartdevc/analyzer workers that are used
+    when compiling with --web-compiler=dartdevc.
+
 * dartfmt
 
     * Support assert in const constructor initializer lists.
