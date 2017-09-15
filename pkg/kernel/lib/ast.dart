@@ -1009,16 +1009,19 @@ class Field extends Member {
   /// The uri of the source file this field was loaded from.
   String fileUri;
 
-  /// Formal safety of the implicit setter's formal parameter (if there is one).
+  /// Indicates whether the implicit setter associated with this field needs to
+  /// contain a runtime type check to deal with generic covariance.
   ///
-  /// See [FormalSafety] for details.
-  FormalSafety setterFormalSafety = FormalSafety.unsafe;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantImpl = false;
 
-  /// Interface safety of the implicit setter's formal parameter (if there is
-  /// one).
+  /// Indicates whether setter invocations using this interface target may need
+  /// to perform a runtime type check to deal with generic covariance.
   ///
-  /// See [InterfaceSafety] for details.
-  InterfaceSafety setterInterfaceSafety = InterfaceSafety.semiTyped;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantInterface = false;
 
   Field(Name name,
       {this.type: const DynamicType(),
@@ -3846,120 +3849,6 @@ class YieldStatement extends Statement {
   }
 }
 
-/// Indication of when a runtime type check of a formal parameter (or type
-/// parameter) needs to be included in the code generated for a method.
-///
-/// [FormalSafety] annotations are considered to be part of a method's body;
-/// they only apply to concrete methods, and they affect any calls that resolve
-/// to the annotated method at runtime.  So for instance, in the following code,
-/// the "unsafe" annotation means that the type of `o` will have to be checked
-/// in the second call to `g` (when the runtime type of `c` is `D`), but not in
-/// the first.
-///
-///     class C {
-///       void f(Object o /*safe*/) { ... }
-///     }
-///     class D {
-///       void f(covariant int o /*unsafe*/) { ... }
-///     }
-///     void g(C c) {
-///       c.f('hi');
-///     }
-///     void main() {
-///       g(new C());
-///       g(new D());
-///     }
-enum FormalSafety {
-  /// Full safety; a runtime check is only needed for dynamic invocations.
-  ///
-  /// For a [FormalParameterDeclaration], the type system can guarantee that the
-  /// actual value that will be passed to the method at runtime will be an
-  /// instance of the formal parameter's type
-  /// ([FormalParameterDeclaration.type]), *provided that* the call site is not
-  /// annotated as [DispatchCategory.dynamicDispatch].
-  ///
-  /// For a [TypeParameter], the type system can guarantee that the actual type
-  /// that will be used to instantiate the type parameter at runtime will be a
-  /// subtype of the type parameter's bound ([TypeParameter.bound]),
-  /// *provided that* the call site is not annotated as
-  /// [DispatchCategory.dynamicDispatch].
-  ///
-  /// This annotation is used for static and top level methods since they never
-  /// require additional runtime checks due to covariance.
-  safe,
-
-  /// Partial safety; a runtime check is not needed for "typed" or "this"
-  /// invocations.
-  ///
-  /// For a [FormalParameterDeclaration], the type system can guarantee that the
-  /// actual value that will be passed to the method at runtime will be an
-  /// instance of the formal parameter's type
-  /// ([FormalParameterDeclaration.type]), *provided that* the invocation comes
-  /// through an invocation target that marks the corresponding type parameter
-  /// with [InterfaceSafety.typed], or the call site is annotated as
-  /// [DispatchCategory.viaThis].
-  ///
-  /// For a [TypeParameter], the type system can guarantee that the actual type
-  /// that will be used to instantiate the type parameter at runtime will be a
-  /// subtype of the type parameter's bound ([TypeParameter.bound]),
-  /// *provided that* the invocation comes through an invocation target that
-  /// marks the corresponding type parameter with [InterfaceSafety.typed], or
-  /// the call site is annotated as [DispatchCategory.viaThis].
-  semiSafe,
-
-  /// No safety; a runtime type check is always required.
-  ///
-  /// For a [FormalParameterDeclaration], the type system cannot guarantee that
-  /// the actual value that will be passed to the method at runtime will be an
-  /// instance of the formal parameter's type
-  /// ([FormalParameterDeclaration.type]).  Therefore, in the absence of
-  /// additional information from whole program analysis, a runtime type check
-  /// needs to be compiled into the body of the method.
-  ///
-  /// Not used for [TypeParameter]s.
-  unsafe,
-}
-
-/// Indication of when a call site can skip a runtime type check that would have
-/// otherwise been required by [FormalSafety].
-///
-/// [InterfaceSafety] annotations are considered to be part of a class's API;
-/// they apply to both concrete and abstract methods, and they affect any calls
-/// that resolve to the annotated method statically.  So for instance, in the
-/// following code, the "semi-typed" annotation means that the call site at g1
-/// (which statically resolves to C.f) needs a runtime type check for both
-/// arguments, but the call site at g2 (which statically resolves to D.f) only
-/// needs a runtime check for the second argument.
-///
-///     class C<S, T> {
-///       void f(S x /*semi-typed*/, T y /*semi-typed*/) { ... }
-///     }
-///     class D<T> extends C<num, T> {
-///       void f(num x /*typed*/, T y /*semi-typed*/);
-///     }
-///     void g1(C<num, num> c) {
-///       c.f(1.5, 1.5);
-///     }
-///     void g2(D<num> d) {
-///       d.f(1.5, 1.5);
-///     }
-enum InterfaceSafety {
-  /// Full type guarantee; a runtime check is only needed if the concrete
-  /// parameter bound at runtime is "unsafe".
-  ///
-  /// This annotation is used for static and top level methods since they never
-  /// require additional runtime checks due to covariance.
-  ///
-  /// See [FormalSafety] for details.
-  typed,
-
-  /// Partial type guarantee; a runtime check is needed if the concrete
-  /// parameter bound at runtime is "unsafe" or "semiSafe".
-  ///
-  /// See [FormalSafety] for details.
-  semiTyped,
-}
-
 /// Categorization of a call site indicating its effect on type guarantees.
 enum DispatchCategory {
   /// This call site binds to its callee through a specific interface.
@@ -3968,6 +3857,29 @@ enum DispatchCategory {
   /// correct arity, and accepts all of the supplied named parameters.  Further,
   /// it guarantees that the number of type parameters supplied matches the
   /// number of type parameters expected by the target of the call.
+  ///
+  /// Due to parameter covariance, it is not necessarily guaranteed that the
+  /// actual values of parameters will match the declared types of those
+  /// parameters in the method actually being called.  A runtime type check is
+  /// required for any parameter meeting one of the following conditions:
+  ///
+  /// - The parameter in the interface target is tagged with
+  ///   `isGenericCovariantInterface`, and the corresponding parameter in the
+  ///   method actually being called is tagged with `isGenericCovariantImpl`.
+  ///
+  /// - The parameter in the method actually being called is tagged with
+  ///   `isCovariant`.
+  ///
+  /// Note: type parameters of generic methods require similar checks; the
+  /// flags `isGenericCovariantInterface` and `isGenericCovariantImpl` are found
+  /// in [TypeParameter], and the implementation must check that the actual
+  /// type is a subtype of the type parameter bound declared in the actual
+  /// method being called.  For type parameter checks, there is no `isCovariant`
+  /// tag.
+  ///
+  /// Note: if the interface target or the method actually being called is a
+  /// field, then the tags `isGenericCovariantInterface`,
+  /// `isGenericCovariantImpl`, and `isCovariant` are found in [Field].
   interface,
 
   /// This call site binds to its callee via a call on `this`.
@@ -3975,6 +3887,20 @@ enum DispatchCategory {
   /// Similar to [interface], however the target of the call is a method on
   /// `this` or `super`, therefore all of the class's type parameters are known
   /// to match exactly.
+  ///
+  /// Due to parameter covariance, it is not necessarily guaranteed that the
+  /// actual values of parameters will match the declared types of those
+  /// parameters in the method actually being called.  A runtime type check is
+  /// required for any parameter meeting one of the following condition:
+  ///
+  /// - The parameter in the method actually being called is tagged with
+  ///   `isCovariant`.
+  ///
+  /// Note: type parameters of generic methods do not require a check when the
+  /// call is via `this`.
+  ///
+  /// Note: if the interface target or the method actually being called is a
+  /// field, then the tag `isCovariant` is found in [Field].
   viaThis,
 
   /// This call site is an invocation of a function object (formed either by a
@@ -3982,6 +3908,27 @@ enum DispatchCategory {
   ///
   /// Similar to [interface], however the interface target of the call is not
   /// known.
+  ///
+  /// Due to parameter covariance, it is not necessarily guaranteed that the
+  /// actual values of parameters will match the declared types of those
+  /// parameters in the method actually being called.  A runtime type check is
+  /// required for any parameter meeting one of the following conditions:
+  ///
+  /// - The parameter in the method actually being called is tagged with
+  ///   `isGenericCovariantImpl`.
+  ///
+  /// - The parameter in the method actually being called is tagged with
+  ///   `isCovariant`.
+  ///
+  /// Note: type parameters of generic methods require similar checks; the
+  /// flag `isGenericCovariantImpl` is found in [TypeParameter], and the
+  /// implementation must check that the actual type is a subtype of the type
+  /// parameter bound declared in the actual method being called.  For type
+  /// parameter checks, there is no `isCovariant` tag.
+  ///
+  /// Note: if the interface target or the method actually being called is a
+  /// field, then the tags `isGenericCovariantImpl` and `isCovariant` are found
+  /// in [Field].
   closure,
 
   /// The call site is dynamic.
@@ -4028,17 +3975,21 @@ class VariableDeclaration extends Statement {
   @coqopt
   Expression initializer; // May be null.
 
-  /// If this is a formal parameter of a concrete method, its formal safety.
-  /// Otherwise ignored.
+  /// If this [VariableDeclaration] is a parameter of a method, indicates
+  /// whether the method implementation needs to contain a runtime type check to
+  /// deal with generic covariance.
   ///
-  /// See [FormalSafety] for details.
-  FormalSafety formalSafety = FormalSafety.safe;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantImpl = false;
 
-  /// If this is a formal parameter of a method, its interface safety.
-  /// Otherwise ignored.
+  /// If this [VariableDeclaration] is a parameter of a method, indicates
+  /// whether invocations using the method as an interface target may need to
+  /// perform a runtime type check to deal with generic covariance.
   ///
-  /// See [InterfaceSafety] for details.
-  InterfaceSafety interfaceSafety = InterfaceSafety.typed;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantInterface = false;
 
   VariableDeclaration(this.name,
       {this.initializer,
@@ -4674,17 +4625,21 @@ class TypeParameter extends TreeNode {
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
 
-  /// If this is a type parameter of a concrete generic method, its formal
-  /// safety.  Otherwise ignored.
+  /// If this [TypeParameter] is a type parameter of a generic method, indicates
+  /// whether the method implementation needs to contain a runtime type check to
+  /// deal with generic covariance.
   ///
-  /// See [FormalSafety] for details.
-  FormalSafety formalSafety = FormalSafety.safe;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantImpl = false;
 
-  /// If this is a type parameter of a generic method, its interface safety.
-  /// Otherwise ignored.
+  /// If this [TypeParameter] is a type parameter of a generic method, indicates
+  /// whether invocations using the method as an interface target may need to
+  /// perform a runtime type check to deal with generic covariance.
   ///
-  /// See [InterfaceSafety] for details.
-  InterfaceSafety interfaceSafety = InterfaceSafety.typed;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantInterface = false;
 
   TypeParameter([this.name, this.bound]);
 

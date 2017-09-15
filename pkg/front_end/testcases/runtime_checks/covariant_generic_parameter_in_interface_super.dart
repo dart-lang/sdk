@@ -10,7 +10,7 @@ class B {
 }
 
 abstract class I<T> {
-  void f(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x);
+  void f(T /*@covariance=genericInterface, genericImpl*/ x);
 }
 
 class /*@forwardingStub=void f(semiSafe int x)*/ C extends B implements I<int> {

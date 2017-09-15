@@ -6,20 +6,20 @@
 library test;
 
 abstract class I<T> {
-  void f1(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x);
-  void f2(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x);
+  void f1(T /*@covariance=genericInterface, genericImpl*/ x);
+  void f2(T /*@covariance=genericInterface, genericImpl*/ x);
 }
 
 class C<U> implements I<int> {
-  void f1(int /*@checkFormal=semiSafe*/ x) {}
-  void f2(int /*@checkFormal=semiSafe*/ x,
-      [U /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ y]) {}
+  void f1(int /*@covariance=genericImpl*/ x) {}
+  void f2(int /*@covariance=genericImpl*/ x,
+      [U /*@covariance=genericInterface, genericImpl*/ y]) {}
 }
 
 class D<U> extends C<U> {
-  void f1(int /*@checkFormal=semiSafe*/ x) {}
-  void f2(int /*@checkFormal=semiSafe*/ x,
-      [U /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ y]) {}
+  void f1(int /*@covariance=genericImpl*/ x) {}
+  void f2(int /*@covariance=genericImpl*/ x,
+      [U /*@covariance=genericInterface, genericImpl*/ y]) {}
 }
 
 void g1(C<num> c) {

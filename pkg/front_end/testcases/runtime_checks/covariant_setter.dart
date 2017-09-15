@@ -8,8 +8,8 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x;
-  void f(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ value) {
+  T /*@covariance=genericInterface, genericImpl*/ x;
+  void f(T /*@covariance=genericInterface, genericImpl*/ value) {
     this.x = value;
   }
 }

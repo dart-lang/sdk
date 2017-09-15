@@ -215,28 +215,29 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
-  /// Generates the appropriate `@checkFormal` and `@checkInterface` annotations
-  /// (if any) for a method formal parameter, method type parameter, or field
-  /// declaration.
+  /// Generates the appropriate `@covariance` annotation (if any) for a method
+  /// formal parameter, method type parameter, or field declaration.
   ///
   /// When these annotations are generated for a field declaration, they
   /// implicitly refer to the value parameter of the synthetic setter.
   ///
-  /// An annotation of `@checkFormal=unsafe` indicates that the parameter needs
+  /// An annotation of `@covariance=explicit` indicates that the parameter needs
   /// to be type checked regardless of the call site.
   ///
-  /// An annotation of `@checkFormal=semiSafe` indicates that the parameter
+  /// An annotation of `@covariance=genericImpl` indicates that the parameter
   /// needs to be type checked when the call site is annotated
   /// `@callKind=dynamic` or `@callKind=closure`, or the call site is
   /// unannotated and the corresponding parameter in the interface target is
-  /// annotated `@checkInterface=semiTyped`.
+  /// annotated `@covariance=genericInterface`.
   ///
-  /// No `@checkFormal` annotation indicates that the parameter only needs to be
+  /// No `@covariance` annotation indicates that the parameter only needs to be
   /// type checked if the call site is annotated `@callKind=dynamic`.
   void _annotateFormalParameter(
       Element element, int offset, ClassDeclaration cls) {
+    bool isExplicit = false;
+    bool isGenericImpl = false;
     if (element is ParameterElement && element.isCovariant) {
-      _recordCheckFormal(offset, 'unsafe');
+      isExplicit = true;
     } else if (cls != null) {
       var covariantParams = getClassCovariantParameters(cls);
       if (covariantParams != null && covariantParams.contains(element) ||
@@ -244,21 +245,29 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
               element is ParameterElement &&
               _isFormalSemiTyped(
                   cls.typeParameters.typeParameters, element.type)) {
-        _recordCheckFormal(offset, 'semiSafe');
+        isGenericImpl = true;
       }
     }
+    bool isGenericInterface = false;
     if (cls?.typeParameters != null) {
       if (element is ParameterElement) {
         if (_isFormalSemiTyped(
             cls.typeParameters.typeParameters, element.type)) {
-          _recordCheckInterface(offset, 'semiTyped');
+          isGenericInterface = true;
         }
       } else if (element is TypeParameterElement && element.bound != null) {
         if (_isFormalSemiTyped(
             cls.typeParameters.typeParameters, element.bound)) {
-          _recordCheckInterface(offset, 'semiTyped');
+          isGenericInterface = true;
         }
       }
+    }
+    var covariance = <String>[];
+    if (isExplicit) covariance.add('explicit');
+    if (isGenericInterface) covariance.add('genericInterface');
+    if (isGenericImpl) covariance.add('genericImpl');
+    if (covariance.isNotEmpty) {
+      _recordCovariance(offset, covariance.join(', '));
     }
   }
 
@@ -341,16 +350,6 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         uri, offset, 'callKind', new fasta.InstrumentationValueLiteral(kind));
   }
 
-  void _recordCheckFormal(int offset, String safety) {
-    _instrumentation.record(uri, offset, 'checkFormal',
-        new fasta.InstrumentationValueLiteral(safety));
-  }
-
-  void _recordCheckInterface(int offset, String safety) {
-    _instrumentation.record(uri, offset, 'checkInterface',
-        new fasta.InstrumentationValueLiteral(safety));
-  }
-
   void _recordCheckReturn(int offset, DartType castType) {
     _instrumentation.record(uri, offset, 'checkReturn',
         new InstrumentationValueForType(castType, _elementNamer));
@@ -359,6 +358,11 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   void _recordCheckTearOff(int offset, DartType castType) {
     _instrumentation.record(uri, offset, 'checkTearOff',
         new InstrumentationValueForType(castType, _elementNamer));
+  }
+
+  void _recordCovariance(int offset, String covariance) {
+    _instrumentation.record(uri, offset, 'covariance',
+        new fasta.InstrumentationValueLiteral(covariance));
   }
 
   void _recordForwardingStub(int offset, String descr) {

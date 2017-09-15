@@ -16,9 +16,7 @@ import 'package:kernel/ast.dart'
         DartTypeVisitor,
         DynamicType,
         Field,
-        FormalSafety,
         FunctionType,
-        InterfaceSafety,
         InterfaceType,
         Location,
         Member,
@@ -327,20 +325,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   @override
   void computeFormalSafety(Class cls) {
-    // First mark all covariant formals as unsafe.
-    // TODO(paulberry): also handle fields
-    for (ShadowProcedure procedure in cls.procedures) {
-      if (procedure.isStatic) continue;
-      void setSafety(VariableDeclaration formal) {
-        if (formal.isCovariant) {
-          formal.formalSafety = FormalSafety.unsafe;
-        }
-      }
-
-      procedure.function.positionalParameters.forEach(setSafety);
-      procedure.function.namedParameters.forEach(setSafety);
-    }
-
     // If any method in the class has a formal parameter whose type depends on
     // one of the class's type parameters, then there may be a mismatch between
     // the type guarantee made by the caller and the type guarantee expected by
@@ -403,17 +387,15 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
         void handleParameter(VariableDeclaration formal) {
           if (formal.type.accept(needsCheckVisitor)) {
-            if (formal.formalSafety == FormalSafety.safe) {
-              formal.formalSafety = FormalSafety.semiSafe;
-            }
-            formal.interfaceSafety = InterfaceSafety.semiTyped;
+            formal.isGenericCovariantImpl = true;
+            formal.isGenericCovariantInterface = true;
           }
         }
 
         void handleTypeParameter(TypeParameter typeParameter) {
           if (typeParameter.bound.accept(needsCheckVisitor)) {
-            typeParameter.formalSafety = FormalSafety.semiSafe;
-            typeParameter.interfaceSafety = InterfaceSafety.semiTyped;
+            typeParameter.isGenericCovariantImpl = true;
+            typeParameter.isGenericCovariantInterface = true;
           }
         }
 
@@ -426,9 +408,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // Now, propagate formal safety from overrides.
     void propagateParameterSafety(VariableDeclaration declaredFormal,
         VariableDeclaration interfaceFormal) {
-      if (interfaceFormal.formalSafety.index >
-          declaredFormal.formalSafety.index) {
-        declaredFormal.formalSafety = interfaceFormal.formalSafety;
+      if (interfaceFormal.isGenericCovariantImpl) {
+        declaredFormal.isGenericCovariantImpl = true;
       }
       if (interfaceFormal.isCovariant) {
         declaredFormal.isCovariant = true;
@@ -437,10 +418,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
     void propagateTypeParameterSafety(TypeParameter declaredTypeParameter,
         TypeParameter interfaceTypeParameter) {
-      if (interfaceTypeParameter.formalSafety.index >
-          declaredTypeParameter.formalSafety.index) {
-        declaredTypeParameter.formalSafety =
-            interfaceTypeParameter.formalSafety;
+      if (interfaceTypeParameter.isGenericCovariantImpl) {
+        declaredTypeParameter.isGenericCovariantImpl = true;
       }
     }
 
@@ -477,44 +456,40 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     });
 
     if (instrumentation != null) {
+      void recordCovariance(int fileOffset, bool isExplicitlyCovariant,
+          bool isGenericCovariantInterface, bool isGenericCovariantImpl) {
+        var covariance = <String>[];
+        if (isExplicitlyCovariant) covariance.add('explicit');
+        if (isGenericCovariantInterface) covariance.add('genericInterface');
+        if (!isExplicitlyCovariant && isGenericCovariantImpl) {
+          covariance.add('genericImpl');
+        }
+        if (covariance.isNotEmpty) {
+          instrumentation.record(
+              Uri.parse(cls.fileUri),
+              fileOffset,
+              'covariance',
+              new InstrumentationValueLiteral(covariance.join(', ')));
+        }
+      }
+
       // TODO(paulberry): also handle fields
       for (ShadowProcedure procedure in cls.procedures) {
         if (procedure.isStatic) continue;
         void recordFormalAnnotations(VariableDeclaration formal) {
-          if (formal.interfaceSafety != InterfaceSafety.typed) {
-            instrumentation.record(Uri.parse(cls.fileUri), formal.fileOffset,
-                'checkInterface', new InstrumentationValueLiteral('semiTyped'));
-          }
-          if (formal.formalSafety != FormalSafety.safe) {
-            instrumentation.record(
-                Uri.parse(cls.fileUri),
-                formal.fileOffset,
-                'checkFormal',
-                new InstrumentationValueLiteral(
-                    formal.formalSafety == FormalSafety.unsafe
-                        ? 'unsafe'
-                        : 'semiSafe'));
-          }
+          recordCovariance(
+              formal.fileOffset,
+              formal.isCovariant,
+              formal.isGenericCovariantInterface,
+              formal.isGenericCovariantImpl);
         }
 
         void recordTypeParameterAnnotations(TypeParameter typeParameter) {
-          if (typeParameter.interfaceSafety != InterfaceSafety.typed) {
-            instrumentation.record(
-                Uri.parse(cls.fileUri),
-                typeParameter.fileOffset,
-                'checkInterface',
-                new InstrumentationValueLiteral('semiTyped'));
-          }
-          if (typeParameter.formalSafety != FormalSafety.safe) {
-            instrumentation.record(
-                Uri.parse(cls.fileUri),
-                typeParameter.fileOffset,
-                'checkFormal',
-                new InstrumentationValueLiteral(
-                    typeParameter.formalSafety == FormalSafety.unsafe
-                        ? 'unsafe'
-                        : 'semiSafe'));
-          }
+          recordCovariance(
+              typeParameter.fileOffset,
+              false,
+              typeParameter.isGenericCovariantInterface,
+              typeParameter.isGenericCovariantImpl);
         }
 
         procedure.function.positionalParameters
