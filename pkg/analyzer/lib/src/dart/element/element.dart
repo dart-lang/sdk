@@ -6457,6 +6457,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   String get documentationComment {
+    if (_kernelContext != null) {
+      return _kernelContext.library.documentationComment;
+    }
     if (_unlinkedDefiningUnit != null) {
       return _unlinkedDefiningUnit?.libraryDocumentationComment?.text;
     }

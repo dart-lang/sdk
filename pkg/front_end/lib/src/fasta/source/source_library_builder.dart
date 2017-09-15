@@ -80,6 +80,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   /// for this library.
   final bool disableTypeInference;
 
+  String documentationComment;
+
   String name;
 
   String partOfName;

@@ -461,12 +461,14 @@ class BinaryBuilder {
     }
     _currentLibrary = library;
     String name = readStringOrNullIfEmpty();
+    String documentationComment = readStringOrNullIfEmpty();
     // TODO(jensj): We currently save (almost the same) uri twice.
     String fileUri = readUriReference();
 
     if (shouldWriteData) {
       library.isExternal = isExternal;
       library.name = name;
+      library.documentationComment = documentationComment;
       library.fileUri = fileUri;
     }
 

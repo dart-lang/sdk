@@ -501,18 +501,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_library_documented_lines() async {
-    // TODO(scheglov): implement in Kernel and Fasta
-    await super.test_library_documented_lines();
-  }
-
-  @failingTest
-  test_library_documented_stars() async {
-    // TODO(scheglov): implement in Kernel and Fasta
-    await super.test_library_documented_stars();
-  }
-
-  @failingTest
   test_metadata_classTypeAlias() async {
     // TODO(scheglov): implement in Kernel and Fasta
     await super.test_metadata_classTypeAlias();

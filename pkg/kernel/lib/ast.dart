@@ -273,6 +273,10 @@ class Library extends NamedNode implements Comparable<Library> {
   /// and all members are loaded.
   bool isExternal;
 
+  /// Documentation comment of the library, or `null`.
+  @informative
+  String documentationComment;
+
   String name;
 
   @nocoq

@@ -343,6 +343,7 @@ class BinaryPrinter extends Visitor {
     writeByte(insideExternalLibrary ? 1 : 0);
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
+    writeStringReference(node.documentationComment ?? '');
     // TODO(jensj): We save (almost) the same URI twice.
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);

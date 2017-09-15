@@ -399,6 +399,7 @@ class LibraryHelper {
     kFlags,
     kCanonicalName,
     kName,
+    kDocumentation,
     kSourceUriIndex,
     kAnnotations,
     kDependencies,

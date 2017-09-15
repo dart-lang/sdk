@@ -284,8 +284,10 @@ class OutlineBuilder extends UnhandledListener {
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
     popCharOffset();
+    String documentationComment = _getDocumentationComment(libraryKeyword);
     String name = pop();
     List<MetadataBuilder> metadata = pop();
+    library.documentationComment = documentationComment;
     library.name = name;
     library.metadata = metadata;
   }

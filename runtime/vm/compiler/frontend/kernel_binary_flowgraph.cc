@@ -420,6 +420,9 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
     case kName:
       name_index_ = builder_->ReadStringReference();  // read name index.
       if (++next_read_ == field) return;
+    case kDocumentation:
+      builder_->ReadStringReference();  // read documentation comment index.
+      if (++next_read_ == field) return;
     case kSourceUriIndex:
       source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
       builder_->current_script_id_ = source_uri_index_;

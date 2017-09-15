@@ -798,6 +798,7 @@ class KernelLibraryBuilder
       library.addPart(new LibraryPart(<Expression>[], fileUri));
     }
 
+    library.documentationComment = documentationComment;
     library.name = name;
     library.procedures.sort(compareProcedures);
 
