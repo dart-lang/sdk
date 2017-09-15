@@ -14,6 +14,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
@@ -22,7 +24,6 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:front_end/src/dependency_walker.dart';
@@ -34,13 +35,13 @@ class LibraryAnalyzer {
   final AnalysisOptions _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
-  final FileSystemState _fsState;
-  final SummaryDataStore _store;
   final FileState _library;
 
-  TypeProvider _typeProvider;
-  AnalysisContextImpl _context;
-  StoreBasedSummaryResynthesizer _resynthesizer;
+  final bool Function(Uri) _isLibraryUri;
+  final AnalysisContextImpl _context;
+  final ElementResynthesizer _resynthesizer;
+  final TypeProvider _typeProvider;
+
   LibraryElement _libraryElement;
 
   final Map<FileState, LineInfo> _fileToLineInfo = {};
@@ -53,8 +54,15 @@ class LibraryAnalyzer {
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
   final List<ConstantEvaluationTarget> _constants = [];
 
-  LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
-      this._sourceFactory, this._fsState, this._store, this._library);
+  LibraryAnalyzer(
+      this._analysisOptions,
+      this._declaredVariables,
+      this._sourceFactory,
+      this._isLibraryUri,
+      this._context,
+      this._resynthesizer,
+      this._library)
+      : _typeProvider = _context.typeProvider;
 
   /**
    * Compute analysis results for all units of the library.
@@ -79,16 +87,9 @@ class LibraryAnalyzer {
       _resolveUriBasedDirectives(file, unit);
     });
 
-    _createAnalysisContext();
-
     try {
-      _resynthesizer = new StoreBasedSummaryResynthesizer(
-          _context, _sourceFactory, _analysisOptions.strongMode, _store);
-      _typeProvider = _resynthesizer.typeProvider;
-      _context.typeProvider = _typeProvider;
-      _resynthesizer.finishCoreAsyncLibraries();
-
-      _libraryElement = _resynthesizer.getLibraryElement(_library.uriStr);
+      _libraryElement = _resynthesizer
+          .getElement(new ElementLocationImpl.con3([_library.uriStr]));
 
       _resolveDirectives(units);
 
@@ -305,16 +306,6 @@ class LibraryAnalyzer {
     unit.accept(errorVerifier);
   }
 
-  void _createAnalysisContext() {
-    AnalysisContextImpl analysisContext =
-        AnalysisEngine.instance.createAnalysisContext();
-    analysisContext.analysisOptions = _analysisOptions;
-    analysisContext.declaredVariables.addAll(_declaredVariables);
-    analysisContext.sourceFactory = _sourceFactory.clone();
-    analysisContext.contentCache = new _ContentCacheWrapper(_fsState);
-    this._context = analysisContext;
-  }
-
   /**
    * Return a subset of the given [errors] that are not marked as ignored in
    * the [file].
@@ -382,8 +373,7 @@ class LibraryAnalyzer {
    * Return `true` if the given [source] is a library.
    */
   bool _isLibrarySource(Source source) {
-    String uriStr = source.uri.toString();
-    return _store.unlinkedMap[uriStr]?.isPartOf == false;
+    return _isLibraryUri(source.uri);
   }
 
   /**
@@ -752,51 +742,6 @@ class _ConstantWalker extends DependencyWalker<_ConstantNode> {
       evaluationEngine.generateCycleError(constantsInCycle, node.constant);
       node.isEvaluated = true;
     }
-  }
-}
-
-/**
- * [ContentCache] wrapper around [FileContentOverlay].
- */
-class _ContentCacheWrapper implements ContentCache {
-  final FileSystemState fsState;
-
-  _ContentCacheWrapper(this.fsState);
-
-  @override
-  void accept(ContentCacheVisitor visitor) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String getContents(Source source) {
-    return _getFileForSource(source).content;
-  }
-
-  @override
-  bool getExists(Source source) {
-    if (fsState.externalSummaries != null) {
-      String uriStr = source.uri.toString();
-      if (fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
-        return true;
-      }
-    }
-    return _getFileForSource(source).exists;
-  }
-
-  @override
-  int getModificationStamp(Source source) {
-    return _getFileForSource(source).exists ? 0 : -1;
-  }
-
-  @override
-  String setContents(Source source, String contents) {
-    throw new UnimplementedError();
-  }
-
-  FileState _getFileForSource(Source source) {
-    String path = source.fullName;
-    return fsState.getFileForPath(path);
   }
 }
 

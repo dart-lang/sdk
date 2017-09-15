@@ -1094,8 +1094,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               analysisOptions,
               declaredVariables,
               sourceFactory,
-              _fsState,
-              libraryContext.store,
+              libraryContext.isLibraryUri,
+              libraryContext.analysisContext,
+              libraryContext.resynthesizer,
               library);
           Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
