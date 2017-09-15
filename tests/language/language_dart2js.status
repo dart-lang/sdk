@@ -515,7 +515,6 @@ const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
-const_optional_args_negative_test: Crash # UnimplementedError: Unimplemented constant expression <dynamic, dynamic>{} (ShadowMapLiteral)
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
@@ -656,8 +655,6 @@ function_subtype_local4_test: RuntimeError
 function_subtype_not3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
 function_syntax_test/none: RuntimeError
 function_test: RuntimeError
-function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
-function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
@@ -1040,7 +1037,6 @@ const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
-const_optional_args_negative_test: Crash # UnimplementedError: Unimplemented constant expression <dynamic, dynamic>{} (ShadowMapLiteral)
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
@@ -1186,8 +1182,6 @@ function_subtype_local4_test: RuntimeError
 function_subtype_not3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
 function_syntax_test/none: RuntimeError
 function_test: RuntimeError
-function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
-function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError

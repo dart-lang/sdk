@@ -628,7 +628,6 @@ closure_with_super_send_test: RuntimeError
 closures_initializer2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_A_closure.call).
 closures_initializer_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in j:closure_call(B_B_closure.call).
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
-const_optional_args_negative_test: Crash # UnimplementedError: Unimplemented constant expression <dynamic, dynamic>{} (ShadowMapLiteral)
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
@@ -870,7 +869,6 @@ closure_with_super_send_test: RuntimeError
 closures_initializer2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_A_closure.call).
 closures_initializer_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in j:closure_call(B_B_closure.call).
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
-const_optional_args_negative_test: Crash # UnimplementedError: Unimplemented constant expression <dynamic, dynamic>{} (ShadowMapLiteral)
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
