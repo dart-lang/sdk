@@ -1584,7 +1584,11 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endNamedFunctionExpression(Token endToken) {
-    logEvent("NamedFunctionExpression");
+    // TODO(scheglov): The logEvent() invocation is commented because it
+    // spams to the console. We already know that these test fail, uncomment
+    // when you are working on fixing them.
+//    logEvent("NamedFunctionExpression");
+    unhandled("NamedFunctionExpression", "$runtimeType", -1, uri);
   }
 
   @override
