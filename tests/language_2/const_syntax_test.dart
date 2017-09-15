@@ -18,9 +18,9 @@ main() {
   Expect.equals(null, F3); //# 04: compile-time error
 
   Expect.isTrue(P0 is Point);
-  Expect.isTrue(P1 is int); //  //# 05: compile-time error
+  Expect.isTrue(P1 is int); //# 05: compile-time error
   Expect.isTrue(P2 is Point); //# 06: compile-time error
-  Expect.isTrue(P3 is int); //  //# 07: compile-time error
+  Expect.isTrue(P3 is int); //# 07: compile-time error
 
   Expect.isTrue(A0 is int);
   Expect.isTrue(A1 is int);
@@ -35,16 +35,16 @@ main() {
 
   const cf1 = identical(const Point(1, 2), const Point(1, 2));
 
-  const cf2 = identical(const Point(1, 2), new Point(1, 2)); // //# 11: compile-time error
+  const cf2 = identical( const Point(1, 2), new Point(1, 2)); //# 11: compile-time error
 
-  var f4 = B4; //  //# 12: compile-time error
+  var f4 = B4; //# 12: compile-time error
   var f5 = B5;
 }
 
 const F0 = 42;
-const F1; //                //# 03: continued
+const F1; //# 03: continued
 const int F2 = 87;
-const int F3; //            //# 04: continued
+const int F3; //# 04: continued
 
 class Point {
   final x, y;
@@ -56,8 +56,8 @@ class Point {
 // user-defined const constructors.
 const P0 = const Point(0, 0);
 const P1 = const Point(0, 0) + 1; //# 05: continued
-const P2 = new Point(0, 0); //      //# 06: continued
-const P3 = new Point(0, 0) + 1; //  //# 07: continued
+const P2 = new Point(0, 0); //# 06: continued
+const P3 = new Point(0, 0) + 1; //# 07: continued
 
 // Check that we cannot have cyclic references in compile time
 // expressions.
@@ -81,9 +81,9 @@ class C1 {
 const B0 = 42;
 const B1 = "Hello";
 const B2 = "$B1 $B0";
-const B3 = B0 + B1; //# 10: continued
+const B3 = B0 + B1;  //# 10: continued
 
 // Check identical.
 
-const B4 = identical(1, new Point(1,2)); // //# 12: compile-time error
+const B4 = identical(1, new Point(1, 2)); //# 12: compile-time error
 const B5 = identical(1, const Point(1, 2));

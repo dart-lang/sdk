@@ -11,19 +11,19 @@ class A {
 }
 
 main() {
-  var list = const [1, 2];
+  dynamic list = const [1, 2];
   Expect.throws(() => list[0] = 3);
   Expect.equals(1, list[0]);
 
-  var m = const {'foo': 499};
+  dynamic m = const {'foo': 499};
   Expect.throws(() => m['foo'] = 42);
   Expect.equals(499, m['foo']);
 
-  var a1 = const A(1, 2);
+  dynamic a1 = const A(1, 2);
   Expect.throws(() => a1.x = 499);
   Expect.equals(1, a1.x);
 
-  A a2 = const A(1, 2);
-  Expect.throws(() => a2.x = 499); //# 01: static type warning
+  dynamic a2 = const A(1, 2);
+  Expect.throws(() => a2.x = 499);
   Expect.equals(1, a2.x);
 }

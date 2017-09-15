@@ -32,8 +32,8 @@ class B extends A {
   // Initializers in order: b1, super, b2.
   B(x, y)
       : b1 = E(x++),
-        super(arg2: 50),
-        b2 = E(y++) {
+        b2 = E(y++),
+        super(arg2: 50) {
     // Implicit super call to A's body happens here.
     E(x); // 11
     E(y); // 21
@@ -53,5 +53,5 @@ main() {
   Expect.equals(10, c.b1);
   Expect.equals(20, c.b2);
 
-  Expect.equals("10-100-50-20-101-51-11-21-", trace);
+  Expect.equals("10-20-100-50-101-51-11-21-", trace);
 }

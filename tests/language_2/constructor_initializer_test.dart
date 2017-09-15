@@ -13,7 +13,6 @@ class A {
     // is remembered in the constructor body.
     Expect.equals(x, _x + 1);
     Expect.equals(y, _y + 1);
-    Expect.isFalse(?y); // //# 01: compile-time error
   }
 }
 
@@ -24,19 +23,19 @@ class B extends A {
   // one for the constructor bodies.
   B(a, b)
       : _a = a++,
-        super(a + b++),
-        _b = b++ {
+        _b = b++,
+        super(a + b++) {
     Expect.equals(a, _a + 1);
-    Expect.equals(b, _b + 1);
-    Expect.equals(a + (b - 2), _x);
+    Expect.equals(b, _b + 2);
+    Expect.equals(a + (b - 2), _x - 1);
   }
 }
 
 main() {
-  var o = new B(3, 5);
+  dynamic o = new B(3, 5);
   Expect.equals(3, o._a);
-  Expect.equals(6, o._b);
-  Expect.equals(9, o._x);
+  Expect.equals(5, o._b);
+  Expect.equals(10, o._x);
   Expect.equals(10, o._y);
   o = new A(3);
   Expect.equals(3, o._x);

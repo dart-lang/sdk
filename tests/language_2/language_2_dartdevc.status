@@ -20,6 +20,7 @@ bit_operations_test/04: MissingCompileTimeError
 black_listed_test/none: fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
+constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 generic_list_checked_test: CompileTimeError
 generic_local_functions_test: CompileTimeError
 generic_methods_closure_test: CompileTimeError # Issue 29920
@@ -53,6 +54,7 @@ accessor_conflict_import2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
+const_objects_are_immutable_test: RuntimeError # Issue 29897
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
 void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
@@ -115,6 +117,9 @@ compile_time_constant_a_test: RuntimeError # Issue 30526
 compile_time_constant_b_test: RuntimeError # Issue 29920
 compile_time_constant_d_test: RuntimeError # Issue 29920
 compile_time_constant10_test/none: RuntimeError
+const_switch_test/02: RuntimeError # Issue 29920
+const_switch_test/04: RuntimeError # Ints and doubles are unified.
+constructor12_test: RuntimeError # Issue 29920
 custom_await_stack_trace_test: RuntimeError # Issue 29920
 cyclic_type2_test: RuntimeError # Issue 29920
 cyclic_type_test/02: RuntimeError # Issue 29920

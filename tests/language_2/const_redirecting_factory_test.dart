@@ -16,19 +16,19 @@ class L {
   const factory L.named2({field2, field1}) = K;
 }
 
-const l1 = const L();
+const K l1 = const L();
 
-const l2a = const L.named1();
-const l2b = const L.named1(field1: 87);
-const l2c = const L.named1(field2: false);
-const l2d = const L.named1(field1: 87, field2: false);
-const l2e = const L.named1(field2: false, field1: 87);
+const K l2a = const L.named1();
+const K l2b = const L.named1(field1: 87);
+const K l2c = const L.named1(field2: false);
+const K l2d = const L.named1(field1: 87, field2: false);
+const K l2e = const L.named1(field2: false, field1: 87);
 
-const l3a = const L.named2();
-const l3b = const L.named2(field1: 87);
-const l3c = const L.named2(field2: false);
-const l3d = const L.named2(field1: 87, field2: false);
-const l3e = const L.named2(field2: false, field1: 87);
+const K l3a = const L.named2();
+const K l3b = const L.named2(field1: 87);
+const K l3c = const L.named2(field2: false);
+const K l3d = const L.named2(field1: 87, field2: false);
+const K l3e = const L.named2(field2: false, field1: 87);
 
 main() {
   Expect.equals(42, l1.field1);

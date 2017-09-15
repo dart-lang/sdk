@@ -11,5 +11,5 @@ class Point {
 }
 
 main() {
-  Point p = Point(1, 2); // //# 01: static type warning, runtime error
+  Point p = Point(1, 2); //# 01: compile-time error, static type warning, runtime error
 }

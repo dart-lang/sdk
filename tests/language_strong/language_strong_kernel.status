@@ -19,8 +19,6 @@ conditional_import_string_test: DartkCompileTimeError
 conditional_import_test: DartkCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_locals_test: RuntimeError
-const_nested_test: RuntimeError
-const_string_test: RuntimeError
 covariant_override/runtime_check_test: RuntimeError
 deferred_no_such_method_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError

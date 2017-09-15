@@ -7,7 +7,10 @@
 
 [ $compiler == dartk ]
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
-closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
+constructor_duplicate_final_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/02: MissingCompileTimeError
+const_string_test: RuntimeError
+const_syntax_test/08: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
@@ -18,6 +21,8 @@ assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
+const_nested_test: RuntimeError
+const_string_test: RuntimeError
 cyclic_type2_test: CompileTimeError
 cyclic_type_test/02: CompileTimeError
 cyclic_type_test/04: CompileTimeError
@@ -201,10 +206,13 @@ default_factory2_test/01: Fail
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
+const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+const_syntax_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+const_optional_args_negative_test: Fail # Fasta bug: Default parameter values must be const.
+const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
+constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
 cyclic_constructor_test/01: MissingCompileTimeError # Fasta bug: Cyclic constructor redirection.
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_closurize_load_library_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -349,6 +357,12 @@ async_star_cancel_while_paused_test: RuntimeError
 generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 
 [ $compiler == dartkp ]
+constructor_call_as_function_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/02: MissingCompileTimeError
+const_syntax_test/08: Crash
+const_syntax_test/09: Crash
+const_syntax_test/10: Crash
 implicit_closure1_test: Crash
 generic_function_dcall_test: CompileTimeError
 generic_function_bounds_test: CompileTimeError
@@ -377,3 +391,7 @@ cyclic_type_variable_test/02: Crash
 cyclic_type_variable_test/03: Crash
 cyclic_type_variable_test/04: Crash
 cyclic_type_variable_test/none: Crash
+
+[ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
+constructor2_test: Fail, OK
+constructor3_test: Fail, OK

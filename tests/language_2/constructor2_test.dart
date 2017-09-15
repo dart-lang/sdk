@@ -18,25 +18,28 @@ int E(int i) {
 
 class A {
   var a1;
-  A(x, y) : a1 = E(3) {
-    Expect.equals(1, x);
-    Expect.equals(2, y);
-    E(5);
+  A(x, y) : a1 = E(4) {
+    Expect.equals(2, x);
+    Expect.equals(3, y);
+    Expect.equals(4, a1);
+    E(6);
   }
 }
 
 class B extends A {
-  var b1;
+  var b1, b2;
+
   B(x)
-      : super(E(1), E(2)),
-        b1 = E(4) {
-    // Implicit super call to A's body happens here.
-    Expect.equals(4, b1);
-    E(6);
+      : b1 = E(1),
+        b2 = E(5),
+        super(E(2), E(3)) {
+    Expect.equals(1, b1);
+    Expect.equals(5, b2);
+    E(7);
   }
 }
 
 main() {
   var b = new B(0);
-  Expect.equals("1-2-3-4-5-6-", trace);
+  Expect.equals("1-5-2-3-4-6-7-", trace);
 }

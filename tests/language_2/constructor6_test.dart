@@ -34,8 +34,8 @@ class B extends A {
   // Initializers in order: b1, super, b2.
   B(x, y)
       : b1 = E(x++),
-        super(1000),
-        b2 = E(y++) {
+        b2 = E(y++),
+        super(1000) {
     // Implicit super call to A's body happens here.
     E(x);
     E(y);
@@ -51,5 +51,5 @@ class C extends B {
 
 main() {
   var c = new C();
-  Expect.equals("10-1001-20-1011-1111-1121-11-21-1131-", trace);
+  Expect.equals("10-20-1001-1011-1111-1121-11-21-1131-", trace);
 }

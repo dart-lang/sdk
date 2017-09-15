@@ -109,6 +109,9 @@ class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
+constructor2_test: Pass
+constructor3_test: Pass
+constructor_call_as_function_test/01: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
 cyclic_type_variable_test/01: MissingCompileTimeError
@@ -262,6 +265,9 @@ generic_methods_reuse_type_variables_test: RuntimeError
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
 
 [ $runtime == vm && $checked ]
+constructor2_test: Pass
+constructor3_test: Pass
+constructor_call_as_function_test/01: MissingCompileTimeError
 function_type/function_type0_test: RuntimeError # Issue 30475
 function_type/function_type10_test: RuntimeError # Issue 30475
 function_type/function_type12_test: RuntimeError # Issue 30475
@@ -420,6 +426,12 @@ assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
 
 [ $compiler == dartk && $runtime == vm ]
 arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
+constructor2_test: Pass
+constructor3_test: Pass
+constructor_call_as_function_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/02: MissingCompileTimeError
+const_native_factory_test: MissingCompileTimeError
 generic_function_bounds_test: CompileTimeError
 
 [ $compiler == none && $runtime == vm && !$checked ]

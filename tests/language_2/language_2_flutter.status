@@ -23,6 +23,15 @@ call_constructor_on_unresolvable_class_test/02: CompileTimeError
 call_constructor_on_unresolvable_class_test/07: CompileTimeError
 class_keyword_test/02: CompileTimeError
 class_override_test/00: CompileTimeError
+const_types_test/01: CompileTimeError
+const_types_test/02: CompileTimeError
+const_types_test/03: CompileTimeError
+const_types_test/04: CompileTimeError
+const_types_test/05: CompileTimeError
+const_types_test/06: CompileTimeError
+const_types_test/13: CompileTimeError
+const_types_test/35: CompileTimeError
+const_types_test/40: CompileTimeError
 deferred_constraints_type_annotation_test/new_before_load: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_null: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic2: CompileTimeError

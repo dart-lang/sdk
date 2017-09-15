@@ -300,6 +300,9 @@ body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
 cascade_test/none: fail # Issue 11577
 closure_call_wrong_argument_count_negative_test: skip
+constructor3_negative_test: fail # Issue 11585
+constructor_call_wrong_argument_count_negative_test: fail # Issue 11585
+const_optional_args_negative_test: CompileTimeError
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
@@ -531,3 +534,4 @@ generic_methods_closure_test: CompileTimeError # Issue 29070
 generic_methods_simple_is_expression_test: CompileTimeError # Issue 29070
 generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
 generic_methods_type_expression_test: CompileTimeError # Incorrectly disallows type parameter in "is" test.
+constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
