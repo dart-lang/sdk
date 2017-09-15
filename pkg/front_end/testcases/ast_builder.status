@@ -450,8 +450,13 @@ runtime_checks/covariant_generic_parameter_in_interface_super: Fail
 runtime_checks/covariant_generic_parameter_in_interface_super_mixin: Fail
 runtime_checks/covariant_generic_parameter_tear_off: Crash
 runtime_checks/covariant_keyword: Crash
+runtime_checks/covariant_keyword_field: Crash
+runtime_checks/covariant_keyword_field_inherited_by_setter: Crash
+runtime_checks/covariant_keyword_setter_inherited_by_field: Crash
 runtime_checks/covariant_setter: Crash
 runtime_checks/dynamic_invocation_of_getter: Crash
+runtime_checks/generic_covariance_inheritance_setter_field: Crash
+runtime_checks/generic_vs_explicit_covariance: Crash
 runtime_checks_new/derived_class_typed: Fail
 static_setter: Crash
 store_load: Crash

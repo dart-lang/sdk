@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  set x(core::num value) → void {}
+}
+class D extends self::C {
+  default constructor •() → void
+    : super self::C::•()
+    ;
+  set x(covariant core::int value) → void {}
+}
+class E extends core::Object implements self::D {
+  field core::int x = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

@@ -381,8 +381,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     if (cls.typeParameters.isNotEmpty) {
       var needsCheckVisitor =
           new IncludesTypeParametersCovariantly(cls.typeParameters);
-      // TODO(paulberry): also handle fields
-      for (ShadowProcedure procedure in cls.procedures) {
+      for (var procedure in cls.procedures) {
         if (procedure.isStatic) continue;
 
         void handleParameter(VariableDeclaration formal) {
@@ -403,16 +402,52 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         procedure.function.namedParameters.forEach(handleParameter);
         procedure.function.typeParameters.forEach(handleTypeParameter);
       }
+      for (var field in cls.fields) {
+        if (field.isStatic) continue;
+
+        if (field.type.accept(needsCheckVisitor)) {
+          field.isGenericCovariantImpl = true;
+          field.isGenericCovariantInterface = true;
+        }
+      }
     }
 
     // Now, propagate formal safety from overrides.
-    void propagateParameterSafety(VariableDeclaration declaredFormal,
-        VariableDeclaration interfaceFormal) {
-      if (interfaceFormal.isGenericCovariantImpl) {
-        declaredFormal.isGenericCovariantImpl = true;
+    void propagateParameterCovariance(
+        Object declaredFormal, Object interfaceFormal) {
+      bool interfaceFormalIsGenericCovariantImpl;
+      bool interfaceFormalIsCovariant;
+      if (interfaceFormal is VariableDeclaration) {
+        interfaceFormalIsGenericCovariantImpl =
+            interfaceFormal.isGenericCovariantImpl;
+        interfaceFormalIsCovariant = interfaceFormal.isCovariant;
+      } else if (interfaceFormal is Field) {
+        interfaceFormalIsGenericCovariantImpl =
+            interfaceFormal.isGenericCovariantImpl;
+        interfaceFormalIsCovariant = interfaceFormal.isCovariant;
+      } else {
+        unhandled('${interfaceFormal.runtimeType}',
+            'propagateParameterCovariance', -1, null);
       }
-      if (interfaceFormal.isCovariant) {
-        declaredFormal.isCovariant = true;
+      if (interfaceFormalIsGenericCovariantImpl) {
+        if (declaredFormal is VariableDeclaration) {
+          declaredFormal.isGenericCovariantImpl = true;
+        } else if (declaredFormal is Field) {
+          declaredFormal.isGenericCovariantImpl = true;
+        } else {
+          unhandled('${declaredFormal.runtimeType}',
+              'propagateParameterCovariance', -1, null);
+        }
+      }
+      if (interfaceFormalIsCovariant) {
+        if (declaredFormal is VariableDeclaration) {
+          declaredFormal.isCovariant = true;
+        } else if (declaredFormal is Field) {
+          declaredFormal.isCovariant = true;
+        } else {
+          unhandled('${declaredFormal.runtimeType}',
+              'propagateParameterCovariance', -1, null);
+        }
       }
     }
 
@@ -426,24 +461,30 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     classHierarchy.forEachOverridePair(cls,
         (Member declaredMember, Member interfaceMember, bool isSetter) {
       if (!identical(declaredMember.enclosingClass, cls)) return;
-      if (declaredMember.function == null || interfaceMember.function == null) {
-        // TODO(paulberry): handle the case where declaredMember or
-        // interfaceMember is a field.
-        return;
-      }
+      // Synthetic accessors associated with fields don't have a positional
+      // parameter list, so we use the field itself as a stand-in for its
+      // "value" parameter.
+      List<Object> declaredPositionalParameters =
+          declaredMember.function?.positionalParameters ?? [declaredMember];
+      List<Object> interfacePositionalParameters =
+          interfaceMember.function?.positionalParameters ?? [interfaceMember];
       for (int i = 0;
-          i < declaredMember.function.positionalParameters.length &&
-              i < interfaceMember.function.positionalParameters.length;
+          i < declaredPositionalParameters.length &&
+              i < interfacePositionalParameters.length;
           i++) {
-        propagateParameterSafety(
-            declaredMember.function.positionalParameters[i],
-            interfaceMember.function.positionalParameters[i]);
+        propagateParameterCovariance(
+            declaredPositionalParameters[i], interfacePositionalParameters[i]);
+      }
+      if (declaredMember.function == null || interfaceMember.function == null) {
+        // named parameters and type parameters only apply if both members are
+        // procedures.
+        return;
       }
       for (var namedParameter in declaredMember.function.namedParameters) {
         var overriddenParameter =
             getNamedFormal(interfaceMember.function, namedParameter.name);
         if (overriddenParameter != null) {
-          propagateParameterSafety(namedParameter, overriddenParameter);
+          propagateParameterCovariance(namedParameter, overriddenParameter);
         }
       }
       for (int i = 0;
@@ -473,8 +514,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         }
       }
 
-      // TODO(paulberry): also handle fields
-      for (ShadowProcedure procedure in cls.procedures) {
+      for (var procedure in cls.procedures) {
         if (procedure.isStatic) continue;
         void recordFormalAnnotations(VariableDeclaration formal) {
           recordCovariance(
@@ -497,6 +537,11 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         procedure.function.namedParameters.forEach(recordFormalAnnotations);
         procedure.function.typeParameters
             .forEach(recordTypeParameterAnnotations);
+      }
+      for (var field in cls.fields) {
+        if (field.isStatic) continue;
+        recordCovariance(field.fileOffset, field.isCovariant,
+            field.isGenericCovariantInterface, field.isGenericCovariantImpl);
       }
     }
   }
