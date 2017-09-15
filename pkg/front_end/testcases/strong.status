@@ -169,6 +169,7 @@ runtime_checks/contravariant_getter: Fail
 runtime_checks/covariant_generic_parameter_in_interface_mixin: Fail
 runtime_checks/covariant_generic_parameter_in_interface_super: Fail
 runtime_checks/covariant_generic_parameter_in_interface_super_mixin: Fail
+runtime_checks/forwarding_stub_with_non_covariant_param: Fail
 runtime_checks_new/derived_class_typed: Fail
 
 illegal_named_function_expression: RuntimeError

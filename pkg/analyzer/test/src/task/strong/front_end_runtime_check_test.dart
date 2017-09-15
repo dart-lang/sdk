@@ -291,8 +291,9 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   ///
   /// An annotation of `@forwardingStub=rettype name(args)` indicates that a
   /// forwarding stub must be inserted into the class having the given name and
-  /// return type.  Each argument is listed in `args` as `safety type name`,
-  /// where safety is one of `safe` or `semiSafe`.
+  /// return type.  Each argument is listed in `args` as
+  /// `covariance=(...) type name`, where the words between the parentheses are
+  /// the same as for the `@covariance=` annotation.
   void _emitForwardingStubs(Declaration node, int offset) {
     var covariantParams = getSuperclassCovariantParameters(node);
     if (covariantParams != null && covariantParams.isNotEmpty) {
@@ -304,14 +305,20 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         } else if (member is MethodElement) {
           var paramDescrs = <String>[];
           for (var param in member.parameters) {
-            // TODO(paulberry): test the safe case
-            var safetyDescr =
-                covariantParams.contains(param) ? 'semiSafe' : 'safe';
+            var covariances = <String>[];
+            if (covariantParams.contains(param)) {
+              if (param.isCovariant) {
+                covariances.add('explicit');
+              } else {
+                covariances.add('genericImpl');
+              }
+            }
+            var covariance = 'covariance=(${covariances.join(', ')})';
             var typeDescr = _typeToString(param.type);
             var paramName = param.name;
             // TODO(paulberry): if necessary, support other parameter kinds
             assert(param.parameterKind == ParameterKind.REQUIRED);
-            paramDescrs.add('$safetyDescr $typeDescr $paramName');
+            paramDescrs.add('$covariance $typeDescr $paramName');
           }
           var returnTypeDescr = _typeToString(member.returnType);
           var stub = '$returnTypeDescr $memberName(${paramDescrs.join(', ')})';

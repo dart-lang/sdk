@@ -15,7 +15,9 @@ abstract class I<T> {
 
 class M {}
 
-class /*@forwardingStub=void f(semiSafe int x)*/ C = B with M implements I<int>;
+class /*@forwardingStub=void f(covariance=(genericImpl) int x)*/ C = B
+    with M
+    implements I<int>;
 void g1(C c) {
   c.f(1);
 }
