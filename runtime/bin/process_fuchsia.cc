@@ -9,17 +9,12 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <launchpad/launchpad.h>
-#include <launchpad/vmo.h>
-#include <zircon/process.h>
-#include <zircon/status.h>
-#include <zircon/syscalls.h>
-#include <zircon/syscalls/object.h>
-#include <zircon/types.h>
 #include <fdio/io.h>
 #include <fdio/namespace.h>
 #include <fdio/private.h>
 #include <fdio/util.h>
+#include <launchpad/launchpad.h>
+#include <launchpad/vmo.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -27,6 +22,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <zircon/process.h>
+#include <zircon/status.h>
+#include <zircon/syscalls.h>
+#include <zircon/syscalls/object.h>
+#include <zircon/types.h>
 
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"

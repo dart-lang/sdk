@@ -7,11 +7,11 @@
 
 #include "vm/virtual_memory.h"
 
+#include <sys/mman.h>
+#include <unistd.h>
 #include <zircon/process.h>
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
-#include <sys/mman.h>
-#include <unistd.h>
 
 #include "platform/assert.h"
 #include "vm/allocation.h"

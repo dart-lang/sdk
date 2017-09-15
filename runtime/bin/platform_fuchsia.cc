@@ -7,12 +7,12 @@
 
 #include "bin/platform.h"
 
-#include <zircon/process.h>
-#include <zircon/status.h>
-#include <zircon/syscalls.h>
 #include <string.h>
 #include <sys/utsname.h>
 #include <unistd.h>
+#include <zircon/process.h>
+#include <zircon/status.h>
+#include <zircon/syscalls.h>
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"

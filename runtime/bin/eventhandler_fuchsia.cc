@@ -10,10 +10,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <zircon/status.h>
-#include <zircon/syscalls.h>
-#include <zircon/syscalls/object.h>
-#include <zircon/syscalls/port.h>
 #include <fdio/private.h>
 #include <poll.h>
 #include <pthread.h>
@@ -22,6 +18,10 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <zircon/status.h>
+#include <zircon/syscalls.h>
+#include <zircon/syscalls/object.h>
+#include <zircon/syscalls/port.h>
 
 #include "bin/fdutils.h"
 #include "bin/lockers.h"

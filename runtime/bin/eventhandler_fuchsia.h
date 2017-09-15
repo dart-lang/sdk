@@ -10,13 +10,13 @@
 #endif
 
 #include <errno.h>
+#include <fdio/private.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
 #include <zircon/syscalls/port.h>
-#include <fdio/private.h>
-#include <sys/socket.h>
-#include <unistd.h>
 
 #include "bin/reference_counting.h"
 #include "bin/thread.h"

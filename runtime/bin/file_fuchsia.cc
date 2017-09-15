@@ -9,8 +9,8 @@
 
 #include <errno.h>           // NOLINT
 #include <fcntl.h>           // NOLINT
-#include <libgen.h>          // NOLINT
 #include <fdio/namespace.h>  // NOLINT
+#include <libgen.h>          // NOLINT
 #include <sys/mman.h>        // NOLINT
 #include <sys/stat.h>        // NOLINT
 #include <sys/types.h>       // NOLINT

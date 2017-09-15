@@ -5,9 +5,9 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_FUCHSIA) && !defined(PRODUCT)
 
-#include <zircon/syscalls.h>
 #include <trace-engine/context.h>
 #include <trace-engine/instrumentation.h>
+#include <zircon/syscalls.h>
 
 #include "platform/utils.h"
 #include "vm/object.h"

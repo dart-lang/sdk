@@ -9,8 +9,8 @@
 #error Do not include os_thread_fuchsia.h directly; use os_thread.h instead.
 #endif
 
-#include <zircon/syscalls/object.h>
 #include <pthread.h>
+#include <zircon/syscalls/object.h>
 
 #include "platform/assert.h"
 #include "platform/globals.h"
