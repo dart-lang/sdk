@@ -926,12 +926,10 @@ const_types_test/40: Crash # NoSuchMethodError: Class 'InterfaceType' has no ins
 const_types_test/none: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 constants_test/05: MissingCompileTimeError
 constructor12_test: RuntimeError
-constructor5_test: RuntimeError
 constructor6_test: Crash # Assertion failure: Cannot find value parameter(A.#arg) in (parameter(C.#x), parameter(C.#y), parameter(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor8_test: RuntimeError
-constructor_duplicate_final_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-constructor_duplicate_final_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-constructor_duplicate_final_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.deferred_call_empty_before_load_test: RuntimeError
+constructor_duplicate_final_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/02: MissingCompileTimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: RuntimeError
 cyclic_type2_test: RuntimeError
