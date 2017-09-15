@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+html/*: Skip # dart:html will be a problem in the VM
+
 [ $runtime == vm && $system == fuchsia ]
 async/first_regression_test: RuntimeError
 async/future_timeout_test: RuntimeError
@@ -44,7 +46,6 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 [ $runtime == vm ]
 async/stream_timeout_test: RuntimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
-html/*: Skip # dart:html will be a problem in the VM
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
 mirrors/deferred_type_test: CompileTimeError
@@ -54,12 +55,6 @@ mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/native_class_test: SkipByDesign # Imports dart:html
-
-[ $runtime == vm && $checked ]
-html/*: Skip # dart:html will be a problem in the VM
-
-[ $runtime == flutter || $runtime == dart_precompiled || $arch == simarm64]
-html/*: Skip # dart:html will be a problem in the VM
 
 [ $runtime == vm && !$checked ]
 mirrors/inference_and_no_such_method_test: RuntimeError
