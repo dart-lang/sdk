@@ -122,11 +122,31 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     nodes.forEach(visit);
   }
 
+  void handleParameter(ir.VariableDeclaration node, {bool isOptional}) {
+    Local local = _localsMap.getLocalVariable(node);
+    DartType type = _localsMap.getLocalType(_elementMap, local);
+    _locals.update(local, _inferrer.typeOfParameter(local), node, type);
+    if (isOptional) {
+      TypeInformation type =
+          node.initializer != null ? visit(node.initializer) : _types.nullType;
+      _inferrer.setDefaultTypeOfParameter(local, type,
+          isInstanceMember: _analyzedMember.isInstanceMember);
+    }
+  }
+
   @override
   TypeInformation visitFunctionNode(ir.FunctionNode node) {
     // TODO(redemption): Handle native methods.
-    visitList(node.positionalParameters);
-    visitList(node.namedParameters);
+
+    int position = 0;
+    for (ir.VariableDeclaration parameter in node.positionalParameters) {
+      handleParameter(parameter,
+          isOptional: position >= node.requiredParameterCount);
+      position++;
+    }
+    for (ir.VariableDeclaration parameter in node.namedParameters) {
+      handleParameter(parameter, isOptional: true);
+    }
     visit(node.body);
     MemberEntity analyzedMember = _analyzedMember;
     if (analyzedMember is ConstructorEntity &&
@@ -264,6 +284,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitVariableDeclaration(ir.VariableDeclaration node) {
+    assert(
+        node.parent is! ir.FunctionNode, "Unexpected parameter declaration.");
     Local local = _localsMap.getLocalVariable(node);
     DartType type = _localsMap.getLocalType(_elementMap, local);
     if (node.initializer == null) {
