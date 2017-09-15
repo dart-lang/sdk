@@ -2910,6 +2910,28 @@ const MessageCode messageTypeAfterVar = const MessageCode("TypeAfterVar",
     tip: r"""Try removing 'var.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateTypeArgumentMismatch =
+    const Template<Message Function(String name, String string)>(
+        messageTemplate: r"""'#name' expects #string type arguments.""",
+        withArguments: _withArgumentsTypeArgumentMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeTypeArgumentMismatch =
+    const Code<Message Function(String name, String string)>(
+  "TypeArgumentMismatch",
+  templateTypeArgumentMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTypeArgumentMismatch(String name, String string) {
+  return new Message(codeTypeArgumentMismatch,
+      message: """'$name' expects $string type arguments.""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateTypeArgumentsOnTypeVariable =
     const Template<Message Function(String name)>(
