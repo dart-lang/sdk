@@ -925,7 +925,6 @@ const_types_test/39: Crash # NoSuchMethodError: Class 'InterfaceType' has no ins
 const_types_test/40: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 const_types_test/none: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 constants_test/05: MissingCompileTimeError
-constructor12_test: Pass
 constructor6_test: Crash # Assertion failure: Cannot find value parameter(A.#arg) in (parameter(C.#x), parameter(C.#y), parameter(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor8_test: RuntimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
