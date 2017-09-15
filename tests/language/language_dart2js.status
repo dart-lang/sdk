@@ -718,7 +718,7 @@ method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
-method_override8_test/00: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
+method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
 mixin_black_listed_test/02: MissingCompileTimeError
@@ -730,9 +730,11 @@ mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/03: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 mixin_illegal_super_use_test/04: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#inner)) for j:closure_call(P0_foo_closure.call).
+mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/05: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#inner)) for j:closure_call(P0_foo_closure.call).
 mixin_illegal_super_use_test/07: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#)) for j:closure_call(P0_foo_closure.call).
+mixin_illegal_super_use_test/07: MissingCompileTimeError
 mixin_illegal_super_use_test/08: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/09: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#)) for j:closure_call(P0_foo_closure.call).
 mixin_illegal_super_use_test/10: MissingCompileTimeError
@@ -867,12 +869,12 @@ null_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Faile
 null_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
-override_field_method1_negative_test: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
+override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/01: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
+override_inheritance_mixed_test/01: MissingCompileTimeError
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
 override_inheritance_mixed_test/04: MissingCompileTimeError
@@ -941,24 +943,14 @@ string_join_test: RuntimeError
 super_bound_closure_test/01: RuntimeError
 super_bound_closure_test/none: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-mixin_illegal_super_use_test/04: MissingCompileTimeError
-mixin_illegal_super_use_test/07: MissingCompileTimeError
 super_getter_setter_test: RuntimeError
-super_no_such_method1_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_no_such_method4_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_no_such_method5_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index5_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index6_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index7_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index8_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/03: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/04: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/05: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/06: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/07: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index5_test: RuntimeError
+super_operator_index6_test: RuntimeError
+super_operator_index7_test: RuntimeError
+super_operator_index8_test: RuntimeError
+mixin_illegal_super_use_test/02: MissingCompileTimeError
+mixin_illegal_super_use_test/05: MissingCompileTimeError
+mixin_illegal_super_use_test/08: MissingCompileTimeError
 super_setter_interceptor_test: RuntimeError
 super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
@@ -1227,7 +1219,7 @@ internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' 
 invocation_mirror2_test: RuntimeError
 invocation_mirror_empty_arguments_test: RuntimeError
 invocation_mirror_invoke_on2_test: RuntimeError
-invocation_mirror_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+invocation_mirror_test: RuntimeError
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
@@ -1286,9 +1278,11 @@ mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/03: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 mixin_illegal_super_use_test/04: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#inner)) for j:closure_call(P0_foo_closure.call).
+mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/05: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#inner)) for j:closure_call(P0_foo_closure.call).
 mixin_illegal_super_use_test/07: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#)) for j:closure_call(P0_foo_closure.call).
+mixin_illegal_super_use_test/07: MissingCompileTimeError
 mixin_illegal_super_use_test/08: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/09: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#)) for j:closure_call(P0_foo_closure.call).
 mixin_illegal_super_use_test/10: MissingCompileTimeError
@@ -1495,24 +1489,14 @@ string_join_test: RuntimeError
 super_bound_closure_test/01: RuntimeError
 super_bound_closure_test/none: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-mixin_illegal_super_use_test/04: MissingCompileTimeError
-mixin_illegal_super_use_test/07: MissingCompileTimeError
 super_getter_setter_test: RuntimeError
-super_no_such_method1_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_no_such_method4_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_no_such_method5_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index5_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index6_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index7_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index8_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/03: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/04: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/05: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/06: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_index_test/07: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_operator_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index5_test: RuntimeError
+super_operator_index6_test: RuntimeError
+super_operator_index7_test: RuntimeError
+super_operator_index8_test: RuntimeError
+mixin_illegal_super_use_test/02: MissingCompileTimeError
+mixin_illegal_super_use_test/05: MissingCompileTimeError
+mixin_illegal_super_use_test/08: MissingCompileTimeError
 super_setter_interceptor_test: RuntimeError
 super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError

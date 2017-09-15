@@ -656,19 +656,14 @@ const_types_test/39: Crash # type 'InterfaceType' is not a subtype of type 'Reso
 const_types_test/40: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 const_types_test/none: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 constants_test/05: MissingCompileTimeError
-constructor12_test: RuntimeError
-constructor2_test: RuntimeError
-constructor3_test: RuntimeError
-constructor5_test: RuntimeError
 constructor6_test: Crash # Assertion failure: Cannot find value parameter(A.#arg) in (parameter(C.#x), parameter(C.#y), parameter(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor8_test: RuntimeError
 constructor_duplicate_final_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 constructor_duplicate_final_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-constructor_duplicate_final_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 custom_await_stack_trace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: RuntimeError
-dangling_else_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+bad_override_test/04: MissingCompileTimeError
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError

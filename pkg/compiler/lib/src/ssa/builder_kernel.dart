@@ -3315,6 +3315,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
+    if (invocation.interfaceTarget == null) {
+      var selector = _elementMap.getSelector(invocation);
+      var arguments =
+          _visitArgumentsForDynamicTarget(selector, invocation.arguments);
+      _generateSuperNoSuchMethod(invocation, selector.name, arguments);
+      return;
+    }
     List<HInstruction> arguments = _visitArgumentsForStaticTarget(
         invocation.interfaceTarget.function, invocation.arguments);
     _buildInvokeSuper(
