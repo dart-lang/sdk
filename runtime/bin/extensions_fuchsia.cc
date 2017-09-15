@@ -10,8 +10,8 @@
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <launchpad/vmo.h>
-#include <magenta/dlfcn.h>
-#include <mxio/io.h>
+#include <zircon/dlfcn.h>
+#include <fdio/io.h>
 
 #include "platform/assert.h"
 
@@ -29,10 +29,10 @@ void* Extensions::LoadExtensionLibrary(const char* library_file) {
   if (fd < 0) {
     return NULL;
   }
-  mx_handle_t vmo;
-  mx_status_t status = mxio_get_vmo(fd, &vmo);
+  zx_handle_t vmo;
+  zx_status_t status = fdio_get_vmo(fd, &vmo);
   close(fd);
-  if (status != MX_OK) {
+  if (status != ZX_OK) {
     return NULL;
   }
   return dlopen_vmo(vmo, RTLD_LAZY);

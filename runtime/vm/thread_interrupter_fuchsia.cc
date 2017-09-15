@@ -7,12 +7,12 @@
 
 #include "vm/thread_interrupter.h"
 
-#include <magenta/process.h>
-#include <magenta/status.h>
-#include <magenta/syscalls.h>
-#include <magenta/syscalls/debug.h>
-#include <magenta/syscalls/object.h>
-#include <magenta/types.h>
+#include <zircon/process.h>
+#include <zircon/status.h>
+#include <zircon/syscalls.h>
+#include <zircon/syscalls/debug.h>
+#include <zircon/syscalls/object.h>
+#include <zircon/types.h>
 
 #include "vm/flags.h"
 #include "vm/instructions.h"
@@ -36,15 +36,15 @@ DECLARE_FLAG(bool, trace_thread_interrupter);
 // the thread is resumed and its handle is closed.
 class ThreadSuspendScope {
  public:
-  explicit ThreadSuspendScope(mx_handle_t thread_handle)
+  explicit ThreadSuspendScope(zx_handle_t thread_handle)
       : thread_handle_(thread_handle), suspended_(true) {
-    mx_status_t status = mx_task_suspend(thread_handle);
-    // If a thread is somewhere where suspend is impossible, mx_task_suspend()
-    // can return MX_ERR_NOT_SUPPORTED.
-    if (status != MX_OK) {
+    zx_status_t status = zx_task_suspend(thread_handle);
+    // If a thread is somewhere where suspend is impossible, zx_task_suspend()
+    // can return ZX_ERR_NOT_SUPPORTED.
+    if (status != ZX_OK) {
       if (FLAG_trace_thread_interrupter) {
-        OS::PrintErr("ThreadInterrupter: mx_task_suspend failed: %s\n",
-                     mx_status_get_string(status));
+        OS::PrintErr("ThreadInterrupter: zx_task_suspend failed: %s\n",
+                     zx_status_get_string(status));
       }
       suspended_ = false;
     }
@@ -52,20 +52,20 @@ class ThreadSuspendScope {
 
   ~ThreadSuspendScope() {
     if (suspended_) {
-      mx_status_t status = mx_task_resume(thread_handle_, 0);
-      if (status != MX_OK) {
+      zx_status_t status = zx_task_resume(thread_handle_, 0);
+      if (status != ZX_OK) {
         // If we fail to resume a thread, then it's likely the program will
         // hang. Crash instead.
-        FATAL1("mx_task_resume failed: %s", mx_status_get_string(status));
+        FATAL1("zx_task_resume failed: %s", zx_status_get_string(status));
       }
     }
-    mx_handle_close(thread_handle_);
+    zx_handle_close(thread_handle_);
   }
 
   bool suspended() const { return suspended_; }
 
  private:
-  mx_handle_t thread_handle_;
+  zx_handle_t thread_handle_;
   bool suspended_;
 
   DISALLOW_ALLOCATION();
@@ -75,15 +75,15 @@ class ThreadSuspendScope {
 class ThreadInterrupterFuchsia : public AllStatic {
  public:
 #if defined(TARGET_ARCH_X64)
-  static bool GrabRegisters(mx_handle_t thread, InterruptedThreadState* state) {
-    mx_x86_64_general_regs_t regs;
+  static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
+    zx_x86_64_general_regs_t regs;
     uint32_t regset_size;
-    mx_status_t status = mx_thread_read_state(
-        thread, MX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
-    if (status != MX_OK) {
+    zx_status_t status = zx_thread_read_state(
+        thread, ZX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
+    if (status != ZX_OK) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr("ThreadInterrupter failed to get registers: %s\n",
-                     mx_status_get_string(status));
+                     zx_status_get_string(status));
       }
       return false;
     }
@@ -94,15 +94,15 @@ class ThreadInterrupterFuchsia : public AllStatic {
     return true;
   }
 #elif defined(TARGET_ARCH_ARM64)
-  static bool GrabRegisters(mx_handle_t thread, InterruptedThreadState* state) {
-    mx_arm64_general_regs_t regs;
+  static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
+    zx_arm64_general_regs_t regs;
     uint32_t regset_size;
-    mx_status_t status = mx_thread_read_state(
-        thread, MX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
-    if (status != MX_OK) {
+    zx_status_t status = zx_thread_read_state(
+        thread, ZX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
+    if (status != ZX_OK) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr("ThreadInterrupter failed to get registers: %s\n",
-                     mx_status_get_string(status));
+                     zx_status_get_string(status));
       }
       return false;
     }
@@ -118,30 +118,30 @@ class ThreadInterrupterFuchsia : public AllStatic {
 #endif
 
   static void Interrupt(OSThread* os_thread) {
-    ASSERT(os_thread->id() != MX_KOID_INVALID);
+    ASSERT(os_thread->id() != ZX_KOID_INVALID);
     ASSERT(!OSThread::Compare(OSThread::GetCurrentThreadId(), os_thread->id()));
-    mx_status_t status;
+    zx_status_t status;
 
     // Get a handle on the target thread.
-    const mx_koid_t target_thread_koid = os_thread->id();
+    const zx_koid_t target_thread_koid = os_thread->id();
     if (FLAG_trace_thread_interrupter) {
       OS::PrintErr("ThreadInterrupter: interrupting thread with koid=%d\n",
                    target_thread_koid);
     }
-    mx_handle_t target_thread_handle;
-    status = mx_object_get_child(mx_process_self(), target_thread_koid,
-                                 MX_RIGHT_SAME_RIGHTS, &target_thread_handle);
-    if (status != MX_OK) {
+    zx_handle_t target_thread_handle;
+    status = zx_object_get_child(zx_process_self(), target_thread_koid,
+                                 ZX_RIGHT_SAME_RIGHTS, &target_thread_handle);
+    if (status != ZX_OK) {
       if (FLAG_trace_thread_interrupter) {
-        OS::PrintErr("ThreadInterrupter: mx_object_get_child failed: %s\n",
-                     mx_status_get_string(status));
+        OS::PrintErr("ThreadInterrupter: zx_object_get_child failed: %s\n",
+                     zx_status_get_string(status));
       }
       return;
     }
-    if (target_thread_handle == MX_HANDLE_INVALID) {
+    if (target_thread_handle == ZX_HANDLE_INVALID) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr(
-            "ThreadInterrupter: mx_object_get_child gave an invalid "
+            "ThreadInterrupter: zx_object_get_child gave an invalid "
             "thread handle!");
       }
       return;
@@ -156,7 +156,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
 
     // Check that the thread is suspended.
     status = PollThreadUntilSuspended(target_thread_handle);
-    if (status != MX_OK) {
+    if (status != ZX_OK) {
       return;
     }
 
@@ -177,44 +177,44 @@ class ThreadInterrupterFuchsia : public AllStatic {
  private:
   static const char* ThreadStateGetString(uint32_t state) {
     switch (state) {
-      case MX_THREAD_STATE_NEW:
-        return "MX_THREAD_STATE_NEW";
-      case MX_THREAD_STATE_RUNNING:
-        return "MX_THREAD_STATE_RUNNING";
-      case MX_THREAD_STATE_SUSPENDED:
-        return "MX_THREAD_STATE_SUSPENDED";
-      case MX_THREAD_STATE_BLOCKED:
-        return "MX_THREAD_STATE_BLOCKED";
-      case MX_THREAD_STATE_DYING:
-        return "MX_THREAD_STATE_DYING";
-      case MX_THREAD_STATE_DEAD:
-        return "MX_THREAD_STATE_DEAD";
+      case ZX_THREAD_STATE_NEW:
+        return "ZX_THREAD_STATE_NEW";
+      case ZX_THREAD_STATE_RUNNING:
+        return "ZX_THREAD_STATE_RUNNING";
+      case ZX_THREAD_STATE_SUSPENDED:
+        return "ZX_THREAD_STATE_SUSPENDED";
+      case ZX_THREAD_STATE_BLOCKED:
+        return "ZX_THREAD_STATE_BLOCKED";
+      case ZX_THREAD_STATE_DYING:
+        return "ZX_THREAD_STATE_DYING";
+      case ZX_THREAD_STATE_DEAD:
+        return "ZX_THREAD_STATE_DEAD";
       default:
         return "<Unknown>";
     }
   }
 
-  static mx_status_t PollThreadUntilSuspended(mx_handle_t thread_handle) {
+  static zx_status_t PollThreadUntilSuspended(zx_handle_t thread_handle) {
     const intptr_t kMaxPollAttempts = 10;
     intptr_t poll_tries = 0;
     while (poll_tries < kMaxPollAttempts) {
-      mx_info_thread_t thread_info;
-      mx_status_t status =
-          mx_object_get_info(thread_handle, MX_INFO_THREAD, &thread_info,
+      zx_info_thread_t thread_info;
+      zx_status_t status =
+          zx_object_get_info(thread_handle, ZX_INFO_THREAD, &thread_info,
                              sizeof(thread_info), NULL, NULL);
       poll_tries++;
-      if (status != MX_OK) {
+      if (status != ZX_OK) {
         if (FLAG_trace_thread_interrupter) {
-          OS::PrintErr("ThreadInterrupter: mx_object_get_info failed: %s\n",
-                       mx_status_get_string(status));
+          OS::PrintErr("ThreadInterrupter: zx_object_get_info failed: %s\n",
+                       zx_status_get_string(status));
         }
         return status;
       }
-      if (thread_info.state == MX_THREAD_STATE_SUSPENDED) {
+      if (thread_info.state == ZX_THREAD_STATE_SUSPENDED) {
         // Success.
-        return MX_OK;
+        return ZX_OK;
       }
-      if (thread_info.state == MX_THREAD_STATE_RUNNING) {
+      if (thread_info.state == ZX_THREAD_STATE_RUNNING) {
         // Poll.
         continue;
       }
@@ -222,12 +222,12 @@ class ThreadInterrupterFuchsia : public AllStatic {
         OS::PrintErr("ThreadInterrupter: Thread is not suspended: %s\n",
                      ThreadStateGetString(thread_info.state));
       }
-      return MX_ERR_BAD_STATE;
+      return ZX_ERR_BAD_STATE;
     }
     if (FLAG_trace_thread_interrupter) {
       OS::PrintErr("ThreadInterrupter: Exceeded max suspend poll tries\n");
     }
-    return MX_ERR_BAD_STATE;
+    return ZX_ERR_BAD_STATE;
   }
 };
 

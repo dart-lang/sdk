@@ -5,7 +5,7 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_FUCHSIA) && !defined(PRODUCT)
 
-#include <magenta/syscalls.h>
+#include <zircon/syscalls.h>
 #include <trace-engine/context.h>
 #include <trace-engine/instrumentation.h>
 
@@ -78,7 +78,7 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
     args[i] = trace_make_arg(arg_name, trace_make_string_arg_value(arg_value));
   }
 
-  const uint64_t time_scale = mx_ticks_per_second() / kMicrosecondsPerSecond;
+  const uint64_t time_scale = zx_ticks_per_second() / kMicrosecondsPerSecond;
   const uint64_t start_time = event->LowTime() * time_scale;
   const uint64_t end_time = event->HighTime() * time_scale;
 

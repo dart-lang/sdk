@@ -37,7 +37,7 @@ import("vm_sources.gni")
 config("libdart_vm_config") {
   if (is_fuchsia) {
     libs = [
-      "magenta",
+      "zircon",
       "trace-engine",
     ]
   } else if (is_win) {
@@ -69,7 +69,7 @@ template("build_libdart_vm") {
       deps = [
         # TODO(zra): When the platform-specific timeline code is moved out to
         # the embedder, this can go away.
-        "//magenta/system/ulib/fbl",
+        "//zircon/system/ulib/fbl",
       ]
     }
     public_configs = [ ":libdart_vm_config" ]

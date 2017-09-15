@@ -166,22 +166,22 @@ if (is_fuchsia) {
     mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
     boot_manifest = "$mkbootfs_gen/boot.bootfs.manifest"
 
-    # Compute path to magenta bootdata.bin
+    # Compute path to zircon bootdata.bin
     if (current_cpu == "arm64") {
-      magenta_bootdata =
-          "//out/build-magenta/build-magenta-qemu-arm64/bootdata.bin"
+      zircon_bootdata =
+          "//out/build-zircon/build-zircon-qemu-arm64/bootdata.bin"
     } else if (current_cpu == "x64") {
-      magenta_bootdata =
-          "//out/build-magenta/build-magenta-pc-x86-64/bootdata.bin"
+      zircon_bootdata =
+          "//out/build-zircon/build-zircon-pc-x86-64/bootdata.bin"
     } else {
-      assert(false, "unable to determine path to magenta's bootdata.bin")
+      assert(false, "unable to determine path to zircon's bootdata.bin")
     }
 
     packages_file = "$mkbootfs_gen/packages"
 
     input = "$target_gen_dir/dart_test_tree.manifest"
     inputs = [
-      magenta_bootdata,
+      zircon_bootdata,
       input,
     ]
 
@@ -201,7 +201,7 @@ if (is_fuchsia) {
       "--build-id-map",
       rebase_path("$target_gen_dir/build_id_map"),
       "--pre-binaries",
-      rebase_path(magenta_bootdata),
+      rebase_path(zircon_bootdata),
     ]
     args += read_file(packages_file, "list lines")
   }

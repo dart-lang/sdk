@@ -7,9 +7,9 @@
 
 #include "bin/platform.h"
 
-#include <magenta/process.h>
-#include <magenta/status.h>
-#include <magenta/syscalls.h>
+#include <zircon/process.h>
+#include <zircon/status.h>
+#include <zircon/syscalls.h>
 #include <string.h>
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -101,10 +101,10 @@ const char* Platform::GetExecutableName() {
   if (executable_name_ != NULL) {
     return executable_name_;
   }
-  char* name = DartUtils::ScopedCString(MX_MAX_NAME_LEN);
-  mx_status_t status = mx_object_get_property(mx_process_self(), MX_PROP_NAME,
-                                              name, MX_MAX_NAME_LEN);
-  if (status != MX_OK) {
+  char* name = DartUtils::ScopedCString(ZX_MAX_NAME_LEN);
+  zx_status_t status = zx_object_get_property(zx_process_self(), ZX_PROP_NAME,
+                                              name, ZX_MAX_NAME_LEN);
+  if (status != ZX_OK) {
     return NULL;
   }
   return name;

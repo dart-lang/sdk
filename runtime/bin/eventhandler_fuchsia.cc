@@ -10,11 +10,11 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <magenta/status.h>
-#include <magenta/syscalls.h>
-#include <magenta/syscalls/object.h>
-#include <magenta/syscalls/port.h>
-#include <mxio/private.h>
+#include <zircon/status.h>
+#include <zircon/syscalls.h>
+#include <zircon/syscalls/object.h>
+#include <zircon/syscalls/port.h>
+#include <fdio/private.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -33,20 +33,20 @@
 #include "platform/utils.h"
 
 // The EventHandler for Fuchsia uses its "ports v2" API:
-// https://fuchsia.googlesource.com/magenta/+/HEAD/docs/syscalls/port_create.md
+// https://fuchsia.googlesource.com/zircon/+/HEAD/docs/syscalls/port_create.md
 // This API does not have epoll()-like edge triggering (EPOLLET). Since clients
 // of the EventHandler expect edge-triggered notifications, we must simulate it.
-// When a packet from mx_port_wait() indicates that a signal is asserted for a
+// When a packet from zx_port_wait() indicates that a signal is asserted for a
 // handle, we unsubscribe from that signal until the event that asserted the
 // signal can be processed. For example:
 //
-// 1. We get MX_SOCKET_WRITABLE from mx_port_wait() for a handle.
+// 1. We get ZX_SOCKET_WRITABLE from zx_port_wait() for a handle.
 // 2. We send kOutEvent to the Dart thread.
-// 3. We unsubscribe from further MX_SOCKET_WRITABLE signals for the handle.
+// 3. We unsubscribe from further ZX_SOCKET_WRITABLE signals for the handle.
 // 4. Some time later the Dart thread actually does a write().
 // 5. After writing, the Dart thread resubscribes to write events.
 //
-// We use he same procedure for MX_SOCKET_READABLE, and read()/accept().
+// We use he same procedure for ZX_SOCKET_READABLE, and read()/accept().
 
 // define EVENTHANDLER_LOG_ERROR to get log messages only for errors.
 // define EVENTHANDLER_LOG_INFO to get log messages for both information and
@@ -87,7 +87,7 @@ intptr_t IOHandle::Read(void* buffer, intptr_t num_bytes) {
   // re-subscription is necessary. Logic in the caller decides which errors are
   // real, and which are ignore-and-continue.
   read_events_enabled_ = true;
-  if (!AsyncWaitLocked(MX_HANDLE_INVALID, POLLIN, wait_key_)) {
+  if (!AsyncWaitLocked(ZX_HANDLE_INVALID, POLLIN, wait_key_)) {
     LOG_ERR("IOHandle::AsyncWait failed for fd = %ld\n", fd_);
   }
 
@@ -104,7 +104,7 @@ intptr_t IOHandle::Write(const void* buffer, intptr_t num_bytes) {
 
   // Resubscribe to write events.
   write_events_enabled_ = true;
-  if (!AsyncWaitLocked(MX_HANDLE_INVALID, POLLOUT, wait_key_)) {
+  if (!AsyncWaitLocked(ZX_HANDLE_INVALID, POLLOUT, wait_key_)) {
     LOG_ERR("IOHandle::AsyncWait failed for fd = %ld\n", fd_);
   }
 
@@ -120,7 +120,7 @@ intptr_t IOHandle::Accept(struct sockaddr* addr, socklen_t* addrlen) {
 
   // Re-subscribe to read events.
   read_events_enabled_ = true;
-  if (!AsyncWaitLocked(MX_HANDLE_INVALID, POLLIN, wait_key_)) {
+  if (!AsyncWaitLocked(ZX_HANDLE_INVALID, POLLIN, wait_key_)) {
     LOG_ERR("IOHandle::AsyncWait failed for fd = %ld\n", fd_);
   }
 
@@ -165,65 +165,65 @@ intptr_t IOHandle::EpollEventsToMask(intptr_t events) {
   return event_mask;
 }
 
-bool IOHandle::AsyncWaitLocked(mx_handle_t port,
+bool IOHandle::AsyncWaitLocked(zx_handle_t port,
                                uint32_t events,
                                uint64_t key) {
   LOG_INFO("IOHandle::AsyncWait: fd = %ld\n", fd_);
-  // The call to __mxio_fd_to_io() in the DescriptorInfo constructor may have
+  // The call to __fdio_fd_to_io() in the DescriptorInfo constructor may have
   // returned NULL. If it did, propagate the problem up to Dart.
-  if (mxio_ == NULL) {
-    LOG_ERR("__mxio_fd_to_io(%d) returned NULL\n", fd_);
+  if (fdio_ == NULL) {
+    LOG_ERR("__fdio_fd_to_io(%d) returned NULL\n", fd_);
     return false;
   }
 
-  mx_handle_t handle;
-  mx_signals_t signals;
-  __mxio_wait_begin(mxio_, events, &handle, &signals);
-  if (handle == MX_HANDLE_INVALID) {
-    LOG_ERR("fd = %ld __mxio_wait_begin returned an invalid handle\n", fd_);
+  zx_handle_t handle;
+  zx_signals_t signals;
+  __fdio_wait_begin(fdio_, events, &handle, &signals);
+  if (handle == ZX_HANDLE_INVALID) {
+    LOG_ERR("fd = %ld __fdio_wait_begin returned an invalid handle\n", fd_);
     return false;
   }
 
   // Remember the port. Use the remembered port if the argument "port" is
-  // MX_HANDLE_INVALID.
-  ASSERT((port != MX_HANDLE_INVALID) || (port_ != MX_HANDLE_INVALID));
-  if ((port_ == MX_HANDLE_INVALID) || (port != MX_HANDLE_INVALID)) {
+  // ZX_HANDLE_INVALID.
+  ASSERT((port != ZX_HANDLE_INVALID) || (port_ != ZX_HANDLE_INVALID));
+  if ((port_ == ZX_HANDLE_INVALID) || (port != ZX_HANDLE_INVALID)) {
     port_ = port;
   }
 
   handle_ = handle;
   wait_key_ = key;
-  LOG_INFO("mx_object_wait_async(fd = %ld, signals = %x)\n", fd_, signals);
-  mx_status_t status =
-      mx_object_wait_async(handle_, port_, key, signals, MX_WAIT_ASYNC_ONCE);
-  if (status != MX_OK) {
-    LOG_ERR("mx_object_wait_async failed: %s\n", mx_status_get_string(status));
+  LOG_INFO("zx_object_wait_async(fd = %ld, signals = %x)\n", fd_, signals);
+  zx_status_t status =
+      zx_object_wait_async(handle_, port_, key, signals, ZX_WAIT_ASYNC_ONCE);
+  if (status != ZX_OK) {
+    LOG_ERR("zx_object_wait_async failed: %s\n", zx_status_get_string(status));
     return false;
   }
 
   return true;
 }
 
-bool IOHandle::AsyncWait(mx_handle_t port, uint32_t events, uint64_t key) {
+bool IOHandle::AsyncWait(zx_handle_t port, uint32_t events, uint64_t key) {
   MutexLocker ml(mutex_);
   return AsyncWaitLocked(port, events, key);
 }
 
-void IOHandle::CancelWait(mx_handle_t port, uint64_t key) {
+void IOHandle::CancelWait(zx_handle_t port, uint64_t key) {
   MutexLocker ml(mutex_);
   LOG_INFO("IOHandle::CancelWait: fd = %ld\n", fd_);
-  ASSERT(port != MX_HANDLE_INVALID);
-  ASSERT(handle_ != MX_HANDLE_INVALID);
-  mx_status_t status = mx_port_cancel(port, handle_, key);
-  if ((status != MX_OK) && (status != MX_ERR_NOT_FOUND)) {
-    LOG_ERR("mx_port_cancel failed: %s\n", mx_status_get_string(status));
+  ASSERT(port != ZX_HANDLE_INVALID);
+  ASSERT(handle_ != ZX_HANDLE_INVALID);
+  zx_status_t status = zx_port_cancel(port, handle_, key);
+  if ((status != ZX_OK) && (status != ZX_ERR_NOT_FOUND)) {
+    LOG_ERR("zx_port_cancel failed: %s\n", zx_status_get_string(status));
   }
 }
 
-uint32_t IOHandle::WaitEnd(mx_signals_t observed) {
+uint32_t IOHandle::WaitEnd(zx_signals_t observed) {
   MutexLocker ml(mutex_);
   uint32_t events = 0;
-  __mxio_wait_end(mxio_, observed, &events);
+  __fdio_wait_end(fdio_, observed, &events);
   return events;
 }
 
@@ -250,7 +250,7 @@ intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
   return event_mask;
 }
 
-void EventHandlerImplementation::AddToPort(mx_handle_t port_handle,
+void EventHandlerImplementation::AddToPort(zx_handle_t port_handle,
                                            DescriptorInfo* di) {
   const uint32_t events = di->io_handle()->MaskToEpollEvents(di->Mask());
   const uint64_t key = reinterpret_cast<uint64_t>(di);
@@ -259,7 +259,7 @@ void EventHandlerImplementation::AddToPort(mx_handle_t port_handle,
   }
 }
 
-void EventHandlerImplementation::RemoveFromPort(mx_handle_t port_handle,
+void EventHandlerImplementation::RemoveFromPort(zx_handle_t port_handle,
                                                 DescriptorInfo* di) {
   const uint64_t key = reinterpret_cast<uint64_t>(di);
   di->io_handle()->CancelWait(port_handle, key);
@@ -269,14 +269,14 @@ EventHandlerImplementation::EventHandlerImplementation()
     : socket_map_(&HashMap::SamePointerValue, 16) {
   shutdown_ = false;
   // Create the port.
-  port_handle_ = MX_HANDLE_INVALID;
-  mx_status_t status = mx_port_create(0, &port_handle_);
-  if (status != MX_OK) {
+  port_handle_ = ZX_HANDLE_INVALID;
+  zx_status_t status = zx_port_create(0, &port_handle_);
+  if (status != ZX_OK) {
     // This is a FATAL because the VM won't work at all if we can't create this
     // port.
-    FATAL1("mx_port_create failed: %s\n", mx_status_get_string(status));
+    FATAL1("zx_port_create failed: %s\n", zx_status_get_string(status));
   }
-  ASSERT(port_handle_ != MX_HANDLE_INVALID);
+  ASSERT(port_handle_ != ZX_HANDLE_INVALID);
 }
 
 static void DeleteDescriptorInfo(void* info) {
@@ -288,8 +288,8 @@ static void DeleteDescriptorInfo(void* info) {
 
 EventHandlerImplementation::~EventHandlerImplementation() {
   socket_map_.Clear(DeleteDescriptorInfo);
-  mx_handle_close(port_handle_);
-  port_handle_ = MX_HANDLE_INVALID;
+  zx_handle_close(port_handle_);
+  port_handle_ = ZX_HANDLE_INVALID;
 }
 
 void EventHandlerImplementation::UpdatePort(intptr_t old_mask,
@@ -333,19 +333,19 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
 void EventHandlerImplementation::WakeupHandler(intptr_t id,
                                                Dart_Port dart_port,
                                                int64_t data) {
-  COMPILE_ASSERT(sizeof(InterruptMessage) <= sizeof(mx_packet_user_t));
-  mx_port_packet_t pkt;
+  COMPILE_ASSERT(sizeof(InterruptMessage) <= sizeof(zx_packet_user_t));
+  zx_port_packet_t pkt;
   InterruptMessage* msg = reinterpret_cast<InterruptMessage*>(&pkt.user);
   pkt.key = kInterruptPacketKey;
   msg->id = id;
   msg->dart_port = dart_port;
   msg->data = data;
-  mx_status_t status =
-      mx_port_queue(port_handle_, reinterpret_cast<void*>(&pkt), 0);
-  if (status != MX_OK) {
+  zx_status_t status =
+      zx_port_queue(port_handle_, reinterpret_cast<void*>(&pkt), 0);
+  if (status != ZX_OK) {
     // This is a FATAL because the VM won't work at all if we can't send any
     // messages to the EventHandler thread.
-    FATAL1("mx_port_queue failed: %s\n", mx_status_get_string(status));
+    FATAL1("zx_port_queue failed: %s\n", zx_status_get_string(status));
   }
 }
 
@@ -440,11 +440,11 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   }
 }
 
-void EventHandlerImplementation::HandlePacket(mx_port_packet_t* pkt) {
+void EventHandlerImplementation::HandlePacket(zx_port_packet_t* pkt) {
   LOG_INFO("HandlePacket: Got event packet: key=%lx\n", pkt->key);
   LOG_INFO("HandlePacket: Got event packet: type=%lx\n", pkt->type);
   LOG_INFO("HandlePacket: Got event packet: status=%ld\n", pkt->status);
-  if (pkt->type == MX_PKT_TYPE_USER) {
+  if (pkt->type == ZX_PKT_TYPE_USER) {
     ASSERT(pkt->key == kInterruptPacketKey);
     InterruptMessage* msg = reinterpret_cast<InterruptMessage*>(&pkt->user);
     HandleInterrupt(msg);
@@ -455,7 +455,7 @@ void EventHandlerImplementation::HandlePacket(mx_port_packet_t* pkt) {
   LOG_INFO("HandlePacket: Got event packet: count = %ld\n", pkt->signal.count);
 
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(pkt->key);
-  mx_signals_t observed = pkt->signal.observed;
+  zx_signals_t observed = pkt->signal.observed;
   const intptr_t old_mask = di->Mask();
   const uint32_t epoll_event = di->io_handle()->WaitEnd(observed);
   intptr_t event_mask = IOHandle::EpollEventsToMask(epoll_event);
@@ -502,21 +502,21 @@ void EventHandlerImplementation::Poll(uword args) {
   EventHandlerImplementation* handler_impl = &handler->delegate_;
   ASSERT(handler_impl != NULL);
 
-  mx_port_packet_t pkt;
+  zx_port_packet_t pkt;
   while (!handler_impl->shutdown_) {
     int64_t millis = handler_impl->GetTimeout();
     ASSERT((millis == kInfinityTimeout) || (millis >= 0));
 
-    LOG_INFO("mx_port_wait(millis = %ld)\n", millis);
-    mx_status_t status = mx_port_wait(handler_impl->port_handle_,
+    LOG_INFO("zx_port_wait(millis = %ld)\n", millis);
+    zx_status_t status = zx_port_wait(handler_impl->port_handle_,
                                       millis == kInfinityTimeout
-                                          ? MX_TIME_INFINITE
-                                          : mx_deadline_after(MX_MSEC(millis)),
+                                          ? ZX_TIME_INFINITE
+                                          : zx_deadline_after(ZX_MSEC(millis)),
                                       reinterpret_cast<void*>(&pkt), 0);
-    if (status == MX_ERR_TIMED_OUT) {
+    if (status == ZX_ERR_TIMED_OUT) {
       handler_impl->HandleTimeout();
-    } else if (status != MX_OK) {
-      FATAL1("mx_port_wait failed: %s\n", mx_status_get_string(status));
+    } else if (status != ZX_OK) {
+      FATAL1("zx_port_wait failed: %s\n", zx_status_get_string(status));
     } else {
       handler_impl->HandleTimeout();
       handler_impl->HandlePacket(&pkt);
