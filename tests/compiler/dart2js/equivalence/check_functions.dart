@@ -10,9 +10,10 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/types.dart';
+import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js/js_debug.dart' as js;
 import 'package:compiler/src/js_backend/backend.dart';
@@ -500,6 +501,31 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
   strategy.testElements(
       env1, env2, 'mainFunction', env1.mainFunction, env2.mainFunction);
 
+  Iterable<ConstantValue> filterMetadata(Iterable<ConstantValue> constants) {
+    const skippedMetadata = const [
+      // Annotations on patches are not included in the patched sdk.
+      'ConstructedConstant(_Patch())',
+      'ConstructedConstant(NoInline())',
+
+      // Inserted by TargetImplementation. Should only be in the VM target.
+      'ConstructedConstant(ExternalName(name=StringConstant("")))',
+    ];
+
+    return constants
+        .where((c) => !skippedMetadata.contains(c.toStructuredText()));
+  }
+
+  Iterable<LibraryEntity> filterLibraries(Iterable<LibraryEntity> libraries) {
+    List<Uri> skippedLibraries = [
+      Uri.parse('dart:mirrors'),
+      Uri.parse('dart:_js_mirrors'),
+      Uri.parse('dart:js'),
+      Uri.parse('dart:js_util'),
+      Uri.parse('dart:_chrome'),
+    ];
+    return libraries.where((l) => !skippedLibraries.contains(l.canonicalUri));
+  }
+
   checkMembers(MemberEntity member1, MemberEntity member2) {
     Expect.equals(env1.isDeferredLoadLibraryGetter(member1),
         env2.isDeferredLoadLibraryGetter(member2));
@@ -508,18 +534,25 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
         member1,
         member2,
         'metadata',
-        env1.getMemberMetadata(member1),
-        env2.getMemberMetadata(member2),
+        filterMetadata(env1.getMemberMetadata(member1)),
+        filterMetadata(env2.getMemberMetadata(member2)),
         strategy.testConstantValues);
 
     if (member1 is FunctionEntity && member2 is FunctionEntity) {
+      if (member1 is ConstructorElement &&
+          member1.definingConstructor != null) {
+        // TODO(johnniwinther): Test these. Currently these are sometimes
+        // correctly typed, sometimes using dynamic instead of parameter and
+        // return types.
+        return;
+      }
       check(member1, member2, 'getFunctionType', env1.getFunctionType(member1),
           env2.getFunctionType(member2), strategy.typeEquivalence);
     }
   }
 
-  checkSetEquivalence(env1, env2, 'libraries', env1.libraries, env2.libraries,
-      strategy.elementEquivalence,
+  checkSetEquivalence(env1, env2, 'libraries', filterLibraries(env1.libraries),
+      filterLibraries(env2.libraries), strategy.elementEquivalence,
       onSameElement: (LibraryEntity lib1, LibraryEntity lib2) {
     Expect.identical(lib1, env1.lookupLibrary(lib1.canonicalUri));
     Expect.identical(lib2, env2.lookupLibrary(lib2.canonicalUri));

@@ -823,11 +823,16 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
     return new jsAst.ArrayInitializer(elements);
   }
 
+  String getTypeVariableName(TypeVariableType type) {
+    String name = type.element.name;
+    return name.replaceAll('#', '_');
+  }
+
   jsAst.Expression getTypeEncoding(Emitter emitter, DartType type,
       {bool alwaysGenerateFunction: false}) {
     ClassEntity contextClass = DartTypes.getClassContext(type);
     jsAst.Expression onVariable(TypeVariableType v) {
-      return new jsAst.VariableUse(v.element.name);
+      return new jsAst.VariableUse(getTypeVariableName(v));
     }
 
     jsAst.Expression encoding =
@@ -842,7 +847,7 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
             .typeArguments
             .map((DartType _type) {
           TypeVariableType type = _type;
-          return type.element.name;
+          return getTypeVariableName(type);
         }).toList();
       }
       return js('function(#) { return # }', [parameters, encoding]);

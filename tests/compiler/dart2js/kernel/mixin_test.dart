@@ -51,6 +51,10 @@ class FixedSub2a extends GenericSuper<int>
 class FixedSub2b extends GenericSuper<double>
     with GenericMixin1<double>, GenericMixin2<double> {}
 
+class GenericMultiMixin<T, S> {}
+class GenericSub<T, S> = Object with GenericMultiMixin<T, S>;
+class FixedSub = Object with GenericMultiMixin<int, String>;
+
 
 main() {
   new Super();
@@ -73,6 +77,9 @@ main() {
   new FixedSub1b();
   new FixedSub2a();
   new FixedSub2b();
+
+  new GenericSub<int, String>();
+  new FixedSub();
 }
 '''
 };

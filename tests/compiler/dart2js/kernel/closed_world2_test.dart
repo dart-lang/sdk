@@ -18,6 +18,8 @@ import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/resolution/class_hierarchy.dart';
+import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
@@ -169,6 +171,9 @@ Future<ResultKind> mainInternal(List<String> args,
   }
 
   enableDebugMode();
+  useOptimizedMixins = true;
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  EnumCreator.matchKernelRepresentationForTesting = true;
 
   print('---- analyze-only ------------------------------------------------');
   DiagnosticCollector collector = new DiagnosticCollector();
@@ -177,7 +182,6 @@ Future<ResultKind> mainInternal(List<String> args,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: collector,
       options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
-  ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler1.resolution.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
   if (collector.crashes.isNotEmpty) {
@@ -197,9 +201,8 @@ Future<ResultKind> mainInternal(List<String> args,
   ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
   BackendUsage backendUsage1 = closedWorld1.backendUsage;
 
-  Pair<Compiler, Compiler> compilers = await analyzeOnly(
-      entryPoint, memorySourceFiles,
-      printSteps: true, useKernelInSsa: true);
+  Pair<Compiler, Compiler> compilers =
+      await analyzeOnly(entryPoint, memorySourceFiles, printSteps: true);
   Compiler compiler = compilers.a;
   compiler.resolutionWorldBuilder.closeWorld();
   ElementEnvironment environment1 =

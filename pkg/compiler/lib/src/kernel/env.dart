@@ -4,6 +4,7 @@
 
 library dart2js.kernel.env;
 
+import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/clone.dart';
 import 'package:kernel/type_algebra.dart';
@@ -271,9 +272,15 @@ class ClassEnvImpl implements ClassEnv {
             // Skip synthetic .dill members.
             continue;
           }
-          if (member is ir.Constructor ||
-              member is ir.Procedure &&
-                  member.kind == ir.ProcedureKind.Factory) {
+          if (member is ir.Constructor) {
+            if (!includeStatic) continue;
+            _constructorMap[member.name.name] = member;
+          } else if (member is ir.Procedure &&
+              member.kind == ir.ProcedureKind.Factory) {
+            if (member.function.body is ir.RedirectingFactoryBody) {
+              // Don't include redirecting factories.
+              continue;
+            }
             if (!includeStatic) continue;
             _constructorMap[member.name.name] = member;
           } else if (member is ir.Procedure) {
