@@ -615,7 +615,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _kernel.documentationComment;
     }
     if (_unlinkedClass != null) {
-      return _unlinkedClass?.documentationComment?.text;
+      return _unlinkedClass.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -2037,7 +2037,7 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
       return _kernelEnumValue.documentationComment;
     }
     if (_unlinkedEnumValue != null) {
-      return _unlinkedEnumValue?.documentationComment?.text;
+      return _unlinkedEnumValue.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -3756,7 +3756,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
       return _kernel.documentationComment;
     }
     if (_unlinkedEnum != null) {
-      return _unlinkedEnum?.documentationComment?.text;
+      return _unlinkedEnum.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -4043,7 +4043,7 @@ abstract class ExecutableElementImpl extends ElementImpl
       return _kernel.documentationComment;
     }
     if (serializedExecutable != null) {
-      return serializedExecutable?.documentationComment?.text;
+      return serializedExecutable.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -5087,7 +5087,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   @override
   String get documentationComment {
     if (_unlinkedTypedef != null) {
-      return _unlinkedTypedef?.documentationComment?.text;
+      return _unlinkedTypedef.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -5533,7 +5533,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
   @override
   String get documentationComment {
     if (_unlinkedTypedef != null) {
-      return _unlinkedTypedef?.documentationComment?.text;
+      return _unlinkedTypedef.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -6461,7 +6461,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       return _kernelContext.library.documentationComment;
     }
     if (_unlinkedDefiningUnit != null) {
-      return _unlinkedDefiningUnit?.libraryDocumentationComment?.text;
+      return _unlinkedDefiningUnit.libraryDocumentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -7850,7 +7850,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
       return _kernel.documentationComment;
     }
     if (_unlinkedVariable != null) {
-      return _unlinkedVariable?.documentationComment?.text;
+      return _unlinkedVariable.documentationComment?.text;
     }
     return super.documentationComment;
   }
