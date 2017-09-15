@@ -605,7 +605,6 @@ bound_closure_equality_test: Crash # Assertion failure: Runtime type information
 branch_canonicalization_test: RuntimeError
 call_closurization_test: RuntimeError
 call_function_apply_test: RuntimeError
-call_operator_test: RuntimeError
 call_test: RuntimeError
 canonical_const2_test: RuntimeError
 cast_test/none: RuntimeError
@@ -721,12 +720,7 @@ issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method
 issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 many_generic_instanceof_test: RuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
-named_parameters_passing_falsy_test: RuntimeError
-named_parameters_passing_null_test: RuntimeError
-named_parameters_passing_zero_test: RuntimeError
-named_parameters_test/none: RuntimeError
 named_parameters_with_conversions_test: RuntimeError
-named_parameters_with_dollars_test: RuntimeError
 regress_30339_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 typevariable_substitution2_test/02: RuntimeError
 unused_overridden_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -848,7 +842,6 @@ bound_closure_equality_test: Crash # Assertion failure: Runtime type information
 branch_canonicalization_test: RuntimeError
 call_closurization_test: RuntimeError
 call_function_apply_test: RuntimeError
-call_operator_test: RuntimeError
 call_test: RuntimeError
 canonical_const2_test: RuntimeError
 cast_test/none: RuntimeError
@@ -970,12 +963,7 @@ issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrS
 issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 many_generic_instanceof_test: RuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
-named_parameters_passing_falsy_test: RuntimeError
-named_parameters_passing_null_test: RuntimeError
-named_parameters_passing_zero_test: RuntimeError
-named_parameters_test/none: RuntimeError
 named_parameters_with_conversions_test: RuntimeError
-named_parameters_with_dollars_test: RuntimeError
 regress_30339_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 typevariable_substitution2_test/02: RuntimeError
 unused_overridden_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).

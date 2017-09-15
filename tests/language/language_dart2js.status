@@ -499,7 +499,6 @@ check_member_static_test/02: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
 closure_in_field_test/none: RuntimeError
-compile_time_constant_m_test: RuntimeError
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
@@ -643,9 +642,6 @@ flatten_test/12: Crash # Assertion failure: Runtime type information not availab
 flatten_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 for_in2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 for_variable_capture_test: RuntimeError
-full_stacktrace1_test: RuntimeError
-full_stacktrace2_test: RuntimeError
-full_stacktrace3_test: RuntimeError
 function_malformed_result_type_test: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 function_subtype_cast2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#)) for j:closure_call(Class_test_closure.call).
 function_subtype_cast3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
@@ -660,11 +656,9 @@ infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_hand
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
-interceptor3_test: RuntimeError
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
 invocation_mirror2_test: RuntimeError
 invocation_mirror_empty_arguments_test: RuntimeError
-invocation_mirror_invoke_on2_test: RuntimeError
 invocation_mirror_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 2497 pos 14: 'arguments.named.isEmpty': is not true.
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
@@ -844,15 +838,10 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
-named_parameters_passing_falsy_test: RuntimeError
-named_parameters_passing_null_test: RuntimeError
-named_parameters_passing_zero_test: RuntimeError
-named_parameters_test/none: RuntimeError
 named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 named_parameters_with_conversions_test: RuntimeError
-named_parameters_with_dollars_test: RuntimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
@@ -874,8 +863,6 @@ override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
 override_inheritance_mixed_test/04: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
-parameter_types_specialization_test: RuntimeError
-parse_closures_in_initializers_test: RuntimeError
 positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
 private_super_constructor_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
@@ -884,11 +871,9 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
-reg_exp_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_20394_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-regress_21795_test: RuntimeError
 regress_22438_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 regress_22443_test: CompileTimeError
 regress_22445_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -920,29 +905,16 @@ regress_28217_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel
 regress_28255_test: RuntimeError
 regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
-runtime_type_function_test: RuntimeError
 setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_declaration_negative_test: Fail
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-stack_overflow_stacktrace_test: RuntimeError
-stack_trace_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError
-stacktrace_rethrow_error_test/none: RuntimeError
-stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
-stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
-string_join_test: RuntimeError
-super_bound_closure_test/01: RuntimeError
-super_bound_closure_test/none: RuntimeError
 super_call4_test: Crash # Assertion failure: Missing scope info for j:method(E.boz).
 super_getter_setter_test: RuntimeError
-super_operator_index5_test: RuntimeError
-super_operator_index6_test: RuntimeError
-super_operator_index7_test: RuntimeError
-super_operator_index8_test: RuntimeError
 super_setter_interceptor_test: RuntimeError
 super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
@@ -950,7 +922,6 @@ switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-symbol_conflict_test: RuntimeError
 sync_generator1_test/01: RuntimeError
 sync_generator1_test/none: RuntimeError
 sync_generator2_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -994,10 +965,6 @@ type_variable_closure2_test: Crash # Assertion failure: Cannot find value Instan
 type_variable_closure3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.a#)) for j:closure_call(C_a_closure.call).
 type_variable_closure4_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.map#)) for j:closure_call(C_map_closure.call).
 type_variable_closure_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(C.T) in j:closure_call(C$baz_C$baz_closure.call).
-type_variable_conflict2_test/01: RuntimeError
-type_variable_conflict2_test/05: RuntimeError
-type_variable_conflict2_test/07: RuntimeError
-type_variable_conflict2_test/09: RuntimeError
 type_variable_field_initializer_closure2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_closure.call).
 type_variable_field_initializer_closure_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_closure.call).
 type_variable_function_type_test: RuntimeError
@@ -1038,7 +1005,6 @@ check_member_static_test/02: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
 closure_in_field_test/none: RuntimeError
-compile_time_constant_m_test: RuntimeError
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
@@ -1203,11 +1169,9 @@ infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
-interceptor3_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 invocation_mirror2_test: RuntimeError
 invocation_mirror_empty_arguments_test: RuntimeError
-invocation_mirror_invoke_on2_test: RuntimeError
 invocation_mirror_test: RuntimeError
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
@@ -1384,15 +1348,10 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
-named_parameters_passing_falsy_test: RuntimeError
-named_parameters_passing_null_test: RuntimeError
-named_parameters_passing_zero_test: RuntimeError
-named_parameters_test/none: RuntimeError
 named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 named_parameters_with_conversions_test: RuntimeError
-named_parameters_with_dollars_test: RuntimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
@@ -1411,8 +1370,6 @@ override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
 override_inheritance_mixed_test/04: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
-parameter_types_specialization_test: RuntimeError
-parse_closures_in_initializers_test: RuntimeError
 positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
 private_super_constructor_test/01: MissingCompileTimeError
@@ -1421,10 +1378,8 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
-reg_exp_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
-regress_18535_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
 regress_22438_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -1458,12 +1413,10 @@ regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
 regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
-runtime_type_function_test: RuntimeError
 setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_declaration_negative_test: Fail
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-stack_overflow_stacktrace_test: RuntimeError
 stack_trace_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError
 stacktrace_rethrow_error_test/none: RuntimeError
@@ -1472,15 +1425,8 @@ stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
-string_join_test: RuntimeError
-super_bound_closure_test/01: RuntimeError
-super_bound_closure_test/none: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 super_getter_setter_test: RuntimeError
-super_operator_index5_test: RuntimeError
-super_operator_index6_test: RuntimeError
-super_operator_index7_test: RuntimeError
-super_operator_index8_test: RuntimeError
 super_setter_interceptor_test: RuntimeError
 super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
@@ -1516,10 +1462,6 @@ type_variable_closure2_test: Crash # Assertion failure: Cannot find value Instan
 type_variable_closure3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.a#)) for j:closure_call(C_a_closure.call).
 type_variable_closure4_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.map#)) for j:closure_call(C_map_closure.call).
 type_variable_closure_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(C.T) in j:closure_call(C$baz_C$baz_closure.call).
-type_variable_conflict2_test/01: RuntimeError
-type_variable_conflict2_test/05: RuntimeError
-type_variable_conflict2_test/07: RuntimeError
-type_variable_conflict2_test/09: RuntimeError
 type_variable_field_initializer_closure2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_closure.call).
 type_variable_field_initializer_closure_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_closure.call).
 type_variable_function_type_test: RuntimeError

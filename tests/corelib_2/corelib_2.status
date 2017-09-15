@@ -507,7 +507,6 @@ list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 apply2_test: RuntimeError
 apply3_test: RuntimeError
-apply4_test: RuntimeError
 apply5_test: RuntimeError
 apply_test: RuntimeError
 bool_from_environment2_test/01: MissingCompileTimeError
@@ -521,10 +520,6 @@ collection_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Fa
 collection_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 const_list_literal_test: RuntimeError
 core_runtime_types_test: RuntimeError
-data_uri_test: RuntimeError
-dynamic_nosuchmethod_test: RuntimeError
-error_stack_trace1_test: RuntimeError
-expando_test: RuntimeError
 for_in_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 hash_map2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 hash_set_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -563,12 +558,6 @@ linked_hash_map_from_iterable_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/typ
 linked_hash_map_from_iterables_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 linked_hash_map_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 list_contains_argument_order_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-list_insert_all_test: RuntimeError
-list_map_test: RuntimeError
-list_replace_range_test: RuntimeError
-list_reversed_test: RuntimeError
-list_set_all_test: RuntimeError
-list_set_range_test: RuntimeError
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_unmodifiable_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -578,25 +567,7 @@ map_from_iterables_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.d
 map_from_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 map_test: Crash # type 'DillClassBuilder' is not a subtype of type 'SourceClassBuilder' of 'named' where
 queue_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-range_error_test: RuntimeError
-reg_exp5_test: RuntimeError
-reg_exp_all_matches_test: RuntimeError
-reg_exp_start_end_test: RuntimeError
-regexp/capture_test: RuntimeError
-regexp/ecma-regex-examples_test: RuntimeError
-regexp/extended-characters-more_test: RuntimeError
-regexp/global_test: RuntimeError
-regexp/indexof_test: RuntimeError
-regexp/issue_19193_test: RuntimeError
-regexp/lastindex_test: RuntimeError
-regexp/no-extensions_test: RuntimeError
-regexp/non-capturing-groups_test: RuntimeError
-regexp/parentheses_test: RuntimeError
-regexp/pcre-test-4_test: RuntimeError
 regexp/regexp_kde_test: RuntimeError
-regexp/regexp_test: RuntimeError
-regexp/regress-regexp-codeflush_test: RuntimeError
-regexp/standalones_test: RuntimeError
 set_containsAll_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 set_contains_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 set_intersection_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -606,7 +577,6 @@ set_remove_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Fa
 set_retainAll_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 set_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 set_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-shuffle_test: RuntimeError
 splay_tree_from_iterable_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 splay_tree_from_iterables_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 splay_tree_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -614,20 +584,12 @@ splay_tree_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart':
 splay_tree_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 stacktrace_current_test: RuntimeError
 stacktrace_fromstring_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-string_buffer_test: RuntimeError
-string_codeunits_test: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
-string_from_list_test: RuntimeError
 string_fromcharcodes_test: RuntimeError
-string_pattern_test: RuntimeError
-string_replace_dollar_test: RuntimeError
-string_replace_test: RuntimeError
-string_test: RuntimeError
 symbol_operator_test/03: RuntimeError
-symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
 symbol_reserved_word_test/06: RuntimeError
@@ -640,22 +602,13 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_file_test: RuntimeError
-uri_http_test: RuntimeError
-uri_ipv6_test: RuntimeError
-uri_normalize_path_test: RuntimeError
-uri_normalize_test: RuntimeError
 uri_parameters_all_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-uri_parse_test: RuntimeError
-uri_path_test: RuntimeError
 uri_query_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_scheme_test: RuntimeError
 uri_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply2_test: RuntimeError
 apply3_test: RuntimeError
-apply4_test: RuntimeError
 apply5_test: RuntimeError
 apply_test: RuntimeError
 bool_from_environment2_test/01: MissingCompileTimeError
@@ -669,10 +622,8 @@ collection_test: Crash # Assertion failure: Cannot find value Instance of 'ThisL
 collection_to_string_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 const_list_literal_test: RuntimeError
 core_runtime_types_test: RuntimeError
-data_uri_test: RuntimeError
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError
-expando_test: RuntimeError
 for_in_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 hash_map2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
 hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
@@ -711,12 +662,6 @@ linked_hash_map_from_iterable_test: Crash # Assertion failure: Cannot find value
 linked_hash_map_from_iterables_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
 linked_hash_map_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
 list_contains_argument_order_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-list_insert_all_test: RuntimeError
-list_map_test: RuntimeError
-list_replace_range_test: RuntimeError
-list_reversed_test: RuntimeError
-list_set_all_test: RuntimeError
-list_set_range_test: RuntimeError
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_unmodifiable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -726,25 +671,7 @@ map_from_iterables_test: Crash # Assertion failure: Cannot find value Instance o
 map_from_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
 map_test: Crash # tests/corelib_2/map_test.dart:870:7: Internal problem: Unhandled Null in installDefaultConstructor.
 queue_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-range_error_test: RuntimeError
-reg_exp5_test: RuntimeError
-reg_exp_all_matches_test: RuntimeError
-reg_exp_start_end_test: RuntimeError
-regexp/capture_test: RuntimeError
-regexp/ecma-regex-examples_test: RuntimeError
-regexp/extended-characters-more_test: RuntimeError
-regexp/global_test: RuntimeError
-regexp/indexof_test: RuntimeError
-regexp/issue_19193_test: RuntimeError
-regexp/lastindex_test: RuntimeError
-regexp/no-extensions_test: RuntimeError
-regexp/non-capturing-groups_test: RuntimeError
-regexp/parentheses_test: RuntimeError
-regexp/pcre-test-4_test: RuntimeError
 regexp/regexp_kde_test: RuntimeError
-regexp/regexp_test: RuntimeError
-regexp/regress-regexp-codeflush_test: RuntimeError
-regexp/standalones_test: RuntimeError
 set_containsAll_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 set_contains_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 set_intersection_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -754,7 +681,6 @@ set_remove_test: Crash # Assertion failure: Cannot find value Instance of 'ThisL
 set_retainAll_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 set_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
 set_to_string_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
-shuffle_test: RuntimeError
 splay_tree_from_iterable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeMap.#v), local(SplayTreeMap.#)) for j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
 splay_tree_from_iterables_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeMap.#v), local(SplayTreeMap.#)) for j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
 splay_tree_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
@@ -762,18 +688,11 @@ splay_tree_test/02: Crash # Assertion failure: Cannot find value Instance of 'Th
 splay_tree_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
 stacktrace_current_test: RuntimeError
 stacktrace_fromstring_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-string_buffer_test: RuntimeError
-string_codeunits_test: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
-string_from_list_test: RuntimeError
 string_fromcharcodes_test: RuntimeError
-string_pattern_test: RuntimeError
-string_replace_dollar_test: RuntimeError
-string_replace_test: RuntimeError
-string_test: RuntimeError
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
@@ -788,16 +707,8 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_file_test: RuntimeError
-uri_http_test: RuntimeError
-uri_ipv6_test: RuntimeError
-uri_normalize_path_test: RuntimeError
-uri_normalize_test: RuntimeError
 uri_parameters_all_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
-uri_parse_test: RuntimeError
-uri_path_test: RuntimeError
 uri_query_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_scheme_test: RuntimeError
 uri_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [$arch == simdbc || $arch == simdbc64]
