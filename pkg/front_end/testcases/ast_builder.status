@@ -361,6 +361,8 @@ inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_para
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
 invocations: Crash
 local_generic_function: Crash
+metadata_enum: Crash
+metadata_named_mixin_application: Crash
 micro: Crash
 named_parameters: Crash
 null_aware: Crash

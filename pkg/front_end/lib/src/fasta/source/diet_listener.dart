@@ -544,7 +544,15 @@ class DietListener extends StackListener {
   @override
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     debugEvent("Enum");
-    discard(count + 2); // Name and metadata.
+
+    discard(count); // values
+    String name = pop();
+    Token metadata = pop();
+
+    Builder enumBuilder = lookupBuilder(enumKeyword, null, name);
+    parseMetadata(
+        enumBuilder, metadata, (enumBuilder.target as Class).addAnnotation);
+
     checkEmpty(enumKeyword.charOffset);
   }
 
@@ -552,7 +560,14 @@ class DietListener extends StackListener {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
-    discard(2); // Name and metadata.
+
+    String name = pop();
+    Token metadata = pop();
+
+    Builder classBuilder = lookupBuilder(classKeyword, null, name);
+    parseMetadata(
+        classBuilder, metadata, (classBuilder.target as Class).addAnnotation);
+
     checkEmpty(beginToken.charOffset);
   }
 

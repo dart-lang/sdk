@@ -501,12 +501,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_metadata_classTypeAlias() async {
-    // TODO(scheglov): implement in Kernel and Fasta
-    await super.test_metadata_classTypeAlias();
-  }
-
-  @failingTest
   test_metadata_enumDeclaration() async {
     // TODO(scheglov): implement in Kernel and Fasta
     await super.test_metadata_enumDeclaration();
