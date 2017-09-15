@@ -646,7 +646,8 @@ class Listener {
   ///
   /// If [hasName] is true, this part refers to its library by name, otherwise,
   /// by URI.
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     logEvent("PartOf");
   }
 

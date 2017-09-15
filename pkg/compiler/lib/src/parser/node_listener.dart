@@ -91,7 +91,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     Expression name = popNode(); // name
     pushNode(new PartOf(
         partKeyword,

@@ -968,9 +968,10 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     end('PartOf');
-    listener.endPartOf(partKeyword, semicolon, hasName);
+    listener.endPartOf(partKeyword, ofKeyword, semicolon, hasName);
   }
 
   @override

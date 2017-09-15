@@ -98,7 +98,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     debugEvent("PartOf");
     if (hasName) discard(1);
     discard(1); // Metadata.

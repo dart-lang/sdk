@@ -521,6 +521,7 @@ class Parser {
     assert(optional('part', token));
     assert(optional('of', token.next));
     Token partKeyword = token;
+    Token ofKeyword = token.next;
     token = token.next.next;
     bool hasName = token.isIdentifier;
     if (hasName) {
@@ -531,7 +532,7 @@ class Parser {
     }
     Token semicolon = token;
     token = expect(';', token);
-    listener.endPartOf(partKeyword, semicolon, hasName);
+    listener.endPartOf(partKeyword, ofKeyword, semicolon, hasName);
     return token;
   }
 

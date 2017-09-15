@@ -1481,7 +1481,8 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     debugEvent("PartOf");
     var libraryNameOrUri = pop();
     LibraryIdentifier name;
@@ -1491,9 +1492,6 @@ class AstBuilder extends ScopeListener {
     } else {
       name = ast.libraryIdentifier(libraryNameOrUri);
     }
-    // TODO(paulberry,ahe): seems hacky.  It would be nice if the parser passed
-    // in a reference to the "of" keyword.
-    var ofKeyword = unsafeToken(partKeyword.next, analyzer.Keyword.OF);
     List<Annotation> metadata = pop();
     Comment comment = pop();
     directives.add(ast.partOfDirective(
