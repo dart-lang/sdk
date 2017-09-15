@@ -127,6 +127,7 @@ mirrors/variable_is_const_test/01: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
+html/canvasrenderingcontext2d_test: DartkCompileTimeError
 mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError

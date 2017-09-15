@@ -63,6 +63,9 @@ async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 convert/utf85_test: Pass, Slow # Issue 12029.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
+html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # TODO(dart2js-team): Please triage this failure.
+html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # TODO(dart2js-team): Please triage this failure.
+html/canvasrenderingcontext2d_test/fillText: Fail # TODO(dart2js-team): Please triage this failure.
 isolate/isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.

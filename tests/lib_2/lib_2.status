@@ -18,9 +18,11 @@ async/multiple_timer_test: Pass, Fail # Timing related
 
 [ $runtime == chrome && $system == macos ]
 async/slow_consumer_test: Pass, Timeout # Issue 22696
+async/catch_errors11_test: Pass, Timeout # Issue 22696
+async/catch_errors11_test: Pass, Timeout # Issue 22696
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
-async/catch_errors11_test: Pass, Timeout # Issue 22696
-async/catch_errors11_test: Pass, Timeout # Issue 22696
+html/canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
+html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
 
 [ $runtime == chrome || $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
@@ -46,6 +48,8 @@ convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
+html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
+html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 
 [ ($runtime == safari && $builder_tag == mac10_7)|| $runtime == safarimobilesim ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
@@ -107,3 +111,8 @@ isolate/unresolved_ports_test: Skip # Isolate.spawnUri
 
 [ $runtime == chrome && $system == linux ]
 mirrors/native_class_test: Pass, Slow
+
+[ $runtime == ie11 ]
+html/canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
+html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
+html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element

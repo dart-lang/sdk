@@ -14,7 +14,6 @@ html/cache_test: DartkCompileTimeError
 html/callbacks_test: DartkCompileTimeError
 html/canvas_pixel_array_type_alias_test: DartkCompileTimeError
 html/canvas_test: DartkCompileTimeError
-html/canvasrenderingcontext2d_test: DartkCompileTimeError
 html/cdata_test: DartkCompileTimeError
 html/client_rect_test: DartkCompileTimeError
 html/cross_domain_iframe_test: DartkCompileTimeError
