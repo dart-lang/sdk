@@ -18,6 +18,7 @@ import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/library_loader.dart';
+import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -65,18 +66,20 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
 /// to create the IR and the kernel based compiler.
 Future<Pair<Compiler, Compiler>> analyzeOnly(
     Uri entryPoint, Map<String, String> memorySourceFiles,
-    {bool printSteps: false}) async {
+    {bool useKernelInSsa: false, bool printSteps: false}) async {
   if (printSteps) {
     print('---- analyze-all -------------------------------------------------');
+  }
+  EnumCreator.matchKernelRepresentationForTesting = !useKernelInSsa;
+  List<String> options = [Flags.analyzeAll, Flags.enableAssertMessage];
+  if (useKernelInSsa) {
+    // Generate kernel IR. Needed for [compiler2] when for [useKernelInSsa].
+    options.add(Flags.useKernelInSsa);
   }
   Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [
-        Flags.analyzeAll,
-        Flags.useKernelInSsa,
-        Flags.enableAssertMessage
-      ]);
+      options: options);
   compiler.resolution.retainCachesForTesting = true;
   await compiler.run(entryPoint);
 
@@ -89,13 +92,15 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
       options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler2.resolution.retainCachesForTesting = true;
-  KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
-  KernelToElementMapForImpact elementMap = frontendStrategy.elementMap;
-  compiler2.libraryLoader = new MemoryKernelLibraryLoaderTask(
-      elementMap,
-      compiler2.reporter,
-      compiler2.measurer,
-      compiler.backend.kernelTask.program);
+  if (useKernelInSsa) {
+    KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
+    KernelToElementMapForImpact elementMap = frontendStrategy.elementMap;
+    compiler2.libraryLoader = new MemoryKernelLibraryLoaderTask(
+        elementMap,
+        compiler2.reporter,
+        compiler2.measurer,
+        compiler.backend.kernelTask.program);
+  }
   await compiler2.run(entryPoint);
   return new Pair<Compiler, Compiler>(compiler, compiler2);
 }
