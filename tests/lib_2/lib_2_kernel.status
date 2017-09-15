@@ -196,3 +196,7 @@ mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter
 [ $compiler == dartk && $runtime == vm ]
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
+
+[ $compiler == dartkp ]
+js/datetime_roundtrip_test: CompileTimeError
+js/null_test: CompileTimeError

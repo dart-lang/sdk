@@ -168,7 +168,6 @@ typevariable_substitution2_test/02: RuntimeError
 [ $compiler == dartkp && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-assertion_initializer_test: CompileTimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $checked ]
 assertion_initializer_const_error2_test/cc02: Crash
@@ -177,7 +176,6 @@ assertion_initializer_const_function_error_test/01: Crash
 assertion_initializer_const_function_error_test/none: Crash
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_const_function_test/none: Crash
-assertion_initializer_test: CompileTimeError
 regress_30339_test: Crash
 
 # dartk: checked mode failures
@@ -369,7 +367,6 @@ generic_function_bounds_test: CompileTimeError
 named_parameters_type_test/01: Crash
 named_parameters_type_test/02: Crash
 named_parameters_type_test/03: Crash
-named_parameters_type_test/none: Crash
 vm/integer_type_propagation_test: Crash
 
 [ ($compiler == dartkp) && !$checked ]
