@@ -4,7 +4,7 @@
 // Dart test program for constructors and initializers.
 
 // Exercises issue 2282, factory constructors in abstract classes should
-// not emit a compile-time error
+// not emit a static type warning
 
 class B extends A1 {
   B() {}

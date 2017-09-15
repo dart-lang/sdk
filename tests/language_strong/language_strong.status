@@ -273,6 +273,14 @@ mixin_type_parameters_mixin_extends_test: Skip
 mixin_type_parameters_mixin_test: Skip
 mixin_type_parameters_simple_test: Skip
 mixin_type_parameters_super_extends_test: Skip
+mixin_type_parameters_super_test: Skip
+mixin_with_two_implicit_constructors_test: Skip
+multiline_newline_test: Skip
+named_constructor_test: Skip
+named_parameters2_test: Skip
+named_parameters3_test: Skip
+named_parameters4_test: Skip
+named_parameters_aggregated_test: Skip
 naming3_test: Skip
 naming_test: Skip
 new_expression1_negative_test: Skip
@@ -562,6 +570,8 @@ main_test/03: MissingRuntimeError # Issue 29920
 map_literal10_test: RuntimeError # Issue 29920
 map_literal7_test: RuntimeError # Issue 29920
 mint_arithmetic_test: RuntimeError # Issue 29920
+modulo_test: RuntimeError # Issue 29920
+named_parameter_clash_test: RuntimeError # Issue 29920
 nan_identical_test: RuntimeError # Issue 29920
 nested_switch_label_test: RuntimeError # Issue 29920
 number_identity2_test: RuntimeError # Issue 29920
@@ -586,4 +596,5 @@ truncdiv_test: RuntimeError # Issue 29920
 prefix10_negative_test: Skip # Issue 29920
 
 [ $compiler == dartdevc && $system == windows ]
+multiline_strings_test: RuntimeError # Issue 30336
 raw_string_test: RuntimeError # Issue 30336

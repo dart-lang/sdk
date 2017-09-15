@@ -16,5 +16,5 @@ class B extends A with Mixin {}
 
 main() {
   Expect.equals(2, new B().field);
-  new B.bar();  /*@compile-error=unspecified*/
+  Expect.throws(() => new B.bar(), (e) => e is NoSuchMethodError);
 }

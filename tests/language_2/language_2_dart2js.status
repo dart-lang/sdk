@@ -197,12 +197,6 @@ import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
-named_constructor_test/01: MissingCompileTimeError
-named_constructor_test/03: MissingCompileTimeError
-named_parameters2_test: MissingCompileTimeError
-named_parameters3_test: MissingCompileTimeError
-named_parameters4_test: MissingCompileTimeError
-named_parameters_aggregated_test/05: MissingCompileTimeError
 named_parameters_test/01: MissingCompileTimeError
 named_parameters_test/02: MissingCompileTimeError
 named_parameters_test/03: MissingCompileTimeError
@@ -393,15 +387,6 @@ inline_super_field_test: Crash # Issue 27394
 instance_creation_in_function_annotation_test: Crash # Issue 27394
 issue_25671a_test/01: Crash # Issue 27394
 issue_25671b_test/01: Crash # Issue 27394
-mixin_type_variable_test/02: Crash # Issue 27394
-mixin_type_variable_test/03: Crash # Issue 27394
-mixin_type_variable_test/04: Crash # Issue 27394
-mixin_type_variable_test/05: Crash # Issue 27394
-mixin_type_variable_test/06: Crash # Issue 27394
-mixin_type_variable_test/07: Crash # Issue 27394
-mixin_type_variable_test/08: Crash # Issue 27394
-mixin_typedef_constructor_test: Crash # Issue 27394
-named_parameters_aggregated_test/05: RuntimeError # Issue 27394
 static_setter_get_test/01: Crash # Issue 27394
 static_top_level_test/00: Crash # Issue 27394
 static_top_level_test/04: Crash # Issue 27394
@@ -761,8 +746,6 @@ issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 many_generic_instanceof_test: RuntimeError
-modulo_test: RuntimeError
-named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_passing_falsy_test: RuntimeError
 named_parameters_passing_null_test: RuntimeError
@@ -1032,8 +1015,6 @@ issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 many_generic_instanceof_test: RuntimeError
-modulo_test: RuntimeError
-named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_passing_falsy_test: RuntimeError
 named_parameters_passing_null_test: RuntimeError
@@ -1162,19 +1143,3 @@ const_types_test/28: Crash # Issue 27394
 const_types_test/29: Crash # Issue 27394
 const_types_test/30: Crash # Issue 27394
 const_types_test/41: Crash # Issue 27394
-
-[ $compiler == dart2js && ! $dart2js_with_kernel ]
-mixin_type_parameters_super_test: RuntimeError
-mixin_with_two_implicit_constructors_test: MissingCompileTimeError
-multiline_newline_test/01: CompileTimeError # Issue 23888
-multiline_newline_test/02: CompileTimeError # Issue 23888
-multiline_newline_test/03: RuntimeError
-multiline_newline_test/04: MissingCompileTimeError # Issue 23888
-multiline_newline_test/05: MissingCompileTimeError # Issue 23888
-multiline_newline_test/none: RuntimeError # Issue 23888
-multiline_newline_test/01r: CompileTimeError # Issue 23888
-multiline_newline_test/02r: CompileTimeError # Issue 23888
-multiline_newline_test/03r: RuntimeError
-multiline_newline_test/04r: MissingCompileTimeError # Issue 23888
-multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
-modulo_test: RuntimeError # Issue 15246

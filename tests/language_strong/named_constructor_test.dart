@@ -20,13 +20,13 @@ void main() {
   Expect.equals(1, new Class.named().value);
   Expect.equals(1, new Class<int>.named().value);
   // 'Class.named' is not a type:
-  Expect.equals(1, new Class.named<int>().value); //# 01: compile-time error
+  Expect.equals(1, new Class.named<int>().value); //# 01: runtime error
   // 'Class<int>.named<int>' doesn't fit the grammar syntax T.id:
   Expect.equals(1, new Class<int>.named<int>().value); //# 02: compile-time error
 
   Expect.equals(2, new prefix.Class().value);
   // 'prefix' is not a type:
-  Expect.equals(2, new prefix<int>.Class().value); //# 03: compile-time error
+  Expect.equals(2, new prefix<int>.Class().value); //# 03: runtime error
   Expect.equals(2, new prefix.Class<int>().value);
   // 'prefix<int>.Class<int>' doesn't fit the grammar syntax T.id:
   Expect.equals(2, new prefix<int>.Class<int>().value); //# 04: compile-time error

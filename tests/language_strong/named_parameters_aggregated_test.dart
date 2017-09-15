@@ -10,7 +10,7 @@ class TypeTester<T> {}
 // Expect compile-time error as no default values are allowed
 // in closure type definitions.
 typedef void Callback([String msg
- = "" //# 01: compile-time error
+ = "" // //# 01: compile-time error
     ]);
 
 class NamedParametersAggregatedTests {
@@ -38,17 +38,16 @@ class NamedParametersAggregatedTests {
 main() {
   // Expect compile-time error due to missing comma in function definition.
   NamedParametersAggregatedTests.f_missing_comma(10
-    , 25 //# 02: continued
+    , 25 // //# 02: continued
       );
 
   // Expect compile-time error due to duplicate named argument.
   NamedParametersAggregatedTests.F31(10, b: 25
-    , b:35 //# 04: compile-time error
-    , b:35, b:45 //# 06: compile-time error
+    , b:35 //  //# 04: compile-time error
       );
 
   // Expect compile-time error due to missing positional argument.
-  Expect.throws(() => NamedParametersAggregatedTests.F31(b:25, c:35), (e) => e is NoSuchMethodError); //# 05: compile-time error
+  Expect.throws(() => NamedParametersAggregatedTests.F31(b:25, c:35), (e) => e is NoSuchMethodError); // //# 05: static type warning
 
   new TypeTester<Callback>();
 

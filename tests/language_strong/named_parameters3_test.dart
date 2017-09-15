@@ -4,11 +4,18 @@
 // Dart test program for testing named parameters.
 // Specifying named argument for not existing named parameter is run time error.
 
+import "package:expect/expect.dart";
+
 int test(int a, [int b]) {
   return a;
 }
 
 main() {
-  // 1 positional arg, as expected. Param x does not exist.
-  test(10, x: 99); /*@compile-error=unspecified*/
+  bool foundError = false;
+  try {
+    test(10, x: 99); // 1 positional arg, as expected. Param x does not exist.
+  } on NoSuchMethodError catch (e) {
+    foundError = true;
+  }
+  Expect.equals(true, foundError);
 }

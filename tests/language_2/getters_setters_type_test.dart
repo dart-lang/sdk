@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 
 int bar = 499;
 
-int //# 01: compile-time error
+int //# 01: static type warning
 get foo => bar;
 
 void set foo(

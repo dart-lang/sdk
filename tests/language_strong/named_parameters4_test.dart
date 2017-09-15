@@ -4,6 +4,8 @@
 // Dart test program for testing named parameters.
 // Specifying named argument for not existing named parameter is run time error.
 
+import "package:expect/expect.dart";
+
 // This test is very similar to NamedParameters3Test, but exercises a
 // different corner case in the frog compiler. frog wasn't detecting unused
 // named arguments when no other arguments were expected. So, this test
@@ -14,6 +16,11 @@ int test(int a) {
 }
 
 main() {
-  // 1 positional arg, as expected. Param x does not exist.
-  test(10, x: 99); /*@compile-error=unspecified*/
+  bool foundError = false;
+  try {
+    test(10, x: 99); // 1 positional arg, as expected. Param x does not exist.
+  } on NoSuchMethodError catch (e) {
+    foundError = true;
+  }
+  Expect.equals(true, foundError);
 }

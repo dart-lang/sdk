@@ -40,7 +40,7 @@ class T2 {
   }
 
   // Type C is not assignable to A
-  void set field(C arg) { setterField = arg; } //# 01: compile-time error
+  void set field(C arg) { setterField = arg; } //# 01: static type warning
 }
 
 class T3 {

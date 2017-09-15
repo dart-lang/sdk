@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 
 class A {
-  noSuchMethod() { //                                   //# 01: compile-time error
+  noSuchMethod() { //                                   //# 01: static type warning
     throw new Exception( //                             //# 01: continued
         "Wrong noSuchMethod() should not be called"); //# 01: continued
   } //                                                  //# 01: continued

@@ -5,7 +5,36 @@
 import "package:expect/expect.dart";
 
 class S<T> {
-  bool matches(o) => o is T;
+  bool matches(o) {
+    bool isChecked = checkUsingIs(o);
+    if (checkedMode) {
+      Expect.equals(isChecked, checkUsingCheckedMode(o));
+    }
+    return isChecked;
+  }
+
+  bool checkUsingIs(o) {
+    return o is T;
+  }
+
+  bool checkUsingCheckedMode(o) {
+    try {
+      T x = o;
+    } on Error {
+      return false;
+    }
+    return true;
+  }
+
+  static final bool checkedMode = computeCheckedMode();
+  static bool computeCheckedMode() {
+    try {
+      int x = "foo" as dynamic;
+    } on Error {
+      return true;
+    }
+    return false;
+  }
 }
 
 class M {}
