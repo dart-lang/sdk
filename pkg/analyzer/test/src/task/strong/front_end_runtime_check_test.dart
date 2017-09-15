@@ -296,33 +296,49 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   /// the same as for the `@covariance=` annotation.
   void _emitForwardingStubs(Declaration node, int offset) {
     var covariantParams = getSuperclassCovariantParameters(node);
+    void emitStubFor(DartType returnType, String name,
+        List<ParameterElement> parameters, String accessorType) {
+      var paramDescrs = <String>[];
+      for (var param in parameters) {
+        var covariances = <String>[];
+        if (covariantParams.contains(param)) {
+          if (param.isCovariant) {
+            covariances.add('explicit');
+          } else {
+            covariances.add('genericImpl');
+          }
+        }
+        var covariance = 'covariance=(${covariances.join(', ')})';
+        var typeDescr = _typeToString(param.type);
+        var paramName = accessorType == 'set' ? 'value' : param.name;
+        // TODO(paulberry): if necessary, support other parameter kinds
+        assert(param.parameterKind == ParameterKind.REQUIRED);
+        paramDescrs.add('$covariance $typeDescr $paramName');
+      }
+      var returnTypeDescr = _typeToString(returnType);
+      var stubParts = [returnTypeDescr];
+      if (accessorType != null) stubParts.add(accessorType);
+      stubParts.add('$name(${paramDescrs.join(', ')})');
+      _recordForwardingStub(offset, stubParts.join(' '));
+    }
+
     if (covariantParams != null && covariantParams.isNotEmpty) {
       for (var member
           in covariantParams.map((p) => p.enclosingElement).toSet()) {
         var memberName = member.name;
         if (member is PropertyAccessorElement) {
-          throw new UnimplementedError(); // TODO(paulberry)
-        } else if (member is MethodElement) {
-          var paramDescrs = <String>[];
-          for (var param in member.parameters) {
-            var covariances = <String>[];
-            if (covariantParams.contains(param)) {
-              if (param.isCovariant) {
-                covariances.add('explicit');
-              } else {
-                covariances.add('genericImpl');
-              }
-            }
-            var covariance = 'covariance=(${covariances.join(', ')})';
-            var typeDescr = _typeToString(param.type);
-            var paramName = param.name;
-            // TODO(paulberry): if necessary, support other parameter kinds
-            assert(param.parameterKind == ParameterKind.REQUIRED);
-            paramDescrs.add('$covariance $typeDescr $paramName');
+          if (member.isSetter) {
+            emitStubFor(
+                member.returnType,
+                memberName.substring(0, memberName.length - 1),
+                member.parameters,
+                'set');
+          } else {
+            emitStubFor(
+                member.returnType, memberName, member.parameters, 'get');
           }
-          var returnTypeDescr = _typeToString(member.returnType);
-          var stub = '$returnTypeDescr $memberName(${paramDescrs.join(', ')})';
-          _recordForwardingStub(offset, stub);
+        } else if (member is MethodElement) {
+          emitStubFor(member.returnType, memberName, member.parameters, null);
         } else {
           throw new StateError('Unexpected covariant member $member');
         }
