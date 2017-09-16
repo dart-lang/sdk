@@ -22,15 +22,6 @@ class I<T> {}
 class J<T> extends I<int> {}
 
 main() {
-  bool inCheckedMode = false;
-  try {
-    String a = 42;
-  } catch (e) {
-    inCheckedMode = true;
-  }
-
   new C<int>(X.f1);
-  if (inCheckedMode) {
-    Expect.throws(() => new C<bool>(X.f1), (e) => true);
-  }
+  Expect.throwsTypeError(() => new C<bool>(X.f1 as dynamic));
 }

@@ -12,9 +12,9 @@ typedef int Bar<T>(T a, [String b]);
 typedef int Baz<T>(T a, {String b});
 typedef int Boz<T>(T a);
 
-int foo(bool a, [String b]) => null;
-int baz(bool a, {String b}) => null;
-int boz(bool a, {int b}) => null;
+int fooF(bool a, [String b]) => null;
+int bazF(bool a, {String b}) => null;
+int bozF(bool a, {int b}) => null;
 
 class C<T> {
   void test1a(Foo<T> f) {}
@@ -29,12 +29,14 @@ class C<T> {
 
   void test(String nameOfT, bool expectedResult) {
     check(bool expectedResult, f()) {
-      if (inCheckedMode() && !expectedResult) {
-        Expect.throws(f, (e) => true);
+      if (!expectedResult) {
+        Expect.throwsTypeError(f);
       } else {
         f();
       }
     }
+
+    dynamic foo = fooF, baz = bazF, boz = bozF;
 
     check(expectedResult, () => test1a(foo));
     check(expectedResult, () => test1b(foo));
@@ -66,14 +68,4 @@ main() {
   new C<bool>().test('bool', true);
   new C<int>().test('int', false);
   new C().test('dynamic', true);
-}
-
-bool inCheckedMode() {
-  try {
-    var x = 42;
-    String a = x;
-  } catch (e) {
-    return true;
-  }
-  return false;
 }

@@ -61,6 +61,12 @@ deferred_inlined_test: RuntimeError
 deferred_load_inval_code_test: RuntimeError
 deferred_load_library_wrong_args_test/none: RuntimeError
 deferred_mixin_test: RuntimeError
+function_subtype_bound_closure3_test: RuntimeError
+function_subtype_bound_closure4_test: RuntimeError
+function_subtype_cast1_test: RuntimeError
+function_subtype_not1_test: RuntimeError
+function_subtype_regression_ddc_588_test: RuntimeError
+function_type_alias2_test: RuntimeError
 generic_function_dcall_test: CompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
@@ -199,6 +205,7 @@ assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 compile_time_constant_checked_test/02: MissingCompileTimeError
 default_factory2_test/01: Fail
+function_type2_test: RuntimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.

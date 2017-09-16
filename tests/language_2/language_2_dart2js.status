@@ -273,6 +273,29 @@ instanceof4_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
+function_subtype_bound_closure3_test: RuntimeError
+function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure7_test: RuntimeError
+function_subtype_call1_test: RuntimeError
+function_subtype_call2_test: RuntimeError
+function_subtype_cast1_test: RuntimeError
+function_subtype_checked0_test: RuntimeError
+function_subtype_closure0_test: RuntimeError
+function_subtype_closure1_test: RuntimeError
+function_subtype_factory1_test: RuntimeError
+function_subtype_inline1_test: RuntimeError
+function_subtype_named1_test: RuntimeError
+function_subtype_named2_test: RuntimeError
+function_subtype_not1_test: RuntimeError
+function_subtype_optional1_test: RuntimeError
+function_subtype_optional2_test: RuntimeError
+function_subtype_regression_ddc_588_test: RuntimeError
+function_subtype_setter0_test: RuntimeError
+function_subtype_typearg2_test: RuntimeError
+function_subtype_typearg3_test: RuntimeError
+function_subtype_typearg5_test: RuntimeError
+function_type2_test: RuntimeError
+function_type_alias2_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
@@ -490,6 +513,21 @@ function_type/function_type8_test: RuntimeError # Issue 30476
 function_type/function_type90_test: RuntimeError # Issue 30476
 function_type/function_type96_test: RuntimeError # Issue 30476
 function_type/function_type9_test: RuntimeError # Issue 30476
+function_subtype_bound_closure3_test: RuntimeError
+function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure7_test: RuntimeError
+function_subtype_call1_test: RuntimeError
+function_subtype_call2_test: RuntimeError
+function_subtype_cast1_test: RuntimeError
+function_subtype_named1_test: RuntimeError
+function_subtype_named2_test: RuntimeError
+function_subtype_not1_test: RuntimeError
+function_subtype_optional1_test: RuntimeError
+function_subtype_optional2_test: RuntimeError
+function_subtype_typearg2_test: RuntimeError
+function_subtype_typearg3_test: RuntimeError
+function_subtype_typearg5_test: RuntimeError
+function_type_alias2_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 assert_message_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -665,6 +703,17 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
+function_subtype_cast2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#)) for j:closure_call(Class_test_closure.call).
+function_subtype_cast3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
+function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_inline0_test: RuntimeError
+function_subtype_local3_test: RuntimeError
+function_subtype_local4_test: RuntimeError
+function_subtype_not3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
+function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_syntax_test/none: RuntimeError
+function_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 generic_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -908,6 +957,17 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
+function_subtype_cast2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#)) for j:closure_call(Class_test_closure.call).
+function_subtype_cast3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
+function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_inline0_test: RuntimeError
+function_subtype_local3_test: RuntimeError
+function_subtype_local4_test: RuntimeError
+function_subtype_not3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
+function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_syntax_test/none: RuntimeError
+function_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 generic_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).

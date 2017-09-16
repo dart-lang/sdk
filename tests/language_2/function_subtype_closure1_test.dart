@@ -3,19 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors and initializers.
 
-// Check function subtyping of type arguments.
+// Check function subtyping of dynamic closures.
 
 import 'package:expect/expect.dart';
 
-class C<T> {}
+typedef I<T> f2<T>();
 
-class I {}
+class X {
+  J<bool> f1() => null;
+}
 
-class J extends I {}
+class C<T> {
+  C(f2<T> f);
+}
 
-typedef I f1();
-typedef J f2();
+class I<T> {}
+
+class J<T> extends I<int> {}
 
 main() {
-  Expect.isTrue(new C<f1>() is C<f2>);
+  new C<int>(new X().f1);
+  Expect.throwsTypeError(() => new C<bool>(new X().f1 as dynamic));
 }
