@@ -16,6 +16,7 @@ main(List<String> arguments) async {
   int untestedExampleCount = 0;
   int missingExamplesCount = 0;
   int missingAnalyzerCode = 0;
+  List<String> keysWithAnalyzerCodeButNoDart2JsCode = <String>[];
   List<String> keys = yaml.keys.toList()..sort();
   for (String name in keys) {
     var description = yaml[name];
@@ -32,19 +33,34 @@ main(List<String> arguments) async {
     if (localUntestedExampleCount == 0) ++missingExamplesCount;
     untestedExampleCount += localUntestedExampleCount;
 
-    if (map['analyzerCode'] == null) ++missingAnalyzerCode;
+    if (map['analyzerCode'] == null) {
+      ++missingAnalyzerCode;
+    } else {
+      if (map['dart2jsCode'] == null) {
+        keysWithAnalyzerCodeButNoDart2JsCode.add(name);
+      }
+    }
   }
 
+  if (keysWithAnalyzerCodeButNoDart2JsCode.isNotEmpty) {
+    print('${keysWithAnalyzerCodeButNoDart2JsCode.length}'
+        ' error codes have an analyzerCode but no dart2jsCode:');
+    for (String name in keysWithAnalyzerCodeButNoDart2JsCode) {
+      print('  $name');
+    }
+    print('');
+  }
   print('$untestedExampleCount examples not tested');
   print('$missingExamplesCount error codes missing examples');
   print('$missingAnalyzerCode error codes missing analyzer code');
 
   // TODO(danrubel): Update this to assert each count == 0 and stays zero.
-  return untestedExampleCount == 0 ||
-          missingExamplesCount == 0 ||
-          missingAnalyzerCode == 0
-      ? 1
-      : 0;
+  exit(keysWithAnalyzerCodeButNoDart2JsCode.isEmpty &&
+          untestedExampleCount > 0 &&
+          missingExamplesCount > 0 &&
+          missingAnalyzerCode > 0
+      ? 0
+      : 1);
 }
 
 int countExamples(Map map, String name, String key) {
