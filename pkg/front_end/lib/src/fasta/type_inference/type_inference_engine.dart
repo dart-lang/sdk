@@ -6,6 +6,7 @@ import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
+import 'package:front_end/src/fasta/type_inference/covariance_propagator.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
@@ -413,137 +414,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
 
     // Now, propagate formal safety from overrides.
-    void propagateParameterCovariance(
-        Object declaredFormal, Object interfaceFormal) {
-      bool interfaceFormalIsGenericCovariantImpl;
-      bool interfaceFormalIsCovariant;
-      if (interfaceFormal is VariableDeclaration) {
-        interfaceFormalIsGenericCovariantImpl =
-            interfaceFormal.isGenericCovariantImpl;
-        interfaceFormalIsCovariant = interfaceFormal.isCovariant;
-      } else if (interfaceFormal is Field) {
-        interfaceFormalIsGenericCovariantImpl =
-            interfaceFormal.isGenericCovariantImpl;
-        interfaceFormalIsCovariant = interfaceFormal.isCovariant;
-      } else {
-        unhandled('${interfaceFormal.runtimeType}',
-            'propagateParameterCovariance', -1, null);
-      }
-      if (interfaceFormalIsGenericCovariantImpl) {
-        if (declaredFormal is VariableDeclaration) {
-          declaredFormal.isGenericCovariantImpl = true;
-        } else if (declaredFormal is Field) {
-          declaredFormal.isGenericCovariantImpl = true;
-        } else {
-          unhandled('${declaredFormal.runtimeType}',
-              'propagateParameterCovariance', -1, null);
-        }
-      }
-      if (interfaceFormalIsCovariant) {
-        if (declaredFormal is VariableDeclaration) {
-          declaredFormal.isCovariant = true;
-        } else if (declaredFormal is Field) {
-          declaredFormal.isCovariant = true;
-        } else {
-          unhandled('${declaredFormal.runtimeType}',
-              'propagateParameterCovariance', -1, null);
-        }
-      }
-    }
-
-    void propagateTypeParameterSafety(TypeParameter declaredTypeParameter,
-        TypeParameter interfaceTypeParameter) {
-      if (interfaceTypeParameter.isGenericCovariantImpl) {
-        declaredTypeParameter.isGenericCovariantImpl = true;
-      }
-    }
-
-    classHierarchy.forEachOverridePair(cls,
-        (Member declaredMember, Member interfaceMember, bool isSetter) {
-      if (!identical(declaredMember.enclosingClass, cls)) return;
-      // Synthetic accessors associated with fields don't have a positional
-      // parameter list, so we use the field itself as a stand-in for its
-      // "value" parameter.
-      List<Object> declaredPositionalParameters =
-          declaredMember.function?.positionalParameters ?? [declaredMember];
-      List<Object> interfacePositionalParameters =
-          interfaceMember.function?.positionalParameters ?? [interfaceMember];
-      for (int i = 0;
-          i < declaredPositionalParameters.length &&
-              i < interfacePositionalParameters.length;
-          i++) {
-        propagateParameterCovariance(
-            declaredPositionalParameters[i], interfacePositionalParameters[i]);
-      }
-      if (declaredMember.function == null || interfaceMember.function == null) {
-        // named parameters and type parameters only apply if both members are
-        // procedures.
-        return;
-      }
-      for (var namedParameter in declaredMember.function.namedParameters) {
-        var overriddenParameter =
-            getNamedFormal(interfaceMember.function, namedParameter.name);
-        if (overriddenParameter != null) {
-          propagateParameterCovariance(namedParameter, overriddenParameter);
-        }
-      }
-      for (int i = 0;
-          i < declaredMember.function.typeParameters.length &&
-              i < interfaceMember.function.typeParameters.length;
-          i++) {
-        propagateTypeParameterSafety(declaredMember.function.typeParameters[i],
-            interfaceMember.function.typeParameters[i]);
-      }
-    });
-
-    if (instrumentation != null) {
-      void recordCovariance(int fileOffset, bool isExplicitlyCovariant,
-          bool isGenericCovariantInterface, bool isGenericCovariantImpl) {
-        var covariance = <String>[];
-        if (isExplicitlyCovariant) covariance.add('explicit');
-        if (isGenericCovariantInterface) covariance.add('genericInterface');
-        if (!isExplicitlyCovariant && isGenericCovariantImpl) {
-          covariance.add('genericImpl');
-        }
-        if (covariance.isNotEmpty) {
-          instrumentation.record(
-              Uri.parse(cls.fileUri),
-              fileOffset,
-              'covariance',
-              new InstrumentationValueLiteral(covariance.join(', ')));
-        }
-      }
-
-      for (var procedure in cls.procedures) {
-        if (procedure.isStatic) continue;
-        void recordFormalAnnotations(VariableDeclaration formal) {
-          recordCovariance(
-              formal.fileOffset,
-              formal.isCovariant,
-              formal.isGenericCovariantInterface,
-              formal.isGenericCovariantImpl);
-        }
-
-        void recordTypeParameterAnnotations(TypeParameter typeParameter) {
-          recordCovariance(
-              typeParameter.fileOffset,
-              false,
-              typeParameter.isGenericCovariantInterface,
-              typeParameter.isGenericCovariantImpl);
-        }
-
-        procedure.function.positionalParameters
-            .forEach(recordFormalAnnotations);
-        procedure.function.namedParameters.forEach(recordFormalAnnotations);
-        procedure.function.typeParameters
-            .forEach(recordTypeParameterAnnotations);
-      }
-      for (var field in cls.fields) {
-        if (field.isStatic) continue;
-        recordCovariance(field.fileOffset, field.isCovariant,
-            field.isGenericCovariantInterface, field.isGenericCovariantImpl);
-      }
-    }
+    new CovariancePropagator(classHierarchy, cls, instrumentation).run();
   }
 
   /// Creates an [AccessorNode] to track dependencies of the given [member].
