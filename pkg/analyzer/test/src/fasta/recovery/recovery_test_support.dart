@@ -4,54 +4,81 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/parser_fasta_test.dart';
 
 /**
- * The base class for tests that test how well Fasta recovers from various
+ * The base class for tests that test how well the parser recovers from various
  * syntactic errors.
  */
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
-      String invalidCode, List<ParserErrorCode> errorCodes, String validCode) {
+      String invalidCode, List<ErrorCode> errorCodes, String validCode) {
     CompilationUnit invalidUnit = parseCompilationUnit(invalidCode, errorCodes);
     CompilationUnit validUnit = parseCompilationUnit(validCode);
     ResultComparator.compare(invalidUnit, validUnit);
   }
 }
 
+/**
+ * An object used to compare to AST structures and cause the test to fail if
+ * they differ in any important ways.
+ */
 class ResultComparator extends AstComparator {
   bool failDifferentLength(List first, List second) {
-    // TODO(brianwilkerson) Provide context for where the lists are located.
-    fail(
-        'Expected a list of length ${second.length}; found a list of length ${first.length}');
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Expected a list of length ');
+    buffer.write(second.length);
+    buffer.write('; found a list of length ');
+    buffer.writeln(first.length);
+    if (first is NodeList) {
+      _safelyWriteNodePath(buffer, first.owner);
+    }
+    fail(buffer.toString());
     return false;
   }
 
   @override
   bool failIfNotNull(Object first, Object second) {
     if (second != null) {
-      // TODO(brianwilkerson) Provide context for where the nodes are located.
-      fail('Expected null; found a ${first.runtimeType}');
+      StringBuffer buffer = new StringBuffer();
+      buffer.write('Expected null; found a ');
+      buffer.writeln(second.runtimeType);
+      if (second is AstNode) {
+        _safelyWriteNodePath(buffer, second);
+      }
+      fail(buffer.toString());
     }
     return true;
   }
 
   @override
   bool failIsNull(Object first, Object second) {
-    // TODO(brianwilkerson) Provide context for where the nodes are located.
-    fail('Expected a ${second.runtimeType}; found null');
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Expected a ');
+    buffer.write(first.runtimeType);
+    buffer.writeln('; found null');
+    if (first is AstNode) {
+      _safelyWriteNodePath(buffer, first);
+    }
+    fail(buffer.toString());
     return false;
   }
 
   @override
   bool failRuntimeType(Object first, Object second) {
-    // TODO(brianwilkerson) Provide context for where the nodes are located.
-    fail('Expected a ${second.runtimeType}; found ${first.runtimeType}');
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Expected a ');
+    buffer.writeln(second.runtimeType);
+    buffer.write('; found ');
+    buffer.writeln(first.runtimeType);
+    if (first is AstNode) {
+      _safelyWriteNodePath(buffer, first);
+    }
+    fail(buffer.toString());
     return false;
   }
 
@@ -76,6 +103,24 @@ class ResultComparator extends AstComparator {
   @override
   bool isEqualTokensNotNull(Token first, Token second) =>
       first.length == second.length && first.lexeme == second.lexeme;
+
+  void _safelyWriteNodePath(StringBuffer buffer, AstNode node) {
+    buffer.write('  path: ');
+    if (node == null) {
+      buffer.write(' null');
+    } else {
+      _writeNodePath(buffer, node);
+    }
+  }
+
+  void _writeNodePath(StringBuffer buffer, AstNode node) {
+    AstNode parent = node.parent;
+    if (parent != null) {
+      _writeNodePath(buffer, parent);
+      buffer.write(', ');
+    }
+    buffer.write(node.runtimeType);
+  }
 
   /**
    * Compare the [first] and [second] nodes, failing the test if they are
