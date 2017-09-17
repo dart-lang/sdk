@@ -3,6 +3,19 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc ]
+html/custom/document_register_type_extensions_test/construction: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/constructors: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/createElement with type extension: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/functional: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/namespaces: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/parsing: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/registration: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/single-parameter createElement: CompileTimeError # Issue 29922
+html/custom/element_upgrade_test: Crash # Crashes compiler Issue ?????
+html/custom/entered_left_view_test: Crash # Issue 29922
+html/custom/js_custom_test: Crash # Issue 29922
+html/custom/mirrors_test: Crash # Issue 29922
+html/custom/regress_194523002_test: Crash # Issue 29922
 isolate/*: SkipByDesign  # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 js/null_test: RuntimeError # Issue 30652
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
@@ -29,10 +42,18 @@ convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/streamed_conversion_utf8_decode_test: Slow, Pass
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/utf85_test: Slow, Pass
+html/custom_element_method_clash_test: Skip # Issue 29922
+html/custom_element_name_clash_test: Skip # Issue 29922
+html/custom_elements_23127_test: Skip # Issue 29922
+html/custom_elements_test: Skip # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
 typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
+
+[ $strong && $compiler == dartdevc ]
+html/custom/document_register_template_test: Crash # Compiler crash issue ????
+html/custom/mirrors_2_test: Crash # Compiler crash issue ????
 
 [ $compiler == dartdevc && $runtime == drt ]
 math/math_test: RuntimeError # Issue 29922

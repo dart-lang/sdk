@@ -35,6 +35,9 @@ async/future_or_strong_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/utf85_test: Slow, Pass
+html/custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
+html/custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
+html/custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
 isolate/issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 isolate/issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
 isolate/issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
@@ -96,3 +99,15 @@ math/math2_test: RuntimeError
 
 [ $compiler == dart2js && ($runtime != jsshell && $runtime != d8) ]
 js/null_test: RuntimeError # Issue 30652
+
+[ $compiler == dart2js && $csp && $browser ]
+html/custom/element_upgrade_test: Fail # Issue 17298
+html/custom/js_custom_test: Fail # Issue 14643
+
+[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
+html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
+
+[ $compiler == dart2js && $fast_startup ]
+html/custom/js_custom_test: Fail # mirrors not supported
+html/custom/mirrors_test: Fail # mirrors not supported
+html/custom/mirrors_2_test: Fail # mirrors not supported

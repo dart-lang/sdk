@@ -6,8 +6,7 @@
 
 library js_custom_test;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:test/test.dart';
 import 'dart:html';
 import '../utils.dart';
 
@@ -18,8 +17,6 @@ class A extends HtmlElement {
 }
 
 main() {
-  useHtmlConfiguration();
-
   // Adapted from Blink's
   // fast/dom/custom/constructor-calls-created-synchronously test.
 

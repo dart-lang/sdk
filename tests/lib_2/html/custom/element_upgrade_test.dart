@@ -30,16 +30,16 @@ main() {
   var registered = false;
   var upgrader;
   setUp(() => customElementsReady.then((_) {
-    if (!registered) {
-      registered = true;
-      upgrader = document.createElementUpgrader(FooElement);
-      js.context['upgradeListener'] = (e) {
-        upgrader.upgrade(e);
-      };
+        if (!registered) {
+          registered = true;
+          upgrader = document.createElementUpgrader(FooElement);
+          js.context['upgradeListener'] = (e) {
+            upgrader.upgrade(e);
+          };
 
-      document.registerElement('custom-element', CustomElement);
-    }
-  }));
+          document.registerElement('custom-element', CustomElement);
+        }
+      }));
 
   test('created gets proxied', () {
     var element = document.createElement(FooElement.tag);
@@ -63,18 +63,6 @@ main() {
     expect(element.doSomething(), 'didSomething');
   });
 
-  test('cannot create upgrader for interfaces', () {
-    expect(() {
-      document.createElementUpgrader(HtmlElementInterface);
-    }, throws);
-  });
-
-  test('cannot upgrade interfaces', () {
-    expect(() {
-      upgrader.upgrade(new HtmlElementInterface()); //# compile-time error
-    }, throws);
-  });
-
   test('cannot upgrade more than once', () {
     var fooElement = new FooElement();
     expect(() {
@@ -96,8 +84,7 @@ main() {
   });
 
   test('can upgrade with extendsTag', () {
-    var upgrader =
-        document.createElementUpgrader(CustomDiv, extendsTag: 'div');
+    var upgrader = document.createElementUpgrader(CustomDiv, extendsTag: 'div');
     var div = new DivElement();
     var customDiv = upgrader.upgrade(div);
     expect(customDiv is CustomDiv, isTrue);
@@ -113,10 +100,6 @@ main() {
       document.createElementUpgrader(HtmlElement);
     }, throws);
   });
-}
-
-class HtmlElementInterface implements HtmlElement { //# compile-time error
-  HtmlElementInterface.created();
 }
 
 class CustomDiv extends DivElement {

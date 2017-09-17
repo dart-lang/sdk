@@ -23,6 +23,9 @@ async/catch_errors11_test: Pass, Timeout # Issue 22696
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 html/canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
+html/custom_elements_test: Pass, Timeout # Issue 26789
+html/custom_element_method_clash_test: Pass, Timeout # Issue 26789
+html/custom_element_name_clash_test: Pass, Timeout # Issue 26789
 
 [ $runtime == chrome || $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
@@ -116,3 +119,6 @@ mirrors/native_class_test: Pass, Slow
 html/canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
+
+[ $runtime == ie11 ]
+html/custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
