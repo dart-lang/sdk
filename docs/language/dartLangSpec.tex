@@ -25,6 +25,9 @@
 % - It is a static warning and dynamic error to assign to a final local.
 % - Specify what "is equivalent to" means.
 % - Remove @proxy.
+% - Don't specify the exact object used for empty positionalArguments and
+%   namedArguments on Invocation.
+% - Remove the, now unnecessary, handling of invalid overrides of noSuchMethod.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -4111,26 +4114,12 @@ If getter lookup has also failed, then a new instance $im$ of the predefined cla
 \end{itemize}
 
 \LMHash{}
-Then the method \code{noSuchMethod()} is looked up in $v_o$ and invoked with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on $v_o$ with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
-\begin{itemize}
-\item  \code{im'.isMethod} evaluates to \code{\TRUE{}}.
-\item  \code{im'.memberName} evaluates to \code{\#noSuchMethod}.
-\item \code{im'.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im'.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
-\end{itemize}
+Then the method \code{noSuchMethod()} is looked up in $v_o$ and invoked with argument $im$, and the result of this invocation is the result of evaluating $i$.
 
-and the result of the latter invocation is the result of evaluating $i$.
-
-\rationale {
-It is possible to bring about such a situation by overriding \code{noSuchMethod()} with the wrong number of arguments:}
-
-\begin{code}
-\CLASS{} Perverse \{
-    noSuchMethod(x,y) => x + y;
-\}
-
-\NEW{} Perverse.unknownMethod();
-\end{code}
+\commentary {
+It is not possible to override the \code{noSuchMethod} if class \code{Object}
+in such a way that it cannot be invoked with one argument of type \code{Invocation}.
+}
 
 \commentary{Notice that the wording carefully avoids re-evaluating the receiver $o$ and the arguments $a_i$. }
 
@@ -4206,23 +4195,14 @@ If the method lookup has failed, then let $g$ be the result of looking up getter
 the static method \code{Function.apply()} with arguments $v_g, [o_1, \ldots , o_n], \{x_{n+1} = o_{n+1}, \ldots , x_{n+k} = o_{n+k}\}$.
 
 \LMHash{}
-If  getter lookup has also failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
+If  getter lookup has also failed, then a new instance $im$  of the predefined class \code{Invocation} is created, such that:
 \begin{itemize}
-\item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
-\item  \code{im.memberName} evaluates to the symbol \code{m}.
+\item \code{im.isMethod} evaluates to \code{\TRUE{}}.
+\item \code{im.memberName} evaluates to the symbol \code{m}.
 \item \code{im.positionalArguments} evaluates to an immutable list with the same  values as  \code{[$o_1, \ldots, o_n$]}.
 \item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$\#x_{n+1}: o_{n+1}, \ldots, \#x_{n+k} : o_{n+k}$\}}.
 \end{itemize}
-Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked on \THIS{} with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
-\begin{itemize}
-\item  \code{im'.isMethod} evaluates to \code{\TRUE{}}.
-\item  \code{im'.memberName} evaluates to \code{\#noSuchMethod}.
-\item \code{im'.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im'.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
-\end{itemize}
-
-and the result of this latter invocation is the result of evaluating $i$.
-
+Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked on \THIS{} with argument $im$, and the result of this invocation is the result of evaluating $i$.
 
 \LMHash{}
 It is a compile-time error if a super method invocation occurs in a top-level function or variable initializer, in an instance variable initializer or initializer list, in class \code{Object}, in a factory constructor or in a static method or variable initializer.
@@ -4300,22 +4280,14 @@ Otherwise, $i$ is a getter invocation.  Let $f$ be the result of looking up
 (\ref{getterAndSetterLookup}) getter (\ref{getters}) $m$ in $o$  with respect to $L$. If $o$ is an instance of \code{Type} but $e$ is not a constant type literal, then if $f$ is a getter that forwards  to a static getter,  getter lookup fails. Otherwise, the body of $f$ is executed with \THIS{} bound to $o$.  The value of $i$ is the result returned by the call to the getter function.
 
 \LMHash{}
-If the getter lookup has failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
+If the getter lookup has failed, then a new instance $im$  of the predefined class \code{Invocation} is created, such that :
 \begin{itemize}
-\item  \code{im.isGetter} evaluates to \code{\TRUE{}}.
-\item  \code{im.memberName} evaluates to the symbol \code{m}.
-\item \code{im.positionalArguments} evaluates to the value of \code{\CONST{} []}.
-\item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
+\item \code{im.isGetter} evaluates to \code{\TRUE{}}.
+\item \code{im.memberName} evaluates to the symbol \code{m}.
+\item \code{im.positionalArguments} evaluates to an empty unmodifiable instance of \code{List<Object>}.
+\item \code{im.namedArguments} evaluates to an empty unmodifiable instance of \code{Map<Symbol, Object>}.
 \end{itemize}
-Then the method \code{noSuchMethod()} is looked up in $o$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on $o$ with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
-\begin{itemize}
-\item  \code{im'.isMethod} evaluates to \code{\TRUE{}}.
-\item  \code{im'.memberName} evaluates to \code{\#noSuchMethod}.
-\item \code{im'.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im'.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
-\end{itemize}
-
-and the result of this latter invocation is the result of evaluating $i$.
+Then the method \code{noSuchMethod()} is looked up in $o$ and invoked with argument $im$, and the result of this invocation is the result of evaluating $i$.
 
 \LMHash{}
 It is a compile-time error if $m$ is a member of class \cd{Object} and $e$ is either a prefix object (\ref{imports}) or a constant type literal.
@@ -4351,21 +4323,14 @@ Let $g$ be the method currently executing, and let $C$ be the class in which $g$
  Otherwise, $i$ is a getter invocation.  Let $f$ be the result of  looking up getter $m$ in $S_{dynamic}$  with respect to $L$.  The body of $f$  is executed with \THIS{} bound to the current value of  \THIS{}.  The value of $i$ is the result returned by the call to the getter function.
 
 \LMHash{}
-If the getter lookup has failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
+If the getter lookup has failed, then a new instance $im$ of the predefined class \code{Invocation} is created, such that:
 \begin{itemize}
 \item  \code{im.isGetter} evaluates to \code{\TRUE{}}.
 \item  \code{im.memberName} evaluates to the symbol \code{m}.
-\item \code{im.positionalArguments} evaluates to the value of \code{\CONST{} []}.
-\item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
+\item \code{im.positionalArguments} evaluates to an empty unmodifiable instance of \code{List<Object>}.
+\item \code{im.namedArguments} evaluates to an empty unmodifiable instance of \code{Map<Symbol, Object>}.
 \end{itemize}
-Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
-\begin{itemize}
-\item  \code{im'.isMethod} evaluates to \code{\TRUE{}}.
-\item  \code{im'.memberName} evaluates to \code{\#noSuchMethod}.
-\item \code{im'.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im'.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
-\end{itemize}
-and the result of this latter invocation is the result of evaluating $i$.
+Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$.
 
 \LMHash{}
 Let $S_{static}$ be the superclass of the immediately enclosing class. It is a static type warning if $S_{static}$ does not have an accessible instance method or getter named $m$.
@@ -4373,8 +4338,8 @@ Let $S_{static}$ be the superclass of the immediately enclosing class. It is a s
 The static type of $i$ is:
 \begin{itemize}
 \item The declared return type of $S_{static}.m$, if $S_{static}$ has an accessible instance getter named $m$.
-\item The static type of function $S_{static}.m$ if $S_{static}$ has an accessible instance method named $m$.
-\item The type  \DYNAMIC{} otherwise.
+\item The static type of function $S_{static}.m$, if $S_{static}$ has an accessible instance method named $m$.
+\item The type \DYNAMIC{} otherwise.
 \end{itemize}
 
 
@@ -4526,23 +4491,16 @@ Evaluation of an assignment of the form \code{$e_1$.$v$ = $e_2$} proceeds as fol
 The expression $e_1$ is evaluated to an object $o_1$. Then, the expression $e_2$  is evaluated to an object $o_2$. Then, the setter $v=$ is looked up (\ref{getterAndSetterLookup}) in $o_1$ with respect to the current library.  If $o_1$ is an instance of \code{Type} but $e_1$ is not a constant type literal, then if $v=$ is a setter that forwards (\ref{functionDeclarations}) to a static setter, setter lookup fails. Otherwise, the body  of $v=$ is executed with its formal parameter bound to $o_2$ and \THIS{} bound to $o_1$.
 
 \LMHash{}
-If the setter lookup has failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
+If the setter lookup has failed, then a new instance $im$ of the predefined class \code{Invocation} is created, such that:
 \begin{itemize}
-\item  \code{im.isSetter} evaluates to \code{\TRUE{}}.
-\item  \code{im.memberName} evaluates to the symbol \code{v=}.
+\item \code{im.isSetter} evaluates to \code{\TRUE{}}.
+\item \code{im.memberName} evaluates to the symbol \code{v=}.
 \item \code{im.positionalArguments} evaluates to an immutable list with the same values as \code{[$o_2$]}.
-\item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
+\item \code{im.namedArguments} evaluates to an empty unmodifiable instance of \code{Map<Symbol, Object>}.
 \end{itemize}
 
 \LMHash{}
 Then the method \code{noSuchMethod()} is looked up in $o_1$ and invoked  with argument $im$.
-However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on $o_1$ with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
-\begin{itemize}
-\item  \code{im'.isMethod} evaluates to \code{\TRUE{}}.
-\item  \code{im'.memberName} evaluates to \code{\#noSuchMethod}.
-\item \code{im'.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im'.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
-\end{itemize}
 
 \LMHash{}
 The value of the assignment expression is $o_2$ irrespective of whether setter lookup has failed or succeeded.
@@ -4565,23 +4523,16 @@ Let $g$ be the method currently executing, and let $C$ be the class in which $g$
 The expression $e$ is evaluated to an object $o$.  Then, the setter $v=$ is looked up (\ref{getterAndSetterLookup}) in $S_{dynamic}$ with respect to the current library.  The body  of $v=$ is executed with its formal parameter bound to $o$ and \THIS{} bound to \THIS{}.
 
 \LMHash{}
-If the setter lookup has failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
+If the setter lookup has failed, then a new instance $im$ of the predefined class \code{Invocation} is created, such that:
 \begin{itemize}
-\item  \code{im.isSetter} evaluates to \code{\TRUE{}}.
-\item  \code{im.memberName} evaluates to the symbol \code{v=}.
+\item \code{im.isSetter} evaluates to \code{\TRUE{}}.
+\item \code{im.memberName} evaluates to the symbol \code{v=}.
 \item \code{im.positionalArguments} evaluates to an immutable list with the same values as \code{[$o$]}.
-\item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
+\item \code{im.namedArguments} evaluates to an empty unmodifiable instance of \code{Map<Symbol, Object>}.
 \end{itemize}
 
 \LMHash{}
-Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked  with argument $im$.
-However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
-\begin{itemize}
-\item  \code{im'.isMethod} evaluates to \code{\TRUE{}}.
-\item  \code{im'.memberName} evaluates to \code{\#noSuchMethod}.
-\item \code{im'.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im'.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
-\end{itemize}
+Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked with argument $im$.
 
 \LMHash{}
 The value of the assignment expression is $o$ irrespective of whether setter lookup has failed or succeeded.
