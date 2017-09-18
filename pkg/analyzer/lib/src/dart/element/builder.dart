@@ -1447,8 +1447,9 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     _visitChildren(holder, node);
     ParameterElementImpl element = node.element;
     element.metadata = _createElementAnnotations(node.metadata);
-    element.parameters = holder.parameters;
-    element.typeParameters = holder.typeParameters;
+    if (node.parameters != null) {
+      _createGenericFunctionType(element, holder);
+    }
     holder.validate();
     return null;
   }
@@ -1476,8 +1477,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     _visitChildren(holder, node);
     ParameterElementImpl element = node.element;
     element.metadata = _createElementAnnotations(node.metadata);
-    element.parameters = holder.parameters;
-    element.typeParameters = holder.typeParameters;
+    _createGenericFunctionType(element, holder);
     holder.validate();
     return null;
   }
@@ -1553,6 +1553,22 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       a.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
+  }
+
+  /**
+   * If the [holder] has type parameters or formal parameters for the
+   * given [parameter], wrap them into a new [GenericFunctionTypeElementImpl]
+   * and set [FunctionTypeImpl] for the [parameter].
+   */
+  void _createGenericFunctionType(
+      ParameterElementImpl parameter, ElementHolder holder) {
+    var typeElement = new GenericFunctionTypeElementImpl.forOffset(-1);
+    typeElement.enclosingElement = parameter;
+    typeElement.typeParameters = holder.typeParameters;
+    typeElement.parameters = holder.parameters;
+    var type = new FunctionTypeImpl(typeElement);
+    typeElement.type = type;
+    parameter.type = type;
   }
 
   /**

@@ -140,6 +140,7 @@ abstract class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
                                         [int start = 0, int end]);
   String operator +(String other) => null;
+  bool operator ==(Object other);
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;

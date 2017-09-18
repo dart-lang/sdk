@@ -391,7 +391,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     RecordBeforeGC(kNew, reason);
     {
       VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
-      TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
+      TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectNewGeneration");
       NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
       new_space_.Scavenge();
       NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
@@ -413,7 +413,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   if (BeginOldSpaceGC(thread)) {
     RecordBeforeGC(kOld, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
-    TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");
+    TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectOldGeneration");
     NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kOld));
     old_space_.MarkSweep();
     RecordAfterGC(kOld);
@@ -804,32 +804,33 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event) {
   if ((event == NULL) || !event->enabled()) {
     return;
   }
-  event->SetNumArguments(12);
-  event->FormatArgument(0, "Before.New.Used (kB)", "%" Pd "",
+  intptr_t arguments = event->GetNumArguments();
+  event->SetNumArguments(arguments + 12);
+  event->FormatArgument(arguments + 0, "Before.New.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.new_.used_in_words));
-  event->FormatArgument(1, "After.New.Used (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 1, "After.New.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.new_.used_in_words));
-  event->FormatArgument(2, "Before.Old.Used (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 2, "Before.Old.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.old_.used_in_words));
-  event->FormatArgument(3, "After.Old.Used (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 3, "After.Old.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.used_in_words));
 
-  event->FormatArgument(4, "Before.New.Capacity (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 4, "Before.New.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.new_.capacity_in_words));
-  event->FormatArgument(5, "After.New.Capacity (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 5, "After.New.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.new_.capacity_in_words));
-  event->FormatArgument(6, "Before.Old.Capacity (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 6, "Before.Old.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.old_.capacity_in_words));
-  event->FormatArgument(7, "After.Old.Capacity (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 7, "After.Old.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.capacity_in_words));
 
-  event->FormatArgument(8, "Before.New.External (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 8, "Before.New.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.new_.external_in_words));
-  event->FormatArgument(9, "After.New.External (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 9, "After.New.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.new_.external_in_words));
-  event->FormatArgument(10, "Before.Old.External (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 10, "Before.Old.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.old_.external_in_words));
-  event->FormatArgument(11, "After.Old.External (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 11, "After.Old.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.external_in_words));
 #endif  // !defined(PRODUCT)
 }

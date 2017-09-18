@@ -6,17 +6,17 @@ import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
+import 'package:front_end/src/fasta/type_inference/covariance_propagator.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show
-        BottomType,
         Class,
         DartType,
+        DartTypeVisitor,
         DynamicType,
         Field,
-        FormalSafety,
         FunctionType,
         InterfaceType,
         Location,
@@ -24,6 +24,7 @@ import 'package:kernel/ast.dart'
         Procedure,
         TypeParameter,
         TypeParameterType,
+        TypedefType,
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -94,6 +95,55 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
 
   @override
   String toString() => member.toString();
+}
+
+/// Visitor to check whether a given type mentions any of a class's type
+/// parameters in a covariant fashion.
+class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
+  bool _inCovariantContext = true;
+
+  final List<TypeParameter> _typeParametersToSearchFor;
+
+  IncludesTypeParametersCovariantly(this._typeParametersToSearchFor);
+
+  @override
+  bool defaultDartType(DartType node) => false;
+
+  @override
+  bool visitFunctionType(FunctionType node) {
+    if (node.returnType.accept(this)) return true;
+    try {
+      _inCovariantContext = !_inCovariantContext;
+      for (var parameter in node.positionalParameters) {
+        if (parameter.accept(this)) return true;
+      }
+      for (var parameter in node.namedParameters) {
+        if (parameter.type.accept(this)) return true;
+      }
+      return false;
+    } finally {
+      _inCovariantContext = !_inCovariantContext;
+    }
+  }
+
+  @override
+  bool visitInterfaceType(InterfaceType node) {
+    for (var argument in node.typeArguments) {
+      if (argument.accept(this)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitTypedefType(TypedefType node) {
+    return node.unalias.accept(this);
+  }
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node) {
+    return _inCovariantContext &&
+        _typeParametersToSearchFor.contains(node.parameter);
+  }
 }
 
 /// Enum tracking the type inference state of an accessor or method.
@@ -284,47 +334,87 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // class A<T> {
     //   foo(List<T> argument) {}
     // }
-    // void bar(A<num> a, List<num> l) {
-    //   a.foo(l);
+    // class B extends A<num> {
+    //   foo(List<num> argument) {}
+    // }
+    // class C extends B {
+    //   foo(List<Object> argument) {}
+    // }
+    // void bar(A<Object> a) {
+    //   a.foo(<Object>[1, 2.0, 'hi']);
+    // }
+    // void baz(B b) {
+    //   b.foo(<Object>[1, 2.0, 'hi']); // Compile-time error
     // }
     //
-    // At the call site (in `bar`), the type system guarantees that the
-    // value passed to `foo` will be an instance of `List<num>`.  But since
-    // the reified type of `a` at runtime might be a subtype of `A<num>`,
-    // such as `A<int>`, this is not a sufficient guarantee to ensure
-    // soundness.  Therefore the type of the argument will have to be
-    // checked at runtime (unless the back end can prove the check is
+    //
+    // At the call site in `bar`, we know that the value passed to `foo` is an
+    // instance of `List<Object>`.  But `bar` might have been called as
+    // `bar(new A<num>())`, in which case passing `List<Object>` to `a.foo` would
+    // violate soundness.  Therefore `A.foo` will have to check the type of its
+    // argument at runtime (unless the back end can prove the check is
     // unnecessary, e.g. through whole program analysis).
     //
-    // To determine whether the check is necessary, we compute a worst case
-    // "pessimistic type" for the formal parameter by substituting Bottom
-    // for all of the class's type parameters--in the example above that
-    // results in `List<Bottom>`.  This represents the type that the formal
-    // would have if the reified type of the receiver were the narrowest
-    // possible.  If the declared type of the formal is not a subtype of the
-    // pessimistic type, that means that the type guarantee made by the
-    // caller may not be sufficient to ensure soundness in the callee, so
-    // a runtime type check is needed.  We mark this by annotating the
-    // parameter as "semi-safe".
-    if (cls.typeParameters.isEmpty) return;
-    var pessimization = Substitution.fromPairs(cls.typeParameters,
-        new List.filled(cls.typeParameters.length, const BottomType()));
-    for (var procedure in cls.procedures) {
-      if (procedure.isStatic) continue;
-      void compute(VariableDeclaration formal) {
-        var pessimisticType = pessimization.substituteType(formal.type);
-        if (!typeSchemaEnvironment.isSubtypeOf(formal.type, pessimisticType)) {
-          formal.formalSafety = FormalSafety.semiSafe;
-          instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
-              'checkFormal', new InstrumentationValueLiteral('semiSafe'));
-          instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
-              'checkInterface', new InstrumentationValueLiteral('semiTyped'));
+    // The same check needs to be compiled into `B.foo`, since it's possible
+    // that `bar` might have been called as `bar(new B())`.
+    //
+    // However, if the call to `foo` occurs via the interface target `B.foo`,
+    // no check is needed, since the class B is not generic, so the front end is
+    // able to check the types completely at compile time and issue an error if
+    // they don't match, as illustrated in `baz`.
+    //
+    // We represent this by marking A.foo's argument as both "semi-typed" and
+    // "semi-safe", whereas B.foo's argument is simply "semi-safe".  The rule is
+    // that a check only needs to be performed if the interface target's
+    // parameter is marked as "semi-typed" AND the actual target's parameter is
+    // marked as "semi-safe".
+    //
+    // A parameter is marked as "semi-typed" if it refers to one of the class's
+    // generic parameters in a covariant position; a parameter is marked as
+    // "semi-safe" if it is semi-typed or it overrides a parameter that is
+    // semi-safe.  (In other words, the "semi-safe" annotation is inherited).
+    //
+    // Note that this a slightly conservative analysis; it mark C.foo's argument
+    // as "semi-safe" even though technically it's not necessary to do so (since
+    // every possible call to C.foo is guaranteed to pass in a subtype of
+    // List<Object>).  In principle we could improve on this, but it would
+    // require a lot of bookkeeping, and it doesn't seem worth it.
+    if (cls.typeParameters.isNotEmpty) {
+      var needsCheckVisitor =
+          new IncludesTypeParametersCovariantly(cls.typeParameters);
+      for (var procedure in cls.procedures) {
+        if (procedure.isStatic) continue;
+
+        void handleParameter(VariableDeclaration formal) {
+          if (formal.type.accept(needsCheckVisitor)) {
+            formal.isGenericCovariantImpl = true;
+            formal.isGenericCovariantInterface = true;
+          }
+        }
+
+        void handleTypeParameter(TypeParameter typeParameter) {
+          if (typeParameter.bound.accept(needsCheckVisitor)) {
+            typeParameter.isGenericCovariantImpl = true;
+            typeParameter.isGenericCovariantInterface = true;
+          }
+        }
+
+        procedure.function.positionalParameters.forEach(handleParameter);
+        procedure.function.namedParameters.forEach(handleParameter);
+        procedure.function.typeParameters.forEach(handleTypeParameter);
+      }
+      for (var field in cls.fields) {
+        if (field.isStatic) continue;
+
+        if (field.type.accept(needsCheckVisitor)) {
+          field.isGenericCovariantImpl = true;
+          field.isGenericCovariantInterface = true;
         }
       }
-
-      procedure.function.positionalParameters.forEach(compute);
-      procedure.function.namedParameters.forEach(compute);
     }
+
+    // Now, propagate formal safety from overrides.
+    new CovariancePropagator(classHierarchy, cls, instrumentation).run();
   }
 
   /// Creates an [AccessorNode] to track dependencies of the given [member].

@@ -118,7 +118,7 @@
       ],
       "exclude": [
         "/shaker/lib/.*\\.dart$",
-        "/shaker/.*_lib\\.dart$"
+        "/shaker/.*_lib[0-9]*\\.dart$"
       ]
     },
 

@@ -220,6 +220,83 @@ main() {
   }, expectIdenticalOutput: false),
   const Test(const {
     'main.dart': '''
+main() {
+    int x = 1;
+  switch(x) {
+    case 1:
+      print('spider');
+      continue world;
+    case 5:
+      print('beetle');
+      break;
+    world:
+    case 6:
+      print('cricket');
+      break;
+    default:
+      print('bat');
+  }
+}
+'''
+  }, expectIdenticalOutput: false),
+  const Test(const {
+    'main.dart': '''
+main() {
+    int x = 1;
+  switch(x) {
+    case 1:
+      print('spider');
+      continue world;
+    world:
+    case 5:
+      print('beetle');
+      break;
+    case 6:
+      print('cricket');
+      break;
+    default:
+      print('bat');
+  }
+}'''
+  }, expectIdenticalOutput: false),
+  const Test(const {
+    'main.dart': '''
+main() {
+    int x = 1;
+  switch(x) {
+    case 1:
+      print('spider');
+      continue world;
+    world:
+    case 5:
+      print('beetle');
+      break;
+    case 6:
+      print('cricket');
+      break;
+  }
+}'''
+  }, expectIdenticalOutput: false),
+  const Test(const {
+    'main.dart': '''
+main() {
+    int x = 8;
+  switch(x) {
+    case 1:
+      print('spider');
+      continue world;
+    world:
+    case 5:
+      print('beetle');
+      break;
+    case 6:
+      print('cricket');
+      break;
+  }
+}'''
+  }, expectIdenticalOutput: false),
+  const Test(const {
+    'main.dart': '''
 class A<U,V> {
   var a = U;
   var b = V;

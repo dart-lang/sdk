@@ -163,8 +163,8 @@ class Keyword extends TokenType {
 
   static const Keyword CONTINUE = const Keyword("continue", "CONTINUE");
 
-  static const Keyword COVARIANT =
-      const Keyword("covariant", "COVARIANT", isBuiltIn: true);
+  static const Keyword COVARIANT = const Keyword("covariant", "COVARIANT",
+      isBuiltIn: true, isModifier: true);
 
   static const Keyword DEFAULT = const Keyword("default", "DEFAULT");
 

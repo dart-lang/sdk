@@ -31,34 +31,34 @@ static method f<T extends core::Object>() → self::f::T
   return null;
 static method test_topLevelVariable() → void {
   self::topLevelVariable = self::f<self::B>();
-  self::topLevelVariable.{core::Object::==}(null) ? self::topLevelVariable = self::f<self::B>() : null;
+  self::topLevelVariable.{core::Object::==}(null) ?{self::B} self::topLevelVariable = self::f<self::B>() : null;
   self::topLevelVariable = self::topLevelVariable.{self::B::+}(self::f<dynamic>());
   self::topLevelVariable = self::topLevelVariable.{self::B::*}(self::f<dynamic>());
   self::topLevelVariable = self::topLevelVariable.{self::B::&}(self::f<dynamic>());
   self::topLevelVariable = self::topLevelVariable.{self::B::-}(1);
   self::topLevelVariable = self::topLevelVariable.{self::B::-}(1);
   self::B v1 = self::topLevelVariable = self::f<self::B>();
-  self::B v2 = let final dynamic #t1 = self::topLevelVariable in #t1.{core::Object::==}(null) ? self::topLevelVariable = self::f<self::B>() : #t1;
+  self::B v2 = let final self::B #t1 = self::topLevelVariable in #t1.{core::Object::==}(null) ?{self::B} self::topLevelVariable = self::f<self::B>() : #t1;
   self::A v3 = self::topLevelVariable = self::topLevelVariable.{self::B::+}(self::f<dynamic>());
   self::B v4 = self::topLevelVariable = self::topLevelVariable.{self::B::*}(self::f<dynamic>());
   self::C v5 = self::topLevelVariable = self::topLevelVariable.{self::B::&}(self::f<dynamic>());
   self::B v6 = self::topLevelVariable = self::topLevelVariable.{self::B::-}(1);
-  self::B v7 = let final dynamic #t2 = self::topLevelVariable in let final dynamic #t3 = self::topLevelVariable = #t2.{self::B::-}(1) in #t2;
+  self::B v7 = let final self::B #t2 = self::topLevelVariable in let final self::B #t3 = self::topLevelVariable = #t2.{self::B::-}(1) in #t2;
 }
 static method test_staticVariable() → void {
   self::B::staticVariable = self::f<self::B>();
-  self::B::staticVariable.{core::Object::==}(null) ? self::B::staticVariable = self::f<self::B>() : null;
+  self::B::staticVariable.{core::Object::==}(null) ?{self::B} self::B::staticVariable = self::f<self::B>() : null;
   self::B::staticVariable = self::B::staticVariable.{self::B::+}(self::f<dynamic>());
   self::B::staticVariable = self::B::staticVariable.{self::B::*}(self::f<dynamic>());
   self::B::staticVariable = self::B::staticVariable.{self::B::&}(self::f<dynamic>());
   self::B::staticVariable = self::B::staticVariable.{self::B::-}(1);
   self::B::staticVariable = self::B::staticVariable.{self::B::-}(1);
   self::B v1 = self::B::staticVariable = self::f<self::B>();
-  self::B v2 = let final dynamic #t4 = self::B::staticVariable in #t4.{core::Object::==}(null) ? self::B::staticVariable = self::f<self::B>() : #t4;
+  self::B v2 = let final self::B #t4 = self::B::staticVariable in #t4.{core::Object::==}(null) ?{self::B} self::B::staticVariable = self::f<self::B>() : #t4;
   self::A v3 = self::B::staticVariable = self::B::staticVariable.{self::B::+}(self::f<dynamic>());
   self::B v4 = self::B::staticVariable = self::B::staticVariable.{self::B::*}(self::f<dynamic>());
   self::C v5 = self::B::staticVariable = self::B::staticVariable.{self::B::&}(self::f<dynamic>());
   self::B v6 = self::B::staticVariable = self::B::staticVariable.{self::B::-}(1);
-  self::B v7 = let final dynamic #t5 = self::B::staticVariable in let final dynamic #t6 = self::B::staticVariable = #t5.{self::B::-}(1) in #t5;
+  self::B v7 = let final self::B #t5 = self::B::staticVariable in let final self::B #t6 = self::B::staticVariable = #t5.{self::B::-}(1) in #t5;
 }
 static method main() → dynamic {}

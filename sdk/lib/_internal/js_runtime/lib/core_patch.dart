@@ -756,6 +756,19 @@ _unresolvedTopLevelMethodError(receiver, memberName, positionalArguments,
       receiver, memberName, positionalArguments, namedArguments);
 }
 
+/// Used by Fasta to report a runtime error when a final field with an
+/// initializer is also initialized in a generative constructor.
+///
+/// Note: in strong mode, this is a compile-time error and this class becomes
+/// obsolete.
+class _DuplicatedFieldInitializerError extends Error {
+  final String _name;
+
+  _DuplicatedFieldInitializerError(this._name);
+
+  toString() => "Error: field '$_name' is already initialized.";
+}
+
 @patch
 class _ConstantExpressionError {
   @patch

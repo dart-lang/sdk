@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/scanner.dart' show Token;
+
 import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show ParsingContext, Resolution;
 import 'common/tasks.dart' show CompilerTask, Measurer;
@@ -19,7 +21,6 @@ import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js_backend/runtime_types.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
-import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'tree/tree.dart';
 import 'util/util.dart';
 import 'world.dart' show ClosedWorldRefiner;
@@ -211,10 +212,19 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// the closure class.
   FunctionEntity get callMethod => null;
 
+  /// List of locals that this closure class has created corresponding field
+  /// entities for.
+  @deprecated
+  List<Local> get createdFieldEntities => const <Local>[];
+
   /// As shown in the example in the comments at the top of this class, we
   /// create fields in the closure class for each captured variable. This is an
-  /// accessor to that set of fields.
-  List<Local> get createdFieldEntities => const <Local>[];
+  /// accessor the [local] for which [field] was created.
+  /// Returns the [local] for which [field] was created.
+  Local getLocalForField(FieldEntity field) {
+    failedAt(field, "No local for $field.");
+    return null;
+  }
 
   /// Convenience pointer to the field entity representation in the closure
   /// class of the element representing `this`.
@@ -348,8 +358,8 @@ class ClosureTask extends ClosureConversionTask<Node> {
       ClosureClassMap cached = _closureMemberMappingCache[element];
       if (cached != null) return cached;
       if (element.resolvedAst.kind != ResolvedAstKind.PARSED) {
-        return _closureMemberMappingCache[element] =
-            new ClosureClassMap(null, null, null, new ThisLocal(element));
+        return _closureMemberMappingCache[element] = new ClosureClassMap(
+            null, null, null, new ThisLocalVariable(element));
       }
       return reporter.withCurrentElement(element.implementation, () {
         Node node = element.resolvedAst.node;
@@ -370,8 +380,8 @@ class ClosureTask extends ClosureConversionTask<Node> {
         } else if (element.isSynthesized) {
           reporter.internalError(
               element, "Unexpected synthesized element: $element");
-          _closureMemberMappingCache[element] =
-              new ClosureClassMap(null, null, null, new ThisLocal(element));
+          _closureMemberMappingCache[element] = new ClosureClassMap(
+              null, null, null, new ThisLocalVariable(element));
         } else {
           assert(element.isField,
               failedAt(element, "Expected $element to be a field."));
@@ -386,8 +396,8 @@ class ClosureTask extends ClosureConversionTask<Node> {
                     element,
                     "Expected $element (${element.runtimeType}) "
                     "to be an instance field."));
-            _closureMemberMappingCache[element] =
-                new ClosureClassMap(null, null, null, new ThisLocal(element));
+            _closureMemberMappingCache[element] = new ClosureClassMap(
+                null, null, null, new ThisLocalVariable(element));
           }
         }
         assert(_closureMemberMappingCache[element] != null,
@@ -541,16 +551,21 @@ class ClosureClassElement extends ClassElementX {
 /// fields.
 class BoxLocal extends Local {
   final String name;
-  final MemberEntity memberContext;
 
   final int hashCode = _nextHashCode = (_nextHashCode + 10007).toUnsigned(30);
   static int _nextHashCode = 0;
 
-  BoxLocal(this.name, this.memberContext);
-
-  Entity get executableContext => memberContext;
+  BoxLocal(this.name);
 
   String toString() => 'BoxLocal($name)';
+}
+
+class BoxLocalVariable extends BoxLocal implements LocalVariable {
+  final MemberElement memberContext;
+
+  BoxLocalVariable(String name, this.memberContext) : super(name);
+
+  ExecutableElement get executableContext => memberContext;
 }
 
 // TODO(ngeoffray, ahe): These classes continuously cause problems.  We need to
@@ -558,9 +573,9 @@ class BoxLocal extends Local {
 class BoxFieldElement extends ElementX
     implements TypedElement, FieldElement, PrivatelyNamedJSEntity {
   final LocalVariableElement variableElement;
-  final BoxLocal box;
+  final BoxLocalVariable box;
 
-  BoxFieldElement(String name, this.variableElement, BoxLocal box)
+  BoxFieldElement(String name, this.variableElement, BoxLocalVariable box)
       : this.box = box,
         super(name, ElementKind.FIELD, box.executableContext);
 
@@ -614,24 +629,26 @@ class BoxFieldElement extends ElementX
 
 /// A local variable used encode the direct (uncaptured) references to [this].
 class ThisLocal extends Local {
-  final MemberEntity memberContext;
+  final ClassEntity enclosingClass;
 
-  ThisLocal(this.memberContext);
-
-  Entity get executableContext => memberContext;
+  ThisLocal(MemberEntity member) : enclosingClass = member.enclosingClass;
 
   String get name => 'this';
 
-  ClassEntity get enclosingClass => memberContext.enclosingClass;
-
   bool operator ==(other) {
-    return other is ThisLocal &&
-        other.name == name &&
-        other.memberContext == memberContext &&
-        other.enclosingClass == enclosingClass;
+    return other is ThisLocal && other.enclosingClass == enclosingClass;
   }
 
-  int get hashCode => memberContext.hashCode + enclosingClass.hashCode;
+  int get hashCode => enclosingClass.hashCode;
+}
+
+/// A local variable used encode the direct (uncaptured) references to [this].
+class ThisLocalVariable extends ThisLocal implements LocalVariable {
+  final MemberElement memberContext;
+
+  ThisLocalVariable(this.memberContext) : super(memberContext);
+
+  ExecutableElement get executableContext => memberContext;
 }
 
 /// Call method of a closure class.
@@ -797,6 +814,9 @@ class ClosureClassMap implements ClosureRepresentationInfo {
     });
     return fields;
   }
+
+  @override
+  Local getLocalForField(covariant ClosureFieldElement field) => field.local;
 
   void addFreeVariable(Local element) {
     assert(freeVariableMap[element] == null);
@@ -1054,7 +1074,7 @@ class ClosureTranslator extends Visitor {
     // optimization: factories have type parameters as function
     // parameters, and type parameters are declared in the class, not
     // the factory.
-    bool inCurrentContext(Local variable) {
+    bool inCurrentContext(LocalVariable variable) {
       return variable == executableContext ||
           variable.executableContext == executableContext;
     }
@@ -1079,7 +1099,7 @@ class ClosureTranslator extends Visitor {
   }
 
   void useTypeVariableAsLocal(ResolutionTypeVariableType typeVariable) {
-    useLocal(new TypeVariableLocal(
+    useLocal(new TypeVariableLocalVariable(
         typeVariable, outermostElement, outermostElement.memberContext));
   }
 
@@ -1260,7 +1280,7 @@ class ClosureTranslator extends Visitor {
   // current [closureData].
   // The boxed variables are updated in the [capturedVariableMapping].
   void attachCapturedScopeVariables(Node node) {
-    BoxLocal box = null;
+    BoxLocalVariable box = null;
     Map<LocalVariableElement, BoxFieldElement> scopeMapping =
         new Map<LocalVariableElement, BoxFieldElement>();
 
@@ -1269,7 +1289,7 @@ class ClosureTranslator extends Visitor {
         if (box == null) {
           // TODO(floitsch): construct better box names.
           String boxName = getBoxFieldName(closureFieldCounter++);
-          box = new BoxLocal(boxName, executableContext.memberContext);
+          box = new BoxLocalVariable(boxName, executableContext.memberContext);
         }
         String elementName = variable.name;
         String boxedName =
@@ -1442,7 +1462,7 @@ class ClosureTranslator extends Visitor {
       ThisLocal thisElement = null;
       if (element.isInstanceMember || element.isGenerativeConstructor) {
         MemberElement member = element;
-        thisElement = new ThisLocal(member);
+        thisElement = new ThisLocalVariable(member);
       }
       closureData = new ClosureClassMap(null, null, null, thisElement);
       memberMappingCache[element] = closureData;
@@ -1533,11 +1553,8 @@ class ClosureTranslator extends Visitor {
 /// A type variable as a local variable.
 class TypeVariableLocal implements Local {
   final TypeVariableType typeVariable;
-  final Entity executableContext;
-  final MemberEntity memberContext;
 
-  TypeVariableLocal(
-      this.typeVariable, this.executableContext, this.memberContext);
+  TypeVariableLocal(this.typeVariable);
 
   String get name => typeVariable.element.name;
 
@@ -1555,6 +1572,16 @@ class TypeVariableLocal implements Local {
     sb.write(')');
     return sb.toString();
   }
+}
+
+class TypeVariableLocalVariable extends TypeVariableLocal
+    implements LocalVariable {
+  final ExecutableElement executableContext;
+  final MemberElement memberContext;
+
+  TypeVariableLocalVariable(
+      TypeVariableType typeVariable, this.executableContext, this.memberContext)
+      : super(typeVariable);
 }
 
 ///

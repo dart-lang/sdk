@@ -37,19 +37,19 @@ class Test extends self::Base {
     ;
   method test() → void {
     super.{self::Base::member} = self::f<self::B>();
-    super.{self::Base::member}.{core::Object::==}(null) ? super.{self::Base::member} = self::f<self::B>() : null;
+    super.{self::Base::member}.{core::Object::==}(null) ?{self::B} super.{self::Base::member} = self::f<self::B>() : null;
     super.{self::Base::member} = super.{self::Base::member}.{self::B::+}(self::f<dynamic>());
     super.{self::Base::member} = super.{self::Base::member}.{self::B::*}(self::f<dynamic>());
     super.{self::Base::member} = super.{self::Base::member}.{self::B::&}(self::f<dynamic>());
     super.{self::Base::member} = super.{self::Base::member}.{self::B::-}(1);
     super.{self::Base::member} = super.{self::Base::member}.{self::B::-}(1);
     self::B v1 = super.{self::Base::member} = self::f<self::B>();
-    self::B v2 = let final dynamic #t1 = super.{self::Base::member} in #t1.{core::Object::==}(null) ? super.{self::Base::member} = self::f<self::B>() : #t1;
+    self::B v2 = let final self::B #t1 = super.{self::Base::member} in #t1.{core::Object::==}(null) ?{self::B} super.{self::Base::member} = self::f<self::B>() : #t1;
     self::A v3 = super.{self::Base::member} = super.{self::Base::member}.{self::B::+}(self::f<dynamic>());
     self::B v4 = super.{self::Base::member} = super.{self::Base::member}.{self::B::*}(self::f<dynamic>());
     self::C v5 = super.{self::Base::member} = super.{self::Base::member}.{self::B::&}(self::f<dynamic>());
     self::B v6 = super.{self::Base::member} = super.{self::Base::member}.{self::B::-}(1);
-    self::B v7 = let final dynamic #t2 = super.{self::Base::member} in let final dynamic #t3 = super.{self::Base::member} = #t2.{self::B::-}(1) in #t2;
+    self::B v7 = let final self::B #t2 = super.{self::Base::member} in let final self::B #t3 = super.{self::Base::member} = #t2.{self::B::-}(1) in #t2;
   }
 }
 static method f<T extends core::Object>() → self::f::T

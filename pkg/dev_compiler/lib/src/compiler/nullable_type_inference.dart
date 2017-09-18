@@ -174,9 +174,11 @@ abstract class NullableTypeInference {
 
       if (element is PropertyAccessorElement && element.isGetter) {
         PropertyInducingElement variable = element.variable;
-        var isVirtual =
-            variable is FieldElement && virtualFields.isVirtual(variable);
-        return isVirtual || (variable.computeConstantValue()?.isNull ?? true);
+        if (variable is FieldElement && virtualFields.isVirtual(variable)) {
+          return true;
+        }
+        var value = variable.computeConstantValue();
+        return value == null || value.isNull || !value.hasKnownValue;
       }
 
       // Other types of identifiers are nullable (parameters, fields).

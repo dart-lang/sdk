@@ -19,10 +19,6 @@
 namespace dart {
 
 DEFINE_FLAG(int,
-            heap_growth_rate,
-            0,
-            "The max number of pages the heap can grow at a time");
-DEFINE_FLAG(int,
             old_gen_growth_space_ratio,
             20,
             "The desired maximum percentage of free space after old gen GC");

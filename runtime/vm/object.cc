@@ -12834,15 +12834,25 @@ intptr_t ICData::NumArgsTested() const {
   return NumArgsTestedBits::decode(raw_ptr()->state_bits_);
 }
 
+void ICData::SetNumArgsTested(intptr_t value) const {
+  ASSERT(Utils::IsUint(2, value));
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  NumArgsTestedBits::update(value, raw_ptr()->state_bits_));
+}
+
 intptr_t ICData::TypeArgsLen() const {
   ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
   return args_desc.TypeArgsLen();
 }
 
-void ICData::SetNumArgsTested(intptr_t value) const {
-  ASSERT(Utils::IsUint(2, value));
-  StoreNonPointer(&raw_ptr()->state_bits_,
-                  NumArgsTestedBits::update(value, raw_ptr()->state_bits_));
+intptr_t ICData::CountWithTypeArgs() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.CountWithTypeArgs();
+}
+
+intptr_t ICData::CountWithoutTypeArgs() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.Count();
 }
 
 uint32_t ICData::DeoptReasons() const {
@@ -14407,8 +14417,10 @@ void Code::GetInlinedFunctionsAtInstruction(
     GrowableArray<TokenPosition>* token_positions) const {
   const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
   if (map.IsNull()) {
-    ASSERT(!IsFunctionCode());
-    return;  // VM stub or allocation stub.
+    ASSERT(!IsFunctionCode() ||
+           (Isolate::Current()->object_store()->megamorphic_miss_code() ==
+            this->raw()));
+    return;  // VM stub, allocation stub, or megamorphic miss function.
   }
   const Array& id_map = Array::Handle(inlined_id_to_function());
   const Function& root = Function::Handle(function());

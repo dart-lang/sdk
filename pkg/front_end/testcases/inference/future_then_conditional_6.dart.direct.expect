@@ -14,8 +14,8 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
 }
 static method test() → void {
   asy::Future<core::bool> f;
-  asy::Future<core::int> t1 = f.then((dynamic x) → dynamic async => x ? 2 : await asy::Future::value<core::int>(3));
-  asy::Future<core::int> t2 = f.then((dynamic x) → dynamic async {
+  asy::Future<core::int> t1 = f.then((dynamic x) → asy::Future<dynamic> async => x ? 2 : await asy::Future::value<core::int>(3));
+  asy::Future<core::int> t2 = f.then((dynamic x) → asy::Future<dynamic> async {
     return await x ? 2 : asy::Future::value<core::int>(3);
   });
   asy::Future<core::int> t5 = f.then((dynamic x) → dynamic => x ? 2 : asy::Future::value<core::int>(3));

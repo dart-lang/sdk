@@ -42,6 +42,58 @@ class B extends self::A {}
     expect(newHierarchy, isNot(same(hierarchy)));
     expect(newHierarchy, new isInstanceOf<ClosedWorldClassHierarchy>());
   }
+
+  void test_getSingleTargetForInterfaceInvocation() {
+    var methodInA = newEmptyMethod('foo', isAbstract: true);
+    var methodInB = newEmptyMethod('foo');
+    var methodInD = newEmptyMethod('foo');
+    var methodInE = newEmptyMethod('foo');
+
+    var a = addClass(
+        new Class(name: 'A', supertype: objectSuper, procedures: [methodInA]));
+    var b = addClass(new Class(
+        name: 'B',
+        isAbstract: true,
+        supertype: objectSuper,
+        procedures: [methodInB]));
+    var c = addClass(new Class(
+        name: 'C',
+        supertype: b.asThisSupertype,
+        implementedTypes: [a.asThisSupertype]));
+    addClass(new Class(
+        name: 'D', supertype: b.asThisSupertype, procedures: [methodInD]));
+    addClass(new Class(
+        name: 'E',
+        isAbstract: true,
+        supertype: objectSuper,
+        implementedTypes: [c.asThisSupertype],
+        procedures: [methodInE]));
+
+    _assertTestLibraryText('''
+class A {
+  abstract method foo() → void;
+}
+abstract class B {
+  method foo() → void {}
+}
+class C extends self::B implements self::A {}
+class D extends self::B {
+  method foo() → void {}
+}
+abstract class E implements self::C {
+  method foo() → void {}
+}
+''');
+
+    ClosedWorldClassHierarchy cwch = hierarchy as ClosedWorldClassHierarchy;
+
+    expect(cwch.getSingleTargetForInterfaceInvocation(methodInA), methodInB);
+    expect(cwch.getSingleTargetForInterfaceInvocation(methodInB),
+        null); // B::foo and D::foo
+    expect(cwch.getSingleTargetForInterfaceInvocation(methodInD), methodInD);
+    expect(cwch.getSingleTargetForInterfaceInvocation(methodInE),
+        null); // no concrete subtypes
+  }
 }
 
 @reflectiveTest

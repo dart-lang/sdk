@@ -97,10 +97,11 @@ testVersion() {
     RegExp re = new RegExp(r'(\d+)\.(\d+)\.(\d+)(-dev\.([^\.]*)\.([^\.]*))?');
     var match = re.firstMatch(version);
     Expect.isNotNull(match);
+    var major = int.parse(match.group(1));
     // Major version.
-    Expect.isTrue(int.parse(match.group(1)) == 1);
+    Expect.isTrue(major == 1 || major == 2);
     // Minor version.
-    Expect.isTrue(int.parse(match.group(2)) >= 9);
+    Expect.isTrue(int.parse(match.group(2)) >= 0);
     // Patch version.
     Expect.isTrue(int.parse(match.group(3)) >= 0);
     // Dev
@@ -120,6 +121,7 @@ testVersion() {
 
   // Ensure we can match valid versions.
   checkValidVersion('1.9.0');
+  checkValidVersion('2.0.0');
   checkValidVersion('1.9.0-dev.0.0');
   checkValidVersion('1.9.0-edge');
   checkValidVersion('1.9.0-edge.r41234');
@@ -130,7 +132,6 @@ testVersion() {
   checkValidVersion(stripAdditionalInfo(Platform.version));
   // Test some invalid versions.
   Expect.throws(() => checkValidVersion('1.9'));
-  Expect.throws(() => checkValidVersion('2.0.0'));
   Expect.throws(() => checkValidVersion('..'));
   Expect.throws(() => checkValidVersion('1..'));
   Expect.throws(() => checkValidVersion('1.9.'));

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.canonical_name;
 
-import 'coq_annot.dart';
 import 'ast.dart';
 
 /// A string sequence that identifies a library, class, or member.
@@ -57,12 +56,11 @@ import 'ast.dart';
 ///
 /// The "qualified name" allows a member to have a name that is private to
 /// a library other than the one containing that member.
-@coq
 class CanonicalName {
   final CanonicalName parent;
 
-  @coq
   final String name;
+  CanonicalName _nonRootTop;
 
   Map<String, CanonicalName> _children;
 
@@ -74,13 +72,17 @@ class CanonicalName {
 
   CanonicalName._(this.parent, this.name) {
     assert(name != null);
+    assert(parent != null);
+    _nonRootTop = parent.isRoot ? this : parent._nonRootTop;
   }
 
   CanonicalName.root()
       : parent = null,
+        _nonRootTop = null,
         name = '';
 
   bool get isRoot => parent == null;
+  CanonicalName get nonRootTop => _nonRootTop;
 
   Iterable<CanonicalName> get children =>
       _children?.values ?? const <CanonicalName>[];

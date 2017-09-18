@@ -40,7 +40,7 @@ import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../../util/uri_extras.dart' show relativize;
 import '../../world.dart' show ClosedWorld;
-import '../constant_ordering.dart' show deepCompareConstants;
+import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../js_emitter.dart' as js_emitter show EmitterBase, EmitterFactory;
@@ -97,6 +97,7 @@ class Emitter extends js_emitter.EmitterBase {
   final NsmEmitter nsmEmitter;
   final InterceptorEmitter interceptorEmitter;
   final Sorter _sorter;
+  final ConstantOrdering _constantOrdering;
 
   // TODO(johnniwinther): Wrap these fields in a caching strategy.
   final List<jsAst.Statement> cachedEmittedConstantsAst = <jsAst.Statement>[];
@@ -169,10 +170,12 @@ class Emitter extends js_emitter.EmitterBase {
   final bool generateSourceMap;
 
   Emitter(this.compiler, this.namer, this._closedWorld, this.generateSourceMap,
-      this.task, this._sorter)
+      this.task, Sorter sorter)
       : classEmitter = new ClassEmitter(_closedWorld),
         interceptorEmitter = new InterceptorEmitter(_closedWorld),
-        nsmEmitter = new NsmEmitter(_closedWorld) {
+        nsmEmitter = new NsmEmitter(_closedWorld),
+        _sorter = sorter,
+        _constantOrdering = new ConstantOrdering(sorter) {
     constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,
@@ -236,7 +239,7 @@ class Emitter extends js_emitter.EmitterBase {
     if (r != 0) return r;
 
     // Resolve collisions in the long name by using a structural order.
-    return deepCompareConstants(a, b);
+    return _constantOrdering.compare(a, b);
   }
 
   @override

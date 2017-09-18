@@ -90,17 +90,28 @@ const char* CanonicalFunction(const char* func) {
 #define API_TIMELINE_DURATION                                                  \
   TimelineDurationScope tds(Thread::Current(), Timeline::GetAPIStream(),       \
                             CURRENT_FUNC)
+#define API_TIMELINE_DURATION_BASIC                                            \
+  API_TIMELINE_DURATION;                                                       \
+  tds.SetNumArguments(1);                                                      \
+  tds.CopyArgument(0, "mode", "basic");
 
 #define API_TIMELINE_BEGIN_END                                                 \
   TimelineBeginEndScope tbes(Thread::Current(), Timeline::GetAPIStream(),      \
                              CURRENT_FUNC)
+
+#define API_TIMELINE_BEGIN_END_BASIC                                           \
+  API_TIMELINE_BEGIN_END;                                                      \
+  tbes.SetNumArguments(1);                                                     \
+  tbes.CopyArgument(0, "mode", "basic");
 #else
 #define API_TIMELINE_DURATION                                                  \
   do {                                                                         \
   } while (false)
+#define API_TIMELINE_DURATION_BASIC API_TIMELINE_DURATION
 #define API_TIMELINE_BEGIN_END                                                 \
   do {                                                                         \
   } while (false)
+#define API_TIMELINE_BEGIN_END_BASIC API_TIMELINE_BEGIN_END
 #endif  // !PRODUCT
 
 #if defined(DEBUG)
@@ -1622,7 +1633,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END;
+  API_TIMELINE_BEGIN_END_BASIC;
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
     Dart_Handle error = Api::NewHandle(T, T->sticky_error());
@@ -1637,7 +1648,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessages() {
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END;
+  API_TIMELINE_BEGIN_END_BASIC;
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleAllMessages() != MessageHandler::kOK) {
     Dart_Handle error = Api::NewHandle(T, T->sticky_error());
@@ -5130,13 +5141,15 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
 }
 
 DART_EXPORT void* Dart_ReadKernelBinary(const uint8_t* buffer,
-                                        intptr_t buffer_len) {
+                                        intptr_t buffer_len,
+                                        Dart_ReleaseBufferCallback callback) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
   return NULL;
 #else
   kernel::Program* program =
       ReadPrecompiledKernelFromBuffer(buffer, buffer_len);
+  program->set_release_buffer_callback(callback);
   return program;
 #endif
 }

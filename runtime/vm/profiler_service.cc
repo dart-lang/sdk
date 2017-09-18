@@ -2453,6 +2453,10 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
       event.AddProperty64("tid", OSThread::ThreadIdToIntPtr(sample->tid()));
       event.AddPropertyTimeMicros("ts", sample->timestamp());
       event.AddProperty("cat", "Dart");
+      if (!Isolate::IsVMInternalIsolate(isolate_)) {
+        JSONObject args(&event, "args");
+        args.AddProperty("mode", "basic");
+      }
 
       ProfileTrieNode* trie = sample->timeline_trie();
       ASSERT(trie->frame_id() != -1);

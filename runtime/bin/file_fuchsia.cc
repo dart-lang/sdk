@@ -9,8 +9,8 @@
 
 #include <errno.h>           // NOLINT
 #include <fcntl.h>           // NOLINT
+#include <fdio/namespace.h>  // NOLINT
 #include <libgen.h>          // NOLINT
-#include <mxio/namespace.h>  // NOLINT
 #include <sys/mman.h>        // NOLINT
 #include <sys/stat.h>        // NOLINT
 #include <sys/types.h>       // NOLINT
@@ -368,7 +368,7 @@ bool File::Copy(Namespace* namespc,
     VOID_TEMP_FAILURE_RETRY(close(old_fd));
     return false;
   }
-  // TODO(MG-429): Use sendfile/copyfile or equivalent when there is one.
+  // TODO(ZX-429): Use sendfile/copyfile or equivalent when there is one.
   intptr_t result;
   const intptr_t kBufferSize = 8 * KB;
   uint8_t buffer[kBufferSize];

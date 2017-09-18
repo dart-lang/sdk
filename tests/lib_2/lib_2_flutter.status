@@ -3,10 +3,15 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $runtime == flutter ]
+async/catch_errors11_test: Skip # Flutter Issue 9113
 async/intercept_schedule_microtask2_test: Skip # Flutter Issue 9113
 async/intercept_schedule_microtask6_test: Skip # Flutter Issue 9113
 async/intercept_schedule_microtask5_test: Skip # Flutter Issue 9113
 async/run_zoned6_test/01: Skip # Flutter Issue 9113
-async/schedule_microtask_test: Skip # Flutter Issue 9113
 async/run_zoned9_test/01: Skip # Flutter Issue 9113
+async/schedule_microtask_test: Skip # Flutter Issue 9113
+async/stream_empty_test: Skip # Flutter Issue 9113
+async/stream_event_transformed_test: Skip # Flutter Issue 9113
+isolate/issue_21398_parent_isolate2_test/01: Skip # Flutter Issue 9114
+isolate/isolate_import_test/01: Skip # Flutter Issue 9114
 math/random_secure_test: RuntimeError # Flutter Issue 9113

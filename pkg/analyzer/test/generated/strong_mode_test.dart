@@ -2789,7 +2789,7 @@ void g(T f<T>(T x)) {}
 ''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
     expectFunctionType('f', '<T>(T) → T',
-        elementTypeParams: '[T]', typeFormals: '[T]');
+        elementTypeParams: '[]', typeFormals: '[T]');
     SimpleIdentifier f = findIdentifier('f');
     ParameterElementImpl e = f.staticElement;
     FunctionType type = e.type;
@@ -3678,6 +3678,18 @@ typedef void F<T extends C>();
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_functionType() async {
+    await resolveTestUnit(r'''
+class A<T extends int> {}
+class C<T extends Function(A)> {}
+class D<T extends A Function()> {}
+''', noErrors: false);
+    assertErrors(testSource, [
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND
+    ]);
   }
 
   test_notInstantiatedBound_indirect_class_class() async {

@@ -144,7 +144,14 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   TypeInformation computeMemberTypeInformation(
       MemberEntity member, ir.Node body) {
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
-        options, closedWorld, _closureDataLookup, this, member, body);
+        options,
+        closedWorld,
+        _closureDataLookup,
+        this,
+        member,
+        body,
+        _elementMap,
+        _globalLocalsMap.getLocalsMap(member));
     return visitor.run();
   }
 
@@ -198,7 +205,14 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
 
   @override
   GlobalTypeInferenceElementData<ir.Node> createElementData() {
-    throw new UnimplementedError('KernelInferrerEngine.createElementData');
+    return new KernelGlobalTypeInferenceElementData();
+  }
+
+  @override
+  bool hasCallType(ClassEntity cls) {
+    return _elementMap.types
+            .getCallType(_elementMap.elementEnvironment.getThisType(cls)) !=
+        null;
   }
 }
 
@@ -277,13 +291,12 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
 
   @override
   ParameterTypeInformation createParameterTypeInformation(
-      Local parameter, TypeSystem<ir.Node> types) {
+      covariant JLocal parameter, TypeSystem<ir.Node> types) {
     MemberEntity context = parameter.memberContext;
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(context);
     ir.FunctionNode functionNode =
         localsMap.getFunctionNodeForParameter(parameter);
-    DartType type =
-        _elementMap.getDartType(localsMap.getParameterType(parameter));
+    DartType type = localsMap.getLocalType(_elementMap, parameter);
     MemberEntity member;
     bool isClosure = false;
     if (functionNode.parent is ir.Member) {
@@ -335,5 +348,87 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
         return new GenerativeConstructorTypeInformation(constructor);
       }
     }
+  }
+}
+
+class KernelGlobalTypeInferenceElementData
+    extends GlobalTypeInferenceElementData<ir.Node> {
+  // TODO(johnniwinther): Rename this together with [typeOfSend].
+  Map<ir.Node, TypeMask> _sendMap;
+
+  Map<ir.ForInStatement, TypeMask> _iteratorMap;
+  Map<ir.ForInStatement, TypeMask> _currentMap;
+  Map<ir.ForInStatement, TypeMask> _moveNextMap;
+
+  @override
+  TypeMask typeOfSend(ir.Node node) {
+    if (_sendMap == null) return null;
+    return _sendMap[node];
+  }
+
+  @override
+  void setCurrentTypeMask(covariant ir.ForInStatement node, TypeMask mask) {
+    _currentMap ??= <ir.ForInStatement, TypeMask>{};
+    _currentMap[node] = mask;
+  }
+
+  @override
+  void setMoveNextTypeMask(covariant ir.ForInStatement node, TypeMask mask) {
+    _moveNextMap ??= <ir.ForInStatement, TypeMask>{};
+    _moveNextMap[node] = mask;
+  }
+
+  @override
+  void setIteratorTypeMask(covariant ir.ForInStatement node, TypeMask mask) {
+    _iteratorMap ??= <ir.ForInStatement, TypeMask>{};
+    _iteratorMap[node] = mask;
+  }
+
+  @override
+  TypeMask typeOfIteratorCurrent(covariant ir.ForInStatement node) {
+    if (_currentMap == null) return null;
+    return _currentMap[node];
+  }
+
+  @override
+  TypeMask typeOfIteratorMoveNext(covariant ir.ForInStatement node) {
+    if (_moveNextMap == null) return null;
+    return _moveNextMap[node];
+  }
+
+  @override
+  TypeMask typeOfIterator(covariant ir.ForInStatement node) {
+    if (_iteratorMap == null) return null;
+    return _iteratorMap[node];
+  }
+
+  @override
+  void setOperatorTypeMaskInComplexSendSet(ir.Node node, TypeMask mask) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.setOperatorTypeMaskInComplexSendSet');
+  }
+
+  @override
+  void setGetterTypeMaskInComplexSendSet(ir.Node node, TypeMask mask) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.setGetterTypeMaskInComplexSendSet');
+  }
+
+  @override
+  void setTypeMask(ir.Node node, TypeMask mask) {
+    _sendMap ??= <ir.Node, TypeMask>{};
+    _sendMap[node] = mask;
+  }
+
+  @override
+  TypeMask typeOfOperator(ir.Node node) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.typeOfOperator');
+  }
+
+  @override
+  TypeMask typeOfGetter(ir.Node node) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.typeOfGetter');
   }
 }

@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/target/targets.dart';
@@ -312,6 +312,12 @@ class C {}
     expect(part.hasMixinApplication, isTrue);
     expect(lib.hasMixinApplication, isFalse);
     expect(lib.hasMixinApplicationLibrary, isTrue);
+  }
+
+  test_lineStarts() async {
+    var uri = writeFile('/a.dart', '000\n1111\r\n22\n');
+    FileState file = await fsState.getFile(uri);
+    expect(file.lineStarts, [0, 4, 10, 13]);
   }
 
   test_newFileListener() async {

@@ -8,11 +8,14 @@ class C<T extends core::Object> extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
+  set y(self::C::T value) → void {}
   method f(self::C::T value) → void {
     this.x = value;
+    this.y = value;
   }
 }
 static method g(self::C<core::num> c) → void {
   c.x = 1.5;
+  c.y = 1.5;
 }
 static method main() → void {}

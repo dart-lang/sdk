@@ -3409,7 +3409,6 @@ class JumpTargetX extends JumpTarget<Node> {
 
   JumpTargetX(this.statement, this.nestingLevel, this.executableContext);
 
-  @override
   MemberElement get memberContext => executableContext.memberContext;
 
   LabelDefinition<Node> addLabel(Label label, String labelName,

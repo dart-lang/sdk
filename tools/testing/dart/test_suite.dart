@@ -118,11 +118,12 @@ class FutureGroup {
 abstract class TestSuite {
   final Configuration configuration;
   final String suiteName;
+  final List<String> statusFilePaths;
   // This function is set by subclasses before enqueueing starts.
   Function doTest;
   Map<String, String> _environmentOverrides;
 
-  TestSuite(this.configuration, this.suiteName) {
+  TestSuite(this.configuration, this.suiteName, this.statusFilePaths) {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory
     };
@@ -441,13 +442,12 @@ class CCTestSuite extends TestSuite {
   String targetRunnerPath;
   String hostRunnerPath;
   final String dartDir;
-  List<String> statusFilePaths;
 
   CCTestSuite(Configuration configuration, String suiteName, String runnerName,
-      this.statusFilePaths,
+      List<String> statusFilePaths,
       {this.testPrefix: ''})
       : dartDir = TestUtils.dartDir.toNativePath(),
-        super(configuration, suiteName) {
+        super(configuration, suiteName, statusFilePaths) {
     // For running the tests we use the given '$runnerName' binary
     targetRunnerPath = '$buildDir/$runnerName';
 
@@ -554,7 +554,6 @@ class HtmlTestInformation extends TestInformation {
  */
 class StandardTestSuite extends TestSuite {
   final Path suiteDir;
-  final List<String> statusFilePaths;
   ExpectationSet testExpectations;
   List<TestInformation> cachedTests;
   final Path dartDir;
@@ -564,13 +563,13 @@ class StandardTestSuite extends TestSuite {
   List<Uri> _dart2JsBootstrapDependencies;
 
   StandardTestSuite(Configuration configuration, String suiteName,
-      Path suiteDirectory, this.statusFilePaths,
+      Path suiteDirectory, List<String> statusFilePaths,
       {this.isTestFilePredicate, bool recursive: false})
       : dartDir = TestUtils.dartDir,
         listRecursively = recursive,
         suiteDir = TestUtils.dartDir.join(suiteDirectory),
         extraVmOptions = configuration.vmOptions,
-        super(configuration, suiteName) {
+        super(configuration, suiteName, statusFilePaths) {
     if (!useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
@@ -1276,6 +1275,7 @@ class StandardTestSuite extends TestSuite {
     if (configuration.compiler == Compiler.dart2analyzer) {
       args.add('--format=machine');
       args.add('--no-hints');
+      if (configuration.previewDart2) args.add("--preview-dart-2");
 
       if (filePath.filename.contains("dart2js") ||
           filePath.directoryPath.segments().last.contains('html_common')) {

@@ -4,25 +4,25 @@
 
 /*element: readParameterInAnonymousClosure:*/
 readParameterInAnonymousClosure(/**/ parameter) {
-  return /*free=[parameter]*/ () => parameter;
+  return /*fields=[parameter],free=[parameter]*/ () => parameter;
 }
 
 /*element: readParameterInClosure:*/
 readParameterInClosure(/**/ parameter) {
-  /*free=[parameter]*/ func() => parameter;
+  /*fields=[parameter],free=[parameter]*/ func() => parameter;
   return func;
 }
 
 /*element: writeParameterInAnonymousClosure:box=(box0 which holds [parameter])*/
 writeParameterInAnonymousClosure(/*boxed*/ parameter) {
-  return /*free=[box0,parameter]*/ () {
+  return /*fields=[box0],free=[box0,parameter]*/ () {
     parameter = 42;
   };
 }
 
 /*element: writeParameterInClosure:box=(box0 which holds [parameter])*/
 writeParameterInClosure(/*boxed*/ parameter) {
-  /*free=[box0,parameter]*/ func() {
+  /*fields=[box0],free=[box0,parameter]*/ func() {
     parameter = 43;
   }
 
@@ -32,13 +32,13 @@ writeParameterInClosure(/*boxed*/ parameter) {
 /*element: readLocalInAnonymousClosure:*/
 readLocalInAnonymousClosure(/**/ parameter) {
   var /**/ local = parameter;
-  return /*free=[local]*/ () => local;
+  return /*fields=[local],free=[local]*/ () => local;
 }
 
 /*element: readLocalInClosure:*/
 readLocalInClosure(/**/ parameter) {
   var /**/ local = parameter;
-  /*free=[local]*/ func() => local;
+  /*fields=[local],free=[local]*/ func() => local;
   return func;
 }
 
@@ -46,7 +46,7 @@ readLocalInClosure(/**/ parameter) {
 writeLocalInAnonymousClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
-  return /*free=[box0,local]*/ () {
+  return /*fields=[box0],free=[box0,local]*/ () {
     local = 44;
   };
 }
@@ -55,7 +55,7 @@ writeLocalInAnonymousClosure(/**/ parameter) {
 writeLocalInClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
-  /*free=[box0,local]*/ func() {
+  /*fields=[box0],free=[box0,local]*/ func() {
     local = 45;
   }
 
@@ -66,7 +66,7 @@ class Foo {
   int /*element: Foo.bar:hasThis*/ bar = 4;
 
   /*element: Foo.baz:hasThis*/ baz() {
-    /*free=[this],hasThis*/ func() => bar;
+    /*fields=[this],free=[this],hasThis*/ func() => bar;
     return func;
   }
 }

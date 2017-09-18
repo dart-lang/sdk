@@ -64,8 +64,6 @@ import 'enqueuer.dart';
 import 'impact_transformer.dart';
 import 'interceptor_data.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
-import 'lookup_map_analysis.dart'
-    show LookupMapResolutionAnalysis, LookupMapAnalysis;
 import 'mirrors_analysis.dart';
 import 'mirrors_data.dart';
 import 'namer.dart';
@@ -383,12 +381,6 @@ class JavaScriptBackend {
   /// constructors for custom elements.
   CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
 
-  /// Resolution support for tree-shaking entries of `LookupMap`.
-  LookupMapResolutionAnalysis lookupMapResolutionAnalysis;
-
-  /// Codegen support for tree-shaking entries of `LookupMap`.
-  LookupMapAnalysis _lookupMapAnalysis;
-
   /// Codegen support for typed JavaScript interop.
   JsInteropAnalysis jsInteropAnalysis;
 
@@ -461,8 +453,6 @@ class JavaScriptBackend {
     jsInteropAnalysis = new JsInteropAnalysis(this);
     _mirrorsResolutionAnalysis =
         compiler.frontendStrategy.createMirrorsResolutionAnalysis(this);
-    lookupMapResolutionAnalysis = new LookupMapResolutionAnalysis(
-        reporter, compiler.frontendStrategy.elementEnvironment);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
@@ -527,15 +517,6 @@ class JavaScriptBackend {
         failedAt(NO_LOCATION_SPANNABLE,
             "MirrorsCodegenAnalysis has not been created yet."));
     return _mirrorsCodegenAnalysis;
-  }
-
-  /// Codegen support for tree-shaking entries of `LookupMap`.
-  LookupMapAnalysis get lookupMapAnalysis {
-    assert(
-        _lookupMapAnalysis != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "LookupMapAnalysis has not been created yet."));
-    return _lookupMapAnalysis;
   }
 
   OneShotInterceptorData get oneShotInterceptorData {
@@ -771,7 +752,6 @@ class JavaScriptBackend {
             mirrorsDataBuilder,
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
-            lookupMapResolutionAnalysis,
             mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
             _nativeResolutionEnqueuer,
@@ -798,13 +778,6 @@ class JavaScriptBackend {
         new BackendImpacts(compiler.options, commonElements);
     _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
         closedWorld.elementEnvironment, this, commonElements, mirrorsData);
-    _lookupMapAnalysis = new LookupMapAnalysis(
-        reporter,
-        constantSystem,
-        constants,
-        elementEnvironment,
-        commonElements,
-        lookupMapResolutionAnalysis);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         constantSystem,
@@ -834,7 +807,6 @@ class JavaScriptBackend {
             closedWorld.rtiNeed,
             customElementsCodegenAnalysis,
             typeVariableCodegenAnalysis,
-            lookupMapAnalysis,
             mirrorsCodegenAnalysis,
             nativeCodegenEnqueuer));
   }
@@ -964,8 +936,6 @@ class JavaScriptBackend {
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
       htmlLibraryIsLoaded = true;
-    } else if (uri == LookupMapResolutionAnalysis.PACKAGE_LOOKUP_MAP) {
-      lookupMapResolutionAnalysis.init(library);
     }
   }
 
@@ -1015,7 +985,6 @@ class JavaScriptBackend {
         nativeCodegenEnqueuer,
         namer,
         oneShotInterceptorData,
-        lookupMapAnalysis,
         rtiChecksBuilder);
     return const WorldImpact();
   }

@@ -20,10 +20,6 @@ import 'analyze_helper.dart';
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List /* <String|MessageKind> */ > WHITE_LIST = const {
-  "/test/lib/src/util/": const [
-    "Library 'package:async/async.dart' doesn't export a "
-        "'ForkableStream' declaration.",
-  ],
   "pkg/kernel/lib/transformations/closure/": const [
     "Duplicated library name 'kernel.transformations.closure.converter'",
   ],

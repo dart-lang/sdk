@@ -52,8 +52,11 @@ enum LogicalOperator { kAnd, kOr };
 class Program {
  public:
   ~Program() {
-    free(const_cast<uint8_t*>(kernel_data_));
-    kernel_data_ = NULL;
+    if (kernel_data_ != NULL) {
+      ASSERT(release_callback != NULL);
+      release_callback(const_cast<uint8_t*>(kernel_data_));
+      kernel_data_ = NULL;
+    }
   }
 
   static Program* ReadFrom(Reader* reader);
@@ -64,21 +67,29 @@ class Program {
   const uint8_t* kernel_data() { return kernel_data_; }
   intptr_t kernel_data_size() { return kernel_data_size_; }
   intptr_t library_count() { return library_count_; }
+  void set_release_buffer_callback(Dart_ReleaseBufferCallback callback) {
+    release_callback = callback;
+  }
 
  private:
-  Program() : kernel_data_(NULL), kernel_data_size_(-1) {}
+  Program()
+      : kernel_data_(NULL), kernel_data_size_(-1), release_callback(NULL) {}
 
   NameIndex main_method_reference_;  // Procedure.
   intptr_t library_count_;
 
-  // The offset from the start of the binary to the start of the string table.
-  intptr_t string_table_offset_;
+  // The offset from the start of the binary to the start of the source table.
+  intptr_t source_table_offset_;
 
   // The offset from the start of the binary to the canonical name table.
   intptr_t name_table_offset_;
 
+  // The offset from the start of the binary to the start of the string table.
+  intptr_t string_table_offset_;
+
   const uint8_t* kernel_data_;
   intptr_t kernel_data_size_;
+  Dart_ReleaseBufferCallback release_callback;
 
   DISALLOW_COPY_AND_ASSIGN(Program);
 };

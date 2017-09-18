@@ -39,6 +39,8 @@ class Configuration {
       this.isMinified,
       this.isVerbose,
       this.listTests,
+      this.listStatusFiles,
+      this.previewDart2,
       this.printTiming,
       this.printReport,
       this.reportInJson,
@@ -104,6 +106,8 @@ class Configuration {
   final bool isMinified;
   final bool isVerbose;
   final bool listTests;
+  final bool listStatusFiles;
+  final bool previewDart2;
   final bool printTiming;
   final bool printReport;
   final bool reportInJson;
@@ -428,8 +432,7 @@ class Configuration {
 
   /// [toSummaryMap] returns a map of configurations important to the running
   /// of a test. Flags and properties used for output are not included.
-  /// Boolean flags that are false are not included in the map. The summary map
-  /// can be used to serialize to json for test-output logging.
+  /// The summary map can be used to serialize to json for test-output logging.
   Map toSummaryMap() {
     if (_summaryMap == null) {
       _summaryMap = {
@@ -447,7 +450,14 @@ class Configuration {
         'use_sdk': useSdk,
         'builder_tag': builderTag,
         'fast_startup': useFastStartup,
-        'timeout': timeout
+        'timeout': timeout,
+        'preview_dart_2': previewDart2,
+        'dart2js_with_kernel': useDart2JSWithKernel,
+        'dart2js_with_kernel_in_ssa': useDart2JSWithKernelInSsa,
+        'enable_asserts': useEnableAsserts,
+        'hot_reload': hotReload,
+        'hot_reload_rollback': hotReloadRollback,
+        'selectors': selectors.keys.toList()
       };
     }
     return _summaryMap;

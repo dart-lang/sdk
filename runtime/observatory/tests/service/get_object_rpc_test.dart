@@ -657,9 +657,8 @@ var tests = [
     expect(result['uri'], startsWith('file:'));
     expect(result['uri'], endsWith('get_object_rpc_test.dart'));
     expect(result['debuggable'], equals(true));
-    expect(result['dependencies'].length, ifKernel(isZero, isPositive));
-    nonKernelExecute(() => expect(
-        result['dependencies'][0]['target']['type'], equals('@Library')));
+    expect(result['dependencies'].length, isPositive);
+    expect(result['dependencies'][0]['target']['type'], equals('@Library'));
     expect(result['scripts'].length, isPositive);
     expect(result['scripts'][0]['type'], equals('@Script'));
     expect(result['variables'].length, isPositive);

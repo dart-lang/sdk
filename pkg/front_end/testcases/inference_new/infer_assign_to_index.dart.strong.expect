@@ -3,5 +3,5 @@ import self as self;
 import "dart:core" as core;
 
 static field core::List<core::double> a = <core::double>[];
-static field core::double b = let final dynamic #t1 = self::a in let final dynamic #t2 = 0 in let final dynamic #t3 = 1.0 in let final dynamic #t4 = #t1.{core::List::[]=}(#t2, #t3) in #t3;
+static field core::double b = let final core::List<core::double> #t1 = self::a in let final core::int #t2 = 0 in let final core::double #t3 = 1.0 in let final void #t4 = #t1.{core::List::[]=}(#t2, #t3) in #t3;
 static method main() → dynamic {}

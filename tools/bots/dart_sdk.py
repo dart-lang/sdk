@@ -120,11 +120,14 @@ def CreateUploadAPIDocs():
   dartdoc_zip =  os.path.join(bot_utils.DART_DIR,
                               utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
                               'dartdocs-api.zip')
-  UploadApiLatestFile()
-  BuildDartdocAPIDocs(dartdoc_dir) 
-  UploadDartdocApiDocs(dartdoc_dir)  
-  CreateZip(dartdoc_dir, dartdoc_zip)  
-  DartArchiveUploadDartdocAPIDocs(dartdoc_zip)
+  if CHANNEL == 'try':
+    BuildDartdocAPIDocs(dartdoc_dir)
+  else:
+    UploadApiLatestFile()
+    BuildDartdocAPIDocs(dartdoc_dir)
+    UploadDartdocApiDocs(dartdoc_dir)
+    CreateZip(dartdoc_dir, dartdoc_zip)
+    DartArchiveUploadDartdocAPIDocs(dartdoc_zip)
 
 def DartArchiveUploadDartdocAPIDocs(api_zip):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)

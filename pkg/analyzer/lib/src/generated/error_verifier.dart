@@ -296,11 +296,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   final bool enableSuperMixins;
 
+  final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
+
   /**
    * Initialize a newly created error verifier.
    */
-  ErrorVerifier(this._errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.enableSuperMixins) {
+  ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
+      this._typeProvider, this._inheritanceManager, this.enableSuperMixins)
+      : _errorReporter = errorReporter,
+        _uninstantiatedBoundChecker =
+            new _UninstantiatedBoundChecker(errorReporter) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
@@ -1189,7 +1194,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkForTypeParameterSupertypeOfItsBound(node);
     _checkForTypeAnnotationDeferredClass(node.bound);
     _checkForImplicitDynamicType(node.bound);
-    _checkForNotInstantiatedBound(node.bound);
+    if (_options.strongMode) node.bound?.accept(_uninstantiatedBoundChecker);
     return super.visitTypeParameter(node);
   }
 
@@ -5312,30 +5317,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
-  void _checkForNotInstantiatedBound(TypeAnnotation node) {
-    if (!_options.strongMode || node == null) {
-      return;
-    }
-
-    if (node is TypeName) {
-      if (node.typeArguments == null) {
-        DartType type = node.type;
-        if (type is ParameterizedType) {
-          Element element = type.element;
-          if (element is TypeParameterizedElement &&
-              element.typeParameters.any((p) => p.bound != null)) {
-            _errorReporter.reportErrorForNode(
-                StrongModeCode.NOT_INSTANTIATED_BOUND, node, [type]);
-          }
-        }
-      } else {
-        node.typeArguments.arguments.forEach(_checkForNotInstantiatedBound);
-      }
-    } else {
-      throw new UnimplementedError('${node.runtimeType}');
-    }
-  }
-
   /**
    * Verify the given operator-method [declaration], does not have an optional
    * parameter. This method assumes that the method declaration was tested to be
@@ -6528,40 +6509,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * itself from anywhere except a class element or type parameter bounds.
    */
   bool _hasTypedefSelfReference(Element element) {
-    Set<Element> checked = new HashSet<Element>();
-    List<Element> toCheck = new List<Element>();
-    GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
-        elementVisitor =
-        new GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(
-            toCheck);
-    toCheck.add(element);
-    bool firstIteration = true;
-    while (true) {
-      Element current;
-      // get next element
-      while (true) {
-        // may be no more elements to check
-        if (toCheck.isEmpty) {
-          return false;
-        }
-        // try to get next element
-        current = toCheck.removeAt(toCheck.length - 1);
-        if (element == current) {
-          if (firstIteration) {
-            firstIteration = false;
-            break;
-          } else {
-            return true;
-          }
-        }
-        if (current != null && !checked.contains(current)) {
-          break;
-        }
-      }
-      // check current element
-      current.accept(elementVisitor);
-      checked.add(current);
-    }
+    var visitor = new _HasTypedefSelfReferenceVisitor(element);
+    element.accept(visitor);
+    return visitor.hasSelfReference;
   }
 
   bool _isFunctionType(DartType type) {
@@ -6919,58 +6869,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 }
 
-class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
-    extends GeneralizingElementVisitor<Object> {
-  List<Element> toCheck;
-
-  GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(this.toCheck)
-      : super();
-
-  @override
-  Object visitClassElement(ClassElement element) {
-    // Typedefs are allowed to reference themselves via classes.
-    return null;
-  }
-
-  @override
-  Object visitFunctionElement(FunctionElement element) {
-    _addTypeToCheck(element.returnType);
-    return super.visitFunctionElement(element);
-  }
-
-  @override
-  Object visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    _addTypeToCheck(element.returnType);
-    return super.visitFunctionTypeAliasElement(element);
-  }
-
-  @override
-  Object visitParameterElement(ParameterElement element) {
-    _addTypeToCheck(element.type);
-    return super.visitParameterElement(element);
-  }
-
-  @override
-  Object visitTypeParameterElement(TypeParameterElement element) {
-    _addTypeToCheck(element.bound);
-    return super.visitTypeParameterElement(element);
-  }
-
-  void _addTypeToCheck(DartType type) {
-    if (type == null) {
-      return;
-    }
-    // schedule for checking
-    toCheck.add(type.element);
-    // type arguments
-    if (type is InterfaceType) {
-      for (DartType typeArgument in type.typeArguments) {
-        _addTypeToCheck(typeArgument);
-      }
-    }
-  }
-}
-
 /**
  * A record of the elements that will be declared in some scope (block), but are
  * not yet declared.
@@ -7138,6 +7036,69 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
       .firstWhere((ElementAnnotation e) => e.isRequired, orElse: () => null);
 }
 
+class _HasTypedefSelfReferenceVisitor
+    extends GeneralizingElementVisitor<Object> {
+  final FunctionTypeAliasElement element;
+  bool hasSelfReference = false;
+
+  _HasTypedefSelfReferenceVisitor(this.element);
+
+  @override
+  Object visitClassElement(ClassElement element) {
+    // Typedefs are allowed to reference themselves via classes.
+    return null;
+  }
+
+  @override
+  Object visitFunctionElement(FunctionElement element) {
+    _addTypeToCheck(element.returnType);
+    return super.visitFunctionElement(element);
+  }
+
+  @override
+  Object visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    _addTypeToCheck(element.returnType);
+    return super.visitFunctionTypeAliasElement(element);
+  }
+
+  @override
+  Object visitParameterElement(ParameterElement element) {
+    _addTypeToCheck(element.type);
+    return super.visitParameterElement(element);
+  }
+
+  @override
+  Object visitTypeParameterElement(TypeParameterElement element) {
+    _addTypeToCheck(element.bound);
+    return super.visitTypeParameterElement(element);
+  }
+
+  void _addTypeToCheck(DartType type) {
+    if (hasSelfReference) {
+      return;
+    }
+    if (type == null) {
+      return;
+    }
+    if (type.element == element) {
+      hasSelfReference = true;
+      return;
+    }
+    if (type is FunctionType) {
+      _addTypeToCheck(type.returnType);
+      for (ParameterElement parameter in type.parameters) {
+        _addTypeToCheck(parameter.type);
+      }
+    }
+    // type arguments
+    if (type is InterfaceType) {
+      for (DartType typeArgument in type.typeArguments) {
+        _addTypeToCheck(typeArgument);
+      }
+    }
+  }
+}
+
 /**
  * Recursively visits an AST, looking for method invocations.
  */
@@ -7150,5 +7111,29 @@ class _InvocationCollector extends RecursiveAstVisitor {
       superCalls.add(node.methodName.name);
     }
     super.visitMethodInvocation(node);
+  }
+}
+
+/**
+ * Recursively visits a type annotation, looking uninstantiated bounds.
+ */
+class _UninstantiatedBoundChecker extends RecursiveAstVisitor {
+  final ErrorReporter _errorReporter;
+  _UninstantiatedBoundChecker(this._errorReporter);
+
+  @override
+  visitTypeName(node) {
+    var typeArgs = node.typeArguments;
+    if (typeArgs != null) {
+      typeArgs.accept(this);
+      return;
+    }
+
+    var element = node.type.element;
+    if (element is TypeParameterizedElement &&
+        element.typeParameters.any((p) => p.bound != null)) {
+      _errorReporter.reportErrorForNode(
+          StrongModeCode.NOT_INSTANTIATED_BOUND, node, [node.type]);
+    }
   }
 }

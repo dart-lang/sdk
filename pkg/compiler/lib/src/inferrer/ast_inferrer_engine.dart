@@ -94,6 +94,11 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
     return null;
   }
 
+  @override
+  bool hasCallType(covariant ClassElement cls) {
+    return cls.callType != null;
+  }
+
   /// Computes a 'size' of [_element] based on the number of selectors in the
   /// associated [TreeElements]. This is used for sorting member for the type
   /// inference work-queue.

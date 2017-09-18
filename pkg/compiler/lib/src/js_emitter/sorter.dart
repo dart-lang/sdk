@@ -20,6 +20,11 @@ abstract class Sorter {
 
   /// Returns a sorted list of [members].
   Iterable<MemberEntity> sortMembers(Iterable<MemberEntity> members);
+
+  int compareLibrariesByLocation(LibraryEntity a, LibraryEntity b);
+  int compareClassesByLocation(ClassEntity a, ClassEntity b);
+  int compareTypedefsByLocation(TypedefEntity a, TypedefEntity b);
+  int compareMembersByLocation(MemberEntity a, MemberEntity b);
 }
 
 class ElementSorter implements Sorter {
@@ -61,4 +66,24 @@ class ElementSorter implements Sorter {
   List<MemberEntity> sortMembers(Iterable<MemberEntity> members) {
     return Elements.sortedByPosition(new List.from(members, growable: false));
   }
+
+  @override
+  int compareLibrariesByLocation(
+          covariant LibraryElement a, covariant LibraryElement b) =>
+      Elements.compareByPosition(a, b);
+
+  @override
+  int compareClassesByLocation(
+          covariant ClassElement a, covariant ClassElement b) =>
+      Elements.compareByPosition(a, b);
+
+  @override
+  int compareTypedefsByLocation(
+          covariant TypedefElement a, covariant TypedefElement b) =>
+      Elements.compareByPosition(a, b);
+
+  @override
+  int compareMembersByLocation(
+          covariant MemberElement a, covariant MemberElement b) =>
+      Elements.compareByPosition(a, b);
 }

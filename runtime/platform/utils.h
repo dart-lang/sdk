@@ -5,6 +5,8 @@
 #ifndef RUNTIME_PLATFORM_UTILS_H_
 #define RUNTIME_PLATFORM_UTILS_H_
 
+#include <limits>
+
 #include "platform/assert.h"
 #include "platform/globals.h"
 
@@ -22,9 +24,33 @@ class Utils {
     return x > y ? x : y;
   }
 
+  // Calculates absolute value of a given signed integer.
+  // `x` must not be equal to minimum value representable by `T`
+  // as its absolute value is out of range.
   template <typename T>
   static inline T Abs(T x) {
+    // Note: as a general rule, it is not OK to use STL in Dart VM.
+    // However, std::numeric_limits<T>::min() and max() are harmless
+    // and worthwile exception from this rule.
+    ASSERT(x != std::numeric_limits<T>::min());
     if (x < 0) return -x;
+    return x;
+  }
+
+  // Calculates absolute value of a given signed integer with saturation.
+  // If `x` equals to minimum value representable by `T`, then
+  // absolute value is saturated to the maximum value representable by `T`.
+  template <typename T>
+  static inline T AbsWithSaturation(T x) {
+    if (x < 0) {
+      // Note: as a general rule, it is not OK to use STL in Dart VM.
+      // However, std::numeric_limits<T>::min() and max() are harmless
+      // and worthwile exception from this rule.
+      if (x == std::numeric_limits<T>::min()) {
+        return std::numeric_limits<T>::max();
+      }
+      return -x;
+    }
     return x;
   }
 

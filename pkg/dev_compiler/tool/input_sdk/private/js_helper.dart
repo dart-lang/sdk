@@ -24,8 +24,6 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
 
-final _identityHashCode = JS('', 'Symbol("_identityHashCode")');
-
 class _Patch {
   const _Patch();
 }
@@ -55,15 +53,6 @@ class Primitives {
     // fixed value.
     mirrorFunctionCacheName += '_$id';
     mirrorInvokeCacheName += '_$id';
-  }
-
-  static int objectHashCode(object) {
-    int hash = JS('int|Null', r'#[#]', object, _identityHashCode);
-    if (hash == null) {
-      hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
-      JS('void', r'#[#] = #', object, _identityHashCode, hash);
-    }
-    return JS('int', '#', hash);
   }
 
   @NoInline()
@@ -178,11 +167,6 @@ class Primitives {
 
   /** [: r"$".codeUnitAt(0) :] */
   static const int DOLLAR_CHAR_VALUE = 36;
-
-  static String objectToString(Object object) {
-    String name = dart.typeName(dart.getReifiedType(object));
-    return "Instance of '$name'";
-  }
 
   static int dateNow() => JS('int', r'Date.now()');
 
@@ -606,14 +590,6 @@ class _StackTrace implements StackTrace {
   }
 }
 
-int objectHashCode(var object) {
-  if (object == null || JS('bool', "typeof # != 'object'", object)) {
-    return object.hashCode;
-  } else {
-    return Primitives.objectHashCode(object);
-  }
-}
-
 /**
  * Called by generated code to build a map literal. [keyValuePairs] is
  * a list of key, value, key, value, ..., etc.
@@ -776,13 +752,6 @@ class CastErrorImplementation extends Error implements CastError {
   String toString() => message;
 }
 
-/// Used for Strong-mode errors other than type assertions and casts.
-// TODO(jmesserly): remove this: https://github.com/dart-lang/sdk/issues/30095
-class StrongModeErrorImplementation extends Error {
-  final String message;
-  StrongModeErrorImplementation(this.message);
-  String toString() => message;
-}
 
 class FallThroughErrorImplementation extends FallThroughError {
   FallThroughErrorImplementation();
@@ -816,10 +785,6 @@ int random64() {
   int int32a = JS("int", "(Math.random() * 0x100000000) >>> 0");
   int int32b = JS("int", "(Math.random() * 0x100000000) >>> 0");
   return int32a + int32b * 0x100000000;
-}
-
-String jsonEncodeNative(String string) {
-  return JS("String", "JSON.stringify(#)", string);
 }
 
 // TODO(jmesserly): this adapter is to work around

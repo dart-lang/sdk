@@ -270,16 +270,11 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
             'X. This allows you to find "choke points" that are '
             'holding onto a lot of memory. If an object becomes '
             'garbage, all its children in the dominator tree become '
-            'garbage as well. '
-            'The retained size of an object is the sum of the '
-            'retained sizes of its children in the dominator tree '
-            'plus its own shallow size, and is the amount of memory '
-            'that would be freed if the object became garbage.';
+            'garbage as well.';
         report.addAll([
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
-            ..text = text
-            ..title = text,
+            ..text = text,
           _tree
         ]);
         break;
@@ -294,8 +289,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         report.addAll([
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
-            ..text = text
-            ..title = text,
+            ..text = text,
           _tree
         ]);
         break;
@@ -306,7 +300,16 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
             _updateOwnershipClass, _getChildrenOwnershipClass,
             items: items, queue: _r.queue);
         _tree.expand(_snapshot.dominatorTree);
-        report.add(_tree);
+        final text = 'An object X is said to "own" object Y if X is the only '
+            'object that references Y, or X owns the only object that '
+            'references Y. In particular, objects "own" the space of any '
+            'unshared lists or maps they reference.';
+        report.addAll([
+          new DivElement()
+            ..classes = ['content-centered-big', 'explanation']
+            ..text = text,
+          _tree
+        ]);
         break;
       case HeapSnapshotTreeMode.groupByClass:
         final items = _snapshot.classReferences.toList();
@@ -383,7 +386,10 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       ..children = [
         new SpanElement()
           ..classes = ['size']
-          ..title = 'size',
+          ..title = 'owned size',
+        new SpanElement()
+          ..classes = ['percentage']
+          ..title = 'percentage of heap owned',
         new SpanElement()..classes = ['name']
       ];
   }
@@ -542,9 +548,15 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   void _updateOwnershipClass(HtmlElement element, item, int depth) {
     _updateLines(element.children[1].children, depth);
     element.children[0].text = Utils.formatSize(item.size);
-    element.children[1] =
+    element.children[1].text =
+        Utils.formatPercentNormalized(item.size * 1.0 / _snapshot.size);
+    element.children[2] = new SpanElement()
+      ..classes = ['name']
+      ..children = [
+        new SpanElement()..text = ' instances of ',
         new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
-          ..classes = ['name'];
+          ..classes = ['name']
+      ];
   }
 
   static _updateLines(List<Element> lines, int n) {

@@ -6,7 +6,8 @@ library fasta.parser.listener;
 
 import '../../scanner/token.dart' show Token, TokenType;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart'
+    show Message, messageNativeClauseShouldBeAnnotation;
 
 import '../util/link.dart' show Link;
 
@@ -458,9 +459,10 @@ class Listener {
 
   /// Handle the end of a conditional URI construct.  Substructures:
   /// - Dotted name
-  /// - Condition (literal string; only present if [equalitySign] is not `null`)
+  /// - Condition (literal string; only if [equalSign] != null)
   /// - URI (literal string)
-  void endConditionalUri(Token ifKeyword, Token equalitySign) {
+  void endConditionalUri(
+      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
     logEvent("ConditionalUri");
   }
 
@@ -605,7 +607,7 @@ class Listener {
 
   void beginMetadataStar(Token token) {}
 
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     logEvent("MetadataStar");
   }
 
@@ -644,7 +646,8 @@ class Listener {
   ///
   /// If [hasName] is true, this part refers to its library by name, otherwise,
   /// by URI.
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     logEvent("PartOf");
   }
 
@@ -655,6 +658,26 @@ class Listener {
   }
 
   void beginReturnStatement(Token token) {}
+
+  /// Handle the end of a `native` function.
+  /// The [handleNativeClause] event is sent prior to this event.
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    logEvent("NativeFunctionBody");
+  }
+
+  /// Called after the [handleNativeClause] event when the parser determines
+  /// that the native clause should be discarded / ignored.
+  /// For example, this method is called a native clause is followed by
+  /// a function body.
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    logEvent("NativeFunctionBodyIgnored");
+  }
+
+  /// Handle the end of a `native` function that was skipped by the parser.
+  /// The [handleNativeClause] event is sent prior to this event.
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    logEvent("NativeFunctionBodySkipped");
+  }
 
   /// This method is invoked when a function has the empty body.
   void handleEmptyFunctionBody(Token semicolon) {
@@ -776,7 +799,7 @@ class Listener {
     logEvent("CatchClause");
   }
 
-  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     logEvent("CatchBlock");
   }
 
@@ -867,7 +890,13 @@ class Listener {
     logEvent("AssignmentExpression");
   }
 
-  void handleBinaryExpression(Token token) {
+  /// Called when the parser encounters a binary operator, in between the LHS
+  /// and RHS subexpressions.
+  ///
+  /// Not called when the binary operator is `.`, `?.`, or `..`.
+  void beginBinaryExpression(Token token) {}
+
+  void endBinaryExpression(Token token) {
     logEvent("BinaryExpression");
   }
 
@@ -1097,6 +1126,10 @@ class Listener {
 
   /// The parser noticed a syntax error, but was able to recover from it.
   void handleRecoverableError(Token token, Message message) {
+    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
+    if (message == messageNativeClauseShouldBeAnnotation) {
+      return;
+    }
     recoverableErrors.add(new ParserError.fromTokens(token, token, message));
   }
 

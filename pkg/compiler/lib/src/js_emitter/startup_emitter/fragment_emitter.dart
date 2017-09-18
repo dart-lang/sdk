@@ -724,7 +724,7 @@ class FragmentEmitter {
     }
 
     var statements = <js.Statement>[];
-    var parameters = <js.Name>[];
+    var parameters = <js.Parameter>[];
     var thisRef;
 
     if (cls.isSoftDeferred) {
@@ -755,17 +755,17 @@ class FragmentEmitter {
     }
 
     for (Field field in cls.fields) {
-      js.Name paramName = field.name;
-      parameters.add(paramName);
+      js.Parameter parameter = new js.Parameter('t${parameters.length}');
+      parameters.add(parameter);
       statements
-          .add(js.js.statement('#.# = #', [thisRef, field.name, paramName]));
+          .add(js.js.statement('#.# = #', [thisRef, field.name, parameter]));
     }
 
     if (cls.hasRtiField) {
-      js.Name paramName = namer.rtiFieldJsName;
-      parameters.add(paramName);
+      js.Parameter parameter = new js.Parameter('t${parameters.length}');
+      parameters.add(parameter);
       statements.add(js.js
-          .statement('#.# = #', [thisRef, namer.rtiFieldJsName, paramName]));
+          .statement('#.# = #', [thisRef, namer.rtiFieldJsName, parameter]));
     }
 
     return js.js('function #(#) { # }', [name, parameters, statements]);

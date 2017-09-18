@@ -39,10 +39,12 @@ class _Directory extends FileSystemEntity implements Directory {
     return new _Directory(result);
   }
 
-  // TODO(zra): Provide a flag that an embedder can set to make attempts to set
-  // the working directory for the whole process fail.
   static void set current(path) {
     if (path is Directory) path = path.path;
+    if (!_EmbedderConfig._mayChdir) {
+      throw new UnsupportedError(
+          "This embedder disallows setting Directory.current");
+    }
     var result = _setCurrent(_Namespace._namespace, path);
     if (result is ArgumentError) throw result;
     if (result is OSError) {

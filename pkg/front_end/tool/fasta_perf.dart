@@ -169,6 +169,11 @@ Set<String> extractDirectiveUris(List<int> contents) {
 
 class DirectiveListenerWithNative extends DirectiveListener {
   @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    // Always allow native functions.
+  }
+
+  @override
   Token handleNativeClauseError(Token token) => skipNativeClause(token, true);
 }
 

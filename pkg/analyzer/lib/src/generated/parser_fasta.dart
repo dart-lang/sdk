@@ -67,6 +67,15 @@ class _Parser2 implements Parser {
   }
 
   @override
+  bool enableAssertInitializer = true;
+
+  @override
+  bool enableUriInPartOf = true;
+
+  @override
+  bool enableNnbd = false;
+
+  @override
   CompilationUnit parseCompilationUnit(Token token) {
     currentToken = token;
     return parseCompilationUnit2();

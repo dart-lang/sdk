@@ -7,7 +7,8 @@
 library front_end.src.fasta.source.directive_listener;
 
 import '../../scanner/token.dart' show Token;
-import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
+import '../fasta_codes.dart'
+    show Message, codeExpectedBlockToSkip, messageExpectedBlockToSkip;
 import '../parser/identifier_context.dart';
 import '../parser/listener.dart';
 import '../quote.dart';
@@ -106,6 +107,12 @@ class DirectiveListener extends Listener {
     if (_combinatorNames != null && context == IdentifierContext.combinator) {
       _combinatorNames.add(token.lexeme);
     }
+  }
+
+  /// By default, native clauses are not handled and an error is thrown.
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
   }
 
   /// Defines how native clauses are handled. By default, they are not handled

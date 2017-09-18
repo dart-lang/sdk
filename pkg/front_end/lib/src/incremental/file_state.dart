@@ -8,9 +8,9 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/format.dart';
@@ -43,6 +43,7 @@ class FileState {
   bool _exists;
   List<int> _content;
   List<int> _contentHash;
+  List<int> _lineStarts;
   bool _hasMixinApplication;
   List<int> _apiSignature;
 
@@ -95,6 +96,9 @@ class FileState {
   /// The list of the libraries imported by this library.
   List<FileState> get importedLibraries => _importedLibraries;
 
+  /// Return the line starts in the [content].
+  List<int> get lineStarts => _lineStarts;
+
   /// The list of files this library file references as parts.
   List<FileState> get partFiles => _partFiles;
 
@@ -122,6 +126,9 @@ class FileState {
     return _transitiveFiles;
   }
 
+  /// Return the [uri] string.
+  String get uriStr => uri.toString();
+
   @override
   bool operator ==(Object other) {
     return other is FileState && other.uri == uri;
@@ -142,6 +149,14 @@ class FileState {
 
     // Compute the content hash.
     _contentHash = md5.convert(_content).bytes;
+
+    // Compute the line starts.
+    _lineStarts = <int>[0];
+    for (int i = 0; i < _content.length; i++) {
+      if (_content[i] == 0x0A) {
+        _lineStarts.add(i + 1);
+      }
+    }
 
     // Prepare bytes of the unlinked unit - existing or new.
     List<int> unlinkedBytes;
@@ -273,8 +288,10 @@ class FileSystemState {
   /// may contain an entry for `dart:core`.
   final Map<Uri, FileState> _uriToFile = {};
 
-  /// Mapping from file URIs to corresponding [FileState]s. This map should only
-  /// contain `file:*` URIs as keys.
+  /// Mapping from file URIs to corresponding [FileState]s.
+  ///
+  /// This map should only contain URIs understood by [fileSystem], which
+  /// excludes `package:*` and `dart:*` URIs.
   final Map<Uri, FileState> _fileUriToFile = {};
 
   /// The set of absolute URIs with the `dart` scheme that should be skipped.
@@ -292,7 +309,7 @@ class FileSystemState {
     return _fileSystemView ??= new _FileSystemView(this);
   }
 
-  /// The `file:` URI of all files currently tracked by this instance.
+  /// The [fileSystem]'s URIs of all files currently tracked by this instance.
   Iterable<Uri> get fileUris => _fileUriToFile.keys;
 
   /// Perform mark and sweep garbage collection of [FileState]s.
@@ -340,11 +357,12 @@ class FileSystemState {
 
     // Resolve the absolute URI into the absolute file URI.
     Uri fileUri;
-    if (absoluteUri.isScheme('file')) {
-      fileUri = absoluteUri;
-    } else {
+    var scheme = absoluteUri.scheme;
+    if (scheme == 'package' || scheme == 'dart') {
       fileUri = uriTranslator.translate(absoluteUri);
       if (fileUri == null) return null;
+    } else {
+      fileUri = absoluteUri;
     }
 
     FileState file = _uriToFile[absoluteUri];

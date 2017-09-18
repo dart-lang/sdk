@@ -5,5 +5,5 @@ import "dart:core" as core;
 static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/illegal_named_function_expression_scope.dart:7:9: Error: A function expression can't have a return type.\n  print(void f() {});\n        ^", "pkg/front_end/testcases/illegal_named_function_expression_scope.dart:7:14: Error: A function expression can't have a name.\n  print(void f() {});\n             ^"]/* from null */;
 static method main() → dynamic {
   function f() → void {}
-  core::print(let final () → void f = () → void {} in f);
+  core::print(let final () → void f = () → dynamic {} in f);
 }

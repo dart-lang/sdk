@@ -6113,6 +6113,18 @@ var s5 = const Symbol('x', foo: 'x');''');
     verify([source]);
   }
 
+  test_test_fieldInitializerOutsideConstructor_topLevelFunction() async {
+    Source source = addSource(r'''
+f(this.x(y)) {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+      CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+    ]);
+    verify([source]);
+  }
+
   test_typeAliasCannotReferenceItself_11987() async {
     Source source = addSource(r'''
 typedef void F(List<G> l);
@@ -6141,6 +6153,14 @@ typedef D F();
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_typeAliasCannotReferenceItself_functionTypedParameter_returnType() async {
+    Source source = addSource("typedef A(A b());");
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
     verify([source]);
   }
 

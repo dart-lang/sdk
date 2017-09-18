@@ -529,12 +529,7 @@ class GenericFunctionType extends AbstractFunctionType {
     var bounds = instantiateTypeBounds(typeArgs);
     var typeFormals = this.typeFormals;
     for (var i = 0; i < typeArgs.length; i++) {
-      var type = typeArgs[i];
-      var bound = bounds[i];
-      if (!JS('bool', '#', isSubtype(type, bound))) {
-        throwStrongModeError('type `$type` does not extend `$bound`'
-            ' of `${typeFormals[i]}`.');
-      }
+      checkTypeBound(typeArgs[i], bounds[i], typeFormals[i]);
     }
   }
 
@@ -644,7 +639,7 @@ class GenericFunctionType extends AbstractFunctionType {
     // if errors are requested, and a partially completed type should
     // be returned.
     if (partials.isNotEmpty) {
-      throwStrongModeError('Instantiate to bounds failed for type with '
+      throwTypeError('Instantiate to bounds failed for type with '
           'recursive generic bounds: ${typeName(this)}. '
           'Try passing explicit type arguments.');
     }
@@ -716,6 +711,13 @@ getFunctionTypeMirror(AbstractFunctionType type) {
 }
 
 bool isType(obj) => JS('', '# === #', _getRuntimeType(obj), Type);
+
+void checkTypeBound(type, bound, name) {
+  if (JS('bool', '#', isSubtype(type, bound))) return;
+
+  throwTypeError('type `$type` does not extend `$bound`'
+      ' of `$name`.');
+}
 
 String typeName(type) => JS('', '''(() => {
   if ($type === void 0) return "undefined type";

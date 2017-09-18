@@ -321,6 +321,11 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   AddBackRef(object_id, &obj, kIsDeserialized);
 
   // Read the library/class/function information and lookup the function.
+  // Note: WriteStaticImplicitClosure is *not* scrubbing the names before
+  // writing them into the snapshot, because scrubbing requires allocation.
+  // This means that names we read here might be mangled with private
+  // keys. These keys need to be scrubbed before performing lookups
+  // otherwise lookups might fail.
   str_ ^= ReadObjectImpl(kAsInlinedObject);
   library_ = Library::LookupLibrary(thread(), str_);
   if (library_.IsNull() || !library_.Loaded()) {
@@ -329,8 +334,10 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   str_ ^= ReadObjectImpl(kAsInlinedObject);
   if (str_.Equals(Symbols::TopLevel())) {
     str_ ^= ReadObjectImpl(kAsInlinedObject);
+    str_ = String::ScrubName(str_);
     func = library_.LookupFunctionAllowPrivate(str_);
   } else {
+    str_ = String::ScrubName(str_);
     cls_ = library_.LookupClassAllowPrivate(str_);
     if (cls_.IsNull()) {
       OS::Print("Name of class not found %s\n", str_.ToCString());
@@ -338,6 +345,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
     }
     cls_.EnsureIsFinalized(thread());
     str_ ^= ReadObjectImpl(kAsInlinedObject);
+    str_ = String::ScrubName(str_);
     func = cls_.LookupFunctionAllowPrivate(str_);
   }
   if (func.IsNull()) {

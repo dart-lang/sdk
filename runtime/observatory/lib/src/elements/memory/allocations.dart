@@ -10,8 +10,6 @@
 /// For each class in the system it is shown the Total number of instances
 /// alive, the Total memory used by these instances, the number of instances
 /// created since the last reset, the memory used by these instances.
-///
-/// When a GC event is received the profile is reloaded.
 
 import 'dart:async';
 import 'dart:html';
@@ -42,31 +40,24 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
       _r.onRendered;
 
   M.IsolateRef _isolate;
-  M.EventRepository _events;
   M.AllocationProfileRepository _repository;
   M.AllocationProfile _profile;
   M.EditorRepository _editor;
-  StreamSubscription _gcSubscription;
   _SortingField _sortingField = _SortingField.accumulatedInstances;
   _SortingDirection _sortingDirection = _SortingDirection.descending;
 
   M.IsolateRef get isolate => _isolate;
 
-  factory MemoryAllocationsElement(
-      M.IsolateRef isolate,
-      M.EditorRepository editor,
-      M.EventRepository events,
-      M.AllocationProfileRepository repository,
+  factory MemoryAllocationsElement(M.IsolateRef isolate,
+      M.EditorRepository editor, M.AllocationProfileRepository repository,
       {RenderingQueue queue}) {
     assert(isolate != null);
-    assert(events != null);
     assert(editor != null);
     assert(repository != null);
     MemoryAllocationsElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._editor = editor;
-    e._events = events;
     e._repository = repository;
     return e;
   }
@@ -78,11 +69,6 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     super.attached();
     _r.enable();
     _refresh();
-    _gcSubscription = _events.onGCEvent.listen((e) {
-      if (e.isolate.id == _isolate.id) {
-        _refresh();
-      }
-    });
   }
 
   @override
@@ -90,7 +76,6 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     super.detached();
     _r.disable(notify: true);
     children = [];
-    _gcSubscription.cancel();
   }
 
   Future reload({bool gc = false, bool reset = false}) async {
@@ -109,6 +94,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
         new VirtualCollectionElement(
             _createCollectionLine, _updateCollectionLine,
             createHeader: _createCollectionHeader,
+            search: _search,
             items: _profile.members
                 .where((member) =>
                     member.newSpace.accumulated.instances != 0 ||
@@ -254,6 +240,11 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
         _editor.openClass(isolate, item.clazz);
       }
     });
+  }
+
+  bool _search(Pattern pattern, M.ClassHeapStats item) {
+    final String value = item.clazz?.name ?? item.displayName;
+    return value.contains(pattern);
   }
 
   Future _refresh({bool gc: false, bool reset: false}) async {

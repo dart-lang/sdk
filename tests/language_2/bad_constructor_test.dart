@@ -2,27 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// A constructor can't be static.
 class A {
-  // Constructor may not be static.
-  static A(); // //# 00: compile-time error
+  static //# 00: compile-time error
+  A();
+}
 
-  // Factory may not be static.
-  static factory A() { return null; } // //# 01: compile-time error
+// A factory constructor can't be static.
+class B {
+  static //# 01: compile-time error
+  factory B() { return null; }
+}
 
-  // Named constructor may not conflict with names of methods and fields.
-  var m;
-  A.m() { m = 0; } // //# 04: compile-time error
+// A named constructor can't have the same name as a field.
+class C {
+  var field;
+  C
+      .field //# 04: compile-time error
+      ();
+  C.good();
+}
 
-  set q(var value) {
-    m = 0;
-  } // No name conflict with q=.
-  // The error occurs because main calls new A() instead of new A.q().
-  A.q(); //  //# 05: compile-time error
+// A named constructor can't have the same name as a method.
+class D {
+  method() {}
+  D
+      .method //# 06: compile-time error
+      ();
+  D.good();
+}
 
-  A.foo() : m = 0; // //# 06: compile-time error
-  int foo(int a, int b) => a + b * m;
+// A named constructor can have the same name as a setter.
+class E {
+  set setter(value) {} //# 05: ok
+  E.setter();
 }
 
 main() {
   new A();
+  new B();
+  new C.good();
+  new D.good();
+  new E.setter();
 }

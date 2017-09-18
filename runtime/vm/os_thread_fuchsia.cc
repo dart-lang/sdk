@@ -10,11 +10,11 @@
 #include "vm/os_thread_fuchsia.h"
 
 #include <errno.h>  // NOLINT
-#include <magenta/status.h>
-#include <magenta/syscalls.h>
-#include <magenta/syscalls/object.h>
-#include <magenta/threads.h>
-#include <magenta/types.h>
+#include <zircon/status.h>
+#include <zircon/syscalls.h>
+#include <zircon/syscalls/object.h>
+#include <zircon/threads.h>
+#include <zircon/types.h>
 
 #include "platform/assert.h"
 
@@ -24,6 +24,15 @@ namespace dart {
   if (result != 0) {                                                           \
     FATAL1("pthread error: %d", result);                                       \
   }
+
+#if defined(PRODUCT)
+#define VALIDATE_PTHREAD_RESULT_NAMED(result) VALIDATE_PTHREAD_RESULT(result)
+#else
+#define VALIDATE_PTHREAD_RESULT_NAMED(result)                                  \
+  if (result != 0) {                                                           \
+    FATAL2("[%s] pthread error: %d", name_, result);                           \
+  }
+#endif
 
 #if defined(DEBUG)
 #define ASSERT_PTHREAD_SUCCESS(result) VALIDATE_PTHREAD_RESULT(result)
@@ -45,8 +54,8 @@ namespace dart {
 
 static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
   // time in nanoseconds.
-  mx_time_t now = mx_time_get(MX_CLOCK_MONOTONIC);
-  mx_time_t target = now + (micros * kNanosecondsPerMicrosecond);
+  zx_time_t now = zx_time_get(ZX_CLOCK_MONOTONIC);
+  zx_time_t target = now + (micros * kNanosecondsPerMicrosecond);
   int64_t secs = target / kNanosecondsPerSecond;
   int64_t nanos = target - (secs * kNanosecondsPerSecond);
 
@@ -118,7 +127,7 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-const ThreadId OSThread::kInvalidThreadId = MX_KOID_INVALID;
+const ThreadId OSThread::kInvalidThreadId = ZX_KOID_INVALID;
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
     static_cast<ThreadJoinId>(0);
 
@@ -148,13 +157,13 @@ intptr_t OSThread::GetMaxStackSize() {
 }
 
 ThreadId OSThread::GetCurrentThreadId() {
-  mx_info_handle_basic_t info;
-  mx_handle_t thread_handle = thrd_get_mx_handle(thrd_current());
-  mx_status_t status =
-      mx_object_get_info(thread_handle, MX_INFO_HANDLE_BASIC, &info,
+  zx_info_handle_basic_t info;
+  zx_handle_t thread_handle = thrd_get_zx_handle(thrd_current());
+  zx_status_t status =
+      zx_object_get_info(thread_handle, ZX_INFO_HANDLE_BASIC, &info,
                          sizeof(info), nullptr, nullptr);
-  if (status != MX_OK) {
-    FATAL1("Failed to get thread koid: %s\n", mx_status_get_string(status));
+  if (status != ZX_OK) {
+    FATAL1("Failed to get thread koid: %s\n", zx_status_get_string(status));
   }
   return info.koid;
 }
@@ -200,22 +209,26 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   return false;
 }
 
-Mutex::Mutex() {
+Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
+#if !defined(PRODUCT)
+    : name_(name)
+#endif
+{
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
 #if defined(DEBUG)
   result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 #endif  // defined(DEBUG)
 
   result = pthread_mutex_init(data_.mutex(), &attr);
   // Verify that creating a pthread_mutex succeeded.
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
   result = pthread_mutexattr_destroy(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
@@ -226,7 +239,7 @@ Mutex::Mutex() {
 Mutex::~Mutex() {
   int result = pthread_mutex_destroy(data_.mutex());
   // Verify that the pthread_mutex was destroyed.
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.

@@ -17,7 +17,8 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 import '../fasta_codes.dart' as fasta;
 
-import '../fasta_codes.dart' show LocatedMessage, Message;
+import '../fasta_codes.dart'
+    show LocatedMessage, Message, messageNativeClauseShouldBeAnnotation;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -406,7 +407,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     debugEvent("MetadataStar");
     push(popList(count) ?? NullValue.Metadata);
   }
@@ -833,7 +834,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleBinaryExpression(Token token) {
+  void beginBinaryExpression(Token token) {
+    if (optional("&&", token) || optional("||", token)) {
+      Expression lhs = popForValue();
+      typePromoter.enterLogicalExpression(lhs, token.stringValue);
+      push(lhs);
+    }
+  }
+
+  @override
+  void endBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
     if (optional(".", token) || optional("..", token)) {
       return doDotOrCascadeExpression(token);
@@ -877,6 +887,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void doLogicalExpression(Token token) {
+    typePromoter.exitLogicalExpression();
     Expression argument = popForValue();
     Expression receiver = popForValue();
     push(new ShadowLogicalExpression(receiver, token.stringValue, argument));
@@ -1244,6 +1255,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+    if (hasName) {
+      var ignoredNativeName = pop();
+      assert(ignoredNativeName is ShadowStringLiteral);
+    }
+  }
+
+  @override
   void handleScript(Token token) {
     debugEvent("Script");
   }
@@ -1329,7 +1349,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement thenPart = popStatement();
     Expression condition = popForValue();
     typePromoter.exitConditional();
-    push(new ShadowIfStatement(condition, thenPart, elsePart));
+    push(new ShadowIfStatement(condition, thenPart, elsePart)
+      ..fileOffset = ifToken.charOffset);
   }
 
   @override
@@ -1688,8 +1709,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Builder builder;
       if (prefix is Builder) {
         builder = prefix;
-      } else {
+      } else if (prefix is String) {
         builder = scope.lookup(prefix, beginToken.charOffset, uri);
+      } else {
+        push(const InvalidType());
+        deprecated_addCompileTimeError(
+            beginToken.charOffset, "Invalid type prefix: $prefix.");
+        return;
       }
       if (builder is PrefixBuilder) {
         name = scopeLookup(builder.exportScope, suffix, beginToken,
@@ -1969,7 +1995,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     debugEvent("CatchBlock");
     Block body = pop();
     inCatchBlock = pop();
@@ -3079,6 +3105,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void handleRecoverableError(Token token, Message message) {
+    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
+    if (message == messageNativeClauseShouldBeAnnotation) {
+      return;
+    }
     bool silent = hasParserError ||
         message.code == fasta.codeFinalFieldWithoutInitializer ||
         message.code == fasta.codeConstFieldWithoutInitializer;

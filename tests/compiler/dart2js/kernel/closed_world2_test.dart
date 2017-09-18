@@ -18,6 +18,8 @@ import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/resolution/class_hierarchy.dart';
+import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
@@ -112,6 +114,23 @@ class ClassWithCall15 extends ClassWithCallBase
 
 class ClassImplementsFunction implements Function {}
 
+abstract class A {
+  // redirecting factory in abstract class to other class
+  factory A.a() = D.a;
+  // redirecting factory in abstract class to factory in abstract class
+  factory A.b() = B.a;
+}
+abstract class B implements A {
+  factory B.a() => null;
+}
+class C implements B {
+  // redirecting factory in concrete to other class
+  factory C.a() = D.a;
+}
+class D implements C {
+  D.a();
+}
+
 @NoInline()
 main() {
   print('Hello World');
@@ -143,6 +162,10 @@ main() {
   new ClassWithCall14();
   new ClassWithCall15();
   new ClassImplementsFunction();
+
+  new A.a();
+  new A.b();
+  new C.a();
 }
 '''
 };
@@ -169,6 +192,9 @@ Future<ResultKind> mainInternal(List<String> args,
   }
 
   enableDebugMode();
+  useOptimizedMixins = true;
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  EnumCreator.matchKernelRepresentationForTesting = true;
 
   print('---- analyze-only ------------------------------------------------');
   DiagnosticCollector collector = new DiagnosticCollector();
@@ -177,7 +203,6 @@ Future<ResultKind> mainInternal(List<String> args,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: collector,
       options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
-  ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler1.resolution.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
   if (collector.crashes.isNotEmpty) {
@@ -235,6 +260,9 @@ Future<ResultKind> mainInternal(List<String> args,
         return equivalence.typeEquivalence(unalias(a), b);
       },
       elementFilter: elementFilter,
+      // TODO(johnniwinther): Support class usage testing in presence of
+      // redirecting constructors.
+      skipClassUsageTesting: ['C'],
       verbose: arguments.verbose);
 
   checkClosedWorlds(closedWorld1, closedWorld2,

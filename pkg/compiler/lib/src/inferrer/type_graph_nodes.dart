@@ -6,7 +6,8 @@ library compiler.src.inferrer.type_graph_nodes;
 
 import 'dart:collection' show IterableBase;
 
-import '../common.dart';
+import 'package:kernel/ast.dart' as ir;
+
 import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
 import '../elements/elements.dart'
@@ -382,12 +383,13 @@ abstract class MemberTypeInformation extends ElementTypeInformation
    * to enable counting the global number of call sites of [element].
    *
    * A call site is either an AST [ast.Node], an [Element] (see uses of
-   * [synthesizeForwardingCall] in [SimpleTypeInferrerVisitor]).
+   * [synthesizeForwardingCall] in [SimpleTypeInferrerVisitor]) or an IR
+   * [ir.Node].
    *
    * The global information is summarized in [cleanup], after which [_callers]
    * is set to `null`.
    */
-  Map<MemberEntity, Setlet<Spannable>> _callers;
+  Map<MemberEntity, Setlet<Object>> _callers;
 
   MemberTypeInformation._internal(this._member) : super._internal(null) {
     assert(_checkMember(_member));
@@ -401,12 +403,12 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 
   String get debugName => '$member';
 
-  void addCall(MemberEntity caller, Spannable node) {
-    _callers ??= <MemberEntity, Setlet<Spannable>>{};
+  void addCall(MemberEntity caller, Object node) {
+    _callers ??= <MemberEntity, Setlet<Object>>{};
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
-  void removeCall(MemberEntity caller, node) {
+  void removeCall(MemberEntity caller, Object node) {
     if (_callers == null) return;
     Setlet calls = _callers[caller];
     if (calls == null) return;
@@ -715,6 +717,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   Local get parameter => _parameter;
 
+  bool get isRegularParameter => !_isInitializingFormal;
+
   String get debugName => '$parameter';
 
   void tagAsTearOffClosureParameter(InferrerEngine inferrer) {
@@ -831,9 +835,9 @@ bool validCallType(CallType callType, Object call) {
     case CallType.complex:
       return call is ast.SendSet;
     case CallType.access:
-      return call is ast.Send;
+      return call is ast.Send || call is ir.Node;
     case CallType.forIn:
-      return call is ast.ForIn;
+      return call is ast.ForIn || call is ir.ForInStatement;
   }
   throw new StateError('Unexpected call type $callType.');
 }
@@ -863,7 +867,8 @@ abstract class CallSiteTypeInformation extends TypeInformation
     assert(_checkCaller(caller));
     // [_call] is either an AST node or a constructor element in case of a
     // a forwarding constructor _call.
-    assert(_call is ast.Node || _call is ConstructorElement);
+    assert(
+        _call is ast.Node || _call is ConstructorElement || _call is ir.Node);
   }
 
   bool _checkCaller(MemberEntity caller) {
@@ -886,7 +891,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
 
   StaticCallSiteTypeInformation(
       MemberTypeInformation context,
-      Spannable call,
+      Object call,
       MemberEntity enclosing,
       this.calledElement,
       Selector selector,

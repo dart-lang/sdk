@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/context/declared_variables.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -19,8 +17,8 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 
 /**
  * Context information necessary to analyze one or more libraries within an
@@ -35,12 +33,12 @@ class LibraryContext {
   /**
    * The [AnalysisContext] which is used to do the analysis.
    */
-  final AnalysisContext _analysisContext;
+  final AnalysisContext analysisContext;
 
   /**
-   * The resynthesizer that resynthesizes elements in [_analysisContext].
+   * The resynthesizer that resynthesizes elements in [analysisContext].
    */
-  final ElementResynthesizer _resynthesizer;
+  final ElementResynthesizer resynthesizer;
 
   /**
    * Create a [LibraryContext] which is prepared to analyze [targetLibrary].
@@ -147,7 +145,7 @@ class LibraryContext {
     });
   }
 
-  LibraryContext._(this.store, this._analysisContext, this._resynthesizer);
+  LibraryContext._(this.store, this.analysisContext, this.resynthesizer);
 
   /**
    * Computes a [CompilationUnitElement] for the given library/unit pair.
@@ -156,7 +154,7 @@ class LibraryContext {
       Source librarySource, Source unitSource) {
     String libraryUri = librarySource.uri.toString();
     String unitUri = unitSource.uri.toString();
-    return _resynthesizer.getElement(
+    return resynthesizer.getElement(
         new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
   }
 
@@ -166,7 +164,15 @@ class LibraryContext {
    * Should be called once the [LibraryContext] is no longer needed.
    */
   void dispose() {
-    _analysisContext.dispose();
+    analysisContext.dispose();
+  }
+
+  /**
+   * Return `true` if the given [uri] is known to be a library.
+   */
+  bool isLibraryUri(Uri uri) {
+    String uriStr = uri.toString();
+    return store.unlinkedMap[uriStr]?.isPartOf == false;
   }
 
   /**
@@ -207,17 +213,6 @@ class LibraryContext {
 }
 
 /**
- * Container object holding the result of a call to
- * [LibraryContext.resolveUnit].
- */
-class ResolutionResult {
-  final CompilationUnit resolvedUnit;
-  final List<AnalysisError> errors;
-
-  ResolutionResult(this.resolvedUnit, this.errors);
-}
-
-/**
  * [ContentCache] wrapper around [FileContentOverlay].
  */
 class _ContentCacheWrapper implements ContentCache {
@@ -241,7 +236,8 @@ class _ContentCacheWrapper implements ContentCache {
       return true;
     }
     String uriStr = source.uri.toString();
-    if (fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
+    if (fsState.externalSummaries != null &&
+        fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
       return true;
     }
     return _getFileForSource(source).exists;

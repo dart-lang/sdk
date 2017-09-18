@@ -399,6 +399,7 @@ class LibraryHelper {
     kFlags,
     kCanonicalName,
     kName,
+    kDocumentation,
     kSourceUriIndex,
     kAnnotations,
     kDependencies,
@@ -435,6 +436,46 @@ class LibraryHelper {
   NameIndex canonical_name_;
   StringIndex name_index_;
   intptr_t source_uri_index_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+class LibraryDependencyHelper {
+ public:
+  enum Field {
+    kFlags,
+    kAnnotations,
+    kTargetLibrary,
+    kName,
+    kCombinators,
+    kEnd,
+  };
+
+  enum Flag {
+    Export = 1 << 0,
+    Deferred = 1 << 1,
+  };
+
+  enum CombinatorFlag {
+    Show = 1 << 0,
+  };
+
+  explicit LibraryDependencyHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kFlags;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  uint8_t flags_;
+  StringIndex name_index_;
+  NameIndex target_library_canonical_name_;
 
  private:
   StreamingFlowGraphBuilder* builder_;
@@ -799,6 +840,8 @@ class StreamingFlowGraphBuilder {
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(bool constructor);
 
+  intptr_t GetOffsetForSourceInfo(intptr_t index);
+
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
 
@@ -882,7 +925,6 @@ class StreamingFlowGraphBuilder {
                                        intptr_t parameter_index);
   LocalVariable* LookupVariable(intptr_t kernel_offset);
   LocalVariable* MakeTemporary();
-  Token::Kind MethodKind(const String& name);
   RawFunction* LookupMethodByMember(NameIndex target,
                                     const String& method_name);
 
@@ -1077,6 +1119,7 @@ class StreamingFlowGraphBuilder {
   friend class ProcedureHelper;
   friend class ClassHelper;
   friend class LibraryHelper;
+  friend class LibraryDependencyHelper;
   friend class ConstructorHelper;
   friend class SimpleExpressionConverter;
   friend class KernelLoader;

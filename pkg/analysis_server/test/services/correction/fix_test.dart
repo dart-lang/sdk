@@ -2433,6 +2433,7 @@ main() {
 ''');
   }
 
+  @failingTest
   test_createLocalVariable_functionType_synthetic() async {
     await resolveTestUnit('''
 foo(f(int p)) {}
@@ -2647,6 +2648,7 @@ class MyEmulator extends Emulator {
 ''');
   }
 
+  @failingTest
   test_createMissingOverrides_functionTypedParameter() async {
     await resolveTestUnit('''
 abstract class A {

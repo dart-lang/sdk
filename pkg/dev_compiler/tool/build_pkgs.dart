@@ -37,7 +37,6 @@ void main(List<String> arguments) {
   compileModule('js', libs: ['js_util']);
   compileModule('meta');
   if (isTravis) {
-    compileModule('lookup_map');
     compileModule('microlytics', libs: ['html_channels']);
     compileModule('typed_mock');
   }

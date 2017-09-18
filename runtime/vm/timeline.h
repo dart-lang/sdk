@@ -145,6 +145,44 @@ struct TimelineEventArgument {
   char* value;
 };
 
+class TimelineEventArguments {
+ public:
+  TimelineEventArguments() : buffer_(NULL), length_(0) {}
+  ~TimelineEventArguments() { Free(); }
+  // Get/Set the number of arguments in the event.
+  void SetNumArguments(intptr_t length);
+  // |name| must be a compile time constant. Takes ownership of |argument|.
+  void SetArgument(intptr_t i, const char* name, char* argument);
+  // |name| must be a compile time constant. Copies |argument|.
+  void CopyArgument(intptr_t i, const char* name, const char* argument);
+  // |name| must be a compile time constant. Takes ownership of |args|
+  void FormatArgument(intptr_t i,
+                      const char* name,
+                      const char* fmt,
+                      va_list args);
+
+  void StealArguments(TimelineEventArguments* arguments);
+
+  TimelineEventArgument* buffer() const { return buffer_; }
+
+  intptr_t length() const { return length_; }
+
+  void Free();
+
+  TimelineEventArgument& operator[](intptr_t index) const {
+    return buffer_[index];
+  }
+
+  bool IsEmpty() { return length_ == 0; }
+
+  bool IsNotEmpty() { return length_ != 0; }
+
+ private:
+  TimelineEventArgument* buffer_;
+  intptr_t length_;
+  DISALLOW_COPY_AND_ASSIGN(TimelineEventArguments);
+};
+
 // You should get a |TimelineEvent| from a |TimelineStream|.
 class TimelineEvent {
  public:
@@ -230,18 +268,24 @@ class TimelineEvent {
   // Completes this event with pre-serialized JSON. Copies |json|.
   void CompleteWithPreSerializedJSON(const char* json);
 
-  // Set the number of arguments in the event.
-  void SetNumArguments(intptr_t length);
+  // Get/Set the number of arguments in the event.
+  intptr_t GetNumArguments() { return arguments_.length(); }
+  void SetNumArguments(intptr_t length) { arguments_.SetNumArguments(length); }
   // |name| must be a compile time constant. Takes ownership of |argument|.
-  void SetArgument(intptr_t i, const char* name, char* argument);
+  void SetArgument(intptr_t i, const char* name, char* argument) {
+    arguments_.SetArgument(i, name, argument);
+  }
   // |name| must be a compile time constant. Copies |argument|.
-  void CopyArgument(intptr_t i, const char* name, const char* argument);
+  void CopyArgument(intptr_t i, const char* name, const char* argument) {
+    arguments_.CopyArgument(i, name, argument);
+  }
   // |name| must be a compile time constant.
   void FormatArgument(intptr_t i, const char* name, const char* fmt, ...)
       PRINTF_ATTRIBUTE(4, 5);
 
-  void StealArguments(intptr_t arguments_length,
-                      TimelineEventArgument* arguments);
+  void StealArguments(TimelineEventArguments* arguments) {
+    arguments_.StealArguments(arguments);
+  }
   // Mandatory to call when this event is completely filled out.
   void Complete();
 
@@ -329,13 +373,11 @@ class TimelineEvent {
     state_ = OwnsLabelBit::update(owns_label, state_);
   }
 
-  TimelineEventArgument* arguments() const { return arguments_; }
+  TimelineEventArgument* arguments() const { return arguments_.buffer(); }
 
-  intptr_t arguments_length() const { return arguments_length_; }
+  intptr_t arguments_length() const { return arguments_.length(); }
 
  private:
-  void FreeArguments();
-
   void StreamInit(TimelineStream* stream);
   void Init(EventType event_type, const char* label);
 
@@ -388,8 +430,7 @@ class TimelineEvent {
   int64_t timestamp1_;
   int64_t thread_timestamp0_;
   int64_t thread_timestamp1_;
-  TimelineEventArgument* arguments_;
-  intptr_t arguments_length_;
+  TimelineEventArguments arguments_;
   uword state_;
   const char* label_;
   const char* category_;
@@ -417,9 +458,14 @@ class TimelineEvent {
 
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
   TimelineDurationScope tds(thread, Timeline::GetGCStream(), name);
+#define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)                      \
+  TIMELINE_FUNCTION_GC_DURATION(thread, name)                                  \
+  tds.SetNumArguments(1);                                                      \
+  tds.CopyArgument(0, "mode", "basic");
 #else
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)
+#define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)
 #endif  // !PRODUCT
 
 // See |TimelineDurationScope| and |TimelineBeginEndScope|.
@@ -427,6 +473,7 @@ class TimelineEventScope : public StackResource {
  public:
   bool enabled() const { return enabled_; }
 
+  intptr_t GetNumArguments() { return arguments_.length(); }
   void SetNumArguments(intptr_t length);
 
   void SetArgument(intptr_t i, const char* name, char* argument);
@@ -447,9 +494,9 @@ class TimelineEventScope : public StackResource {
 
   const char* label() const { return label_; }
 
-  TimelineEventArgument* arguments() const { return arguments_; }
+  TimelineEventArgument* arguments() const { return arguments_.buffer(); }
 
-  intptr_t arguments_length() const { return arguments_length_; }
+  intptr_t arguments_length() const { return arguments_.length(); }
 
   TimelineStream* stream() const { return stream_; }
 
@@ -459,12 +506,10 @@ class TimelineEventScope : public StackResource {
 
  private:
   void Init();
-  void FreeArguments();
 
   TimelineStream* stream_;
   const char* label_;
-  TimelineEventArgument* arguments_;
-  intptr_t arguments_length_;
+  TimelineEventArguments arguments_;
   bool enabled_;
 
   DISALLOW_COPY_AND_ASSIGN(TimelineEventScope);

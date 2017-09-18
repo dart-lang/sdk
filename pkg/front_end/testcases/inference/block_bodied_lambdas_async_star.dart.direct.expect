@@ -4,7 +4,7 @@ import "dart:async" as asy;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  dynamic f = () → dynamic async* {
+  dynamic f = () → asy::Stream<dynamic> async* {
     yield 1;
     asy::Stream<core::double> s;
     yield* s;

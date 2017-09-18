@@ -3769,8 +3769,9 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     _errorReporter = new ErrorReporter(errorListener, _source);
 
-    Parser parser = new Parser(_source, errorListener);
     AnalysisOptions options = context.analysisOptions;
+    Parser parser =
+        new Parser(_source, errorListener, useFasta: options.useFastaParser);
     parser.enableAssertInitializer = options.enableAssertInitializer;
     parser.parseFunctionBodies =
         options.analyzeFunctionBodiesPredicate(_source);

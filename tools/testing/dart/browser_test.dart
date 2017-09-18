@@ -71,7 +71,8 @@ var require = {
   paths: {
     "dart_sdk": "/root_dart/pkg/dev_compiler/lib/js/amd/dart_sdk",
 $packagePaths
-  }
+  },
+  waitSeconds: 30,
 };
 
 // Don't try to bring up the debugger on a runtime error.

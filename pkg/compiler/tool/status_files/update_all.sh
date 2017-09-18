@@ -6,6 +6,28 @@
 # Script to update the dart2js status lines for all tests running with the
 # $dart2js_with_kernel test configuration.
 
+suites=
+
+for arg in "$@"; do
+  case $arg in
+    dart2js_native|dart2js_extra|language|language_2|corelib_2)
+      suites="$suites $arg"
+      ;;
+    -*)
+      echo "Unknown option '$arg'"
+      exit 1
+      ;;
+    *)
+      echo "Unknown suite '$arg'"
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$suites" ]; then
+  suites="dart2js_native dart2js_extra language language_2 corelib_2"
+fi
+
 repodir=$(cd $(dirname ${BASH_SOURCE[0]})/../../../../; pwd)
 dart="out/ReleaseX64/dart"
 update_script=$(dirname ${BASH_SOURCE[0]})/update_from_log.dart
@@ -33,15 +55,9 @@ function update_suite {
 pushd $repodir > /dev/null
 ./tools/build.py -m release create_sdk
 
-if [[ $# -ge 1 ]]; then
-  update_suite $1
-else
-  update_suite dart2js_native
-  update_suite dart2js_extra
-  update_suite language
-  update_suite language_2
-  update_suite corelib_2
-fi
+for suite in $suites; do
+  update_suite $suite
+done
 
 rm -rf $tmp
 popd > /dev/null

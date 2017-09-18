@@ -71,7 +71,7 @@ class TestController {
 
 class CustomTestSuite extends TestSuite {
   CustomTestSuite(Configuration configuration)
-      : super(configuration, "CustomTestSuite");
+      : super(configuration, "CustomTestSuite", []);
 
   Future forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) async {
     void enqueueTestCase(testCase) {

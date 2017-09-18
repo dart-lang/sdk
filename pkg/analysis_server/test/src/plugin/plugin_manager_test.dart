@@ -88,7 +88,7 @@ class BuiltInPluginInfoTest {
   }
 
   test_stop_notRunning() {
-    expect(() => plugin.stop(), throwsA(new isInstanceOf<StateError>()));
+    expect(() => plugin.stop(), throwsStateError);
   }
 
   test_stop_running() async {
@@ -174,7 +174,7 @@ class DiscoveredPluginInfoTest {
   }
 
   test_stop_notRunning() {
-    expect(() => plugin.stop(), throwsA(new isInstanceOf<StateError>()));
+    expect(() => plugin.stop(), throwsStateError);
   }
 
   test_stop_running() async {
@@ -631,7 +631,7 @@ class PluginSessionTest {
   }
 
   test_stop_notRunning() {
-    expect(() => session.stop(), throwsA(new isInstanceOf<StateError>()));
+    expect(() => session.stop(), throwsStateError);
   }
 
   test_stop_running() async {

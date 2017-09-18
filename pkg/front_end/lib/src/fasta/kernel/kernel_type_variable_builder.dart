@@ -27,7 +27,7 @@ class KernelTypeVariableBuilder
   KernelTypeVariableBuilder(
       String name, KernelLibraryBuilder compilationUnit, int charOffset,
       [KernelTypeBuilder bound])
-      : parameter = new TypeParameter(name, null),
+      : parameter = new TypeParameter(name, null)..fileOffset = charOffset,
         super(name, bound, compilationUnit, charOffset);
 
   TypeParameter get target => parameter;

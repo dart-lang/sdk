@@ -1235,6 +1235,9 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
     // Note: we don't support truncation of Bigint values.
     return !RangeUtils::Fits(value()->definition()->range(),
                              RangeBoundary::kRangeBoundaryInt32);
+  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+             value()->Type()->IsNullableInt()) {
+    return false;
   } else {
     return true;
   }
@@ -1243,7 +1246,9 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
 bool UnboxUint32Instr::ComputeCanDeoptimize() const {
   ASSERT(is_truncating());
   if ((value()->Type()->ToCid() == kSmiCid) ||
-      (value()->Type()->ToCid() == kMintCid)) {
+      (value()->Type()->ToCid() == kMintCid) ||
+      (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+       value()->Type()->IsNullableInt())) {
     return false;
   }
   // Check input value's range.
@@ -1305,6 +1310,7 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
   const Object& constant = right()->definition()->AsConstant()->value();
   if (!constant.IsSmi()) return false;
   const intptr_t int_value = Smi::Cast(constant).Value();
+  ASSERT(int_value != kIntptrMin);
   return Utils::IsPowerOfTwo(Utils::Abs(int_value));
 }
 
@@ -2669,6 +2675,10 @@ Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
+Instruction* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
+  return (!value()->Type()->is_nullable()) ? NULL : this;
+}
+
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
     case kUnboxedInt32:
@@ -3092,42 +3102,53 @@ static const StubEntry* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
 #else
 static void TryFastPathSmiOp(FlowGraphCompiler* compiler,
                              ICData* call_ic_data,
-                             const String& name) {
+                             Token::Kind op_kind) {
   if (!FLAG_two_args_smi_icd) {
     return;
   }
-  if (name.raw() == Symbols::Plus().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ AddTOS();
-    }
-  } else if (name.raw() == Symbols::Minus().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ SubTOS();
-    }
-  } else if (name.raw() == Symbols::EqualOperator().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ EqualTOS();
-    }
-  } else if (name.raw() == Symbols::LAngleBracket().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ LessThanTOS();
-    }
-  } else if (name.raw() == Symbols::RAngleBracket().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ GreaterThanTOS();
-    }
-  } else if (name.raw() == Symbols::BitAnd().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ BitAndTOS();
-    }
-  } else if (name.raw() == Symbols::BitOr().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ BitOrTOS();
-    }
-  } else if (name.raw() == Symbols::Star().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ MulTOS();
-    }
+  switch (op_kind) {
+    case Token::kADD:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ AddTOS();
+      }
+      break;
+    case Token::kSUB:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ SubTOS();
+      }
+      break;
+    case Token::kEQ:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ EqualTOS();
+      }
+      break;
+    case Token::kLT:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ LessThanTOS();
+      }
+      break;
+    case Token::kGT:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ GreaterThanTOS();
+      }
+      break;
+    case Token::kBIT_AND:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ BitAndTOS();
+      }
+      break;
+    case Token::kBIT_OR:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ BitOrTOS();
+      }
+      break;
+    case Token::kMUL:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ MulTOS();
+      }
+      break;
+    default:
+      break;
   }
 }
 #endif
@@ -3152,12 +3173,12 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (ic_data()->NumberOfUsedChecks() > 0) {
       const ICData& unary_ic_data =
           ICData::ZoneHandle(zone, ic_data()->AsUnaryClassChecks());
-      compiler->GenerateInstanceCall(deopt_id(), token_pos(), ArgumentCount(),
-                                     locs(), unary_ic_data);
+      compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
+                                     unary_ic_data);
     } else {
       // Call was not visited yet, use original ICData in order to populate it.
-      compiler->GenerateInstanceCall(deopt_id(), token_pos(), ArgumentCount(),
-                                     locs(), *call_ic_data);
+      compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
+                                     *call_ic_data);
     }
   } else {
     // Unoptimized code.
@@ -3173,11 +3194,11 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     if (is_smi_two_args_op) {
       ASSERT(ArgumentCount() == 2);
-      compiler->EmitInstanceCall(*stub_entry, *call_ic_data, ArgumentCount(),
-                                 deopt_id(), token_pos(), locs());
+      compiler->EmitInstanceCall(*stub_entry, *call_ic_data, deopt_id(),
+                                 token_pos(), locs());
     } else {
-      compiler->GenerateInstanceCall(deopt_id(), token_pos(), ArgumentCount(),
-                                     locs(), *call_ic_data);
+      compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
+                                     *call_ic_data);
     }
   }
 #else
@@ -3187,7 +3208,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // instruction otherwise it falls through. Only attempt in unoptimized code
   // because TryFastPathSmiOp will update original_ic_data.
   if (!compiler->is_optimizing()) {
-    TryFastPathSmiOp(compiler, original_ic_data, function_name());
+    TryFastPathSmiOp(compiler, original_ic_data, token_kind());
   }
 
   const intptr_t call_ic_data_kidx = __ AddConstant(*original_ic_data);
@@ -3226,11 +3247,13 @@ bool InstanceCallInstr::MatchesCoreName(const String& name) {
   return function_name().raw() == Library::PrivateCoreLibName(name).raw();
 }
 
-RawFunction* InstanceCallInstr::ResolveForReceiverClass(const Class& cls) {
+RawFunction* InstanceCallInstr::ResolveForReceiverClass(
+    const Class& cls,
+    bool allow_add /* = true */) {
   const Array& args_desc_array = Array::Handle(GetArgumentsDescriptor());
   ArgumentsDescriptor args_desc(args_desc_array);
   return Resolver::ResolveDynamicForReceiverClass(cls, function_name(),
-                                                  args_desc);
+                                                  args_desc, allow_add);
 }
 
 bool CallTargets::HasSingleRecognizedTarget() const {
@@ -3482,6 +3505,7 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 #if !defined(TARGET_ARCH_DBC)
+
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
                                         licm_hoisted_ ? ICData::kHoisted : 0);
@@ -3525,7 +3549,119 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ Bind(&is_ok);
 }
-#endif
+
+LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  locs->set_in(kLengthPos, Location::RequiresRegister());
+  locs->set_in(kIndexPos, Location::RequiresRegister());
+  return locs;
+}
+
+class ThrowErrorSlowPathCode : public SlowPathCode {
+ public:
+  ThrowErrorSlowPathCode(Instruction* instruction,
+                         const RuntimeEntry& runtime_entry,
+                         intptr_t num_args,
+                         intptr_t try_index)
+      : instruction_(instruction),
+        runtime_entry_(runtime_entry),
+        num_args_(num_args),
+        try_index_(try_index) {}
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (Assembler::EmittingComments()) {
+      __ Comment("slow path check bound operation");
+    }
+    __ Bind(entry_label());
+    LocationSummary* locs = instruction_->locs();
+    // Save registers as they are needed for lazy deopt / exception handling.
+    compiler->SaveLiveRegisters(locs);
+    for (intptr_t i = 0; i < num_args_; ++i) {
+      __ PushRegister(locs->in(i).reg());
+    }
+    __ CallRuntime(runtime_entry_, num_args_);
+    compiler->AddDescriptor(
+        RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
+        instruction_->deopt_id(), instruction_->token_pos(), try_index_);
+    compiler->RecordSafepoint(locs, num_args_);
+    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    compiler->EmitCatchEntryState(env, try_index_);
+    __ Breakpoint();
+  }
+
+ private:
+  Instruction* instruction_;
+  const RuntimeEntry& runtime_entry_;
+  const intptr_t num_args_;
+  const intptr_t try_index_;
+};
+
+class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 2;
+
+  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kRangeErrorRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+};
+
+void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  RangeErrorSlowPath* slow_path =
+      new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+  Location length_loc = locs()->in(kLengthPos);
+  Location index_loc = locs()->in(kIndexPos);
+  Register length = length_loc.reg();
+  Register index = index_loc.reg();
+  const intptr_t index_cid = this->index()->Type()->ToCid();
+  if (index_cid != kSmiCid) {
+    __ BranchIfNotSmi(index, slow_path->entry_label());
+  }
+  __ CompareRegisters(index, length);
+  __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_path->entry_label());
+}
+
+LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  locs->set_in(0, Location::RequiresRegister());
+  return locs;
+}
+
+class NullErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  // TODO(dartbug.com/30480): Pass arguments for NoSuchMethodError.
+  static const intptr_t kNumberOfArguments = 0;
+
+  NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kNullErrorRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+};
+
+void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  NullErrorSlowPath* slow_path =
+      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+
+  Register value_reg = locs()->in(0).reg();
+  // TODO(dartbug.com/30480): Consider passing `null` literal as an argument
+  // in order to be able to allocate it on register.
+  __ CompareObject(value_reg, Object::null_object());
+  __ BranchIf(EQUAL, slow_path->entry_label());
+}
+
+#endif  // !defined(TARGET_ARCH_DBC)
 
 Environment* Environment::From(Zone* zone,
                                const GrowableArray<Definition*>& definitions,

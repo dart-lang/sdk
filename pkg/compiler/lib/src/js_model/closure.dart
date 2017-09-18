@@ -14,6 +14,7 @@ import '../elements/names.dart' show Name;
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
+import '../ssa/type_builder.dart';
 import '../world.dart';
 import 'elements.dart';
 import 'closure_visitors.dart';
@@ -400,6 +401,17 @@ class KernelClosureClass extends JsScopeInfo
 
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 
+  @override
+  Local getLocalForField(FieldEntity field) {
+    for (Local local in localToFieldMap.keys) {
+      if (localToFieldMap[local] == field) {
+        return local;
+      }
+    }
+    failedAt(field, "No local for $field.");
+    return null;
+  }
+
   FieldEntity get thisFieldEntity => localToFieldMap[thisLocal];
 
   void forEachCapturedVariable(f(Local from, JField to)) {
@@ -420,7 +432,7 @@ class KernelClosureClass extends JsScopeInfo
   }
 
   bool isVariableBoxed(Local variable) =>
-      localToFieldMap.keys.contains(variable);
+      boxedVariables.keys.contains(variable);
 
   bool get isClosure => true;
 }
@@ -497,24 +509,35 @@ class ClosureClassDefinition implements ClassDefinition {
       'ClosureClassDefinition(kind:$kind,cls:$cls,location:$location)';
 }
 
-class ClosureMemberData implements MemberData {
+abstract class ClosureMemberData implements MemberData {
   final MemberDefinition definition;
+  final InterfaceType memberThisType;
 
-  ClosureMemberData(this.definition);
+  ClosureMemberData(this.definition, this.memberThisType);
 
   @override
   Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
     return const <ConstantValue>[];
+  }
+
+  @override
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+    return memberThisType;
   }
 }
 
 class ClosureFunctionData extends ClosureMemberData implements FunctionData {
   final FunctionType functionType;
   final ir.FunctionNode functionNode;
+  final ClassTypeVariableAccess classTypeVariableAccess;
 
   ClosureFunctionData(
-      ClosureMemberDefinition definition, this.functionType, this.functionNode)
-      : super(definition);
+      ClosureMemberDefinition definition,
+      InterfaceType memberThisType,
+      this.functionType,
+      this.functionNode,
+      this.classTypeVariableAccess)
+      : super(definition, memberThisType);
 
   void forEachParameter(KernelToElementMapForBuilding elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
@@ -548,7 +571,8 @@ class ClosureFunctionData extends ClosureMemberData implements FunctionData {
 }
 
 class ClosureFieldData extends ClosureMemberData implements FieldData {
-  ClosureFieldData(MemberDefinition definition) : super(definition);
+  ClosureFieldData(MemberDefinition definition, InterfaceType memberThisType)
+      : super(definition, memberThisType);
 
   @override
   DartType getFieldType(KernelToElementMap elementMap) {
@@ -583,6 +607,10 @@ class ClosureFieldData extends ClosureMemberData implements FieldData {
   ConstantValue getFieldConstantValue(KernelToElementMap elementMap) {
     return null;
   }
+
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess =>
+      ClassTypeVariableAccess.none;
 }
 
 class ClosureMemberDefinition implements MemberDefinition {

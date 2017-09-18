@@ -11,12 +11,7 @@ import '../compiler.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart'
-    show
-        ClassElement,
-        ConstructorElement,
-        Elements,
-        MemberElement,
-        ParameterElement;
+    show ConstructorElement, Elements, MemberElement, ParameterElement;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../js_backend/annotations.dart';
@@ -123,9 +118,9 @@ abstract class InferrerEngine<T> {
   Iterable<MemberEntity> getCallersOf(MemberEntity element);
 
   // TODO(johnniwinther): Make this private again.
-  GlobalTypeInferenceElementData dataOfMember(MemberEntity element);
+  GlobalTypeInferenceElementData<T> dataOfMember(MemberEntity element);
 
-  GlobalTypeInferenceElementData lookupDataOfMember(MemberEntity element);
+  GlobalTypeInferenceElementData<T> lookupDataOfMember(MemberEntity element);
 
   bool checkIfExposesThis(ConstructorEntity element);
 
@@ -169,7 +164,7 @@ abstract class InferrerEngine<T> {
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledMember(
-      Spannable node,
+      Object node,
       Selector selector,
       TypeMask mask,
       MemberEntity caller,
@@ -194,8 +189,8 @@ abstract class InferrerEngine<T> {
       MemberEntity caller,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
-      bool inLoop,
-      bool isConditional);
+      {bool inLoop,
+      bool isConditional});
 
   /// Update the assignments to parameters in the graph. [remove] tells whether
   /// assignments must be added or removed. If [init] is false, parameters are
@@ -759,6 +754,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   /// `null` if the initializer is not a constant value.
   ConstantValue getFieldConstant(FieldEntity field);
 
+  /// Returns `true` if [cls] has a 'call' method.
+  bool hasCallType(ClassEntity cls);
+
   void processLoopInformation() {
     types.allocatedCalls.forEach((dynamic info) {
       if (!info.inLoop) return;
@@ -958,7 +956,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   TypeInformation registerCalledMember(
-      Spannable node,
+      Object node,
       Selector selector,
       TypeMask mask,
       MemberEntity caller,
@@ -984,8 +982,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         selector.isCall &&
         callee is ConstructorEntity &&
         callee.isGenerativeConstructor) {
-      ClassElement cls = callee.enclosingClass;
-      if (cls.callType != null) {
+      ClassEntity cls = callee.enclosingClass;
+      if (hasCallType(cls)) {
         types.allocatedClosures.add(info);
       }
     }
@@ -1004,8 +1002,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       MemberEntity caller,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
-      bool inLoop,
-      bool isConditional) {
+      {bool inLoop,
+      bool isConditional}) {
     if (selector.isClosureCall) {
       return registerCalledClosure(node, selector, mask, receiverType, caller,
           arguments, sideEffects, inLoop);
@@ -1105,7 +1103,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   TypeInformation typeOfMemberWithSelector(
-      covariant MemberElement element, Selector selector) {
+      MemberEntity element, Selector selector) {
     if (element.name == Identifiers.noSuchMethod_ &&
         selector.name != element.name) {
       // An invocation can resolve to a [noSuchMethod], in which case
@@ -1119,11 +1117,11 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
             : types.functionType;
       } else if (element.isField) {
         return typeOfMember(element);
-      } else if (Elements.isUnresolved(element)) {
-        return types.dynamicType;
-      } else {
-        assert(element.isGetter);
+      } else if (element.isGetter) {
         return returnTypeOfMember(element);
+      } else {
+        assert(element is MemberElement && Elements.isUnresolved(element));
+        return types.dynamicType;
       }
     } else if (element.isGetter || element.isField) {
       assert(selector.isCall || selector.isSetter);

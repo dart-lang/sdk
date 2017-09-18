@@ -636,7 +636,8 @@ class Printer extends Visitor<Null> {
     writeSymbol(')');
   }
 
-  void writeList(Iterable nodes, callback(x), {String separator: ','}) {
+  void writeList<T>(Iterable<T> nodes, void callback(T x),
+      {String separator: ','}) {
     bool first = true;
     for (var node in nodes) {
       if (first) {
@@ -804,6 +805,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitTypedef(Typedef node) {
+    writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('typedef');
     writeWord(node.name);

@@ -73,16 +73,19 @@ type StringReference {
   UInt index; // Index into the Program's strings.
 }
 
-type Source {
-  List<Byte> utf8Bytes;
+type SourceInfo {
+  List<Byte> uriUtf8Bytes;
+  List<Byte> sourceUtf8Bytes;
   // Line starts are delta-encoded (they are encoded as line lengths).  The list
   // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
   List<UInt> lineStarts;
 }
 
 type UriSource {
-  StringTable uris;
-  Source[uris.endOffsets.length] source;
+  UInt32 length;
+  SourceInfo[length] source;
+  // The ith entry is byte-offset to the ith Source.
+  UInt32[length] sourceIndex;
 }
 
 type UriReference {
@@ -116,11 +119,10 @@ type CanonicalName {
 
 type ProgramFile {
   UInt32 magic = 0x90ABCDEF;
-  StringTable strings;
+  List<Library> libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
-  List<Library> libraries;
-  ProcedureReference mainMethod;
+  StringTable strings;
   ProgramIndex programIndex;
 }
 
@@ -132,9 +134,11 @@ type ProgramFile {
 type ProgramIndex {
   UInt32 binaryOffsetForSourceTable;
   UInt32 binaryOffsetForCanonicalNames;
+  UInt32 binaryOffsetForStringTable;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
   UInt32[libraryCount] libraryOffsets;
   UInt32 libraryCount;
+  UInt32 programFileSizeInBytes;
 }
 
 type LibraryReference {
@@ -208,6 +212,7 @@ type Typedef {
   FileOffset fileOffset;
   StringReference name;
   UriReference fileUri;
+  List<Expression> annotations;
   List<TypeParameter> typeParameters;
   DartType type;
 }
@@ -778,7 +783,7 @@ type ExpressionStatement extends Statement {
 
 type Block extends Statement {
   Byte tag = 62;
-  List<Expression> expressions;
+  List<Statement> statements;
 }
 
 type EmptyStatement extends Statement {
@@ -882,6 +887,7 @@ type ContinueSwitchStatement extends Statement {
 
 type IfStatement extends Statement {
   Byte tag = 73;
+  FileOffset fileOffset;
   Expression condition;
   Statement then;
   Statement otherwise; // Empty statement if there was no else part.

@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29940.dart:7:3: Error: Invalid type prefix: VariableAccessor().\n  a.b c = null;\n  ^"]/* from null */;
+static method main() → dynamic {
+  core::String a = "";
+  invalid-type c = null;
+}

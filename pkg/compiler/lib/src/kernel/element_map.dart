@@ -18,6 +18,7 @@ import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
 import '../native/native.dart' as native;
+import '../ssa/type_builder.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -27,6 +28,9 @@ import '../world.dart';
 abstract class KernelToElementMap {
   /// Access to the commonly used elements and types.
   CommonElements get commonElements;
+
+  /// Access to the [DartTypes] object.
+  DartTypes get types;
 
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);
@@ -178,6 +182,15 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
 
   /// Returns the definition information for [member].
   MemberDefinition getMemberDefinition(covariant MemberEntity member);
+
+  /// Returns the type of `this` in [member], or `null` if member is defined in
+  /// a static context.
+  InterfaceType getMemberThisType(covariant MemberEntity member);
+
+  /// Returns how [member] has access to type variables of the this type
+  /// returned by [getMemberThisType].
+  ClassTypeVariableAccess getClassTypeVariableAccessForMember(
+      MemberEntity member);
 
   /// Returns the definition information for [cls].
   ClassDefinition getClassDefinition(covariant ClassEntity cls);
@@ -403,8 +416,8 @@ abstract class KernelToLocalsMap {
   /// Returns the [ir.FunctionNode] that declared [parameter].
   ir.FunctionNode getFunctionNodeForParameter(Local parameter);
 
-  /// Returns the [ir.DartType] of [parameter].
-  ir.DartType getParameterType(Local parameter);
+  /// Returns the [DartType] of [local].
+  DartType getLocalType(KernelToElementMap elementMap, Local local);
 
   /// Returns the [JumpTarget] for the break statement [node].
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node);

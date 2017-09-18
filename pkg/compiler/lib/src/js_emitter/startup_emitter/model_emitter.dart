@@ -48,11 +48,12 @@ import '../../js_backend/js_backend.dart'
 import '../../js_backend/interceptor_data.dart';
 import '../../world.dart';
 import '../code_emitter_task.dart';
-import '../constant_ordering.dart' show deepCompareConstants;
+import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
 import '../js_emitter.dart' show NativeEmitter;
 import '../js_emitter.dart' show buildTearOffCode, NativeGenerator;
 import '../model.dart';
+import '../sorter.dart' show Sorter;
 
 part 'deferred_fragment_hash.dart';
 part 'fragment_emitter.dart';
@@ -64,6 +65,7 @@ class ModelEmitter {
   final NativeEmitter nativeEmitter;
   final bool shouldGenerateSourceMap;
   final ClosedWorld _closedWorld;
+  final ConstantOrdering _constantOrdering;
 
   // The full code that is written to each hunk part-file.
   final Map<Fragment, CodeOutput> outputBuffers = <Fragment, CodeOutput>{};
@@ -80,7 +82,8 @@ class ModelEmitter {
   static const String typeNameProperty = r"builtin$cls";
 
   ModelEmitter(this.compiler, this.namer, this.nativeEmitter, this._closedWorld,
-      CodeEmitterTask task, this.shouldGenerateSourceMap) {
+      Sorter sorter, CodeEmitterTask task, this.shouldGenerateSourceMap)
+      : _constantOrdering = new ConstantOrdering(sorter) {
     this.constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,
@@ -136,7 +139,7 @@ class ModelEmitter {
     if (r != 0) return r;
 
     // Resolve collisions in the long name by using a structural order.
-    return deepCompareConstants(a, b);
+    return _constantOrdering.compare(a, b);
   }
 
   js.Expression generateStaticClosureAccess(MethodElement element) {

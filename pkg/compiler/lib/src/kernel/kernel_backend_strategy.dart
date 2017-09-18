@@ -96,10 +96,11 @@ class KernelSsaBuilder implements SsaBuilder {
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(work.element);
     KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
         work.element,
-        work.element.enclosingClass,
+        _elementMap.getMemberThisType(work.element),
         _compiler,
         _elementMap,
-        new KernelToTypeInferenceMapImpl(closedWorld),
+        new KernelToTypeInferenceMapImpl(
+            work.element, _compiler.globalInference.results),
         localsMap,
         closedWorld,
         _compiler.codegenWorldBuilder,
@@ -114,87 +115,101 @@ class KernelSsaBuilder implements SsaBuilder {
 }
 
 class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
-  final ClosedWorld _closedWorld;
+  final GlobalTypeInferenceResults _globalInferenceResults;
+  GlobalTypeInferenceElementResult _targetResults;
 
-  KernelToTypeInferenceMapImpl(this._closedWorld);
+  KernelToTypeInferenceMapImpl(
+      MemberEntity target, this._globalInferenceResults) {
+    _targetResults = _resultOf(target);
+  }
 
-  @override
+  GlobalTypeInferenceElementResult _resultOf(MemberEntity e) =>
+      _globalInferenceResults
+          .resultOfMember(e is ConstructorBodyEntity ? e.constructor : e);
+
+  TypeMask getReturnTypeOf(FunctionEntity function) {
+    return TypeMaskFactory.inferredReturnTypeForElement(
+        function, _globalInferenceResults);
+  }
+
+  TypeMask typeOfInvocation(ir.MethodInvocation node, ClosedWorld closedWorld) {
+    return _targetResults.typeOfSend(node);
+  }
+
+  TypeMask typeOfGet(ir.PropertyGet node) {
+    return _targetResults.typeOfSend(node);
+  }
+
+  TypeMask typeOfSet(ir.PropertySet node, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.dynamicType;
+  }
+
+  TypeMask typeOfListLiteral(
+      MemberEntity owner, ir.ListLiteral listLiteral, ClosedWorld closedWorld) {
+    return _resultOf(owner).typeOfListLiteral(listLiteral) ??
+        closedWorld.commonMasks.dynamicType;
+  }
+
+  TypeMask typeOfIterator(ir.ForInStatement node) {
+    return _targetResults.typeOfIterator(node);
+  }
+
+  TypeMask typeOfIteratorCurrent(ir.ForInStatement node) {
+    return _targetResults.typeOfIteratorCurrent(node);
+  }
+
+  TypeMask typeOfIteratorMoveNext(ir.ForInStatement node) {
+    return _targetResults.typeOfIteratorMoveNext(node);
+  }
+
+  bool isJsIndexableIterator(ir.ForInStatement node, ClosedWorld closedWorld) {
+    TypeMask mask = typeOfIterator(node);
+    return mask != null &&
+        mask.satisfies(
+            closedWorld.commonElements.jsIndexableClass, closedWorld) &&
+        // String is indexable but not iterable.
+        !mask.satisfies(closedWorld.commonElements.jsStringClass, closedWorld);
+  }
+
+  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
+    if (mask.isContainer && (mask as ContainerTypeMask).length != null) {
+      // A container on which we have inferred the length.
+      return true;
+    }
+    // TODO(sra): Recognize any combination of fixed length indexables.
+    if (mask.containsOnly(closedWorld.commonElements.jsFixedArrayClass) ||
+        mask.containsOnly(
+            closedWorld.commonElements.jsUnmodifiableArrayClass) ||
+        mask.containsOnlyString(closedWorld) ||
+        closedWorld.commonMasks.isTypedArray(mask)) {
+      return true;
+    }
+    return false;
+  }
+
+  TypeMask inferredIndexType(ir.ForInStatement node) {
+    return TypeMaskFactory.inferredTypeForSelector(
+        new Selector.index(), typeOfIterator(node), _globalInferenceResults);
+  }
+
+  TypeMask getInferredTypeOf(MemberEntity member) {
+    return TypeMaskFactory.inferredTypeForMember(
+        member, _globalInferenceResults);
+  }
+
+  TypeMask getInferredTypeOfParameter(Local parameter) {
+    return TypeMaskFactory.inferredTypeForParameter(
+        parameter, _globalInferenceResults);
+  }
+
+  TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
+    return TypeMaskFactory.inferredTypeForSelector(
+        selector, mask, _globalInferenceResults);
+  }
+
   TypeMask typeFromNativeBehavior(
       NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
     return TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
-  }
-
-  @override
-  TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask getInferredTypeOf(MemberEntity member) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask getInferredTypeOfParameter(Local parameter) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask inferredIndexType(ir.ForInStatement forInStatement) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  bool isJsIndexableIterator(
-      ir.ForInStatement forInStatement, ClosedWorld closedWorld) {
-    return false;
-  }
-
-  @override
-  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
-    return false;
-  }
-
-  @override
-  TypeMask typeOfIteratorMoveNext(ir.ForInStatement forInStatement) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfIteratorCurrent(ir.ForInStatement forInStatement) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfIterator(ir.ForInStatement forInStatement) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfListLiteral(
-      MemberEntity owner, ir.ListLiteral listLiteral, ClosedWorld closedWorld) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfSet(ir.PropertySet write, ClosedWorld closedWorld) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfGet(ir.PropertyGet read) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfInvocation(
-      ir.MethodInvocation invocation, ClosedWorld closedWorld) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask getReturnTypeOf(FunctionEntity function) {
-    return _closedWorld.commonMasks.dynamicType;
   }
 }
 
@@ -222,28 +237,11 @@ class KernelSorter implements Sorter {
 
   @override
   Iterable<MemberEntity> sortMembers(Iterable<MemberEntity> members) {
-    return members.toList()
-      ..sort((MemberEntity member1, MemberEntity member2) {
-        int r = _compareLibraries(member1.library, member2.library);
-        if (r != 0) return r;
-        MemberDefinition definition1 = elementMap.getMemberDefinition(member1);
-        MemberDefinition definition2 = elementMap.getMemberDefinition(member2);
-        return _compareSourceSpans(
-            member1, definition1.location, member2, definition2.location);
-      });
+    return members.toList()..sort(compareMembersByLocation);
   }
 
   @override
   Iterable<ClassEntity> sortClasses(Iterable<ClassEntity> classes) {
-    int compareClasses(ClassEntity cls1, ClassEntity cls2) {
-      int r = _compareLibraries(cls1.library, cls2.library);
-      if (r != 0) return r;
-      ClassDefinition definition1 = elementMap.getClassDefinition(cls1);
-      ClassDefinition definition2 = elementMap.getClassDefinition(cls2);
-      return _compareSourceSpans(
-          cls1, definition1.location, cls2, definition2.location);
-    }
-
     List<ClassEntity> regularClasses = <ClassEntity>[];
     List<ClassEntity> unnamedMixins = <ClassEntity>[];
     for (ClassEntity cls in classes) {
@@ -254,7 +252,7 @@ class KernelSorter implements Sorter {
       }
     }
     List<ClassEntity> sorted = <ClassEntity>[];
-    regularClasses.sort(compareClasses);
+    regularClasses.sort(compareClassesByLocation);
     sorted.addAll(regularClasses);
     unnamedMixins.sort((a, b) {
       int result = _compareLibraries(a.library, b.library);
@@ -273,5 +271,37 @@ class KernelSorter implements Sorter {
     // TODO(redemption): Support this.
     assert(typedefs.isEmpty);
     return typedefs;
+  }
+
+  @override
+  int compareLibrariesByLocation(LibraryEntity a, LibraryEntity b) {
+    return _compareLibraries(a, b);
+  }
+
+  @override
+  int compareClassesByLocation(ClassEntity a, ClassEntity b) {
+    int r = _compareLibraries(a.library, b.library);
+    if (r != 0) return r;
+    ClassDefinition definition1 = elementMap.getClassDefinition(a);
+    ClassDefinition definition2 = elementMap.getClassDefinition(b);
+    return _compareSourceSpans(
+        a, definition1.location, b, definition2.location);
+  }
+
+  @override
+  int compareTypedefsByLocation(TypedefEntity a, TypedefEntity b) {
+    // TODO(redemption): Support this.
+    failedAt(a, 'KernelSorter.compareTypedefsByLocation unimplemented');
+    return 0;
+  }
+
+  @override
+  int compareMembersByLocation(MemberEntity a, MemberEntity b) {
+    int r = _compareLibraries(a.library, b.library);
+    if (r != 0) return r;
+    MemberDefinition definition1 = elementMap.getMemberDefinition(a);
+    MemberDefinition definition2 = elementMap.getMemberDefinition(b);
+    return _compareSourceSpans(
+        a, definition1.location, b, definition2.location);
   }
 }

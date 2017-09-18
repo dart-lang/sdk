@@ -24,6 +24,7 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
   dart.setSignature(identity_test.Music, {
     fields: () => ({index: dart.finalFieldType(core.int)})
   });
+  dart.defineExtensionMembers(identity_test.Music, ["toString"]);
   dart.defineEnumValues(identity_test.Music, [
     'country',
     'western'
@@ -37,7 +38,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
   }).prototype = identity_test._Jake.prototype;
   dart.addTypeTests(identity_test._Jake);
   identity_test._Elwood = class _Elwood extends identity_test.BluesBrother {
-    ['=='](other) {
+    _equals(other) {
+      if (other == null) return false;
       return identity_test._Elwood.is(other);
     }
   };
@@ -45,22 +47,19 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
   }).prototype = identity_test._Elwood.prototype;
   dart.addTypeTests(identity_test._Elwood);
   dart.setSignature(identity_test._Elwood, {
-    methods: () => ({'==': dart.fnType(core.bool, [core.Object])})
+    methods: () => ({_equals: dart.fnType(core.bool, [core.Object])})
   });
+  dart.defineExtensionMembers(identity_test._Elwood, ['_equals']);
   identity_test._Norman = class _Norman extends identity_test.BluesBrother {};
   (identity_test._Norman.new = function() {
   }).prototype = identity_test._Norman.prototype;
   dart.addTypeTests(identity_test._Norman);
   identity_test.hideNull = function(T) {
-    return x => {
-      return x;
-    };
+    return x => x;
   };
   dart.fn(identity_test.hideNull, TToT());
   identity_test.getUndefined = function(T) {
-    return () => {
-      return T._check(core.List.new(1)[$_get](0));
-    };
+    return () => T._check(core.List.new(1)[$_get](0));
   };
   dart.fn(identity_test.getUndefined, VoidToT());
   identity_test.main = function() {

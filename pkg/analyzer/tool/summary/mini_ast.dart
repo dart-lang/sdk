@@ -187,13 +187,6 @@ class MiniAstBuilder extends StackListener {
     push(popList(memberCount));
   }
 
-  @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    if (hasName) {
-      pop(); // Pop the native clause which in this case is a StringLiteral.
-    }
-  }
-
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
@@ -311,6 +304,14 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+    if (hasName) {
+      pop(); // Pop the native name which is a StringLiteral.
+    }
+  }
+
+  @override
   void endMember() {
     debugEvent("Member");
   }
@@ -327,7 +328,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     debugEvent("MetadataStar");
     push(popList(count) ?? NullValue.Metadata);
   }
@@ -384,7 +385,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleBinaryExpression(Token token) {
+  void endBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
     pop(); // RHS
     pop(); // LHS
@@ -399,6 +400,17 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     if (isExpressionBody) pop();
+    push(NullValue.FunctionBody);
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodyIgnored");
+  }
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodySkipped");
     push(NullValue.FunctionBody);
   }
 

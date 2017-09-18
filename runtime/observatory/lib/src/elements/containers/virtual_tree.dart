@@ -14,6 +14,7 @@ typedef HtmlElement VirtualTreeCreateCallback(
     toggle({bool autoToggleSingleChildNodes, bool autoToggleWholeTree}));
 typedef void VirtualTreeUpdateCallback(HtmlElement el, dynamic item, int depth);
 typedef Iterable<dynamic> VritualTreeGetChildrenCallback(dynamic value);
+typedef bool VirtualTreeSearchCallback(Pattern pattern, dynamic item);
 
 void virtualTreeUpdateLines(SpanElement element, int n) {
   n = Math.max(0, n);
@@ -48,7 +49,9 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
 
   factory VirtualTreeElement(VirtualTreeCreateCallback create,
       VirtualTreeUpdateCallback update, VritualTreeGetChildrenCallback children,
-      {Iterable items: const [], RenderingQueue queue}) {
+      {Iterable items: const [],
+      VirtualTreeSearchCallback search,
+      RenderingQueue queue}) {
     assert(create != null);
     assert(update != null);
     assert(children != null);
@@ -74,7 +77,7 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
       });
     }, (HtmlElement el, dynamic item, int index) {
       update(el, item, e._depths[index]);
-    }, queue: queue);
+    }, search: search, queue: queue);
     e._items = new List.unmodifiable(items);
     return e;
   }

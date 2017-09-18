@@ -107,8 +107,32 @@ class_literal_test/22: MissingCompileTimeError
 class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
+closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
+constructor_call_as_function_test/01: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
+cyclic_type_variable_test/01: MissingCompileTimeError
+cyclic_type_variable_test/02: MissingCompileTimeError
+cyclic_type_variable_test/03: MissingCompileTimeError
+cyclic_type_variable_test/04: MissingCompileTimeError
+cyclic_typedef_test/13: MissingCompileTimeError
+default_factory2_test/01: MissingCompileTimeError
+default_factory_test/01: MissingCompileTimeError
+deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
+deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
+deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 generic_closure_test: RuntimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
@@ -174,7 +198,43 @@ if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
+implicit_this_test/01: MissingCompileTimeError
+implicit_this_test/02: MissingCompileTimeError
+implicit_this_test/04: MissingCompileTimeError
+import_self_test/01: MissingCompileTimeError
+inferrer_constructor5_test/01: MissingCompileTimeError
+initializing_formal_final_test: MissingCompileTimeError
+initializing_formal_type_test: MissingCompileTimeError
+instanceof2_test: RuntimeError
+instanceof4_test/01: RuntimeError
+instanceof4_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
+named_parameters_test/01: MissingCompileTimeError
+named_parameters_test/02: MissingCompileTimeError
+named_parameters_test/03: MissingCompileTimeError
+named_parameters_test/04: MissingCompileTimeError
+named_parameters_test/05: MissingCompileTimeError
+named_parameters_test/06: MissingCompileTimeError
+named_parameters_test/07: MissingCompileTimeError
+named_parameters_test/08: MissingCompileTimeError
+named_parameters_test/09: MissingCompileTimeError
+named_parameters_test/10: MissingCompileTimeError
+named_parameters_type_test/01: MissingCompileTimeError
+named_parameters_type_test/02: MissingCompileTimeError
+named_parameters_type_test/03: MissingCompileTimeError
+static_field3_test/01: MissingCompileTimeError
+static_field3_test/02: MissingCompileTimeError
+static_field3_test/03: MissingCompileTimeError
+static_field3_test/04: MissingCompileTimeError
+static_field_test/01: MissingCompileTimeError
+static_field_test/02: MissingCompileTimeError
+static_field_test/03: MissingCompileTimeError
+static_field_test/04: MissingCompileTimeError
+static_final_field2_test/01: MissingCompileTimeError
+static_getter_no_setter1_test/01: MissingCompileTimeError
+static_getter_no_setter2_test/01: MissingCompileTimeError
+static_initializer_type_error_test: MissingCompileTimeError
+static_setter_get_test/01: MissingCompileTimeError
 type_variable_nested_test/01: RuntimeError
 type_variable_promotion_test: RuntimeError
 type_variable_scope_test/00: MissingCompileTimeError
@@ -192,8 +252,8 @@ unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 
-[ $runtime == vm && $compiler != dartk]
-bad_constructor_test/05: MissingCompileTimeError
+[ $runtime == vm ]
+assertion_test: RuntimeError # Issue 30326
 
 [ $compiler == none && $runtime == vm ]
 generic_methods_bounds_test/02: MissingRuntimeError
@@ -203,6 +263,7 @@ generic_methods_reuse_type_variables_test: RuntimeError
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
 
 [ $runtime == vm && $checked ]
+constructor_call_as_function_test/01: MissingCompileTimeError
 function_type/function_type0_test: RuntimeError # Issue 30475
 function_type/function_type10_test: RuntimeError # Issue 30475
 function_type/function_type12_test: RuntimeError # Issue 30475
@@ -351,6 +412,7 @@ generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 if_null_precedence_test/none: RuntimeError
+inferrer_synthesized_constructor_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
@@ -360,6 +422,10 @@ assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
 
 [ $compiler == dartk && $runtime == vm ]
 arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
+constructor_call_as_function_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/02: MissingCompileTimeError
+const_native_factory_test: MissingCompileTimeError
 generic_function_bounds_test: CompileTimeError
 
 [ $compiler == none && $runtime == vm && !$checked ]
@@ -381,9 +447,16 @@ generic_methods_simple_as_expression_test/02: MissingRuntimeError
 
 [$runtime == vm && $compiler == none && $system == fuchsia]
 closure_cycles_test: Pass, Crash
+vm/causal_async_exception_stack_test: RuntimeError
+vm/causal_async_exception_stack2_test: RuntimeError
+vm/math_vm_test: Crash
 
 [ $compiler == none ]
 generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 
+[ $runtime == dart_precompiled ]
+constructor_call_as_function_test/01: MissingCompileTimeError
+
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 closure_cycles_test: Pass, Slow
+large_class_declaration_test: SkipSlow # Uses too much memory.

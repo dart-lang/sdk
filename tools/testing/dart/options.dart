@@ -178,6 +178,9 @@ simdbc, simdbc64''',
     new _Option.bool('enable_asserts',
         'Pass the --enable-asserts flag to dart2js or to the vm.'),
     new _Option.bool(
+        'preview_dart_2', 'Pass the --preview-dart-2 flag to analyzer.'),
+    // TODO(sigmund): replace dart2js_with_kernel with preview-dart-2.
+    new _Option.bool(
         'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.'),
     new _Option.bool('dart2js_with_kernel_in_ssa',
         'Pass the --use-kernel-in-ssa flag to dart2js.'),
@@ -213,6 +216,8 @@ compact, color, line, verbose, silent, status, buildbot, diff
     new _Option.bool('verify-ir', 'Verify kernel IR.'),
     new _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.'),
     new _Option.bool('list', 'List tests only, do not run them.'),
+    new _Option.bool('list_status_files',
+        'List status files for test-suites. Do not run any test suites.'),
     new _Option.bool('report_in_json',
         'When listing with --list, output result summary in JSON.'),
     new _Option.bool('time', 'Print timing information after running tests.'),
@@ -316,7 +321,7 @@ compiler.''')
     'verbose',
     'write_debug_log',
     'write_test_outcome_log',
-    'write_result_json_log'
+    'write_result_log'
   ].toSet();
 
   /// Parses a list of strings as test options.
@@ -549,7 +554,9 @@ compiler.''')
       var runtime = Runtime.find(runtimeName);
 
       // Start installing the runtime if needed.
-      if (runtime == Runtime.drt && !(data["list"] as bool)) {
+      if (runtime == Runtime.drt &&
+          !(data["list"] as bool) &&
+          !(data["list_status_files"] as bool)) {
         updateContentShell(data["drt"] as String);
       }
 
@@ -594,6 +601,8 @@ compiler.''')
                 isMinified: data["minified"] as bool,
                 isVerbose: data["verbose"] as bool,
                 listTests: data["list"] as bool,
+                listStatusFiles: data["list_status_files"] as bool,
+                previewDart2: data["preview_dart_2"] as bool,
                 printTiming: data["time"] as bool,
                 printReport: data["report"] as bool,
                 reportInJson: data["report_in_json"] as bool,

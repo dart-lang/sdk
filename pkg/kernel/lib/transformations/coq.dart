@@ -50,17 +50,19 @@ class CoqFieldInfo {
 
   final String dartName;
   final FieldStyle style;
+  bool definitional = false;
 
   String get innerRefType => type == null ? primitiveCoqType : type.refType;
 
   String get refType {
     if (type != null) {
+      var rt = definitional ? type.coqType : type.refType;
       if (style == FieldStyle.list) {
-        return type.coqType + "_list";
+        return "list $rt";
       } else if (style == FieldStyle.optional) {
-        return type.coqType + "_option";
+        return "option $rt";
       } else {
-        return type.refType;
+        return rt;
       }
     } else {
       if (style == FieldStyle.list) {
@@ -143,6 +145,15 @@ int getCoqAnnot(NamedNode N, List<Expression> annotations) {
                 break;
               case "coqopt":
                 annot = coq_annot.coqopt;
+                break;
+              case "coqsingle":
+                annot = coq_annot.coqsingle;
+                break;
+              case "coqdef":
+                annot = coq_annot.coqdef;
+                break;
+              case "coqsingledef":
+                annot = coq_annot.coqsingledef;
                 break;
               default:
                 throw new Exception("ERROR: Invalid Coq annotation on ${N}!");
@@ -228,7 +239,7 @@ class CoqPass2 extends RecursiveVisitor {
     bool isList = false;
 
     if (interfaceType.classNode == coreTypes.listClass) {
-      isList = true;
+      isList = annot != coq_annot.coqsingle && annot != coq_annot.coqsingledef;
       if (interfaceType.typeArguments.length != 1) return;
       var elemType = interfaceType.typeArguments[0];
       if (elemType is InterfaceType) {
@@ -253,13 +264,19 @@ class CoqPass2 extends RecursiveVisitor {
       fieldInfo = new CoqFieldInfo(fieldName, null, primitive, style);
     } else {
       var fieldClassInfo = info.classes[cls];
-      if (fieldClassInfo == null) return;
+      if (fieldClassInfo == null) {
+        return;
+      }
       fieldInfo = new CoqFieldInfo(fieldName, fieldClassInfo, null, style);
 
       if (style == FieldStyle.optional) {
         fieldClassInfo.needsOption = true;
       } else if (style == FieldStyle.list) {
         fieldClassInfo.needsList = true;
+      }
+
+      if (annot == coq_annot.coqdef || annot == coq_annot.coqsingledef) {
+        fieldInfo.definitional = true;
       }
     }
 
@@ -304,8 +321,7 @@ String abbrev(String S, {bool capitalize: false}) {
 
 void outputCoqImports() {
   print("""
-Require Import String List Coq.FSets.FMapList Coq.Structures.OrderedTypeEx.
-Module Import F := FMapList.Make(Nat_as_OT).
+Require Import Common.
 """);
 }
 
@@ -313,10 +329,7 @@ void outputCoqSyntax(CoqLibInfo info) {
   int defN = 0;
   defkw() => defN++ > 0 ? "with" : "Inductive";
   for (var classInfo in info.classes.values) {
-    if (classInfo.subs.length > 0 == !classInfo.cls.isAbstract) {
-      throw new Exception(
-          "ERROR: Cannot Coq-ify non-abstract non-final class ${classInfo.cls}.");
-    }
+    bool isAbstract = classInfo.subs.length > 0;
 
     Class cls = classInfo.cls;
     var coqName = classInfo.coqType;
@@ -331,8 +344,8 @@ void outputCoqSyntax(CoqLibInfo info) {
       continue;
     }
 
-    if (!classInfo.cls.isAbstract || classInfo.fields.length > 0) {
-      var suffix = cls.isAbstract ? "_data" : "";
+    if (!isAbstract || classInfo.fields.length > 0) {
+      var suffix = isAbstract ? "_data" : "";
       var dataTypeName = coqName + suffix;
       var dataCtorName = coqifyName(cls.name, capitalize: true);
 
@@ -342,6 +355,10 @@ void outputCoqSyntax(CoqLibInfo info) {
       // Insert fields for superclasses.
       int arw = 0;
       arrow() => arw++ == 0 ? "" : "-> ";
+
+      if (classInfo.refStyle == RefStyle.identified) {
+        print("      ${arrow()}nat");
+      }
 
       for (var sprInfo in classInfo.supersWithData(info)) {
         print("      ${arrow()}${sprInfo.coqType}_data");
@@ -367,22 +384,6 @@ void outputCoqSyntax(CoqLibInfo info) {
       print("\n");
     }
   }
-  for (var CI in info.classes.values) {
-    if (CI.needsList) {
-      var def = """${defkw()} ${CI.coqType}_list : Set :=
-  | ${CI.coqType}_nil : ${CI.coqType}_list
-  | ${CI.coqType}_cons : ${CI.refType} -> ${CI.coqType}_list -> ${CI.coqType}_list
-""";
-      print(def);
-    }
-    if (CI.needsOption) {
-      var def = """${defkw()} ${CI.coqType}_option : Set :=
-  | ${CI.coqType}_none : ${CI.coqType}_option
-  | ${CI.coqType}_some : ${CI.refType} -> ${CI.coqType}_option
-""";
-      print(def);
-    }
-  }
   print(".\n");
 }
 
@@ -390,7 +391,7 @@ void outputCoqStore(info) {
   print("Record ast_store : Type := Ast_Store {");
   for (var classInfo in info.classes.values) {
     if (classInfo.refStyle != RefStyle.identified) continue;
-    print("  ${classInfo.abbrevName}_refs : F.t ${classInfo.coqType};");
+    print("  ${classInfo.abbrevName}_refs : NatMap.t ${classInfo.coqType};");
   }
   print("}.\n");
 }
@@ -402,7 +403,7 @@ void outputCoqSyntaxValidity(CoqLibInfo info) {
   validityPredicate(CoqClassInfo CI) {
     if (CI.refStyle == RefStyle.identified) {
       var mapName = "${CI.abbrevName}_refs";
-      return (X) => "F.In $X ($mapName ast)";
+      return (X) => "NatMap.In $X ($mapName ast)";
     } else {
       return (X) => "${CI.coqType}_validity ast $X";
     }
@@ -504,7 +505,7 @@ void outputCoqStoreValidity(CoqLibInfo info) {
     if (CI.refStyle != RefStyle.identified) continue;
     var mapName = "${CI.abbrevName}_refs";
     clauses.add(
-        "  forall (n : nat), forall (X : ${CI.coqType}), F.MapsTo n X ($mapName ast) -> ${CI.coqType}_validity ast X");
+        "  forall (n : nat), forall (X : ${CI.coqType}), NatMap.MapsTo n X ($mapName ast) -> ${CI.coqType}_validity ast X");
   }
   var clause = clauses.join(" /\\\n");
   print(
@@ -522,9 +523,6 @@ Program transformProgram(CoreTypes coreTypes, Program program) {
     (new CoqPass2(info, coreTypes)).visitLibrary(lib);
     outputCoqImports();
     outputCoqSyntax(info);
-    outputCoqStore(info);
-    outputCoqSyntaxValidity(info);
-    outputCoqStoreValidity(info);
   }
   return program;
 }

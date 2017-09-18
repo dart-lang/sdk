@@ -202,6 +202,20 @@ void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
   }
 }
 
+void FlowGraphTypePropagator::EnsureMoreAccurateRedefinition(
+    Instruction* prev,
+    Definition* original,
+    CompileType new_type) {
+  RedefinitionInstr* redef =
+      flow_graph_->EnsureRedefinition(prev, original, new_type);
+  // Grow types array if a new redefinition was inserted.
+  if (redef != NULL) {
+    for (intptr_t i = types_.length(); i <= redef->ssa_temp_index() + 1; ++i) {
+      types_.Add(NULL);
+    }
+  }
+}
+
 void FlowGraphTypePropagator::VisitValue(Value* value) {
   CompileType* type = TypeOf(value->definition());
 
@@ -255,6 +269,16 @@ void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
   }
 }
 
+void FlowGraphTypePropagator::VisitCheckNull(CheckNullInstr* check) {
+  Definition* receiver = check->value()->definition();
+  CompileType* type = TypeOf(receiver);
+  if (type->is_nullable()) {
+    // Insert redefinition for the receiver to guard against invalid
+    // code motion.
+    EnsureMoreAccurateRedefinition(check, receiver, type->CopyNonNullable());
+  }
+}
+
 void FlowGraphTypePropagator::CheckNonNullSelector(
     Instruction* call,
     Definition* receiver,
@@ -273,15 +297,7 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
     if (type->is_nullable()) {
       // Insert redefinition for the receiver to guard against invalid
       // code motion.
-      RedefinitionInstr* redef = flow_graph_->EnsureRedefinition(
-          call, receiver, type->CopyNonNullable());
-      // Grow types array if a new redefinition was inserted.
-      if (redef != NULL) {
-        for (intptr_t i = types_.length(); i <= redef->ssa_temp_index() + 1;
-             ++i) {
-          types_.Add(NULL);
-        }
-      }
+      EnsureMoreAccurateRedefinition(call, receiver, type->CopyNonNullable());
     }
   }
 }
@@ -339,14 +355,13 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       comparison->InputAt(0)->definition()->AsInstanceOf();
   bool is_simple_instance_of =
       (call != NULL) && call->MatchesCoreName(Symbols::_simpleInstanceOf());
-  RedefinitionInstr* redef = NULL;
   if (load_cid != NULL && comparison->InputAt(1)->BindsToConstant()) {
     intptr_t cid = Smi::Cast(comparison->InputAt(1)->BoundConstant()).Value();
     BlockEntryInstr* true_successor =
         negated ? instr->false_successor() : instr->true_successor();
-    redef = flow_graph_->EnsureRedefinition(true_successor,
-                                            load_cid->object()->definition(),
-                                            CompileType::FromCid(cid));
+    EnsureMoreAccurateRedefinition(true_successor,
+                                   load_cid->object()->definition(),
+                                   CompileType::FromCid(cid));
   } else if ((is_simple_instance_of || (instance_of != NULL)) &&
              comparison->InputAt(1)->BindsToConstant() &&
              comparison->InputAt(1)->BoundConstant().IsBool()) {
@@ -372,7 +387,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
     if (!type->IsDynamicType() && !type->IsObjectType()) {
       const bool is_nullable = type->IsNullType() ? CompileType::kNullable
                                                   : CompileType::kNonNullable;
-      redef = flow_graph_->EnsureRedefinition(
+      EnsureMoreAccurateRedefinition(
           true_successor, left,
           CompileType::FromAbstractType(*type, is_nullable));
     }
@@ -381,7 +396,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
     // Handle for expr != null.
     BlockEntryInstr* true_successor =
         negated ? instr->true_successor() : instr->false_successor();
-    redef = flow_graph_->EnsureRedefinition(
+    EnsureMoreAccurateRedefinition(
         true_successor, comparison->InputAt(1)->definition(),
         comparison->InputAt(1)->Type()->CopyNonNullable());
 
@@ -390,18 +405,11 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
     // Handle for null != expr.
     BlockEntryInstr* true_successor =
         negated ? instr->true_successor() : instr->false_successor();
-    redef = flow_graph_->EnsureRedefinition(
+    EnsureMoreAccurateRedefinition(
         true_successor, comparison->InputAt(0)->definition(),
         comparison->InputAt(0)->Type()->CopyNonNullable());
   }
   // TODO(fschneider): Add propagation for generic is-tests.
-
-  // Grow types array if a new redefinition was inserted.
-  if (redef != NULL) {
-    for (intptr_t i = types_.length(); i <= redef->ssa_temp_index() + 1; ++i) {
-      types_.Add(NULL);
-    }
-  }
 }
 
 void FlowGraphTypePropagator::AddToWorklist(Definition* defn) {
@@ -1035,7 +1043,7 @@ CompileType InstanceCallInstr::ComputeType() const {
   if (FLAG_experimental_strong_mode) {
     const Function& target = interface_target();
     if (!target.IsNull()) {
-      // TODO(alexmarkov): instantiate generic result_type
+      // TODO(dartbug.com/30480): instantiate generic result_type
       const AbstractType& result_type =
           AbstractType::ZoneHandle(target.result_type());
       TraceStrongModeType(this, result_type);
@@ -1243,9 +1251,17 @@ CompileType UnaryInt64OpInstr::ComputeType() const {
 
 CompileType CheckedSmiOpInstr::ComputeType() const {
   if (FLAG_experimental_strong_mode) {
-    CompileType* type = call()->Type();
-    TraceStrongModeType(this, type);
-    return *type;
+    if (left()->Type()->IsNullableInt() && right()->Type()->IsNullableInt()) {
+      const AbstractType& abstract_type =
+          AbstractType::ZoneHandle(Type::IntType());
+      TraceStrongModeType(this, abstract_type);
+      return CompileType::FromAbstractType(abstract_type,
+                                           CompileType::kNonNullable);
+    } else {
+      CompileType* type = call()->Type();
+      TraceStrongModeType(this, type);
+      return *type;
+    }
   }
   return CompileType::Dynamic();
 }

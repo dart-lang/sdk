@@ -601,7 +601,11 @@ class ObjectGraph {
     while (!stream.isZero) {
       var nodeId = addrToId.get(stream.high, stream.mid, stream.low);
       stream.readUnsigned(); // externalSize
-      externalSizes[nodeId] += stream.clampedUint32;
+      // The handle's object might be in the VM isolate or an immediate object,
+      // in which case the object isn't included in the snapshot.
+      if (nodeId != null) {
+        externalSizes[nodeId] += stream.clampedUint32;
+      }
 
       stream.readUnsigned(); // addr
     }

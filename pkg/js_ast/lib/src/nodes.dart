@@ -1313,7 +1313,7 @@ abstract class VariableReference extends Expression {
   final String name;
 
   VariableReference(this.name) {
-    assert(_identifierRE.hasMatch(name));
+    assert(_identifierRE.hasMatch(name), "Non-identifier name '$name'");
   }
 
   static RegExp _identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');

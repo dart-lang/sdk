@@ -9,6 +9,7 @@
 rasta/unsupported_platform_library: RuntimeError # OK, this must report an error at runtime.
 
 DeltaBlue: Fail # Fasta and dartk disagree on static initializers
+bug30695: RuntimeError
 call: Fail # Test can't run.
 fallthrough: Fail # Missing FallThroughError.
 function_type_recovery: Fail
@@ -89,15 +90,12 @@ rasta/unresolved_constructor: Fail
 rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
 
-regress/issue_29940: Crash # Issue 29940.
 regress/issue_29941: Crash # Issue 29941.
 regress/issue_29943: Crash # Issue 29943.
 regress/issue_29944: Crash # Issue 29944.
-regress/issue_29945: Crash # Issue 29945.
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError
 regress/issue_29977: Crash # Issue 29977.
-regress/issue_29980: Crash # Issue 29980.
 regress/issue_29981: Crash # Issue 29981.
 regress/issue_29982: RuntimeError
 regress/issue_29983: Crash # Issue 29983.

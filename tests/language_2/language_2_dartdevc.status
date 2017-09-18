@@ -20,6 +20,7 @@ bit_operations_test/04: MissingCompileTimeError
 black_listed_test/none: fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
+constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 generic_list_checked_test: CompileTimeError
 generic_local_functions_test: CompileTimeError
 generic_methods_closure_test: CompileTimeError # Issue 29920
@@ -38,8 +39,13 @@ generic_test: CompileTimeError
 generics_test: CompileTimeError
 get_set_syntax_test/none: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
+import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
+import_private_test/01: MissingCompileTimeError # Issue 29920
+initializing_formal_final_test: MissingCompileTimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
+string_interpolate_test: CompileTimeError
 type_variable_scope_test/none: CompileTimeError
+vm/*: SkipByDesign # VM only tests.
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -48,19 +54,11 @@ accessor_conflict_import2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
+const_objects_are_immutable_test: RuntimeError # Issue 29897
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
 void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
-void_type_function_types_test/00: Crash # Issue 30514
-void_type_function_types_test/01: Crash # Issue 30514
-void_type_function_types_test/03: Crash # Issue 30514
-void_type_function_types_test/04: Crash # Issue 30514
-void_type_function_types_test/05: Crash # Issue 30514
-void_type_function_types_test/06: Crash # Issue 30514
-void_type_function_types_test/07: Crash # Issue 30514
-void_type_function_types_test/08: Crash # Issue 30514
-void_type_function_types_test/09: Crash # Issue 30514
-void_type_function_types_test/none: Crash # Issue 30514
+void_type_function_types_test/none: CompileTimeError # Issue 30514
 void_type_override_test/none: CompileTimeError # Issue 30514
 void_type_usage_test/call_as: CompileTimeError # Issue 30514
 void_type_usage_test/call_for: CompileTimeError # Issue 30514
@@ -103,6 +101,7 @@ void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 [ $compiler == dartdevc && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
 async_star_pause_test: RuntimeError
+await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test/01: RuntimeError # No bigints on web.
 bit_operations_test/02: RuntimeError # No bigints on web.
 bit_operations_test/03: RuntimeError # No bigints on web.
@@ -117,7 +116,17 @@ compile_time_constant_a_test: RuntimeError # Issue 30526
 compile_time_constant_b_test: RuntimeError # Issue 29920
 compile_time_constant_d_test: RuntimeError # Issue 29920
 compile_time_constant10_test/none: RuntimeError
-covariant_subtyping_with_substitution_test: RuntimeError # Issue 30461
+const_switch_test/02: RuntimeError # Issue 29920
+const_switch_test/04: RuntimeError # Ints and doubles are unified.
+constructor12_test: RuntimeError # Issue 29920
+custom_await_stack_trace_test: RuntimeError # Issue 29920
+cyclic_type2_test: RuntimeError # Issue 29920
+cyclic_type_test/02: RuntimeError # Issue 29920
+cyclic_type_test/03: RuntimeError # Issue 29920
+cyclic_type_test/04: RuntimeError # Issue 29920
+deferred_call_empty_before_load_test: RuntimeError # Issue 27777
+deferred_load_constants_test/none: RuntimeError # Issue 27394
+deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 function_subtype_inline2_test: RuntimeError
 function_type/function_type50_test: RuntimeError # Issue 29920
 function_type/function_type58_test: RuntimeError # Issue 29920
@@ -129,3 +138,11 @@ generic_method_types_test/03: RuntimeError
 generic_methods_new_test: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 identical_closure2_test: RuntimeError # Issue 29920
+infinite_switch_label_test: RuntimeError # Issue 29920
+infinity_test: RuntimeError # Issue 29920
+instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
+issue21159_test: RuntimeError # Issue 30701
+issue23244_test: RuntimeError # Issue 29920
+label_test: RuntimeError # Issue 30675
+named_parameters_default_eq_test/none: RuntimeError
+yieldstar_pause_test: Skip # Times out

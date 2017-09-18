@@ -9,7 +9,7 @@ class AllocationProfileRepository implements M.AllocationProfileRepository {
   static const _defaultsApi = '_getDefaultClassesAliases';
 
   Future<M.AllocationProfile> get(M.IsolateRef i,
-      {bool gc: false, bool reset: false, bool combine: true}) async {
+      {bool gc: false, bool reset: false, bool combine: false}) async {
     assert(gc != null);
     assert(reset != null);
     S.Isolate isolate = i as S.Isolate;

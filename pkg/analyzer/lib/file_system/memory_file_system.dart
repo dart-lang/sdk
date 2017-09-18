@@ -558,6 +558,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   Folder resolveSymbolicLinksSync() => this;
+
+  @override
+  Uri toUri() => _provider.pathContext.toUri(path + '/');
 }
 
 /**

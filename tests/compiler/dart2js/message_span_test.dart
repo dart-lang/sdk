@@ -156,7 +156,7 @@ main() {
       for (CollectedMessage message in collector.messages) {
         String expectedSpanText = kindToSpan[message.messageKind];
         if (expectedSpanText != null) {
-          SourceFile sourceFile = provider.getSourceFile(message.uri);
+          SourceFile sourceFile = provider.getUtf8SourceFile(message.uri);
           String locationMessage =
               sourceFile.getLocationMessage(MARKER, message.begin, message.end);
           // Remove `filename:line:column:` and message.

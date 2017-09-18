@@ -118,11 +118,10 @@ class Fork {
       note("Is already migrated.");
     } else if (twoExists) {
       // If there is a migrated version and it's the same as an unmigrated one,
-      // delete the unmigrated one.
+      // note that.
       if (oneExists) {
         if (oneSource == twoSource) {
-          deleteFile(onePath);
-          done("Deleted already-migrated $onePath.");
+          done("Is already migrated from $onePath.");
         } else {
           note("${bold(onePath)} does not match already-migrated file.");
           todos.add("Merge from ${bold(onePath)} into this file.");
@@ -143,17 +142,16 @@ class Fork {
     } else {
       if (!strongExists) {
         // If it only exists in one place, just move it.
-        moveFile(onePath, twoPath);
-        done("Moved from ${bold(onePath)} (no strong mode fork).");
+        copyFile(onePath, twoPath);
+        done("Copied from ${bold(onePath)} (no strong mode fork).");
       } else if (!oneExists) {
         // If it only exists in one place, just move it.
         moveFile(strongPath, twoPath);
         done("Moved from ${bold(strongPath)} (no 1.0 mode fork).");
       } else if (oneSource == strongSource) {
-        // The forks are identical, pick one.
-        moveFile(onePath, twoPath);
-        deleteFile(strongPath);
-        done("Merged identical forks.");
+        // The forks are identical, move the strong one.
+        moveFile(strongPath, twoPath);
+        done("Moved from ${bold(strongPath)} (both forks identical).");
         validateFile(twoPath, oneSource);
       } else {
         // Otherwise, a manual merge is required. Start with the strong one.

@@ -2798,17 +2798,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       }
     }
 
-    return inferrer.registerCalledSelector(
-        callType,
-        node,
-        selector,
-        mask,
-        receiverType,
-        outermostElement,
-        arguments,
-        sideEffects,
-        inLoop,
-        isConditional);
+    return inferrer.registerCalledSelector(callType, node, selector, mask,
+        receiverType, outermostElement, arguments, sideEffects,
+        inLoop: inLoop, isConditional: isConditional);
   }
 
   TypeInformation handleDynamicInvoke(ast.Send node) {

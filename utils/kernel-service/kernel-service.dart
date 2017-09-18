@@ -202,8 +202,6 @@ Future _processLoadRequest(request) async {
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to
       // decide what to exclude.
-      // TODO(sigmund): remove the following line (Issue #30111)
-      program.libraries.forEach((e) => e.isExternal = false);
       result = new CompilationResult.ok(
           serializeProgram(program, filter: (lib) => !lib.isExternal));
     }

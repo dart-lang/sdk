@@ -462,11 +462,27 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     return multiplier;
   }
 
+  // TODO(dartbug.com/30480): create a separate option to toggle
+  // strong mode optimizations if we need to test strong mode without
+  // optimizations.
+  bool get _experimentalStrongMode => _isStrong;
+
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    var commands = [
-      computeCompilationCommand(tempDir, arguments, environmentOverrides)
-    ];
+    var commands = <Command>[];
+
+    if (_experimentalStrongMode) {
+      commands.add(computeCompileToKernelCommand(
+          tempDir, arguments, environmentOverrides));
+    }
+
+    commands.add(
+        computeCompilationCommand(tempDir, arguments, environmentOverrides));
+
+    if (_experimentalStrongMode) {
+      commands.add(computeRemoveKernelFileCommand(
+          tempDir, arguments, environmentOverrides));
+    }
 
     if (!_configuration.useBlobs) {
       commands.add(
@@ -477,6 +493,44 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 
     return new CommandArtifact(
         commands, '$tempDir', 'application/dart-precompiled');
+  }
+
+  String tempKernelFile(String tempDir) => '$tempDir/out.dill';
+
+  Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
+      Map<String, String> environmentOverrides) {
+    var buildDir = _configuration.buildDirectory;
+    String exec = Platform.executable;
+    var args = [
+      '--packages=.packages',
+      'pkg/front_end/tool/_fasta/compile.dart',
+      // TODO(dartbug.com/30480): use strong-mode version of platform.dill
+      '--platform=${buildDir}/patched_sdk/platform.dill',
+      '--target=vm_precompiler',
+      '--strong-mode',
+      '--fatal=errors',
+      '-o',
+      tempKernelFile(tempDir),
+    ];
+    args.addAll(arguments.where((name) => name.endsWith('.dart')));
+    return Command.compilation('compile_to_kernel', tempDir,
+        bootstrapDependencies(), exec, args, environmentOverrides,
+        alwaysCompile: !_useSdk);
+  }
+
+  /// Creates a command to clean up large temporary kernel files.
+  ///
+  /// Warning: this command removes temporary file and violates tracking of
+  /// dependencies between commands, which may cause problems if multiple
+  /// almost identical configurations are tested simultaneosly.
+  Command computeRemoveKernelFileCommand(String tempDir, List arguments,
+      Map<String, String> environmentOverrides) {
+    var exec = 'rm';
+    var args = [tempKernelFile(tempDir)];
+
+    return Command.compilation('remove_kernel_file', tempDir,
+        bootstrapDependencies(), exec, args, environmentOverrides,
+        alwaysCompile: !_useSdk);
   }
 
   Command computeCompilationCommand(String tempDir, List<String> arguments,
@@ -495,7 +549,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 
     var args = <String>[];
     if (useDfe) {
-      args.add('--dfe=utils/kernel-service/kernel-service.dart');
+      if (!_experimentalStrongMode) {
+        args.add('--dfe=utils/kernel-service/kernel-service.dart');
+      }
+      // TODO(dartbug.com/30480): avoid using additional kernel binaries
       args.add('--kernel-binaries=${buildDir}/patched_sdk');
     }
 
@@ -515,7 +572,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       args.add('--obfuscate');
     }
 
-    args.addAll(arguments);
+    if (_experimentalStrongMode) {
+      args.add('--experimental-strong-mode');
+      args.addAll(arguments.where((name) => !name.endsWith('.dart')));
+      args.add(tempKernelFile(tempDir));
+    } else {
+      args.addAll(arguments);
+    }
 
     return Command.compilation('precompiler', tempDir, bootstrapDependencies(),
         exec, args, environmentOverrides,
@@ -584,8 +647,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
         alwaysCompile: !_useSdk);
   }
 
-  // This step reduces the amount of space needed to run the precompilation
-  // tests by 60%.
+  /// Creates a command to clean up large temporary assembly files.
+  ///
+  /// This step reduces the amount of space needed to run the precompilation
+  /// tests by 60%.
+  /// Warning: this command removes temporary file and violates tracking of
+  /// dependencies between commands, which may cause problems if multiple
+  /// almost identical configurations are tested simultaneosly.
   Command computeRemoveAssemblyCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     var exec = 'rm';

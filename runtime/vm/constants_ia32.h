@@ -117,6 +117,18 @@ enum Condition {
   CARRY = BELOW,
   NOT_CARRY = ABOVE_EQUAL,
 
+  // Platform-independent variants declared for all platforms
+  // EQUAL,
+  // NOT_EQUAL,
+  // LESS,
+  // LESS_EQUAL,
+  // GREATER_EQUAL,
+  // GREATER,
+  UNSIGNED_LESS = BELOW,
+  UNSIGNED_LESS_EQUAL = BELOW_EQUAL,
+  UNSIGNED_GREATER = ABOVE,
+  UNSIGNED_GREATER_EQUAL = ABOVE_EQUAL,
+
   INVALID_CONDITION = 16
 };
 

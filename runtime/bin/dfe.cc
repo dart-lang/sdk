@@ -52,6 +52,10 @@ void DFE::SetKernelBinaries(const char* name) {
            File::PathSeparator(), kVMServiceIOBinaryName);
 }
 
+static void ReleaseFetchedBytes(uint8_t* buffer) {
+  free(buffer);
+}
+
 Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
                                   const char* url_string) {
   ASSERT(!Dart_IsServiceIsolate(isolate) && !Dart_IsKernelIsolate(isolate));
@@ -74,7 +78,8 @@ Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
     kernel_ir = kresult.kernel;
     kernel_ir_size = kresult.kernel_size;
   }
-  void* kernel_program = Dart_ReadKernelBinary(kernel_ir, kernel_ir_size);
+  void* kernel_program =
+      Dart_ReadKernelBinary(kernel_ir, kernel_ir_size, ReleaseFetchedBytes);
   ASSERT(kernel_program != NULL);
   return Dart_NewExternalTypedData(Dart_TypedData_kUint64, kernel_program, 1);
 }
@@ -88,7 +93,8 @@ void* DFE::CompileAndReadScript(const char* script_uri,
       Dart_CompileToKernel(script_uri, platform_binary_filename_);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
-      return Dart_ReadKernelBinary(result.kernel, result.kernel_size);
+      return Dart_ReadKernelBinary(result.kernel, result.kernel_size,
+                                   ReleaseFetchedBytes);
     case Dart_KernelCompilationStatus_Error:
       *error = result.error;  // Copy error message.
       *exit_code = kCompilationErrorExitCode;
@@ -118,7 +124,7 @@ void* DFE::ReadScript(const char* script_uri) const {
   intptr_t buffer_length = -1;
   bool result = TryReadKernelFile(script_uri, &buffer, &buffer_length);
   if (result) {
-    return Dart_ReadKernelBinary(buffer, buffer_length);
+    return Dart_ReadKernelBinary(buffer, buffer_length, ReleaseFetchedBytes);
   }
   return NULL;
 }

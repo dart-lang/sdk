@@ -12,6 +12,10 @@ async_await_test: CompileTimeError
 async_await_syntax_test/a05c: CompileTimeError
 async_await_syntax_test/a05e: CompileTimeError
 async_await_syntax_test/d08c: CompileTimeError
+await_backwards_compatibility_test/none: CompileTimeError
+await_test: CompileTimeError
+await_for_test: Skip # Flutter Issue 9110
+await_for_cancel_test: Skip # Flutter Issue 9110
 bad_override_test/06: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: CompileTimeError
 call_constructor_on_unresolvable_class_test/03: CompileTimeError
@@ -19,18 +23,60 @@ call_constructor_on_unresolvable_class_test/02: CompileTimeError
 call_constructor_on_unresolvable_class_test/07: CompileTimeError
 class_keyword_test/02: CompileTimeError
 class_override_test/00: CompileTimeError
+const_types_test/01: CompileTimeError
+const_types_test/02: CompileTimeError
+const_types_test/03: CompileTimeError
+const_types_test/04: CompileTimeError
+const_types_test/05: CompileTimeError
+const_types_test/06: CompileTimeError
+const_types_test/13: CompileTimeError
+const_types_test/35: CompileTimeError
+const_types_test/40: CompileTimeError
+deferred_constraints_type_annotation_test/new_before_load: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_null: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic2: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic3: CompileTimeError
+deferred_constraints_type_annotation_test/new: CompileTimeError
+deferred_constraints_type_annotation_test/new_generic1: CompileTimeError
+deferred_constraints_type_annotation_test/new_generic2: CompileTimeError
+deferred_constraints_type_annotation_test/new_generic3: CompileTimeError
+deferred_constraints_type_annotation_test/is_check: CompileTimeError
+deferred_constraints_type_annotation_test/as_operation: CompileTimeError
+deferred_constraints_type_annotation_test/catch_check: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_top_level: CompileTimeError
+deferred_constraints_constants_test/none: CompileTimeError
+deferred_constraints_constants_test/reference_after_load: CompileTimeError
+default_factory_test/01: CompileTimeError
+deferred_inheritance_constraints_test/redirecting_constructor: CompileTimeError
+deferred_mixin_test: CompileTimeError
+deferred_closurize_load_library_test: Skip # Timeout
+deferred_constraints_type_annotation_test/none: Skip # Timeout
+deferred_constraints_type_annotation_test/static_method: Skip # Timeout
+deferred_constant_list_test: Skip # Timeout
+deferred_global_test: Skip # Timeout
 generic_function_typedef2_test/04: CompileTimeError
+instance_creation_in_function_annotation_test: CompileTimeError
+issue21079_test: CompileTimeError
+static_initializer_type_error_test: CompileTimeError
 type_variable_scope_test/none: CompileTimeError
 type_variable_scope_test/00: CompileTimeError
 type_variable_scope_test/01: CompileTimeError
-type_variable_scope_test/03: CompileTimeError
 type_variable_scope_test/02: CompileTimeError
+type_variable_scope_test/03: CompileTimeError
 type_variable_scope_test/04: CompileTimeError
 type_variable_scope_test/05: CompileTimeError
-unicode_bom_test: CompileTimeError
 type_variable_scope2_test: CompileTimeError
+unicode_bom_test: CompileTimeError
+wrong_number_type_arguments_test/00: CompileTimeError
+wrong_number_type_arguments_test/02: CompileTimeError
+wrong_number_type_arguments_test/01: CompileTimeError
+vm/debug_break_enabled_vm_test/01: CompileTimeError
+vm/debug_break_enabled_vm_test/none: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.
 [ $runtime == flutter && $compiler == none && $checked ]
 assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
+
+[ $runtime == flutter && $arch == arm64 ]
+large_class_declaration_test: SkipSlow # Uses too much memory.

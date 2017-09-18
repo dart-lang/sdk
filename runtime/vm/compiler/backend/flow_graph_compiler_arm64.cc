@@ -687,7 +687,31 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 
 // Input parameters:
 //   R4: arguments descriptor array.
-void FlowGraphCompiler::CopyParameters() {
+void FlowGraphCompiler::CheckTypeArgsLen(bool expect_type_args,
+                                         Label* wrong_num_arguments) {
+  __ Comment("Check type args len");
+  const Function& function = parsed_function().function();
+  Label correct_type_args_len;
+  // Type args are always optional, so length can always be zero.
+  // If expect_type_args, a non-zero length must match the declaration length.
+  __ LoadFieldFromOffset(R8, R4, ArgumentsDescriptor::type_args_len_offset());
+  __ CompareImmediate(R8, Smi::RawValue(0));
+  if (expect_type_args) {
+    __ b(&correct_type_args_len, EQ);
+    __ CompareImmediate(R8, Smi::RawValue(function.NumTypeParameters()));
+  }
+  __ b(wrong_num_arguments, NE);
+  __ Bind(&correct_type_args_len);
+}
+
+// Input parameters:
+//   R4: arguments descriptor array.
+void FlowGraphCompiler::CopyParameters(bool expect_type_args,
+                                       bool check_arguments) {
+  Label wrong_num_arguments;
+  if (check_arguments) {
+    CheckTypeArgsLen(expect_type_args, &wrong_num_arguments);
+  }
   __ Comment("Copy parameters");
   const Function& function = parsed_function().function();
   LocalScope* scope = parsed_function().node_sequence()->scope();
@@ -707,7 +731,6 @@ void FlowGraphCompiler::CopyParameters() {
   __ LoadFieldFromOffset(R8, R4,
                          ArgumentsDescriptor::positional_count_offset());
   // Check that min_num_pos_args <= num_pos_args.
-  Label wrong_num_arguments;
   __ CompareImmediate(R8, Smi::RawValue(min_num_pos_args));
   __ b(&wrong_num_arguments, LT);
   // Check that num_pos_args <= max_num_pos_args.
@@ -750,8 +773,7 @@ void FlowGraphCompiler::CopyParameters() {
 #ifdef DEBUG
   const bool check_correct_named_args = true;
 #else
-  const bool check_correct_named_args =
-      function.IsClosureFunction() || function.IsConvertedClosureFunction();
+  const bool check_correct_named_args = check_arguments;
 #endif
   if (num_opt_named_params > 0) {
     // Start by alphabetically sorting the names of the optional parameters.
@@ -858,7 +880,7 @@ void FlowGraphCompiler::CopyParameters() {
   }
 
   __ Bind(&wrong_num_arguments);
-  if (function.IsClosureFunction() || function.IsConvertedClosureFunction()) {
+  if (check_arguments) {
     __ LeaveDartFrame(kKeepCalleePP);  // The arguments are still on the stack.
     __ BranchPatchable(*StubCode::CallClosureNoSuchMethod_entry());
     // The noSuchMethod call may return to the caller, but not here.
@@ -983,18 +1005,25 @@ void FlowGraphCompiler::CompileGraph() {
   const int num_copied_params = parsed_function().num_copied_params();
   const int num_locals = parsed_function().num_stack_locals();
 
+  // The prolog of OSR functions is never executed, hence greatly simplified.
+  const bool expect_type_args = FLAG_reify_generic_functions &&
+                                function.IsGeneric() &&
+                                !flow_graph().IsCompiledForOsr();
+
+  const bool check_arguments =
+      (function.IsClosureFunction() || function.IsConvertedClosureFunction()) &&
+      !flow_graph().IsCompiledForOsr();
+
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional parameters.
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are in debug mode or unless we are compiling a closure.
   if (num_copied_params == 0) {
-    const bool check_arguments = (function.IsClosureFunction() ||
-                                  function.IsConvertedClosureFunction()) &&
-                                 !flow_graph().IsCompiledForOsr();
     if (check_arguments) {
+      Label correct_num_arguments, wrong_num_arguments;
+      CheckTypeArgsLen(expect_type_args, &wrong_num_arguments);
       __ Comment("Check argument count");
       // Check that exactly num_fixed arguments are passed in.
-      Label correct_num_arguments, wrong_num_arguments;
       __ LoadFieldFromOffset(R0, R4, ArgumentsDescriptor::count_offset());
       __ CompareImmediate(R0, Smi::RawValue(num_fixed_params));
       __ b(&wrong_num_arguments, NE);
@@ -1009,7 +1038,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ Bind(&correct_num_arguments);
     }
   } else if (!flow_graph().IsCompiledForOsr()) {
-    CopyParameters();
+    CopyParameters(expect_type_args, check_arguments);
   }
 
   if (function.IsClosureFunction() && !flow_graph().IsCompiledForOsr()) {
@@ -1047,13 +1076,12 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
-  // Check for a passed type argument vector if the function is generic.
-  if (FLAG_reify_generic_functions && function.IsGeneric() &&
-      !flow_graph().IsCompiledForOsr()) {
-    __ Comment("Check passed-in type args");
+  // Copy passed-in type argument vector if the function is generic.
+  if (expect_type_args) {
+    __ Comment("Copy passed-in type args");
     Label store_type_args, ok;
     __ LoadFieldFromOffset(R0, R4, ArgumentsDescriptor::type_args_len_offset());
-    __ CompareImmediate(R0, 0);
+    __ CompareImmediate(R0, Smi::RawValue(0));
     if (is_optimizing()) {
       // Initialize type_args to null if none passed in.
       __ LoadObject(R0, Object::null_object());
@@ -1061,7 +1089,6 @@ void FlowGraphCompiler::CompileGraph() {
     } else {
       __ b(&ok, EQ);  // Already initialized to null.
     }
-    // TODO(regis): Verify that type_args_len is correct.
     // Load the passed type args vector in R0 from
     // fp[kParamEndSlotFromFp + num_args + 1]; num_args (R1) is Smi.
     __ LoadFieldFromOffset(R1, R4, ArgumentsDescriptor::count_offset());
@@ -1077,9 +1104,6 @@ void FlowGraphCompiler::CompileGraph() {
     __ StoreToOffset(R0, FP, slot_base * kWordSize);
     __ Bind(&ok);
   }
-
-  // TODO(regis): Verify that no vector is passed if not generic, unless already
-  // checked during resolution.
 
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
   VisitBlocks();
@@ -1188,7 +1212,6 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
 
 void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                                   const ICData& ic_data,
-                                                  intptr_t argument_count,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs) {
@@ -1204,12 +1227,11 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
   __ LoadUniqueObject(R5, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub_entry, RawPcDescriptors::kIcCall,
                    locs);
-  __ Drop(argument_count);
+  __ Drop(ic_data.CountWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
                                          const ICData& ic_data,
-                                         intptr_t argument_count,
                                          intptr_t deopt_id,
                                          TokenPosition token_pos,
                                          LocationSummary* locs) {
@@ -1217,26 +1239,26 @@ void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
   __ LoadUniqueObject(R5, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub_entry, RawPcDescriptors::kIcCall,
                    locs);
-  __ Drop(argument_count);
+  __ Drop(ic_data.CountWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     const String& name,
     const Array& arguments_descriptor,
-    intptr_t argument_count,
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs,
     intptr_t try_index,
     intptr_t slow_path_argument_count) {
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
 
   __ Comment("MegamorphicCall");
   // Load receiver into R0.
-  __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
+  __ LoadFromOffset(R0, SP, (args_desc.Count() - 1) * kWordSize);
 
   __ LoadObject(R5, cache);
   __ ldr(LR, Address(THR, Thread::megamorphic_call_checked_entry_offset()));
@@ -1264,21 +1286,19 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
   EmitCatchEntryState(pending_deoptimization_env_, try_index);
-  __ Drop(argument_count);
+  __ Drop(args_desc.CountWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
-                                                   intptr_t argument_count,
                                                    intptr_t deopt_id,
                                                    TokenPosition token_pos,
                                                    LocationSummary* locs) {
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub =
       Code::ZoneHandle(StubCode::ICCallThroughFunction_entry()->code());
-  const intptr_t receiver_idx = ic_data.TypeArgsLen() > 0 ? 1 : 0;
 
   __ Comment("SwitchableCall");
-  __ LoadFromOffset(R0, SP, (argument_count - receiver_idx - 1) * kWordSize);
+  __ LoadFromOffset(R0, SP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(CODE_REG, initial_stub);
   __ ldr(TMP, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
   __ LoadUniqueObject(R5, ic_data);
@@ -1294,10 +1314,10 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
     // arguments are removed.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
-  __ Drop(argument_count);
+  __ Drop(ic_data.CountWithTypeArgs());
 }
 
-void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t argument_count,
+void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs,
@@ -1307,13 +1327,13 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t argument_count,
   __ LoadObject(R5, ic_data);
   GenerateDartCall(deopt_id, token_pos, *stub_entry,
                    RawPcDescriptors::kUnoptStaticCall, locs);
-  __ Drop(argument_count);
+  __ Drop(count_with_type_args);
 }
 
 void FlowGraphCompiler::EmitOptimizedStaticCall(
     const Function& function,
     const Array& arguments_descriptor,
-    intptr_t argument_count,
+    intptr_t count_with_type_args,
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs) {
@@ -1329,7 +1349,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   GenerateStaticDartCall(deopt_id, token_pos,
                          *StubCode::CallStaticFunction_entry(),
                          RawPcDescriptors::kOther, locs, function);
-  __ Drop(argument_count);
+  __ Drop(count_with_type_args);
 }
 
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
@@ -1450,11 +1470,11 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 #endif
 
 void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
-    intptr_t argument_count,
+    intptr_t count_without_type_args,
     const Array& arguments_descriptor) {
   __ Comment("EmitTestAndCall");
   // Load receiver into R0.
-  __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
+  __ LoadFromOffset(R0, SP, (count_without_type_args - 1) * kWordSize);
   __ LoadObject(R4, arguments_descriptor);
 }
 

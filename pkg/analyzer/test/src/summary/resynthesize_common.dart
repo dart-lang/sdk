@@ -3848,7 +3848,18 @@ const vEnum = p.E;
 const vFunctionTypeAlias = p.F;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+import 'a.dart' as p;
+const Type vClass =
+        C/*location: a.dart;C*/;
+const Type vEnum =
+        E/*location: a.dart;E*/;
+const Type vFunctionTypeAlias =
+        F/*location: a.dart;F*/;
+''');
+      } else {
+        checkElementText(library, r'''
 import 'a.dart' as p;
 const Type vClass =
         p/*location: test.dart;p*/.
@@ -3860,6 +3871,7 @@ const Type vFunctionTypeAlias =
         p/*location: test.dart;p*/.
         F/*location: a.dart;F*/;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'a.dart' as p;
@@ -6023,7 +6035,7 @@ dynamic f(dynamic x) {}
   test_function_parameter_parameters() async {
     var library = await checkLibrary('f(g(x, y)) {}');
     checkElementText(library, r'''
-dynamic f(dynamic g(dynamic x, dynamic y)) {}
+dynamic f((dynamic, dynamic) → dynamic g) {}
 ''');
   }
 
@@ -6086,7 +6098,7 @@ T f<T, U>(U u) {}
   test_function_type_parameter_with_function_typed_parameter() async {
     var library = await checkLibrary('void f<T, U>(T x(U u)) {}');
     checkElementText(library, r'''
-void f<T, U>(T x(U u)) {}
+void f<T, U>((U) → T x) {}
 ''');
   }
 
@@ -6224,7 +6236,7 @@ int Function(int a, String b) f() => null;
 void f(int Function(int a, String b) p(num c)) => null;
 ''');
     checkElementText(library, r'''
-void f((int, String) → int p(num c)) {}
+void f((num) → (int, String) → int p) {}
 ''');
   }
 
@@ -6703,7 +6715,7 @@ h(F f) => null;
 var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
 ''');
     checkElementText(library, r'''
-typedef void F(int g(String s));
+typedef void F((String) → int g);
 dynamic v;
 dynamic h(F f) {}
 ''');
@@ -6723,7 +6735,7 @@ class C<T, U> extends D<U, int> {
   void f(int x, (U) → int g) {}
 }
 abstract class D<V, W> {
-  void f(int x, W g(V s));
+  void f(int x, (V) → W g);
 }
 ''');
     } else {
@@ -6732,7 +6744,7 @@ class C<T, U> extends D<U, int> {
   void f(int x, dynamic g) {}
 }
 abstract class D<V, W> {
-  void f(int x, W g(V s));
+  void f(int x, (V) → W g);
 }
 ''');
     }
@@ -6755,24 +6767,12 @@ class C extends D {
 }
 ''');
     if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        // Front-end copies FunctionType instances, which means that if it has
-        // parameter names in superclass, then we have names also in the
-        // subclass.
-        checkElementText(library, r'''
-import 'a.dart';
-class C extends D {
-  void f(int x, int g(String s)) {}
-}
-''');
-      } else {
-        checkElementText(library, r'''
+      checkElementText(library, r'''
 import 'a.dart';
 class C extends D {
   void f(int x, (String) → int g) {}
 }
 ''');
-      }
     } else {
       checkElementText(library, r'''
 import 'a.dart';
@@ -6792,7 +6792,7 @@ class C extends D {
   void f(int x, (String) → int g) {}
 }
 abstract class D {
-  void f(int x, int g(String s));
+  void f(int x, (String) → int g);
 }
 ''');
     } else {
@@ -6801,7 +6801,7 @@ class C extends D {
   void f(int x, dynamic g) {}
 }
 abstract class D {
-  void f(int x, int g(String s));
+  void f(int x, (String) → int g);
 }
 ''');
     }
@@ -6814,7 +6814,7 @@ var v = f((x, y) {});
 ''');
     checkElementText(library, r'''
 dynamic v;
-dynamic f(void g(int x, () → void h)) {}
+dynamic f((int, () → void) → void g) {}
 ''');
   }
 
@@ -6825,7 +6825,7 @@ var v = f(g: (x, y) {});
 ''');
     checkElementText(library, r'''
 dynamic v;
-dynamic f({void g(int x, () → void h)}) {}
+dynamic f({(int, () → void) → void g}) {}
 ''');
   }
 
@@ -6838,7 +6838,7 @@ class C extends D {
   void set f((String) → int g) {}
 }
 abstract class D {
-  void set f(int g(String s));
+  void set f((String) → int g);
 }
 ''');
     } else {
@@ -6847,7 +6847,7 @@ class C extends D {
   void set f(dynamic g) {}
 }
 abstract class D {
-  void set f(int g(String s));
+  void set f((String) → int g);
 }
 ''');
     }
@@ -6904,14 +6904,14 @@ var v = [f, g];
     if (isStrongMode) {
       checkElementText(library, r'''
 List<((String) → int) → Object> v;
-int f(int x(String y)) {}
-String g(int x(String y)) {}
+int f((String) → int x) {}
+String g((String) → int x) {}
 ''');
     } else {
       checkElementText(library, r'''
 dynamic v;
-int f(int x(String y)) {}
-String g(int x(String y)) {}
+int f((String) → int x) {}
+String g((String) → int x) {}
 ''');
     }
   }
@@ -8249,7 +8249,7 @@ class C<T, U> {
     var library = await checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
     checkElementText(library, r'''
 class C {
-  void f<T, U>(T x(U u)) {}
+  void f<T, U>((U) → T x) {}
 }
 ''');
   }
@@ -8589,7 +8589,7 @@ class B<T> extends A<T> {
     var library = await checkLibrary('class C { f(g(x, y)) {} }');
     checkElementText(library, r'''
 class C {
-  dynamic f(dynamic g(dynamic x, dynamic y)) {}
+  dynamic f((dynamic, dynamic) → dynamic g) {}
 }
 ''');
   }
@@ -8598,7 +8598,7 @@ class C {
     var library = await checkLibrary('class C<A, B> { f(A g(B x)) {} }');
     checkElementText(library, r'''
 class C<A, B> {
-  dynamic f(A g(B x)) {}
+  dynamic f((B) → A g) {}
 }
 ''');
   }
@@ -9403,14 +9403,14 @@ class A {
   test_typedef_parameter_parameters() async {
     var library = await checkLibrary('typedef F(g(x, y));');
     checkElementText(library, r'''
-typedef dynamic F(dynamic g(dynamic x, dynamic y));
+typedef dynamic F((dynamic, dynamic) → dynamic g);
 ''');
   }
 
   test_typedef_parameter_parameters_in_generic_class() async {
     var library = await checkLibrary('typedef F<A, B>(A g(B x));');
     checkElementText(library, r'''
-typedef dynamic F<A, B>(A g(B x));
+typedef dynamic F<A, B>((B) → A g);
 ''');
   }
 
@@ -9444,9 +9444,15 @@ typedef dynamic F(dynamic x, dynamic y);
 
   test_typedef_parameters_named() async {
     var library = await checkLibrary('typedef F({y, z, x});');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+typedef dynamic F({dynamic x}, {dynamic y}, {dynamic z});
+''');
+    } else {
+      checkElementText(library, r'''
 typedef dynamic F({dynamic y}, {dynamic z}, {dynamic x});
 ''');
+    }
   }
 
   test_typedef_return_type() async {
@@ -9497,17 +9503,31 @@ class D {
   test_typedef_type_parameters_bound_recursive() async {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('typedef void F<T extends F>();');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      // Typedefs cannot reference themselves.
+      checkElementText(library, r'''
+typedef void F<T extends dynamic>();
+''');
+    } else {
+      checkElementText(library, r'''
 typedef void F<T extends F>();
 ''');
+    }
   }
 
   test_typedef_type_parameters_bound_recursive2() async {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      // Typedefs cannot reference themselves.
+      checkElementText(library, r'''
+typedef void F<T extends List<dynamic>>();
+''');
+    } else {
+      checkElementText(library, r'''
 typedef void F<T extends List<F>>();
 ''');
+    }
   }
 
   test_typedef_type_parameters_f_bound_complex() async {

@@ -184,6 +184,10 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                   sourcefiles, kernel_pgm, incrementally);
 }
 
+static void ReleaseFetchedBytes(uint8_t* buffer) {
+  free(buffer);
+}
+
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          int sourcefiles_count,
                                          Dart_SourceFile sourcefiles[],
@@ -202,7 +206,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
   if (kernel_file == NULL) {
     return OS::SCreate(zone, "front end generated a NULL kernel file");
   }
-  *kernel_pgm = Dart_ReadKernelBinary(kernel_file, kernel_length);
+  *kernel_pgm =
+      Dart_ReadKernelBinary(kernel_file, kernel_length, ReleaseFetchedBytes);
   if (*kernel_pgm == NULL) {
     return OS::SCreate(zone, "Failed to read generated kernel binary");
   }

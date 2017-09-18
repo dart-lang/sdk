@@ -615,7 +615,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _kernel.documentationComment;
     }
     if (_unlinkedClass != null) {
-      return _unlinkedClass?.documentationComment?.text;
+      return _unlinkedClass.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -2037,7 +2037,7 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
       return _kernelEnumValue.documentationComment;
     }
     if (_unlinkedEnumValue != null) {
-      return _unlinkedEnumValue?.documentationComment?.text;
+      return _unlinkedEnumValue.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -3756,7 +3756,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
       return _kernel.documentationComment;
     }
     if (_unlinkedEnum != null) {
-      return _unlinkedEnum?.documentationComment?.text;
+      return _unlinkedEnum.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -3809,6 +3809,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??=
+          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
+    }
     if (_unlinkedEnum != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, _unlinkedEnum.annotations);
@@ -4043,7 +4047,7 @@ abstract class ExecutableElementImpl extends ElementImpl
       return _kernel.documentationComment;
     }
     if (serializedExecutable != null) {
-      return serializedExecutable?.documentationComment?.text;
+      return serializedExecutable.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -4738,7 +4742,9 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   DartType get type {
-    if (_unlinkedParam != null && _unlinkedParam.type == null) {
+    if (_unlinkedParam != null &&
+        _unlinkedParam.type == null &&
+        field != null) {
       _type ??= field?.type ?? DynamicTypeImpl.instance;
     }
     return super.type;
@@ -5085,7 +5091,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   @override
   String get documentationComment {
     if (_unlinkedTypedef != null) {
-      return _unlinkedTypedef?.documentationComment?.text;
+      return _unlinkedTypedef.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -5531,7 +5537,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
   @override
   String get documentationComment {
     if (_unlinkedTypedef != null) {
-      return _unlinkedTypedef?.documentationComment?.text;
+      return _unlinkedTypedef.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -5928,6 +5934,9 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   bool get isDeferred {
+    if (_kernel != null) {
+      return _kernel.isDeferred;
+    }
     if (_unlinkedImport != null) {
       return _unlinkedImport.isDeferred;
     }
@@ -6452,8 +6461,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   String get documentationComment {
+    if (_kernelContext != null) {
+      return _kernelContext.library.documentationComment;
+    }
     if (_unlinkedDefiningUnit != null) {
-      return _unlinkedDefiningUnit?.libraryDocumentationComment?.text;
+      return _unlinkedDefiningUnit.libraryDocumentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -7842,7 +7854,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
       return _kernel.documentationComment;
     }
     if (_unlinkedVariable != null) {
-      return _unlinkedVariable?.documentationComment?.text;
+      return _unlinkedVariable.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -8008,20 +8020,6 @@ class ParameterElementImpl extends VariableElementImpl
    * The kernel of the element;
    */
   final kernel.VariableDeclaration _kernel;
-
-  /**
-   * A list containing all of the parameters defined by this parameter element.
-   * There will only be parameters if this parameter is a function typed
-   * parameter.
-   */
-  List<ParameterElement> _parameters = ParameterElement.EMPTY_LIST;
-
-  /**
-   * A list containing all of the type parameters defined for this parameter
-   * element. There will only be parameters if this parameter is a function
-   * typed parameter.
-   */
-  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
 
   /**
    * The kind of this parameter.
@@ -8354,19 +8352,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    _resynthesizeTypeAndParameters();
-    return _parameters;
-  }
-
-  /**
-   * Set the parameters defined by this executable element to the given
-   * [parameters].
-   */
-  void set parameters(List<ParameterElement> parameters) {
-    for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement = this;
-    }
-    this._parameters = parameters;
+    return const <ParameterElement>[];
   }
 
   @override
@@ -8386,17 +8372,8 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
-  List<TypeParameterElement> get typeParameters => _typeParameters;
-
-  /**
-   * Set the type parameters defined by this parameter element to the given
-   * [typeParameters].
-   */
-  void set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement parameter in typeParameters) {
-      (parameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    this._typeParameters = typeParameters;
+  List<TypeParameterElement> get typeParameters {
+    return const <TypeParameterElement>[];
   }
 
   @override
@@ -8450,17 +8427,6 @@ class ParameterElementImpl extends VariableElementImpl
   FormalParameter computeNode() =>
       getNodeMatching((node) => node is FormalParameter);
 
-  @override
-  ElementImpl getChild(String identifier) {
-    for (ParameterElement parameter in _parameters) {
-      ParameterElementImpl parameterImpl = parameter;
-      if (parameterImpl.identifier == identifier) {
-        return parameterImpl;
-      }
-    }
-    return null;
-  }
-
   /**
    * Set the visible range for this element to the range starting at the given
    * [offset] with the given [length].
@@ -8482,61 +8448,27 @@ class ParameterElementImpl extends VariableElementImpl
    * been build yet, build them and remember in the corresponding fields.
    */
   void _resynthesizeTypeAndParameters() {
+    // TODO(scheglov) Don't resynthesize parameters.
     if (_kernel != null && _type == null) {
       kernel.DartType type = _kernel.type;
       _type = enclosingUnit._kernelContext.getType(this, type);
-      if (type is kernel.FunctionType && type.typedefReference == null) {
-        _parameters = new List<ParameterElement>(
-            type.positionalParameters.length + type.namedParameters.length);
-        int index = 0;
-        for (int i = 0; i < type.positionalParameters.length; i++) {
-          String name = i < type.positionalParameterNames.length
-              ? type.positionalParameterNames[i]
-              : null;
-          _parameters[index++] = new ParameterElementImpl.forKernel(
-              enclosingElement,
-              new kernel.VariableDeclaration(name,
-                  type: type.positionalParameters[i]),
-              i < type.requiredParameterCount
-                  ? ParameterKind.REQUIRED
-                  : ParameterKind.POSITIONAL);
-        }
-        for (int i = 0; i < type.namedParameters.length; i++) {
-          _parameters[index++] = new ParameterElementImpl.forKernel(
-              enclosingElement,
-              new kernel.VariableDeclaration(type.namedParameters[i].name,
-                  type: type.namedParameters[i].type),
-              ParameterKind.NAMED);
-        }
-      } else {
-        _parameters = const <ParameterElement>[];
-      }
     }
     if (_unlinkedParam != null && _declaredType == null && _type == null) {
       if (_unlinkedParam.isFunctionTyped) {
         CompilationUnitElementImpl enclosingUnit = this.enclosingUnit;
-        FunctionElementImpl parameterTypeElement =
-            new FunctionElementImpl_forFunctionTypedParameter(
-                enclosingUnit, this);
-        if (!isSynthetic) {
-          parameterTypeElement.enclosingElement = this;
-        }
-        List<ParameterElement> subParameters = ParameterElementImpl
-            .resynthesizeList(_unlinkedParam.parameters, this,
-                synthetic: isSynthetic);
-        if (isSynthetic) {
-          parameterTypeElement.parameters = subParameters;
-        } else {
-          _parameters = subParameters;
-          parameterTypeElement.shareParameters(subParameters);
-        }
-        parameterTypeElement.returnType = enclosingUnit.resynthesizerContext
+
+        var typeElement = new GenericFunctionTypeElementImpl.forOffset(-1);
+        typeElement.enclosingElement = this;
+
+        typeElement.parameters = ParameterElementImpl.resynthesizeList(
+            _unlinkedParam.parameters, typeElement,
+            synthetic: isSynthetic);
+
+        typeElement.returnType = enclosingUnit.resynthesizerContext
             .resolveTypeRef(this, _unlinkedParam.type);
-        FunctionTypeImpl parameterType =
-            new FunctionTypeImpl.elementWithNameAndArgs(parameterTypeElement,
-                null, typeParameterContext.allTypeParameterTypes, false);
-        parameterTypeElement.type = parameterType;
-        _type = parameterType;
+
+        _type = new FunctionTypeImpl(typeElement);
+        typeElement.type = _type;
       } else {
         _type = enclosingUnit.resynthesizerContext
             .resolveLinkedType(this, _unlinkedParam.inferredTypeSlot);
@@ -9666,7 +9598,7 @@ abstract class TypeParameterizedElementMixin
    * Find out how many type parameters are in scope in this context.
    */
   int get typeParameterNestingLevel =>
-      _nestingLevel ??= unlinkedTypeParams.length +
+      _nestingLevel ??= (unlinkedTypeParams?.length ?? 0) +
           (enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0);
 
   @override

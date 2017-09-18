@@ -1617,16 +1617,25 @@ megamorphic-ref .emphasize {
   font-style: italic;
 }
 
-/* memory-dashboard */
+/* dashboards common */
 
-memory-dashboard {
+memory-dashboard,
+timeline-dashboard {
   display: block;
   height: 100%;
   margin-top: -30px;
 }
 
+memory-profile > div > h1,
+timeline-dashboard > div > h1 {
+  overflow: hidden;
+  border-bottom: 1px solid #d5d5d5;
+}
+
 memory-dashboard button:disabled,
-memory-dashboard button:disabled:hover {
+timeline-dashboard button:disabled,
+memory-dashboard button:disabled:hover,
+timeline-dashboard button:disabled:hover {
   text-decoration: none;
   background-color: #eee;
   background-image: linear-gradient(#eee, #eee);
@@ -1637,7 +1646,9 @@ memory-dashboard button:disabled:hover {
 
 
 memory-dashboard button,
-memory-dashboard button:active {
+timeline-dashboard button,
+memory-dashboard button:active,
+timeline-dashboard button:active {
   text-decoration: none;
   background-color: #ddd;
   background-image: linear-gradient(#eee, #ddd);
@@ -1646,12 +1657,51 @@ memory-dashboard button:active {
   cursor: pointer;
 }
 
-memory-dashboard button:hover {
+memory-dashboard button:hover,
+timeline-dashboard button:hover {
   text-decoration: none;
   background-color: #ccc;
   background-image: linear-gradient(#ddd, #ccc);
   border-color: #c7c7c7;
 }
+
+memory-profile .header_button,
+timeline-dashboard .header_button {
+  padding: 3px 5px;
+  margin: 0px 1px;
+}
+
+memory-profile .header_button:first-child,
+timeline-dashboard .header_button:first-child {
+  margin-left: 5px;
+}
+
+memory-profile .tab_buttons,
+timeline-dashboard .tab_buttons {
+  position: relative;
+  top: 1px;
+  float: right;
+}
+
+memory-profile .tab_buttons button,
+timeline-dashboard .tab_buttons button {
+  padding: 10px 5px;
+}
+
+memory-profile .tab_buttons button:not(:first-child),
+timeline-dashboard .tab_buttons button:not(:first-child) {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+
+memory-profile .tab_buttons button:not(:last-child),
+timeline-dashboard  .tab_buttons button:not(:last-child) {
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
+
+/* memory-dashboard */
 
 memory-dashboard memory-graph {
   height: 350px;
@@ -1801,41 +1851,6 @@ memory-allocations .collection-item .group button:hover {
   border-radius: 0px;
 }
 
-/* memory-profile */
-
-memory-profile > div > h1 {
-  overflow: hidden;
-  border-bottom: 1px solid #d5d5d5;
-}
-
-memory-profile .header_button {
-  padding: 3px 5px;
-  margin: 0px 1px;
-}
-
-memory-profile .header_button:first-child {
-  margin-left: 5px;
-}
-
-memory-profile .tab_buttons {
-  position: relative;
-  top: 1px;
-  float: right;
-}
-
-memory-profile .tab_buttons button {
-  padding: 10px 5px;
-}
-
-memory-profile .tab_buttons button:not(:first-child) {
-  border-top-left-radius: 0px;
-  border-bottom-left-radius: 0px;
-}
-
-memory-profile .tab_buttons button:not(:last-child) {
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
-}
 
 /* memory-snapshot */
 
@@ -2487,10 +2502,71 @@ script-inset .hotProfile {
   background-color: #faa;
 }
 
+/* search-bar */
+
+search-bar {
+  background: white;
+  padding: 5px;
+}
+search-bar > input {
+  width: 300px;
+  line-height: 20px;
+  border-color: #DDDDDD;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+search-bar button:enabled,
+search-bar button:enabled:hover,
+search-bar button:disabled,
+search-bar button:disabled:hover,
+search-bar button:active {
+  border: none;
+  background: none;
+  background-color: transparent;
+  line-height: 20px;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  outline: none;
+}
+
+search-bar button:disabled,
+search-bar button:disabled:hover {
+  color: #DDDDDD;
+}
+
+search-bar button:enabled,
+search-bar button:enabled:active {
+  color: #BBBBBB;
+}
+
+search-bar button:enabled:hover {
+  color: #AAAAAA;
+  text-shadow: 1px 1px 2px #dddddd;
+}
+
 /* stack-trace-tree-config */
 
 stack-trace-tree-config {
   white-space: nowrap;
+}
+
+/* timeline-dashboard */
+
+timeline-dashboard .iframe {
+  position: absolute;
+  top: 90px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+timeline-dashboard h1 {
+  margin-bottom: 5px;
+}
+timeline-dashboard .iframe iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 /* timeline-page */
@@ -2597,6 +2673,18 @@ virtual-collection .header {
   z-index: +1;
 }
 
+virtual-collection search-bar {
+  position: relative;
+  display: block;
+  z-index: +1;
+  float: right;
+  top: 2px;
+  right: 25px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  box-shadow: 0px 1px 2px #AAAAAA;
+}
+
 virtual-collection .spacer {
   overflow: hidden;
   background: transparent;
@@ -2624,6 +2712,11 @@ virtual-collection .buffer > div {
 virtual-collection .buffer > div {
   min-width: 100%;
   white-space: nowrap;
+}
+
+virtual-collection .marked,
+virtual-collection .marked * {
+  background: yellow !important;
 }
 
 /* virtual-tree */

@@ -176,6 +176,7 @@ class Foo {
     var modifierKeywords = new Set<Keyword>.from([
       Keyword.ABSTRACT,
       Keyword.CONST,
+      Keyword.COVARIANT,
       Keyword.FINAL,
       Keyword.STATIC,
     ]);

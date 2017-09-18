@@ -7,6 +7,7 @@ library generics_helper;
 import 'package:expect/expect.dart';
 
 typeParameters(mirror, parameterNames) {
+  print(mirror.typeVariables.map((v) => v.simpleName).toList());
   Expect.listEquals(
       parameterNames, mirror.typeVariables.map((v) => v.simpleName).toList());
 }

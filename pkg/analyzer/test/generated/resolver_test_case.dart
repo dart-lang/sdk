@@ -27,8 +27,8 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:test/test.dart';
 
 import '../src/context/mock_sdk.dart';
@@ -342,6 +342,8 @@ class ResolverTestCase extends EngineTestCase {
   AnalysisContext get analysisContext => analysisContext2;
 
   bool get enableNewAnalysisDriver => false;
+
+  bool get enableKernelDriver => false;
 
   /**
    * Return a type provider that can be used to test the results of resolution.
@@ -687,7 +689,8 @@ class ResolverTestCase extends EngineTestCase {
           fileContentOverlay,
           null,
           sourceFactory,
-          options);
+          options,
+          enableKernelDriver: enableKernelDriver);
       scheduler.start();
     } else {
       if (packages != null) {

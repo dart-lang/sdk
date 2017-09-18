@@ -304,6 +304,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   ResolutionDartType createMixinsOptimized(
       BaseClassElementX element, MixinApplication superMixin,
       {bool isNamed: false}) {
+    List<ResolutionDartType> typeVariables = element.typeVariables;
     LibraryElementX library = element.library;
     Map<String, MixinApplicationElementX> mixinApplicationClasses =
         library.mixinApplicationCache;
@@ -374,7 +375,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
             var argument = type.typeArguments[i];
             String name;
             if (argument is ResolutionTypeVariableType) {
-              int index = element.typeVariables.indexOf(argument) ?? -1;
+              int index = typeVariables.indexOf(argument) ?? -1;
               if (index != -1) {
                 name = "#T${index}";
               }
@@ -413,8 +414,15 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       int index = 0;
       for (List<String> strings in currentSignatureParts) {
         for (String name in strings) {
-          variables[name] ??= new ResolutionTypeVariableType(
-              new TypeVariableElementX(name, cls, index++, node));
+          variables.putIfAbsent(name, () {
+            ResolutionTypeVariableType typeVariable =
+                new ResolutionTypeVariableType(
+                    new TypeVariableElementX(name, cls, index++, node));
+            TypeVariableElementX typeVariableElement = typeVariable.element;
+            typeVariableElement.typeCache = typeVariable;
+            typeVariableElement.boundCache = const ResolutionDynamicType();
+            return typeVariable;
+          });
         }
       }
       return variables;
@@ -436,7 +444,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       ResolutionInterfaceType createMixinApplication() {
         Map<String, ResolutionDartType> variables;
         MixinApplicationElementX mixinElement;
-        ResolutionInterfaceType mixinType;
+        ResolutionDartType mixinType;
         if (lastAndNamed) {
           mixinElement = element;
           variables = freeTypes;
@@ -488,8 +496,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       supertype = createMixinApplication();
     }
 
-    return new ResolutionInterfaceType(
-        supertype.element, freeTypes.values.toList());
+    if (!isNamed) {
+      typeVariables = freeTypes.values.toList();
+    }
+
+    return new ResolutionInterfaceType(supertype.element, typeVariables);
   }
 
   ResolutionDartType createMixins(ClassElement element, MixinApplication node,

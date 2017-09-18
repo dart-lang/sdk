@@ -4,6 +4,7 @@
 
 library dart2js.kernel.env;
 
+import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/clone.dart';
 import 'package:kernel/type_algebra.dart';
@@ -15,6 +16,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ordered_typeset.dart';
+import '../ssa/type_builder.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'element_map_mixins.dart';
@@ -270,9 +272,15 @@ class ClassEnvImpl implements ClassEnv {
             // Skip synthetic .dill members.
             continue;
           }
-          if (member is ir.Constructor ||
-              member is ir.Procedure &&
-                  member.kind == ir.ProcedureKind.Factory) {
+          if (member is ir.Constructor) {
+            if (!includeStatic) continue;
+            _constructorMap[member.name.name] = member;
+          } else if (member is ir.Procedure &&
+              member.kind == ir.ProcedureKind.Factory) {
+            if (member.function.body is ir.RedirectingFactoryBody) {
+              // Don't include redirecting factories.
+              continue;
+            }
             if (!includeStatic) continue;
             _constructorMap[member.name.name] = member;
           } else if (member is ir.Procedure) {
@@ -470,9 +478,13 @@ abstract class MemberData {
   MemberDefinition get definition;
 
   Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap);
+
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap);
+
+  ClassTypeVariableAccess get classTypeVariableAccess;
 }
 
-class MemberDataImpl implements MemberData {
+abstract class MemberDataImpl implements MemberData {
   /// TODO(johnniwinther): Remove this from the [MemberData] interface. Use
   /// `definition.node` instead.
   final ir.Member node;
@@ -488,9 +500,16 @@ class MemberDataImpl implements MemberData {
     return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
-  MemberData copy() {
-    return new MemberDataImpl(node, definition);
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+    MemberEntity member = elementMap.getMember(node);
+    ClassEntity cls = member.enclosingClass;
+    if (cls != null) {
+      return elementMap.elementEnvironment.getThisType(cls);
+    }
+    return null;
   }
+
+  MemberData copy();
 }
 
 abstract class FunctionData implements MemberData {
@@ -530,7 +549,7 @@ class FunctionDataImpl extends MemberDataImpl implements FunctionData {
 
     for (int i = 0; i < functionNode.positionalParameters.length; i++) {
       handleParameter(functionNode.positionalParameters[i],
-          isOptional: i < functionNode.requiredParameterCount);
+          isOptional: i >= functionNode.requiredParameterCount);
     }
     functionNode.namedParameters.toList()
       ..sort(namedOrdering)
@@ -540,6 +559,12 @@ class FunctionDataImpl extends MemberDataImpl implements FunctionData {
   @override
   FunctionData copy() {
     return new FunctionDataImpl(node, functionNode, definition);
+  }
+
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess {
+    if (node.isInstanceMember) return ClassTypeVariableAccess.property;
+    return ClassTypeVariableAccess.none;
   }
 }
 
@@ -576,6 +601,22 @@ class ConstructorDataImpl extends FunctionDataImpl implements ConstructorData {
   ConstructorData copy() {
     return new ConstructorDataImpl(node, functionNode, definition);
   }
+
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess =>
+      ClassTypeVariableAccess.parameter;
+}
+
+class ConstructorBodyDataImpl extends FunctionDataImpl {
+  ConstructorBodyDataImpl(
+      ir.Member node, ir.FunctionNode functionNode, MemberDefinition definition)
+      : super(node, functionNode, definition);
+
+  // TODO(johnniwinther,sra): Constructor bodies should access type variables
+  // through `this`.
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess =>
+      ClassTypeVariableAccess.parameter;
 }
 
 abstract class FieldData extends MemberData {
@@ -647,6 +688,12 @@ class FieldDataImpl extends MemberDataImpl implements FieldData {
         failedAt(definition.member,
             "Field ${definition.member} doesn't have a constant initial value."));
     return value;
+  }
+
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess {
+    if (node.isInstanceMember) return ClassTypeVariableAccess.instanceField;
+    return ClassTypeVariableAccess.none;
   }
 
   @override

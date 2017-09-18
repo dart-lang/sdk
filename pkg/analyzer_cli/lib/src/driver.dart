@@ -39,8 +39,8 @@ import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:meta/meta.dart';
 import 'package:package_config/discovery.dart' as pkg_discovery;
@@ -865,6 +865,9 @@ class Driver implements CommandLineStarter {
     contextOptions.generateSdkErrors = options.showSdkWarnings;
     if (options.enableAssertInitializer != null) {
       contextOptions.enableAssertInitializer = options.enableAssertInitializer;
+    }
+    if (options.previewDart2) {
+      contextOptions.useFastaParser = true;
     }
 
     _directoryToAnalysisOptions[contextRootDirectory] = contextOptions;

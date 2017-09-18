@@ -459,7 +459,8 @@ class Server {
    * the [Completer] objects which should be completed when acknowledgement is
    * received.
    */
-  final Map<String, Completer> _pendingCommands = <String, Completer>{};
+  final Map<String, Completer<Map<String, dynamic>>> _pendingCommands =
+      <String, Completer<Map<String, dynamic>>>{};
 
   /**
    * Number which should be used to compute the 'id' to send in the next command
@@ -580,7 +581,7 @@ class Server {
       if (messageAsMap.containsKey('id')) {
         outOfTestExpect(messageAsMap['id'], isString);
         String id = message['id'];
-        Completer completer = _pendingCommands[id];
+        Completer<Map<String, dynamic>> completer = _pendingCommands[id];
         if (completer == null) {
           fail('Unexpected response from server: id=$id');
         } else {
@@ -625,7 +626,8 @@ class Server {
    * field from the response.  If the server acknowledges the command with an
    * error response, the future will be completed with an error.
    */
-  Future send(String method, Map<String, dynamic> params) {
+  Future<Map<String, dynamic>> send(
+      String method, Map<String, dynamic> params) {
     String id = '${_nextId++}';
     Map<String, dynamic> command = <String, dynamic>{
       'id': id,
@@ -634,7 +636,8 @@ class Server {
     if (params != null) {
       command['params'] = params;
     }
-    Completer completer = new Completer();
+    Completer<Map<String, dynamic>> completer =
+        new Completer<Map<String, dynamic>>();
     _pendingCommands[id] = completer;
     String line = JSON.encode(command);
     _recordStdio('SEND: $line');
@@ -916,7 +919,7 @@ abstract class _RecursiveMatcher extends Matcher {
    * substructure did not match.
    */
   checkSubstructure(item, Matcher matcher, List<MismatchDescriber> mismatches,
-      Description describeSubstructure(Description)) {
+      Description describeSubstructure(Description description)) {
     Map subState = {};
     if (!matcher.matches(item, subState)) {
       mismatches.add((Description mismatchDescription) {

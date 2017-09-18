@@ -751,6 +751,12 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains('Avoid empty else statements'));
   }
 
+  test_previewDart2() async {
+    await drive('data/options_tests_project/test_file.dart',
+        args: ['--preview-dart-2']);
+    expect(driver.context.analysisOptions.useFastaParser, isTrue);
+  }
+
   test_strongSdk() async {
     String testDir = path.join(testDirectory, 'data', 'strong_sdk');
     await drive(path.join(testDir, 'main.dart'), args: ['--strong']);

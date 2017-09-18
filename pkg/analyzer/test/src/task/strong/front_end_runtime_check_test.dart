@@ -70,6 +70,7 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
             target is ThisExpression,
             isDynamicInvoke(leftHandSide.identifier),
             target.staticType,
+            null,
             leftHandSide.identifier.offset);
       }
     }
@@ -112,11 +113,16 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       _annotateCheckReturn(
           getImplicitOperationCast(node), node.methodName.offset);
       _annotateCallKind(null, isThis, isDynamicInvoke(node.methodName), null,
-          node.argumentList.offset);
+          null, node.argumentList.offset);
     } else {
       _annotateCheckReturn(getImplicitCast(node), node.argumentList.offset);
-      _annotateCallKind(staticElement, isThis, isDynamicInvoke(node.methodName),
-          target?.staticType, node.argumentList.offset);
+      _annotateCallKind(
+          staticElement,
+          isThis,
+          isDynamicInvoke(node.methodName),
+          target?.staticType,
+          node.methodName.staticType,
+          node.argumentList.offset);
     }
   }
 
@@ -164,7 +170,7 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   /// depends on the `@checkInterface` annotations on the static target of the
   /// call.
   void _annotateCallKind(Element staticElement, bool isThis, bool isDynamic,
-      DartType targetType, int offset) {
+      DartType targetType, DartType methodType, int offset) {
     if (staticElement is FunctionElement &&
         staticElement.enclosingElement is CompilationUnitElement) {
       // Invocation of a top level function; no annotation needed.
@@ -173,7 +179,8 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     if (isDynamic) {
       if (targetType == null &&
           staticElement != null &&
-          staticElement is! MethodElement) {
+          staticElement is! MethodElement &&
+          methodType is FunctionType) {
         // Sometimes analyzer annotates invocations of function objects as
         // dynamic (presumably due to "dynamic is bottom" behavior).  Ignore
         // this.
@@ -208,46 +215,59 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
-  /// Generates the appropriate `@checkFormal` and `@checkInterface` annotations
-  /// (if any) for a method formal parameter, method type parameter, or field
-  /// declaration.
+  /// Generates the appropriate `@covariance` annotation (if any) for a method
+  /// formal parameter, method type parameter, or field declaration.
   ///
   /// When these annotations are generated for a field declaration, they
   /// implicitly refer to the value parameter of the synthetic setter.
   ///
-  /// An annotation of `@checkFormal=unsafe` indicates that the parameter needs
+  /// An annotation of `@covariance=explicit` indicates that the parameter needs
   /// to be type checked regardless of the call site.
   ///
-  /// An annotation of `@checkFormal=semiSafe` indicates that the parameter
+  /// An annotation of `@covariance=genericImpl` indicates that the parameter
   /// needs to be type checked when the call site is annotated
   /// `@callKind=dynamic` or `@callKind=closure`, or the call site is
   /// unannotated and the corresponding parameter in the interface target is
-  /// annotated `@checkInterface=semiTyped`.
+  /// annotated `@covariance=genericInterface`.
   ///
-  /// No `@checkFormal` annotation indicates that the parameter only needs to be
+  /// No `@covariance` annotation indicates that the parameter only needs to be
   /// type checked if the call site is annotated `@callKind=dynamic`.
   void _annotateFormalParameter(
       Element element, int offset, ClassDeclaration cls) {
+    bool isExplicit = false;
+    bool isGenericImpl = false;
     if (element is ParameterElement && element.isCovariant) {
-      _recordCheckFormal(offset, 'unsafe');
+      isExplicit = true;
     } else if (cls != null) {
       var covariantParams = getClassCovariantParameters(cls);
-      if (covariantParams != null && covariantParams.contains(element)) {
-        _recordCheckFormal(offset, 'semiSafe');
+      if (covariantParams != null && covariantParams.contains(element) ||
+          cls?.typeParameters != null &&
+              element is ParameterElement &&
+              _isFormalSemiTyped(
+                  cls.typeParameters.typeParameters, element.type)) {
+        isGenericImpl = true;
       }
     }
+    bool isGenericInterface = false;
     if (cls?.typeParameters != null) {
       if (element is ParameterElement) {
         if (_isFormalSemiTyped(
             cls.typeParameters.typeParameters, element.type)) {
-          _recordCheckInterface(offset, 'semiTyped');
+          isGenericInterface = true;
         }
       } else if (element is TypeParameterElement && element.bound != null) {
         if (_isFormalSemiTyped(
             cls.typeParameters.typeParameters, element.bound)) {
-          _recordCheckInterface(offset, 'semiTyped');
+          isGenericInterface = true;
         }
       }
+    }
+    var covariance = <String>[];
+    if (isExplicit) covariance.add('explicit');
+    if (isGenericInterface) covariance.add('genericInterface');
+    if (isGenericImpl) covariance.add('genericImpl');
+    if (covariance.isNotEmpty) {
+      _recordCovariance(offset, covariance.join(', '));
     }
   }
 
@@ -271,31 +291,54 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   ///
   /// An annotation of `@forwardingStub=rettype name(args)` indicates that a
   /// forwarding stub must be inserted into the class having the given name and
-  /// return type.  Each argument is listed in `args` as `safety type name`,
-  /// where safety is one of `safe` or `semiSafe`.
+  /// return type.  Each argument is listed in `args` as
+  /// `covariance=(...) type name`, where the words between the parentheses are
+  /// the same as for the `@covariance=` annotation.
   void _emitForwardingStubs(Declaration node, int offset) {
     var covariantParams = getSuperclassCovariantParameters(node);
+    void emitStubFor(DartType returnType, String name,
+        List<ParameterElement> parameters, String accessorType) {
+      var paramDescrs = <String>[];
+      for (var param in parameters) {
+        var covariances = <String>[];
+        if (covariantParams.contains(param)) {
+          if (param.isCovariant) {
+            covariances.add('explicit');
+          } else {
+            covariances.add('genericImpl');
+          }
+        }
+        var covariance = 'covariance=(${covariances.join(', ')})';
+        var typeDescr = _typeToString(param.type);
+        var paramName = accessorType == 'set' ? 'value' : param.name;
+        // TODO(paulberry): if necessary, support other parameter kinds
+        assert(param.parameterKind == ParameterKind.REQUIRED);
+        paramDescrs.add('$covariance $typeDescr $paramName');
+      }
+      var returnTypeDescr = _typeToString(returnType);
+      var stubParts = [returnTypeDescr];
+      if (accessorType != null) stubParts.add(accessorType);
+      stubParts.add('$name(${paramDescrs.join(', ')})');
+      _recordForwardingStub(offset, stubParts.join(' '));
+    }
+
     if (covariantParams != null && covariantParams.isNotEmpty) {
       for (var member
           in covariantParams.map((p) => p.enclosingElement).toSet()) {
         var memberName = member.name;
         if (member is PropertyAccessorElement) {
-          throw new UnimplementedError(); // TODO(paulberry)
-        } else if (member is MethodElement) {
-          var paramDescrs = <String>[];
-          for (var param in member.parameters) {
-            // TODO(paulberry): test the safe case
-            var safetyDescr =
-                covariantParams.contains(param) ? 'semiSafe' : 'safe';
-            var typeDescr = _typeToString(param.type);
-            var paramName = param.name;
-            // TODO(paulberry): if necessary, support other parameter kinds
-            assert(param.parameterKind == ParameterKind.REQUIRED);
-            paramDescrs.add('$safetyDescr $typeDescr $paramName');
+          if (member.isSetter) {
+            emitStubFor(
+                member.returnType,
+                memberName.substring(0, memberName.length - 1),
+                member.parameters,
+                'set');
+          } else {
+            emitStubFor(
+                member.returnType, memberName, member.parameters, 'get');
           }
-          var returnTypeDescr = _typeToString(member.returnType);
-          var stub = '$returnTypeDescr $memberName(${paramDescrs.join(', ')})';
-          _recordForwardingStub(offset, stub);
+        } else if (member is MethodElement) {
+          emitStubFor(member.returnType, memberName, member.parameters, null);
         } else {
           throw new StateError('Unexpected covariant member $member');
         }
@@ -330,16 +373,6 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         uri, offset, 'callKind', new fasta.InstrumentationValueLiteral(kind));
   }
 
-  void _recordCheckFormal(int offset, String safety) {
-    _instrumentation.record(uri, offset, 'checkFormal',
-        new fasta.InstrumentationValueLiteral(safety));
-  }
-
-  void _recordCheckInterface(int offset, String safety) {
-    _instrumentation.record(uri, offset, 'checkInterface',
-        new fasta.InstrumentationValueLiteral(safety));
-  }
-
   void _recordCheckReturn(int offset, DartType castType) {
     _instrumentation.record(uri, offset, 'checkReturn',
         new InstrumentationValueForType(castType, _elementNamer));
@@ -348,6 +381,11 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   void _recordCheckTearOff(int offset, DartType castType) {
     _instrumentation.record(uri, offset, 'checkTearOff',
         new InstrumentationValueForType(castType, _elementNamer));
+  }
+
+  void _recordCovariance(int offset, String covariance) {
+    _instrumentation.record(uri, offset, 'covariance',
+        new fasta.InstrumentationValueLiteral(covariance));
   }
 
   void _recordForwardingStub(int offset, String descr) {

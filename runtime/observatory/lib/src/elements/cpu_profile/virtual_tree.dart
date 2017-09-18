@@ -88,15 +88,18 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     var tree;
     var create;
     var update;
+    var search;
 
     switch (type) {
       case M.SampleProfileType.cpu:
         create = _createCpuRow;
         if (mode == ProfileTreeMode.code) {
           update = _updateCpuCodeRow;
+          search = _searchCode;
           tree = _profile.loadCodeTree(_direction);
         } else if (mode == ProfileTreeMode.function) {
           update = _updateCpuFunctionRow;
+          search = _searchFunction;
           tree = _profile.loadFunctionTree(_direction);
         } else {
           throw new Exception('Unknown ProfileTreeMode: $mode');
@@ -106,9 +109,11 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
         create = _createMemoryRow;
         if (mode == ProfileTreeMode.code) {
           update = _updateMemoryCodeRow;
+          search = _searchCode;
           tree = _profile.loadCodeTree(_direction);
         } else if (mode == ProfileTreeMode.function) {
           update = _updateMemoryFunctionRow;
+          search = _searchFunction;
           tree = _profile.loadFunctionTree(_direction);
         } else {
           throw new Exception('Unknown ProfileTreeMode: $mode');
@@ -127,7 +132,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       return;
     }
     _tree = new VirtualTreeElement(create, update, _getChildren,
-        items: tree.root.children, queue: _r.queue);
+        items: tree.root.children, search: search, queue: _r.queue);
     if (tree.root.children.length == 0) {
       children = [
         new DivElement()
@@ -232,6 +237,9 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       ..classes = ['name'];
   }
 
+  bool _searchFunction(Pattern pattern, M.FunctionCallTreeNode item) =>
+      M.getFunctionFullName(item.profileFunction.function).contains(pattern);
+
   void _updateCpuCodeRow(
       HtmlElement element, M.CodeCallTreeNode item, int depth) {
     element.children[0].text = Utils
@@ -273,6 +281,9 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
         new CodeRefElement(null, item.profileCode.code, queue: _r.queue)
           ..classes = ['name'];
   }
+
+  bool _searchCode(Pattern pattern, M.CodeCallTreeNode item) =>
+      item.profileCode.code.name.contains(pattern);
 
   static _updateLines(List<Element> lines, int n) {
     n = Math.max(0, n);

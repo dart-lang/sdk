@@ -10,7 +10,9 @@ import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
+import '../elements/types.dart';
 import '../kernel/element_map.dart';
+import '../kernel/indexed.dart';
 
 class GlobalLocalsMap {
   Map<MemberEntity, KernelToLocalsMap> _localsMaps =
@@ -18,6 +20,14 @@ class GlobalLocalsMap {
 
   /// Returns the [KernelToLocalsMap] for [member].
   KernelToLocalsMap getLocalsMap(MemberEntity member) {
+    // If element is a ConstructorBodyEntity, its localsMap is the same as for
+    // ConstructorEntity, because both of these entities came from the same
+    // constructor node. The entities are two separate parts because JS does not
+    // have the concept of an initializer list, so the constructor (initializer
+    // list) and the constructor body are implemented as two separate
+    // constructor steps.
+    MemberEntity entity = member;
+    if (entity is ConstructorBodyEntity) member = entity.constructor;
     return _localsMaps.putIfAbsent(
         member, () => new KernelToLocalsMapImpl(member));
   }
@@ -34,10 +44,11 @@ class GlobalLocalsMap {
 
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
   final List<MemberEntity> _members = <MemberEntity>[];
+  final EntityDataMap<JLocal, LocalData> _locals =
+      new EntityDataMap<JLocal, LocalData>();
   Map<ir.VariableDeclaration, JLocal> _map = <ir.VariableDeclaration, JLocal>{};
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
   Set<ir.BreakStatement> _breaksAsContinue;
-  List<ir.VariableDeclaration> _parameterList = <ir.VariableDeclaration>[];
 
   MemberEntity get currentMember => _members.last;
 
@@ -138,24 +149,21 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   Local getLocalVariable(ir.VariableDeclaration node) {
     return _map.putIfAbsent(node, () {
-      Local local;
-      if (node.parent is ir.FunctionNode) {
-        local = new JParameter(_parameterList.length, node.name, currentMember);
-        _parameterList.add(node);
-      } else {
-        local = new JLocal(node.name, currentMember);
-      }
+      JLocal local = new JLocal(node.name, currentMember,
+          isRegularParameter: node.parent is ir.FunctionNode);
+      _locals.register<JLocal, LocalData>(local, new LocalData(node));
       return local;
     });
   }
 
   @override
-  ir.FunctionNode getFunctionNodeForParameter(covariant JParameter parameter) {
-    return _parameterList[parameter.parameterIndex].parent;
+  ir.FunctionNode getFunctionNodeForParameter(covariant JLocal parameter) {
+    return _locals.getData(parameter).functionNode;
   }
 
-  ir.DartType getParameterType(covariant JParameter parameter) {
-    return _parameterList[parameter.parameterIndex].type;
+  @override
+  DartType getLocalType(KernelToElementMap elementMap, covariant JLocal local) {
+    return _locals.getData(local).getDartType(elementMap);
   }
 
   @override
@@ -218,8 +226,6 @@ class JumpVisitor extends ir.Visitor {
 
   @override
   visitBreakStatement(ir.BreakStatement node) {
-    // TODO(johnniwinther): Add labels if the enclosing loop is not the implicit
-    // break target.
     JJumpTarget target;
     ir.TreeNode body = node.target.body;
     ir.TreeNode parent = node.target.parent;
@@ -271,8 +277,17 @@ class JumpVisitor extends ir.Visitor {
         label.isContinueTarget = true;
       }
     } else {
+      // We have code like
+      //
+      //     label: if (c) {
+      //         if (c < 10) break label;
+      //     }
+      //
+      // and label is therefore always needed.
       target = _getJumpTarget(node.target);
       target.isBreakTarget = true;
+      JLabelDefinition label = _getOrCreateLabel(target, node.target);
+      label.isBreakTarget = true;
     }
     jumpTargetMap[node] = target;
     super.visitBreakStatement(node);
@@ -312,9 +327,6 @@ class JJumpTarget extends JumpTarget<ir.Node> {
 
   bool isBreakTarget = false;
   bool isContinueTarget = false;
-
-  @override
-  Entity get executableContext => memberContext;
 
   @override
   LabelDefinition<ir.Node> addLabel(ir.Node label, String labelName,
@@ -382,17 +394,14 @@ class JLabelDefinition extends LabelDefinition<ir.Node> {
   }
 }
 
-class JLocal implements Local {
+class JLocal extends IndexedLocal {
   final String name;
   final MemberEntity memberContext;
 
-  JLocal(this.name, this.memberContext);
-
   /// True if this local represents a local parameter.
-  bool get isRegularParameter => false;
+  final bool isRegularParameter;
 
-  @override
-  Entity get executableContext => memberContext;
+  JLocal(this.name, this.memberContext, {this.isRegularParameter: false});
 
   String get _kind => 'local';
 
@@ -411,13 +420,16 @@ class JLocal implements Local {
   }
 }
 
-class JParameter extends JLocal {
-  final int parameterIndex;
+class LocalData {
+  final ir.VariableDeclaration node;
 
-  JParameter(this.parameterIndex, String name, MemberEntity memberContext)
-      : super(name, memberContext);
+  DartType _type;
 
-  bool get isRegularParameter => true;
+  LocalData(this.node);
 
-  String get _kind => 'parameter';
+  DartType getDartType(KernelToElementMap elementMap) {
+    return _type ??= elementMap.getDartType(node.type);
+  }
+
+  ir.FunctionNode get functionNode => node.parent;
 }

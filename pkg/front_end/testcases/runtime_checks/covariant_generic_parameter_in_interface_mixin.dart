@@ -10,14 +10,16 @@ class B {
 }
 
 abstract class I<T> {
-  void f(T /*@checkInterface=semiTyped*/ x);
+  void f(T /*@covariance=genericInterface, genericImpl*/ x);
 }
 
 class M {
   void f(int x) {}
 }
 
-class /*@forwardingStub=void f(semiSafe int x)*/ C = B with M implements I<int>;
+class /*@forwardingStub=void f(covariance=(genericImpl) int x)*/ C = B
+    with M
+    implements I<int>;
 void g1(C c) {
   c.f(1);
 }

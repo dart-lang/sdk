@@ -1992,7 +1992,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ movl(EBX, FieldAddress(ECX, MegamorphicCache::mask_offset()));
   __ movl(EDI, FieldAddress(ECX, MegamorphicCache::buckets_offset()));
   // EDI: cache buckets array.
-  // EBX: mask.
+  // EBX: mask as a smi.
 
   // Tag cid as a smi.
   __ addl(EAX, EAX);
@@ -2027,7 +2027,8 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 
   __ Bind(&probe_failed);
   // Probe failed, check if it is a miss.
-  __ cmpl(FieldAddress(EDI, EDX, TIMES_4, base), Immediate(kIllegalCid));
+  __ cmpl(FieldAddress(EDI, EDX, TIMES_4, base),
+          Immediate(Smi::RawValue(kIllegalCid)));
   __ j(ZERO, &load_target, Assembler::kNearJump);
 
   // Try next entry in the table.

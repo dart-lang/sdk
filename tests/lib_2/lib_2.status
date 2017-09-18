@@ -2,6 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ !$strong ]
+mirrors/top_level_accessors_test/01: MissingCompileTimeError
+typed_data/float32x4_static_test: MissingCompileTimeError
+typed_data/int32x4_static_test/01: MissingCompileTimeError
+typed_data/int32x4_static_test/02: MissingCompileTimeError
+isolate/isolate_import_test/01: MissingCompileTimeError
+
 [ !$strong && $compiler != dartdevc && $checked ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 
@@ -11,12 +18,107 @@ async/multiple_timer_test: Pass, Fail # Timing related
 
 [ $runtime == chrome && $system == macos ]
 async/slow_consumer_test: Pass, Timeout # Issue 22696
+async/catch_errors11_test: Pass, Timeout # Issue 22696
+async/catch_errors11_test: Pass, Timeout # Issue 22696
+convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
+html/canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
+html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
+html/custom_elements_test: Pass, Timeout # Issue 26789
+html/custom_element_method_clash_test: Pass, Timeout # Issue 26789
+html/custom_element_name_clash_test: Pass, Timeout # Issue 26789
 
 [ $runtime == chrome || $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
+async/stream_timeout_test: SkipSlow # Times out. Issue 22050
 
 [ $hot_reload || $hot_reload_rollback ]
+isolate/function_send_test: Pass, Fail # Closure identity
+isolate/issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/deferred_mirrors_update_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
+mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading
+mirrors/library_imports_deferred_test: Crash # Deferred loading
+mirrors/library_import_deferred_loading_test: Crash # Deferred loading
+mirrors/load_library_test: Crash # Deferred loading
+mirrors/typedef_deferred_library_test: Crash # Deferred loading
+
+[ $runtime == ff ]
+convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
+
+[ $runtime == safari || $runtime == safarimobilesim ]
+typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
+convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
+typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
+html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
+html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
+
+[ ($runtime == safari && $builder_tag == mac10_7)|| $runtime == safarimobilesim ]
+typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+
+[ $runtime == ff ]
+mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
+mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
+
+[ $arch == simarmv5te ]
+mirrors/mirrors_reader_test: Pass, Slow
+mirrors/mirrors_reader_test: Pass, Slow
+
+[ $compiler == none && $mode == product ]
+mirrors/load_library_test: RuntimeError,OK # Deferred loaded eagerly
+mirrors/library_import_deferred_loading_test: RuntimeError,OK # Deferred loaded eagerly
+mirrors/library_enumeration_deferred_loading_test: RuntimeError,OK # Deferred loaded eagerly
+
+[ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
+isolate/browser/*: SkipByDesign  # Browser specific tests
+isolate/isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be able to pass when we have wrapper-less tests.
+
+[ $runtime == dart_precompiled || $runtime == flutter ]
+isolate/count_test: Skip # Isolate.spawnUri
+isolate/cross_isolate_message_test: Skip # Isolate.spawnUri
+isolate/deferred_in_isolate2_test: Skip # Isolate.spawnUri
+isolate/deferred_in_isolate_test: Skip # Isolate.spawnUri
+isolate/deferred_in_isolate_test: Skip # Isolate.spawnUri
+isolate/error_at_spawnuri_test: Skip # Isolate.spawnUri
+isolate/error_exit_at_spawnuri_test: Skip # Isolate.spawnUri
+isolate/exit_at_spawnuri_test: Skip # Isolate.spawnUri
+isolate/illegal_msg_function_test: Skip # Isolate.spawnUri
+isolate/illegal_msg_mirror_test: Skip # Isolate.spawnUri
+isolate/isolate_complex_messages_test: Skip # Isolate.spawnUri
+isolate/issue_21398_parent_isolate1_test: Skip # Isolate.spawnUri
+isolate/issue_21398_parent_isolate_test: Skip # Isolate.spawnUri
+isolate/issue_24243_parent_isolate_test: Skip # Isolate.spawnUri
+isolate/mandel_isolate_test: Skip # Isolate.spawnUri
+isolate/message2_test: Skip # Isolate.spawnUri
+isolate/message_test: Skip # Isolate.spawnUri
+isolate/mint_maker_test: Skip # Isolate.spawnUri
+isolate/nested_spawn2_test: Skip # Isolate.spawnUri
+isolate/nested_spawn_test: Skip # Isolate.spawnUri
+isolate/raw_port_test: Skip # Isolate.spawnUri
+isolate/request_reply_test: Skip # Isolate.spawnUri
+isolate/spawn_function_custom_class_test: Skip # Isolate.spawnUri
+isolate/spawn_function_test: Skip # Isolate.spawnUri
+isolate/spawn_uri_exported_main_test: Skip # Isolate.spawnUri
+isolate/spawn_uri_missing_from_isolate_test: Skip # Isolate.spawnUri
+isolate/spawn_uri_missing_test: Skip # Isolate.spawnUri
+isolate/spawn_uri_multi_test: Skip # Isolate.spawnUri
+isolate/spawn_uri_nested_vm_test: Skip # Isolate.spawnUri
+isolate/spawn_uri_test: Skip # Isolate.spawnUri
+isolate/spawn_uri_vm_test: Skip # Isolate.spawnUri
+isolate/stacktrace_message_test: Skip # Isolate.spawnUri
+isolate/static_function_test: Skip # Isolate.spawnUri
+isolate/unresolved_ports_test: Skip # Isolate.spawnUri
+
+[ $runtime == chrome && $system == linux ]
+mirrors/native_class_test: Pass, Slow
+
+[ $runtime == ie11 ]
+html/canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
+html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
+html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
+
+[ $runtime == ie11 ]
+html/custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.

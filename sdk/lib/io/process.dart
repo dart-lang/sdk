@@ -46,6 +46,10 @@ void exit(int code) {
   if (code is! int) {
     throw new ArgumentError("Integer value for exit code expected");
   }
+  if (!_EmbedderConfig._mayExit) {
+    throw new UnsupportedError(
+        "This embedder disallows calling dart:io's exit()");
+  }
   _ProcessUtils._exit(code);
 }
 
@@ -90,6 +94,10 @@ void sleep(Duration duration) {
   int milliseconds = duration.inMilliseconds;
   if (milliseconds < 0) {
     throw new ArgumentError("sleep: duration cannot be negative");
+  }
+  if (!_EmbedderConfig._maySleep) {
+    throw new UnsupportedError(
+        "This embedder disallows calling dart:io's sleep()");
   }
   _ProcessUtils._sleep(milliseconds);
 }

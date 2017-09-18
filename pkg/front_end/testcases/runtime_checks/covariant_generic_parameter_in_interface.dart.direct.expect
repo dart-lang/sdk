@@ -16,6 +16,13 @@ class C<U extends core::Object> extends core::Object implements self::I<core::in
   method f1(core::int x) → void {}
   method f2(core::int x, [self::C::U y = null]) → void {}
 }
+class D<U extends core::Object> extends self::C<self::D::U> {
+  default constructor •() → void
+    : super self::C::•()
+    ;
+  method f1(core::int x) → void {}
+  method f2(core::int x, [self::D::U y = null]) → void {}
+}
 static method g1(self::C<core::num> c) → void {
   c.f1(1);
 }
@@ -24,6 +31,12 @@ static method g2(self::I<core::num> i) → void {
 }
 static method g3(self::C<core::num> c) → void {
   c.f2(1, 1.5);
+}
+static method g4(self::D<core::num> d) → void {
+  d.f1(1);
+}
+static method g5(self::D<core::num> d) → void {
+  d.f2(1, 1.5);
 }
 static method test() → void {
   self::g2(new self::C::•<core::num>());

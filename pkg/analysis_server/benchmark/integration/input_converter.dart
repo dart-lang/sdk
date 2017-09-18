@@ -257,7 +257,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     }
     if (json is Map) {
       Map<String, dynamic> result = new Map<String, dynamic>();
-      json.forEach((String origKey, value) {
+      json.forEach((origKey, value) {
         result[translateSrcPaths(origKey)] = translateSrcPaths(value);
       });
       return result;

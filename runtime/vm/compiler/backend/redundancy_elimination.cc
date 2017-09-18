@@ -1377,8 +1377,9 @@ void LICM::Optimize() {
       BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
-        if (current->AllowsCSE() ||
-            IsLoopInvariantLoad(loop_invariant_loads, i, current)) {
+        if ((current->AllowsCSE() ||
+             IsLoopInvariantLoad(loop_invariant_loads, i, current)) &&
+            !current->MayThrow()) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
@@ -1387,10 +1388,7 @@ void LICM::Optimize() {
               break;
             }
           }
-          if (inputs_loop_invariant && !current->IsAssertAssignable() &&
-              !current->IsAssertBoolean()) {
-            // TODO(fschneider): Enable hoisting of Assert-instructions
-            // if it safe to do.
+          if (inputs_loop_invariant) {
             Hoist(&it, pre_header, current);
           }
         }

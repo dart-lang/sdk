@@ -48,42 +48,42 @@ main() {
   Expect.isFalse(f is H);
   expectsF(f);
   expectsG(f);
-  expectsH(f);  //# 00: compile-time error
+  expectsH(f); //# 00: compile-time error
 
   Expect.isTrue(f2 is F2);
   Expect.isTrue(f2 is G2);
   Expect.isFalse(f2 is H2);
   expectsF2(f2);
   expectsG2(f2);
-  expectsH2(f2);  //# 01: compile-time error
+  expectsH2(f2); //# 01: compile-time error
 
   Expect.isTrue(f3 is F3);
   Expect.isTrue(f3 is G3);
   Expect.isFalse(f3 is H3);
   expectsF3(f3);
   expectsG3(f3);
-  expectsH3(f3);  //# 03: compile-time error
+  expectsH3(f3); //# 03: compile-time error
 
   Expect.isTrue(g is F);
   Expect.isTrue(g is G);
   Expect.isFalse(g is H);
-  expectsF(g);  //# 04: compile-time error
+  expectsF(g); //# 04: compile-time error
   expectsG(g);
-  expectsH(g);  //# 05: compile-time error
+  expectsH(g); //# 05: compile-time error
 
   Expect.isTrue(g2 is F2);
   Expect.isTrue(g2 is G2);
   Expect.isFalse(g2 is H2);
-  expectsF2(g2);  //# 06: compile-time error
+  expectsF2(g2); //# 06: compile-time error
   expectsG2(g2);
-  expectsH2(g2);  //# 07: compile-time error
+  expectsH2(g2); //# 07: compile-time error
 
   Expect.isTrue(g3 is F3);
   Expect.isTrue(g3 is G3);
   Expect.isFalse(g3 is H3);
-  expectsF3(g3);  //# 08: compile-time error
+  expectsF3(g3); //# 08: compile-time error
   expectsG3(g3);
-  expectsH3(g3);  //# 09: compile-time error
+  expectsH3(g3); //# 09: compile-time error
 
   Expect.isTrue(h is F);
   Expect.isTrue(h is G);

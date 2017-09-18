@@ -152,6 +152,7 @@ class GlobalTypeInferenceParameterResultImpl<T>
 /// Internal data used during type-inference to store intermediate results about
 /// a single element.
 abstract class GlobalTypeInferenceElementData<T> {
+  // TODO(johnniwinther): Remove this. Maybe split by access/invoke.
   TypeMask typeOfSend(T node);
   TypeMask typeOfGetter(T node);
   TypeMask typeOfOperator(T node);

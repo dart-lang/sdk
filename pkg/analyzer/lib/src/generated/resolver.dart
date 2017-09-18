@@ -7391,8 +7391,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
             new CaughtException(new AnalysisException(), null));
       } else {
         nameScope = new EnclosedScope(nameScope);
-        List<TypeParameterElement> typeParameters =
-            parameterElement.typeParameters;
+        GenericFunctionTypeElement typeElement = parameterElement.type.element;
+        List<TypeParameterElement> typeParameters = typeElement.typeParameters;
         int length = typeParameters.length;
         for (int i = 0; i < length; i++) {
           nameScope.define(typeParameters[i]);
@@ -8622,9 +8622,28 @@ class TypeParameterBoundsResolver {
       type.typeArguments?.arguments?.forEach(_resolveTypeName);
       typeNameResolver.resolveTypeName(type);
       // TODO(scheglov) report error when don't apply type bounds for type bounds
-    } else {
-      // TODO(brianwilkerson) Add resolution of GenericFunctionType
-      throw new ArgumentError('Cannot resolve a ${type.runtimeType}');
+    } else if (type is GenericFunctionType) {
+      void resolveTypeParameter(TypeParameter t) {
+        _resolveTypeName(t.bound);
+      }
+
+      void resolveParameter(FormalParameter p) {
+        if (p is SimpleFormalParameter) {
+          _resolveTypeName(p.type);
+        } else if (p is DefaultFormalParameter) {
+          resolveParameter(p.parameter);
+        } else if (p is FieldFormalParameter) {
+          _resolveTypeName(p.type);
+        } else if (p is FunctionTypedFormalParameter) {
+          _resolveTypeName(p.returnType);
+          p.typeParameters?.typeParameters?.forEach(resolveTypeParameter);
+          p.parameters?.parameters?.forEach(resolveParameter);
+        }
+      }
+
+      _resolveTypeName(type.returnType);
+      type.typeParameters?.typeParameters?.forEach(resolveTypeParameter);
+      type.parameters?.parameters?.forEach(resolveParameter);
     }
   }
 
@@ -8641,10 +8660,8 @@ class TypeParameterBoundsResolver {
                 library, LibraryResolutionCapability.resolvedTypeNames)) {
               if (bound is TypeName) {
                 bound.type = typeParameterElement.bound;
-              } else {
-                // TODO(brianwilkerson) Add resolution of GenericFunctionType
-                throw new ArgumentError(
-                    'Cannot resolve a ${bound.runtimeType}');
+              } else if (bound is GenericFunctionTypeImpl) {
+                bound.type = typeParameterElement.bound;
               }
             } else {
               libraryScope ??= new LibraryScope(library);
@@ -9941,26 +9958,6 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Return an array containing all of the elements associated with the parameters in the given
-   * list.
-   *
-   * @param parameterList the list of parameters whose elements are to be returned
-   * @return the elements associated with the parameters
-   */
-  List<ParameterElement> _getElements(FormalParameterList parameterList) {
-    List<ParameterElement> elements = new List<ParameterElement>();
-    for (FormalParameter parameter in parameterList.parameters) {
-      ParameterElement element =
-          parameter.identifier.staticElement as ParameterElement;
-      // TODO(brianwilkerson) Understand why the element would be null.
-      if (element != null) {
-        elements.add(element);
-      }
-    }
-    return elements;
-  }
-
-  /**
    * In strong mode we infer "void" as the setter return type (as void is the
    * only legal return type for a setter). This allows us to give better
    * errors later if an invalid type is returned.
@@ -10100,21 +10097,15 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Given a parameter [element], create a function type based on the given
-   * [returnType] and [parameterList] and associate the created type with the
-   * element.
+   * Given a function typed [parameter] with [FunctionType] based on a
+   * [GenericFunctionTypeElementImpl], compute and set the return type for the
+   * function element.
    */
-  void _setFunctionTypedParameterType(ParameterElementImpl element,
+  void _setFunctionTypedParameterType(ParameterElementImpl parameter,
       TypeAnnotation returnType, FormalParameterList parameterList) {
-    List<ParameterElement> parameters = _getElements(parameterList);
-    FunctionElementImpl functionElement = new FunctionElementImpl.forNode(null);
-    functionElement.isSynthetic = true;
-    functionElement.shareParameters(parameters);
-    functionElement.declaredReturnType = _computeReturnType(returnType);
-    functionElement.enclosingElement = element;
-    functionElement.shareTypeParameters(element.typeParameters);
-    element.type = new FunctionTypeImpl(functionElement);
-    functionElement.type = element.type;
+    DartType type = parameter.type;
+    GenericFunctionTypeElementImpl typeElement = type.element;
+    typeElement.returnType = _computeReturnType(returnType);
   }
 }
 

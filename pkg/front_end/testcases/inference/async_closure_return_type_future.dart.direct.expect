@@ -1,7 +1,8 @@
 library test;
 import self as self;
+import "dart:async" as asy;
 
-static field dynamic f = () → dynamic async => 0;
+static field dynamic f = () → asy::Future<dynamic> async => 0;
 static method main() → dynamic {
   self::f;
 }

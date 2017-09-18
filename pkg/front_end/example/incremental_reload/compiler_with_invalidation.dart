@@ -10,10 +10,9 @@ library front_end.example.incremental_reload.compiler_with_invalidation;
 import 'dart:io';
 import 'dart:async';
 
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
-import 'package:front_end/src/byte_store/file_byte_store.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/target/targets.dart';

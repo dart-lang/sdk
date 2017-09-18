@@ -10,13 +10,13 @@
 #endif
 
 #include <errno.h>
-#include <magenta/status.h>
-#include <magenta/syscalls.h>
-#include <magenta/syscalls/object.h>
-#include <magenta/syscalls/port.h>
-#include <mxio/private.h>
+#include <fdio/private.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <zircon/status.h>
+#include <zircon/syscalls.h>
+#include <zircon/syscalls/object.h>
+#include <zircon/syscalls/port.h>
 
 #include "bin/reference_counting.h"
 #include "bin/thread.h"
@@ -35,9 +35,9 @@ class IOHandle : public ReferenceCounted<IOHandle> {
         write_events_enabled_(true),
         read_events_enabled_(true),
         fd_(fd),
-        handle_(MX_HANDLE_INVALID),
+        handle_(ZX_HANDLE_INVALID),
         wait_key_(0),
-        mxio_(__mxio_fd_to_io(fd)) {}
+        fdio_(__fdio_fd_to_io(fd)) {}
 
   intptr_t fd() const { return fd_; }
 
@@ -50,24 +50,24 @@ class IOHandle : public ReferenceCounted<IOHandle> {
   // Called from the EventHandler thread.
   void Close();
   uint32_t MaskToEpollEvents(intptr_t mask);
-  // If port is MX_HANDLE_INVALID, AsyncWait uses the port from the previous
+  // If port is ZX_HANDLE_INVALID, AsyncWait uses the port from the previous
   // call with a valid port handle.
-  bool AsyncWait(mx_handle_t port, uint32_t events, uint64_t key);
-  void CancelWait(mx_handle_t port, uint64_t key);
-  uint32_t WaitEnd(mx_signals_t observed);
+  bool AsyncWait(zx_handle_t port, uint32_t events, uint64_t key);
+  void CancelWait(zx_handle_t port, uint64_t key);
+  uint32_t WaitEnd(zx_signals_t observed);
   intptr_t ToggleEvents(intptr_t event_mask);
 
   static intptr_t EpollEventsToMask(intptr_t events);
 
  private:
   ~IOHandle() {
-    if (mxio_ != NULL) {
-      __mxio_release(mxio_);
+    if (fdio_ != NULL) {
+      __fdio_release(fdio_);
     }
     delete mutex_;
   }
 
-  bool AsyncWaitLocked(mx_handle_t port, uint32_t events, uint64_t key);
+  bool AsyncWaitLocked(zx_handle_t port, uint32_t events, uint64_t key);
 
   // Mutex that protects the state here.
   Mutex* mutex_;
@@ -75,10 +75,10 @@ class IOHandle : public ReferenceCounted<IOHandle> {
   bool read_events_enabled_;
   // TODO(zra): Add flag to enable/disable peer closed signal?
   intptr_t fd_;
-  mx_handle_t handle_;
-  mx_handle_t port_;
+  zx_handle_t handle_;
+  zx_handle_t port_;
   uint64_t wait_key_;
-  mxio_t* mxio_;
+  fdio_t* fdio_;
 
   friend class ReferenceCounted<IOHandle>;
   DISALLOW_COPY_AND_ASSIGN(IOHandle);
@@ -148,11 +148,11 @@ class EventHandlerImplementation {
   static void Poll(uword args);
   static void* GetHashmapKeyFromFd(intptr_t fd);
   static uint32_t GetHashmapHashFromFd(intptr_t fd);
-  static void AddToPort(mx_handle_t port_handle, DescriptorInfo* di);
-  static void RemoveFromPort(mx_handle_t port_handle, DescriptorInfo* di);
+  static void AddToPort(zx_handle_t port_handle, DescriptorInfo* di);
+  static void RemoveFromPort(zx_handle_t port_handle, DescriptorInfo* di);
 
   int64_t GetTimeout() const;
-  void HandlePacket(mx_port_packet_t* pkt);
+  void HandlePacket(zx_port_packet_t* pkt);
   void HandleTimeout();
   void WakeupHandler(intptr_t id, Dart_Port dart_port, int64_t data);
   intptr_t GetPollEvents(intptr_t events);
@@ -161,7 +161,7 @@ class EventHandlerImplementation {
   HashMap socket_map_;
   TimeoutQueue timeout_queue_;
   bool shutdown_;
-  mx_handle_t port_handle_;
+  zx_handle_t port_handle_;
 
   DISALLOW_COPY_AND_ASSIGN(EventHandlerImplementation);
 };

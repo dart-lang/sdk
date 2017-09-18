@@ -849,8 +849,21 @@ class RawFunction : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawObject* data_;  // Additional data specific to the function kind.
   RawTypedData* kernel_data_;
-  RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->kernel_data_);
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kFullAOT:
+        return reinterpret_cast<RawObject**>(&ptr()->data_);
+      case Snapshot::kFull:
+      case Snapshot::kFullJIT:
+      case Snapshot::kScript:
+        return reinterpret_cast<RawObject**>(&ptr()->kernel_data_);
+      case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
   }
   RawArray* ic_data_array_;  // ICData of unoptimized code.
   RawObject** to_no_code() {

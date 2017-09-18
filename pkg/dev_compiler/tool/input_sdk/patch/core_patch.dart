@@ -11,17 +11,14 @@ import 'dart:_js_helper'
         checkInt,
         getRuntimeType,
         getTraceFromException,
-        jsonEncodeNative,
         JsLinkedHashMap,
         JSSyntaxRegExp,
         NoInline,
         notNull,
         nullCheck,
-        objectHashCode,
-        Primitives,
-        stringJoinUnchecked;
+        Primitives;
 
-import 'dart:_runtime' show undefined;
+import 'dart:_runtime' as dart;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -30,7 +27,17 @@ import 'dart:_native_typed_data' show NativeUint8List;
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
 @patch
-int identityHashCode(Object object) => objectHashCode(object);
+int identityHashCode(Object object) {
+  if (object == null) return 0;
+  // Note: this works for primitives because we define the `identityHashCode`
+  // for them to be equivalent to their computed hashCode function.
+  int hash = JS('int|Null', r'#[#]', object, dart.identityHashCode_);
+  if (hash == null) {
+    hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
+    JS('void', r'#[#] = #', object, dart.identityHashCode_, hash);
+  }
+  return JS('int', '#', hash);
+}
 
 // Patch for Object implementation.
 @patch
@@ -39,20 +46,19 @@ class Object {
   bool operator ==(other) => identical(this, other);
 
   @patch
-  int get hashCode => Primitives.objectHashCode(this);
+  int get hashCode => identityHashCode(this);
 
   @patch
-  String toString() => Primitives.objectToString(this);
+  String toString() =>
+      "Instance of '${dart.wrapType(dart.getReifiedType(this))}'";
 
   @patch
-  dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError(this, invocation.memberName,
-        invocation.positionalArguments, invocation.namedArguments);
+  noSuchMethod(Invocation invocation) {
+    return dart.defaultNoSuchMethod(this, invocation);
   }
 
   @patch
-  Type get runtimeType =>
-      JS('Type', 'dart.wrapType(dart.getReifiedType(#))', this);
+  Type get runtimeType => dart.wrapType(dart.getReifiedType(this));
 }
 
 @patch
@@ -154,12 +160,12 @@ class double {
 class Error {
   @patch
   static String _objectToString(Object object) {
-    return Primitives.objectToString(object);
+    return "Instance of '${dart.wrapType(dart.getReifiedType(object))}'";
   }
 
   @patch
   static String _stringToSafeString(String string) {
-    return jsonEncodeNative(string);
+    return JS("String", "JSON.stringify(#)", string);
   }
 
   @patch
@@ -320,7 +326,7 @@ class Stopwatch {
 @patch
 class List<E> {
   @patch
-  factory List([int _length = undefined]) {
+  factory List([int _length = dart.undefined]) {
     dynamic list;
     if (JS('bool', '# === void 0', _length)) {
       list = JS('', '[]');

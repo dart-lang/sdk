@@ -899,6 +899,12 @@ class ContextManagerImpl implements ContextManager {
       String path, ContextInfo info, ChangeType changeType) {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       AnalysisDriver driver = info.analysisDriver;
+      if (driver == null) {
+        // I suspect that this happens as a result of a race condition: server
+        // has determined that the file (at [path]) is in a context, but hasn't
+        // yet created a driver for that context.
+        return;
+      }
       String contextRoot = info.folder.path;
       ContextBuilder builder =
           callbacks.createContextBuilder(info.folder, defaultContextOptions);

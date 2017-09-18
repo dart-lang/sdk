@@ -14,6 +14,7 @@ THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 DART_ROOT = os.path.abspath(os.path.join(THIS_DIR, '..', '..'))
 BUILDTOOLS = os.path.join(DART_ROOT, 'buildtools')
 TOOLS_BUILDTOOLS = os.path.join(DART_ROOT, 'tools', 'buildtools')
+TOOLCHAIN = os.path.join(BUILDTOOLS, 'toolchain')
 
 sys.path.insert(0, os.path.join(DART_ROOT, 'tools'))
 import find_depot_tools
@@ -23,7 +24,7 @@ DEPOT_PATH = find_depot_tools.add_depot_tools_to_path()
 
 def Update():
   path = os.path.join(BUILDTOOLS, 'update.sh')
-  command = ['/bin/bash', path, '--clang', '--gn']
+  command = ['/bin/bash', path, '--toolchain', '--gn']
   return subprocess.call(command, cwd=DART_ROOT)
 
 
@@ -73,19 +74,17 @@ def UpdateClangFormatOnWindows():
 def CopyClangFormat():
   if sys.platform == 'darwin':
     platform = 'darwin'
-    tools = 'mac'
-    toolchain = 'mac-x64'
+    subdir = 'mac'
   elif sys.platform.startswith('linux'):
     platform = 'linux'
-    tools = 'linux64'
-    toolchain = 'linux-x64'
+    subdir = 'linux64'
   else:
     print 'Unknown platform: ' + sys.platform
     return 1
 
   clang_format = os.path.join(
-      BUILDTOOLS, toolchain, 'clang', 'bin', 'clang-format')
-  dest = os.path.join(BUILDTOOLS, tools, 'clang-format')
+      TOOLCHAIN, 'clang+llvm-x86_64-' + platform, 'bin', 'clang-format')
+  dest = os.path.join(BUILDTOOLS, subdir, 'clang-format')
   shutil.copy2(clang_format, dest)
   return 0
 

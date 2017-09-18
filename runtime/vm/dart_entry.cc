@@ -140,9 +140,8 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const ArgumentsDescriptor args_desc(arguments_descriptor);
-  const intptr_t instance_index = args_desc.TypeArgsLen() == 0 ? 0 : 1;
   Instance& instance = Instance::Handle(zone);
-  instance ^= arguments.At(instance_index);
+  instance ^= arguments.At(args_desc.FirstArgIndex());
   // Get the entrypoint corresponding to the closure function or to the call
   // method of the instance. This will result in a compilation of the function
   // if it is not already compiled.
@@ -214,8 +213,7 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
                                          const Array& arguments,
                                          const Array& arguments_descriptor) {
   const ArgumentsDescriptor args_desc(arguments_descriptor);
-  const intptr_t receiver_index = args_desc.TypeArgsLen() == 0 ? 0 : 1;
-  ASSERT(receiver.raw() == arguments.At(receiver_index));
+  ASSERT(receiver.raw() == arguments.At(args_desc.FirstArgIndex()));
   // Allocate an Invocation object.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
 

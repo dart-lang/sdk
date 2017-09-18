@@ -10,6 +10,7 @@ DeltaBlue: Fail
 accessors: Fail
 async_function: Fail
 await: Fail
+bug30695: RuntimeError
 call: Fail
 cascade: Fail
 casts: Fail
@@ -59,7 +60,6 @@ inference/downwards_inference_annotations_parameter: Fail # Issue #30035
 inference/downwards_inference_annotations_parameter_local: Fail # Issue #30035
 inference/downwards_inference_annotations_type_variable: Fail # Issue #30035
 inference/downwards_inference_annotations_type_variable_local: Fail # Issue #30035
-inference/downwards_inference_annotations_typedef: Fail # Issue #30034
 inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
 inference/future_then_explicit_future: Fail # Issue #30040
 inference/generic_functions_return_typedef: Fail # Issue #29798
@@ -150,15 +150,12 @@ rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
 rasta/unsupported_platform_library: Fail
 
-regress/issue_29940: Crash # Issue 29940.
 regress/issue_29941: Crash # Issue 29941.
 regress/issue_29943: Crash # Issue 29943.
 regress/issue_29944: Crash # Issue 29944.
-regress/issue_29945: Crash # Issue 29945.
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Issue 29976.
 regress/issue_29977: Crash # Issue 29977.
-regress/issue_29980: Crash # Issue 29980.
 regress/issue_29981: Crash # Issue 29981.
 regress/issue_29982: RuntimeError # Issue 29982.
 regress/issue_29983: Crash # Issue 29983.
@@ -166,21 +163,17 @@ regress/issue_29984: Crash # Issue 29984.
 regress/issue_29985: Crash # Issue 29985.
 regress/issue_29987: Crash # Issue 29987.
 
-runtime_checks/call_through_this: Fail
 runtime_checks/contravariant_generic_return: Fail
 runtime_checks/contravariant_generic_return_tear_off: Fail
 runtime_checks/contravariant_getter: Fail
-runtime_checks/covariant_generic_method_type_parameter: Fail
-runtime_checks/covariant_generic_parameter_in_interface: Fail
 runtime_checks/covariant_generic_parameter_in_interface_mixin: Fail
 runtime_checks/covariant_generic_parameter_in_interface_super: Fail
 runtime_checks/covariant_generic_parameter_in_interface_super_mixin: Fail
-runtime_checks/covariant_keyword: Fail
-runtime_checks/covariant_setter: Fail
-runtime_checks/dynamic_invocation: Fail
-runtime_checks/dynamic_invocation_generic: Fail
-runtime_checks/dynamic_invocation_of_getter: Fail
+runtime_checks/field_forwarding_stub_generic_covariant: Fail
+runtime_checks/forwarding_stub_with_non_covariant_param: Fail
 runtime_checks_new/derived_class_typed: Fail
+runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Fail
+runtime_checks_new/field_forwarding_stub_explicit_covariant: Fail
 
 illegal_named_function_expression: RuntimeError
 local_generic_function: RuntimeError

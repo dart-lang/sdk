@@ -76,6 +76,7 @@ main() {
         expect(options.warningsAreFatal, isFalse);
         expect(options.strongMode, isFalse);
         expect(options.lintsAreFatal, isFalse);
+        expect(options.previewDart2, isFalse);
       });
 
       test('batch', () {
@@ -256,6 +257,12 @@ main() {
               outStringBuffer.toString(), contains('Analytics are currently'));
         });
       }
+
+      test('preview FE', () {
+        CommandLineOptions options =
+            CommandLineOptions.parse(['--preview-dart-2', 'foo.dart']);
+        expect(options.previewDart2, isTrue);
+      });
     });
   });
   defineReflectiveTests(CommandLineOptionsTest);

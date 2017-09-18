@@ -131,7 +131,8 @@ class DartUtils {
   static Dart_Handle SetupPackageRoot(const char* package_root,
                                       const char* packages_file);
   static Dart_Handle SetupIOLibrary(const char* namespc_path,
-                                    const char* script_uri);
+                                    const char* script_uri,
+                                    bool disable_exit);
 
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);

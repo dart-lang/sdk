@@ -268,6 +268,7 @@ class FlowGraphCompiler : public ValueObject {
                     FlowGraph* flow_graph,
                     const ParsedFunction& parsed_function,
                     bool is_optimizing,
+                    bool use_speculative_inlining,
                     const GrowableArray<const Function*>& inline_id_to_function,
                     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
                     const GrowableArray<intptr_t>& caller_inline_id);
@@ -376,7 +377,6 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateInstanceCall(intptr_t deopt_id,
                             TokenPosition token_pos,
-                            intptr_t argument_count,
                             LocationSummary* locs,
                             const ICData& ic_data);
 
@@ -398,14 +398,12 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,
-                                 intptr_t argument_count,
                                  intptr_t deopt_id,
                                  TokenPosition token_pos,
                                  LocationSummary* locs);
 
   void EmitInstanceCall(const StubEntry& stub_entry,
                         const ICData& ic_data,
-                        intptr_t argument_count,
                         intptr_t deopt_id,
                         TokenPosition token_pos,
                         LocationSummary* locs);
@@ -423,7 +421,6 @@ class FlowGraphCompiler : public ValueObject {
   // Pass a value for try-index where block is not available (e.g. slow path).
   void EmitMegamorphicInstanceCall(const String& function_name,
                                    const Array& arguments_descriptor,
-                                   intptr_t argument_count,
                                    intptr_t deopt_id,
                                    TokenPosition token_pos,
                                    LocationSummary* locs,
@@ -431,7 +428,6 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t slow_path_argument_count = 0);
 
   void EmitSwitchableInstanceCall(const ICData& ic_data,
-                                  intptr_t argument_count,
                                   intptr_t deopt_id,
                                   TokenPosition token_pos,
                                   LocationSummary* locs);
@@ -636,12 +632,12 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitOptimizedStaticCall(const Function& function,
                                const Array& arguments_descriptor,
-                               intptr_t argument_count,
+                               intptr_t count_with_type_args,
                                intptr_t deopt_id,
                                TokenPosition token_pos,
                                LocationSummary* locs);
 
-  void EmitUnoptimizedStaticCall(intptr_t argument_count,
+  void EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                  intptr_t deopt_id,
                                  TokenPosition token_pos,
                                  LocationSummary* locs,
@@ -653,7 +649,7 @@ class FlowGraphCompiler : public ValueObject {
                                            intptr_t max_immediate);
 
   // More helpers for EmitTestAndCall.
-  void EmitTestAndCallLoadReceiver(intptr_t argument_count,
+  void EmitTestAndCallLoadReceiver(intptr_t count_without_type_args,
                                    const Array& arguments_descriptor);
 
   void EmitTestAndCallSmiBranch(Label* label, bool jump_if_smi);
@@ -719,7 +715,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 
-  void CopyParameters();
+  void CheckTypeArgsLen(bool expect_type_args, Label* wrong_num_arguments);
+  void CopyParameters(bool expect_type_args, bool check_arguments);
 #endif  // !defined(TARGET_ARCH_DBC)
 
   void GenerateInlinedGetter(intptr_t offset);
@@ -810,6 +807,7 @@ class FlowGraphCompiler : public ValueObject {
   // separate table?
   GrowableArray<StaticCallsStruct*> static_calls_target_table_;
   const bool is_optimizing_;
+  const bool use_speculative_inlining_;
   // Set to true if optimized code has IC calls.
   bool may_reoptimize_;
   // True while emitting intrinsic code.

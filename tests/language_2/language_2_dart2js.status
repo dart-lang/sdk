@@ -107,8 +107,17 @@ class_literal_test/22: MissingCompileTimeError
 class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
+constructor_call_as_function_test/01: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
+cyclic_type_variable_test/01: MissingCompileTimeError
+cyclic_type_variable_test/02: MissingCompileTimeError
+cyclic_type_variable_test/03: MissingCompileTimeError
+cyclic_type_variable_test/04: MissingCompileTimeError
+cyclic_typedef_test/13: MissingCompileTimeError
+default_factory2_test/01: MissingCompileTimeError
+default_factory_test/01: MissingCompileTimeError
+deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
@@ -181,6 +190,39 @@ if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
+implicit_this_test/01: MissingCompileTimeError
+implicit_this_test/02: MissingCompileTimeError
+implicit_this_test/04: MissingCompileTimeError
+import_self_test/01: MissingCompileTimeError
+inferrer_constructor5_test/01: MissingCompileTimeError
+initializing_formal_final_test: MissingCompileTimeError
+initializing_formal_type_test: MissingCompileTimeError
+named_parameters_test/01: MissingCompileTimeError
+named_parameters_test/02: MissingCompileTimeError
+named_parameters_test/03: MissingCompileTimeError
+named_parameters_test/04: MissingCompileTimeError
+named_parameters_test/05: MissingCompileTimeError
+named_parameters_test/06: MissingCompileTimeError
+named_parameters_test/07: MissingCompileTimeError
+named_parameters_test/08: MissingCompileTimeError
+named_parameters_test/09: MissingCompileTimeError
+named_parameters_test/10: MissingCompileTimeError
+named_parameters_type_test/01: MissingCompileTimeError
+named_parameters_type_test/02: MissingCompileTimeError
+named_parameters_type_test/03: MissingCompileTimeError
+static_field3_test/01: MissingCompileTimeError
+static_field3_test/02: MissingCompileTimeError
+static_field3_test/03: MissingCompileTimeError
+static_field3_test/04: MissingCompileTimeError
+static_field_test/01: MissingCompileTimeError
+static_field_test/02: MissingCompileTimeError
+static_field_test/03: MissingCompileTimeError
+static_field_test/04: MissingCompileTimeError
+static_final_field2_test/01: MissingCompileTimeError
+static_getter_no_setter1_test/01: MissingCompileTimeError
+static_getter_no_setter2_test/01: MissingCompileTimeError
+static_initializer_type_error_test: MissingCompileTimeError
+static_setter_get_test/01: MissingCompileTimeError
 type_variable_nested_test/01: RuntimeError
 type_variable_promotion_test: RuntimeError
 type_variable_scope_test/00: MissingCompileTimeError
@@ -197,48 +239,70 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+wrong_number_type_arguments_test/*: MissingCompileTimeError
+void_block_return_test/00: MissingCompileTimeError
+vm/*: SkipByDesign # Tests for the VM.
 
-[ $compiler == dart2js && !$dart2js_with_kernel]
+[ $compiler == dart2js && !$dart2js_with_kernel ]
+bad_constructor_test/05: CompileTimeError
+deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
+deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 generic_methods_local_variable_declaration_test: RuntimeError
 
-[ $compiler == dart2js && $runtime != none ]
+[ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
+assertion_test: RuntimeError # Issue 30326
 bit_operations_test: RuntimeError, OK # Issue 1533
 generic_closure_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_typedef_test: RuntimeError
+instanceof2_test: RuntimeError
+instanceof4_test/01: RuntimeError
+instanceof4_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
 
-[ $compiler == dart2js && $runtime != none && !$checked ]
+[ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 generic_field_mixin6_test/none: RuntimeError
 generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 if_null_precedence_test/none: RuntimeError
+inferrer_synthesized_constructor_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel ]
-type_variable_promotion_test: Crash
-
-[ $compiler == dart2js && ! $dart2js_with_kernel ]
+[ $compiler == dart2js && !$dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
-assert_trailing_comma_test/none: CompileTimeError # Issue 29959
-assertion_initializer_const_error2_test/cc01: Crash
-assertion_initializer_const_error2_test/cc02: Crash
-assertion_initializer_const_error2_test/cc03: Crash
-assertion_initializer_const_error2_test/cc04: Crash
-assertion_initializer_const_error2_test/cc05: Crash
-assertion_initializer_const_error2_test/cc06: Crash
-assertion_initializer_const_error2_test/cc07: Crash
-assertion_initializer_const_error2_test/cc08: Crash
-assertion_initializer_const_error2_test/cc09: Crash
+assertion_initializer_const_error2_test/cc01: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc02: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc03: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc04: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc05: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc06: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc07: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc08: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc09: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc10: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc11: Crash # Issue 30038
 assertion_initializer_const_function_error_test/01: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: Crash
 bad_typedef_test/00: Crash # Issue 28214
 call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # Issue 1533
+const_switch_test/02: RuntimeError # Issue 17960
+const_switch_test/04: RuntimeError # Issue 17960
 getter_setter_in_lib_test: Fail # Issue 23288
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
@@ -256,15 +320,16 @@ generic_function_typedef2_test/06: Crash # Issue 28214
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
+infinity_test: RuntimeError # Issue 4984
 
-[ $compiler == dart2js && $runtime != none && ! $dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
 branch_canonicalization_test: RuntimeError # Issue 638.
 
-[ $compiler == dart2js && ! $checked && ! $enable_asserts && ! $dart2js_with_kernel && $runtime != none ]
+[ $compiler == dart2js && !$checked && !$enable_asserts && !$dart2js_with_kernel && $runtime != none ]
 assertion_test: RuntimeError # Issue 12748
 typevariable_substitution2_test/02: RuntimeError
 
@@ -287,10 +352,16 @@ async_star_pause_test: RuntimeError # Issue 27394
 async_star_regression_fisk_test: RuntimeError # Issue 27394
 async_star_stream_take_test: RuntimeError # Issue 27394
 async_star_take_reyield_test: RuntimeError # Issue 27394
+await_for_test: RuntimeError # Issue 27394
+await_for_use_local_test: RuntimeError # Issue 27394
 black_listed_test/13c: Crash # Issue 27394
 black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
+const_qq_test: Crash # Issue 27394
+constants_test/01: Crash
 call_nonexistent_static_test/10: Crash # Issue 27394
+constants_test/01: Crash
+const_qq_test: Crash # Issue 27394
 generalized_void_syntax_test: Crash # Issue #30176
 generic_field_mixin2_test: Crash # Issue 27394
 generic_field_mixin3_test: Crash # Issue 27394
@@ -301,28 +372,54 @@ generic_metadata_test/02: Crash # Issue 27394
 generic_metadata_test/03: Crash # Issue 27394
 generic_methods_generic_function_parameter_test: Crash # Issue 27394
 get_set_syntax_test/00: Crash # Issue 27394
+if_null_assignment_behavior_test/06: RuntimeError # Issue 27394
+if_null_assignment_static_test/01: RuntimeError # Issue 27394
+if_null_assignment_static_test/03: RuntimeError # Issue 27394
+if_null_assignment_static_test/04: RuntimeError # Issue 27394
+if_null_assignment_static_test/05: RuntimeError # Issue 27394
+illegal_initializer_test/01: Crash # Issue 27394
+illegal_initializer_test/02: Crash # Issue 27394
+illegal_initializer_test/03: Crash # Issue 27394
+illegal_initializer_test/04: Crash # Issue 27394
+inference_mixin_field_test: Crash # Issue 27394
+initializing_formal_final_test: RuntimeError # Issue 27394
+inline_super_field_test: Crash # Issue 27394
+instance_creation_in_function_annotation_test: Crash # Issue 27394
+issue_25671a_test/01: Crash # Issue 27394
+issue_25671b_test/01: Crash # Issue 27394
+static_setter_get_test/01: Crash # Issue 27394
+static_top_level_test/00: Crash # Issue 27394
+static_top_level_test/04: Crash # Issue 27394
+deferred_constraints_constants_test/metadata1: Crash # Issue 27394
+deferred_constraints_constants_test/metadata2: Crash # Issue 27394
+deferred_constraints_constants_test/metadata3: Crash # Issue 27394
+deferred_constraints_constants_test/none: Crash # Issue 27394
+deferred_constraints_constants_test/reference_after_load: Crash # Issue 27394
+deferred_constraints_type_annotation_test/as_operation: Crash # Issue 27394
+deferred_inheritance_constraints_test/mixin: Crash # Issue 27394
+deferred_load_constants_test/none: RuntimeError # Issue 27394
+issue21079_test: Crash # Issue 27394
+issue9602_test: Crash # Issue 27394
 
 [ $compiler == dart2js && !$checked ]
 function_subtype_inline2_test: RuntimeError
 
-[ $compiler == dart2js && !$checked && $minified ]
+[ $compiler == dart2js && !$checked && $minified && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime == d8 ]
+constructor_call_as_function_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/01: Pass
+constructor_duplicate_final_test/02: Pass
+
+[ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $checked ]
-assertion_test: RuntimeError
 regress_30339_test: RuntimeError # Issue 26429
 
 [ $compiler == dart2js && $runtime == drt && $checked ]
 regress_30339_test: RuntimeError # Issue 30393
-
-[ $compiler == dart2js && $runtime == jsshell && $checked ]
-assertion_test: RuntimeError
-
-[ $compiler == dart2js && $runtime == drt && $checked ]
-assertion_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && $checked ]
 function_type/function_type0_test: RuntimeError # Issue 30476
@@ -395,345 +492,192 @@ function_type/function_type96_test: RuntimeError # Issue 30476
 function_type/function_type9_test: RuntimeError # Issue 30476
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-abstract_exact_selector_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-abstract_exact_selector_test/none: Pass
-abstract_getter_test/01: Crash # Assertion failure: Missing scope info for j:getter(Foo.i).
-abstract_override_adds_optional_args_concrete_subclass_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
-abstract_override_adds_optional_args_concrete_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
-abstract_override_adds_optional_args_supercall_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
-assert_message_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-assert_trailing_comma_test/none: CompileTimeError
+assert_message_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
-assertion_initializer_test: CompileTimeError
-assertion_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_and_or_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_catch_regression_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_foreign_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a03b: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C::bc02 (Constructor)
+assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
+assertion_test: RuntimeError
+async_and_or_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_catch_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_foreign_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a03b: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_syntax_test/a04a: RuntimeError
 async_await_syntax_test/a04c: RuntimeError
-async_await_syntax_test/a05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a05b: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a05b: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_syntax_test/a07a: RuntimeError
 async_await_syntax_test/a08a: RuntimeError
-async_await_syntax_test/a09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_syntax_test/a11b: RuntimeError
-async_await_syntax_test/a11c: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a11d: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a12g: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a11c: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a11d: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a12g: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_syntax_test/b04a: RuntimeError
-async_await_syntax_test/b05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_syntax_test/b07a: RuntimeError
 async_await_syntax_test/b08a: RuntimeError
-async_await_syntax_test/b09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_syntax_test/b11b: RuntimeError
-async_await_syntax_test/b11c: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b11d: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b12g: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c04a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c07a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c08a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d04a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d07a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d08a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d08b: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_break_in_finally_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_call_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_cascade_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_continue_label_test/await_in_body: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_continue_label_test/await_in_condition: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_continue_label_test/await_in_init: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_continue_label_test/await_in_update: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_continue_label_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_control_structures_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_finally_rethrow_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_regression_23058_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_rethrow_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_return_types_test/nestedFuture: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_return_types_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_return_types_test/tooManyTypeParameters: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_return_types_test/wrongReturnType: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_return_types_test/wrongTypeParameter: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_await_pauses_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_cancel_and_throw_in_finally_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_cancel_while_paused_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_no_cancel2_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_no_cancel_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_pause_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_regression_2238_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_regression_23116_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_regression_fisk_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_stream_take_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_take_reyield_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-bad_constructor_test/05: MissingCompileTimeError
-bad_override_test/03: MissingCompileTimeError
-bad_override_test/04: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
-bad_override_test/05: MissingCompileTimeError
-bool_check_test: RuntimeError
-bool_condition_check_test: RuntimeError
-bool_test: RuntimeError
-bound_closure_equality_test: Crash # Assertion failure: Missing scope info for j:getter(SetMixin.length).
-branch_canonicalization_test: RuntimeError
-break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-call_closurization_test: RuntimeError
-call_function_apply_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
-call_operator_test: RuntimeError
-call_test: RuntimeError
-call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_with_no_such_method_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
-canonical_const2_test: RuntimeError
-canonical_const_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-cast_test/none: RuntimeError
-cha_deopt1_test: CompileTimeError
-cha_deopt2_test: CompileTimeError
-cha_deopt3_test: CompileTimeError
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
-classes_static_method_clash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
-closure_cycles_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-closure_in_constructor_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-closure_in_initializer2_test: RuntimeError
-closure_in_initializer_test: Crash # Assertion failure: Cannot find value parameter(A.#a) in (parameter(C.#a), BoxLocal(_box_0), parameter(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
-closure_parameter_types_test: RuntimeError
-closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-closure_type_variables_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
-closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
-closures_initializer2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-closures_initializer_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-compile_time_constant_a_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
-compile_time_constant_b_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
-compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
-generalized_void_syntax_test: CompileTimeError
-generic_async_star_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-generic_async_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-generic_field_mixin4_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
-generic_field_mixin5_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
-generic_field_mixin6_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field1)
-generic_field_mixin6_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field2)
-generic_field_mixin_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
-generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_instanceof_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
-generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_generic_function_parameter_test: Crash # Unsupported operation: Unsupported type parameter type node V.
-generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-assertion_test: RuntimeError
+async_await_syntax_test/b11c: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b11d: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b12g: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_syntax_test/c04a: RuntimeError
+async_await_syntax_test/c05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_syntax_test/c07a: RuntimeError
 async_await_syntax_test/c08a: RuntimeError
+async_await_syntax_test/c09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_syntax_test/d04a: RuntimeError
+async_await_syntax_test/d05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_syntax_test/d07a: RuntimeError
 async_await_syntax_test/d08a: RuntimeError
-generic_methods_type_expression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-generic_sync_star_test: RuntimeError
-generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-generic_test: RuntimeError
-generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-getter_override2_test/02: MissingCompileTimeError
-getter_override_test/00: MissingCompileTimeError
-getter_override_test/01: MissingCompileTimeError
-getter_override_test/02: MissingCompileTimeError
-hash_map_null_key_foreach_test: RuntimeError
-identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
-if_null_assignment_behavior_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
-if_null_assignment_behavior_test/12: RuntimeError
-if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/03: RuntimeError
-if_null_assignment_static_test/05: RuntimeError
-many_generic_instanceof_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_30339_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-unused_overridden_async_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-vm/allocation_sinking_vm_test: RuntimeError
-vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-
-[ $compiler == dart2js && ! $dart2js_with_kernel && ! $minified ]
-vm/async_await_catch_stacktrace_test: RuntimeError
-
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-abstract_getter_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-abstract_override_adds_optional_args_concrete_subclass_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-abstract_override_adds_optional_args_concrete_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-abstract_override_adds_optional_args_supercall_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-assert_message_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-assert_trailing_comma_test/none: CompileTimeError
-assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
-assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
-assertion_initializer_test: CompileTimeError
-assertion_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_and_or_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_catch_regression_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_foreign_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a01a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a02a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a03a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a03b: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a04a: RuntimeError
-async_await_syntax_test/a04c: RuntimeError
-async_await_syntax_test/a05a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a05b: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a06a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a07a: RuntimeError
-async_await_syntax_test/a08a: RuntimeError
-async_await_syntax_test/a09a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a10a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a11b: RuntimeError
-async_await_syntax_test/a11c: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a11d: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a12g: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b01a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b02a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b03a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b04a: RuntimeError
-async_await_syntax_test/b05a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b06a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b07a: RuntimeError
-async_await_syntax_test/b08a: RuntimeError
-async_await_syntax_test/b09a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b10a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b11b: RuntimeError
-async_await_syntax_test/b11c: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b11d: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b12g: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c01a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c02a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c03a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c04a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c05a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c06a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c07a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c08a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c09a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c10a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d01a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d02a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d03a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d04a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d05a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d06a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d07a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d08a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d08b: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d09a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d10a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_break_in_finally_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_call_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_cascade_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_continue_label_test/await_in_body: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_continue_label_test/await_in_condition: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_continue_label_test/await_in_init: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_continue_label_test/await_in_update: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_continue_label_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_control_structures_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_finally_rethrow_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_regression_23058_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_rethrow_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_return_types_test/nestedFuture: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_return_types_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_return_types_test/tooManyTypeParameters: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_return_types_test/wrongReturnType: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_return_types_test/wrongTypeParameter: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_await_pauses_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_cancel_and_throw_in_finally_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_cancel_while_paused_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_no_cancel2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_no_cancel_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_pause_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_regression_2238_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_regression_23116_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_regression_fisk_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_stream_take_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_take_reyield_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-bad_constructor_test/05: MissingCompileTimeError
+async_await_syntax_test/d09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_break_in_finally_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_call_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_cascade_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_continue_label_test/await_in_body: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_continue_label_test/await_in_condition: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_continue_label_test/await_in_init: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_continue_label_test/await_in_update: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_continue_label_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_control_structures_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_finally_rethrow_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_regression_23058_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_rethrow_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_return_types_test/nestedFuture: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_return_types_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_return_types_test/tooManyTypeParameters: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_return_types_test/wrongReturnType: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_return_types_test/wrongTypeParameter: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_await_pauses_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_cancel_and_throw_in_finally_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_cancel_while_paused_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_no_cancel2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_no_cancel_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_pause_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_regression_2238_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_regression_23116_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_regression_fisk_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_stream_take_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_take_reyield_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_and_ifnull_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_backwards_compatibility_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_exceptions_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_for_cancel_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_for_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_for_use_local_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_future_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_in_cascade_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_nonfuture_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_null_aware_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_postfix_expr_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
+bit_operations_test/none: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bool_test: RuntimeError
-bound_closure_equality_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+bound_closure_equality_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 branch_canonicalization_test: RuntimeError
-break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 call_closurization_test: RuntimeError
-call_function_apply_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
-call_operator_test: RuntimeError
+call_function_apply_test: RuntimeError
 call_test: RuntimeError
-call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_with_no_such_method_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
 canonical_const2_test: RuntimeError
-canonical_const_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 cast_test/none: RuntimeError
 cha_deopt1_test: CompileTimeError
 cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-classes_static_method_clash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
-closure_cycles_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-closure_in_constructor_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-closure_in_initializer2_test: RuntimeError
-closure_in_initializer_test: Crash # Assertion failure: Cannot find value parameter(A.#a) in (parameter(C.#a), BoxLocal(_box_0), parameter(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
+classes_static_method_clash_test: RuntimeError
+closure_cycles_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+closure_in_constructor_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_A_closure.call).
+closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
+closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 closure_parameter_types_test: RuntimeError
-closure_self_reference_test: RuntimeError
-closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-closure_type_variables_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
-closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
-closures_initializer2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-closures_initializer_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-compile_time_constant_a_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
-compile_time_constant_b_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
+closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
+closure_type_variable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#bar)) for j:closure_call(A_foo_closure.call).
+closure_type_variables_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A$bar_A$bar_closure.call).
+closure_with_super_send_test: RuntimeError
+closures_initializer2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_A_closure.call).
+closures_initializer_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in j:closure_call(B_B_closure.call).
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
+const_switch2_test/01: MissingCompileTimeError
+const_switch_test/02: RuntimeError
+const_switch_test/04: RuntimeError
+const_syntax_test/05: MissingCompileTimeError
+const_syntax_test/08: Crash # Stack Overflow
+const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib1::C1:: (Constructor)
+const_syntax_test/10: MissingCompileTimeError
+constants_test/05: MissingCompileTimeError
+constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
+constructor8_test: RuntimeError
+constructor_duplicate_final_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+constructor_duplicate_final_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+custom_await_stack_trace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+cyclic_constructor_test/01: Crash # Stack Overflow
+cyclic_default_values_test: RuntimeError
+deferred_call_empty_before_load_test: RuntimeError
+deferred_closurize_load_library_test: CompileTimeError
+deferred_constant_list_test: CompileTimeError
+deferred_constraints_constants_test/none: CompileTimeError
+deferred_constraints_constants_test/reference_after_load: CompileTimeError
+deferred_constraints_type_annotation_test/new: CompileTimeError
+deferred_constraints_type_annotation_test/new_generic1: CompileTimeError
+deferred_constraints_type_annotation_test/none: CompileTimeError
+deferred_constraints_type_annotation_test/static_method: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
+deferred_function_type_test: CompileTimeError
+deferred_global_test: CompileTimeError
+deferred_import_core_test: CompileTimeError
+deferred_inheritance_constraints_test/extends: MissingCompileTimeError
+deferred_inheritance_constraints_test/implements: MissingCompileTimeError
+deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
+deferred_inlined_test: CompileTimeError
+deferred_load_constants_test/none: CompileTimeError
+deferred_load_inval_code_test: CompileTimeError
+deferred_load_library_wrong_args_test/01: CompileTimeError
+deferred_load_library_wrong_args_test/none: CompileTimeError
+deferred_mixin_test: CompileTimeError
+deferred_no_prefix_test/01: MissingCompileTimeError
 generalized_void_syntax_test: CompileTimeError
-generic_async_star_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-generic_async_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-generic_field_mixin4_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-generic_field_mixin5_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-generic_field_mixin6_test/01: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-generic_field_mixin6_test/none: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-generic_field_mixin_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+generic_async_star_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+generic_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+generic_closure_test/01: RuntimeError
+generic_closure_test/none: RuntimeError
+generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in j:closure_call(M_closure.call).
+generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in j:closure_call(M_closure.call).
+generic_field_mixin6_test/none: RuntimeError
+generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in j:constructor(C3.).
 generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+generic_instanceof_test: RuntimeError
+generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
@@ -742,63 +686,316 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-assertion_test: RuntimeError
-async_await_syntax_test/c04a: RuntimeError
-async_await_syntax_test/c07a: RuntimeError
-async_await_syntax_test/c08a: RuntimeError
-async_await_syntax_test/d04a: RuntimeError
-async_await_syntax_test/d07a: RuntimeError
-async_await_syntax_test/d08a: RuntimeError
-generic_methods_type_expression_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_sync_star_test: RuntimeError
-generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
+getters_setters2_test/01: RuntimeError
+getters_setters2_test/none: RuntimeError
 hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
-if_null_assignment_behavior_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
+if_null_assignment_behavior_test/06: RuntimeError
 if_null_assignment_behavior_test/12: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/03: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
-many_generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-unused_overridden_async_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-vm/allocation_sinking_vm_test: RuntimeError
-vm/async_await_catch_stacktrace_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+if_null_precedence_test/none: RuntimeError
+import_collection_no_prefix_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(SplayTreeMap.K) in j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
+inferrer_synthesized_constructor_test: RuntimeError
+infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
+infinity_test: RuntimeError
+instance_creation_in_function_annotation_test: RuntimeError
+instanceof2_test: RuntimeError
+instanceof4_test/01: RuntimeError
+instanceof4_test/none: RuntimeError
+issue14014_3_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in j:closure_call(B_B_closure.call).
+issue15720_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+issue21079_test: RuntimeError
+issue23244_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+issue_1751477_test: CompileTimeError
+issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
+issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
+many_generic_instanceof_test: RuntimeError
+named_parameters_default_eq_test/02: MissingCompileTimeError
+named_parameters_with_conversions_test: RuntimeError
+regress_30339_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+typevariable_substitution2_test/02: RuntimeError
+unused_overridden_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+yieldstar_pause_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+
+[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+assert_message_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C::bc02 (Constructor)
+assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
+assertion_test: RuntimeError
+async_and_or_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_catch_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_foreign_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a03b: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a04a: RuntimeError
+async_await_syntax_test/a04c: RuntimeError
+async_await_syntax_test/a05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a05b: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a07a: RuntimeError
+async_await_syntax_test/a08a: RuntimeError
+async_await_syntax_test/a09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a11b: RuntimeError
+async_await_syntax_test/a11c: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a11d: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/a12g: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b04a: RuntimeError
+async_await_syntax_test/b05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b07a: RuntimeError
+async_await_syntax_test/b08a: RuntimeError
+async_await_syntax_test/b09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b11b: RuntimeError
+async_await_syntax_test/b11c: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b11d: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/b12g: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c04a: RuntimeError
+async_await_syntax_test/c05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c07a: RuntimeError
+async_await_syntax_test/c08a: RuntimeError
+async_await_syntax_test/c09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/c10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d04a: RuntimeError
+async_await_syntax_test/d05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d07a: RuntimeError
+async_await_syntax_test/d08a: RuntimeError
+async_await_syntax_test/d09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_syntax_test/d10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_break_in_finally_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_call_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_cascade_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_continue_label_test/await_in_body: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_continue_label_test/await_in_condition: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_continue_label_test/await_in_init: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_continue_label_test/await_in_update: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_continue_label_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_control_structures_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_finally_rethrow_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_regression_23058_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_rethrow_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_return_types_test/nestedFuture: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_return_types_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_return_types_test/tooManyTypeParameters: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_return_types_test/wrongReturnType: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_return_types_test/wrongTypeParameter: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_await_pauses_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_cancel_and_throw_in_finally_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_cancel_while_paused_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_no_cancel2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_no_cancel_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_pause_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_regression_2238_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_regression_23116_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_regression_fisk_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_stream_take_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_star_take_reyield_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_and_ifnull_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_backwards_compatibility_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_exceptions_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_for_cancel_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_for_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_for_use_local_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_future_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_in_cascade_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_nonfuture_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_null_aware_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_postfix_expr_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+await_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+bad_override_test/03: MissingCompileTimeError
+bad_override_test/04: MissingCompileTimeError
+bad_override_test/05: MissingCompileTimeError
+bit_operations_test/none: RuntimeError
+bool_check_test: RuntimeError
+bool_condition_check_test: RuntimeError
+bool_test: RuntimeError
+bound_closure_equality_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+branch_canonicalization_test: RuntimeError
+call_closurization_test: RuntimeError
+call_function_apply_test: RuntimeError
+call_test: RuntimeError
+canonical_const2_test: RuntimeError
+cast_test/none: RuntimeError
+cha_deopt1_test: CompileTimeError
+cha_deopt2_test: CompileTimeError
+cha_deopt3_test: CompileTimeError
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
+classes_static_method_clash_test: RuntimeError
+closure_cycles_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+closure_in_constructor_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_A_closure.call).
+closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
+closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
+closure_parameter_types_test: RuntimeError
+closure_self_reference_test: RuntimeError
+closure_type_variable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#bar)) for j:closure_call(A_foo_closure.call).
+closure_type_variables_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A$bar_A$bar_closure.call).
+closure_with_super_send_test: RuntimeError
+closures_initializer2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:closure_call(A_A_closure.call).
+closures_initializer_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in j:closure_call(B_B_closure.call).
+compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
+const_switch2_test/01: MissingCompileTimeError
+const_switch_test/02: RuntimeError
+const_switch_test/04: RuntimeError
+const_syntax_test/05: MissingCompileTimeError
+const_syntax_test/08: Crash # Stack Overflow
+const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib3::C1:: (Constructor)
+const_syntax_test/10: MissingCompileTimeError
+constants_test/05: MissingCompileTimeError
+constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
+constructor8_test: RuntimeError
+constructor_duplicate_final_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/02: MissingCompileTimeError
+custom_await_stack_trace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+cyclic_constructor_test/01: Crash # Stack Overflow
+cyclic_default_values_test: RuntimeError
+cyclic_type2_test: RuntimeError
+cyclic_type_test/00: RuntimeError
+cyclic_type_test/01: RuntimeError
+cyclic_type_test/02: RuntimeError
+cyclic_type_test/03: RuntimeError
+cyclic_type_test/04: RuntimeError
+deferred_call_empty_before_load_test: RuntimeError
+deferred_closurize_load_library_test: CompileTimeError
+deferred_constant_list_test: CompileTimeError
+deferred_constraints_constants_test/none: CompileTimeError
+deferred_constraints_constants_test/reference_after_load: CompileTimeError
+deferred_constraints_type_annotation_test/new: CompileTimeError
+deferred_constraints_type_annotation_test/new_generic1: CompileTimeError
+deferred_constraints_type_annotation_test/none: CompileTimeError
+deferred_constraints_type_annotation_test/static_method: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
+deferred_function_type_test: CompileTimeError
+deferred_global_test: CompileTimeError
+deferred_import_core_test: CompileTimeError
+deferred_inheritance_constraints_test/extends: MissingCompileTimeError
+deferred_inheritance_constraints_test/implements: MissingCompileTimeError
+deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
+deferred_inlined_test: CompileTimeError
+deferred_load_constants_test/none: CompileTimeError
+deferred_load_inval_code_test: CompileTimeError
+deferred_load_library_wrong_args_test/01: CompileTimeError
+deferred_load_library_wrong_args_test/none: CompileTimeError
+deferred_mixin_test: CompileTimeError
+deferred_no_prefix_test/01: MissingCompileTimeError
+generalized_void_syntax_test: CompileTimeError
+generic_async_star_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+generic_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+generic_closure_test/01: RuntimeError
+generic_closure_test/none: RuntimeError
+generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in j:closure_call(M_closure.call).
+generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in j:closure_call(M_closure.call).
+generic_field_mixin6_test/none: RuntimeError
+generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in j:constructor(C3.).
+generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_instanceof_test: RuntimeError
+generic_list_checked_test: RuntimeError
+generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
+generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_generic_function_parameter_test: Crash # Unsupported operation: Unsupported type parameter type node V.
+generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_sync_star_test: RuntimeError
+generic_test: RuntimeError
+generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+getter_override2_test/02: MissingCompileTimeError
+getter_override_test/00: MissingCompileTimeError
+getter_override_test/01: MissingCompileTimeError
+getter_override_test/02: MissingCompileTimeError
+getters_setters2_test/01: RuntimeError
+getters_setters2_test/none: RuntimeError
+hash_map_null_key_foreach_test: RuntimeError
+identical_closure2_test: RuntimeError
+if_null_assignment_behavior_test/06: RuntimeError
+if_null_assignment_behavior_test/12: RuntimeError
+if_null_assignment_static_test/01: RuntimeError
+if_null_assignment_static_test/03: RuntimeError
+if_null_assignment_static_test/05: RuntimeError
+if_null_precedence_test/none: RuntimeError
+import_collection_no_prefix_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(SplayTreeMap.K) in j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
+inferrer_synthesized_constructor_test: RuntimeError
+infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
+infinity_test: RuntimeError
+instance_creation_in_function_annotation_test: RuntimeError
+instanceof2_test: RuntimeError
+instanceof4_test/01: RuntimeError
+instanceof4_test/none: RuntimeError
+issue14014_3_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in j:closure_call(B_B_closure.call).
+issue15720_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+issue21079_test: RuntimeError
+issue23244_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+issue_1751477_test: CompileTimeError
+issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
+issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
+many_generic_instanceof_test: RuntimeError
+named_parameters_default_eq_test/02: MissingCompileTimeError
+named_parameters_with_conversions_test: RuntimeError
+regress_30339_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+typevariable_substitution2_test/02: RuntimeError
+unused_overridden_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+yieldstar_pause_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash
+inline_super_field_test: Crash
 
-[ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
+[ $compiler == dart2js && !$dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 
-[ $compiler == dart2js && $runtime == jsshell && ! $dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime == jsshell && !$dart2js_with_kernel ]
 async_star_await_pauses_test: RuntimeError # Need triage
 async_star_no_cancel2_test: RuntimeError # Need triage
 async_star_no_cancel_test: RuntimeError # Need triage
+await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 
-[ $compiler == dart2js && $checked && ! $dart2js_with_kernel ]
+[ $compiler == dart2js && $checked && !$dart2js_with_kernel ]
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
+default_factory2_test/01: Fail # Issue 14121
 
 [ $compiler == dart2js && $runtime != none && $checked ]
 assert_with_message_test: RuntimeError
 
-[ $compiler == dart2js && ! $checked && ! $dart2js_with_kernel ]
+[ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
 bool_check_test: RuntimeError # Issue 29647
 bool_condition_check_test: RuntimeError
 generic_test: RuntimeError, OK
 
-[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 function_type/function_type14_test: Crash # Issue 27394
 function_type/function_type15_test: Crash # Issue 27394
 function_type/function_type20_test: Crash # Issue 27394
@@ -850,5 +1047,36 @@ getter_setter_in_lib_test: Crash # Issue 27394
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 call_through_getter_test: Fail, OK
 
-[ $compiler == dart2js && $minified && ! $dart2js_with_kernel ]
+[ $compiler == dart2js && $minified && !$dart2js_with_kernel ]
 generic_closure_test: Fail # Issue 12605
+cyclic_type_test/0*: Fail # Issue 12605
+cyclic_type2_test: Fail # Issue 12605
+
+[ $compiler == dart2js && $fast_startup && !$dart2js_with_kernel ]
+instance_creation_in_function_annotation_test: Fail # mirrors not supported
+deferred_constraints_constants_test/none: Fail # mirrors not supported
+deferred_constraints_constants_test/reference_after_load: Fail # mirrors not supported
+deferred_constraints_constants_test: Pass # mirrors not supported, passes for the wrong reason
+
+[ $compiler == dart2js && $runtime == chrome && $system == macos ]
+await_future_test: Pass, Timeout # Issue 26735
+
+[ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && !$dart2js_with_kernel ]
+deferred_global_test: Crash # Issue 27394
+
+[ $compiler == dart2js && $fast_startup && !$dart2js_with_kernel ]
+issue21079_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $runtime != drt ]
+issue23244_test: RuntimeError # 23244
+
+[ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && !$dart2js_with_kernel ]
+const_types_test/23: Crash # Issue 27394
+const_types_test/24: Crash # Issue 27394
+const_types_test/25: Crash # Issue 27394
+const_types_test/26: Crash # Issue 27394
+const_types_test/27: Crash # Issue 27394
+const_types_test/28: Crash # Issue 27394
+const_types_test/29: Crash # Issue 27394
+const_types_test/30: Crash # Issue 27394
+const_types_test/41: Crash # Issue 27394

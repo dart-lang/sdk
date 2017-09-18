@@ -1689,6 +1689,7 @@ class Namer {
   /// Furthermore, this function is injective, that is, it never returns the
   /// same name for two different inputs.
   String safeVariableName(String name) {
+    name = name.replaceAll('#', '_');
     if (jsVariableReserved.contains(name) || name.startsWith(r'$')) {
       return '\$$name';
     }

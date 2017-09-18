@@ -39,10 +39,10 @@ main(List<String> args) {
             await new File.fromUri(entity.uri).readAsString();
         IdData data1 = await computeData(
             annotatedCode, computeAstMemberData, compileFromSource,
-            options: [Flags.disableTypeInference]);
+            options: [Flags.disableTypeInference, stopAfterTypeInference]);
         IdData data2 = await computeData(
             annotatedCode, computeIrMemberData, compileFromDill,
-            options: [Flags.disableTypeInference]);
+            options: [Flags.disableTypeInference, stopAfterTypeInference]);
         data1.actualMap.forEach((Id id, ActualData actualData1) {
           IdValue value1 = actualData1.value;
           IdValue value2 = data2.actualMap[id]?.value;
@@ -182,7 +182,9 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
           String dynamicName = getDynamicName();
           if (dynamicName != null) return computeSetName(dynamicName);
           break;
+        case SendStructureKind.PREFIX:
         case SendStructureKind.POSTFIX:
+        case SendStructureKind.COMPOUND:
           String dynamicName = getDynamicName();
           if (dynamicName != null) {
             if (id.kind == IdKind.update) {

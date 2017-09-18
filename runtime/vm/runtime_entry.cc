@@ -169,6 +169,22 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
+DEFINE_RUNTIME_ENTRY(NullError, 0) {
+  // TODO(dartbug.com/30480): Fill in arguments of NoSuchMethodError.
+
+  const Smi& invocation_type =
+      Smi::Handle(Smi::New(InvocationMirror::EncodeType(
+          InvocationMirror::kDynamic, InvocationMirror::kMethod)));
+
+  const Array& args = Array::Handle(Array::New(6));
+  args.SetAt(0, /* instance */ Object::null_object());
+  args.SetAt(1, /* member_name */ Object::null_object());
+  args.SetAt(2, invocation_type);
+  args.SetAt(3, /* func_args */ Object::null_object());
+  args.SetAt(4, /* func_named_args */ Object::null_object());
+  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
+}
+
 // Allocation of a fixed length array of given element type.
 // This runtime entry is never called for allocating a List of a generic type,
 // because a prior run time call instantiates the element type if necessary.
@@ -1266,7 +1282,6 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
   // We lost the original ICData when we patched to the monomorphic case.
   const String& name = String::Handle(zone, old_target.name());
   ASSERT(!old_target.HasOptionalParameters());
-  ASSERT(!old_target.IsGeneric());
   const int kTypeArgsLen = 0;
   const Array& descriptor =
       Array::Handle(zone, ArgumentsDescriptor::New(
@@ -1357,21 +1372,21 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   }
   Class& cls = Class::Handle(zone, receiver.clazz());
   ASSERT(!cls.IsNull());
-  if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
-    OS::PrintErr("Megamorphic IC miss, class=%s, function=%s\n",
-                 cls.ToCString(), name.ToCString());
-  }
-
   ArgumentsDescriptor args_desc(descriptor);
+  if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
+    OS::PrintErr("Megamorphic IC miss (%s), class=%s, function<%" Pd ">=%s\n",
+                 ic_data_or_cache.IsICData() ? "icdata" : "cache",
+                 cls.ToCString(), args_desc.TypeArgsLen(), name.ToCString());
+  }
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
   if (target_function.IsNull()) {
     target_function = InlineCacheMissHelper(receiver, descriptor, name);
-  }
-  if (target_function.IsNull()) {
-    ASSERT(!FLAG_lazy_dispatchers);
-    arguments.SetReturn(target_function);
-    return;
+    if (target_function.IsNull()) {
+      ASSERT(!FLAG_lazy_dispatchers);
+      arguments.SetReturn(target_function);
+      return;
+    }
   }
 
   if (ic_data_or_cache.IsICData()) {
@@ -1385,7 +1400,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
       // Note we cannot do this if the target has optional parameters because
       // the monomorphic direct call does not load the arguments descriptor.
       // We cannot do this if we are still in the middle of precompiling because
-      // the monomorphic case hides an live instance selector from the
+      // the monomorphic case hides a live instance selector from the
       // treeshaker.
 
       const Code& target_code =

@@ -2097,7 +2097,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ ldr(R2, FieldAddress(R5, MegamorphicCache::buckets_offset()));
   __ ldr(R1, FieldAddress(R5, MegamorphicCache::mask_offset()));
   // R2: cache buckets array.
-  // R1: mask.
+  // R1: mask as a smi.
 
   // Make the cid into a smi.
   __ SmiTag(R0);

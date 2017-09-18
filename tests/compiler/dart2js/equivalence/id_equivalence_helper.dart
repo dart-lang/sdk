@@ -28,12 +28,14 @@ typedef void ComputeMemberDataFunction(
     Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
     {bool verbose});
 
+const String stopAfterTypeInference = 'stopAfterTypeInference';
+
 /// Compile [code] from .dart sources.
 Future<Compiler> compileFromSource(
     AnnotatedCode code, Uri mainUri, List<String> options) async {
   Compiler compiler = compilerFor(
       memorySourceFiles: {'main.dart': code.sourceCode}, options: options);
-  compiler.stopAfterTypeInference = true;
+  compiler.stopAfterTypeInference = options.contains(stopAfterTypeInference);
   await compiler.run(mainUri);
   return compiler;
 }
@@ -46,7 +48,8 @@ Future<Compiler> compileFromDill(
       memorySourceFiles: {'main.dart': code.sourceCode},
       options: options,
       beforeRun: (Compiler compiler) {
-        compiler.stopAfterTypeInference = true;
+        compiler.stopAfterTypeInference =
+            options.contains(stopAfterTypeInference);
       });
   return compiler;
 }
@@ -130,19 +133,18 @@ class IdData {
   String get diffCode {
     Map<int, List<String>> annotations = <int, List<String>>{};
     actualMap.forEach((Id id, ActualData data) {
-      String expected = expectedMap[id]?.value ?? '';
-      if (data.value != expected) {
+      IdValue value = expectedMap[id];
+      if (data.value != value || value == null && data.value.value != '') {
+        String expected = value?.toString() ?? '';
+        int offset = getOffsetFromId(id);
         annotations
-            .putIfAbsent(data.sourceSpan.begin, () => [])
+            .putIfAbsent(offset, () => [])
             .add('${expected} | ${data.value}');
       }
     });
     expectedMap.forEach((Id id, IdValue expected) {
       if (!actualMap.containsKey(id)) {
-        int offset = compiler.reporter
-            .spanFromSpannable(
-                computeSpannable(elementEnvironment, mainUri, id))
-            .begin;
+        int offset = getOffsetFromId(id);
         annotations.putIfAbsent(offset, () => []).add('${expected} | ---');
       }
     });
@@ -169,6 +171,12 @@ class IdData {
       }
     });
     return withAnnotations(annotations);
+  }
+
+  int getOffsetFromId(Id id) {
+    return compiler.reporter
+        .spanFromSpannable(computeSpannable(elementEnvironment, mainUri, id))
+        .begin;
   }
 }
 
@@ -256,6 +264,11 @@ Future checkCode(
           'Expected $expected for id $id missing in ${data.actualMap.keys}');
     }
   });
+  if (missingIds.isNotEmpty) {
+    print('--annotations diff--------------------------------------------');
+    print(data.diffCode);
+    print('--------------------------------------------------------------');
+  }
   Expect.isTrue(missingIds.isEmpty, "Ids not found: ${missingIds}.");
 }
 
@@ -269,9 +282,22 @@ Spannable computeSpannable(
     if (id.className != null) {
       ClassEntity cls =
           elementEnvironment.lookupClass(library, id.className, required: true);
-      return elementEnvironment.lookupClassMember(cls, id.memberName);
+      if (cls == null) {
+        throw new ArgumentError("No class '${id.className}' in $mainUri.");
+      }
+      MemberEntity member =
+          elementEnvironment.lookupClassMember(cls, id.memberName);
+      if (member == null) {
+        throw new ArgumentError("No class member '${id.memberName}' in $cls.");
+      }
+      return member;
     } else {
-      return elementEnvironment.lookupLibraryMember(library, id.memberName);
+      MemberEntity member =
+          elementEnvironment.lookupLibraryMember(library, id.memberName);
+      if (member == null) {
+        throw new ArgumentError("No member '${id.memberName}' in $mainUri.");
+      }
+      return member;
     }
   }
   throw new UnsupportedError('Unsupported id $id.');
@@ -282,6 +308,8 @@ Map<Id, IdValue> computeExpectedMap(AnnotatedCode code) {
   Map<Id, IdValue> map = <Id, IdValue>{};
   for (Annotation annotation in code.annotations) {
     IdValue idValue = IdValue.decode(annotation.offset, annotation.text);
+    Expect.isFalse(map.containsKey(idValue.id),
+        "Duplicate annotations for ${idValue.id}.");
     map[idValue.id] = idValue;
   }
   return map;

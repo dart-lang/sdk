@@ -335,9 +335,9 @@ config("compiler") {
   # define into the compile line.
   if (is_clang && (is_linux || is_mac)) {
     if (is_linux) {
-      toolchain_stamp_file = "//buildtools/linux64/clang.stamp"
+      toolchain_stamp_file = "//buildtools/linux64/toolchain.stamp"
     } else {
-      toolchain_stamp_file = "//buildtools/mac/clang.stamp"
+      toolchain_stamp_file = "//buildtools/mac/toolchain.stamp"
     }
     toolchain_version = read_file(toolchain_stamp_file, "trim string")
     defines = [ "TOOLCHAIN_VERSION=$toolchain_version" ]

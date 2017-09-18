@@ -32,6 +32,7 @@ final _singleTargetCacheRepository = new SingleTargetCacheRepository();
 final _stronglyReachangleInstancesRepository =
     new StronglyReachableInstancesRepository();
 final _subtypeTestCacheRepository = new SubtypeTestCacheRepository();
+final _timelineRepository = new TimelineRepository();
 final _topRetainingInstancesRepository = new TopRetainingInstancesRepository();
 final _typeArgumentsRepository = new TypeArgumentsRepository();
 final _unlinkedCallRepository = new UnlinkedCallRepository();
@@ -970,7 +971,8 @@ class TimelinePage extends Page {
   TimelinePage(app) : super(app);
 
   void onInstall() {
-    element = new TimelinePageElement(app.vm, app.events, app.notifications,
+    element = new TimelinePageElement(
+        app.vm, _timelineRepository, app.events, app.notifications,
         queue: app.queue);
   }
 
@@ -979,4 +981,35 @@ class TimelinePage extends Page {
   }
 
   bool canVisit(Uri uri) => uri.path == 'timeline';
+}
+
+class TimelineDashboardPage extends Page {
+  TimelineDashboardPage(app) : super(app);
+
+  DivElement container = new DivElement();
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+  }
+
+  void _visit(Uri uri) {
+    assert(canVisit(uri));
+    app.vm.load().then((_) {
+      container.children = [
+        new TimelineDashboardElement(
+            app.vm, _timelineRepository, app.notifications,
+            queue: app.queue)
+      ];
+    });
+  }
+
+  @override
+  void onUninstall() {
+    super.onUninstall();
+    container.children = const [];
+  }
+
+  bool canVisit(Uri uri) => uri.path == 'timeline-dashboard';
 }

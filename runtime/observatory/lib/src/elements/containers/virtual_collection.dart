@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:html';
 import 'dart:math' as math;
+import 'package:observatory/src/elements/containers/search_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
@@ -12,9 +13,11 @@ typedef HtmlElement VirtualCollectionCreateCallback();
 typedef List<HtmlElement> VirtualCollectionHeaderCallback();
 typedef void VirtualCollectionUpdateCallback(
     HtmlElement el, dynamic item, int index);
+typedef bool VirtualCollectionSearchCallback(Pattern pattern, dynamic item);
 
 class VirtualCollectionElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<VirtualCollectionElement>('virtual-collection');
+  static const tag = const Tag<VirtualCollectionElement>('virtual-collection',
+      dependencies: const [SearchBarElement.tag]);
 
   RenderingScheduler<VirtualCollectionElement> _r;
 
@@ -24,6 +27,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   VirtualCollectionCreateCallback _create;
   VirtualCollectionHeaderCallback _createHeader;
   VirtualCollectionUpdateCallback _update;
+  VirtualCollectionSearchCallback _search;
   double _itemHeight;
   int _top;
   double _height;
@@ -36,6 +40,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   set items(Iterable value) {
     _items = new List.unmodifiable(value);
     _top = null;
+    _searcher?.update();
     _r.dirty();
   }
 
@@ -43,6 +48,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       VirtualCollectionUpdateCallback update,
       {Iterable items: const [],
       VirtualCollectionHeaderCallback createHeader,
+      VirtualCollectionSearchCallback search,
       RenderingQueue queue}) {
     assert(create != null);
     assert(update != null);
@@ -52,6 +58,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     e._create = create;
     e._createHeader = createHeader;
     e._update = update;
+    e._search = search;
     e._items = new List.unmodifiable(items);
     return e;
   }
@@ -78,6 +85,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   }
 
   DivElement _header;
+  SearchBarElement _searcher;
   final DivElement _viewport = new DivElement()
     ..classes = ['viewport', 'container'];
   final DivElement _spacer = new DivElement()..classes = ['spacer'];
@@ -127,6 +135,14 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
               ],
           ]
       ];
+      if (_search != null) {
+        _searcher =
+            _searcher ?? new SearchBarElement(_doSearch, queue: _r.queue)
+              ..onSearchResultSelected.listen((e) {
+                takeIntoView(e.item);
+              });
+        children.insert(0, _searcher);
+      }
       if (_createHeader != null) {
         _header = new DivElement()
           ..classes = ['header', 'container']
@@ -182,6 +198,21 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       }
       _top = top;
     }
+
+    if (_searcher != null) {
+      final current = _searcher.current;
+      int i = _top - tail_length;
+      for (final HtmlElement e in _buffer.children) {
+        if (0 <= i && i < _items.length) {
+          if (_items[i] == current) {
+            e.classes.add('marked');
+          } else {
+            e.classes.remove('marked');
+          }
+        }
+        i++;
+      }
+    }
     _updateHeader();
   }
 
@@ -213,5 +244,9 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       // change
       _updateHeader();
     }
+  }
+
+  Iterable<dynamic> _doSearch(String search) {
+    return _items.where((item) => _search(search, item));
   }
 }

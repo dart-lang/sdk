@@ -15,17 +15,22 @@ import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
+import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'package:kernel/ast.dart' as ir;
 
+const List<String> skipForKernel = const <String>[];
+
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeClosureData, computeKernelClosureData,
-        skipForKernel: [], options: [Flags.disableTypeInference], args: args);
+        skipForKernel: skipForKernel,
+        options: [Flags.disableTypeInference],
+        args: args);
   });
 }
 
@@ -39,8 +44,8 @@ void computeClosureData(
   MemberElement member = _member;
   ClosureDataLookup<ast.Node> closureDataLookup =
       compiler.backendStrategy.closureDataLookup as ClosureDataLookup<ast.Node>;
-  new ClosureAstComputer(
-          compiler.reporter, actualMap, member.resolvedAst, closureDataLookup,
+  new ClosureAstComputer(compiler.reporter, actualMap, member.resolvedAst,
+          closureDataLookup, compiler.codegenWorldBuilder,
           verbose: verbose)
       .run();
 }
@@ -59,8 +64,14 @@ void computeKernelClosureData(
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   assert(definition.kind == MemberKind.regular,
       failedAt(member, "Unexpected member definition $definition"));
-  new ClosureIrChecker(compiler.reporter, actualMap, elementMap, member,
-          localsMap.getLocalsMap(member), closureDataLookup,
+  new ClosureIrChecker(
+          compiler.reporter,
+          actualMap,
+          elementMap,
+          member,
+          localsMap.getLocalsMap(member),
+          closureDataLookup,
+          compiler.codegenWorldBuilder,
           verbose: verbose)
       .run(definition.node);
 }
@@ -68,10 +79,11 @@ void computeKernelClosureData(
 /// Ast visitor for computing closure data.
 class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
   final ClosureDataLookup<ast.Node> closureDataLookup;
+  final CodegenWorldBuilder codegenWorldBuilder;
   final bool verbose;
 
   ClosureAstComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
-      ResolvedAst resolvedAst, this.closureDataLookup,
+      ResolvedAst resolvedAst, this.closureDataLookup, this.codegenWorldBuilder,
       {this.verbose: false})
       : super(reporter, actualMap, resolvedAst) {
     pushMember(resolvedAst.element as MemberElement);
@@ -117,6 +129,7 @@ class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
 class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
   final MemberEntity member;
   final ClosureDataLookup<ir.Node> closureDataLookup;
+  final CodegenWorldBuilder codegenWorldBuilder;
   final KernelToLocalsMap _localsMap;
   final bool verbose;
 
@@ -127,6 +140,7 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
       this.member,
       this._localsMap,
       this.closureDataLookup,
+      this.codegenWorldBuilder,
       {this.verbose: false})
       : super(reporter, actualMap) {
     pushMember(member);
@@ -185,6 +199,7 @@ abstract class ComputeValueMixin<T> {
       closureRepresentationInfoStack.isNotEmpty
           ? closureRepresentationInfoStack.head
           : null;
+  CodegenWorldBuilder get codegenWorldBuilder;
 
   void pushMember(MemberEntity member) {
     scopeInfoStack =
@@ -254,11 +269,6 @@ abstract class ComputeValueMixin<T> {
         features.add('loop');
       }
     }
-    if (closureRepresentationInfo != null) {
-      if (closureRepresentationInfo.createdFieldEntities.contains(local)) {
-        features.add('field');
-      }
-    }
     // TODO(johnniwinther,efortuna): Add more info?
     return (features.toList()..sort()).join(',');
   }
@@ -296,6 +306,15 @@ abstract class ComputeValueMixin<T> {
 
     if (closureRepresentationInfo != null) {
       addLocals('free', closureRepresentationInfo.forEachFreeVariable);
+      if (closureRepresentationInfo.closureClassEntity != null) {
+        addLocals('fields', (f(Local local, _)) {
+          codegenWorldBuilder.forEachInstanceField(
+              closureRepresentationInfo.closureClassEntity,
+              (_, FieldEntity field) {
+            f(closureRepresentationInfo.getLocalForField(field), field);
+          });
+        });
+      }
     }
 
     StringBuffer sb = new StringBuffer();

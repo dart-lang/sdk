@@ -556,7 +556,12 @@ class VariableNamer {
     }
 
     if (instruction.sourceElement != null) {
-      name = allocateWithHint(instruction.sourceElement.name);
+      if (instruction.sourceElement.name != null) {
+        name = allocateWithHint(instruction.sourceElement.name);
+      } else {
+        // Source element is synthesized and has no name.
+        name = allocateTemporary();
+      }
     } else {
       // We could not find an element for the instruction. If the
       // instruction is used by a phi, try to use the name of the phi.

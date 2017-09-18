@@ -8,10 +8,10 @@
 #include "vm/os.h"
 
 #include <errno.h>
-#include <magenta/process.h>
-#include <magenta/syscalls.h>
-#include <magenta/syscalls/object.h>
-#include <magenta/types.h>
+#include <zircon/process.h>
+#include <zircon/syscalls.h>
+#include <zircon/syscalls/object.h>
+#include <zircon/types.h>
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -72,11 +72,11 @@ int64_t OS::GetCurrentTimeMillis() {
 }
 
 int64_t OS::GetCurrentTimeMicros() {
-  return mx_time_get(MX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
+  return zx_time_get(ZX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
 }
 
 int64_t OS::GetCurrentMonotonicTicks() {
-  return mx_time_get(MX_CLOCK_MONOTONIC);
+  return zx_time_get(ZX_CLOCK_MONOTONIC);
 }
 
 int64_t OS::GetCurrentMonotonicFrequency() {
@@ -90,7 +90,7 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 int64_t OS::GetCurrentThreadCPUMicros() {
-  return mx_time_get(MX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
+  return zx_time_get(ZX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
 }
 
 // TODO(5411554):  May need to hoist these architecture dependent code
@@ -141,7 +141,7 @@ void OS::Sleep(int64_t millis) {
 }
 
 void OS::SleepMicros(int64_t micros) {
-  mx_nanosleep(mx_deadline_after(micros * kNanosecondsPerMicrosecond));
+  zx_nanosleep(zx_deadline_after(micros * kNanosecondsPerMicrosecond));
 }
 
 void OS::DebugBreak() {

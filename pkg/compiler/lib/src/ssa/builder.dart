@@ -251,12 +251,11 @@ class SsaAstGraphBuilder extends ast.Visitor
         this,
         target,
         target.memberContext,
-        target.contextClass,
-        null,
+        target.contextClass?.thisType,
         closedWorld.nativeData,
         closedWorld.interceptorData);
     loopHandler = new SsaLoopHandler(this);
-    typeBuilder = new TypeBuilder(this);
+    typeBuilder = new AstTypeBuilder(this);
   }
 
   MemberElement get targetElement => target;
@@ -837,8 +836,13 @@ class SsaAstGraphBuilder extends ast.Visitor
       {ResolutionInterfaceType instanceType}) {
     ResolvedAst resolvedAst = function.resolvedAst;
     assert(resolvedAst != null);
-    localsHandler = new LocalsHandler(this, function, function.memberContext,
-        function.contextClass, instanceType, nativeData, interceptorData);
+    localsHandler = new LocalsHandler(
+        this,
+        function,
+        function.memberContext,
+        instanceType ?? function.contextClass?.thisType,
+        nativeData,
+        interceptorData);
     localsHandler.scopeInfo = closureDataLookup.getScopeInfo(function);
     returnLocal =
         new SyntheticLocal("result", function, function.memberContext);
@@ -1492,7 +1496,7 @@ class SsaAstGraphBuilder extends ast.Visitor
           //
           //     class A {
           //       A(String foo) = A.b;
-          //       A(int foo) { print(foo); }
+          //       A.b(int foo) { print(foo); }
           //     }
           //     main() {
           //       new A(499);    // valid even in checked mode.
@@ -1886,9 +1890,10 @@ class SsaAstGraphBuilder extends ast.Visitor
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    closureInfo.createdFieldEntities.forEach((Local field) {
-      assert(field != null);
-      capturedVariables.add(localsHandler.readLocal(field));
+    compiler.codegenWorldBuilder.forEachInstanceField(closureClassEntity,
+        (_, FieldEntity field) {
+      capturedVariables
+          .add(localsHandler.readLocal(closureInfo.getLocalForField(field)));
     });
 
     TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
@@ -6860,4 +6865,53 @@ class AstInliningState extends InliningState {
       this.allFunctionsCalledOnce,
       this.oldElementInferenceResults)
       : super(function);
+}
+
+class AstTypeBuilder extends TypeBuilder {
+  AstTypeBuilder(GraphBuilder builder) : super(builder);
+
+  ClassTypeVariableAccess computeTypeVariableAccess(MemberEntity member) {
+    bool isClosure = member.enclosingClass.isClosure;
+    if (isClosure) {
+      ClosureClassElement closureClass = member.enclosingClass;
+      LocalFunctionElement localFunction = closureClass.methodElement;
+      member = localFunction.memberContext;
+    }
+    bool isInConstructorContext =
+        member.isConstructor || member is ConstructorBodyEntity;
+    if (isClosure) {
+      if ((member is ConstructorEntity && member.isFactoryConstructor) ||
+          (isInConstructorContext)) {
+        // The type variable is used from a closure in a factory constructor.
+        // The value of the type argument is stored as a local on the closure
+        // itself.
+        return ClassTypeVariableAccess.parameter;
+      } else if (member.isFunction ||
+          member.isGetter ||
+          member.isSetter ||
+          isInConstructorContext) {
+        // The type variable is stored on the "enclosing object" and needs to be
+        // accessed using the this-reference in the closure.
+        return ClassTypeVariableAccess.property;
+      } else {
+        assert(member.isField);
+        // The type variable is stored in a parameter of the method.
+        return ClassTypeVariableAccess.parameter;
+      }
+    } else if (isInConstructorContext) {
+      // The type variable is stored in a parameter of the method.
+      return ClassTypeVariableAccess.parameter;
+    } else if (member.isInstanceMember) {
+      if (member.isField) {
+        // The type variable is stored in a parameter or on `this` depending
+        // on the context.
+        return ClassTypeVariableAccess.instanceField;
+      } else {
+        // The type variable is stored on the object.
+        return ClassTypeVariableAccess.property;
+      }
+    } else {
+      return ClassTypeVariableAccess.none;
+    }
+  }
 }

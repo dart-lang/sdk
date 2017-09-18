@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/problems.dart' show internalProblem;
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show templateInternalProblemStackNotEmpty;
+import 'package:front_end/src/fasta/problems.dart' show internalProblem;
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
 
 /// Keeps track of the state necessary to perform type promotion.
@@ -43,6 +44,10 @@ abstract class TypePromoter {
   /// branch.
   void enterElse();
 
+  /// Updates the state to reflect the fact that the LHS of an "&&" or "||"
+  /// expression has just been parsed, and we are entering the RHS.
+  void enterLogicalExpression(Expression lhs, String operator);
+
   /// Updates the state to reflect the fact that the "condition" part of an "if"
   /// statement or conditional expression has just been parsed, and we are
   /// entering the "then" branch.
@@ -51,6 +56,10 @@ abstract class TypePromoter {
   /// Updates the state to reflect the fact that we have exited the "else"
   /// branch of an "if" statement or conditional expression.
   void exitConditional();
+
+  /// Updates the state to reflect the fact that we have exited the RHS of an
+  /// "&&" or "||" expression.
+  void exitLogicalExpression();
 
   /// Verifies that enter/exit calls were properly nested.
   void finished();
@@ -91,10 +100,16 @@ class TypePromoterDisabled extends TypePromoter {
   void enterElse() {}
 
   @override
+  void enterLogicalExpression(Expression lhs, String operator) {}
+
+  @override
   void enterThen(Expression condition) {}
 
   @override
   void exitConditional() {}
+
+  @override
+  void exitLogicalExpression() {}
 
   @override
   void finished() {}
@@ -118,6 +133,8 @@ class TypePromoterDisabled extends TypePromoter {
 /// possible without needing access to private members of shadow objects.  It
 /// defers to abstract methods for everything else.
 abstract class TypePromoterImpl extends TypePromoter {
+  final TypeSchemaEnvironment typeSchemaEnvironment;
+
   /// [TypePromotionFact] representing the initial state (no facts have been
   /// determined yet).
   ///
@@ -158,9 +175,10 @@ abstract class TypePromoterImpl extends TypePromoter {
   /// created.
   int _lastFactSequenceNumber = 0;
 
-  TypePromoterImpl() : this._(new _NullFact());
+  TypePromoterImpl(TypeSchemaEnvironment typeSchemaEnvironment)
+      : this._(typeSchemaEnvironment, new _NullFact());
 
-  TypePromoterImpl._(_NullFact this._nullFacts)
+  TypePromoterImpl._(this.typeSchemaEnvironment, _NullFact this._nullFacts)
       : _factCacheState = _nullFacts,
         _currentFacts = _nullFacts {
     _factCache[null] = _nullFacts;
@@ -195,6 +213,22 @@ abstract class TypePromoterImpl extends TypePromoter {
   }
 
   @override
+  void enterLogicalExpression(Expression lhs, String operator) {
+    debugEvent('enterLogicalExpression');
+    // Figure out what the facts are based on possible LHS outcomes.
+    var trueFacts = _factsWhenTrue(lhs);
+    var falseFacts = _factsWhenFalse(lhs);
+    // Record the fact that we are entering a new scope, and save the
+    // appropriate facts for the case where the expression gets short-cut.
+    bool isAnd = identical(operator, '&&');
+    _currentScope =
+        new _LogicalScope(_currentScope, isAnd ? falseFacts : trueFacts);
+    // While processing the RHS, assume the condition was false or true,
+    // depending on the type of logical expression.
+    _currentFacts = isAnd ? trueFacts : falseFacts;
+  }
+
+  @override
   void enterThen(Expression condition) {
     debugEvent('enterThen');
     // Figure out what the facts are based on possible condition outcomes.
@@ -213,6 +247,14 @@ abstract class TypePromoterImpl extends TypePromoter {
     _ConditionalScope scope = _currentScope;
     _currentScope = _currentScope._enclosing;
     _currentFacts = _mergeFacts(scope.afterTrue, _currentFacts);
+  }
+
+  @override
+  void exitLogicalExpression() {
+    debugEvent('exitLogicalExpression');
+    _LogicalScope scope = _currentScope;
+    _currentScope = _currentScope._enclosing;
+    _currentFacts = _mergeFacts(scope.shortcutFacts, _currentFacts);
   }
 
   @override
@@ -584,21 +626,15 @@ class _IsCheck extends TypePromotionFact {
   @override
   DartType _computePromotedType(
       TypePromoterImpl promoter, TypePromotionScope scope) {
-    // TODO(paulberry): add a subtype check.  For example:
-    //     f(Object x) {
-    //       if (x is int) { // promotes x to int
-    //         if (x is String) { // does not promote x to String, since String
-    //                            // not a subtype of int
-    //         }
-    //       }
-    //     }
+    var previousPromotedType =
+        previousForVariable?._computePromotedType(promoter, scope);
 
     // If the variable was mutated somewhere in the scope of the potential
     // promotion, promotion does not occur.
     if (_mutatedInScopes != null) {
       for (var assignmentScope in _mutatedInScopes) {
         if (assignmentScope.containsScope(scope)) {
-          return previousForVariable?._computePromotedType(promoter, scope);
+          return previousPromotedType;
         }
       }
     }
@@ -610,12 +646,29 @@ class _IsCheck extends TypePromotionFact {
         _accessedInClosureInScopes != null) {
       for (var accessScope in _accessedInClosureInScopes) {
         if (accessScope.containsScope(scope)) {
-          return previousForVariable?._computePromotedType(promoter, scope);
+          return previousPromotedType;
         }
       }
     }
+
+    // If the type we are considering promoting to is not a subtype of the
+    // previous type of the variable, no promotion occurs.
+    if (!promoter.typeSchemaEnvironment
+        .isSubtypeOf(checkedType, previousPromotedType ?? variable.type)) {
+      return previousPromotedType;
+    }
+
     return checkedType;
   }
+}
+
+/// [TypePromotionScope] representing the RHS of a logical expression.
+class _LogicalScope extends TypePromotionScope {
+  /// The fact state in effect if the logical expression gets short-cut.
+  final TypePromotionFact shortcutFacts;
+
+  _LogicalScope(TypePromotionScope enclosing, this.shortcutFacts)
+      : super(enclosing);
 }
 
 /// Instance of [TypePromotionFact] representing the facts which are known on

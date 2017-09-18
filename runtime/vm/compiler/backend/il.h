@@ -171,6 +171,29 @@ class CompileType : public ZoneAllocated {
              (type_->Equals(Type::Handle(Type::Int64Type())))));
   }
 
+  // Returns true if value of this type is either int or null.
+  bool IsNullableInt() {
+    if ((cid_ == kSmiCid) || (cid_ == kMintCid) || (cid_ == kBigintCid)) {
+      return true;
+    }
+    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
+      return (type_ != NULL) && ((type_->IsIntType() || type_->IsInt64Type() ||
+                                  type_->IsSmiType()));
+    }
+    return false;
+  }
+
+  // Returns true if value of this type is either double or null.
+  bool IsNullableDouble() {
+    if (cid_ == kDoubleCid) {
+      return true;
+    }
+    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
+      return (type_ != NULL) && type_->IsDoubleType();
+    }
+    return false;
+  }
+
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
 
@@ -407,6 +430,7 @@ class EmbeddedArray<T, 0> {
   M(CheckClass)                                                                \
   M(CheckClassId)                                                              \
   M(CheckSmi)                                                                  \
+  M(CheckNull)                                                                 \
   M(Constant)                                                                  \
   M(UnboxedConstant)                                                           \
   M(CheckEitherNonSmi)                                                         \
@@ -2707,20 +2731,22 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
 
 struct ArgumentsInfo {
   ArgumentsInfo(intptr_t type_args_len,
-                intptr_t pushed_argc,
+                intptr_t count_with_type_args,
                 const Array& argument_names)
       : type_args_len(type_args_len),
-        pushed_argc(pushed_argc),
+        count_with_type_args(count_with_type_args),
+        count_without_type_args(count_with_type_args -
+                                (type_args_len > 0 ? 1 : 0)),
         argument_names(argument_names) {}
 
   RawArray* ToArgumentsDescriptor() const {
-    return ArgumentsDescriptor::New(type_args_len,
-                                    pushed_argc - (type_args_len > 0 ? 1 : 0),
+    return ArgumentsDescriptor::New(type_args_len, count_without_type_args,
                                     argument_names);
   }
 
-  intptr_t type_args_len;
-  intptr_t pushed_argc;
+  const intptr_t type_args_len;
+  const intptr_t count_with_type_args;
+  const intptr_t count_without_type_args;
   const Array& argument_names;
 };
 
@@ -2740,11 +2766,12 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
   }
 
-  intptr_t FirstParamIndex() const { return type_args_len() > 0 ? 1 : 0; }
+  intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
   intptr_t ArgumentCountWithoutTypeArgs() const {
-    return arguments_->length() - FirstParamIndex();
+    return arguments_->length() - FirstArgIndex();
   }
   // ArgumentCount() includes the type argument vector if any.
+  // Caution: Must override Instruction::ArgumentCount().
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
@@ -2887,10 +2914,10 @@ class InstanceCallInstr : public TemplateDartCall<0> {
 
   bool MatchesCoreName(const String& name);
 
-  RawFunction* ResolveForReceiverClass(const Class& cls);
+  RawFunction* ResolveForReceiverClass(const Class& cls, bool allow_add = true);
 
  protected:
-  friend class JitOptimizer;
+  friend class CallSpecializer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
 
  private:
@@ -3638,7 +3665,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  friend class JitOptimizer;  // For ASSERT(initialization_).
+  friend class JitCallSpecializer;  // For ASSERT(initialization_).
 
   bool CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
@@ -4839,12 +4866,29 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const {
     const intptr_t value_cid = value()->Type()->ToCid();
+    const intptr_t box_cid = BoxCid();
 
-    if (CanConvertSmi() && (value()->Type()->ToCid() == kSmiCid)) {
+    if (value_cid == box_cid) {
       return false;
     }
 
-    return (value_cid != BoxCid());
+    if (CanConvertSmi() && (value_cid == kSmiCid)) {
+      return false;
+    }
+
+    if (FLAG_experimental_strong_mode) {
+      if ((representation() == kUnboxedDouble) &&
+          value()->Type()->IsNullableDouble()) {
+        return false;
+      }
+
+      if (FLAG_limit_ints_to_64_bits && (representation() == kUnboxedInt64) &&
+          value()->Type()->IsNullableInt()) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   virtual Representation representation() const { return representation_; }
@@ -7644,6 +7688,37 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(CheckSmiInstr);
 };
 
+// CheckNull instruction takes one input (`value`) and tests it for `null`.
+// If `value` is `null`, then `NoSuchMethodError` is thrown. Otherwise,
+// execution proceeds to the next instruction.
+class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
+ public:
+  CheckNullInstr(Value* value, intptr_t deopt_id, TokenPosition token_pos)
+      : TemplateInstruction(deopt_id), token_pos_(token_pos) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  DECLARE_INSTRUCTION(CheckNull)
+
+  // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
+  // so it can lazily deopt.
+  virtual bool ComputeCanDeoptimize() const { return true; }
+
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+ private:
+  const TokenPosition token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckNullInstr);
+};
+
 class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
  public:
   CheckClassIdInstr(Value* value, CidRange cids, intptr_t deopt_id)
@@ -7732,6 +7807,8 @@ class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
 
   DECLARE_INSTRUCTION(GenericCheckBound)
 
+  // GenericCheckBound can implicitly call Dart code (RangeError or
+  // ArgumentError constructor), so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   // Give a name to the location/input indices.

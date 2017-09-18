@@ -38,7 +38,8 @@ class BuiltInServerIsolateChannel extends ServerIsolateChannel {
 
   @override
   Future<Isolate> _spawnIsolate() {
-    return Isolate.spawn(entryPoint, _receivePort.sendPort,
+    return Isolate.spawn(
+        (message) => entryPoint(message as SendPort), _receivePort.sendPort,
         onError: _errorPort?.sendPort, onExit: _exitPort?.sendPort);
   }
 }

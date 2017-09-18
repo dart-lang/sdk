@@ -208,6 +208,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require',
 
     },
 
+    'language/function_type': {},
+
     'language/covariant_override': {},
 
     'language/function_type': {

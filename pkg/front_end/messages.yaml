@@ -172,7 +172,21 @@ ExpectedString:
 
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
+  analyzerCode: EXPECTED_TYPE_NAME
   dart2jsCode: "*fatal*"
+
+AbstractClassMember:
+  template: "Members of classes can't be declared to be 'abstract'."
+  tip: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
+  analyzerCode: ABSTRACT_CLASS_MEMBER
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "abstract class C {abstract C.c();}"
+    - "abstract class C {abstract m();}"
+    - "abstract class C {abstract get m;}"
+    - "abstract class C {abstract set m(int x);}"
+    - "abstract class C {abstract f;}"
+    - "abstract class C {abstract static f;}"
 
 ConstClass:
   template: "Classes can't be declared to be 'const'."
@@ -207,7 +221,6 @@ ExtraneousModifier:
     - "abstract foo; main(){}"
     - "static foo; main(){}"
     - "external foo; main(){}"
-    - "class C {abstract C.c();}"
     - "final class C {}"
     - "abstract enum foo {bar}"
     - "const enum foo {bar}"
@@ -758,7 +771,14 @@ EnumDeclartionEmpty:
   template: "An enum declaration can't be empty."
 
 ExternalMethodWithBody:
-  template: "An external method can't have a body."
+  # TODO(danrubel): remove reference to `native` once support has been removed
+  template: "An external or native method can't have a body."
+  analyzerCode: EXTERNAL_METHOD_WITH_BODY
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C {external foo() {}}"
+    - "class C {foo() native {}}"
+    - "class C {foo() native 'bar' {}}"
 
 OperatorWithOptionalFormals:
   template: "An operator can't have optional parameters."

@@ -138,7 +138,8 @@ class _Builder {
     scanner.scanGenericMethodComments = strong;
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-    Parser parser = new Parser(source, errorListener);
+    Parser parser = new Parser(source, errorListener,
+        useFasta: context.analysisOptions.useFastaParser);
     parser.parseGenericMethodComments = strong;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;

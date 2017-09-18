@@ -9,7 +9,7 @@ typedef void F<T>(T x);
 
 class C<T> {
   F<T> y;
-  void f(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ value) {
+  void f(T /*@covariance=genericInterface, genericImpl*/ value) {
     this.y /*@callKind=closure*/ (value);
   }
 }

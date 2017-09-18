@@ -35,7 +35,7 @@ class ClassStubGenerator {
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
   jsAst.Expression generateClassConstructor(
-      ClassEntity classElement, Iterable<jsAst.Name> fields, bool hasRtiField) {
+      ClassEntity classElement, List<jsAst.Name> fields, bool hasRtiField) {
     // TODO(sra): Implement placeholders in VariableDeclaration position:
     //
     //     String constructorName = namer.getNameOfClass(classElement);
@@ -50,10 +50,16 @@ class ClassStubGenerator {
       typeParameters = rtiName;
       typeInits = js('this.# = #', [rtiName, rtiName]);
     }
+    List<jsAst.Parameter> parameters = new List<jsAst.Parameter>.generate(
+        fields.length, (i) => new jsAst.Parameter('t$i'));
+    List<jsAst.Expression> fieldInitializers =
+        new List<jsAst.Expression>.generate(fields.length, (i) {
+      return js('this.# = #', [fields[i], parameters[i]]);
+    });
     return js('function(#, #) { #; #; this.#();}', [
-      fields,
+      parameters,
       typeParameters,
-      fields.map((name) => js('this.# = #', [name, name])),
+      fieldInitializers,
       typeInits,
       _namer.deferredAction
     ]);

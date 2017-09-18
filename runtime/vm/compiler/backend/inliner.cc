@@ -6,7 +6,7 @@
 
 #include "vm/compiler/backend/inliner.h"
 
-#include "vm/compiler/aot/aot_optimizer.h"
+#include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -16,7 +16,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
-#include "vm/compiler/jit/jit_optimizer.h"
+#include "vm/compiler/jit/jit_call_specializer.h"
 #include "vm/flags.h"
 #include "vm/kernel.h"
 #include "vm/longjump.h"
@@ -424,12 +424,12 @@ class CallSites : public ValueObject {
 
 struct InlinedCallData {
   InlinedCallData(Definition* call,
-                  intptr_t first_param_index,  // 1 if type args are passed.
+                  intptr_t first_arg_index,  // 1 if type args are passed.
                   GrowableArray<Value*>* arguments,
                   const Function& caller,
                   intptr_t caller_inlining_id)
       : call(call),
-        first_param_index(first_param_index),
+        first_arg_index(first_arg_index),
         arguments(arguments),
         callee_graph(NULL),
         parameter_stubs(NULL),
@@ -438,7 +438,7 @@ struct InlinedCallData {
         caller_inlining_id(caller_inlining_id) {}
 
   Definition* call;
-  const intptr_t first_param_index;
+  const intptr_t first_arg_index;
   GrowableArray<Value*>* arguments;
   FlowGraph* callee_graph;
   ZoneGrowableArray<Definition*>* parameter_stubs;
@@ -518,14 +518,14 @@ static void ReplaceParameterStubs(Zone* zone,
 
   // Replace each stub with the actual argument or the caller's constant.
   // Nulls denote optional parameters for which no actual was given.
-  const intptr_t first_param_index = call_data->first_param_index;
-  // When first_param_index > 0, the stub and actual argument processed in the
+  const intptr_t first_arg_index = call_data->first_arg_index;
+  // When first_arg_index > 0, the stub and actual argument processed in the
   // first loop iteration represent a passed-in type argument vector.
   GrowableArray<Value*>* arguments = call_data->arguments;
   intptr_t first_arg_stub_index = 0;
   if (arguments->length() != call_data->parameter_stubs->length()) {
     ASSERT(arguments->length() == call_data->parameter_stubs->length() - 1);
-    ASSERT(first_param_index == 0);
+    ASSERT(first_arg_index == 0);
     // The first parameter stub accepts an optional type argument vector, but
     // none was provided in arguments.
     first_arg_stub_index = 1;
@@ -533,7 +533,7 @@ static void ReplaceParameterStubs(Zone* zone,
   for (intptr_t i = 0; i < arguments->length(); ++i) {
     Value* actual = (*arguments)[i];
     Definition* defn = NULL;
-    if (is_polymorphic && (i == first_param_index)) {
+    if (is_polymorphic && (i == first_arg_index)) {
       // Replace the receiver argument with a redefinition to prevent code from
       // the inlined body from being hoisted above the inlined entry.
       RedefinitionInstr* redefinition =
@@ -570,7 +570,7 @@ static void ReplaceParameterStubs(Zone* zone,
         // there was a class per closure).
         ASSERT(call_data->call->IsClosureCall());
         LoadFieldInstr* context_load = new (zone) LoadFieldInstr(
-            new Value((*arguments)[first_param_index]->definition()),
+            new Value((*arguments)[first_arg_index]->definition()),
             Closure::context_offset(),
             AbstractType::ZoneHandle(zone, AbstractType::null()),
             call_data->call->token_pos());
@@ -581,7 +581,7 @@ static void ReplaceParameterStubs(Zone* zone,
       } else {
         ASSERT(param->kind() == SpecialParameterInstr::kTypeArgs);
         Definition* type_args;
-        if (first_param_index > 0) {
+        if (first_arg_index > 0) {
           type_args = (*arguments)[0]->definition();
         } else {
           type_args = callee_graph->constant_null();
@@ -909,7 +909,7 @@ class CallSiteInliner : public ValueObject {
         // concrete information about the values, for example constant values,
         // without linking between the caller and callee graphs.
         // TODO(zerny): Put more information in the stubs, eg, type information.
-        const intptr_t first_actual_param_index = call_data->first_param_index;
+        const intptr_t first_actual_param_index = call_data->first_arg_index;
         const intptr_t inlined_type_args_param =
             (FLAG_reify_generic_functions && function.IsGeneric()) ? 1 : 0;
         const intptr_t num_inlined_params =
@@ -984,17 +984,18 @@ class CallSiteInliner : public ValueObject {
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
 #ifdef DART_PRECOMPILER
-            AotOptimizer optimizer(inliner_->precompiler_, callee_graph,
-                                   inliner_->use_speculative_inlining_,
-                                   inliner_->inlining_black_list_);
+            AotCallSpecializer call_specializer(
+                inliner_->precompiler_, callee_graph,
+                inliner_->use_speculative_inlining_,
+                inliner_->inlining_black_list_);
 
-            optimizer.ApplyClassIds();
+            call_specializer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
             FlowGraphTypePropagator::Propagate(callee_graph);
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
-            optimizer.ApplyICData();
+            call_specializer.ApplyICData();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
             // Optimize (a << b) & c patterns, merge instructions. Must occur
@@ -1005,15 +1006,15 @@ class CallSiteInliner : public ValueObject {
             UNREACHABLE();
 #endif  // DART_PRECOMPILER
           } else {
-            JitOptimizer optimizer(callee_graph);
+            JitCallSpecializer call_specializer(callee_graph);
 
-            optimizer.ApplyClassIds();
+            call_specializer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
             FlowGraphTypePropagator::Propagate(callee_graph);
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
-            optimizer.ApplyICData();
+            call_specializer.ApplyICData();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
             // Optimize (a << b) & c patterns, merge instructions. Must occur
@@ -1282,8 +1283,7 @@ class CallSiteInliner : public ValueObject {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
       InlinedCallData call_data(
-          call, call->FirstParamIndex(), &arguments,
-          call_info[call_idx].caller(),
+          call, call->FirstArgIndex(), &arguments, call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(call->function(), call->argument_names(), &call_data)) {
         InlineCall(&call_data);
@@ -1329,8 +1329,7 @@ class CallSiteInliner : public ValueObject {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
       InlinedCallData call_data(
-          call, call->FirstParamIndex(), &arguments,
-          call_info[call_idx].caller(),
+          call, call->FirstArgIndex(), &arguments, call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(target, call->argument_names(), &call_data)) {
         InlineCall(&call_data);
@@ -1361,7 +1360,7 @@ class CallSiteInliner : public ValueObject {
   }
 
   bool AdjustForOptionalParameters(const ParsedFunction& parsed_function,
-                                   intptr_t first_param_index,
+                                   intptr_t first_arg_index,
                                    const Array& argument_names,
                                    GrowableArray<Value*>* arguments,
                                    ZoneGrowableArray<Definition*>* param_stubs,
@@ -1375,12 +1374,12 @@ class CallSiteInliner : public ValueObject {
     intptr_t arg_count = arguments->length();
     intptr_t param_count = function.NumParameters();
     intptr_t fixed_param_count = function.num_fixed_parameters();
-    ASSERT(fixed_param_count <= arg_count - first_param_index);
-    ASSERT(arg_count - first_param_index <= param_count);
+    ASSERT(fixed_param_count <= arg_count - first_arg_index);
+    ASSERT(arg_count - first_arg_index <= param_count);
 
     if (function.HasOptionalPositionalParameters()) {
       // Create a stub for each optional positional parameters with an actual.
-      for (intptr_t i = first_param_index + fixed_param_count; i < arg_count;
+      for (intptr_t i = first_arg_index + fixed_param_count; i < arg_count;
            ++i) {
         param_stubs->Add(CreateParameterStub(i, (*arguments)[i], callee_graph));
       }
@@ -1388,7 +1387,7 @@ class CallSiteInliner : public ValueObject {
              (param_count - fixed_param_count));
       // For each optional positional parameter without an actual, add its
       // default value.
-      for (intptr_t i = arg_count - first_param_index; i < param_count; ++i) {
+      for (intptr_t i = arg_count - first_arg_index; i < param_count; ++i) {
         const Instance& object =
             parsed_function.DefaultParameterValueAt(i - fixed_param_count);
         ConstantInstr* constant = new (Z) ConstantInstr(object);
@@ -1404,7 +1403,7 @@ class CallSiteInliner : public ValueObject {
     // parameters plus named arguments.
     intptr_t argument_names_count =
         (argument_names.IsNull()) ? 0 : argument_names.Length();
-    ASSERT((arg_count - first_param_index) ==
+    ASSERT((arg_count - first_arg_index) ==
            (fixed_param_count + argument_names_count));
 
     // Fast path when no optional named parameters are given.
@@ -1422,11 +1421,11 @@ class CallSiteInliner : public ValueObject {
       String& arg_name = String::Handle(caller_graph_->zone());
       arg_name ^= argument_names.At(i);
       named_args.Add(NamedArgument(
-          &arg_name, (*arguments)[first_param_index + fixed_param_count + i]));
+          &arg_name, (*arguments)[first_arg_index + fixed_param_count + i]));
     }
 
     // Truncate the arguments array to just type args and fixed parameters.
-    arguments->TruncateTo(first_param_index + fixed_param_count);
+    arguments->TruncateTo(first_arg_index + fixed_param_count);
 
     // For each optional named parameter, add the actual argument or its
     // default if no argument is passed.
@@ -1446,7 +1445,7 @@ class CallSiteInliner : public ValueObject {
       // Create a stub for the argument or use the parameter's default value.
       if (arg != NULL) {
         param_stubs->Add(
-            CreateParameterStub(first_param_index + i, arg, callee_graph));
+            CreateParameterStub(first_arg_index + i, arg, callee_graph));
       } else {
         param_stubs->Add(
             GetDefaultValue(i - fixed_param_count, parsed_function));
@@ -1582,7 +1581,7 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   for (int i = 0; i < call_->ArgumentCount(); ++i) {
     arguments.Add(call_->PushArgumentAt(i)->value());
   }
-  InlinedCallData call_data(call_, call_->instance_call()->FirstParamIndex(),
+  InlinedCallData call_data(call_, call_->instance_call()->FirstArgIndex(),
                             &arguments, caller_function_, caller_inlining_id_);
   Function& target = Function::ZoneHandle(zone(), target_info.target->raw());
   if (!owner_->TryInlining(target, call_->instance_call()->argument_names(),

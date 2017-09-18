@@ -11,12 +11,12 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
@@ -217,11 +217,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_reference_type_imported_withPrefix() async {
-    await super.test_const_reference_type_imported_withPrefix();
-  }
-
-  @failingTest
   @fastaProblem
   test_const_reference_unresolved_prefix0() async {
     // https://github.com/dart-lang/sdk/issues/30267
@@ -307,6 +302,60 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @notForDart2
+  test_defaultValue_refersToGenericClass_constructor() async {
+    // Analyzer allows the inferred type of a const to refer to type parameters
+    // that are in scope; Dart 2.0 infers a different type so that the constant
+    // doesn't depend on a (non-constant) type parameter.
+    await super.test_defaultValue_refersToGenericClass_constructor();
+  }
+
+  @failingTest
+  @notForDart2
+  test_defaultValue_refersToGenericClass_constructor2() async {
+    // Analyzer allows the inferred type of a const to refer to type parameters
+    // that are in scope; Dart 2.0 infers a different type so that the constant
+    // doesn't depend on a (non-constant) type parameter.
+    await super.test_defaultValue_refersToGenericClass_constructor2();
+  }
+
+  @failingTest
+  @notForDart2
+  test_defaultValue_refersToGenericClass_functionG() async {
+    // Analyzer allows the inferred type of a const to refer to type parameters
+    // that are in scope; Dart 2.0 infers a different type so that the constant
+    // doesn't depend on a (non-constant) type parameter.
+    await super.test_defaultValue_refersToGenericClass_functionG();
+  }
+
+  @failingTest
+  @notForDart2
+  test_defaultValue_refersToGenericClass_methodG() async {
+    // Analyzer allows the inferred type of a const to refer to type parameters
+    // that are in scope; Dart 2.0 infers a different type so that the constant
+    // doesn't depend on a (non-constant) type parameter.
+    await super.test_defaultValue_refersToGenericClass_methodG();
+  }
+
+  @failingTest
+  @notForDart2
+  test_defaultValue_refersToGenericClass_methodG_classG() async {
+    // Analyzer allows the inferred type of a const to refer to type parameters
+    // that are in scope; Dart 2.0 infers a different type so that the constant
+    // doesn't depend on a (non-constant) type parameter.
+    await super.test_defaultValue_refersToGenericClass_methodG_classG();
+  }
+
+  @failingTest
+  @notForDart2
+  test_defaultValue_refersToGenericClass_methodNG() async {
+    // Analyzer allows the inferred type of a const to refer to type parameters
+    // that are in scope; Dart 2.0 infers a different type so that the constant
+    // doesn't depend on a (non-constant) type parameter.
+    await super.test_defaultValue_refersToGenericClass_methodNG();
+  }
+
+  @failingTest
+  @notForDart2
   test_export_configurations_useDefault() async {
     await super.test_export_configurations_useDefault();
   }
@@ -337,12 +386,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   test_genericFunction_asGenericFunctionReturnType() async {
+    // TODO(scheglov): triage
     await super.test_genericFunction_asGenericFunctionReturnType();
-  }
-
-  @failingTest
-  test_genericFunction_asParameterType() async {
-    await super.test_genericFunction_asParameterType();
   }
 
   @failingTest
@@ -358,55 +403,44 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_import_deferred() async {
-    await super.test_import_deferred();
-  }
-
-  @failingTest
+  @fastaProblem
   test_import_invalidUri_metadata() async {
+    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_import_invalidUri_metadata();
   }
 
   @failingTest
-  test_inferred_type_refers_to_function_typed_parameter_type_generic_class() async {
-    await super
-        .test_inferred_type_refers_to_function_typed_parameter_type_generic_class();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_method_function_typed_parameter_type() async {
-    await super
-        .test_inferred_type_refers_to_method_function_typed_parameter_type();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
-    await super
-        .test_inferred_type_refers_to_setter_function_typed_parameter_type();
-  }
-
-  @failingTest
+  @fastaProblem
   test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
+    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_boundRefersToEarlierTypeArgument();
   }
 
   @failingTest
+  @fastaProblem
   test_instantiateToBounds_boundRefersToItself() async {
+    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_boundRefersToItself();
   }
 
   @failingTest
+  @fastaProblem
   test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
+    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
   }
 
   @failingTest
+  @fastaProblem
   test_instantiateToBounds_functionTypeAlias_simple() async {
+    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_functionTypeAlias_simple();
   }
 
   @failingTest
+  @fastaProblem
   test_instantiateToBounds_simple() async {
+    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_simple();
   }
 
@@ -422,11 +456,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_invalid_annotation_unprefixed_constructor() async {
     // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_annotation_unprefixed_constructor();
-  }
-
-  @failingTest
-  test_invalid_importPrefix_asTypeArgument() async {
-    await super.test_invalid_importPrefix_asTypeArgument();
   }
 
   @failingTest
@@ -458,62 +487,58 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_invalidUri_part_emptyUri() async {
+    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_invalidUri_part_emptyUri();
   }
 
   @failingTest
+  @fastaProblem
   test_invalidUris() async {
+    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_invalidUris();
   }
 
   @failingTest
-  test_library_documented_lines() async {
-    await super.test_library_documented_lines();
-  }
-
-  @failingTest
-  test_library_documented_stars() async {
-    await super.test_library_documented_stars();
-  }
-
-  @failingTest
-  test_metadata_classTypeAlias() async {
-    await super.test_metadata_classTypeAlias();
-  }
-
-  @failingTest
-  test_metadata_enumDeclaration() async {
-    await super.test_metadata_enumDeclaration();
-  }
-
-  @failingTest
+  @fastaProblem
   test_metadata_exportDirective() async {
+    // https://github.com/dart-lang/sdk/issues/30284
     await super.test_metadata_exportDirective();
   }
 
   @failingTest
+  @fastaProblem
   test_metadata_fieldFormalParameter() async {
+    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_fieldFormalParameter();
   }
 
   @failingTest
+  @fastaProblem
   test_metadata_fieldFormalParameter_withDefault() async {
+    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_fieldFormalParameter_withDefault();
   }
 
   @failingTest
+  @fastaProblem
   test_metadata_functionTypedFormalParameter() async {
+    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_functionTypedFormalParameter();
   }
 
   @failingTest
+  @fastaProblem
   test_metadata_functionTypedFormalParameter_withDefault() async {
+    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_functionTypedFormalParameter_withDefault();
   }
 
   @failingTest
+  @fastaProblem
   test_metadata_importDirective() async {
+    // https://github.com/dart-lang/sdk/issues/30284
     await super.test_metadata_importDirective();
   }
 
@@ -525,138 +550,114 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_metadata_libraryDirective() async {
+    // https://github.com/dart-lang/sdk/issues/30284
     await super.test_metadata_libraryDirective();
   }
 
   @failingTest
   test_metadata_partDirective() async {
+    // https://github.com/dart-lang/sdk/issues/30284
     await super.test_metadata_partDirective();
   }
 
   @failingTest
   test_metadata_simpleFormalParameter() async {
+    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_simpleFormalParameter();
   }
 
   @failingTest
   test_metadata_simpleFormalParameter_withDefault() async {
+    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_simpleFormalParameter_withDefault();
   }
 
   @failingTest
   test_parameter_checked() async {
+    // TODO(scheglov): triage
     await super.test_parameter_checked();
   }
 
   @failingTest
   test_parameter_checked_inherited() async {
+    // TODO(scheglov): triage
     await super.test_parameter_checked_inherited();
   }
 
   @failingTest
-  test_parameter_covariant_inherited() async {
-    await super.test_parameter_covariant_inherited();
-  }
-
-  @failingTest
+  @fastaProblem
   test_parts_invalidUri() async {
+    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_parts_invalidUri();
   }
 
   @failingTest
+  @fastaProblem
   test_parts_invalidUri_nullStringValue() async {
+    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_parts_invalidUri_nullStringValue();
   }
 
   @failingTest
   test_syntheticFunctionType_genericClosure() async {
+    // TODO(scheglov): this does not work even in Analyzer
     await super.test_syntheticFunctionType_genericClosure();
   }
 
   @failingTest
   test_syntheticFunctionType_inGenericClass() async {
+    // TODO(scheglov): this does not work even in Analyzer
     await super.test_syntheticFunctionType_inGenericClass();
   }
 
   @failingTest
   test_syntheticFunctionType_noArguments() async {
+    // TODO(scheglov): this does not work even in Analyzer
     await super.test_syntheticFunctionType_noArguments();
   }
 
   @failingTest
   test_syntheticFunctionType_withArguments() async {
+    // TODO(scheglov): this does not work even in Analyzer
     await super.test_syntheticFunctionType_withArguments();
   }
 
   @failingTest
-  test_type_invalid_topLevelVariableElement_asType() async {
-    await super.test_type_invalid_topLevelVariableElement_asType();
-  }
-
-  @failingTest
-  test_type_invalid_topLevelVariableElement_asTypeArgument() async {
-    await super.test_type_invalid_topLevelVariableElement_asTypeArgument();
-  }
-
-  @failingTest
-  test_type_invalid_typeParameter_asPrefix() async {
-    await super.test_type_invalid_typeParameter_asPrefix();
-  }
-
-  @failingTest
   test_type_reference_to_typedef_with_type_arguments() async {
+    // TODO(scheglov): triage
     await super.test_type_reference_to_typedef_with_type_arguments();
   }
 
   @failingTest
   test_type_reference_to_typedef_with_type_arguments_implicit() async {
+    // TODO(scheglov): triage
     await super.test_type_reference_to_typedef_with_type_arguments_implicit();
   }
 
   @failingTest
-  test_type_unresolved() async {
-    await super.test_type_unresolved();
-  }
-
-  @failingTest
-  test_type_unresolved_prefixed() async {
-    await super.test_type_unresolved_prefixed();
-  }
-
-  @failingTest
   test_typedef_documented() async {
+    // TODO(scheglov): implement
     await super.test_typedef_documented();
   }
 
   @failingTest
   test_typedef_generic() async {
+    // TODO(scheglov): triage
     await super.test_typedef_generic();
   }
 
   @failingTest
   test_typedef_generic_asFieldType() async {
+    // TODO(scheglov): triage
     await super.test_typedef_generic_asFieldType();
   }
 
   @failingTest
-  test_typedef_parameters_named() async {
-    await super.test_typedef_parameters_named();
-  }
-
-  @failingTest
   test_typedef_type_parameters_bound() async {
+    // TODO(scheglov): triage
     await super.test_typedef_type_parameters_bound();
-  }
-
-  @failingTest
-  test_typedef_type_parameters_bound_recursive() async {
-    await super.test_typedef_type_parameters_bound_recursive();
-  }
-
-  @failingTest
-  test_typedef_type_parameters_bound_recursive2() async {
-    await super.test_typedef_type_parameters_bound_recursive2();
   }
 
   @failingTest

@@ -133,6 +133,8 @@ enum Tag {
 };
 
 static const int SpecializedIntLiteralBias = 3;
+static const int LibraryCountFieldCountFromEnd = 2;
+static const int SourceTableFieldCountFromFirstLibraryOffset = 4;
 
 class Reader {
  public:

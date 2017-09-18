@@ -59,14 +59,7 @@ class BuilderProxy implements Builder {
 
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
-    with ClassMemberParserTestMixin {
-  @override
-  @failingTest
-  void test_parseConstructor_assert() {
-    // TODO(paulberry): Fasta doesn't support asserts in initializers
-    super.test_parseConstructor_assert();
-  }
-}
+    with ClassMemberParserTestMixin {}
 
 /**
  * Tests of the fasta parser based on [ComplexParserTestMixin].
@@ -313,24 +306,18 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_covariantTopLevelDeclaration_class() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'FunctionDeclarationImpl' is not a subtype of type 'ClassDeclaration' of 'member' where
-    //     FunctionDeclarationImpl is from package:analyzer/src/dart/ast/ast.dart
-    //     ClassDeclaration is from package:analyzer/dart/ast/ast.dart
-    //
-    //   test/generated/parser_test.dart 2418:31                            FastaParserTestCase&ErrorParserTestMixin.test_covariantTopLevelDeclaration_class
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
     super.test_covariantTopLevelDeclaration_class();
   }
 
   @override
   @failingTest
   void test_covariantTopLevelDeclaration_enum() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'FunctionDeclarationImpl' is not a subtype of type 'EnumDeclaration' of 'member' where
-    //   FunctionDeclarationImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   EnumDeclaration is from package:analyzer/dart/ast/ast.dart
-    //
-    //   test/generated/parser_test.dart 2426:30                            FastaParserTestCase&ErrorParserTestMixin.test_covariantTopLevelDeclaration_enum
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
     super.test_covariantTopLevelDeclaration_enum();
   }
 
@@ -720,14 +707,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedTypeName_as() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TYPE_NAME, found 0
-    super.test_expectedTypeName_as();
-  }
-
-  @override
-  @failingTest
   void test_expectedTypeName_as_void() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: true
@@ -737,14 +716,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   test/generated/parser_fasta_test.dart 2974:5                       ParserProxy._run
     //   test/generated/parser_fasta_test.dart 2661:34                      FastaParserTestCase._runParser
     super.test_expectedTypeName_as_void();
-  }
-
-  @override
-  @failingTest
-  void test_expectedTypeName_is() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TYPE_NAME, found 0
-    super.test_expectedTypeName_is();
   }
 
   @override
@@ -878,14 +849,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, found 0
     super.test_externalGetterWithBody();
-  }
-
-  @override
-  @failingTest
-  void test_externalMethodWithBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, found 0
-    super.test_externalMethodWithBody();
   }
 
   @override
@@ -1129,6 +1092,22 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.GETTER_IN_FUNCTION, found 0
     super.test_getterInFunction_expression_returnType();
+  }
+
+  @failingTest
+  void test_getterNativeWithBody() {
+    createParser('String get m native "str" => 0;');
+    parser.parseClassMember('C') as MethodDeclaration;
+    if (!allowNativeClause) {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+      ]);
+    } else {
+      assertErrorsWithCodes([
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+      ]);
+    }
   }
 
   @override
@@ -3113,6 +3092,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void
       test_parseAssignableExpression_expression_args_dot_typeArgumentComments() {
+    // TODO(brianwilkerson) Does not inject generic type arguments following a
+    // function-valued expression.
     super
         .test_parseAssignableExpression_expression_args_dot_typeArgumentComments();
   }
@@ -3120,78 +3101,82 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseAssignableExpression_expression_args_dot_typeArguments() {
+    // TODO(brianwilkerson) Does not parse generic type arguments following a
+    // function-valued expression.
     super.test_parseAssignableExpression_expression_args_dot_typeArguments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_ia_typeArgumentComments() {
+    // TODO(brianwilkerson) Does not inject generic type arguments following an
+    // index expression.
     super.test_parseCascadeSection_ia_typeArgumentComments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_ia_typeArguments() {
+    // TODO(brianwilkerson) Does not parse generic type arguments following an
+    // index expression.
     super.test_parseCascadeSection_ia_typeArguments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_paa_typeArgumentComments() {
+    // TODO(brianwilkerson) Does not inject generic type arguments following a
+    // function-valued expression.
     super.test_parseCascadeSection_paa_typeArgumentComments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_paa_typeArguments() {
+    // TODO(brianwilkerson) Does not parse generic type arguments following a
+    // function-valued expression.
     super.test_parseCascadeSection_paa_typeArguments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_paapaa_typeArgumentComments() {
+    // TODO(brianwilkerson) Does not inject generic type arguments following a
+    // function-valued expression.
     super.test_parseCascadeSection_paapaa_typeArgumentComments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_paapaa_typeArguments() {
+    // TODO(brianwilkerson) Does not parse generic type arguments following a
+    // function-valued expression.
     super.test_parseCascadeSection_paapaa_typeArguments();
   }
 
   @override
   @failingTest
-  void test_parseExpression_assign_compound() {
-    super.test_parseExpression_assign_compound();
-  }
-
-  @override
-  @failingTest
   void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
+    // TODO(brianwilkerson) Does not inject generic type arguments.
     super
         .test_parseInstanceCreationExpression_type_named_typeArgumentComments();
   }
 
   @override
-  void test_parseListLiteral_empty_oneToken_withComment() {
-    super.test_parseListLiteral_empty_oneToken_withComment();
-  }
-
-  @override
-  @failingTest
-  void test_parsePrimaryExpression_super() {
-    super.test_parsePrimaryExpression_super();
-  }
-
-  @override
   @failingTest
   void test_parseUnaryExpression_decrement_super() {
+    // TODO(brianwilkerson) Does not recover.
+    // Expected: TokenType:<MINUS>
+    //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super();
   }
 
   @override
   @failingTest
   void test_parseUnaryExpression_decrement_super_withComment() {
+    // TODO(brianwilkerson) Does not recover.
+    // Expected: TokenType:<MINUS>
+    //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super_withComment();
   }
 }
@@ -3216,19 +3201,12 @@ class FastaParserTestCase extends Object
 
   @override
   set enableAssertInitializer(bool value) {
-    if (value == true) {
-      // TODO(paulberry,ahe): it looks like asserts in initializer lists are not
-      // supported by Fasta.
-      throw new UnimplementedError();
-    }
+    // Asserts in initializer lists are always anabled.
   }
 
   @override
   set enableLazyAssignmentOperators(bool value) {
-    // TODO: implement enableLazyAssignmentOperators
-    if (value == true) {
-      throw new UnimplementedError();
-    }
+    // Lazy assignment operators are always enabled
   }
 
   @override
@@ -3378,7 +3356,12 @@ class FastaParserTestCase extends Object
   @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    return _runParser(source, null, errorCodes);
+    // TODO(paulberry,ahe,danrubel): analyzer parser has the ability to
+    // stop parsing as soon as the first non-directive is encountered; this is
+    // useful for quickly traversing an import graph.  Consider adding a similar
+    // ability to Fasta's parser.
+    throw 'fasta parser does not have a method that just parses directives'
+        ' and stops when it finds the first declaration or EOF.';
   }
 
   @override
@@ -3569,7 +3552,8 @@ class FastaParserTestCase extends Object
   @override
   Statement parseStatement(String source,
       [bool enableLazyAssignmentOperators]) {
-    return _runParser(source, (parser) => parser.parseStatement) as Statement;
+    return _runParser(source, (parser) => parser.parseStatement, null)
+        as Statement;
   }
 
   @override
@@ -3613,15 +3597,16 @@ class FastaParserTestCase extends Object
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     createParser(source);
     Object result = _parserProxy._run(getParseFunction);
-    assertErrorsWithCodes(errorCodes);
+    if (errorCodes != null) {
+      assertErrorsWithCodes(errorCodes);
+    }
     return result;
   }
 
   List<ErrorCode> _toFastaGeneratedAnalyzerErrorCodes(
           List<ErrorCode> expectedErrorCodes) =>
       expectedErrorCodes.map((code) {
-        if (code == ParserErrorCode.ABSTRACT_CLASS_MEMBER ||
-            code == ParserErrorCode.ABSTRACT_ENUM ||
+        if (code == ParserErrorCode.ABSTRACT_ENUM ||
             code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
             code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE ||
             code == ParserErrorCode.ABSTRACT_TYPEDEF ||
@@ -3645,12 +3630,14 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseFormalParameterList_prefixedType_partial() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_parseFormalParameterList_prefixedType_partial();
   }
 
   @override
   @failingTest
   void test_parseFormalParameterList_prefixedType_partial2() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_parseFormalParameterList_prefixedType_partial2();
   }
 
@@ -3865,9 +3852,17 @@ class ParserProxy implements analyzer.Parser {
   @override
   FunctionBody parseFunctionBody(
       bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
-    return _run((parser) => (token) =>
-            parser.parseFunctionBody(token, inExpression, mayBeEmpty))
-        as FunctionBody;
+    return _run((parser) => (token) {
+          token = parser.parseAsyncModifier(token);
+          token = parser.parseFunctionBody(token, inExpression, mayBeEmpty);
+          if (!inExpression) {
+            if (![';', '}'].contains(token.lexeme)) {
+              fail('Expected ";" or "}", but found: ${token.lexeme}');
+            }
+            token = token.next;
+          }
+          return token;
+        }) as FunctionBody;
   }
 
   @override
@@ -3931,7 +3926,7 @@ class ParserProxy implements analyzer.Parser {
       // firstToken should be set by beginCompilationUnit event.
     }
     _currentFastaToken = parseFunction(_currentFastaToken);
-    expect(_currentFastaToken.isEof, isTrue);
+    expect(_currentFastaToken.isEof, isTrue, reason: _currentFastaToken.lexeme);
     if (nodeCount >= 0) {
       expect(_astBuilder.stack, hasLength(nodeCount));
     }
@@ -4722,13 +4717,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_relationalExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_relationalExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
   void test_relationalExpression_precedence_shift_right() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_relationalExpression_precedence_shift_right();
@@ -4847,38 +4835,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseConstructorName_named_noPrefix() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseConstructorName'.
-    super.test_parseConstructorName_named_noPrefix();
-  }
-
-  @override
-  @failingTest
-  void test_parseConstructorName_named_prefixed() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseConstructorName'.
-    super.test_parseConstructorName_named_prefixed();
-  }
-
-  @override
-  @failingTest
-  void test_parseConstructorName_unnamed_noPrefix() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseConstructorName'.
-    super.test_parseConstructorName_unnamed_noPrefix();
-  }
-
-  @override
-  @failingTest
-  void test_parseConstructorName_unnamed_prefixed() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseConstructorName'.
-    super.test_parseConstructorName_unnamed_prefixed();
-  }
-
-  @override
-  @failingTest
   void test_parseDocumentationComment_block() {
     // TODO(brianwilkerson) exception:
     // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
@@ -4902,372 +4858,10 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
-  void test_parseDottedName_multiple() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDottedName'.
-    super.test_parseDottedName_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseDottedName_single() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDottedName'.
-    super.test_parseDottedName_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseExtendsClause() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseExtendsClause'.
-    super.test_parseExtendsClause();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_const_functionType() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_const_functionType();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_const_namedType() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_const_namedType();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_const_noType() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_const_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_final_functionType() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_final_functionType();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_final_namedType() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_final_namedType();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_final_noType() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_final_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_final_prefixedType() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_final_prefixedType();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_type_function() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_type_function();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_type_parameterized() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_type_parameterized();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_type_prefixed() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_type_prefixed();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_type_prefixed_noIdentifier() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_type_prefixed_noIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_type_prefixedAndParameterized() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_type_prefixedAndParameterized();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_type_simple() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_type_simple();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_type_simple_noIdentifier_inFunctionType() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super
-        .test_parseFinalConstVarOrType_type_simple_noIdentifier_inFunctionType();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_var() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_var();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_void() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_void_identifier() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_void_identifier();
-  }
-
-  @override
-  @failingTest
-  void test_parseFinalConstVarOrType_void_noIdentifier() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
-    super.test_parseFinalConstVarOrType_void_noIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_block() {
-    // TODO(brianwilkerson) exception:
-    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
-    //   dart:core                                                          _AssertionError._throwNew
-    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
-    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
-    //   package:analyzer/src/fasta/ast_builder.dart 287:18                 AstBuilder.endBlockFunctionBody
-    //   test/generated/parser_fasta_listener.dart 592:14                   ForwardingTestListener.endBlockFunctionBody
-    //   package:front_end/src/fasta/parser/parser.dart 2648:14             Parser.parseFunctionBody
-    super.test_parseFunctionBody_block();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_block_async() {
-    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
-    // preceding modifiers.
-    super.test_parseFunctionBody_block_async();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_block_asyncGenerator() {
-    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
-    // preceding modifiers.
-    super.test_parseFunctionBody_block_asyncGenerator();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_block_syncGenerator() {
-    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
-    // preceding modifiers.
-    super.test_parseFunctionBody_block_syncGenerator();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_empty() {
-    // TODO(brianwilkerson) exception:
-    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
-    //   dart:core                                                          _AssertionError._throwNew
-    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
-    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
-    //   package:analyzer/src/fasta/ast_builder.dart 269:5                  AstBuilder.handleEmptyFunctionBody
-    //   test/generated/parser_fasta_listener.dart 1171:14                  ForwardingTestListener.handleEmptyFunctionBody
-    //   package:front_end/src/fasta/parser/parser.dart 2607:16             Parser.parseFunctionBody
-    super.test_parseFunctionBody_empty();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_expression() {
-    // TODO(brianwilkerson) exception:
-    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
-    //   dart:core                                                          _AssertionError._throwNew
-    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
-    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
-    //   package:analyzer/src/fasta/ast_builder.dart 379:18                 AstBuilder.handleExpressionFunctionBody
-    //   test/generated/parser_fasta_listener.dart 1177:14                  ForwardingTestListener.handleExpressionFunctionBody
-    //   package:front_end/src/fasta/parser/parser.dart 2614:18             Parser.parseFunctionBody
-    super.test_parseFunctionBody_expression();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_expression_async() {
-    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
-    // preceding modifiers.
-    super.test_parseFunctionBody_expression_async();
-  }
-
-  @override
-  @failingTest
-  void test_parseIdentifierList_multiple() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseIdentifierList'.
-    super.test_parseIdentifierList_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseIdentifierList_single() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseIdentifierList'.
-    super.test_parseIdentifierList_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseImplementsClause_multiple() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseImplementsClause'.
-    super.test_parseImplementsClause_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseImplementsClause_single() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseImplementsClause'.
-    super.test_parseImplementsClause_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseLibraryIdentifier_multiple() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseLibraryIdentifier'.
-    super.test_parseLibraryIdentifier_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseLibraryIdentifier_single() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseLibraryIdentifier'.
-    super.test_parseLibraryIdentifier_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseModifiers_abstract() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
-    super.test_parseModifiers_abstract();
-  }
-
-  @override
-  @failingTest
-  void test_parseModifiers_const() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
-    super.test_parseModifiers_const();
-  }
-
-  @override
-  @failingTest
-  void test_parseModifiers_covariant() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
-    super.test_parseModifiers_covariant();
-  }
-
-  @override
-  @failingTest
-  void test_parseModifiers_external() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
-    super.test_parseModifiers_external();
-  }
-
-  @override
-  @failingTest
-  void test_parseModifiers_factory() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
-    super.test_parseModifiers_factory();
-  }
-
-  @override
-  @failingTest
-  void test_parseModifiers_final() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
-    super.test_parseModifiers_final();
-  }
-
-  @override
-  @failingTest
-  void test_parseModifiers_static() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
-    super.test_parseModifiers_static();
-  }
-
-  @override
-  @failingTest
-  void test_parseModifiers_var() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
-    super.test_parseModifiers_var();
-  }
-
-  @override
 //  @failingTest
   void test_parseReturnType_void() {
     // TODO(brianwilkerson) Passes, but ought to fail.
     super.test_parseReturnType_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeArgumentList_empty() {
-    // TODO(brianwilkerson) Does not recover from an empty list.
-    super.test_parseTypeArgumentList_empty();
   }
 
   @override
@@ -5304,38 +4898,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   void test_parseTypeParameterList_withTrailingEquals() {
     super.test_parseTypeParameterList_withTrailingEquals();
   }
-
-  @override
-  @failingTest
-  void test_parseVariableDeclaration_equals() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseVariableDeclaration'.
-    super.test_parseVariableDeclaration_equals();
-  }
-
-  @override
-  @failingTest
-  void test_parseVariableDeclaration_noEquals() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseVariableDeclaration'.
-    super.test_parseVariableDeclaration_noEquals();
-  }
-
-  @override
-  @failingTest
-  void test_parseWithClause_multiple() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseWithClause'.
-    super.test_parseWithClause_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseWithClause_single() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseWithClause'.
-    super.test_parseWithClause_single();
-  }
 }
 
 /**
@@ -5344,20 +4906,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
-  @override
-  @failingTest
-  void test_parseAssertStatement_trailingComma_message() {
-    // TODO(brianwilkerson) Does not handle optional trailing comma.
-    super.test_parseAssertStatement_trailingComma_message();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssertStatement_trailingComma_noMessage() {
-    // TODO(brianwilkerson) Does not handle optional trailing comma.
-    super.test_parseAssertStatement_trailingComma_noMessage();
-  }
-
   @override
   @failingTest
   void test_parseBreakStatement_noLabel() {
@@ -5380,13 +4928,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson)
     // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
     super.test_parseContinueStatement_noLabel();
-  }
-
-  @override
-  @failingTest
-  void test_parseStatement_emptyTypeArgumentList() {
-    // TODO(brianwilkerson) Does not recover from empty list.
-    super.test_parseStatement_emptyTypeArgumentList();
   }
 }
 
@@ -5508,15 +5049,5 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(danrubel): should not be generating an error
     super.test_parseCompilationUnitMember_abstractAsPrefix();
     assertNoErrors();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirectives_mixed() {
-    // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
-    // stop parsing as soon as the first non-directive is encountered; this is
-    // useful for quickly traversing an import graph.  Consider adding a similar
-    // ability to Fasta's parser.
-    super.test_parseDirectives_mixed();
   }
 }

@@ -24,7 +24,6 @@ import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'lookup_map_analysis.dart' show LookupMapResolutionAnalysis;
 import 'mirrors_analysis.dart';
 import 'mirrors_data.dart';
 import 'native_data.dart' show NativeBasicData;
@@ -50,7 +49,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
-  final LookupMapResolutionAnalysis _lookupMapResolutionAnalysis;
   final MirrorsResolutionAnalysis _mirrorsAnalysis;
   final TypeVariableResolutionAnalysis _typeVariableResolutionAnalysis;
 
@@ -71,7 +69,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._mirrorsDataBuilder,
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
-      this._lookupMapResolutionAnalysis,
       this._mirrorsAnalysis,
       this._typeVariableResolutionAnalysis,
       this._nativeEnqueuer,
@@ -204,8 +201,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush(),
         impactSource: _customElementsAnalysis);
-    enqueuer.applyImpact(_lookupMapResolutionAnalysis.flush(),
-        impactSource: _lookupMapResolutionAnalysis);
     enqueuer.applyImpact(_typeVariableResolutionAnalysis.flush(),
         impactSource: _typeVariableResolutionAnalysis);
 

@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
@@ -291,6 +291,42 @@ import "dart:core" as core;
 
 static field (core::String) → core::int f;
 ''');
+  }
+
+  test_compile_typedef_storeReference() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    writeFile(aPath, 'typedef int F();');
+    writeFile(bPath, r'''
+import 'a.dart';
+F f;
+''');
+    Uri cUri = writeFile(cPath, r'''
+import 'b.dart';
+var fc = f;
+''');
+
+    // Compile first time, b.dart should store F typedef reference.
+    {
+      KernelResult result = await driver.getKernel(cUri);
+      Library library = _getLibrary(result, cUri);
+      expect((library.fields[0].type as FunctionType).typedef.name, 'F');
+    }
+
+    // Update c.dart and recompile using the serialized b.dart kernel.
+    // We should be able to read the F typedef reference.
+    {
+      writeFile(cPath, r'''
+import 'b.dart';
+var fc2 = f;
+''');
+      driver.invalidate(cUri);
+      KernelResult result = await driver.getKernel(cUri);
+      Library library = _getLibrary(result, cUri);
+      expect((library.fields[0].type as FunctionType).typedef.name, 'F');
+    }
   }
 
   test_compile_typeEnvironment() async {

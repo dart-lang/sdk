@@ -1686,6 +1686,10 @@ class ICData : public Object {
 
   intptr_t TypeArgsLen() const;
 
+  intptr_t CountWithTypeArgs() const;
+
+  intptr_t CountWithoutTypeArgs() const;
+
   intptr_t deopt_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();

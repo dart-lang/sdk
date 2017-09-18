@@ -16,6 +16,10 @@ recursive_import_test: Slow, Pass
 dummy_compiler_test: Skip
 recursive_import_test: Skip
 
+[ $compiler == dart2js && $runtime == d8 && $host_checked ]
+dummy_compiler_test: Skip # Issue 30773
+recursive_import_test: Skip # Issue 30773
+
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 dummy_compiler_test: Skip # Issue 28649
 recursive_import_test: Skip # Issue 28649
@@ -48,9 +52,6 @@ deferred/deferred_mirrors2_test: Fail # mirrors not supported
 inference_nsm_mirrors_test: Fail # mirrors not supported
 invalid_annotation2_test/none: Fail # mirrors not supported
 invalid_annotation2_test/01: Pass # mirrors not supported, passes for the wrong reason
-lookup_map/dead_entry_through_mirrors_test: Fail # mirrors not supported
-lookup_map/live_entry_through_mirrors_test: Fail # mirrors not supported
-lookup_map/live_entry_through_mirrors_used_test: Fail # mirrors not supported
 mirror_enqueuer_regression_test: Fail # mirrors not supported
 mirror_invalid_field_access2_test: Fail # mirrors not supported
 mirror_invalid_field_access3_test: Fail # mirrors not supported
@@ -115,7 +116,6 @@ deferred_custom_loader_test: SkipByDesign # Issue 25683
 
 [ $compiler == none && $runtime == vm ]
 invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
-lookup_map/dead_entry_through_mirrors_test: SkipByDesign # Test for tree-shaking, vm never tree-shakes
 unconditional_dartio_import_test: SkipByDesign # dart2js only test
 new_from_env_test: SkipByDesign # dart2js only test
 
@@ -146,9 +146,6 @@ inference_super_set_call_test: RuntimeError # Issue 27394
 invalid_annotation2_test/01: Crash # Issue 27394
 invalid_annotation2_test/none: Crash # Issue 27394
 invalid_annotation_test/01: Crash # Issue 27394
-lookup_map/dead_entry_through_mirrors_test: Crash # Issue 27394
-lookup_map/live_entry_through_mirrors_test: Crash # Issue 27394
-lookup_map/live_entry_through_mirrors_used_test: Crash # Issue 27394
 many_fields_test: Crash # Issue 27394
 mirror_enqueuer_regression_test: Crash # Issue 27394
 mirror_invalid_invoke2_test: Crash # Issue 27394
@@ -168,32 +165,21 @@ js_dispatch_property_test: Crash # Issue 27394
 regress/4562_test/01: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-16400_test: Crash
-19191_test: Crash
-21666_test: Crash
-22868_test: Crash
-22917_test: Crash
-23404_test: RuntimeError
-23432_test: Crash
-23432b_test: Crash # type 'KMethod' is not a subtype of type 'MemberElement' of 'member' where
-async_stacktrace_test: Crash
-bound_closure_interceptor_methods_test: Crash
-bound_closure_interceptor_type_test: Crash
-break_test: Crash
-closure4_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
-closure4_test: RuntimeError
+21666_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+22868_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_stacktrace_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+bound_closure_interceptor_methods_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 closure_capture2_test: RuntimeError
 closure_capture4_test: RuntimeError
-closure_type_reflection2_test: Crash
-closure_type_reflection_test: Crash
-code_motion_exception_test: Crash
+closure_type_reflection2_test: RuntimeError
+closure_type_reflection_test: RuntimeError
 compile_time_constant4_test/01: MissingCompileTimeError
 compile_time_constant4_test/02: MissingCompileTimeError
 compile_time_constant4_test/03: MissingCompileTimeError
 compile_time_constant4_test/04: MissingCompileTimeError
 compile_time_constant4_test/05: MissingCompileTimeError
-compile_time_constant4_test/06: Crash
-conditional_send_test: Crash
+compile_time_constant4_test/06: Crash # 'file:*/pkg/compiler/lib/src/constants/expressions.dart': Failed assertion: line 891 pos 12: 'PRECEDENCE_MAP[operator.kind] != null': is not true.
+conditional_send_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 consistent_add_error_test: RuntimeError
 consistent_subtract_error_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
@@ -204,7 +190,7 @@ deferred/deferred_constant3_test: CompileTimeError
 deferred/deferred_constant4_test: CompileTimeError
 deferred/deferred_function_test: CompileTimeError
 deferred/deferred_mirrors1_test: CompileTimeError
-deferred/deferred_mirrors2_test: Crash
+deferred/deferred_mirrors2_test: RuntimeError
 deferred/deferred_overlapping_test: CompileTimeError
 deferred/interface_type_variable_test: CompileTimeError
 deferred/uninstantiated_type_variable_test: CompileTimeError
@@ -214,52 +200,32 @@ deferred_fail_and_retry_worker_test: CompileTimeError
 deferred_inheritance_test: CompileTimeError
 deferred_split_test: CompileTimeError
 dummy_compiler_test: CompileTimeError
-for_in_test: Crash
-hash_code_test: Crash
-if_null_test: Crash
+if_null_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 inference_super_set_call_test: RuntimeError
-interceptor_named_arguments_test: Crash
-invalid_annotation2_test/none: Crash
-is_check_instanceof_test: Crash
-js_dispatch_property_test: RuntimeError
-label_test/06: Crash
-lookup_map/dead_entry_single_nested_pairs_test: Crash
-lookup_map/dead_entry_test: Crash
-lookup_map/dead_entry_through_mirrors_test: Crash
-lookup_map/discovered_code_test: Crash
-lookup_map/entries_aside_test: Crash
-lookup_map/escaping_entries_test: Crash
-lookup_map/generic_type_test: Crash
-lookup_map/live_entry_single_pair_test: Crash
-lookup_map/live_entry_test: Crash
-lookup_map/live_entry_through_mirrors_test: Crash
-lookup_map/live_entry_through_mirrors_used_test: Crash
-lookup_map/reachable_data2_test: Crash
-lookup_map/reachable_data_test: Crash
-lookup_map/subclass_lookup_map_test: Crash
-many_constants_test: Crash
-mirror_invalid_field_access2_test: Crash
-mirror_invalid_field_access3_test: Crash
-mirror_invalid_field_access4_test: Crash
-mirror_invalid_field_access_test: Crash
-mirror_invalid_invoke2_test: Crash
-mirror_invalid_invoke3_test: Crash
-mirror_invalid_invoke_test: Crash
-mirror_printer_test/01: Crash
-mirror_printer_test/none: Crash
-mirror_test: Crash
-mirror_type_inference_field2_test: Crash
-mirror_type_inference_field_test: Crash
-mirror_type_inference_function_test: Crash
-mirrors_declarations_filtering_test: Crash
-mirrors_used_closure_test: Crash
-mirrors_used_metatargets_test: Crash
-mirrors_used_native_test: Crash
-mirrors_used_warning2_test: Crash
-mirrors_used_warning_test/minif: Crash
-mirrors_used_warning_test/none: Crash
-no_such_method_mirrors_test: Crash
-no_such_method_test: Crash
+interceptor_named_arguments_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+invalid_annotation2_test/none: RuntimeError
+label_test/06: MissingCompileTimeError
+many_constants_test: RuntimeError
+mirror_invalid_field_access2_test: RuntimeError
+mirror_invalid_field_access3_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+mirror_invalid_field_access4_test: RuntimeError
+mirror_invalid_field_access_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+mirror_invalid_invoke2_test: RuntimeError
+mirror_invalid_invoke3_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirror_invalid_invoke_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirror_printer_test/01: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirror_printer_test/none: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirror_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirror_type_inference_field2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+mirror_type_inference_field_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+mirror_type_inference_function_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirrors_declarations_filtering_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+mirrors_used_closure_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirrors_used_metatargets_test: RuntimeError
+mirrors_used_native_test: RuntimeError
+mirrors_used_warning2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+mirrors_used_warning_test/minif: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+mirrors_used_warning_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -267,54 +233,34 @@ private_symbol_literal_test/04: MissingCompileTimeError
 private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
 recursive_import_test: CompileTimeError
-reflect_native_types_test: Crash
+reflect_native_types_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 regress/4562_test/none: CompileTimeError
-regress/4639_test: Crash
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
-switch_test/none: Crash
-timer_test: Crash
-truncation_errors_test: Crash
-type_argument_factory_crash_test: Crash
-type_argument_factory_nocrash_test: Crash
+timer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_argument_factory_crash_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_argument_factory_nocrash_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 type_constant_switch_test/01: MissingCompileTimeError
-23432_test: RuntimeError
-code_motion_exception_test: RuntimeError
-no_such_method_mirrors_test: RuntimeError
-regress/4639_test: RuntimeError
-truncation_errors_test: RuntimeError
 unconditional_dartio_import_test: CompileTimeError
 useful_error_message_1_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-16400_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-19191_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
-21666_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-22868_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-22917_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-23404_test: RuntimeError
-23432_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
-23432b_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
-async_stacktrace_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-bound_closure_interceptor_methods_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-bound_closure_interceptor_type_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
-break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-closure4_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
-closure4_test: RuntimeError
+21666_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+22868_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_stacktrace_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+bound_closure_interceptor_methods_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 closure_capture4_test: RuntimeError
-closure_type_reflection2_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-closure_type_reflection_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-code_motion_exception_test: Crash
+closure_type_reflection2_test: RuntimeError
+closure_type_reflection_test: RuntimeError
 compile_time_constant4_test/01: MissingCompileTimeError
 compile_time_constant4_test/02: MissingCompileTimeError
 compile_time_constant4_test/03: MissingCompileTimeError
 compile_time_constant4_test/04: MissingCompileTimeError
 compile_time_constant4_test/05: MissingCompileTimeError
 compile_time_constant4_test/06: Crash # NoSuchMethodError: The method 'fold' was called on null.
-conditional_send_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+conditional_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 consistent_add_error_test: RuntimeError
 consistent_subtract_error_test: RuntimeError
-constant_javascript_semantics4_test: Crash
 constant_javascript_semantics_test/01: MissingCompileTimeError
 constant_javascript_semantics_test/02: MissingCompileTimeError
 deferred/deferred_class_test: CompileTimeError
@@ -323,7 +269,7 @@ deferred/deferred_constant3_test: CompileTimeError
 deferred/deferred_constant4_test: CompileTimeError
 deferred/deferred_function_test: CompileTimeError
 deferred/deferred_mirrors1_test: CompileTimeError
-deferred/deferred_mirrors2_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+deferred/deferred_mirrors2_test: RuntimeError
 deferred/deferred_overlapping_test: CompileTimeError
 deferred/interface_type_variable_test: CompileTimeError
 deferred/uninstantiated_type_variable_test: CompileTimeError
@@ -333,52 +279,32 @@ deferred_fail_and_retry_worker_test: CompileTimeError
 deferred_inheritance_test: CompileTimeError
 deferred_split_test: CompileTimeError
 dummy_compiler_test: CompileTimeError
-for_in_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-hash_code_test: Crash # UnimplementedError: Unexpected constant expression new #lib1::Hasher::•().hash (KernelPropertyGet)
-if_null_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+if_null_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 inference_super_set_call_test: RuntimeError
-interceptor_named_arguments_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-invalid_annotation2_test/none: Crash # NoSuchMethodError: Class 'DynamicType' has no instance getter 'element'.
-is_check_instanceof_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-js_dispatch_property_test: RuntimeError
-label_test/06: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-lookup_map/dead_entry_single_nested_pairs_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/dead_entry_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/dead_entry_through_mirrors_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/discovered_code_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/entries_aside_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/escaping_entries_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/generic_type_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/live_entry_single_pair_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/live_entry_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/live_entry_through_mirrors_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/live_entry_through_mirrors_used_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/reachable_data2_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/reachable_data_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/subclass_lookup_map_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-many_constants_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-mirror_invalid_field_access2_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
-mirror_invalid_field_access3_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
-mirror_invalid_field_access4_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
-mirror_invalid_field_access_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
-mirror_invalid_invoke2_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
-mirror_invalid_invoke3_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
-mirror_invalid_invoke_test: Crash # Assertion failure: Cannot find value local(main_closure.call#lm) in (local(main#)) for j:closure_call(main_closure.call).
-mirror_printer_test/01: Crash # NoSuchMethodError: The method 'accept' was called on null.
-mirror_printer_test/none: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-mirror_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-mirror_type_inference_field2_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-mirror_type_inference_field_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-mirror_type_inference_function_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-mirrors_declarations_filtering_test: Crash # Assertion failure: Cannot find value local(main_closure.call#a) in (local(main#)) for j:closure_call(main_closure.call).
-mirrors_used_closure_test: Crash # Assertion failure: Cannot find value local(main_closure.call#f) in (local(main#)) for j:closure_call(main_closure.call).
-mirrors_used_metatargets_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-mirrors_used_native_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-mirrors_used_warning2_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-mirrors_used_warning_test/minif: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-mirrors_used_warning_test/none: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-no_such_method_mirrors_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
-no_such_method_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
+interceptor_named_arguments_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+invalid_annotation2_test/none: RuntimeError
+label_test/06: MissingCompileTimeError
+many_constants_test: RuntimeError
+mirror_invalid_field_access2_test: RuntimeError
+mirror_invalid_field_access3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
+mirror_invalid_field_access4_test: RuntimeError
+mirror_invalid_field_access_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
+mirror_invalid_invoke2_test: RuntimeError
+mirror_invalid_invoke3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
+mirror_invalid_invoke_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
+mirror_printer_test/01: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirror_printer_test/none: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirror_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirror_type_inference_field2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
+mirror_type_inference_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
+mirror_type_inference_function_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirrors_declarations_filtering_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
+mirrors_used_closure_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+mirrors_used_metatargets_test: RuntimeError
+mirrors_used_native_test: RuntimeError
+mirrors_used_warning2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+mirrors_used_warning_test/minif: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+mirrors_used_warning_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -386,23 +312,13 @@ private_symbol_literal_test/04: MissingCompileTimeError
 private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
 recursive_import_test: CompileTimeError
-reflect_native_types_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+reflect_native_types_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 regress/4562_test/none: CompileTimeError
-regress/4639_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-runtime_type_test: Crash
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
-switch_test/none: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
-timer_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-to_string_test: Crash
-truncation_errors_test: Crash # Assertion failure: Cannot find value local(main_closure.call#Infinity) in (local(main#)) for j:closure_call(main_closure.call).
-type_argument_factory_crash_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-type_argument_factory_nocrash_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+timer_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+type_argument_factory_crash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
+type_argument_factory_nocrash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashMap.#v), local(_LinkedCustomHashMap.#)) for j:closure_call(_LinkedCustomHashMap__LinkedCustomHashMap_closure.call).
 type_constant_switch_test/01: MissingCompileTimeError
-23432_test: RuntimeError
-no_such_method_mirrors_test: RuntimeError
-regress/4639_test: RuntimeError
-truncation_errors_test: RuntimeError
 unconditional_dartio_import_test: CompileTimeError
-useful_error_message_1_test: RuntimeError
 

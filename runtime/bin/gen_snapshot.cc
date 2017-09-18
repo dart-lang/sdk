@@ -18,6 +18,7 @@
 #include "bin/file.h"
 #include "bin/loader.h"
 #include "bin/log.h"
+#include "bin/options.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
@@ -33,122 +34,6 @@ namespace dart {
 namespace bin {
 
 DFE dfe;
-
-// Option processing helpers.
-// TODO(dartbug.com/30534) share option processing between main.cc and
-// gen_snapshot.cc
-
-static const char* ProcessOption(const char* option, const char* name) {
-  const intptr_t length = strlen(name);
-  for (intptr_t i = 0; i < length; i++) {
-    if (option[i] != name[i]) {
-      if (name[i] == '_' && option[i] == '-') {
-        continue;
-      }
-      return NULL;
-    }
-  }
-  return option + length;
-}
-
-typedef bool (*OptionProcessorCallback)(const char* arg);
-
-class OptionProcessor {
- public:
-  OptionProcessor() : next_(first_) { first_ = this; }
-
-  virtual ~OptionProcessor() {}
-
-  virtual bool Process(const char* option) = 0;
-
-  static bool TryProcess(const char* option) {
-    for (OptionProcessor* p = first_; p != NULL; p = p->next_) {
-      if (p->Process(option)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
- private:
-  static OptionProcessor* first_;
-  OptionProcessor* next_;
-};
-
-class CallbackOptionProcessor : public OptionProcessor {
- public:
-  explicit CallbackOptionProcessor(OptionProcessorCallback cb) : cb_(cb) {}
-  virtual bool Process(const char* option) { return cb_(option); }
-
- private:
-  OptionProcessorCallback cb_;
-};
-
-OptionProcessor* OptionProcessor::first_ = NULL;
-
-#define DEFINE_CB_OPTION(callback)                                             \
-  static CallbackOptionProcessor option_##callback(&callback);
-
-#define DEFINE_STRING_OPTION_CB(name, callback)                                \
-  class OptionProcessor_##name : public OptionProcessor {                      \
-   public:                                                                     \
-    virtual bool Process(const char* option) {                                 \
-      const char* value = ProcessOption(option, "--" #name "=");               \
-      if (value == NULL) {                                                     \
-        return false;                                                          \
-      }                                                                        \
-      if (*value == '\0') {                                                    \
-        Log::PrintErr("Empty value for option " #name "\n");                   \
-        return false;                                                          \
-      }                                                                        \
-      callback;                                                                \
-      return true;                                                             \
-    }                                                                          \
-  };                                                                           \
-  static OptionProcessor_##name option_##name;
-
-#define DEFINE_ENUM_OPTION(name, enum_name, variable)                          \
-  DEFINE_STRING_OPTION_CB(name, {                                              \
-    const char** kNames = k##enum_name##Names;                                 \
-    for (intptr_t i = 0; kNames[i] != NULL; i++) {                             \
-      if (strcmp(value, kNames[i]) == 0) {                                     \
-        variable = static_cast<enum_name>(i);                                  \
-        return true;                                                           \
-      }                                                                        \
-    }                                                                          \
-    Log::PrintErr(                                                             \
-        "Unrecognized value for " #name ": '%s'\nValid values are: ", value);  \
-    for (intptr_t i = 0; kNames[i] != NULL; i++) {                             \
-      Log::PrintErr("%s%s", i > 0 ? ", " : "", kNames[i]);                     \
-    }                                                                          \
-    Log::PrintErr("\n");                                                       \
-  })
-
-#define DEFINE_STRING_OPTION(name, variable)                                   \
-  static const char* variable = NULL;                                          \
-  DEFINE_STRING_OPTION_CB(name, { variable = value; })
-
-#define DEFINE_BOOL_OPTION(name, variable)                                     \
-  static bool variable = false;                                                \
-  class OptionProcessor_##name : public OptionProcessor {                      \
-   public:                                                                     \
-    virtual bool Process(const char* option) {                                 \
-      const char* value = ProcessOption(option, "--" #name);                   \
-      if (value == NULL) {                                                     \
-        return false;                                                          \
-      }                                                                        \
-      if (*value == '=') {                                                     \
-        Log::PrintErr("Non-empty value for option " #name "\n");               \
-        return false;                                                          \
-      }                                                                        \
-      if (*value != '\0') {                                                    \
-        return false;                                                          \
-      }                                                                        \
-      variable = true;                                                         \
-      return true;                                                             \
-    }                                                                          \
-  };                                                                           \
-  static OptionProcessor_##name option_##name;
 
 // Exit code indicating an API error.
 static const int kApiErrorExitCode = 253;
@@ -198,14 +83,6 @@ static char* app_script_name = NULL;
 // command line.
 static CommandLineOptions* entry_points_files = NULL;
 
-static bool IsValidFlag(const char* name,
-                        const char* prefix,
-                        intptr_t prefix_length) {
-  intptr_t name_length = strlen(name);
-  return ((name_length > prefix_length) &&
-          (strncmp(name, prefix, prefix_length) == 0));
-}
-
 // The environment provided through the command line using -D options.
 static dart::HashMap* environment = NULL;
 
@@ -213,49 +90,10 @@ static void* GetHashmapKeyFromString(char* key) {
   return reinterpret_cast<void*>(key);
 }
 
-static bool ProcessEnvironmentOption(const char* arg) {
-  ASSERT(arg != NULL);
-  if (*arg == '\0') {
-    return false;
-  }
-  if (*arg != '-') {
-    return false;
-  }
-  if (*(arg + 1) != 'D') {
-    return false;
-  }
-  arg = arg + 2;
-  if (*arg == '\0') {
-    return true;
-  }
-  if (environment == NULL) {
-    environment = new HashMap(&HashMap::SameStringValue, 4);
-  }
-  // Split the name=value part of the -Dname=value argument.
-  char* name;
-  char* value = NULL;
-  const char* equals_pos = strchr(arg, '=');
-  if (equals_pos == NULL) {
-    // No equal sign (name without value) currently not supported.
-    Log::PrintErr("No value given to -D option\n");
-    return false;
-  } else {
-    int name_len = equals_pos - arg;
-    if (name_len == 0) {
-      Log::PrintErr("No name given to -D option\n");
-      return false;
-    }
-    // Split name=value into name and value.
-    name = reinterpret_cast<char*>(malloc(name_len + 1));
-    strncpy(name, arg, name_len);
-    name[name_len] = '\0';
-    value = strdup(equals_pos + 1);
-  }
-  HashMap::Entry* entry = environment->Lookup(GetHashmapKeyFromString(name),
-                                              HashMap::StringHash(name), true);
-  ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
-  entry->value = value;
-  return true;
+static bool ProcessEnvironmentOption(const char* arg,
+                                     CommandLineOptions* vm_options) {
+  return OptionProcessor::ProcessEnvironmentOption(arg, vm_options,
+                                                   &environment);
 }
 
 static Dart_Handle EnvironmentCallback(Dart_Handle name) {
@@ -292,28 +130,42 @@ static const char* kSnapshotKindNames[] = {
     "core", "core-jit", "script", "app-aot-blobs", "app-aot-assembly", NULL,
 };
 
+#define STRING_OPTIONS_LIST(V)                                                 \
+  V(vm_snapshot_data, vm_snapshot_data_filename)                               \
+  V(vm_snapshot_instructions, vm_snapshot_instructions_filename)               \
+  V(isolate_snapshot_data, isolate_snapshot_data_filename)                     \
+  V(isolate_snapshot_instructions, isolate_snapshot_instructions_filename)     \
+  V(assembly, assembly_filename)                                               \
+  V(script_snapshot, script_snapshot_filename)                                 \
+  V(dependencies, dependencies_filename)                                       \
+  V(load_compilation_trace, load_compilation_trace_filename)                   \
+  V(package_root, commandline_package_root)                                    \
+  V(packages, commandline_packages_file)                                       \
+  V(save_obfuscation_map, obfuscation_map_filename)
+
+#define BOOL_OPTIONS_LIST(V)                                                   \
+  V(dependencies_only, dependencies_only)                                      \
+  V(print_dependencies, print_dependencies)                                    \
+  V(obfuscate, obfuscate)
+
+#define STRING_OPTION_DEFINITION(flag, variable)                               \
+  static const char* variable = NULL;                                          \
+  DEFINE_STRING_OPTION(flag, variable)
+STRING_OPTIONS_LIST(STRING_OPTION_DEFINITION)
+#undef STRING_OPTION_DEFINITION
+
+#define BOOL_OPTION_DEFINITION(flag, variable)                                 \
+  static bool variable = false;                                                \
+  DEFINE_BOOL_OPTION(flag, variable)
+BOOL_OPTIONS_LIST(BOOL_OPTION_DEFINITION)
+#undef BOOL_OPTION_DEFINITION
+
 DEFINE_ENUM_OPTION(snapshot_kind, SnapshotKind, snapshot_kind);
-DEFINE_STRING_OPTION(vm_snapshot_data, vm_snapshot_data_filename);
-DEFINE_STRING_OPTION(vm_snapshot_instructions,
-                     vm_snapshot_instructions_filename);
-DEFINE_STRING_OPTION(isolate_snapshot_data, isolate_snapshot_data_filename);
-DEFINE_STRING_OPTION(isolate_snapshot_instructions,
-                     isolate_snapshot_instructions_filename);
-DEFINE_STRING_OPTION(assembly, assembly_filename);
-DEFINE_STRING_OPTION(script_snapshot, script_snapshot_filename);
-DEFINE_STRING_OPTION(dependencies, dependencies_filename);
-DEFINE_BOOL_OPTION(dependencies_only, dependencies_only);
-DEFINE_BOOL_OPTION(print_dependencies, print_dependencies);
 DEFINE_STRING_OPTION_CB(embedder_entry_points_manifest,
                         { entry_points_files->AddArgument(value); });
-DEFINE_STRING_OPTION(load_compilation_trace, load_compilation_trace_filename);
-DEFINE_STRING_OPTION(package_root, commandline_package_root);
-DEFINE_STRING_OPTION(packages, commandline_packages_file);
 DEFINE_STRING_OPTION_CB(url_mapping,
                         { DartUtils::url_mapping->AddArgument(value); });
 DEFINE_CB_OPTION(ProcessEnvironmentOption);
-DEFINE_BOOL_OPTION(obfuscate, obfuscate);
-DEFINE_STRING_OPTION(save_obfuscation_map, obfuscation_map_filename);
 
 static bool IsSnapshottingForPrecompilation() {
   return (snapshot_kind == kAppAOTBlobs) || (snapshot_kind == kAppAOTAssembly);
@@ -332,8 +184,9 @@ static int ParseArguments(int argc,
   int i = 1;
 
   // Parse out the vm options.
-  while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
-    if (OptionProcessor::TryProcess(argv[i])) {
+  while ((i < argc) &&
+         OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
+    if (OptionProcessor::TryProcess(argv[i], vm_options)) {
       i += 1;
       continue;
     }
@@ -1169,6 +1022,11 @@ int64_t ParseEntryPointsManifestLines(FILE* file,
         entries = -1;
       }
       break;
+    }
+
+    if ((read_line[0] == '\n') || (read_line[0] == '#')) {
+      // Blank or comment line.
+      continue;
     }
 
     Dart_QualifiedFunctionName* entry =

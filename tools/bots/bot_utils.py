@@ -46,8 +46,9 @@ class Channel(object):
   BLEEDING_EDGE = 'be'
   DEV = 'dev'
   STABLE = 'stable'
+  TRY = 'try'
   INTEGRATION = 'integration'
-  ALL_CHANNELS = [BLEEDING_EDGE, DEV, STABLE, INTEGRATION]
+  ALL_CHANNELS = [BLEEDING_EDGE, DEV, STABLE, TRY, INTEGRATION]
 
 class ReleaseType(object):
   RAW = 'raw'
@@ -67,7 +68,7 @@ class GCSNamer(object):
 
   For every (channel,revision,release-type) tuple we have a base path:
 
-    gs://dart-archive/channels/{be,dev,stable,integration}
+    gs://dart-archive/channels/{be,dev,stable,try,integration}
                      /{raw,signed,release}/{revision,latest}/
 
   Under every base path, the following structure is used:
@@ -357,4 +358,4 @@ def GetSystemFromName(name):
   for part in string.split(name, '-'):
     if part in SYSTEM_RENAMES: return SYSTEM_RENAMES[part]
 
-  raise ValueError("Bot name '{}' not have a system name in it.".format(name))
+  raise ValueError("Bot name '{}' does not have a system name in it.".format(name))

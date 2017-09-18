@@ -2831,6 +2831,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
 
       case Token::kTRUNCDIV: {
+        ASSERT(value != kIntptrMin);
         ASSERT(Utils::IsPowerOfTwo(Utils::Abs(value)));
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
@@ -3288,6 +3289,7 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
   switch (representation()) {
     case kUnboxedInt64: {
       PairLocation* result = locs()->out(0).AsPairLocation();
+      ASSERT(result->At(0).reg() != box);
       __ movl(result->At(0).reg(), FieldAddress(box, ValueOffset()));
       __ movl(result->At(1).reg(),
               FieldAddress(box, ValueOffset() + kWordSize));
@@ -3351,6 +3353,22 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitLoadFromBox(compiler);
   } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
     EmitSmiConversion(compiler);
+  } else if (FLAG_experimental_strong_mode &&
+             (representation() == kUnboxedDouble) &&
+             value()->Type()->IsNullableDouble()) {
+    EmitLoadFromBox(compiler);
+  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+             (representation() == kUnboxedInt64) &&
+             value()->Type()->IsNullableInt()) {
+    const Register box = locs()->in(0).reg();
+    PairLocation* result = locs()->out(0).AsPairLocation();
+    ASSERT(result->At(0).reg() != box);
+    ASSERT(result->At(1).reg() != box);
+    Label done;
+    EmitSmiConversion(compiler);  // Leaves CF after SmiUntag.
+    __ j(NOT_CARRY, &done, Assembler::kNearJump);
+    EmitLoadFromBox(compiler);
+    __ Bind(&done);
   } else {
     const Register box = locs()->in(0).reg();
     const Register temp = locs()->temp(0).reg();
@@ -5603,18 +5621,6 @@ void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmpl(value, Immediate(Smi::RawValue(cids_.Extent())));
     __ j(ABOVE, deopt);
   }
-}
-
-LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  // Only needed for AOT.
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Only needed for AOT.
-  UNIMPLEMENTED();
 }
 
 // Length: register or constant.

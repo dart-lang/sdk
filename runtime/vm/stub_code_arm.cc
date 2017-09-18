@@ -696,7 +696,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
   NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R3, cid));
-  __ str(R7, Address(THR, Thread::top_offset()));
+  __ str(NOTFP, Address(THR, Thread::top_offset()));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
   // Initialize the tags.
@@ -2055,7 +2055,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ ldr(R2, FieldAddress(R9, MegamorphicCache::buckets_offset()));
   __ ldr(R1, FieldAddress(R9, MegamorphicCache::mask_offset()));
   // R2: cache buckets array.
-  // R1: mask.
+  // R1: mask as a smi.
 
   // Compute the table index.
   ASSERT(MegamorphicCache::kSpreadFactor == 7);

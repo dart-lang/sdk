@@ -6,8 +6,7 @@
 library test;
 
 class C<T> {
-  void f< /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ U extends T>(
-      U x) {}
+  void f< /*@covariance=genericInterface, genericImpl*/ U extends T>(U x) {}
 }
 
 void g1(dynamic d) {

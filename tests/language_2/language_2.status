@@ -5,6 +5,9 @@
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
 generic_test: SkipByDesign # Requires checked mode.
+named_parameters_type_test/01: SkipByDesign # Requires checked mode.
+named_parameters_type_test/02: SkipByDesign # Requires checked mode.
+named_parameters_type_test/03: SkipByDesign # Requires checked mode.
 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error2_test/cc02: Fail
@@ -18,6 +21,24 @@ function_type/*: Skip # Needs checked mode.
 cha_deopt1_test: Crash # Requires deferred libraries
 cha_deopt2_test: Crash # Requires deferred libraries
 cha_deopt3_test: Crash # Requires deferred libraries
+deferred_call_empty_before_load_test: Crash # Requires deferred libraries
+deferred_closurize_load_library_test: Crash # Requires deferred libraries
+deferred_constant_list_test: Crash # Requires deferred libraries
+deferred_constraints_constants_test: Crash # Requires deferred libraries
+deferred_constraints_type_annotation_test: Crash # Requires deferred libraries
+deferred_function_type_test: Crash # Requires deferred libraries
+deferred_global_test: Crash # Requires deferred libraries
+deferred_import_core_test: Crash # Requires deferred libraries
+deferred_inlined_test: Crash # Requires deferred libraries
+deferred_inheritance_constraints_test: Crash # Requires deferred libraries
+deferred_load_constants_test: Crash # Requires deferred libraries
+deferred_load_constants_test: Crash # Requires deferred libraries
+deferred_load_inval_code_test: Crash # Requires deferred libraries
+deferred_load_library_wrong_args_test: Crash # Requires deferred libraries
+deferred_mixin_test: Crash # Requires deferred libraries
+issue21159_test: Pass, Crash # Issue 29094
+issue_22780_test/01: Pass, Crash # Issue 29094
+issue_1751477_test: Crash # Requires deferred libraries
 
 [ ! $checked && ! $strong ]
 closure_type_test: RuntimeError
@@ -32,6 +53,7 @@ closure_internals_test/03: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/01: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/02: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/03: MissingCompileTimeError # Requires strong mode
+void_block_return_test/00: MissingCompileTimeError # Requires strong mode
 void_type_callbacks_test: Skip # Requires strong mode
 void_type_function_types_test: Skip # Requires strong mode
 void_type_override_test: Skip # Requires strong mode
@@ -41,13 +63,24 @@ compile_time_constant_static2_test: Skip # Requires strong mode
 compile_time_constant_static3_test: Skip # Requires strong mode
 compile_time_constant_static4_test: Skip # Requires strong mode
 compile_time_constant_static5_test: Skip # Requires strong mode
+wrong_number_type_arguments_test/none: Pass
+wrong_number_type_arguments_test/*: MissingCompileTimeError # Requires strong mode
+issue1363_test/01: MissingCompileTimeError # Requires strong mode
+issue15606_test/01: MissingCompileTimeError # Requires strong mode
+issue18628_1_test/01: MissingCompileTimeError # Requires strong mode
+issue18628_2_test/01: MissingCompileTimeError # Requires strong mode
 
 [ $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
+issue_25671a_test/01: CompileTimeError
+issue_25671b_test/01: CompileTimeError
 
 [ $compiler == dartdevc ]
 compile_time_constant_e_test: RuntimeError # Issue 30466
 compile_time_constant_k_test/none: RuntimeError # Issue 30466
+
+[ $compiler == app_jit ]
+deferred_inheritance_constraints_test/redirecting_constructor: Crash

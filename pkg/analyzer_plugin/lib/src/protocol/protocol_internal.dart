@@ -84,7 +84,7 @@ SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
  * Compare the lists [listA] and [listB], using [itemEqual] to compare
  * list elements.
  */
-bool listEqual(List listA, List listB, bool itemEqual(a, b)) {
+bool listEqual<T>(List<T> listA, List<T> listB, bool itemEqual(T a, T b)) {
   if (listA == null) {
     return listB == null;
   }
@@ -106,7 +106,7 @@ bool listEqual(List listA, List listB, bool itemEqual(a, b)) {
  * Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
  * values.
  */
-bool mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
+bool mapEqual<K, V>(Map<K, V> mapA, Map<K, V> mapB, bool valueEqual(V a, V b)) {
   if (mapA == null) {
     return mapB == null;
   }
@@ -316,7 +316,7 @@ abstract class JsonDecoder {
       return {};
     } else if (json is Map) {
       Map<K, V> result = <K, V>{};
-      json.forEach((String key, value) {
+      json.forEach((key, value) {
         K decodedKey;
         if (keyDecoder != null) {
           decodedKey = keyDecoder('$jsonPath.key', key);

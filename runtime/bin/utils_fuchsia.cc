@@ -6,8 +6,8 @@
 #if defined(HOST_OS_FUCHSIA)
 
 #include <errno.h>
-#include <magenta/syscalls.h>
-#include <magenta/types.h>
+#include <zircon/syscalls.h>
+#include <zircon/types.h>
 
 #include "bin/utils.h"
 #include "platform/assert.h"
@@ -81,12 +81,12 @@ int64_t TimerUtils::GetCurrentMonotonicMillis() {
 }
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
-  int64_t ticks = mx_time_get(MX_CLOCK_MONOTONIC);
+  int64_t ticks = zx_time_get(ZX_CLOCK_MONOTONIC);
   return ticks / kNanosecondsPerMicrosecond;
 }
 
 void TimerUtils::Sleep(int64_t millis) {
-  mx_nanosleep(mx_deadline_after(millis * kMicrosecondsPerMillisecond *
+  zx_nanosleep(zx_deadline_after(millis * kMicrosecondsPerMillisecond *
                                  kNanosecondsPerMicrosecond));
 }
 

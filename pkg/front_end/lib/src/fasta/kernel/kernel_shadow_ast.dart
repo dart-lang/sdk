@@ -25,12 +25,24 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     hide InvalidExpression, InvalidInitializer, InvalidStatement;
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../problems.dart' show unhandled, unsupported;
+
+/// Indicates whether type inference involving conditional expressions should
+/// always use least upper bound.
+///
+/// A value of `true` matches the behavior of analyzer.  A value of `false`
+/// matches the informal specification in
+/// https://github.com/dart-lang/sdk/pull/29371.
+///
+/// TODO(paulberry): once compatibility with analyzer is no longer needed,
+/// change this to `false`.
+const bool _forceLub = true;
 
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
@@ -357,11 +369,16 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
     DartType inferredType = writeContext ?? const DynamicType();
     if (nullAwareCombiner != null) {
       var rhsType = inferrer.inferExpression(rhs, writeContext, true);
+      _storeLetType(inferrer, rhs, rhsType);
       MethodInvocation equalsInvocation = nullAwareCombiner.condition;
       inferrer.findMethodInvocationMember(writeContext, equalsInvocation,
           silent: true);
-      return inferrer.typeSchemaEnvironment
+      var combinedType = inferrer.typeSchemaEnvironment
           .getLeastUpperBound(inferredType, rhsType);
+      if (inferrer.strongMode) {
+        nullAwareCombiner.staticType = combinedType;
+      }
+      return combinedType;
     } else if (combiner != null) {
       bool isOverloadedArithmeticOperator = false;
       var combinerMember = inferrer
@@ -371,8 +388,9 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
             .isOverloadedArithmeticOperatorAndType(
                 combinerMember, writeContext);
       }
+      DartType combinedType;
       if (isPostIncDec) {
-        return inferredType;
+        combinedType = inferredType;
       } else {
         DartType rhsType;
         if (isPreIncDec) {
@@ -381,19 +399,23 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
           // Analyzer uses a null context for the RHS here.
           // TODO(paulberry): improve on this.
           rhsType = inferrer.inferExpression(rhs, null, true);
+          _storeLetType(inferrer, rhs, rhsType);
         }
         if (isOverloadedArithmeticOperator) {
-          return inferrer.typeSchemaEnvironment
+          combinedType = inferrer.typeSchemaEnvironment
               .getTypeOfOverloadedArithmetic(inferredType, rhsType);
         } else {
-          return inferrer
-              .getCalleeFunctionType(
-                  combinerMember, writeContext, combiner.name, false)
+          combinedType = inferrer
+              .getCalleeFunctionType(combinerMember, writeContext, false)
               .returnType;
         }
       }
+      _storeLetType(inferrer, combiner, combinedType);
+      return combinedType;
     } else {
-      return inferrer.inferExpression(rhs, writeContext, true);
+      var rhsType = inferrer.inferExpression(rhs, writeContext, true);
+      _storeLetType(inferrer, rhs, rhsType);
+      return rhsType;
     }
   }
 }
@@ -422,7 +444,9 @@ abstract class ShadowComplexAssignmentWithReceiver
 
   DartType _inferReceiver(ShadowTypeInferrer inferrer) {
     if (receiver != null) {
-      return inferrer.inferExpression(receiver, null, true);
+      var receiverType = inferrer.inferExpression(receiver, null, true);
+      _storeLetType(inferrer, receiver, receiverType);
+      return receiverType;
     } else if (isSuper) {
       return inferrer.classHierarchy.getTypeAsInstanceOf(
           inferrer.thisType, inferrer.thisType.classNode.supertype.classNode);
@@ -460,10 +484,13 @@ class ShadowConditionalExpression extends ConditionalExpression
           condition, inferrer.coreTypes.boolClass.rawType, false);
     }
     DartType thenType = inferrer.inferExpression(then, typeContext, true);
+    bool useLub = _forceLub || typeContext == null;
     DartType otherwiseType =
-        inferrer.inferExpression(otherwise, typeContext, true);
-    DartType type = inferrer.typeSchemaEnvironment
-        .getLeastUpperBound(thenType, otherwiseType);
+        inferrer.inferExpression(otherwise, typeContext, useLub);
+    DartType type = useLub
+        ? inferrer.typeSchemaEnvironment
+            .getLeastUpperBound(thenType, otherwiseType)
+        : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
       staticType = type;
     }
@@ -500,7 +527,8 @@ class ShadowConstructorInvocation extends ConstructorInvocation
         fileOffset,
         _initialTarget.function.functionType,
         computeConstructorReturnType(_initialTarget),
-        arguments);
+        arguments,
+        isConst: isConst);
     inferrer.listener.constructorInvocationExit(this, inferredType);
     return inferredType;
   }
@@ -813,8 +841,14 @@ class ShadowFunctionDeclaration extends FunctionDeclaration
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.functionDeclarationEnter(this);
-    inferrer.inferLocalFunction(function, null, false, fileOffset,
-        _hasImplicitReturnType ? null : function.returnType);
+    inferrer.inferLocalFunction(
+        function,
+        null,
+        false,
+        fileOffset,
+        _hasImplicitReturnType
+            ? (inferrer.strongMode ? null : const DynamicType())
+            : function.returnType);
     variable.type = function.functionType;
     inferrer.listener.functionDeclarationExit(this);
   }
@@ -902,12 +936,12 @@ class ShadowIfNullExpression extends Let implements ShadowExpression {
     // - Let J = T0 if K is `_` else K.
     var rhsContext = typeContext ?? lhsType;
     // - Infer e1 in context J to get T1
-    var rhsType =
-        inferrer.inferExpression(_rhs, rhsContext, typeContext == null);
+    bool useLub = _forceLub || typeContext == null;
+    var rhsType = inferrer.inferExpression(_rhs, rhsContext, useLub);
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
-    var inferredType = typeContext == null
+    var inferredType = useLub
         ? inferrer.typeSchemaEnvironment.getLeastUpperBound(lhsType, rhsType)
         : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
@@ -962,29 +996,32 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.indexAssignEnter(desugared, typeContext) ||
         typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
     var receiverType = _inferReceiver(inferrer);
     if (read != null) {
-      inferrer.findMethodInvocationMember(receiverType, read, silent: true);
+      var readMember =
+          inferrer.findMethodInvocationMember(receiverType, read, silent: true);
+      var calleeFunctionType =
+          inferrer.getCalleeFunctionType(readMember, receiverType, false);
+      _storeLetType(inferrer, read, calleeFunctionType.returnType);
     }
     var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member
     // when doing compound assignment?
     var calleeType =
-        inferrer.getCalleeType(writeMember, receiverType, indexSetName);
+        inferrer.getCalleeFunctionType(writeMember, receiverType, false);
+    _storeLetType(inferrer, write, calleeType.returnType);
     DartType indexContext;
     DartType writeContext;
-    if (calleeType is FunctionType &&
-        calleeType.positionalParameters.length >= 2) {
+    if (calleeType.positionalParameters.length >= 2) {
       // TODO(paulberry): we ought to get a context for the index expression
       // from the index formal parameter, but analyzer doesn't so for now we
       // replicate its behavior.
       indexContext = null;
       writeContext = calleeType.positionalParameters[1];
     }
-    inferrer.inferExpression(index, indexContext, false);
+    var indexType = inferrer.inferExpression(index, indexContext, true);
+    _storeLetType(inferrer, index, indexType);
     var inferredType = _inferRhs(inferrer, writeContext);
     inferrer.listener.indexAssignExit(desugared, inferredType);
     return inferredType;
@@ -1122,7 +1159,8 @@ class ShadowListLiteral extends ListLiteral implements ShadowExpression {
     if (inferenceNeeded) {
       inferredTypes = [const UnknownType()];
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(listType,
-          listClass.typeParameters, null, null, typeContext, inferredTypes);
+          listClass.typeParameters, null, null, typeContext, inferredTypes,
+          isConst: isConst);
       inferredTypeArgument = inferredTypes[0];
       formalTypes = [];
       actualTypes = [];
@@ -1230,7 +1268,8 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
     if (inferenceNeeded) {
       inferredTypes = [const UnknownType(), const UnknownType()];
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(mapType,
-          mapClass.typeParameters, null, null, typeContext, inferredTypes);
+          mapClass.typeParameters, null, null, typeContext, inferredTypes,
+          isConst: isConst);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
       formalTypes = [];
@@ -1310,7 +1349,9 @@ abstract class ShadowMember implements Member {
     if (member._accessorNode != null) {
       member._accessorNode.overrides.add(overriddenMember);
     }
-    if (member is ShadowProcedure && member._methodNode != null) {
+    if (member is ShadowProcedure &&
+        overriddenMember is Procedure &&
+        member._methodNode != null) {
       member._methodNode.overrides.add(overriddenMember);
     }
   }
@@ -1556,7 +1597,7 @@ class ShadowProcedure extends Procedure implements ShadowMember {
 class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
   /// If this assignment uses null-aware access (`?.`), the conditional
   /// expression that guards the access; otherwise `null`.
-  Expression nullAwareGuard;
+  ConditionalExpression nullAwareGuard;
 
   ShadowPropertyAssign(Expression receiver, Expression rhs,
       {bool isSuper: false})
@@ -1575,11 +1616,12 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     typeNeeded =
         inferrer.listener.propertyAssignEnter(desugared, typeContext) ||
             typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
     var receiverType = _inferReceiver(inferrer);
     if (read != null) {
-      inferrer.findPropertyGetMember(receiverType, read, silent: true);
+      var readMember =
+          inferrer.findPropertyGetMember(receiverType, read, silent: true);
+      var readType = inferrer.getCalleeType(readMember, receiverType);
+      _storeLetType(inferrer, read, readType);
     }
     Member writeMember;
     if (write != null) {
@@ -1604,7 +1646,9 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     // member.  TODO(paulberry): would it be better to use the read member when
     // doing compound assignment?
     var writeContext = inferrer.getSetterType(writeMember, receiverType);
+    _storeLetType(inferrer, write, writeContext);
     var inferredType = _inferRhs(inferrer, writeContext);
+    if (inferrer.strongMode) nullAwareGuard?.staticType = inferredType;
     inferrer.listener.propertyAssignExit(desugared, inferredType);
     return inferredType;
   }
@@ -1722,12 +1766,15 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.staticAssignEnter(desugared, typeContext) ||
         typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
+    var read = this.read;
+    if (read is StaticGet) {
+      _storeLetType(inferrer, read, read.target.getterType);
+    }
     DartType writeContext;
     var write = this.write;
     if (write is StaticSet) {
       writeContext = write.target.setterType;
+      _storeLetType(inferrer, write, writeContext);
       var target = write.target;
       if (target is ShadowField && target._accessorNode != null) {
         if (inferrer.isDryRun) {
@@ -2023,6 +2070,37 @@ class ShadowSyntheticExpression extends Expression implements ShadowExpression {
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return typeNeeded ? const DynamicType() : null;
   }
+
+  /// Updates any [Let] nodes in the desugared expression to account for the
+  /// fact that [expression] has the given [type].
+  void _storeLetType(
+      TypeInferrerImpl inferrer, Expression expression, DartType type) {
+    if (!inferrer.strongMode) return;
+    Expression desugared = this.desugared;
+    while (true) {
+      if (desugared is Let) {
+        Let desugaredLet = desugared;
+        var variable = desugaredLet.variable;
+        if (identical(variable.initializer, expression)) {
+          variable.type = type;
+          return;
+        }
+        desugared = desugaredLet.body;
+      } else if (desugared is ConditionalExpression) {
+        // When a null-aware assignment is desugared, often the "then" or "else"
+        // branch of the conditional expression often contains "let" nodes that
+        // need to be updated.
+        ConditionalExpression desugaredConditionalExpression = desugared;
+        if (desugaredConditionalExpression.then is Let) {
+          desugared = desugaredConditionalExpression.then;
+        } else {
+          desugared = desugaredConditionalExpression.otherwise;
+        }
+      } else {
+        break;
+      }
+    }
+  }
 }
 
 /// Shadow object for statements that are introduced by the front end as part
@@ -2179,7 +2257,7 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
 /// objects.
 class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
-  final typePromoter = new ShadowTypePromoter();
+  final typePromoter;
 
   ShadowTypeInferrer._(
       ShadowTypeInferenceEngine engine,
@@ -2188,7 +2266,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
       bool topLevel,
       InterfaceType thisType,
       AccessorNode accessorNode)
-      : super(engine, uri, listener, topLevel, thisType, accessorNode);
+      : typePromoter = new ShadowTypePromoter(engine.typeSchemaEnvironment),
+        super(engine, uri, listener, topLevel, thisType, accessorNode);
 
   @override
   Expression getFieldInitializer(ShadowField field) {
@@ -2279,6 +2358,9 @@ class ShadowTypeLiteral extends TypeLiteral implements ShadowExpression {
 /// Concrete implementation of [TypePromoter] specialized to work with kernel
 /// objects.
 class ShadowTypePromoter extends TypePromoterImpl {
+  ShadowTypePromoter(TypeSchemaEnvironment typeSchemaEnvironment)
+      : super(typeSchemaEnvironment);
+
   @override
   int getVariableFunctionNestingLevel(VariableDeclaration variable) {
     if (variable is ShadowVariableDeclaration) {
@@ -2352,12 +2434,14 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
     typeNeeded =
         inferrer.listener.variableAssignEnter(desugared, typeContext) ||
             typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
     DartType writeContext;
     var write = this.write;
     if (write is VariableSet) {
       writeContext = write.variable.type;
+      if (read != null) {
+        _storeLetType(inferrer, read, writeContext);
+      }
+      _storeLetType(inferrer, write, writeContext);
     }
     var inferredType = _inferRhs(inferrer, writeContext);
     inferrer.listener.variableAssignExit(desugared, inferredType);

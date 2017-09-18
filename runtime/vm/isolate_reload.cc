@@ -505,6 +505,17 @@ static intptr_t CommonSuffixLength(const char* a, const char* b) {
   return (a_length - a_cursor);
 }
 
+template <class T>
+class ResourceHolder : ValueObject {
+  T* resource_;
+
+ public:
+  ResourceHolder() : resource_(NULL) {}
+  void set(T* resource) { resource_ = resource; }
+  T* get() { return resource_; }
+  ~ResourceHolder() { delete (resource_); }
+};
+
 // NOTE: This function returns *after* FinalizeLoading is called.
 void IsolateReloadContext::Reload(bool force_reload,
                                   const char* root_script_url,
@@ -536,7 +547,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   }
 
   Object& result = Object::Handle(thread->zone());
-  kernel::Program* kernel_program = NULL;
+  ResourceHolder<kernel::Program> kernel_program;
   String& packages_url = String::Handle();
   if (packages_url_ != NULL) {
     packages_url = String::New(packages_url_);
@@ -568,9 +579,9 @@ void IsolateReloadContext::Reload(bool force_reload,
         ASSERT(!Dart_IsError(val));
         ASSERT(data_type == Dart_TypedData_kUint64);
         ASSERT(data_len == 1);
-        kernel_program = reinterpret_cast<kernel::Program*>(data);
+        kernel_program.set(reinterpret_cast<kernel::Program*>(data));
         Dart_TypedDataReleaseData(retval);
-        kernel::KernelLoader loader(kernel_program);
+        kernel::KernelLoader loader(kernel_program.get());
         loader.FindModifiedLibraries(I, modified_libs_, force_reload);
       }
     }
@@ -643,7 +654,7 @@ void IsolateReloadContext::Reload(bool force_reload,
 
   if (isolate()->use_dart_frontend()) {
     // Load the kernel program.
-    kernel::KernelLoader loader(kernel_program);
+    kernel::KernelLoader loader(kernel_program.get());
     const Object& tmp = loader.LoadProgram();
     if (!tmp.IsError()) {
       Library& lib = Library::Handle(thread->zone());
@@ -1288,8 +1299,19 @@ void IsolateReloadContext::Commit() {
     Become::ElementsForwardIdentity(before, after);
   }
 
-  // Run the initializers for new instance fields.
-  RunNewFieldInitializers();
+  // Rehash constants map for all classes. Constants are hashed by address, and
+  // addresses may change during a become operation.
+  RehashConstants();
+
+#ifdef DEBUG
+  // Verify that all canonical instances are correctly setup in the
+  // corresponding canonical tables.
+  Thread* thread = Thread::Current();
+  I->heap()->CollectAllGarbage();
+  HeapIterationScope iteration(thread);
+  VerifyCanonicalVisitor check_canonical(thread);
+  iteration.IterateObjects(&check_canonical);
+#endif  // DEBUG
 
   if (FLAG_identity_reload) {
     if (saved_num_cids_ != I->class_table()->NumCids()) {
@@ -1306,18 +1328,8 @@ void IsolateReloadContext::Commit() {
     }
   }
 
-  // Rehash constants map for all classes.
-  RehashConstants();
-
-#ifdef DEBUG
-  // Verify that all canonical instances are correctly setup in the
-  // corresponding canonical tables.
-  Thread* thread = Thread::Current();
-  I->heap()->CollectAllGarbage();
-  HeapIterationScope iteration(thread);
-  VerifyCanonicalVisitor check_canonical(thread);
-  iteration.IterateObjects(&check_canonical);
-#endif  // DEBUG
+  // Run the initializers for new instance fields.
+  RunNewFieldInitializers();
 }
 
 void IsolateReloadContext::RehashConstants() {

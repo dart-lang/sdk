@@ -2703,12 +2703,11 @@ class CheckedSmiSlowPath : public SlowPathCode {
     __ pushq(locs->in(1).reg());
     const String& selector =
         String::Handle(instruction_->call()->ic_data()->target_name());
-    const Array& argument_names =
+    const Array& arguments_descriptor =
         Array::Handle(instruction_->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
-        selector, argument_names, instruction_->call()->ArgumentCount(),
-        instruction_->call()->deopt_id(), instruction_->call()->token_pos(),
-        locs, try_index_,
+        selector, arguments_descriptor, instruction_->call()->deopt_id(),
+        instruction_->call()->token_pos(), locs, try_index_,
         /* slow_path_argument_count = */ 2);
     __ MoveRegister(result, RAX);
     compiler->RestoreLiveRegisters(locs);
@@ -2869,12 +2868,11 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
     __ pushq(locs->in(1).reg());
     String& selector =
         String::Handle(instruction_->call()->ic_data()->target_name());
-    Array& argument_names =
+    const Array& arguments_descriptor =
         Array::Handle(instruction_->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
-        selector, argument_names, instruction_->call()->ArgumentCount(),
-        instruction_->call()->deopt_id(), instruction_->call()->token_pos(),
-        locs, try_index_,
+        selector, arguments_descriptor, instruction_->call()->deopt_id(),
+        instruction_->call()->token_pos(), locs, try_index_,
         /* slow_path_argument_count = */ 2);
     __ MoveRegister(result, RAX);
     compiler->RestoreLiveRegisters(locs);
@@ -3102,6 +3100,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kTRUNCDIV: {
         const intptr_t value = Smi::Cast(constant).Value();
+        ASSERT(value != kIntptrMin);
         ASSERT(Utils::IsPowerOfTwo(Utils::Abs(value)));
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
@@ -3542,6 +3541,21 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitLoadFromBox(compiler);
   } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
     EmitSmiConversion(compiler);
+  } else if (FLAG_experimental_strong_mode &&
+             (representation() == kUnboxedDouble) &&
+             value()->Type()->IsNullableDouble()) {
+    EmitLoadFromBox(compiler);
+  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+             (representation() == kUnboxedInt64) &&
+             value()->Type()->IsNullableInt()) {
+    const Register value = locs()->in(0).reg();
+    const Register result = locs()->out(0).reg();
+    ASSERT(value == result);
+    Label done;
+    __ SmiUntag(value);
+    __ j(NOT_CARRY, &done, Assembler::kNearJump);
+    __ movq(value, Address(value, TIMES_2, Mint::value_offset()));
+    __ Bind(&done);
   } else {
     const Register box = locs()->in(0).reg();
     Label* deopt =
@@ -5597,62 +5611,6 @@ void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmpq(value, Immediate(Smi::RawValue(cids_.Extent())));
     __ j(ABOVE, deopt);
   }
-}
-
-LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
-  locs->set_in(kLengthPos, Location::RequiresRegister());
-  locs->set_in(kIndexPos, Location::RequiresRegister());
-  return locs;
-}
-
-class RangeErrorSlowPath : public SlowPathCode {
- public:
-  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
-      : instruction_(instruction), try_index_(try_index) {}
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (Assembler::EmittingComments()) {
-      __ Comment("slow path check bound operation");
-    }
-    __ Bind(entry_label());
-    LocationSummary* locs = instruction_->locs();
-    compiler->SaveLiveRegisters(locs);
-    __ pushq(locs->in(0).reg());
-    __ pushq(locs->in(1).reg());
-    __ CallRuntime(kRangeErrorRuntimeEntry, 2);
-    compiler->AddDescriptor(
-        RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
-        instruction_->deopt_id(), instruction_->token_pos(), try_index_);
-    compiler->RecordSafepoint(locs, 2);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
-    compiler->EmitCatchEntryState(env, try_index_);
-    __ int3();
-  }
-
- private:
-  GenericCheckBoundInstr* instruction_;
-  intptr_t try_index_;
-};
-
-void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  RangeErrorSlowPath* slow_path =
-      new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
-  compiler->AddSlowPathCode(slow_path);
-  Location length_loc = locs()->in(kLengthPos);
-  Location index_loc = locs()->in(kIndexPos);
-  Register length = length_loc.reg();
-  Register index = index_loc.reg();
-  const intptr_t index_cid = this->index()->Type()->ToCid();
-  if (index_cid != kSmiCid) {
-    __ BranchIfNotSmi(index, slow_path->entry_label());
-  }
-  __ cmpq(index, length);
-  __ j(ABOVE_EQUAL, slow_path->entry_label());
 }
 
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,

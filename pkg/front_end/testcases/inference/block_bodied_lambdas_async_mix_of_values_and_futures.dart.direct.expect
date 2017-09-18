@@ -1,11 +1,11 @@
 library test;
 import self as self;
-import "dart:math" as math;
 import "dart:async" as asy;
+import "dart:math" as math;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  dynamic f = () → dynamic async {
+  dynamic f = () → asy::Future<dynamic> async {
     if(math::Random::•().nextBool()) {
       return asy::Future::value<core::int>(1);
     }
