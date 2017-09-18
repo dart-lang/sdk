@@ -78,6 +78,7 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
+isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != d8 ]
 isolate/error_exit_at_spawn_test: Skip # Issue 23876

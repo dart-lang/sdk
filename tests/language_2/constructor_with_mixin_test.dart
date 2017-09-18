@@ -23,8 +23,8 @@ class B extends A with I {
   int y;
 
   B(int xx)
-      : super(xx),
-        y = 13 {
+      : y = 13,
+        super(xx) {
     b_count++;
   }
 }

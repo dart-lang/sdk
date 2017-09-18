@@ -26,6 +26,11 @@ const_string_test: RuntimeError
 cyclic_type2_test: CompileTimeError
 cyclic_type_test/02: CompileTimeError
 cyclic_type_test/04: CompileTimeError
+constructor_redirect1_negative_test: MissingCompileTimeError
+constructor_redirect1_negative_test/none: MissingCompileTimeError
+constructor_redirect1_negative_test/01: MissingCompileTimeError
+constructor_redirect2_negative_test: MissingCompileTimeError
+constructor_named_arguments_test/01: MissingCompileTimeError
 default_factory2_test/01: MissingCompileTimeError
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: DartkCrash
@@ -212,6 +217,8 @@ const_optional_args_negative_test: Fail # Fasta bug: Default parameter values mu
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
 cyclic_constructor_test/01: MissingCompileTimeError # Fasta bug: Cyclic constructor redirection.
+constructor_redirect2_test/01: MissingCompileTimeError # Fasta bug: Body on redirecting constructor.
+constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_closurize_load_library_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constant_list_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.

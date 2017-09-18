@@ -5,8 +5,8 @@
 
 class A {
   var x;
-  A(x) : this.named(x, 0);
-  A.named(x, int y) : this(x + y);
+  A(x) : this.named(x, 0); //# none: compile-time error
+  A.named(x, int y) : this(x + y); //# 01: compile-time error
 }
 
 class ConstructorRedirect1NegativeTest {

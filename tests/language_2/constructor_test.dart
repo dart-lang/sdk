@@ -7,8 +7,8 @@ import "package:expect/expect.dart";
 
 class A extends B {
   A(x, y)
-      : super(y),
-        a = x {}
+      : a = x,
+        super(y) {}
 
   var a;
 }
@@ -32,8 +32,8 @@ abstract class Alpha {
 
 class Beta extends Alpha {
   Beta(v)
-      : super(v),
-        b = 1 {}
+      : b = 1,
+        super(v) {}
 
   foo(v) {
     // Check that 'b' was initialized.

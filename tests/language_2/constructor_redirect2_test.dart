@@ -23,7 +23,7 @@ class A {
 main() {
   new A(3);
   new A.illegalBody(10); //        //# 01: continued
-  new A.illegalInit(10); //        //# 02: continued
+  new A.illegalInit(); //        //# 02: continued
   new A.illegalFormal(10); //      //# 03: continued
-  new A.illegalSuper(10); //       //# 04: continued
+  new A.illegalSuper(); //       //# 04: continued
 }

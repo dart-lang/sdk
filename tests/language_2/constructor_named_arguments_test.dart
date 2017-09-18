@@ -26,7 +26,7 @@ class X {
   X.foo() : this(b: 1, a: 2);
   X.bar()
       : this(
-                     1, // //# 01: static type warning, runtime error
+                     1, // //# 01: compile-time error, runtime error
             a: 2);
   X.baz() : this(a: 1, b: 2);
   X.qux() : this(b: 2);
