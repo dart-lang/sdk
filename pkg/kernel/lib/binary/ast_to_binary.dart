@@ -1040,6 +1040,7 @@ class BinaryPrinter extends Visitor {
 
   visitIfStatement(IfStatement node) {
     writeByte(Tag.IfStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.condition);
     writeNode(node.then);
     writeStatementOrEmpty(node.otherwise);

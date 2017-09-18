@@ -1349,7 +1349,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement thenPart = popStatement();
     Expression condition = popForValue();
     typePromoter.exitConditional();
-    push(new ShadowIfStatement(condition, thenPart, elsePart));
+    push(new ShadowIfStatement(condition, thenPart, elsePart)
+      ..fileOffset = ifToken.charOffset);
   }
 
   @override

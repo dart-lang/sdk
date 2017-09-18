@@ -1346,9 +1346,10 @@ void StreamingScopeBuilder::VisitStatement() {
       builder_->ReadUInt();      // read target_index.
       return;
     case kIfStatement:
-      VisitExpression();  // read condition.
-      VisitStatement();   // read then.
-      VisitStatement();   // read otherwise.
+      builder_->ReadPosition();  // read position.
+      VisitExpression();         // read condition.
+      VisitStatement();          // read then.
+      VisitStatement();          // read otherwise.
       return;
     case kReturnStatement: {
       if ((depth_.function_ == 0) && (depth_.finally_ > 0) &&
@@ -4564,6 +4565,7 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       ReadUInt();      // read target_index.
       return;
     case kIfStatement:
+      ReadPosition();    // read position.
       SkipExpression();  // read condition.
       SkipStatement();   // read then.
       SkipStatement();   // read otherwise.
@@ -6980,6 +6982,7 @@ Fragment StreamingFlowGraphBuilder::BuildContinueSwitchStatement() {
 
 Fragment StreamingFlowGraphBuilder::BuildIfStatement() {
   bool negate;
+  ReadPosition();                                       // read position.
   Fragment instructions = TranslateCondition(&negate);  // read condition.
   TargetEntryInstr* then_entry;
   TargetEntryInstr* otherwise_entry;

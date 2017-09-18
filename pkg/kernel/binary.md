@@ -887,6 +887,7 @@ type ContinueSwitchStatement extends Statement {
 
 type IfStatement extends Statement {
   Byte tag = 73;
+  FileOffset fileOffset;
   Expression condition;
   Statement then;
   Statement otherwise; // Empty statement if there was no else part.
