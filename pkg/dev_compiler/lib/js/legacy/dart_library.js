@@ -14,6 +14,10 @@ dart_library =
 
   /** Note that we cannot use dart_utils.throwInternalError from here. */
   function throwLibraryError(message) {
+    // Dispatch event to allow others to react to the load error without
+    // capturing the exception.
+    var errorEvent = new CustomEvent('dartLoadException', { detail: message });
+    window.dispatchEvent(errorEvent);
     throw Error(message);
   }
 
