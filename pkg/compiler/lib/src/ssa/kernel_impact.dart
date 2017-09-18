@@ -121,7 +121,10 @@ class KernelImpactBuilder extends ir.Visitor {
           field.initializer is! ir.NullLiteral) {
         impactBuilder.registerFeature(Feature.LAZY_FIELD);
       }
+    } else {
+      impactBuilder.registerConstantLiteral(new NullConstantExpression());
     }
+
     if (field.isInstanceMember &&
         elementAdapter.isNativeClass(field.enclosingClass)) {
       MemberEntity member = elementAdapter.getMember(field);
@@ -422,12 +425,19 @@ class KernelImpactBuilder extends ir.Visitor {
           elementAdapter.getSuperNoSuchMethod(
               elementAdapter.getClass(currentMember.enclosingClass)),
           CallStructure.ONE_ARG));
+      impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
   }
 
   @override
   void visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    handleSuperInvocation(node.name, node.target, node.arguments);
+    _visitArguments(node.arguments);
+    // TODO(johnniwinther): Restrict the dynamic use to only match the known
+    // target.
+    impactBuilder.registerDynamicUse(new DynamicUse(
+        new Selector.call(elementAdapter.getMember(node.target).memberName,
+            elementAdapter.getCallStructure(node.arguments)),
+        null));
   }
 
   @override
@@ -451,12 +461,17 @@ class KernelImpactBuilder extends ir.Visitor {
           elementAdapter.getSuperNoSuchMethod(
               elementAdapter.getClass(currentMember.enclosingClass)),
           CallStructure.ONE_ARG));
+      impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
   }
 
   @override
   void visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    handleSuperGet(null, node.target);
+    // TODO(johnniwinther): Restrict the dynamic use to only match the known
+    // target.
+    impactBuilder.registerDynamicUse(new DynamicUse(
+        new Selector.getter(elementAdapter.getMember(node.target).memberName),
+        null));
   }
 
   @override
@@ -479,12 +494,18 @@ class KernelImpactBuilder extends ir.Visitor {
           elementAdapter.getSuperNoSuchMethod(
               elementAdapter.getClass(currentMember.enclosingClass)),
           CallStructure.ONE_ARG));
+      impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
   }
 
   @override
   void visitDirectPropertySet(ir.DirectPropertySet node) {
-    handleSuperSet(null, node.target, node.value);
+    visitNode(node.value);
+    // TODO(johnniwinther): Restrict the dynamic use to only match the known
+    // target.
+    impactBuilder.registerDynamicUse(new DynamicUse(
+        new Selector.setter(elementAdapter.getMember(node.target).memberName),
+        null));
   }
 
   @override

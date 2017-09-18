@@ -473,21 +473,3 @@ preserveMetadata(){}
 preserveUris(){}
 preserveLibraryNames(){}
 ''';
-
-const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{
-  'LookupMap': r'''
-  class LookupMap<K, V> {
-    final _key;
-    final _value;
-    final _entries;
-    final _nestedMaps;
-
-    const LookupMap(this._entries, [this._nestedMaps = const []])
-        : _key = null, _value = null;
-
-    const LookupMap.pair(this._key, this._value)
-        : _entries = const [], _nestedMaps = const [];
-    V operator[](K k) => null;
-  }''',
-  '_version': 'const _version = "0.0.1+1";',
-};

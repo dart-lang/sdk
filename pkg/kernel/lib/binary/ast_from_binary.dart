@@ -461,12 +461,14 @@ class BinaryBuilder {
     }
     _currentLibrary = library;
     String name = readStringOrNullIfEmpty();
+    String documentationComment = readStringOrNullIfEmpty();
     // TODO(jensj): We currently save (almost the same) uri twice.
     String fileUri = readUriReference();
 
     if (shouldWriteData) {
       library.isExternal = isExternal;
       library.name = name;
+      library.documentationComment = documentationComment;
       library.fileUri = fileUri;
     }
 
@@ -521,7 +523,7 @@ class BinaryBuilder {
   }
 
   Combinator readCombinator() {
-    var isShow = readUInt() == 1;
+    var isShow = readByte() == 1;
     var names = readStringReferenceList();
     return new Combinator(isShow, names);
   }
@@ -552,6 +554,7 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     String name = readStringReference();
     String fileUri = readUriReference();
+    node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
     var type = readDartType();
     typeParameterStack.length = 0;
@@ -1175,8 +1178,10 @@ class BinaryBuilder {
         return new ContinueSwitchStatement(switchCaseStack[index])
           ..fileOffset = offset;
       case Tag.IfStatement:
+        int offset = readOffset();
         return new IfStatement(
-            readExpression(), readStatement(), readStatementOrNullIfEmpty());
+            readExpression(), readStatement(), readStatementOrNullIfEmpty())
+          ..fileOffset = offset;
       case Tag.ReturnStatement:
         int offset = readOffset();
         return new ReturnStatement(readExpressionOption())..fileOffset = offset;

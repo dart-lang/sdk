@@ -1578,18 +1578,17 @@ RawObject* Simulator::Call(const Code& code,
     // Decode arguments descriptor's type args len.
     const intptr_t type_args_len =
         SimulatorHelpers::ArgDescTypeArgsLen(argdesc);
+    if ((type_args_len != declared_type_args_len) && (type_args_len != 0)) {
+      goto ClosureNoSuchMethod;
+    }
     if (type_args_len > 0) {
       // Decode arguments descriptor's argument count (excluding type args).
       const intptr_t arg_count = SimulatorHelpers::ArgDescArgCount(argdesc);
       // Copy passed-in type args to first local slot.
       FP[first_stack_local_index] = *FrameArguments(FP, arg_count + 1);
-    } else {
+    } else if (declared_type_args_len > 0) {
       FP[first_stack_local_index] = Object::null();
     }
-
-    // TODO(regis): Verify that type_args_len is correct.
-    USE(declared_type_args_len);
-
     DISPATCH();
   }
 

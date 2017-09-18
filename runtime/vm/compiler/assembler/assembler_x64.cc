@@ -1746,7 +1746,7 @@ void Assembler::subl(Register dst, const Immediate& imm) {
   ASSERT(imm.is_int32());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(dst, REX_NONE);
-  EmitComplex(3, Operand(dst), imm);
+  EmitComplex(5, Operand(dst), imm);
 }
 
 void Assembler::subl(Register dst, const Address& address) {
@@ -2376,6 +2376,10 @@ void Assembler::MoveRegister(Register to, Register from) {
   if (to != from) {
     movq(to, from);
   }
+}
+
+void Assembler::PushRegister(Register r) {
+  pushq(r);
 }
 
 void Assembler::PopRegister(Register r) {

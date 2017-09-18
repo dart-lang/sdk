@@ -13,6 +13,7 @@ timeline_isolates = undefined;
 
 function registerForMessages() {
   window.addEventListener("message", onMessage, false);
+  window.addEventListener("hashchange", onHashChange, false);
 }
 
 registerForMessages();
@@ -44,6 +45,10 @@ function onMessage(event) {
     default:
       console.log('Unknown method:' + method + '.');
   }
+}
+
+function onHashChange() {
+  refreshTimeline();
 }
 
 console.log('message handler registered');

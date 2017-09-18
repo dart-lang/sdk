@@ -2831,6 +2831,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
 
       case Token::kTRUNCDIV: {
+        ASSERT(value != kIntptrMin);
         ASSERT(Utils::IsPowerOfTwo(Utils::Abs(value)));
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
@@ -5620,18 +5621,6 @@ void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmpl(value, Immediate(Smi::RawValue(cids_.Extent())));
     __ j(ABOVE, deopt);
   }
-}
-
-LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  // Only needed for AOT.
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Only needed for AOT.
-  UNIMPLEMENTED();
 }
 
 // Length: register or constant.

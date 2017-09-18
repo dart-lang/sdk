@@ -51,6 +51,12 @@ class ForwardingTestListener implements fasta.Listener {
     }
   }
 
+  void expectInOneOf(List<String> events) {
+    if (_stack.isEmpty || !events.contains(_stack.last)) {
+      fail('Expected one of $events, but found $_stack');
+    }
+  }
+
   void end(String event) {
     expectIn(event);
     _stack.removeLast();
@@ -617,12 +623,6 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    expectIn('ClassDeclaration');
-    listener.handleNativeClause(nativeToken, hasName);
-  }
-
-  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
@@ -651,9 +651,10 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endConditionalUri(Token ifKeyword, Token equalitySign) {
+  void endConditionalUri(
+      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
     end('ConditionalUri');
-    listener.endConditionalUri(ifKeyword, equalitySign);
+    listener.endConditionalUri(ifKeyword, leftParen, equalSign, rightParen);
   }
 
   @override
@@ -765,11 +766,11 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftSeparator,
+  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     end('ForStatement');
     listener.endForStatement(
-        forKeyword, leftSeparator, updateExpressionCount, endToken);
+        forKeyword, leftParen, leftSeparator, updateExpressionCount, endToken);
   }
 
   @override
@@ -915,9 +916,9 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     end('MetadataStar');
-    listener.endMetadataStar(count, forParameter);
+    listener.endMetadataStar(count);
   }
 
   @override
@@ -967,9 +968,10 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     end('PartOf');
-    listener.endPartOf(partKeyword, semicolon, hasName);
+    listener.endPartOf(partKeyword, ofKeyword, semicolon, hasName);
   }
 
   @override
@@ -1148,8 +1150,8 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
-    listener.handleCatchBlock(onKeyword, catchKeyword);
+  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
+    listener.handleCatchBlock(onKeyword, catchKeyword, comma);
     // TODO(danrubel): implement handleCatchBlock
   }
 
@@ -1317,6 +1319,30 @@ class ForwardingTestListener implements fasta.Listener {
   void handleNamedArgument(Token colon) {
     listener.handleNamedArgument(colon);
     // TODO(danrubel): implement handleNamedArgument
+  }
+
+  @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    expectInOneOf(['ClassDeclaration', 'Method']);
+    listener.handleNativeClause(nativeToken, hasName);
+  }
+
+  @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    expectInOneOf(['Method']);
+    listener.handleNativeFunctionBody(nativeToken, semicolon);
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    expectInOneOf(['Method']);
+    listener.handleNativeFunctionBodyIgnored(nativeToken, semicolon);
+  }
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    expectInOneOf(['Method']);
+    listener.handleNativeFunctionBodySkipped(nativeToken, semicolon);
   }
 
   @override

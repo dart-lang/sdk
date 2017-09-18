@@ -16,6 +16,9 @@ enum IdKind {
   node,
   invoke,
   update,
+  iterator,
+  current,
+  moveNext,
 }
 
 /// Id for a code point or element with type inference information.
@@ -48,6 +51,12 @@ class IdValue {
         return '$invokePrefix$value';
       case IdKind.update:
         return '$updatePrefix$value';
+      case IdKind.iterator:
+        return '$iteratorPrefix$value';
+      case IdKind.current:
+        return '$currentPrefix$value';
+      case IdKind.moveNext:
+        return '$moveNextPrefix$value';
     }
     throw new UnsupportedError("Unexpected id kind: ${id.kind}");
   }
@@ -55,6 +64,9 @@ class IdValue {
   static const String elementPrefix = "element: ";
   static const String invokePrefix = "invoke: ";
   static const String updatePrefix = "update: ";
+  static const String iteratorPrefix = "iterator: ";
+  static const String currentPrefix = "current: ";
+  static const String moveNextPrefix = "moveNext: ";
 
   static IdValue decode(int offset, String text) {
     Id id;
@@ -70,6 +82,15 @@ class IdValue {
     } else if (text.startsWith(updatePrefix)) {
       id = new NodeId(offset, IdKind.update);
       expected = text.substring(updatePrefix.length);
+    } else if (text.startsWith(iteratorPrefix)) {
+      id = new NodeId(offset, IdKind.iterator);
+      expected = text.substring(iteratorPrefix.length);
+    } else if (text.startsWith(currentPrefix)) {
+      id = new NodeId(offset, IdKind.current);
+      expected = text.substring(currentPrefix.length);
+    } else if (text.startsWith(moveNextPrefix)) {
+      id = new NodeId(offset, IdKind.moveNext);
+      expected = text.substring(moveNextPrefix.length);
     } else {
       id = new NodeId(offset, IdKind.node);
       expected = text;
@@ -255,6 +276,18 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
     return new NodeId(node.getBeginToken().charOffset, IdKind.update);
   }
 
+  NodeId createIteratorId(ast.ForIn node) {
+    return new NodeId(node.getBeginToken().charOffset, IdKind.iterator);
+  }
+
+  NodeId createCurrentId(ast.ForIn node) {
+    return new NodeId(node.getBeginToken().charOffset, IdKind.current);
+  }
+
+  NodeId createMoveNextId(ast.ForIn node) {
+    return new NodeId(node.getBeginToken().charOffset, IdKind.moveNext);
+  }
+
   NodeId createLoopId(ast.Node node) => computeDefaultNodeId(node);
 
   NodeId createGotoId(ast.Node node) => computeDefaultNodeId(node);
@@ -377,6 +410,13 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
     computeForNode(node, createSwitchCaseId(node));
     visitNode(node);
   }
+
+  visitForIn(ast.ForIn node) {
+    computeForNode(node, createIteratorId(node));
+    computeForNode(node, createCurrentId(node));
+    computeForNode(node, createMoveNextId(node));
+    visitLoop(node);
+  }
 }
 
 /// Abstract IR visitor for computing data corresponding to a node or element,
@@ -442,6 +482,24 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
     assert(node.fileOffset != ir.TreeNode.noOffset,
         "No fileOffset on ${node} (${node.runtimeType})");
     return new NodeId(node.fileOffset, IdKind.update);
+  }
+
+  NodeId createIteratorId(ir.ForInStatement node) {
+    assert(node.fileOffset != ir.TreeNode.noOffset,
+        "No fileOffset on ${node} (${node.runtimeType})");
+    return new NodeId(node.fileOffset, IdKind.iterator);
+  }
+
+  NodeId createCurrentId(ir.ForInStatement node) {
+    assert(node.fileOffset != ir.TreeNode.noOffset,
+        "No fileOffset on ${node} (${node.runtimeType})");
+    return new NodeId(node.fileOffset, IdKind.current);
+  }
+
+  NodeId createMoveNextId(ir.ForInStatement node) {
+    assert(node.fileOffset != ir.TreeNode.noOffset,
+        "No fileOffset on ${node} (${node.runtimeType})");
+    return new NodeId(node.fileOffset, IdKind.moveNext);
   }
 
   NodeId createLoopId(ir.TreeNode node) => computeDefaultNodeId(node);
@@ -524,6 +582,9 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
 
   visitForInStatement(ir.ForInStatement node) {
     computeForNode(node, createLoopId(node));
+    computeForNode(node, createIteratorId(node));
+    computeForNode(node, createCurrentId(node));
+    computeForNode(node, createMoveNextId(node));
     super.visitForInStatement(node);
   }
 

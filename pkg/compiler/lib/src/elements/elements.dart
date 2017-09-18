@@ -1109,9 +1109,23 @@ abstract class MemberElement extends Element
   Name get memberName;
 }
 
+/// A local function, variable, parameter or synthesized local.
+abstract class LocalVariable implements Local {
+  /// The context in which this local is defined.
+  ExecutableElement get executableContext;
+
+  /// The outermost member that contains this element.
+  ///
+  /// For top level, static or instance members, the member context is the
+  /// element itself. For parameters, local variables and nested closures, the
+  /// member context is the top level, static or instance member in which it is
+  /// defined.
+  MemberElement get memberContext;
+}
+
 /// A function, variable or parameter defined in an executable context.
 abstract class LocalElement extends Element
-    implements AstElement, TypedElement, Local {
+    implements AstElement, TypedElement, LocalVariable {
   ExecutableElement get executableContext;
 }
 

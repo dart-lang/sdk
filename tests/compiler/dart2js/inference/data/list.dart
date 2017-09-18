@@ -8,6 +8,7 @@ main() {
   nullList();
   constList();
   constNullList();
+  intList();
 }
 
 /*element: emptyList:Container mask: [empty] length: 0 type: [exact=JSExtendableArray]*/
@@ -21,3 +22,6 @@ nullList() => [null];
 
 /*element: constNullList:Container mask: [null] length: 1 type: [exact=JSUnmodifiableArray]*/
 constNullList() => const [null];
+
+/*element: intList:Container mask: [exact=JSUInt31] length: 3 type: [exact=JSExtendableArray]*/
+intList() => [1, 2, 3];

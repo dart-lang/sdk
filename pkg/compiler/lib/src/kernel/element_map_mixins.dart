@@ -105,14 +105,29 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
     return node.importUri == Uris.dart__foreign_helper;
   }
 
-  /// Looks up [typeName] for use in the spec-string of a `JS` called.
+  /// Looks up [typeName] for use in the spec-string of a `JS` call.
   // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling
   // the `ForeignResolver`.
-  // TODO(johnniwinther): Cache the result to avoid redundant lookups?
   native.TypeLookup typeLookup({bool resolveAsRaw: true}) {
+    return resolveAsRaw
+        ? (_cachedTypeLookupRaw ??= _typeLookup(resolveAsRaw: true))
+        : (_cachedTypeLookupFull ??= _typeLookup(resolveAsRaw: false));
+  }
+
+  native.TypeLookup _cachedTypeLookupRaw;
+  native.TypeLookup _cachedTypeLookupFull;
+
+  native.TypeLookup _typeLookup({bool resolveAsRaw: true}) {
+    bool cachedMayLookupInMain;
+    bool mayLookupInMain() {
+      var mainUri = elementEnvironment.mainLibrary.canonicalUri;
+      // Tests permit lookup outside of dart: libraries.
+      return mainUri.path.contains('sdk/tests/compiler/dart2js_native') ||
+          mainUri.path.contains('sdk/tests/compiler/dart2js_extra');
+    }
+
     DartType lookup(String typeName, {bool required}) {
-      DartType findIn(Uri uri) {
-        LibraryEntity library = elementEnvironment.lookupLibrary(uri);
+      DartType findInLibrary(LibraryEntity library) {
         if (library != null) {
           ClassEntity cls = elementEnvironment.lookupClass(library, typeName);
           if (cls != null) {
@@ -125,9 +140,18 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
         return null;
       }
 
-      // TODO(johnniwinther): Narrow the set of lookups base on the depending
+      DartType findIn(Uri uri) {
+        return findInLibrary(elementEnvironment.lookupLibrary(uri));
+      }
+
+      // TODO(johnniwinther): Narrow the set of lookups based on the depending
       // library.
-      DartType type = findIn(Uris.dart_core);
+      // TODO(johnniwinther): Cache more results to avoid redundant lookups?
+      DartType type;
+      if (cachedMayLookupInMain ??= mayLookupInMain()) {
+        type ??= findInLibrary(elementEnvironment.mainLibrary);
+      }
+      type ??= findIn(Uris.dart_core);
       type ??= findIn(Uris.dart__js_helper);
       type ??= findIn(Uris.dart__interceptors);
       type ??= findIn(Uris.dart__isolate_helper);
@@ -455,6 +479,7 @@ class Stringifier extends ir.ExpressionVisitor<String> {
 class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   final bool requireConstant;
   final KernelToElementMapBaseMixin elementMap;
+  ir.TreeNode failNode;
 
   Constantifier(this.elementMap, {this.requireConstant: true});
 
@@ -463,16 +488,17 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   ConstantExpression visit(ir.Expression node) {
     ConstantExpression constant = node.accept(this);
     if (constant == null && requireConstant) {
-      throw new UnsupportedError(
-          "No constant computed for $node (${node.runtimeType})");
+      elementMap.reporter.reportErrorMessage(
+          computeSourceSpanFromTreeNode(failNode ?? node),
+          MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
+      return new NullConstantExpression();
     }
     return constant;
   }
 
   ConstantExpression defaultExpression(ir.Expression node) {
     if (requireConstant) {
-      throw new UnimplementedError(
-          'Unimplemented constant expression $node (${node.runtimeType})');
+      failNode ??= node;
     }
     return null;
   }
@@ -672,8 +698,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   @override
   ConstantExpression visitPropertyGet(ir.PropertyGet node) {
     if (node.name.name != 'length') {
-      throw new UnimplementedError(
-          'Unexpected constant expression $node (${node.runtimeType})');
+      failNode ??= node;
+      return null;
     }
     ConstantExpression receiver = visit(node.receiver);
     if (receiver == null) return null;
@@ -751,7 +777,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   @override
   ConstantExpression visitLogicalExpression(ir.LogicalExpression node) {
     BinaryOperator operator = BinaryOperator.parse(node.operator);
-    if (operator != null) {
+    if (operator != null &&
+        BinaryConstantExpression.potentialOperator(operator)) {
       ConstantExpression left = visit(node.left);
       if (left == null) return null;
       ConstantExpression right = visit(node.right);

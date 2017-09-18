@@ -512,10 +512,6 @@ class ConstantUse {
   ConstantUse.customElements(TypeConstantValue value)
       : this._(value, ConstantUseKind.DIRECT);
 
-  /// Constant used through a lookup map.
-  ConstantUse.lookupMap(ConstantValue value)
-      : this._(value, ConstantUseKind.INDIRECT);
-
   /// Constant used through mirrors.
   // TODO(johnniwinther): Maybe if this is `DIRECT` and we can avoid the
   // extra calls to `addCompileTimeConstantForEmission`.

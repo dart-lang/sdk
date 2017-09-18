@@ -2410,8 +2410,10 @@ int64_t Range::ConstantAbsMax(const Range* range) {
   if (range == NULL) {
     return RangeBoundary::kMax;
   }
-  const int64_t abs_min = Utils::Abs(Range::ConstantMin(range).ConstantValue());
-  const int64_t abs_max = Utils::Abs(Range::ConstantMax(range).ConstantValue());
+  const int64_t abs_min =
+      Utils::AbsWithSaturation(Range::ConstantMin(range).ConstantValue());
+  const int64_t abs_max =
+      Utils::AbsWithSaturation(Range::ConstantMax(range).ConstantValue());
   return Utils::Maximum(abs_min, abs_max);
 }
 
@@ -2420,8 +2422,10 @@ int64_t Range::ConstantAbsMin(const Range* range) {
   if (range == NULL) {
     return 0;
   }
-  const int64_t abs_min = Utils::Abs(Range::ConstantMin(range).ConstantValue());
-  const int64_t abs_max = Utils::Abs(Range::ConstantMax(range).ConstantValue());
+  const int64_t abs_min =
+      Utils::AbsWithSaturation(Range::ConstantMin(range).ConstantValue());
+  const int64_t abs_max =
+      Utils::AbsWithSaturation(Range::ConstantMax(range).ConstantValue());
   return Utils::Minimum(abs_min, abs_max);
 }
 

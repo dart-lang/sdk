@@ -73,12 +73,12 @@ bool OptionProcessor::ProcessEnvironmentOption(const char* arg,
   if (equals_pos == NULL) {
     // No equal sign (name without value) currently not supported.
     Log::PrintErr("No value given to -D option\n");
-    return false;
+    return true;
   }
   int name_len = equals_pos - arg;
   if (name_len == 0) {
     Log::PrintErr("No name given to -D option\n");
-    return false;
+    return true;
   }
   // Split name=value into name and value.
   name = reinterpret_cast<char*>(malloc(name_len + 1));

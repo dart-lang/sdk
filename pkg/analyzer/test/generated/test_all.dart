@@ -26,6 +26,7 @@ import 'inheritance_manager_test.dart' as inheritance_manager_test;
 import 'java_core_test.dart' as java_core_test;
 import 'java_io_test.dart' as java_io_test;
 import 'non_error_resolver_driver_test.dart' as non_error_resolver_driver_test;
+import 'non_error_resolver_kernel_test.dart' as non_error_resolver_kernel_test;
 import 'non_error_resolver_test.dart' as non_error_resolver_test;
 import 'non_hint_code_driver_test.dart' as non_hint_code_driver_test;
 import 'non_hint_code_test.dart' as non_hint_code_test;
@@ -74,6 +75,7 @@ main() {
     java_core_test.main();
     java_io_test.main();
     non_error_resolver_driver_test.main();
+    non_error_resolver_kernel_test.main();
     non_error_resolver_test.main();
     non_hint_code_driver_test.main();
     non_hint_code_test.main();

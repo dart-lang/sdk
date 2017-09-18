@@ -7,7 +7,6 @@ library type_graph_inferrer;
 import 'dart:collection' show Queue;
 
 import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../tree/tree.dart' as ast show Node;
 import '../types/masks.dart'
@@ -134,7 +133,7 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
     TypeMask result = const TypeMask.nonNullEmpty();
     Iterable<MemberEntity> elements =
         inferrer.closedWorld.locateMembers(selector, mask);
-    for (MemberElement element in elements) {
+    for (MemberEntity element in elements) {
       TypeMask type = inferrer.typeOfMemberWithSelector(element, selector).type;
       result = result.union(type, inferrer.closedWorld);
     }

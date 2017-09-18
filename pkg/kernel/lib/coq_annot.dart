@@ -11,6 +11,9 @@ const coq = 1; // field or class
 const coqref = 2; // class only
 const nocoq = 3; // field only
 const coqopt = 4; // field only
+const coqsingle = 5; // treat List<A> as just A
+const coqdef = 6;
+const coqsingledef = 7;
 
 // library only
 class CoqLib {
@@ -20,4 +23,6 @@ class CoqLib {
 
 // TODO(30609): Since fasta currently throws away annotations on Enums, we use a
 // list to identify which enums to convert.
-var coqEnums = ["kernel.ast::ProcedureKind", "kernel.ast::AsyncMarker"];
+//
+// We'll uncomment these enums once the Coq formalization is sufficiently complete.
+var coqEnums = [/*"kernel.ast::ProcedureKind", "kernel.ast::AsyncMarker"*/];

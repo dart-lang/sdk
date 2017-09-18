@@ -8,7 +8,11 @@ import 'package:kernel/ast.dart' show AsyncMarker, Expression;
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
-import '../fasta_codes.dart' show Message, templateInternalProblemStackNotEmpty;
+import '../fasta_codes.dart'
+    show
+        Message,
+        messageNativeClauseShouldBeAnnotation,
+        templateInternalProblemStackNotEmpty;
 
 import '../messages.dart' as messages;
 
@@ -48,6 +52,7 @@ enum NullValue {
   Metadata,
   Modifiers,
   ParameterDefaultValue,
+  StringLiteral,
   SwitchScope,
   Type,
   TypeArguments,
@@ -206,6 +211,22 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBody");
+    push(NullValue.FunctionBody);
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodyIgnored");
+  }
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodySkipped");
+  }
+
+  @override
   void handleNoFunctionBody(Token token) {
     debugEvent("NoFunctionBody");
     push(NullValue.FunctionBody);
@@ -240,6 +261,14 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+    if (hasName) {
+      pop(); // Pop the native name which is a String.
+    }
+  }
+
+  @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
     push(popList(literalCount).join(""));
@@ -267,6 +296,10 @@ abstract class StackListener extends Listener {
 
   @override
   void handleRecoverableError(Token token, Message message) {
+    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
+    if (message == messageNativeClauseShouldBeAnnotation) {
+      return;
+    }
     debugEvent("Error: ${message.message}");
     addCompileTimeError(message, token.offset);
   }

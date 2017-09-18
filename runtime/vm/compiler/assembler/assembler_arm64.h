@@ -439,6 +439,7 @@ class Assembler : public ValueObject {
   explicit Assembler(bool use_far_branches = false);
   ~Assembler() {}
 
+  void PushRegister(Register r) { Push(r); }
   void PopRegister(Register r) { Pop(r); }
 
   void Drop(intptr_t stack_elements) {
@@ -479,6 +480,7 @@ class Assembler : public ValueObject {
   }
 
   // Debugging and bringup support.
+  void Breakpoint() { brk(0); }
   void Stop(const char* message);
   void Unimplemented(const char* message);
   void Untested(const char* message);
@@ -804,6 +806,8 @@ class Assembler : public ValueObject {
 
   void b(int32_t offset) { EmitUnconditionalBranchOp(B, offset); }
   void bl(int32_t offset) { EmitUnconditionalBranchOp(BL, offset); }
+
+  void BranchIf(Condition condition, Label* label) { b(label, condition); }
 
   void cbz(Label* label, Register rt, OperandSize sz = kDoubleWord) {
     EmitCompareAndBranch(CBZ, rt, label, sz);

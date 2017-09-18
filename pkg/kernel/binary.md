@@ -212,6 +212,7 @@ type Typedef {
   FileOffset fileOffset;
   StringReference name;
   UriReference fileUri;
+  List<Expression> annotations;
   List<TypeParameter> typeParameters;
   DartType type;
 }
@@ -782,7 +783,7 @@ type ExpressionStatement extends Statement {
 
 type Block extends Statement {
   Byte tag = 62;
-  List<Expression> expressions;
+  List<Statement> statements;
 }
 
 type EmptyStatement extends Statement {
@@ -886,6 +887,7 @@ type ContinueSwitchStatement extends Statement {
 
 type IfStatement extends Statement {
   Byte tag = 73;
+  FileOffset fileOffset;
   Expression condition;
   Statement then;
   Statement otherwise; // Empty statement if there was no else part.

@@ -3333,6 +3333,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kTRUNCDIV: {
         const intptr_t value = Smi::Cast(constant).Value();
+        ASSERT(value != kIntptrMin);
         ASSERT(Utils::IsPowerOfTwo(Utils::Abs(value)));
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
@@ -6084,63 +6085,6 @@ void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ CompareImmediate(value, Smi::RawValue(cids_.Extent()));
     __ b(deopt, HI);  // Unsigned higher.
   }
-}
-
-LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
-  locs->set_in(kLengthPos, Location::RequiresRegister());
-  locs->set_in(kIndexPos, Location::RequiresRegister());
-  return locs;
-}
-
-class RangeErrorSlowPath : public SlowPathCode {
- public:
-  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
-      : instruction_(instruction), try_index_(try_index) {}
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (Assembler::EmittingComments()) {
-      __ Comment("slow path check bound operation");
-    }
-    __ Bind(entry_label());
-    LocationSummary* locs = instruction_->locs();
-    compiler->SaveLiveRegisters(locs);
-    __ Push(locs->in(0).reg());
-    __ Push(locs->in(1).reg());
-    __ CallRuntime(kRangeErrorRuntimeEntry, 2);
-    compiler->AddDescriptor(
-        RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
-        instruction_->deopt_id(), instruction_->token_pos(), try_index_);
-    compiler->RecordSafepoint(locs, 2);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
-    compiler->EmitCatchEntryState(env, try_index_);
-    __ bkpt(0);
-  }
-
- private:
-  GenericCheckBoundInstr* instruction_;
-  intptr_t try_index_;
-};
-
-void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  RangeErrorSlowPath* slow_path =
-      new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
-  compiler->AddSlowPathCode(slow_path);
-
-  Location length_loc = locs()->in(kLengthPos);
-  Location index_loc = locs()->in(kIndexPos);
-  Register length = length_loc.reg();
-  Register index = index_loc.reg();
-  const intptr_t index_cid = this->index()->Type()->ToCid();
-  if (index_cid != kSmiCid) {
-    __ BranchIfNotSmi(index, slow_path->entry_label());
-  }
-  __ cmp(index, Operand(length));
-  __ b(slow_path->entry_label(), CS);
 }
 
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,

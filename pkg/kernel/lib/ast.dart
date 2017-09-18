@@ -162,6 +162,7 @@ abstract class TreeNode extends Node {
 /// indirection that is needed during serialization.
 @coq
 abstract class NamedNode extends TreeNode {
+  @coqdef
   final Reference reference;
 
   NamedNode(Reference reference)
@@ -179,6 +180,7 @@ abstract class NamedNode extends TreeNode {
 class Reference {
   CanonicalName canonicalName;
 
+  @nocoq
   NamedNode node;
 
   String toString() {
@@ -271,7 +273,10 @@ class Library extends NamedNode implements Comparable<Library> {
   /// and all members are loaded.
   bool isExternal;
 
-  @coq
+  /// Documentation comment of the library, or `null`.
+  @informative
+  String documentationComment;
+
   String name;
 
   @nocoq
@@ -282,6 +287,7 @@ class Library extends NamedNode implements Comparable<Library> {
   /// References to nodes exported by `export` declarations that:
   /// - aren't ambiguous, or
   /// - aren't hidden by local declarations.
+  @nocoq
   final List<Reference> additionalExports = <Reference>[];
 
   @informative
@@ -422,11 +428,9 @@ class Library extends NamedNode implements Comparable<Library> {
 ///     export <url>;
 ///
 /// optionally with metadata and [Combinators].
-@coq
 class LibraryDependency extends TreeNode {
   int flags;
 
-  @nocoq
   final List<Expression> annotations;
 
   Reference importedLibraryReference;
@@ -435,7 +439,6 @@ class LibraryDependency extends TreeNode {
   /// with a prefix.
   ///
   /// Must be non-null for deferred imports, and must be null for exports.
-  @coq
   String name;
 
   final List<Combinator> combinators;
@@ -525,12 +528,9 @@ class LibraryPart extends TreeNode {
 }
 
 /// A `show` or `hide` clause for an import or export.
-@coq
 class Combinator extends TreeNode {
-  @coq
   bool isShow;
 
-  @coq
   final List<String> names;
 
   LibraryDependency get dependency => parent;
@@ -679,7 +679,6 @@ class Class extends NamedNode {
   /// applications.
   @coq
   String name;
-  @coq
   bool isAbstract;
 
   /// Whether this class is an enum.
@@ -707,11 +706,9 @@ class Class extends NamedNode {
   final List<TypeParameter> typeParameters;
 
   /// The immediate super type, or `null` if this is the root class.
-  @coqopt
   Supertype supertype;
 
   /// The mixed-in type if this is a mixin application, otherwise `null`.
-  @coqopt
   Supertype mixedInType;
 
   /// The types from the `implements` clause.
@@ -846,15 +843,18 @@ class Class extends NamedNode {
     return new Supertype(this, _getAsTypeArguments(typeParameters));
   }
 
+  @nocoq
   InterfaceType _rawType;
   InterfaceType get rawType => _rawType ??= new InterfaceType(this);
 
+  @nocoq
   InterfaceType _thisType;
   InterfaceType get thisType {
     return _thisType ??=
         new InterfaceType(this, _getAsTypeArguments(typeParameters));
   }
 
+  @nocoq
   InterfaceType _bottomType;
   InterfaceType get bottomType {
     return _bottomType ??= new InterfaceType(this,
@@ -1001,26 +1001,27 @@ abstract class Member extends NamedNode {
 ///
 /// The implied getter and setter for the field are not represented explicitly,
 /// but can be made explicit if needed.
-@coq
 class Field extends Member {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
-  @coqopt
   Expression initializer; // May be null.
 
   /// The uri of the source file this field was loaded from.
   String fileUri;
 
-  /// Formal safety of the implicit setter's formal parameter (if there is one).
+  /// Indicates whether the implicit setter associated with this field needs to
+  /// contain a runtime type check to deal with generic covariance.
   ///
-  /// See [FormalSafety] for details.
-  FormalSafety setterFormalSafety = FormalSafety.unsafe;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantImpl = false;
 
-  /// Interface safety of the implicit setter's formal parameter (if there is
-  /// one).
+  /// Indicates whether setter invocations using this interface target may need
+  /// to perform a runtime type check to deal with generic covariance.
   ///
-  /// See [InterfaceSafety] for details.
-  InterfaceSafety setterInterfaceSafety = InterfaceSafety.semiTyped;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantInterface = false;
 
   Field(Name name,
       {this.type: const DynamicType(),
@@ -1155,7 +1156,6 @@ class Field extends Member {
 /// invocation should be matched with the type parameters declared in the class.
 ///
 /// For unnamed constructors, the name is an empty string (in a [Name]).
-@coq
 class Constructor extends Member {
   int flags = 0;
   FunctionNode function;
@@ -1344,7 +1344,6 @@ class Procedure extends Member {
   }
 }
 
-@coq
 enum ProcedureKind {
   Method,
   Getter,
@@ -1358,7 +1357,6 @@ enum ProcedureKind {
 // ------------------------------------------------------------------------
 
 /// Part of an initializer list in a constructor.
-@coq
 abstract class Initializer extends TreeNode {
   /// True if this is a synthetic constructor initializer.
   @informative
@@ -1388,7 +1386,6 @@ class InvalidInitializer extends Initializer {
 //
 // TODO: The frontend should check that all final fields are initialized
 //  exactly once, and that no fields are assigned twice in the initializer list.
-@coq
 class FieldInitializer extends Initializer {
   /// Reference to the field being initialized.  Not null.
   Reference fieldReference;
@@ -1431,7 +1428,6 @@ class FieldInitializer extends Initializer {
 //
 // DESIGN TODO: Consider if the frontend should insert type arguments derived
 // from the extends clause.
-@coq
 class SuperInitializer extends Initializer {
   /// Reference to the constructor being invoked in the super class. Not null.
   Reference targetReference;
@@ -1470,7 +1466,6 @@ class SuperInitializer extends Initializer {
 //
 // TODO: The frontend should check that this is the only initializer and if the
 // constructor has a body or if there is a cycle in the initializer calls.
-@coq
 class RedirectingInitializer extends Initializer {
   /// Reference to the constructor being invoked in the same class. Not null.
   Reference targetReference;
@@ -1508,7 +1503,6 @@ class RedirectingInitializer extends Initializer {
 ///
 /// The variable is in scope for the remainder of the initializer list, but is
 /// not in scope in the constructor body.
-@coq
 class LocalInitializer extends Initializer {
   VariableDeclaration variable;
 
@@ -1559,13 +1553,13 @@ class FunctionNode extends TreeNode {
   ///
   /// For example, when async/await is translated away,
   /// a Dart async function might be represented by a Kernel sync function.
-  @nocoq
   AsyncMarker dartAsyncMarker;
 
   List<TypeParameter> typeParameters;
-  @coq
   int requiredParameterCount;
+  @coqsingledef
   List<VariableDeclaration> positionalParameters;
+  @nocoq
   List<VariableDeclaration> namedParameters;
   DartType returnType; // Not null.
   Statement body;
@@ -1638,7 +1632,6 @@ class FunctionNode extends TreeNode {
   }
 }
 
-@coq
 enum AsyncMarker {
   // Do not change the order of these, the frontends depend on it.
   Sync,
@@ -1751,7 +1744,7 @@ class InvalidExpression extends Expression {
 @coq
 class VariableGet extends Expression {
   VariableDeclaration variable;
-  @coqopt
+  @nocoq
   DartType promotedType; // Null if not promoted.
 
   VariableGet(this.variable, [this.promotedType]);
@@ -1777,7 +1770,6 @@ class VariableGet extends Expression {
 /// Assign a local variable or function parameter.
 ///
 /// Evaluates to the value of [value].
-@coq
 class VariableSet extends Expression {
   VariableDeclaration variable;
   Expression value;
@@ -1809,6 +1801,7 @@ class VariableSet extends Expression {
 @coq
 class PropertyGet extends Expression {
   Expression receiver;
+  @coq
   Name name;
   DispatchCategory dispatchCategory = DispatchCategory.dynamicDispatch;
 
@@ -1869,13 +1862,11 @@ class PropertyGet extends Expression {
 /// This may invoke a setter or assign a field.
 ///
 /// Evaluates to the value of [value].
-@coq
 class PropertySet extends Expression {
   Expression receiver;
   Name name;
   Expression value;
 
-  @nocoq
   Reference interfaceTargetReference;
 
   PropertySet(Expression receiver, Name name, Expression value,
@@ -1919,7 +1910,6 @@ class PropertySet extends Expression {
 }
 
 /// Directly read a field, call a getter, or tear off a method.
-@coq
 class DirectPropertyGet extends Expression {
   Expression receiver;
   Reference targetReference;
@@ -1966,7 +1956,6 @@ class DirectPropertyGet extends Expression {
 /// Directly assign a field, or call a setter.
 ///
 /// Evaluates to the value of [value].
-@coq
 class DirectPropertySet extends Expression {
   Expression receiver;
   Reference targetReference;
@@ -2011,7 +2000,6 @@ class DirectPropertySet extends Expression {
 }
 
 /// Directly call an instance method, bypassing ordinary dispatch.
-@coq
 class DirectMethodInvocation extends InvocationExpression {
   Expression receiver;
   Reference targetReference;
@@ -2077,11 +2065,9 @@ class DirectMethodInvocation extends InvocationExpression {
 /// Expression of form `super.field`.
 ///
 /// This may invoke a getter, read a field, or tear off a method.
-@coq
 class SuperPropertyGet extends Expression {
   Name name;
 
-  @nocoq
   Reference interfaceTargetReference;
 
   DispatchCategory get dispatchCategory => DispatchCategory.viaThis;
@@ -2124,12 +2110,10 @@ class SuperPropertyGet extends Expression {
 /// This may invoke a setter or assign a field.
 ///
 /// Evaluates to the value of [value].
-@coq
 class SuperPropertySet extends Expression {
   Name name;
   Expression value;
 
-  @nocoq
   Reference interfaceTargetReference;
 
   SuperPropertySet(Name name, Expression value, Member interfaceTarget)
@@ -2165,7 +2149,6 @@ class SuperPropertySet extends Expression {
 }
 
 /// Read a static field, call a static getter, or tear off a static method.
-@coq
 class StaticGet extends Expression {
   /// A static field, getter, or method (for tear-off).
   Reference targetReference;
@@ -2195,7 +2178,6 @@ class StaticGet extends Expression {
 /// Assign a static field or call a static setter.
 ///
 /// Evaluates to the value of [value].
-@coq
 class StaticSet extends Expression {
   /// A mutable static field or a static setter.
   Reference targetReference;
@@ -2236,7 +2218,9 @@ class StaticSet extends Expression {
 /// positional arguments, and named arguments.
 @coq
 class Arguments extends TreeNode {
+  @nocoq
   final List<DartType> types;
+  @coqsingle
   final List<Expression> positional;
   final List<NamedExpression> named;
 
@@ -2269,9 +2253,7 @@ class Arguments extends TreeNode {
 }
 
 /// A named argument, `name: value`.
-@coq
 class NamedExpression extends TreeNode {
-  @coq
   String name;
   Expression value;
 
@@ -2303,7 +2285,6 @@ abstract class InvocationExpression extends Expression {
   /// Name of the invoked method.
   ///
   /// May be `null` if the target is a synthetic static member without a name.
-  @coq
   Name get name;
 }
 
@@ -2311,13 +2292,11 @@ abstract class InvocationExpression extends Expression {
 @coq
 class MethodInvocation extends InvocationExpression {
   Expression receiver;
-  @coq
   Name name;
   Arguments arguments;
 
   DispatchCategory dispatchCategory = DispatchCategory.dynamicDispatch;
 
-  @nocoq
   Reference interfaceTargetReference;
 
   MethodInvocation(Expression receiver, Name name, Arguments arguments,
@@ -2401,14 +2380,11 @@ class MethodInvocation extends InvocationExpression {
 /// Expression of form `super.foo(x)`.
 ///
 /// The provided arguments might not match the parameters of the target.
-@coq
 class SuperMethodInvocation extends InvocationExpression {
-  @coq
   Name name;
   Arguments arguments;
   DispatchCategory get dispatchCategory => DispatchCategory.viaThis;
 
-  @nocoq
   Reference interfaceTargetReference;
 
   SuperMethodInvocation(Name name, Arguments arguments,
@@ -2459,13 +2435,11 @@ class SuperMethodInvocation extends InvocationExpression {
 /// external constant factory.
 ///
 /// The provided arguments might not match the parameters of the target.
-@coq
 class StaticInvocation extends InvocationExpression {
   Reference targetReference;
   Arguments arguments;
 
   /// True if this is a constant call to an external constant factory.
-  @coq
   bool isConst;
 
   Name get name => target?.name;
@@ -2517,8 +2491,8 @@ class StaticInvocation extends InvocationExpression {
 @coq
 class ConstructorInvocation extends InvocationExpression {
   Reference targetReference;
+  @nocoq
   Arguments arguments;
-  @coq
   bool isConst;
 
   Name get name => target?.name;
@@ -2571,7 +2545,6 @@ class ConstructorInvocation extends InvocationExpression {
 ///
 /// The `is!` and `!=` operators are desugared into [Not] nodes with `is` and
 /// `==` expressions inside, respectively.
-@coq
 class Not extends Expression {
   Expression operand;
 
@@ -2597,10 +2570,8 @@ class Not extends Expression {
 }
 
 /// Expression of form `x && y` or `x || y`
-@coq
 class LogicalExpression extends Expression {
   Expression left;
-  @coq
   String operator; // && or || or ??
   Expression right;
 
@@ -2632,7 +2603,6 @@ class LogicalExpression extends Expression {
 }
 
 /// Expression of form `x ? y : z`.
-@coq
 class ConditionalExpression extends Expression {
   Expression condition;
   Expression then;
@@ -2708,7 +2678,6 @@ class StringConcatenation extends Expression {
 }
 
 /// Expression of form `x is T`.
-@coq
 class IsExpression extends Expression {
   Expression operand;
   DartType type;
@@ -2737,7 +2706,6 @@ class IsExpression extends Expression {
 }
 
 /// Expression of form `x as T`.
-@coq
 class AsExpression extends Expression {
   Expression operand;
   DartType type;
@@ -2766,7 +2734,6 @@ class AsExpression extends Expression {
 }
 
 /// An integer, double, boolean, string, or null constant.
-@coq
 abstract class BasicLiteral extends Expression {
   Object get value;
 
@@ -2807,9 +2774,7 @@ class DoubleLiteral extends BasicLiteral {
   accept1(ExpressionVisitor1 v, arg) => v.visitDoubleLiteral(this, arg);
 }
 
-@coq
 class BoolLiteral extends BasicLiteral {
-  @coq
   bool value;
 
   BoolLiteral(this.value);
@@ -2820,7 +2785,6 @@ class BoolLiteral extends BasicLiteral {
   accept1(ExpressionVisitor1 v, arg) => v.visitBoolLiteral(this, arg);
 }
 
-@coq
 class NullLiteral extends BasicLiteral {
   Object get value => null;
 
@@ -2844,7 +2808,6 @@ class SymbolLiteral extends Expression {
   transformChildren(Transformer v) {}
 }
 
-@coq
 class TypeLiteral extends Expression {
   DartType type;
 
@@ -2864,7 +2827,6 @@ class TypeLiteral extends Expression {
   }
 }
 
-@coq
 class ThisExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.thisType;
 
@@ -2875,7 +2837,6 @@ class ThisExpression extends Expression {
   transformChildren(Transformer v) {}
 }
 
-@coq
 class Rethrow extends Expression {
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
@@ -2886,7 +2847,6 @@ class Rethrow extends Expression {
   transformChildren(Transformer v) {}
 }
 
-@coq
 class Throw extends Expression {
   Expression expression;
 
@@ -3033,7 +2993,6 @@ class AwaitExpression extends Expression {
 /// Expression of form `(x,y) => ...` or `(x,y) { ... }`
 ///
 /// The arrow-body form `=> e` is desugared into `return e;`.
-@coq
 class FunctionExpression extends Expression {
   FunctionNode function;
 
@@ -3059,7 +3018,6 @@ class FunctionExpression extends Expression {
 }
 
 /// Synthetic expression of form `let v = x in y`
-@coq
 class Let extends Expression {
   VariableDeclaration variable; // Must have an initializer.
   Expression body;
@@ -3142,9 +3100,7 @@ class CheckLibraryIsLoaded extends Expression {
 /// the length of the vector.
 ///
 /// For detailed comment about Vectors see [VectorType].
-@coq
 class VectorCreation extends Expression {
-  @coq
   int length;
 
   VectorCreation(this.length);
@@ -3163,10 +3119,8 @@ class VectorCreation extends Expression {
 
 /// Expression of the form `v[i]` where `v` is a vector expression, and `i` is
 /// an integer index.
-@coq
 class VectorGet extends Expression {
   Expression vectorExpression;
-  @coq
   int index;
 
   VectorGet(this.vectorExpression, this.index) {
@@ -3194,10 +3148,8 @@ class VectorGet extends Expression {
 
 /// Expression of the form `v[i] = x` where `v` is a vector expression, `i` is
 /// an integer index, and `x` is an arbitrary expression.
-@coq
 class VectorSet extends Expression {
   Expression vectorExpression;
-  @coq
   int index;
   Expression value;
 
@@ -3231,7 +3183,6 @@ class VectorSet extends Expression {
 }
 
 /// Expression of the form `CopyVector(v)` where `v` is a vector expression.
-@coq
 class VectorCopy extends Expression {
   Expression vectorExpression;
 
@@ -3261,7 +3212,6 @@ class VectorCopy extends Expression {
 /// Expression of the form `MakeClosure(f, c, t)` where `f` is a name of a
 /// closed top-level function, `c` is a Vector representing closure context, and
 /// `t` is the type of the resulting closure.
-@coq
 class ClosureCreation extends Expression {
   Reference topLevelFunctionReference;
   Expression contextVector;
@@ -3376,7 +3326,6 @@ class Block extends Statement {
   }
 }
 
-@coq
 class EmptyStatement extends Statement {
   accept(StatementVisitor v) => v.visitEmptyStatement(this);
   accept1(StatementVisitor1 v, arg) => v.visitEmptyStatement(this, arg);
@@ -3422,7 +3371,6 @@ class AssertStatement extends Statement {
 /// The label itself has no name; breaks reference the statement directly.
 ///
 /// The frontend does not generate labeled statements without uses.
-@coqref
 class LabeledStatement extends Statement {
   Statement body;
 
@@ -3465,7 +3413,6 @@ class LabeledStatement extends Statement {
 ///       }
 ///     }
 //
-@coq
 class BreakStatement extends Statement {
   LabeledStatement target;
 
@@ -3478,7 +3425,6 @@ class BreakStatement extends Statement {
   transformChildren(Transformer v) {}
 }
 
-@coq
 class WhileStatement extends Statement {
   Expression condition;
   Statement body;
@@ -3508,7 +3454,6 @@ class WhileStatement extends Statement {
   }
 }
 
-@coq
 class DoStatement extends Statement {
   Statement body;
   Expression condition;
@@ -3538,7 +3483,6 @@ class DoStatement extends Statement {
   }
 }
 
-@coq
 class ForStatement extends Statement {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression condition; // May be null.
@@ -3708,7 +3652,6 @@ class ContinueSwitchStatement extends Statement {
   transformChildren(Transformer v) {}
 }
 
-@coq
 class IfStatement extends Statement {
   Expression condition;
   Statement then;
@@ -3768,7 +3711,6 @@ class ReturnStatement extends Statement {
   }
 }
 
-@coq
 class TryCatch extends Statement {
   Statement body;
   List<Catch> catches;
@@ -3795,11 +3737,9 @@ class TryCatch extends Statement {
   }
 }
 
-@coq
 class Catch extends TreeNode {
   DartType guard; // Not null, defaults to dynamic.
   VariableDeclaration exception; // May be null.
-  @nocoq
   VariableDeclaration stackTrace; // May be null.
   Statement body;
 
@@ -3837,7 +3777,6 @@ class Catch extends TreeNode {
   }
 }
 
-@coq
 class TryFinally extends Statement {
   Statement body;
   Statement finalizer;
@@ -3910,120 +3849,6 @@ class YieldStatement extends Statement {
   }
 }
 
-/// Indication of when a runtime type check of a formal parameter (or type
-/// parameter) needs to be included in the code generated for a method.
-///
-/// [FormalSafety] annotations are considered to be part of a method's body;
-/// they only apply to concrete methods, and they affect any calls that resolve
-/// to the annotated method at runtime.  So for instance, in the following code,
-/// the "unsafe" annotation means that the type of `o` will have to be checked
-/// in the second call to `g` (when the runtime type of `c` is `D`), but not in
-/// the first.
-///
-///     class C {
-///       void f(Object o /*safe*/) { ... }
-///     }
-///     class D {
-///       void f(covariant int o /*unsafe*/) { ... }
-///     }
-///     void g(C c) {
-///       c.f('hi');
-///     }
-///     void main() {
-///       g(new C());
-///       g(new D());
-///     }
-enum FormalSafety {
-  /// Full safety; a runtime check is only needed for dynamic invocations.
-  ///
-  /// For a [FormalParameterDeclaration], the type system can guarantee that the
-  /// actual value that will be passed to the method at runtime will be an
-  /// instance of the formal parameter's type
-  /// ([FormalParameterDeclaration.type]), *provided that* the call site is not
-  /// annotated as [DispatchCategory.dynamicDispatch].
-  ///
-  /// For a [TypeParameter], the type system can guarantee that the actual type
-  /// that will be used to instantiate the type parameter at runtime will be a
-  /// subtype of the type parameter's bound ([TypeParameter.bound]),
-  /// *provided that* the call site is not annotated as
-  /// [DispatchCategory.dynamicDispatch].
-  ///
-  /// This annotation is used for static and top level methods since they never
-  /// require additional runtime checks due to covariance.
-  safe,
-
-  /// Partial safety; a runtime check is not needed for "typed" or "this"
-  /// invocations.
-  ///
-  /// For a [FormalParameterDeclaration], the type system can guarantee that the
-  /// actual value that will be passed to the method at runtime will be an
-  /// instance of the formal parameter's type
-  /// ([FormalParameterDeclaration.type]), *provided that* the invocation comes
-  /// through an invocation target that marks the corresponding type parameter
-  /// with [InterfaceSafety.typed], or the call site is annotated as
-  /// [DispatchCategory.viaThis].
-  ///
-  /// For a [TypeParameter], the type system can guarantee that the actual type
-  /// that will be used to instantiate the type parameter at runtime will be a
-  /// subtype of the type parameter's bound ([TypeParameter.bound]),
-  /// *provided that* the invocation comes through an invocation target that
-  /// marks the corresponding type parameter with [InterfaceSafety.typed], or
-  /// the call site is annotated as [DispatchCategory.viaThis].
-  semiSafe,
-
-  /// No safety; a runtime type check is always required.
-  ///
-  /// For a [FormalParameterDeclaration], the type system cannot guarantee that
-  /// the actual value that will be passed to the method at runtime will be an
-  /// instance of the formal parameter's type
-  /// ([FormalParameterDeclaration.type]).  Therefore, in the absence of
-  /// additional information from whole program analysis, a runtime type check
-  /// needs to be compiled into the body of the method.
-  ///
-  /// Not used for [TypeParameter]s.
-  unsafe,
-}
-
-/// Indication of when a call site can skip a runtime type check that would have
-/// otherwise been required by [FormalSafety].
-///
-/// [InterfaceSafety] annotations are considered to be part of a class's API;
-/// they apply to both concrete and abstract methods, and they affect any calls
-/// that resolve to the annotated method statically.  So for instance, in the
-/// following code, the "semi-typed" annotation means that the call site at g1
-/// (which statically resolves to C.f) needs a runtime type check for both
-/// arguments, but the call site at g2 (which statically resolves to D.f) only
-/// needs a runtime check for the second argument.
-///
-///     class C<S, T> {
-///       void f(S x /*semi-typed*/, T y /*semi-typed*/) { ... }
-///     }
-///     class D<T> extends C<num, T> {
-///       void f(num x /*typed*/, T y /*semi-typed*/);
-///     }
-///     void g1(C<num, num> c) {
-///       c.f(1.5, 1.5);
-///     }
-///     void g2(D<num> d) {
-///       d.f(1.5, 1.5);
-///     }
-enum InterfaceSafety {
-  /// Full type guarantee; a runtime check is only needed if the concrete
-  /// parameter bound at runtime is "unsafe".
-  ///
-  /// This annotation is used for static and top level methods since they never
-  /// require additional runtime checks due to covariance.
-  ///
-  /// See [FormalSafety] for details.
-  typed,
-
-  /// Partial type guarantee; a runtime check is needed if the concrete
-  /// parameter bound at runtime is "unsafe" or "semiSafe".
-  ///
-  /// See [FormalSafety] for details.
-  semiTyped,
-}
-
 /// Categorization of a call site indicating its effect on type guarantees.
 enum DispatchCategory {
   /// This call site binds to its callee through a specific interface.
@@ -4032,6 +3857,29 @@ enum DispatchCategory {
   /// correct arity, and accepts all of the supplied named parameters.  Further,
   /// it guarantees that the number of type parameters supplied matches the
   /// number of type parameters expected by the target of the call.
+  ///
+  /// Due to parameter covariance, it is not necessarily guaranteed that the
+  /// actual values of parameters will match the declared types of those
+  /// parameters in the method actually being called.  A runtime type check is
+  /// required for any parameter meeting one of the following conditions:
+  ///
+  /// - The parameter in the interface target is tagged with
+  ///   `isGenericCovariantInterface`, and the corresponding parameter in the
+  ///   method actually being called is tagged with `isGenericCovariantImpl`.
+  ///
+  /// - The parameter in the method actually being called is tagged with
+  ///   `isCovariant`.
+  ///
+  /// Note: type parameters of generic methods require similar checks; the
+  /// flags `isGenericCovariantInterface` and `isGenericCovariantImpl` are found
+  /// in [TypeParameter], and the implementation must check that the actual
+  /// type is a subtype of the type parameter bound declared in the actual
+  /// method being called.  For type parameter checks, there is no `isCovariant`
+  /// tag.
+  ///
+  /// Note: if the interface target or the method actually being called is a
+  /// field, then the tags `isGenericCovariantInterface`,
+  /// `isGenericCovariantImpl`, and `isCovariant` are found in [Field].
   interface,
 
   /// This call site binds to its callee via a call on `this`.
@@ -4039,6 +3887,20 @@ enum DispatchCategory {
   /// Similar to [interface], however the target of the call is a method on
   /// `this` or `super`, therefore all of the class's type parameters are known
   /// to match exactly.
+  ///
+  /// Due to parameter covariance, it is not necessarily guaranteed that the
+  /// actual values of parameters will match the declared types of those
+  /// parameters in the method actually being called.  A runtime type check is
+  /// required for any parameter meeting one of the following condition:
+  ///
+  /// - The parameter in the method actually being called is tagged with
+  ///   `isCovariant`.
+  ///
+  /// Note: type parameters of generic methods do not require a check when the
+  /// call is via `this`.
+  ///
+  /// Note: if the interface target or the method actually being called is a
+  /// field, then the tag `isCovariant` is found in [Field].
   viaThis,
 
   /// This call site is an invocation of a function object (formed either by a
@@ -4046,6 +3908,27 @@ enum DispatchCategory {
   ///
   /// Similar to [interface], however the interface target of the call is not
   /// known.
+  ///
+  /// Due to parameter covariance, it is not necessarily guaranteed that the
+  /// actual values of parameters will match the declared types of those
+  /// parameters in the method actually being called.  A runtime type check is
+  /// required for any parameter meeting one of the following conditions:
+  ///
+  /// - The parameter in the method actually being called is tagged with
+  ///   `isGenericCovariantImpl`.
+  ///
+  /// - The parameter in the method actually being called is tagged with
+  ///   `isCovariant`.
+  ///
+  /// Note: type parameters of generic methods require similar checks; the
+  /// flag `isGenericCovariantImpl` is found in [TypeParameter], and the
+  /// implementation must check that the actual type is a subtype of the type
+  /// parameter bound declared in the actual method being called.  For type
+  /// parameter checks, there is no `isCovariant` tag.
+  ///
+  /// Note: if the interface target or the method actually being called is a
+  /// field, then the tags `isGenericCovariantImpl` and `isCovariant` are found
+  /// in [Field].
   closure,
 
   /// The call site is dynamic.
@@ -4078,7 +3961,6 @@ class VariableDeclaration extends Statement {
   ///
   /// In all other cases, the name is cosmetic, may be empty or null,
   /// and is not necessarily unique.
-  @coq
   String name;
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
@@ -4093,17 +3975,21 @@ class VariableDeclaration extends Statement {
   @coqopt
   Expression initializer; // May be null.
 
-  /// If this is a formal parameter of a concrete method, its formal safety.
-  /// Otherwise ignored.
+  /// If this [VariableDeclaration] is a parameter of a method, indicates
+  /// whether the method implementation needs to contain a runtime type check to
+  /// deal with generic covariance.
   ///
-  /// See [FormalSafety] for details.
-  FormalSafety formalSafety = FormalSafety.safe;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantImpl = false;
 
-  /// If this is a formal parameter of a method, its interface safety.
-  /// Otherwise ignored.
+  /// If this [VariableDeclaration] is a parameter of a method, indicates
+  /// whether invocations using the method as an interface target may need to
+  /// perform a runtime type check to deal with generic covariance.
   ///
-  /// See [InterfaceSafety] for details.
-  InterfaceSafety interfaceSafety = InterfaceSafety.typed;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantInterface = false;
 
   VariableDeclaration(this.name,
       {this.initializer,
@@ -4196,7 +4082,6 @@ class VariableDeclaration extends Statement {
 /// Declaration a local function.
 ///
 /// The body of the function may use [variable] as its self-reference.
-@coq
 class FunctionDeclaration extends Statement {
   VariableDeclaration variable; // Is final and has no initializer.
   FunctionNode function;
@@ -4245,7 +4130,9 @@ abstract class Name implements Node {
   final int hashCode;
   @coq
   final String name;
+  @nocoq
   Reference get libraryName;
+  @nocoq
   Library get library;
   bool get isPrivate;
 
@@ -4276,7 +4163,6 @@ abstract class Name implements Node {
   }
 }
 
-@coq
 class _PrivateName extends Name {
   final Reference libraryName;
   bool get isPrivate => true;
@@ -4294,7 +4180,6 @@ class _PrivateName extends Name {
   }
 }
 
-@coq
 class _PublicName extends Name {
   Reference get libraryName => null;
   Library get library => null;
@@ -4353,7 +4238,6 @@ class InvalidType extends DartType {
   bool operator ==(Object other) => other is InvalidType;
 }
 
-@coq
 class DynamicType extends DartType {
   final int hashCode = 54321;
 
@@ -4365,7 +4249,6 @@ class DynamicType extends DartType {
   bool operator ==(Object other) => other is DynamicType;
 }
 
-@coq
 class VoidType extends DartType {
   final int hashCode = 123121;
 
@@ -4377,7 +4260,6 @@ class VoidType extends DartType {
   bool operator ==(Object other) => other is VoidType;
 }
 
-@coq
 class BottomType extends DartType {
   final int hashCode = 514213;
 
@@ -4392,6 +4274,7 @@ class BottomType extends DartType {
 @coq
 class InterfaceType extends DartType {
   final Reference className;
+  @nocoq
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
@@ -4467,7 +4350,6 @@ class InterfaceType extends DartType {
 ///
 /// * Vectors can be used by various transformations of Kernel programs.
 /// Currently they are used by Closure Conversion to represent closure contexts.
-@coq
 class VectorType extends DartType {
   const VectorType();
 
@@ -4480,6 +4362,7 @@ class VectorType extends DartType {
 class FunctionType extends DartType {
   final List<TypeParameter> typeParameters;
   final int requiredParameterCount;
+  @coqsingle
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
 
@@ -4662,9 +4545,7 @@ class TypedefType extends DartType {
 }
 
 /// A named parameter in [FunctionType].
-@coq
 class NamedType extends Node implements Comparable<NamedType> {
-  @coq
   final String name;
   final DartType type;
 
@@ -4701,7 +4582,6 @@ final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 /// bound.  A bound of `null` indicates that the bound has not been promoted and
 /// is the same as the [TypeParameter]'s bound.  This allows one to detect
 /// whether the bound has been promoted.
-@coq
 class TypeParameterType extends DartType {
   TypeParameter parameter;
 
@@ -4709,7 +4589,6 @@ class TypeParameterType extends DartType {
   ///
   /// 'null' indicates that the type parameter's bound has not been promoted and
   /// is therefore the same as the bound of [parameter].
-  @coqopt
   DartType promotedBound;
 
   TypeParameterType(this.parameter, [this.promotedBound]);
@@ -4737,9 +4616,7 @@ class TypeParameterType extends DartType {
 /// Type parameters declared by a [FunctionType] are orphans and have a `null`
 /// parent pointer.  [TypeParameter] objects should not be shared between
 /// different [FunctionType] objects.
-@coqref
 class TypeParameter extends TreeNode {
-  @coq
   String name; // Cosmetic name.
 
   /// The bound on the type variable.
@@ -4748,17 +4625,21 @@ class TypeParameter extends TreeNode {
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
 
-  /// If this is a type parameter of a concrete generic method, its formal
-  /// safety.  Otherwise ignored.
+  /// If this [TypeParameter] is a type parameter of a generic method, indicates
+  /// whether the method implementation needs to contain a runtime type check to
+  /// deal with generic covariance.
   ///
-  /// See [FormalSafety] for details.
-  FormalSafety formalSafety = FormalSafety.safe;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantImpl = false;
 
-  /// If this is a type parameter of a generic method, its interface safety.
-  /// Otherwise ignored.
+  /// If this [TypeParameter] is a type parameter of a generic method, indicates
+  /// whether invocations using the method as an interface target may need to
+  /// perform a runtime type check to deal with generic covariance.
   ///
-  /// See [InterfaceSafety] for details.
-  InterfaceSafety interfaceSafety = InterfaceSafety.typed;
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool isGenericCovariantInterface = false;
 
   TypeParameter([this.name, this.bound]);
 
@@ -4777,7 +4658,6 @@ class TypeParameter extends TreeNode {
   String toString() => debugQualifiedTypeParameterName(this);
 }
 
-@coq
 class Supertype extends Node {
   final Reference className;
   final List<DartType> typeArguments;
@@ -4828,7 +4708,6 @@ class Supertype extends Node {
 // ------------------------------------------------------------------------
 
 /// A way to bundle up all the libraries in a program.
-@coq
 class Program extends TreeNode {
   final CanonicalName root;
 

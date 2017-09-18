@@ -358,4 +358,4 @@ def GetSystemFromName(name):
   for part in string.split(name, '-'):
     if part in SYSTEM_RENAMES: return SYSTEM_RENAMES[part]
 
-  raise ValueError("Bot name '{}' not have a system name in it.".format(name))
+  raise ValueError("Bot name '{}' does not have a system name in it.".format(name))

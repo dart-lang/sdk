@@ -7,7 +7,7 @@
 
 #include "bin/crypto.h"
 
-#include <magenta/syscalls.h>
+#include <zircon/syscalls.h>
 
 namespace dart {
 namespace bin {
@@ -17,10 +17,10 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   while (read < count) {
     const intptr_t remaining = count - read;
     const intptr_t len =
-        (MX_CPRNG_DRAW_MAX_LEN < remaining) ? MX_CPRNG_DRAW_MAX_LEN : remaining;
+        (ZX_CPRNG_DRAW_MAX_LEN < remaining) ? ZX_CPRNG_DRAW_MAX_LEN : remaining;
     size_t res = 0;
-    const mx_status_t status = mx_cprng_draw(buffer + read, len, &res);
-    if (status != MX_OK) {
+    const zx_status_t status = zx_cprng_draw(buffer + read, len, &res);
+    if (status != ZX_OK) {
       return false;
     }
     read += res;

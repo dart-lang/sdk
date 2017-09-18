@@ -68,6 +68,12 @@ abstract class AbstractClassElementImpl extends ElementImpl
   AbstractClassElementImpl(String name, int offset) : super(name, offset);
 
   /**
+   * Initialize for resynthesizing from kernel.
+   */
+  AbstractClassElementImpl.forKernel(CompilationUnitElementImpl enclosingUnit)
+      : super.forKernel(enclosingUnit);
+
+  /**
    * Initialize a newly created class element to have the given [name].
    */
   AbstractClassElementImpl.forNode(Identifier name) : super.forNode(name);
@@ -497,7 +503,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   ClassElementImpl.forKernel(
       CompilationUnitElementImpl enclosingUnit, this._kernel)
       : _unlinkedClass = null,
-        super.forSerialized(enclosingUnit);
+        super.forKernel(enclosingUnit);
 
   /**
    * Initialize a newly created class element to have the given [name].
@@ -615,7 +621,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _kernel.documentationComment;
     }
     if (_unlinkedClass != null) {
-      return _unlinkedClass?.documentationComment?.text;
+      return _unlinkedClass.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -1566,7 +1572,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       : resynthesizerContext = null,
         _unlinkedUnit = null,
         _unlinkedPart = null,
-        super.forSerialized(null) {
+        super.forKernel(null) {
     _enclosingElement = enclosingLibrary;
     _name = name;
     _nameOffset = -1;
@@ -2037,7 +2043,7 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
       return _kernelEnumValue.documentationComment;
     }
     if (_unlinkedEnumValue != null) {
-      return _unlinkedEnumValue?.documentationComment?.text;
+      return _unlinkedEnumValue.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -3043,6 +3049,11 @@ abstract class ElementImpl implements Element {
   }
 
   /**
+   * Initialize for resynthesizing from kernel.
+   */
+  ElementImpl.forKernel(this._enclosingElement);
+
+  /**
    * Initialize a newly created element to have the given [name].
    */
   ElementImpl.forNode(Identifier name)
@@ -3681,7 +3692,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   EnumElementImpl.forKernel(
       CompilationUnitElementImpl enclosingUnit, this._kernel)
       : _unlinkedEnum = null,
-        super.forSerialized(enclosingUnit);
+        super.forKernel(enclosingUnit);
 
   /**
    * Initialize a newly created class element to have the given [name].
@@ -3756,7 +3767,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
       return _kernel.documentationComment;
     }
     if (_unlinkedEnum != null) {
-      return _unlinkedEnum?.documentationComment?.text;
+      return _unlinkedEnum.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -3809,6 +3820,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??=
+          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
+    }
     if (_unlinkedEnum != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, _unlinkedEnum.annotations);
@@ -3979,7 +3994,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    */
   ExecutableElementImpl.forKernel(ElementImpl enclosingElement, this._kernel)
       : serializedExecutable = null,
-        super.forSerialized(enclosingElement);
+        super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created executable element to have the given [name].
@@ -4043,7 +4058,7 @@ abstract class ExecutableElementImpl extends ElementImpl
       return _kernel.documentationComment;
     }
     if (serializedExecutable != null) {
-      return serializedExecutable?.documentationComment?.text;
+      return serializedExecutable.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -4252,7 +4267,7 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
-    if (serializedExecutable != null) {
+    if (_kernel != null || serializedExecutable != null) {
       _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
           this, null, allEnclosingTypeParameterTypes, false);
     }
@@ -4409,7 +4424,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   ExportElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
       : _unlinkedExportPublic = null,
         _unlinkedExportNonPublic = null,
-        super.forSerialized(enclosingLibrary);
+        super.forKernel(enclosingLibrary);
 
   /**
    * Initialize using the given serialized information.
@@ -4485,6 +4500,9 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   int get nameOffset {
+    if (_kernel != null) {
+      return _kernel.fileOffset;
+    }
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedExportNonPublic != null) {
       return _unlinkedExportNonPublic.offset;
@@ -4713,14 +4731,23 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   FieldElement get field {
-    if (_unlinkedParam != null && _field == null) {
-      Element enclosingConstructor = enclosingElement;
-      if (enclosingConstructor is ConstructorElement) {
-        Element enclosingClass = enclosingConstructor.enclosingElement;
-        if (enclosingClass is ClassElement) {
-          FieldElement field = enclosingClass.getField(_unlinkedParam.name);
-          if (field != null && !field.isSynthetic) {
-            _field = field;
+    if (_field == null) {
+      String fieldName;
+      if (_kernel != null) {
+        fieldName = _kernel.name;
+      }
+      if (_unlinkedParam != null) {
+        fieldName = _unlinkedParam.name;
+      }
+      if (fieldName != null) {
+        Element enclosingConstructor = enclosingElement;
+        if (enclosingConstructor is ConstructorElement) {
+          Element enclosingClass = enclosingConstructor.enclosingElement;
+          if (enclosingClass is ClassElement) {
+            FieldElement field = enclosingClass.getField(fieldName);
+            if (field != null && !field.isSynthetic) {
+              _field = field;
+            }
           }
         }
       }
@@ -5047,7 +5074,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   FunctionTypeAliasElementImpl.forKernel(
       CompilationUnitElementImpl enclosingUnit, this._kernel)
       : _unlinkedTypedef = null,
-        super.forSerialized(enclosingUnit);
+        super.forKernel(enclosingUnit);
 
   /**
    * Initialize a newly created type alias element to have the given [name].
@@ -5087,7 +5114,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   @override
   String get documentationComment {
     if (_unlinkedTypedef != null) {
-      return _unlinkedTypedef?.documentationComment?.text;
+      return _unlinkedTypedef.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -5307,6 +5334,11 @@ class GenericFunctionTypeElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
     implements GenericFunctionTypeElement {
   /**
+   * The kernel type.
+   */
+  final kernel.FunctionType _kernel;
+
+  /**
    * The unlinked representation of the generic function type in the summary.
    */
   EntityRef _entityRef;
@@ -5327,18 +5359,27 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   FunctionType _type;
 
   /**
+   * Initialize using the given kernel.
+   */
+  GenericFunctionTypeElementImpl.forKernel(
+      ElementImpl enclosingElement, this._kernel)
+      : super.forKernel(enclosingElement);
+
+  /**
    * Initialize a newly created function element to have no name and the given
    * [nameOffset]. This is used for function expressions, that have no name.
    */
   GenericFunctionTypeElementImpl.forOffset(int nameOffset)
-      : super("", nameOffset);
+      : _kernel = null,
+        super("", nameOffset);
 
   /**
    * Initialize from serialized information.
    */
   GenericFunctionTypeElementImpl.forSerialized(
       ElementImpl enclosingElement, this._entityRef)
-      : super.forSerialized(enclosingElement);
+      : _kernel = null,
+        super.forSerialized(enclosingElement);
 
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext {
@@ -5349,16 +5390,29 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   String get identifier => '-';
 
   @override
-  List<kernel.TypeParameter> get kernelTypeParams => null;
+  List<kernel.TypeParameter> get kernelTypeParams => _kernel?.typeParameters;
 
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
 
   @override
   List<ParameterElement> get parameters {
-    if (_entityRef != null) {
-      _parameters ??= ParameterElementImpl.resynthesizeList(
-          _entityRef.syntheticParams, this);
+    if (_parameters == null) {
+      if (_kernel != null) {
+        var parameters =
+            enclosingUnit._kernelContext.getFunctionTypeParameters(_kernel);
+        var positionalParameters = parameters[0];
+        var namedParameters = parameters[1];
+        _parameters = ParameterElementImpl.forKernelParameters(
+            this,
+            _kernel.requiredParameterCount,
+            positionalParameters,
+            namedParameters);
+      }
+      if (_entityRef != null) {
+        _parameters = ParameterElementImpl.resynthesizeList(
+            _entityRef.syntheticParams, this);
+      }
     }
     return _parameters ?? const <ParameterElement>[];
   }
@@ -5377,10 +5431,16 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   DartType get returnType {
-    if (_entityRef != null && _returnType == null) {
-      _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-          this, _entityRef.syntheticReturnType,
-          defaultVoid: false, declaredType: true);
+    if (_returnType == null) {
+      if (_kernel != null) {
+        _returnType =
+            enclosingUnit._kernelContext.getType(this, _kernel.returnType);
+      }
+      if (_entityRef != null) {
+        _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+            this, _entityRef.syntheticReturnType,
+            defaultVoid: false, declaredType: true);
+      }
     }
     return _returnType;
   }
@@ -5396,7 +5456,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
-    if (_entityRef != null) {
+    if (_kernel != null || _entityRef != null) {
       _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
           this, null, allEnclosingTypeParameterTypes, false);
     }
@@ -5533,7 +5593,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
   @override
   String get documentationComment {
     if (_unlinkedTypedef != null) {
-      return _unlinkedTypedef?.documentationComment?.text;
+      return _unlinkedTypedef.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -5859,7 +5919,7 @@ class ImportElementImpl extends UriReferencedElementImpl
       : _unlinkedImport = null,
         _linkedDependency = null,
         _kernelSynthetic = isSynthetic,
-        super.forSerialized(enclosingLibrary);
+        super.forKernel(enclosingLibrary);
 
   /**
    * Initialize using the given serialized information.
@@ -5930,6 +5990,9 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   bool get isDeferred {
+    if (_kernel != null) {
+      return _kernel.isDeferred;
+    }
     if (_unlinkedImport != null) {
       return _unlinkedImport.isDeferred;
     }
@@ -5967,6 +6030,9 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   int get nameOffset {
+    if (_kernel != null) {
+      return _kernel.fileOffset;
+    }
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedImport != null) {
       if (_unlinkedImport.isImplicit) {
@@ -6385,7 +6451,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       : resynthesizerContext = null,
         _unlinkedDefiningUnit = null,
         nameLength = _kernelContext.library.name?.length ?? 0,
-        super.forSerialized(null) {
+        super.forKernel(null) {
     _name = _kernelContext.library.name ?? '';
     _nameOffset = _kernelContext.library.fileOffset;
     setResolutionCapability(
@@ -6454,8 +6520,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   String get documentationComment {
+    if (_kernelContext != null) {
+      return _kernelContext.library.documentationComment;
+    }
     if (_unlinkedDefiningUnit != null) {
-      return _unlinkedDefiningUnit?.libraryDocumentationComment?.text;
+      return _unlinkedDefiningUnit.libraryDocumentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -7804,7 +7873,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   NonParameterVariableElementImpl.forKernel(
       ElementImpl enclosingElement, this._kernel)
       : _unlinkedVariable = null,
-        super.forSerialized(enclosingElement);
+        super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created variable element to have the given [name].
@@ -7844,7 +7913,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
       return _kernel.documentationComment;
     }
     if (_unlinkedVariable != null) {
-      return _unlinkedVariable?.documentationComment?.text;
+      return _unlinkedVariable.documentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -8049,7 +8118,7 @@ class ParameterElementImpl extends VariableElementImpl
   ParameterElementImpl.forKernel(
       ElementImpl enclosingElement, this._kernel, this._parameterKind)
       : _unlinkedParam = null,
-        super.forSerialized(enclosingElement);
+        super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created parameter element to have the given [name].
@@ -8438,7 +8507,6 @@ class ParameterElementImpl extends VariableElementImpl
    * been build yet, build them and remember in the corresponding fields.
    */
   void _resynthesizeTypeAndParameters() {
-    // TODO(scheglov) Don't resynthesize parameters.
     if (_kernel != null && _type == null) {
       kernel.DartType type = _kernel.type;
       _type = enclosingUnit._kernelContext.getType(this, type);
@@ -8657,7 +8725,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
    */
   PrefixElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
       : _unlinkedImport = null,
-        super.forSerialized(enclosingLibrary);
+        super.forKernel(enclosingLibrary);
 
   /**
    * Initialize a newly created prefix element to have the given [name].
@@ -8991,6 +9059,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
       PropertyInducingElementImpl property)
       : super.forVariable(property) {
     property.setter = this;
+    enclosingElement = property.enclosingElement;
   }
 
   @override
@@ -9376,7 +9445,7 @@ class TypeParameterElementImpl extends ElementImpl
       TypeParameterizedElementMixin enclosingElement, this._kernel)
       : _unlinkedTypeParam = null,
         nestingLevel = null,
-        super.forSerialized(enclosingElement);
+        super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created type parameter element to have the given [name].
@@ -9726,6 +9795,12 @@ abstract class UriReferencedElementImpl extends ElementImpl
   UriReferencedElementImpl(String name, int offset) : super(name, offset);
 
   /**
+   * Initialize for resynthesizing from kernel.
+   */
+  UriReferencedElementImpl.forKernel(ElementImpl enclosingElement)
+      : super.forKernel(enclosingElement);
+
+  /**
    * Initialize using the given serialized information.
    */
   UriReferencedElementImpl.forSerialized(ElementImpl enclosingElement)
@@ -9807,6 +9882,12 @@ abstract class VariableElementImpl extends ElementImpl
    * [offset].
    */
   VariableElementImpl(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize for resynthesizing form kernel.
+   */
+  VariableElementImpl.forKernel(ElementImpl enclosingElement)
+      : super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created variable element to have the given [name].

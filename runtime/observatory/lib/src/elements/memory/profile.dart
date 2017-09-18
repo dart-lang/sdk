@@ -35,7 +35,6 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
   Stream<RenderedEvent<MemoryProfileElement>> get onRendered => _r.onRendered;
 
   M.IsolateRef _isolate;
-  M.EventRepository _events;
   M.AllocationProfileRepository _allocations;
   M.EditorRepository _editor;
   M.HeapSnapshotRepository _snapshots;
@@ -48,13 +47,11 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
   factory MemoryProfileElement(
       M.IsolateRef isolate,
       M.EditorRepository editor,
-      M.EventRepository events,
       M.AllocationProfileRepository allocations,
       M.HeapSnapshotRepository snapshots,
       M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
-    assert(events != null);
     assert(editor != null);
     assert(allocations != null);
     assert(snapshots != null);
@@ -63,7 +60,6 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._editor = editor;
-    e._events = events;
     e._allocations = allocations;
     e._snapshots = snapshots;
     e._objects = objects;
@@ -91,8 +87,7 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
     switch (_analysis) {
       case _Analysis.allocations:
         final MemoryAllocationsElement allocations =
-            new MemoryAllocationsElement(
-                _isolate, _editor, _events, _allocations);
+            new MemoryAllocationsElement(_isolate, _editor, _allocations);
         current = allocations;
         reload = ({bool gc: false}) => allocations.reload(gc: gc);
         break;

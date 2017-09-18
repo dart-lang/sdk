@@ -891,6 +891,9 @@ class BinaryConstantExpression extends ConstantExpression {
     assert(PRECEDENCE_MAP[operator.kind] != null);
   }
 
+  static bool potentialOperator(BinaryOperator operator) =>
+      PRECEDENCE_MAP[operator.kind] != null;
+
   ConstantExpressionKind get kind => ConstantExpressionKind.BINARY;
 
   accept(ConstantExpressionVisitor visitor, [context]) {

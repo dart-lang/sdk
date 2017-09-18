@@ -307,7 +307,7 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXTERNAL_METHOD_WITH_BODY =
       const ParserErrorCode(
           'EXTERNAL_METHOD_WITH_BODY',
-          "External methods can't have a body.",
+          "An external or native method can't have a body.",
           "Try removing the body of the method, or "
           "removing the keyword 'external'.");
 

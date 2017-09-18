@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/dependency_grapher.dart';
+import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as pathos;
 
 main() async {
@@ -185,7 +186,8 @@ class SubpackageRules {
 
 class _SubpackageRelationshipsTest {
   /// File uri of the front_end package's "lib" directory.
-  final frontEndLibUri = Platform.script.resolve('../lib/');
+  final frontEndLibUri =
+      new Uri.file(package_root.packageRoot).resolve('front_end/lib/');
 
   /// Indicates whether any problems have been reported yet.
   bool problemsReported = false;

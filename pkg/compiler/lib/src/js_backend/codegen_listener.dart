@@ -18,7 +18,6 @@ import '../universe/world_impact.dart'
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
-import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'mirrors_analysis.dart';
 import 'runtime_types.dart';
 import 'type_variable_handler.dart';
@@ -33,7 +32,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
   final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
-  final LookupMapAnalysis _lookupMapAnalysis;
   final MirrorsCodegenAnalysis _mirrorsAnalysis;
 
   final NativeCodegenEnqueuer _nativeEnqueuer;
@@ -48,7 +46,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._rtiNeed,
       this._customElementsAnalysis,
       this._typeVariableCodegenAnalysis,
-      this._lookupMapAnalysis,
       this._mirrorsAnalysis,
       this._nativeEnqueuer);
 
@@ -79,7 +76,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     if (nativeUsage) {
       _nativeEnqueuer.onInstantiatedType(type);
     }
-    _lookupMapAnalysis.registerInstantiatedType(type);
   }
 
   /// Called to enable support for isolates. Any backend specific [WorldImpact]
@@ -142,7 +138,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush());
-    enqueuer.applyImpact(_lookupMapAnalysis.flush());
     enqueuer.applyImpact(_typeVariableCodegenAnalysis.flush());
 
     if (_backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {
@@ -158,20 +153,12 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void onQueueClosed() {
-    _lookupMapAnalysis.onQueueClosed();
-  }
+  void onQueueClosed() {}
 
   /// Adds the impact of [constant] to [impactBuilder].
   void _computeImpactForCompileTimeConstant(
       ConstantValue constant, WorldImpactBuilder impactBuilder) {
     _computeImpactForCompileTimeConstantInternal(constant, impactBuilder);
-
-    if (_lookupMapAnalysis.isLookupMap(constant)) {
-      // Note: internally, this registration will temporarily remove the
-      // constant dependencies and add them later on-demand.
-      _lookupMapAnalysis.registerLookupMapReference(constant);
-    }
 
     for (ConstantValue dependency in constant.getDependencies()) {
       _computeImpactForCompileTimeConstant(dependency, impactBuilder);
@@ -202,10 +189,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       if (type.representedType.isInterfaceType) {
         InterfaceType representedType = type.representedType;
         _customElementsAnalysis.registerTypeConstant(representedType.element);
-        _lookupMapAnalysis.registerTypeConstant(representedType.element);
       }
     }
-    _lookupMapAnalysis.registerConstantKey(constant);
   }
 
   void _computeImpactForInstantiatedConstantType(
@@ -320,7 +305,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     }
 
     _customElementsAnalysis.registerInstantiatedClass(cls);
-    _lookupMapAnalysis.registerInstantiatedClass(cls);
     return impactBuilder;
   }
 
@@ -336,7 +320,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   @override
   void logSummary(void log(String message)) {
-    _lookupMapAnalysis.logSummary(log);
     _nativeEnqueuer.logSummary(log);
   }
 }

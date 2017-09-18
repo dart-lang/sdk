@@ -22,6 +22,7 @@ import 'package:front_end/src/fasta/compiler_context.dart' as fasta;
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     as fasta;
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
+import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:kernel/kernel.dart' as fasta;
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
@@ -218,7 +219,7 @@ abstract class RunFrontEndTest {
   String get testSubdir;
 
   test_run() async {
-    String pkgPath = _findPkgRoot();
+    String pkgPath = package_root.packageRoot;
     String fePath = pathos.join(pkgPath, 'front_end', 'testcases', testSubdir);
     List<File> dartFiles = new Directory(fePath)
         .listSync()
@@ -247,30 +248,6 @@ abstract class RunFrontEndTest {
 
   void visitUnit(TypeProvider typeProvider, CompilationUnit unit,
       fasta.ValidatingInstrumentation validation, Uri uri);
-
-  /**
-   * Expects that the [Platform.script] is a test inside of `pkg/analyzer/test`
-   * folder, and return the absolute path of the `pkg` folder.
-   */
-  String _findPkgRoot() {
-    // If the package root directory is specified on the command line using
-    // -DpkgRoot=..., use it.
-    var pkgRootVar = const String.fromEnvironment('pkgRoot');
-    if (pkgRootVar != null) {
-      return pathos.join(Directory.current.path, pkgRootVar);
-    }
-    // Otherwise try to guess based on the script path.
-    String scriptPath = pathos.fromUri(Platform.script);
-    List<String> parts = pathos.split(scriptPath);
-    for (int i = 0; i < parts.length - 2; i++) {
-      if (parts[i] == 'pkg' &&
-          parts[i + 1] == 'analyzer' &&
-          parts[i + 2] == 'test') {
-        return pathos.joinAll(parts.sublist(0, i + 1));
-      }
-    }
-    throw new StateError('Unable to find sdk/pkg/ in $scriptPath');
-  }
 }
 
 class _FrontEndInferenceTest extends BaseAnalysisDriverTest {

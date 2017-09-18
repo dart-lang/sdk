@@ -22,7 +22,12 @@ import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
-    show Code, Message, codeExpectedExpression, codeExpectedFunctionBody;
+    show
+        Code,
+        Message,
+        codeExpectedExpression,
+        codeExpectedFunctionBody,
+        messageNativeClauseShouldBeAnnotation;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, Scope;
 import 'package:front_end/src/fasta/quote.dart';
@@ -70,6 +75,8 @@ class AstBuilder extends ScopeListener {
   // * The current library is a platform library
   // * The current library has an import that uses the scheme "dart-ext".
   bool allowNativeClause = false;
+
+  StringLiteral nativeName;
 
   AstBuilder(this.errorReporter, this.library, this.member, Scope scope,
       this.isFullAst,
@@ -183,6 +190,16 @@ class AstBuilder extends ScopeListener {
     }
   }
 
+  @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+    if (hasName) {
+      nativeName = pop(); // StringLiteral
+    } else {
+      nativeName = null;
+    }
+  }
+
   void handleScript(Token token) {
     debugEvent("Script");
     scriptTag = ast.scriptTag(token);
@@ -263,6 +280,15 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBody");
+    // TODO(danrubel) Change the parser to not produce these modifiers.
+    pop(); // star
+    pop(); // async
+    push(ast.nativeFunctionBody(nativeToken, nativeName, semicolon));
+  }
+
+  @override
   void handleEmptyFunctionBody(Token semicolon) {
     debugEvent("EmptyFunctionBody");
     // TODO(scheglov) Change the parser to not produce these modifiers.
@@ -294,6 +320,8 @@ class AstBuilder extends ScopeListener {
     Statement bodyStatement;
     if (body is EmptyFunctionBody) {
       bodyStatement = ast.emptyStatement(body.semicolon);
+    } else if (body is NativeFunctionBody) {
+      // TODO(danrubel): what do we need to do with NativeFunctionBody?
     } else if (body is ExpressionFunctionBody) {
       bodyStatement = ast.returnStatement(null, body.expression, null);
     } else {
@@ -394,11 +422,9 @@ class AstBuilder extends ScopeListener {
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = popIfNotNull(elseToken);
     Statement thenPart = pop();
-    Expression condition = pop();
-    analyzer.BeginToken leftParenthesis =
-        unsafeToken(ifToken.next, TokenType.OPEN_PAREN);
-    push(ast.ifStatement(ifToken, ifToken.next, condition,
-        leftParenthesis.endGroup, thenPart, elseToken, elsePart));
+    ParenthesizedExpression condition = pop();
+    push(ast.ifStatement(ifToken, condition.leftParenthesis, condition,
+        condition.rightParenthesis, thenPart, elseToken, elsePart));
   }
 
   void handleNoInitializers() {
@@ -550,7 +576,7 @@ class AstBuilder extends ScopeListener {
     push(ast.block(beginToken, statements, endToken));
   }
 
-  void endForStatement(Token forKeyword, Token leftSeparator,
+  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     debugEvent("ForStatement");
     Statement body = pop();
@@ -560,8 +586,6 @@ class AstBuilder extends ScopeListener {
     exitLocalScope();
     exitContinueTarget();
     exitBreakTarget();
-    analyzer.BeginToken leftParenthesis =
-        unsafeToken(forKeyword.next, TokenType.OPEN_PAREN);
 
     VariableDeclarationList variableList;
     Expression initializer;
@@ -582,14 +606,14 @@ class AstBuilder extends ScopeListener {
 
     push(ast.forStatement(
         forKeyword,
-        leftParenthesis,
+        leftParen,
         variableList,
         initializer,
         leftSeparator,
         condition,
         rightSeparator,
         updates,
-        leftParenthesis?.endGroup,
+        leftParen?.endGroup,
         body));
   }
 
@@ -987,7 +1011,7 @@ class AstBuilder extends ScopeListener {
         rightBracket));
   }
 
-  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     debugEvent("CatchBlock");
     Block body = pop();
     FormalParameterList catchParameterList = popIfNotNull(catchKeyword);
@@ -1010,7 +1034,7 @@ class AstBuilder extends ScopeListener {
         catchKeyword,
         catchParameterList?.leftParenthesis,
         exception,
-        stackTrace == null ? null : stackTrace.token.previous,
+        comma,
         stackTrace,
         catchParameterList?.rightParenthesis,
         body));
@@ -1241,22 +1265,14 @@ class AstBuilder extends ScopeListener {
         semicolon));
   }
 
-  void endConditionalUri(Token ifKeyword, Token equalitySign) {
+  void endConditionalUri(
+      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
     debugEvent("ConditionalUri");
     StringLiteral libraryUri = pop();
-    StringLiteral value = popIfNotNull(equalitySign);
+    StringLiteral value = popIfNotNull(equalSign);
     DottedName name = pop();
-    // TODO(paulberry,ahe): what if there is no `(` token due to an error in the
-    // file being parsed?  It seems like we need the parser to do adequate error
-    // recovery and then report both the ifKeyword and leftParen tokens to the
-    // listener.
-    Token leftParen = unsafeToken(ifKeyword.next, TokenType.OPEN_PAREN);
-    // TODO(paulberry,ahe): the parser should report the right paren token to
-    // the listener.
-    Token lastToken = value?.endToken ?? equalitySign ?? name?.endToken;
-    Token rightParen = unsafeToken(lastToken.next, TokenType.CLOSE_PAREN);
-    push(ast.configuration(ifKeyword, leftParen, name, equalitySign, value,
-        rightParen, libraryUri));
+    push(ast.configuration(
+        ifKeyword, leftParen, name, equalSign, value, rightParen, libraryUri));
   }
 
   @override
@@ -1305,11 +1321,6 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    push(ast.nativeClause(nativeToken, hasName ? pop() : null));
-  }
-
-  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
@@ -1320,7 +1331,10 @@ class AstBuilder extends ScopeListener {
       Token endToken) {
     debugEvent("ClassDeclaration");
     _ClassBody body = pop();
-    NativeClause nativeClause = nativeToken != null ? pop() : null;
+    NativeClause nativeClause;
+    if (nativeToken != null) {
+      nativeClause = ast.nativeClause(nativeToken, nativeName);
+    }
     ImplementsClause implementsClause;
     if (implementsKeyword != null) {
       List<TypeName> interfaces = popList(interfacesCount);
@@ -1427,6 +1441,16 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleRecoverableError(Token token, Message message) {
+    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
+    if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
+      return;
+    }
+    debugEvent("Error: ${message.message}");
+    addCompileTimeError(message, token.offset);
+  }
+
+  @override
   void handleQualified(Token period) {
     SimpleIdentifier identifier = pop();
     var prefix = pop();
@@ -1455,7 +1479,8 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     debugEvent("PartOf");
     var libraryNameOrUri = pop();
     LibraryIdentifier name;
@@ -1465,9 +1490,6 @@ class AstBuilder extends ScopeListener {
     } else {
       name = ast.libraryIdentifier(libraryNameOrUri);
     }
-    // TODO(paulberry,ahe): seems hacky.  It would be nice if the parser passed
-    // in a reference to the "of" keyword.
-    var ofKeyword = unsafeToken(partKeyword.next, analyzer.Keyword.OF);
     List<Annotation> metadata = pop();
     Comment comment = pop();
     directives.add(ast.partOfDirective(
@@ -1560,7 +1582,11 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endNamedFunctionExpression(Token endToken) {
-    logEvent("NamedFunctionExpression");
+    // TODO(scheglov): The logEvent() invocation is commented because it
+    // spams to the console. We already know that these test fail, uncomment
+    // when you are working on fixing them.
+//    logEvent("NamedFunctionExpression");
+    unhandled("NamedFunctionExpression", "$runtimeType", -1, uri);
   }
 
   @override
@@ -1809,7 +1835,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     debugEvent("MetadataStar");
     push(popList(count) ?? NullValue.Metadata);
   }
@@ -1839,7 +1865,7 @@ class AstBuilder extends ScopeListener {
 
   @override
   void debugEvent(String name) {
-    // printEvent(name);
+    // printEvent('AstBuilder: $name');
   }
 
   @override
@@ -1963,12 +1989,8 @@ class AstBuilder extends ScopeListener {
             charOffset, text.length, [text]);
         return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
-        if (!allowNativeClause) {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
-              charOffset,
-              1);
-        }
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, charOffset, 1);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();

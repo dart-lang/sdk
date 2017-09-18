@@ -232,21 +232,7 @@ abstract class ConstructorBodyEntity extends FunctionEntity {
 /// but since one type variable can introduce different locals in different
 /// factories and constructors it is not itself a [Local] but instead
 /// a non-element [Local] is created through a specialized class.
-// TODO(johnniwinther): Should [Local] have `isAssignable` or `type`?
-abstract class Local extends Entity {
-  /// The context in which this local is defined.
-  // TODO(johnniwinther): Remove this. It is only used in the AST based closure
-  // converter.
-  Entity get executableContext;
-
-  /// The outermost member that contains this element.
-  ///
-  /// For top level, static or instance members, the member context is the
-  /// element itself. For parameters, local variables and nested closures, the
-  /// member context is the top level, static or instance member in which it is
-  /// defined.
-  MemberEntity get memberContext;
-}
+abstract class Local extends Entity {}
 
 /// The structure of function parameters.
 class ParameterStructure {

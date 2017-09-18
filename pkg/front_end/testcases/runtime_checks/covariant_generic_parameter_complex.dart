@@ -7,16 +7,13 @@ library test;
 
 class C<T> {
   // List<T> is covariant in T so it needs checking
-  void f1(List<T> /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {}
+  void f1(List<T> /*@covariance=genericInterface, genericImpl*/ x) {}
 
   // () -> T is covariant in T so it needs checking
-  void f2(
-      T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ callback()) {}
+  void f2(T /*@covariance=genericInterface, genericImpl*/ callback()) {}
 
   // (T) -> T is partially covariant in T so it needs checking
-  void f3(
-      T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ callback(
-          T x)) {}
+  void f3(T /*@covariance=genericInterface, genericImpl*/ callback(T x)) {}
 
   // (T) -> void is contravariant in T so it doesn't need checking
   void f4(void callback(T x)) {}

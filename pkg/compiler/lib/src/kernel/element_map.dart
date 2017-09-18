@@ -18,6 +18,7 @@ import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
 import '../native/native.dart' as native;
+import '../ssa/type_builder.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -28,11 +29,17 @@ abstract class KernelToElementMap {
   /// Access to the commonly used elements and types.
   CommonElements get commonElements;
 
+  /// Access to the [DartTypes] object.
+  DartTypes get types;
+
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);
 
   /// Returns the [InterfaceType] corresponding to [type].
   InterfaceType getInterfaceType(ir.InterfaceType type);
+
+  /// Returns the [TypeVariableType] corresponding to [type].
+  TypeVariableType getTypeVariableType(ir.TypeParameterType type);
 
   /// Returns the [FunctionType] of the [node].
   FunctionType getFunctionType(ir.FunctionNode node);
@@ -178,6 +185,15 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
 
   /// Returns the definition information for [member].
   MemberDefinition getMemberDefinition(covariant MemberEntity member);
+
+  /// Returns the type of `this` in [member], or `null` if member is defined in
+  /// a static context.
+  InterfaceType getMemberThisType(covariant MemberEntity member);
+
+  /// Returns how [member] has access to type variables of the this type
+  /// returned by [getMemberThisType].
+  ClassTypeVariableAccess getClassTypeVariableAccessForMember(
+      MemberEntity member);
 
   /// Returns the definition information for [cls].
   ClassDefinition getClassDefinition(covariant ClassEntity cls);
@@ -392,13 +408,11 @@ abstract class KernelToLocalsMap {
   /// Call to notify that [member] is no longer being inlined.
   void leaveInlinedMember(covariant MemberEntity member);
 
-  /// Returns the [Local] for [node]. If [isClosureCallMethod] is true, this
-  /// gives the locals map permission to also look one scope higher within the
-  /// class for the corresponding local. This can happen in the case of free
-  /// variables involved with a closure class.
-  // TODO(efortuna, johnniwinther): convey this information without a boolean
-  // parameter.
+  /// Returns the [Local] for [node].
   Local getLocalVariable(ir.VariableDeclaration node);
+
+  Local getLocalTypeVariable(
+      ir.TypeParameterType node, KernelToElementMap elementMap);
 
   /// Returns the [ir.FunctionNode] that declared [parameter].
   ir.FunctionNode getFunctionNodeForParameter(Local parameter);

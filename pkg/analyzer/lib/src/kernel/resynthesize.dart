@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -19,7 +20,7 @@ import 'package:kernel/type_environment.dart' as kernel;
 /**
  * Object that can resynthesize analyzer [LibraryElement] from Kernel.
  */
-class KernelResynthesizer {
+class KernelResynthesizer implements ElementResynthesizer {
   final AnalysisContext _analysisContext;
   final kernel.TypeEnvironment _types;
   final Map<String, kernel.Library> _kernelMap;
@@ -32,10 +33,27 @@ class KernelResynthesizer {
 
   KernelResynthesizer(this._analysisContext, this._types, this._kernelMap);
 
+  @override
+  AnalysisContext get context => _analysisContext;
+
   /**
    * Return the `Type` type.
    */
   DartType get typeType => getLibrary('dart:core').getType('Type').type;
+
+  /**
+   * Return `true` if strong mode analysis should be used.
+   */
+  bool get strongMode => _analysisContext.analysisOptions.strongMode;
+
+  @override
+  Element getElement(ElementLocation location) {
+    List<String> components = location.components;
+    if (components.length != 1) {
+      throw new ArgumentError('Only library access is implemented.');
+    }
+    return getLibrary(components[0]);
+  }
 
   /**
    * Return the [LibraryElementImpl] for the given [uriStr], or `null` if
@@ -793,11 +811,17 @@ class _KernelUnitResynthesizerContextImpl
 
   DartType getType(ElementImpl context, kernel.DartType kernelType) {
     if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
+    if (kernelType is kernel.InvalidType) return DynamicTypeImpl.instance;
     if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
 
     if (kernelType is kernel.InterfaceType) {
-      return _getInterfaceType(context, kernelType.className.canonicalName,
-          kernelType.typeArguments);
+      var name = kernelType.className.canonicalName;
+      if (!libraryContext.resynthesizer.strongMode &&
+          name.name == 'FutureOr' &&
+          name.parent.name == 'dart:async') {
+        return DynamicTypeImpl.instance;
+      }
+      return _getInterfaceType(context, name, kernelType.typeArguments);
     }
 
     if (kernelType is kernel.TypeParameterType) {
@@ -812,23 +836,29 @@ class _KernelUnitResynthesizerContextImpl
         return element.type;
       }
 
-      var functionElement = new FunctionElementImpl.synthetic([], null);
-      functionElement.enclosingElement = context;
+      if (context is ParameterElementImpl) {
+        var typeElement =
+            new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
+        return typeElement.type;
+      } else {
+        var functionElement = new FunctionElementImpl.synthetic([], null);
+        functionElement.enclosingElement = context;
 
-      functionElement.typeParameters = kernelType.typeParameters.map((k) {
-        return new TypeParameterElementImpl.forKernel(functionElement, k);
-      }).toList(growable: false);
+        functionElement.typeParameters = kernelType.typeParameters.map((k) {
+          return new TypeParameterElementImpl.forKernel(functionElement, k);
+        }).toList(growable: false);
 
-      var parameters = getFunctionTypeParameters(kernelType);
-      functionElement.parameters = ParameterElementImpl.forKernelParameters(
-          functionElement,
-          kernelType.requiredParameterCount,
-          parameters[0],
-          parameters[1]);
+        var parameters = getFunctionTypeParameters(kernelType);
+        functionElement.parameters = ParameterElementImpl.forKernelParameters(
+            functionElement,
+            kernelType.requiredParameterCount,
+            parameters[0],
+            parameters[1]);
 
-      functionElement.returnType =
-          getType(functionElement, kernelType.returnType);
-      return functionElement.type;
+        functionElement.returnType =
+            getType(functionElement, kernelType.returnType);
+        return functionElement.type;
+      }
     }
 
     // TODO(scheglov) Support other kernel types.

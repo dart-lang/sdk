@@ -27,7 +27,8 @@ class CapturedScopeBuilder extends ir.Visitor {
       _model.closuresToGenerate;
 
   /// The local variables that have been declared in the current scope.
-  List<ir.VariableDeclaration> _scopeVariables;
+  List<ir.Node /* ir.VariableDeclaration | TypeParameterTypeWithContext */ >
+      _scopeVariables;
 
   /// Pointer to the context in which this closure is executed.
   /// For example, in the expression `var foo = () => 3 + i;`, the executable
@@ -41,14 +42,15 @@ class CapturedScopeBuilder extends ir.Visitor {
   ir.Node _outermostNode;
 
   /// Keep track of the mutated local variables so that we don't need to box
-  /// non-mutated variables.
+  /// non-mutated variables. We know these are only VariableDeclarations because
+  /// type variable types and `this` types can't be mutated!
   Set<ir.VariableDeclaration> _mutatedVariables =
       new Set<ir.VariableDeclaration>();
 
   /// The set of variables that are accessed in some form, whether they are
   /// mutated or not.
-  Set<ir.VariableDeclaration> _capturedVariables =
-      new Set<ir.VariableDeclaration>();
+  Set<ir.Node /* ir.VariableDeclaration | TypeParameterTypeWithContext */ >
+      _capturedVariables = new Set<ir.Node>();
 
   /// If true, the visitor is currently traversing some nodes that are inside a
   /// try block.
@@ -72,12 +74,14 @@ class CapturedScopeBuilder extends ir.Visitor {
     Set<ir.VariableDeclaration> capturedVariablesForScope =
         new Set<ir.VariableDeclaration>();
 
-    for (ir.VariableDeclaration variable in _scopeVariables) {
+    for (ir.Node variable in _scopeVariables) {
       // No need to box non-assignable elements.
-      if (variable.isFinal || variable.isConst) continue;
-      if (!_mutatedVariables.contains(variable)) continue;
-      if (_capturedVariables.contains(variable)) {
-        capturedVariablesForScope.add(variable);
+      if (variable is ir.VariableDeclaration) {
+        if (variable.isFinal || variable.isConst) continue;
+        if (!_mutatedVariables.contains(variable)) continue;
+        if (_capturedVariables.contains(variable)) {
+          capturedVariablesForScope.add(variable);
+        }
       }
     }
     if (!capturedVariablesForScope.isEmpty) {
@@ -110,8 +114,8 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// Perform book-keeping with the current set of local variables that have
   /// been seen thus far before entering this new scope.
   void enterNewScope(ir.Node node, void visitNewScope()) {
-    List<ir.VariableDeclaration> oldScopeVariables = _scopeVariables;
-    _scopeVariables = <ir.VariableDeclaration>[];
+    List<ir.Node> oldScopeVariables = _scopeVariables;
+    _scopeVariables = <ir.Node>[];
     visitNewScope();
     attachCapturedScopeVariables(node);
     _mutatedVariables.removeAll(_scopeVariables);
@@ -162,7 +166,10 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   /// Add this variable to the set of free variables if appropriate and add to
   /// the tally of variables used in try or sync blocks.
-  void _markVariableAsUsed(ir.VariableDeclaration variable) {
+  void _markVariableAsUsed(
+      ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ variable) {
+    assert(variable is ir.VariableDeclaration ||
+        variable is TypeParameterTypeWithContext);
     if (_isInsideClosure && !_inCurrentContext(variable)) {
       // If the element is not declared in the current function and the element
       // is not the closure itself we need to mark the element as free variable.
@@ -172,7 +179,7 @@ class CapturedScopeBuilder extends ir.Visitor {
       // the factory.
       _currentScopeInfo.freeVariables.add(variable);
     }
-    if (_inTry) {
+    if (_inTry && variable is ir.VariableDeclaration) {
       _currentScopeInfo.localsUsedInTryOrSync.add(variable);
     }
   }
@@ -184,24 +191,27 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   void visitTypeParameter(ir.TypeParameter typeParameter) {
-    ir.TreeNode context = _executableContext;
-    if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
-      // This is a closure in a factory constructor.  Since there is no
-      // [:this:], we have to mark the type arguments as free variables to
-      // capture them in the closure.
-      // TODO(efortuna): Implement for in the case of RTI.
-      // useTypeVariableAsLocal(typeParameter.bound);
-    }
+    // TODO(efortuna): Only perform execute the below code if
+    // compiler.options.enableTypeAssertions is true.
+    if (false == true) {
+      ir.TreeNode context = _executableContext;
+      if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
+        // This is a closure in a factory constructor.  Since there is no
+        // [:this:], we have to mark the type arguments as free variables to
+        // capture them in the closure.
+        _useTypeVariableAsLocal(new ir.TypeParameterType(typeParameter));
+      }
 
-    if (_executableContext is ir.Member &&
-        _executableContext is! ir.Field &&
-        _hasThisLocal) {
-      // In checked mode, using a type variable in a type annotation may lead
-      // to a runtime type check that needs to access the type argument and
-      // therefore the closure needs a this-element, if it is not in a field
-      // initializer; field initializers are evaluated in a context where
-      // the type arguments are available in locals.
-      _registerNeedsThis();
+      if (_executableContext is ir.Member &&
+          _executableContext is! ir.Field &&
+          _hasThisLocal) {
+        // In checked mode, using a type variable in a type annotation may lead
+        // to a runtime type check that needs to access the type argument and
+        // therefore the closure needs a this-element, if it is not in a field
+        // initializer; field initializers are evaluated in a context where
+        // the type arguments are available in locals.
+        _registerNeedsThis();
+      }
     }
   }
 
@@ -260,6 +270,21 @@ class CapturedScopeBuilder extends ir.Visitor {
         scope.hasThisLocal);
   }
 
+  void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
+    if (_hasThisLocal) _registerNeedsThis();
+    invocation.visitChildren(this);
+  }
+
+  void visitSuperPropertySet(ir.SuperPropertySet propertySet) {
+    if (_hasThisLocal) _registerNeedsThis();
+    propertySet.visitChildren(this);
+  }
+
+  void visitSuperPropertyGet(ir.SuperPropertyGet propertyGet) {
+    if (_hasThisLocal) _registerNeedsThis();
+    propertyGet.visitChildren(this);
+  }
+
   void visitInvokable(ir.TreeNode node) {
     assert(node is ir.Member ||
         node is ir.FunctionExpression ||
@@ -295,10 +320,9 @@ class CapturedScopeBuilder extends ir.Visitor {
 
     // Mark all free variables as captured and expect to encounter them in the
     // outer function.
-    Iterable<ir.VariableDeclaration> freeVariables =
-        savedScopeInfo.freeVariables;
+    Iterable<ir.Node> freeVariables = savedScopeInfo.freeVariables;
     assert(freeVariables.isEmpty || savedIsInsideClosure);
-    for (ir.VariableDeclaration freeVariable in freeVariables) {
+    for (ir.Node freeVariable in freeVariables) {
       _capturedVariables.add(freeVariable);
       _markVariableAsUsed(freeVariable);
     }
@@ -306,7 +330,12 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   /// Return true if [variable]'s context is the same as the current executable
   /// context.
-  bool _inCurrentContext(ir.VariableDeclaration variable) {
+  bool _inCurrentContext(ir.Node variable) {
+    assert(variable is ir.VariableDeclaration ||
+        variable is TypeParameterTypeWithContext);
+    if (variable is TypeParameterTypeWithContext) {
+      return variable.memberContext == _executableContext;
+    }
     ir.TreeNode node = variable;
     while (node != _outermostNode && node != _executableContext) {
       node = node.parent;
@@ -337,5 +366,42 @@ class CapturedScopeBuilder extends ir.Visitor {
   @override
   void visitFunctionDeclaration(ir.FunctionDeclaration functionDeclaration) {
     visitInvokable(functionDeclaration);
+  }
+
+  @override
+  visitTypeParameterType(ir.TypeParameterType type) {
+    _analyzeType(type);
+  }
+
+  void _analyzeType(ir.DartType type) {
+    // TODO(efortuna): The first if branch below should also have the clause
+    // && rtiNeed.classNeedsRti(_outermostNode.enclosingClass)
+    if (_outermostNode is ir.Member) {
+      ir.Member outermostMember = _outermostNode;
+      if (_outermostNode is ir.Constructor || _outermostNode is ir.Field) {
+        _analyzeTypeVariable(type);
+      } else if (outermostMember.isInstanceMember) {
+        if (type is ir.TypeParameterType) {
+          _registerNeedsThis();
+        }
+      }
+    }
+  }
+
+  void _analyzeTypeVariable(ir.DartType type) {
+    if (type is ir.TypeParameterType) {
+      // Field initializers are inlined and access the type variable as
+      // normal parameters.
+      if (!(_outermostNode is ir.Field) &&
+          !(_outermostNode is ir.Constructor)) {
+        _registerNeedsThis();
+      } else {
+        _useTypeVariableAsLocal(type);
+      }
+    }
+  }
+
+  void _useTypeVariableAsLocal(ir.TypeParameterType type) {
+    _markVariableAsUsed(new TypeParameterTypeWithContext(type, _outermostNode));
   }
 }

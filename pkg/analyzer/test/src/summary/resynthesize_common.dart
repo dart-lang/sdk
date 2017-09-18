@@ -3848,7 +3848,18 @@ const vEnum = p.E;
 const vFunctionTypeAlias = p.F;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+import 'a.dart' as p;
+const Type vClass =
+        C/*location: a.dart;C*/;
+const Type vEnum =
+        E/*location: a.dart;E*/;
+const Type vFunctionTypeAlias =
+        F/*location: a.dart;F*/;
+''');
+      } else {
+        checkElementText(library, r'''
 import 'a.dart' as p;
 const Type vClass =
         p/*location: test.dart;p*/.
@@ -3860,6 +3871,7 @@ const Type vFunctionTypeAlias =
         p/*location: test.dart;p*/.
         F/*location: a.dart;F*/;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'a.dart' as p;
@@ -9432,9 +9444,15 @@ typedef dynamic F(dynamic x, dynamic y);
 
   test_typedef_parameters_named() async {
     var library = await checkLibrary('typedef F({y, z, x});');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+typedef dynamic F({dynamic x}, {dynamic y}, {dynamic z});
+''');
+    } else {
+      checkElementText(library, r'''
 typedef dynamic F({dynamic y}, {dynamic z}, {dynamic x});
 ''');
+    }
   }
 
   test_typedef_return_type() async {
@@ -9485,17 +9503,31 @@ class D {
   test_typedef_type_parameters_bound_recursive() async {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('typedef void F<T extends F>();');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      // Typedefs cannot reference themselves.
+      checkElementText(library, r'''
+typedef void F<T extends dynamic>();
+''');
+    } else {
+      checkElementText(library, r'''
 typedef void F<T extends F>();
 ''');
+    }
   }
 
   test_typedef_type_parameters_bound_recursive2() async {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      // Typedefs cannot reference themselves.
+      checkElementText(library, r'''
+typedef void F<T extends List<dynamic>>();
+''');
+    } else {
+      checkElementText(library, r'''
 typedef void F<T extends List<F>>();
 ''');
+    }
   }
 
   test_typedef_type_parameters_f_bound_complex() async {

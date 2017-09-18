@@ -5,7 +5,6 @@
 library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../types/types.dart' show ContainerTypeMask, MapTypeMask;
 import '../util/util.dart' show Setlet;
@@ -205,7 +204,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       ClosureCallSiteTypeInformation info) {}
 
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
-    MemberElement called = info.calledElement;
+    MemberEntity called = info.calledElement;
     TypeInformation inferred = inferrer.types.getInferredTypeOfMember(called);
     if (inferred == currentUser) {
       addNewEscapeInformation(info);
@@ -294,10 +293,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     return isIndexSetArgument(info, 1);
   }
 
-  void bailoutIfReaches(bool predicate(ParameterElement e)) {
+  void bailoutIfReaches(bool predicate(ParameterTypeInformation e)) {
     for (var user in currentUser.users) {
       if (user is ParameterTypeInformation) {
-        if (predicate(user.parameter)) {
+        if (predicate(user)) {
           bailout('Reached suppressed parameter without precise receiver');
           break;
         }
@@ -402,13 +401,13 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    * The definition of what a list adding method is has to stay in sync with
    * [mightAddToContainer].
    */
-  bool isParameterOfListAddingMethod(ParameterElement element) {
-    if (!element.isRegularParameter) return false;
-    if (element.enclosingClass !=
+  bool isParameterOfListAddingMethod(ParameterTypeInformation parameterInfo) {
+    if (!parameterInfo.isRegularParameter) return false;
+    if (parameterInfo.method.enclosingClass !=
         inferrer.closedWorld.commonElements.jsArrayClass) {
       return false;
     }
-    String name = element.enclosingElement.name;
+    String name = parameterInfo.method.name;
     return (name == '[]=') || (name == 'add') || (name == 'insert');
   }
 
@@ -417,13 +416,13 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    * The definition of what a list adding method is has to stay in sync with
    * [isIndexSetKey] and [isIndexSetValue].
    */
-  bool isParameterOfMapAddingMethod(ParameterElement element) {
-    if (!element.isRegularParameter) return false;
-    if (element.enclosingClass !=
+  bool isParameterOfMapAddingMethod(ParameterTypeInformation parameterInfo) {
+    if (!parameterInfo.isRegularParameter) return false;
+    if (parameterInfo.method.enclosingClass !=
         inferrer.closedWorld.commonElements.mapLiteralClass) {
       return false;
     }
-    String name = element.enclosingElement.name;
+    String name = parameterInfo.method.name;
     return (name == '[]=');
   }
 
@@ -464,8 +463,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         .canFunctionParametersBeUsedForGlobalOptimizations(info.method)) {
       bailout('Escape to code that has special backend treatment');
     }
-    if (isParameterOfListAddingMethod(info.parameter) ||
-        isParameterOfMapAddingMethod(info.parameter)) {
+    if (isParameterOfListAddingMethod(info) ||
+        isParameterOfMapAddingMethod(info)) {
       // These elements are being handled in
       // [visitDynamicCallSiteTypeInformation].
       return;

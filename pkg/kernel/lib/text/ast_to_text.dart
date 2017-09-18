@@ -805,6 +805,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitTypedef(Typedef node) {
+    writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('typedef');
     writeWord(node.name);

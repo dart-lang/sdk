@@ -14417,8 +14417,10 @@ void Code::GetInlinedFunctionsAtInstruction(
     GrowableArray<TokenPosition>* token_positions) const {
   const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
   if (map.IsNull()) {
-    ASSERT(!IsFunctionCode());
-    return;  // VM stub or allocation stub.
+    ASSERT(!IsFunctionCode() ||
+           (Isolate::Current()->object_store()->megamorphic_miss_code() ==
+            this->raw()));
+    return;  // VM stub, allocation stub, or megamorphic miss function.
   }
   const Array& id_map = Array::Handle(inlined_id_to_function());
   const Function& root = Function::Handle(function());

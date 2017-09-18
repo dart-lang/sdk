@@ -287,7 +287,6 @@ cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Fail
 cc/DartAPI_TestNativeFieldsAccess: Crash
 cc/DartAPI_TypeGetParameterizedTypes: Crash
 cc/DebuggerAPI_BreakpointStubPatching: Fail
-cc/DebuggerAPI_EvaluateExpr: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
 cc/DebuggerAPI_InterruptIsolate: SkipSlow
 cc/DebuggerAPI_IsolateID: Fail
@@ -334,6 +333,7 @@ cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
 cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip
 cc/IsolateReload_RunNewFieldInitializersSyntaxError3: Fail
 cc/IsolateReload_RunNewFieldInitializersThrows: Skip
+cc/IsolateReload_RunNewFieldInitializersWithConsts: Skip
 cc/IsolateReload_ShapeChangeRetainsHash: Skip
 cc/IsolateReload_SmiFastPathStubs: Fail
 cc/IsolateReload_TearOff_AddArguments2: Fail

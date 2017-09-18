@@ -282,9 +282,22 @@ Spannable computeSpannable(
     if (id.className != null) {
       ClassEntity cls =
           elementEnvironment.lookupClass(library, id.className, required: true);
-      return elementEnvironment.lookupClassMember(cls, id.memberName);
+      if (cls == null) {
+        throw new ArgumentError("No class '${id.className}' in $mainUri.");
+      }
+      MemberEntity member =
+          elementEnvironment.lookupClassMember(cls, id.memberName);
+      if (member == null) {
+        throw new ArgumentError("No class member '${id.memberName}' in $cls.");
+      }
+      return member;
     } else {
-      return elementEnvironment.lookupLibraryMember(library, id.memberName);
+      MemberEntity member =
+          elementEnvironment.lookupLibraryMember(library, id.memberName);
+      if (member == null) {
+        throw new ArgumentError("No member '${id.memberName}' in $mainUri.");
+      }
+      return member;
     }
   }
   throw new UnsupportedError('Unsupported id $id.');

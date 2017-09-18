@@ -8,17 +8,17 @@ library test;
 typedef F<T>(T x);
 
 class C<T> {
-  void f(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {}
-  void g1(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {
+  void f(T /*@covariance=genericInterface, genericImpl*/ x) {}
+  void g1(T /*@covariance=genericInterface, genericImpl*/ x) {
     this.f /*@callKind=this*/ (x);
   }
 
-  void g2(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {
+  void g2(T /*@covariance=genericInterface, genericImpl*/ x) {
     f /*@callKind=this*/ (x);
   }
 
-  void g3(C<T> /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ c,
-      T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {
+  void g3(C<T> /*@covariance=genericInterface, genericImpl*/ c,
+      T /*@covariance=genericInterface, genericImpl*/ x) {
     c.f(x);
   }
 
@@ -28,7 +28,7 @@ class C<T> {
 class D extends C<int> {}
 
 class E extends C<num> {
-  void f(covariant int /*@checkFormal=unsafe*/ x) {}
+  void f(covariant int /*@covariance=explicit*/ x) {}
 }
 
 test() {

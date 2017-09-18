@@ -91,7 +91,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     Expression name = popNode(); // name
     pushNode(new PartOf(
         partKeyword,
@@ -319,6 +320,12 @@ class NodeListener extends ElementListener {
     pushNode(new RedirectingFactoryBody(beginToken, endToken, popNode()));
   }
 
+  @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    pushNode(new Return(nativeToken, semicolon, nativeName));
+  }
+
+  @override
   void handleEmptyFunctionBody(Token semicolon) {
     endBlockFunctionBody(0, null, semicolon);
   }
@@ -500,6 +507,14 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {}
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    pushNode(new Block(new NodeList.empty()));
+  }
+
+  @override
   void handleNoFunctionBody(Token token) {
     pushNode(new EmptyStatement(token));
   }
@@ -569,7 +584,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftSeparator,
+  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     Statement body = popNode();
     NodeList updates = makeNodeList(updateExpressionCount, null, null, ',');
@@ -852,7 +867,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     Block block = popNode();
     NodeList formals = catchKeyword != null ? popNode() : null;
     TypeAnnotation type = onKeyword != null ? popNode() : null;
@@ -961,7 +976,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     if (0 == count) {
       pushNode(null);
     } else {

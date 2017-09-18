@@ -50,17 +50,19 @@ class CoqFieldInfo {
 
   final String dartName;
   final FieldStyle style;
+  bool definitional = false;
 
   String get innerRefType => type == null ? primitiveCoqType : type.refType;
 
   String get refType {
     if (type != null) {
+      var rt = definitional ? type.coqType : type.refType;
       if (style == FieldStyle.list) {
-        return type.coqType + "_list";
+        return "list $rt";
       } else if (style == FieldStyle.optional) {
-        return type.coqType + "_option";
+        return "option $rt";
       } else {
-        return type.refType;
+        return rt;
       }
     } else {
       if (style == FieldStyle.list) {
@@ -143,6 +145,15 @@ int getCoqAnnot(NamedNode N, List<Expression> annotations) {
                 break;
               case "coqopt":
                 annot = coq_annot.coqopt;
+                break;
+              case "coqsingle":
+                annot = coq_annot.coqsingle;
+                break;
+              case "coqdef":
+                annot = coq_annot.coqdef;
+                break;
+              case "coqsingledef":
+                annot = coq_annot.coqsingledef;
                 break;
               default:
                 throw new Exception("ERROR: Invalid Coq annotation on ${N}!");
@@ -228,7 +239,7 @@ class CoqPass2 extends RecursiveVisitor {
     bool isList = false;
 
     if (interfaceType.classNode == coreTypes.listClass) {
-      isList = true;
+      isList = annot != coq_annot.coqsingle && annot != coq_annot.coqsingledef;
       if (interfaceType.typeArguments.length != 1) return;
       var elemType = interfaceType.typeArguments[0];
       if (elemType is InterfaceType) {
@@ -253,13 +264,19 @@ class CoqPass2 extends RecursiveVisitor {
       fieldInfo = new CoqFieldInfo(fieldName, null, primitive, style);
     } else {
       var fieldClassInfo = info.classes[cls];
-      if (fieldClassInfo == null) return;
+      if (fieldClassInfo == null) {
+        return;
+      }
       fieldInfo = new CoqFieldInfo(fieldName, fieldClassInfo, null, style);
 
       if (style == FieldStyle.optional) {
         fieldClassInfo.needsOption = true;
       } else if (style == FieldStyle.list) {
         fieldClassInfo.needsList = true;
+      }
+
+      if (annot == coq_annot.coqdef || annot == coq_annot.coqsingledef) {
+        fieldInfo.definitional = true;
       }
     }
 
@@ -312,10 +329,7 @@ void outputCoqSyntax(CoqLibInfo info) {
   int defN = 0;
   defkw() => defN++ > 0 ? "with" : "Inductive";
   for (var classInfo in info.classes.values) {
-    if (classInfo.subs.length > 0 == !classInfo.cls.isAbstract) {
-      throw new Exception(
-          "ERROR: Cannot Coq-ify non-abstract non-final class ${classInfo.cls}.");
-    }
+    bool isAbstract = classInfo.subs.length > 0;
 
     Class cls = classInfo.cls;
     var coqName = classInfo.coqType;
@@ -330,8 +344,8 @@ void outputCoqSyntax(CoqLibInfo info) {
       continue;
     }
 
-    if (!classInfo.cls.isAbstract || classInfo.fields.length > 0) {
-      var suffix = cls.isAbstract ? "_data" : "";
+    if (!isAbstract || classInfo.fields.length > 0) {
+      var suffix = isAbstract ? "_data" : "";
       var dataTypeName = coqName + suffix;
       var dataCtorName = coqifyName(cls.name, capitalize: true);
 
@@ -341,6 +355,10 @@ void outputCoqSyntax(CoqLibInfo info) {
       // Insert fields for superclasses.
       int arw = 0;
       arrow() => arw++ == 0 ? "" : "-> ";
+
+      if (classInfo.refStyle == RefStyle.identified) {
+        print("      ${arrow()}nat");
+      }
 
       for (var sprInfo in classInfo.supersWithData(info)) {
         print("      ${arrow()}${sprInfo.coqType}_data");
@@ -364,22 +382,6 @@ void outputCoqSyntax(CoqLibInfo info) {
       }
 
       print("\n");
-    }
-  }
-  for (var CI in info.classes.values) {
-    if (CI.needsList) {
-      var def = """${defkw()} ${CI.coqType}_list : Set :=
-  | ${CI.coqType}_nil : ${CI.coqType}_list
-  | ${CI.coqType}_cons : ${CI.refType} -> ${CI.coqType}_list -> ${CI.coqType}_list
-""";
-      print(def);
-    }
-    if (CI.needsOption) {
-      var def = """${defkw()} ${CI.coqType}_option : Set :=
-  | ${CI.coqType}_none : ${CI.coqType}_option
-  | ${CI.coqType}_some : ${CI.refType} -> ${CI.coqType}_option
-""";
-      print(def);
     }
   }
   print(".\n");
@@ -521,11 +523,6 @@ Program transformProgram(CoreTypes coreTypes, Program program) {
     (new CoqPass2(info, coreTypes)).visitLibrary(lib);
     outputCoqImports();
     outputCoqSyntax(info);
-    outputCoqStore(info);
-    print("Module SyntacticValidity.");
-    outputCoqSyntaxValidity(info);
-    outputCoqStoreValidity(info);
-    print("End SyntacticValidity.");
   }
   return program;
 }

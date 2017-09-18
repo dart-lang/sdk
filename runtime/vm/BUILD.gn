@@ -36,7 +36,10 @@ import("vm_sources.gni")
 
 config("libdart_vm_config") {
   if (is_fuchsia) {
-    libs = [ "magenta" ]
+    libs = [
+      "zircon",
+      "trace-engine",
+    ]
   } else if (is_win) {
     libs = [
       "advapi32.lib",
@@ -64,7 +67,9 @@ template("build_libdart_vm") {
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
       deps = [
-        "//apps/tracing/lib/trace",
+        # TODO(zra): When the platform-specific timeline code is moved out to
+        # the embedder, this can go away.
+        "//zircon/system/ulib/fbl",
       ]
     }
     public_configs = [ ":libdart_vm_config" ]

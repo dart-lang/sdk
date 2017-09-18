@@ -17,6 +17,7 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
+assertion_test: RuntimeError # Issue 30326
 assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError
 assign_static_type_test/03: MissingCompileTimeError
@@ -101,8 +102,31 @@ class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 checked_setter_test: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
+closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
+cyclic_type_variable_test/01: MissingCompileTimeError
+cyclic_type_variable_test/02: MissingCompileTimeError
+cyclic_type_variable_test/03: MissingCompileTimeError
+cyclic_type_variable_test/04: MissingCompileTimeError
+cyclic_typedef_test/13: MissingCompileTimeError
+default_factory2_test/01: MissingCompileTimeError
+default_factory_test/01: MissingCompileTimeError
+deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
+deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
+deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 generic_closure_test: RuntimeError
 generic_field_mixin6_test/01: MissingCompileTimeError
 generic_function_bounds_test: RuntimeError
@@ -185,8 +209,34 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
+named_parameters_test/01: MissingCompileTimeError
+named_parameters_test/02: MissingCompileTimeError
+named_parameters_test/03: MissingCompileTimeError
+named_parameters_test/04: MissingCompileTimeError
+named_parameters_test/05: MissingCompileTimeError
+named_parameters_test/06: MissingCompileTimeError
+named_parameters_test/07: MissingCompileTimeError
+named_parameters_test/08: MissingCompileTimeError
+named_parameters_test/09: MissingCompileTimeError
+named_parameters_test/10: MissingCompileTimeError
+named_parameters_type_test/01: MissingCompileTimeError
+named_parameters_type_test/02: MissingCompileTimeError
+named_parameters_type_test/03: MissingCompileTimeError
 type_variable_nested_test/01: RuntimeError
 type_variable_promotion_test: RuntimeError
+static_field3_test/01: MissingCompileTimeError
+static_field3_test/02: MissingCompileTimeError
+static_field3_test/03: MissingCompileTimeError
+static_field3_test/04: MissingCompileTimeError
+static_field_test/01: MissingCompileTimeError
+static_field_test/02: MissingCompileTimeError
+static_field_test/03: MissingCompileTimeError
+static_field_test/04: MissingCompileTimeError
+static_final_field2_test/01: MissingCompileTimeError
+static_getter_no_setter1_test/01: MissingCompileTimeError
+static_getter_no_setter2_test/01: MissingCompileTimeError
+static_initializer_type_error_test: MissingCompileTimeError
+static_setter_get_test/01: MissingCompileTimeError
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError
 type_variable_scope_test/02: MissingCompileTimeError
@@ -202,6 +252,10 @@ unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 instance_creation_in_function_annotation_test: SkipByDesign
+wrong_number_type_arguments_test/*: MissingCompileTimeError
+void_block_return_test/00: MissingCompileTimeError
+deferred_constraints_constants_test: SkipByDesign
+issue21079_test: SkipByDesign
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
@@ -273,6 +327,7 @@ generic_methods_recursive_bound_test/03: Crash, Pass
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
+vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 generic_functions_test: Pass # Issue 25869
@@ -287,7 +342,26 @@ generic_methods_generic_function_parameter_test: Pass # Issue 25869
 hello_dart_test: Skip # Incompatible flag: --compile_all
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
-generalized_void_syntax_test: CompileTimeError # Issue #30176.
+generalized_void_syntax_test: CompileTimeError # Issue #30176
 
 [ $compiler == precompiler ]
+deferred_global_test: Fail
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
+
+[ $mode == product || $compiler == app_jit || $compiler == precompiler ]
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/05: Fail
+deferred_load_constants_test/05: Fail
+
+[ $runtime == dart_precompiled && $arch == arm64 ]
+large_class_declaration_test: SkipSlow # Uses too much memory.
+
+[ $runtime == dart_precompiled && $minified ]
+cyclic_type_test/*: Skip
+
+[ $runtime == dart_precompiled || $mode == product ]
+vm/causal_async_exception_stack_test: SkipByDesign
+vm/causal_async_exception_stack2_test: SkipByDesign

@@ -6,12 +6,12 @@
 library test;
 
 class C<T> {
-  void f1(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {}
+  void f1(T /*@covariance=genericInterface, genericImpl*/ x) {}
   void f2(int x) {}
 }
 
 class D extends C<num> {
-  void f1(covariant int /*@checkFormal=unsafe*/ x) {}
+  void f1(covariant int /*@covariance=explicit*/ x) {}
 }
 
 void g1(dynamic d) {

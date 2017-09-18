@@ -15,7 +15,7 @@
 #if !defined(HOST_OS_FUCHSIA)
 #include <sys/syscall.h>
 #else
-#include <magenta/syscalls.h>
+#include <zircon/syscalls.h>
 #endif
 #include <unistd.h>
 #endif
@@ -42,9 +42,9 @@ void CPU::FlushICache(uword start, uword size) {
   char* end = reinterpret_cast<char*>(start + size);
   ::__clear_cache(beg, end);
 #elif defined(HOST_OS_FUCHSIA)
-  mx_status_t result = mx_cache_flush(reinterpret_cast<const void*>(start),
-                                      size, MX_CACHE_FLUSH_INSN);
-  ASSERT(result == MX_OK);
+  zx_status_t result = zx_cache_flush(reinterpret_cast<const void*>(start),
+                                      size, ZX_CACHE_FLUSH_INSN);
+  ASSERT(result == ZX_OK);
 #else
 #error FlushICache only tested/supported on Android, Fuchsia, and Linux
 #endif

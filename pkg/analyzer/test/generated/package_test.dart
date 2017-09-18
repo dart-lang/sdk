@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.package_test;
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/package.dart';
@@ -67,7 +68,7 @@ class DependencyFinderTest extends ResolverTestCase {
 
     DependencyFinder finder = new DependencyFinder(resourceProvider);
     expect(() => finder.transitiveDependenciesFor(packageMap, packagePath),
-        throws);
+        throwsA(new isInstanceOf<AnalysisException>()));
   }
 
   void test_transitiveDependenciesFor_noDependencies() {

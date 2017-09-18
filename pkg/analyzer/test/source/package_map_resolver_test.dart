@@ -45,13 +45,13 @@ class _PackageMapUriResolverTest {
   void test_new_null_packageMap() {
     expect(() {
       new PackageMapUriResolver(provider, null);
-    }, throws);
+    }, throwsArgumentError);
   }
 
   void test_new_null_resourceProvider() {
     expect(() {
       new PackageMapUriResolver(null, <String, List<Folder>>{});
-    }, throws);
+    }, throwsArgumentError);
   }
 
   void test_resolve_multiple_folders() {

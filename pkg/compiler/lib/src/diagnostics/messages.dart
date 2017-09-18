@@ -400,7 +400,6 @@ enum MessageKind {
   UNIMPLEMENTED_SETTER,
   UNIMPLEMENTED_SETTER_ONE,
   UNMATCHED_TOKEN,
-  UNRECOGNIZED_VERSION_OF_LOOKUP_MAP,
   UNSUPPORTED_BANG_EQ_EQ,
   UNSUPPORTED_EQ_EQ_EQ,
   UNSUPPORTED_LITERAL_SYMBOL,
@@ -3714,11 +3713,6 @@ $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
           "Overriding 'noSuchMethod' causes the compiler to generate "
           "more code and prevents the compiler from doing some optimizations.",
           howToFix: "Consider removing this 'noSuchMethod' implementation."),
-
-      MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP: const MessageTemplate(
-          MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP,
-          "Unsupported version of package:lookup_map.",
-          howToFix: DONT_KNOW_HOW_TO_FIX),
 
       MessageKind.DUPLICATE_SERIALIZED_LIBRARY: const MessageTemplate(
           MessageKind.DUPLICATE_SERIALIZED_LIBRARY,

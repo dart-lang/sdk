@@ -24,6 +24,7 @@ import '../kernel/element_map_mixins.dart';
 import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
+import '../ssa/type_builder.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
 import '../types/types.dart';
@@ -157,6 +158,15 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
     return new RegularMemberDefinition(member, node);
   }
 
+  InterfaceType getMemberThisType(MemberElement member) {
+    return member.contextClass?.thisType;
+  }
+
+  ClassTypeVariableAccess getClassTypeVariableAccessForMember(
+      MemberEntity member) {
+    throw new UnsupportedError('KernelAstAdapter.getMemberTypeVariableAccess');
+  }
+
   ir.Node getClassNode(ClassElement cls) {
     throw new UnsupportedError('KernelAstAdapter.getClassNode');
   }
@@ -167,6 +177,9 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
 
   @override
   CommonElements get commonElements => _compiler.resolution.commonElements;
+
+  @override
+  DartTypes get types => _compiler.resolution.types;
 
   @override
   ElementEnvironment get elementEnvironment =>
@@ -271,6 +284,12 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
+  Local getLocalTypeVariable(
+      ir.TypeParameterType node, KernelToElementMap elementMap) {
+    return getElement(node) as LocalElement;
+  }
+
+  @override
   ir.FunctionNode getFunctionNodeForParameter(Local parameter) {
     throw new UnsupportedError('KernelAstAdapter.getFunctionNodeForParameter');
   }
@@ -372,6 +391,9 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   InterfaceType getInterfaceType(ir.InterfaceType type) => getDartType(type);
+
+  TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
+      getDartType(type);
 
   InterfaceType getThisType(ClassElement cls) => cls.thisType;
 

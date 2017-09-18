@@ -157,6 +157,15 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 
   @override
+  Local getLocalTypeVariable(
+      ir.TypeParameterType node, KernelToElementMap elementMap) {
+    // TODO(efortuna, johnniwinther): We're not registering the type variables
+    // like we are for the variable declarations. Is that okay or do we need to
+    // make TypeVariableLocal a JLocal?
+    return new TypeVariableLocal(elementMap.getTypeVariableType(node));
+  }
+
+  @override
   ir.FunctionNode getFunctionNodeForParameter(covariant JLocal parameter) {
     return _locals.getData(parameter).functionNode;
   }
@@ -226,8 +235,6 @@ class JumpVisitor extends ir.Visitor {
 
   @override
   visitBreakStatement(ir.BreakStatement node) {
-    // TODO(johnniwinther): Add labels if the enclosing loop is not the implicit
-    // break target.
     JJumpTarget target;
     ir.TreeNode body = node.target.body;
     ir.TreeNode parent = node.target.parent;
@@ -279,8 +286,17 @@ class JumpVisitor extends ir.Visitor {
         label.isContinueTarget = true;
       }
     } else {
+      // We have code like
+      //
+      //     label: if (c) {
+      //         if (c < 10) break label;
+      //     }
+      //
+      // and label is therefore always needed.
       target = _getJumpTarget(node.target);
       target.isBreakTarget = true;
+      JLabelDefinition label = _getOrCreateLabel(target, node.target);
+      label.isBreakTarget = true;
     }
     jumpTargetMap[node] = target;
     super.visitBreakStatement(node);
@@ -320,9 +336,6 @@ class JJumpTarget extends JumpTarget<ir.Node> {
 
   bool isBreakTarget = false;
   bool isContinueTarget = false;
-
-  @override
-  Entity get executableContext => memberContext;
 
   @override
   LabelDefinition<ir.Node> addLabel(ir.Node label, String labelName,
@@ -398,9 +411,6 @@ class JLocal extends IndexedLocal {
   final bool isRegularParameter;
 
   JLocal(this.name, this.memberContext, {this.isRegularParameter: false});
-
-  @override
-  Entity get executableContext => memberContext;
 
   String get _kind => 'local';
 

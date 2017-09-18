@@ -338,5 +338,10 @@ class ClassPropertyModel {
     for (var m in mockMembers.values) {
       if (possibleExtensions.contains(m.name)) extensionMembers.add(m);
     }
+    if (element.isEnum) {
+      // TODO(jmesserly): analyzer does not create the synthetic element
+      // for the enum's `toString()` method, so we'll use the one on Object.
+      extensionMembers.add(element.lookUpMethod('toString', null));
+    }
   }
 }

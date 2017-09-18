@@ -46,6 +46,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitNativeFunctionBody(NativeFunctionBody node) {
+    // nothing to resolve
+  }
+
+  @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     node.visitChildren(this);
     node.staticType = node.expression.staticType;

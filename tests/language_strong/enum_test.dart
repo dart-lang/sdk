@@ -17,7 +17,7 @@ enum _IsNot { IsNot }
 
 void expectIs<T>(T t, bool Function(Object) test) {
   Object obj = t;
-  Expect.isTrue(test(obj), '$obj is ${obj.runtimeType}');
+  Expect.isTrue(test(obj), '$obj is $T');
   Expect.isFalse(obj is _IsNot, '$obj is _IsNot');
   // test cast
   t = obj as T;

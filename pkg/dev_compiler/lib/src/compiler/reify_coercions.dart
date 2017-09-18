@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
 import 'package:analyzer/src/task/strong/ast_properties.dart' as ast_properties;
 import 'package:logging/logging.dart' as logger;
 
-import 'ast_builder.dart' show AstBuilder, RawAstBuilder;
+import 'ast_builder.dart';
 import 'element_helpers.dart' show isInlineJS;
 
 final _log = new logger.Logger('dev_compiler.reify_coercions');
@@ -42,10 +42,9 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   static Expression castExpression(Expression e, DartType toType) {
     // We use an empty name in the AST, because the JS code generator only cares
     // about the target type. It does not look at the AST name.
-    var typeName =
-        astFactory.typeName(AstBuilder.identifierFromString(''), null);
+    var typeName = astFactory.typeName(ast.identifierFromString(''), null);
     typeName.type = toType;
-    var cast = AstBuilder.asExpression(e, typeName);
+    var cast = ast.asExpression(e, typeName);
     cast.staticType = toType;
     return cast;
   }
@@ -102,13 +101,13 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
           _clone(variable)..staticType = DynamicTypeImpl.instance, castType);
 
       var body = node.body;
-      var blockBody = <Statement>[RawAstBuilder.expressionStatement(cast)];
+      var blockBody = <Statement>[ast.expressionStatement(cast)];
       if (body is Block) {
         blockBody.addAll(body.statements);
       } else {
         blockBody.add(body);
       }
-      _replaceNode(node, body, RawAstBuilder.block(blockBody));
+      _replaceNode(node, body, ast.block(blockBody));
     }
   }
 
@@ -138,7 +137,7 @@ class _TreeCloner extends analyzer.AstCloner {
       ast_properties.setIsDynamicInvoke(
           clone, ast_properties.isDynamicInvoke(node));
     }
-    if (clone is ClassDeclaration) {
+    if (clone is ClassDeclaration || clone is ClassTypeAlias) {
       ast_properties.setClassCovariantParameters(
           clone, ast_properties.getClassCovariantParameters(node));
       ast_properties.setSuperclassCovariantParameters(

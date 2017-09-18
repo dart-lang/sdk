@@ -814,6 +814,10 @@ ASSEMBLER_TEST_RUN(LongSubReg, test) {
 
 ASSEMBLER_TEST_GENERATE(LongSubImmediate, assembler) {
   __ pushq(CallingConventions::kArg1Reg);
+  __ movl(RAX, Immediate(0));
+  __ subl(
+      RAX,
+      Immediate(1));  // Set the carry flag so we can test that subl ignores it.
   __ movl(RAX, Address(RSP, 0));  // left low.
   __ movl(RDX, Address(RSP, 4));  // left high.
   __ subl(RAX, Immediate(12));    // right low immediate.

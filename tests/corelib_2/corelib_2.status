@@ -507,179 +507,46 @@ list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 apply2_test: RuntimeError
 apply3_test: RuntimeError
-apply4_test: RuntimeError
 apply5_test: RuntimeError
 apply_test: RuntimeError
-big_integer_arith_vm_test/modInv: Crash
-big_integer_arith_vm_test/shift: Crash
-bit_twiddling_bigint_test: Crash
 bool_from_environment2_test/01: MissingCompileTimeError
 bool_from_environment2_test/02: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
 bool_from_environment2_test/04: MissingCompileTimeError
-bool_from_environment2_test/05: Crash
-collection_from_test: Crash
-collection_length_test: Crash
-collection_removes_test: Crash
-collection_test: Crash
-collection_to_string_test: Crash
-compare_to2_test: Crash
-const_list_literal_test: Crash
+collection_from_test: RuntimeError
 const_list_literal_test: RuntimeError
 core_runtime_types_test: RuntimeError
-data_uri_test: Crash
-dynamic_nosuchmethod_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(NoSuchMethodError.toString#comma) is stored in a closure field.
-dynamic_nosuchmethod_test: RuntimeError
-error_stack_trace1_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(unwrapException_closure.call))
-error_stack_trace1_test: RuntimeError
-expando_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-expando_test: RuntimeError
-for_in_test: Crash
-growable_list_test: Crash
-hash_map2_test: Crash
-hash_set_test/01: Crash
-hash_set_test/none: Crash
-hash_set_type_check_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(SetMixin.length). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
-int_from_environment3_test/01: MissingCompileTimeError
-int_from_environment3_test/02: MissingCompileTimeError
-int_from_environment3_test/03: MissingCompileTimeError
-int_from_environment3_test/04: MissingCompileTimeError
-int_from_environment3_test/05: Crash
-int_modulo_arith_test/bignum: Crash
-int_modulo_arith_test/modPow: Crash
-int_parse_radix_bad_handler_test: Crash
-int_parse_radix_test/01: Crash
-int_parse_radix_test/02: Crash
-integer_to_radix_string_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-integer_to_string_test/01: Crash
-iterable_contains2_test: Crash
-iterable_element_at_test: Crash
-iterable_empty_test: Crash
-iterable_first_test: Crash
-iterable_first_where_test: Crash
-iterable_fold_test: Crash
-iterable_generate_test/01: Crash
+hash_set_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+iterable_element_at_test/static: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+iterable_empty_test: RuntimeError
+iterable_fold_test/01: RuntimeError
+iterable_fold_test/02: RuntimeError
+iterable_fold_test/none: RuntimeError
 iterable_generate_test/none: RuntimeError
-iterable_join_test: Crash
-iterable_last_test: Crash
-iterable_last_where_test: Crash
-iterable_mapping_test/01: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
-iterable_mapping_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
-iterable_reduce_test: Crash
-iterable_return_type_test/01: Crash
-iterable_return_type_test/02: Crash
-iterable_return_type_test/none: Crash
-iterable_single_test: Crash
-iterable_single_where_test: Crash
-iterable_skip_test: Crash
-iterable_skip_while_test: Crash
-iterable_take_test: Crash
-iterable_take_while_test: Crash
-iterable_to_list_test/01: Crash
-iterable_to_list_test/none: Crash
-iterable_to_set_test: Crash
-json_map_test: Crash
-linked_hash_map_from_iterable_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-linked_hash_map_from_iterables_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-linked_hash_map_test: Crash
-list_concurrent_modify_test: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
-list_contains_argument_order_test: Crash
-list_insert_all_test: Crash
-list_insert_all_test: RuntimeError
-list_map_test: Crash
-list_map_test: RuntimeError
-list_replace_range_test: RuntimeError
-list_reversed_test: Crash
-list_reversed_test: RuntimeError
-list_set_all_test: RuntimeError
-list_set_range_test: Crash
-list_set_range_test: RuntimeError
-list_test/01: Crash
-list_test/none: Crash
-list_unmodifiable_test: Crash
-main_test: Crash
-map_from_iterable_test: Crash
-map_from_iterables_test: Crash
-map_from_test: Crash
-map_test: Crash # Issue 27394
-nan_infinity_test/01: RuntimeError
-queue_test: Crash
-range_error_test: Crash
-range_error_test: RuntimeError
-reg_exp5_test: Crash
-reg_exp5_test: RuntimeError
-reg_exp_all_matches_test: Crash
-reg_exp_all_matches_test: RuntimeError
-reg_exp_start_end_test: Crash
-reg_exp_start_end_test: RuntimeError
-regexp/capture_test: Crash
-regexp/capture_test: RuntimeError
-regexp/ecma-regex-examples_test: Crash
-regexp/ecma-regex-examples_test: RuntimeError
-regexp/extended-characters-more_test: Crash
-regexp/extended-characters-more_test: RuntimeError
-regexp/global_test: Crash
-regexp/global_test: RuntimeError
-regexp/indexof_test: Crash
-regexp/indexof_test: RuntimeError
-regexp/issue_19193_test: Crash
-regexp/issue_19193_test: RuntimeError
-regexp/lastindex_test: Crash
-regexp/lastindex_test: RuntimeError
-regexp/no-extensions_test: Crash
-regexp/no-extensions_test: RuntimeError
-regexp/non-capturing-groups_test: Crash
-regexp/non-capturing-groups_test: RuntimeError
-regexp/parentheses_test: Crash
-regexp/parentheses_test: RuntimeError
-regexp/pcre-test-4_test: Crash
-regexp/pcre-test-4_test: RuntimeError
-regexp/regexp_kde_test: Crash
+iterable_mapping_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+iterable_reduce_test/01: RuntimeError
+iterable_return_type_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError
+iterable_to_list_test/01: RuntimeError
+iterable_to_set_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
+list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
+map_from_test: RuntimeError
+map_test: Crash # type 'DillClassBuilder' is not a subtype of type 'SourceClassBuilder' of 'named' where
+queue_test: RuntimeError
 regexp/regexp_kde_test: RuntimeError
-regexp/regexp_test: Crash
-regexp/regexp_test: RuntimeError
-regexp/regress-regexp-codeflush_test: Crash
-regexp/regress-regexp-codeflush_test: RuntimeError
-regexp/standalones_test: Crash
-regexp/standalones_test: RuntimeError
-set_containsAll_test: Crash
-set_contains_test: Crash
-set_intersection_test: Crash
-set_iterator_test: Crash
-set_removeAll_test: Crash
-set_remove_test: Crash
-set_retainAll_test: Crash
-set_test: Crash
-set_to_string_test: Crash
-shuffle_test: Crash
-splay_tree_from_iterable_test: Crash
-splay_tree_from_iterables_test: Crash
-splay_tree_test/01: Crash
-splay_tree_test/02: Crash
-splay_tree_test/none: Crash
+set_test: RuntimeError
+splay_tree_from_iterable_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+splay_tree_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+splay_tree_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 stacktrace_current_test: RuntimeError
-stacktrace_fromstring_test: Crash
-string_buffer_test: RuntimeError
-string_codeunits_test: RuntimeError
+stacktrace_fromstring_test: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
-string_from_environment3_test/05: Crash
-string_from_list_test: RuntimeError
 string_fromcharcodes_test: RuntimeError
-string_pattern_test: Crash
-string_pattern_test: RuntimeError
-string_replace_dollar_test: Crash
-string_replace_dollar_test: RuntimeError
-string_replace_static_test: Crash
-string_replace_test: Crash
-string_replace_test: RuntimeError
-string_split_test: Crash
-string_test: RuntimeError
-string_trimlr_test/02: Crash
 symbol_operator_test/03: RuntimeError
-symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
 symbol_reserved_word_test/06: RuntimeError
@@ -687,241 +554,57 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: RuntimeError
-symbol_test/01: Crash
+symbol_test/01: Crash # Assertion failure: Unexpected constant value in const Symbol(...) call: IntConstant(0)
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
-uri_base_test: Crash
-uri_file_test: Crash
-uri_http_test: Crash
-uri_ipv6_test: Crash
-uri_normalize_path_test: Crash
-uri_normalize_test: Crash
-uri_parameters_all_test: Crash
-uri_parse_test: Crash
-uri_path_test: Crash
-uri_query_test: Crash
-uri_scheme_test: Crash
-uri_test: Crash
+uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+uri_query_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply2_test: RuntimeError
 apply3_test: RuntimeError
-apply4_test: RuntimeError
 apply5_test: RuntimeError
 apply_test: RuntimeError
-big_integer_arith_vm_test/add: Crash
-big_integer_arith_vm_test/div: Crash
-big_integer_arith_vm_test/gcd: Crash
-big_integer_arith_vm_test/mod: Crash
-big_integer_arith_vm_test/modInv: Crash
-big_integer_arith_vm_test/modPow: Crash
-big_integer_arith_vm_test/mul: Crash
-big_integer_arith_vm_test/negate: Crash
-big_integer_arith_vm_test/none: Crash
-big_integer_arith_vm_test/overflow: Crash
-big_integer_arith_vm_test/shift: Crash
-big_integer_arith_vm_test/sub: Crash
-big_integer_arith_vm_test/trunDiv: Crash
-big_integer_parsed_arith_vm_test: Crash
-big_integer_parsed_div_rem_vm_test: Crash
-big_integer_parsed_mul_div_vm_test: Crash
-bit_twiddling_bigint_test: Crash
 bool_from_environment2_test/01: MissingCompileTimeError
 bool_from_environment2_test/02: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
 bool_from_environment2_test/04: MissingCompileTimeError
-bool_from_environment2_test/05: Crash
-collection_from_test: Crash
-collection_length_test: Crash
-collection_removes_test: Crash
-collection_test: Crash
-collection_to_string_test: Crash
-compare_to2_test: Crash
-const_list_literal_test: Crash
+collection_from_test: RuntimeError
 const_list_literal_test: RuntimeError
-core_runtime_types_static_test: Crash
 core_runtime_types_test: RuntimeError
-data_uri_test: Crash
-dynamic_nosuchmethod_test: Crash
 dynamic_nosuchmethod_test: RuntimeError
-error_stack_trace1_test: Crash
 error_stack_trace1_test: RuntimeError
-expando_test: RuntimeError
-for_in_test: Crash
-from_environment_const_type_test/02: Crash
-from_environment_const_type_test/03: Crash
-from_environment_const_type_test/04: Crash
-from_environment_const_type_test/06: Crash
-from_environment_const_type_test/07: Crash
-from_environment_const_type_test/08: Crash
-from_environment_const_type_test/09: Crash
-from_environment_const_type_test/11: Crash
-from_environment_const_type_test/12: Crash
-from_environment_const_type_test/13: Crash
-from_environment_const_type_test/14: Crash
-from_environment_const_type_test/16: Crash
-from_environment_const_type_undefined_test/02: Crash
-from_environment_const_type_undefined_test/03: Crash
-from_environment_const_type_undefined_test/04: Crash
-from_environment_const_type_undefined_test/06: Crash
-from_environment_const_type_undefined_test/07: Crash
-from_environment_const_type_undefined_test/08: Crash
-from_environment_const_type_undefined_test/09: Crash
-from_environment_const_type_undefined_test/11: Crash
-from_environment_const_type_undefined_test/12: Crash
-from_environment_const_type_undefined_test/13: Crash
-from_environment_const_type_undefined_test/14: Crash
-from_environment_const_type_undefined_test/16: Crash
-growable_list_test: Crash
-hash_map2_test: Crash
-hash_set_test/01: Crash
-hash_set_test/none: Crash
-hash_set_type_check_test: Crash # NoSuchMethodError: The getter 'name' was called on null.
-int_from_environment3_test/01: MissingCompileTimeError
-int_from_environment3_test/02: MissingCompileTimeError
-int_from_environment3_test/03: MissingCompileTimeError
-int_from_environment3_test/04: MissingCompileTimeError
-int_from_environment3_test/05: Crash
-int_modulo_arith_test/bignum: Crash
-int_modulo_arith_test/modPow: Crash
-int_parse_radix_bad_handler_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-int_parse_radix_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-int_parse_radix_test/02: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-int_parse_radix_test/badTypes: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-integer_to_radix_string_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-iterable_contains2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-iterable_element_at_test/none: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
-iterable_element_at_test/static: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
-iterable_empty_test: Crash # Assertion failure: Cannot find value local(main#testEmpty) in () for j:method(main).
-iterable_first_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
-iterable_first_where_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
-iterable_fold_test/01: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
-iterable_fold_test/02: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
-iterable_fold_test/none: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
-iterable_generate_test/01: Crash
+hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
+iterable_element_at_test/static: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+iterable_empty_test: RuntimeError
+iterable_fold_test/01: RuntimeError
+iterable_fold_test/02: RuntimeError
+iterable_fold_test/none: RuntimeError
 iterable_generate_test/none: RuntimeError
-iterable_join_test: Crash
-iterable_last_test: Crash
-iterable_last_where_test: Crash
-iterable_mapping_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-iterable_mapping_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-iterable_reduce_test: Crash
-iterable_return_type_test/01: Crash
-iterable_return_type_test/02: Crash
-iterable_return_type_test/none: Crash
-iterable_single_test: Crash
-iterable_single_where_test: Crash
-iterable_skip_test: Crash
-iterable_skip_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-iterable_take_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
-iterable_take_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-iterable_to_list_test/01: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-iterable_to_list_test/none: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-iterable_to_set_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-json_map_test: Crash # Assertion failure: Cannot find value local(listEach_closure.call#result) in (local(listEach_closure.call#key), local(listEach_closure.call#value), local(listEach#)) for j:closure_call(listEach_closure.call).
-linked_hash_map_from_iterable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-linked_hash_map_from_iterables_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-linked_hash_map_test: Crash # Assertion failure: Cannot find value local(LinkedHashMapTest_testMain_closure.call#keys) in (local(LinkedHashMapTest_testMain_closure.call#v), local(LinkedHashMapTest.testMain#testForEachKey)) for j:closure_call(LinkedHashMapTest_testMain_closure.call).
-list_concurrent_modify_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-list_contains_argument_order_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-list_insert_all_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-list_insert_all_test: RuntimeError
-list_map_test: Crash
-list_map_test: RuntimeError
-list_replace_range_test: RuntimeError
-list_reversed_test: Crash
-list_reversed_test: RuntimeError
-list_set_all_test: RuntimeError
-list_set_range_test: Crash
-list_set_range_test: RuntimeError
-list_test/01: Crash
-list_test/none: Crash
-list_unmodifiable_test: Crash
-main_test: Crash
-map_from_iterable_test: Crash
-map_from_iterables_test: Crash
-map_from_test: Crash
-map_test: Crash # Issue 27394
-nan_infinity_test/01: RuntimeError
-queue_test: Crash
-range_error_test: Crash
-range_error_test: RuntimeError
-reg_exp5_test: Crash
-reg_exp5_test: RuntimeError
-reg_exp_all_matches_test: Crash
-reg_exp_all_matches_test: RuntimeError
-reg_exp_start_end_test: Crash
-reg_exp_start_end_test: RuntimeError
-regexp/capture_test: Crash
-regexp/capture_test: RuntimeError
-regexp/ecma-regex-examples_test: Crash
-regexp/ecma-regex-examples_test: RuntimeError
-regexp/extended-characters-more_test: Crash
-regexp/extended-characters-more_test: RuntimeError
-regexp/global_test: Crash
-regexp/global_test: RuntimeError
-regexp/indexof_test: Crash
-regexp/indexof_test: RuntimeError
-regexp/issue_19193_test: Crash
-regexp/issue_19193_test: RuntimeError
-regexp/lastindex_test: Crash
-regexp/lastindex_test: RuntimeError
-regexp/no-extensions_test: Crash
-regexp/no-extensions_test: RuntimeError
-regexp/non-capturing-groups_test: Crash
-regexp/non-capturing-groups_test: RuntimeError
-regexp/parentheses_test: Crash
-regexp/parentheses_test: RuntimeError
-regexp/pcre-test-4_test: Crash
-regexp/pcre-test-4_test: RuntimeError
-regexp/regexp_kde_test: Crash
+iterable_mapping_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+iterable_reduce_test/01: RuntimeError
+iterable_return_type_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError
+iterable_to_list_test/01: RuntimeError
+iterable_to_set_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
+list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
+map_from_test: RuntimeError
+map_test: Crash # tests/corelib_2/map_test.dart:870:7: Internal problem: Unhandled Null in installDefaultConstructor.
+queue_test: RuntimeError
 regexp/regexp_kde_test: RuntimeError
-regexp/regexp_test: Crash
-regexp/regexp_test: RuntimeError
-regexp/regress-regexp-codeflush_test: Crash
-regexp/regress-regexp-codeflush_test: RuntimeError
-regexp/standalones_test: Crash
-regexp/standalones_test: RuntimeError
-regress_r21715_test: Crash
-set_containsAll_test: Crash
-set_contains_test: Crash
-set_intersection_test: Crash
-set_iterator_test: Crash
-set_removeAll_test: Crash
-set_remove_test: Crash
-set_retainAll_test: Crash
-set_test: Crash
-set_to_string_test: Crash
-shuffle_test: Crash
-splay_tree_from_iterable_test: Crash
-splay_tree_from_iterables_test: Crash
-splay_tree_test/01: Crash
-splay_tree_test/02: Crash
-splay_tree_test/none: Crash
+set_test: RuntimeError
+splay_tree_from_iterable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeMap.#v), local(SplayTreeMap.#)) for j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
+splay_tree_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
+splay_tree_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
 stacktrace_current_test: RuntimeError
-stacktrace_fromstring_test: Crash
-string_base_vm_static_test: Crash
-string_buffer_test: RuntimeError
-string_codeunits_test: RuntimeError
+stacktrace_fromstring_test: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
-string_from_environment3_test/05: Crash
-string_from_list_test: RuntimeError
 string_fromcharcodes_test: RuntimeError
-string_pattern_test: Crash
-string_pattern_test: RuntimeError
-string_replace_dollar_test: Crash
-string_replace_dollar_test: RuntimeError
-string_replace_static_test: Crash
-string_replace_test: Crash
-string_replace_test: RuntimeError
-string_split_test: Crash
-string_static_test: Crash
-string_test: RuntimeError
-string_trimlr_test/02: Crash
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
@@ -931,22 +614,12 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: RuntimeError
-symbol_test/01: Crash
+symbol_test/01: Crash # Assertion failure: Unexpected constant value in const Symbol(...) call: IntConstant(0)
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
-uri_base_test: Crash
-uri_file_test: Crash
-uri_http_test: Crash
-uri_ipv6_test: Crash
-uri_normalize_path_test: Crash
-uri_normalize_test: Crash
-uri_parameters_all_test: Crash
-uri_parse_test: Crash
-uri_path_test: Crash
-uri_query_test: Crash
-uri_scheme_test: Crash
-uri_test: Crash
+uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+uri_query_test: RuntimeError
 
 [$arch == simdbc || $arch == simdbc64]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter

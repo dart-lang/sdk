@@ -12,11 +12,11 @@ class C {
 }
 
 class D extends C {
-  void f(covariant int /*@checkFormal=unsafe*/ x) {}
+  void f(covariant int /*@covariance=explicit*/ x) {}
 }
 
 class E extends D {
-  void f(int /*@checkFormal=unsafe*/ x) {}
+  void f(int /*@covariance=explicit*/ x) {}
 }
 
 void g1(C c) {

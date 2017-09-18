@@ -39,6 +39,7 @@ import '../native/resolver.dart';
 import '../ordered_typeset.dart';
 import '../options.dart';
 import '../ssa/kernel_impact.dart';
+import '../ssa/type_builder.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -137,6 +138,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
           spannable.memberIndex < _members.length) {
         MemberData data = _members.getData(spannable);
         return data.definition.location;
+      } else if (spannable is KLocalFunction) {
+        return getSourceSpan(spannable.memberContext, currentElement);
+      } else if (spannable is JLocal) {
+        return getSourceSpan(spannable.memberContext, currentElement);
       }
       return null;
     }
@@ -386,6 +391,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   @override
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
+
+  @override
+  TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
+      getDartType(type);
 
   List<DartType> getDartTypes(List<ir.DartType> types) {
     List<DartType> list = <DartType>[];
@@ -1161,7 +1170,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         }
         if (parent is ir.FunctionDeclaration ||
             parent is ir.FunctionExpression) {
-          Local localFunction = getLocalFunction(parent);
+          KLocalFunction localFunction = getLocalFunction(parent);
           executableContext = localFunction;
           memberContext = localFunction.memberContext;
           break;
@@ -1660,6 +1669,13 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
   @override
   bool checkClass(ClassEntity cls) => true;
+
+  @override
+  void forEachLocalFunction(void f(MemberEntity member, Local localFunction)) {
+    for (KLocalFunction local in localFunctions) {
+      f(local.memberContext, local);
+    }
+  }
 }
 
 abstract class KernelClosedWorldMixin implements ClosedWorldBase {
@@ -1982,6 +1998,15 @@ class JsKernelToElementMap extends KernelToElementMapBase
     }
   }
 
+  InterfaceType getMemberThisType(MemberEntity member) {
+    return _members.getData(member).getMemberThisType(this);
+  }
+
+  ClassTypeVariableAccess getClassTypeVariableAccessForMember(
+      MemberEntity member) {
+    return _members.getData(member).classTypeVariableAccess;
+  }
+
   @override
   bool checkFamily(Entity entity) {
     assert(
@@ -2049,7 +2074,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       JConstructorBody constructorBody = createConstructorBody(constructor);
       _members.register<IndexedFunction, FunctionData>(
           constructorBody,
-          new FunctionDataImpl(
+          new ConstructorBodyDataImpl(
               node,
               node.function,
               new SpecialMemberDefinition(
@@ -2106,6 +2131,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
   }
 
   JRecordField _constructRecordFieldEntry(
+      InterfaceType memberThisType,
       ir.VariableDeclaration variable,
       BoxLocal boxLocal,
       JClass container,
@@ -2116,11 +2142,13 @@ class JsKernelToElementMap extends KernelToElementMapBase
         new JRecordField(local.name, boxLocal, container, variable.isConst);
     _members.register(
         boxedField,
-        new ClosureFieldData(new ClosureMemberDefinition(
-            boxedField,
-            computeSourceSpanFromTreeNode(variable),
-            MemberKind.closureField,
-            variable)));
+        new ClosureFieldData(
+            new ClosureMemberDefinition(
+                boxedField,
+                computeSourceSpanFromTreeNode(variable),
+                MemberKind.closureField,
+                variable),
+            memberThisType));
     memberMap[boxedField.name] = boxedField;
 
     return boxedField;
@@ -2152,11 +2180,14 @@ class JsKernelToElementMap extends KernelToElementMapBase
       containerData.orderedTypeSet = setBuilder.createOrderedTypeSet(
           containerData.supertype, const Link<InterfaceType>());
 
-      BoxLocal boxLocal = new BoxLocal(box.name, member);
+      BoxLocal boxLocal = new BoxLocal(box.name);
+      InterfaceType memberThisType = member.enclosingClass != null
+          ? _elementEnvironment.getThisType(member.enclosingClass)
+          : null;
       for (ir.VariableDeclaration variable in info.boxedVariables) {
         boxedFields[localsMap.getLocalVariable(variable)] =
-            _constructRecordFieldEntry(
-                variable, boxLocal, container, memberMap, localsMap);
+            _constructRecordFieldEntry(memberThisType, variable, boxLocal,
+                container, memberMap, localsMap);
       }
     }
     return boxedFields;
@@ -2175,6 +2206,17 @@ class JsKernelToElementMap extends KernelToElementMapBase
       ir.Location location,
       KernelToLocalsMap localsMap,
       InterfaceType supertype) {
+    InterfaceType memberThisType = member.enclosingClass != null
+        ? _elementEnvironment.getThisType(member.enclosingClass)
+        : null;
+    ClassTypeVariableAccess typeVariableAccess =
+        _members.getData(member).classTypeVariableAccess;
+    if (typeVariableAccess == ClassTypeVariableAccess.instanceField) {
+      // A closure in a field initializer will only be executed in the
+      // constructor and type variables are therefore accessed through
+      // parameters.
+      typeVariableAccess = ClassTypeVariableAccess.parameter;
+    }
     String name = _computeClosureName(node);
     SourceSpan location = computeSourceSpanFromTreeNode(node);
     Map<String, MemberEntity> memberMap = <String, MemberEntity>{};
@@ -2210,9 +2252,10 @@ class JsKernelToElementMap extends KernelToElementMapBase
         info,
         localsMap,
         closureEntity,
-        info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null);
-    _buildClosureClassFields(
-        cls, member, info, localsMap, recordFieldsVisibleInScope, memberMap);
+        info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
+        this);
+    _buildClosureClassFields(cls, member, memberThisType, info, localsMap,
+        recordFieldsVisibleInScope, memberMap);
 
     FunctionEntity callMethod = new JClosureCallMethod(
         cls, _getParameterStructure(node), _getAsyncMarker(node));
@@ -2221,45 +2264,69 @@ class JsKernelToElementMap extends KernelToElementMapBase
         new ClosureFunctionData(
             new ClosureMemberDefinition(
                 callMethod, location, MemberKind.closureCall, node.parent),
+            memberThisType,
             getFunctionType(node),
-            node));
+            node,
+            typeVariableAccess));
     memberMap[callMethod.name] = cls.callMethod = callMethod;
     return cls;
   }
 
   void _buildClosureClassFields(
-    KernelClosureClass cls,
-    MemberEntity member,
-    KernelScopeInfo info,
-    KernelToLocalsMap localsMap,
-    Map<Local, JRecordField> recordFieldsVisibleInScope,
-    Map<String, MemberEntity> memberMap,
-  ) {
+      KernelClosureClass cls,
+      MemberEntity member,
+      InterfaceType memberThisType,
+      KernelScopeInfo info,
+      KernelToLocalsMap localsMap,
+      Map<Local, JRecordField> recordFieldsVisibleInScope,
+      Map<String, MemberEntity> memberMap) {
     // TODO(efortuna): Limit field number usage to when we need to distinguish
     // between two variables with the same name from different scopes.
     int fieldNumber = 0;
-    for (ir.VariableDeclaration variable in info.freeVariables) {
+    for (ir.Node variable in info.freeVariables) {
       // Make a corresponding field entity in this closure class for the
       // free variables in the KernelScopeInfo.freeVariable.
-      Local capturedLocal = localsMap.getLocalVariable(variable);
-      if (_isInRecord(capturedLocal, recordFieldsVisibleInScope)) {
-        bool constructedField = _constructClosureFieldForRecord(capturedLocal,
-            cls, memberMap, variable, recordFieldsVisibleInScope, fieldNumber);
-        if (constructedField) fieldNumber++;
-      } else {
+      if (variable is ir.VariableDeclaration) {
+        Local capturedLocal = localsMap.getLocalVariable(variable);
+        if (_isInRecord(capturedLocal, recordFieldsVisibleInScope)) {
+          bool constructedField = _constructClosureFieldForRecord(
+              capturedLocal,
+              cls,
+              memberThisType,
+              memberMap,
+              variable,
+              recordFieldsVisibleInScope,
+              fieldNumber);
+          if (constructedField) fieldNumber++;
+        } else {
+          _constructClosureField(
+              capturedLocal,
+              cls,
+              memberThisType,
+              memberMap,
+              variable,
+              variable.isConst,
+              !(variable.isFinal || variable.isConst),
+              fieldNumber);
+          fieldNumber++;
+        }
+      } else if (variable is TypeParameterTypeWithContext) {
         _constructClosureField(
-            capturedLocal,
+            localsMap.getLocalTypeVariable(variable.type, this),
             cls,
+            memberThisType,
             memberMap,
-            variable,
-            variable.isConst,
-            !(variable.isFinal || variable.isConst),
+            variable.type.parameter,
+            true,
+            false,
             fieldNumber);
         fieldNumber++;
+      } else {
+        throw new UnsupportedError("Unexpected field node type: $variable");
       }
     }
     if (info.thisUsedAsFreeVariable) {
-      _constructClosureField(cls.thisLocal, cls, memberMap,
+      _constructClosureField(cls.thisLocal, cls, memberThisType, memberMap,
           getMemberDefinition(member).node, true, false, fieldNumber);
       fieldNumber++;
     }
@@ -2275,6 +2342,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
   bool _constructClosureFieldForRecord(
       Local capturedLocal,
       KernelClosureClass cls,
+      InterfaceType memberThisType,
       Map<String, MemberEntity> memberMap,
       ir.TreeNode sourceNode,
       Map<Local, JRecordField> recordFieldsVisibleInScope,
@@ -2293,11 +2361,13 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
     _members.register<IndexedField, FieldData>(
         closureField,
-        new ClosureFieldData(new ClosureMemberDefinition(
-            cls.localToFieldMap[capturedLocal],
-            computeSourceSpanFromTreeNode(sourceNode),
-            MemberKind.closureField,
-            sourceNode)));
+        new ClosureFieldData(
+            new ClosureMemberDefinition(
+                cls.localToFieldMap[capturedLocal],
+                computeSourceSpanFromTreeNode(sourceNode),
+                MemberKind.closureField,
+                sourceNode),
+            memberThisType));
     memberMap[closureField.name] = closureField;
     cls.localToFieldMap[recordField.box] = closureField;
     cls.boxedVariables[capturedLocal] = recordField;
@@ -2307,6 +2377,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
   _constructClosureField(
       Local capturedLocal,
       KernelClosureClass cls,
+      InterfaceType memberThisType,
       Map<String, MemberEntity> memberMap,
       ir.TreeNode sourceNode,
       bool isConst,
@@ -2320,11 +2391,13 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
     _members.register<IndexedField, FieldData>(
         closureField,
-        new ClosureFieldData(new ClosureMemberDefinition(
-            cls.localToFieldMap[capturedLocal],
-            computeSourceSpanFromTreeNode(sourceNode),
-            MemberKind.closureField,
-            sourceNode)));
+        new ClosureFieldData(
+            new ClosureMemberDefinition(
+                cls.localToFieldMap[capturedLocal],
+                computeSourceSpanFromTreeNode(sourceNode),
+                MemberKind.closureField,
+                sourceNode),
+            memberThisType));
     memberMap[closureField.name] = closureField;
     cls.localToFieldMap[capturedLocal] = closureField;
   }

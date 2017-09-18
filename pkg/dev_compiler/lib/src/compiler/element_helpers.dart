@@ -173,3 +173,7 @@ bool hasNoSuchMethod(ClassElement classElement) {
   var definingClass = method?.enclosingElement;
   return definingClass != null && !definingClass.type.isObject;
 }
+
+bool isMixinAlias(ClassElement c) {
+  return c.isMixinApplication && c.supertype.isObject && c.mixins.length == 1;
+}

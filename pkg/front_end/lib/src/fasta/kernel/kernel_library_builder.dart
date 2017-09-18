@@ -771,9 +771,17 @@ class KernelLibraryBuilder
     for (Import import in imports) {
       Library importedLibrary = import.imported.target;
       if (importedLibrary != null) {
-        library.addDependency(new LibraryDependency.import(importedLibrary,
-            name: import.prefix,
-            combinators: toKernelCombinators(import.combinators)));
+        if (import.deferred && import.prefix != null) {
+          library.addDependency(new LibraryDependency.deferredImport(
+              importedLibrary, import.prefix,
+              combinators: toKernelCombinators(import.combinators))
+            ..fileOffset = import.charOffset);
+        } else {
+          library.addDependency(new LibraryDependency.import(importedLibrary,
+              name: import.prefix,
+              combinators: toKernelCombinators(import.combinators))
+            ..fileOffset = import.charOffset);
+        }
       }
     }
 
@@ -781,7 +789,8 @@ class KernelLibraryBuilder
       Library exportedLibrary = export.exported.target;
       if (exportedLibrary != null) {
         library.addDependency(new LibraryDependency.export(exportedLibrary,
-            combinators: toKernelCombinators(export.combinators)));
+            combinators: toKernelCombinators(export.combinators))
+          ..fileOffset = export.charOffset);
       }
     }
 
@@ -792,6 +801,7 @@ class KernelLibraryBuilder
       library.addPart(new LibraryPart(<Expression>[], fileUri));
     }
 
+    library.documentationComment = documentationComment;
     library.name = name;
     library.procedures.sort(compareProcedures);
 

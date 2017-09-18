@@ -9,9 +9,16 @@ part of world_builder;
 /// This adds additional access to liveness of selectors and elements.
 abstract class CodegenWorldBuilder implements WorldBuilder {
   /// Calls [f] with every instance field, together with its declarer, in an
-  /// instance of [cls].
+  /// instance of [cls]. All fields inherited from superclasses and mixins are
+  /// included.
   void forEachInstanceField(covariant ClassEntity cls,
       void f(ClassEntity declarer, FieldEntity field));
+
+  /// Calls [f] with every instance field declared directly in class [cls]
+  /// (i.e. no inherited fields). Fields are presented in initialization
+  /// (i.e. textual) order.
+  void forEachDirectInstanceField(
+      covariant ClassEntity cls, void f(FieldEntity field));
 
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
@@ -585,6 +592,13 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
         .forEachInstanceField(f, includeSuperAndInjectedMembers: true);
   }
 
+  /// Calls [f] with every instance field of the immediate class [cls].
+  void forEachDirectInstanceField(ClassElement cls, void f(FieldEntity field)) {
+    cls.implementation.forEachInstanceField((ClassEntity _, FieldEntity field) {
+      f(field);
+    }, includeSuperAndInjectedMembers: false);
+  }
+
   @override
   void forEachParameter(MethodElement function,
       void f(DartType type, String name, ConstantValue defaultValue)) {
@@ -685,6 +699,20 @@ class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
       if (member.isField && member.isInstanceMember) f(declarer, member);
+    });
+  }
+
+  @override
+  void forEachDirectInstanceField(ClassEntity cls, void f(FieldEntity field)) {
+    // TODO(sra): Add ElementEnvironment.forEachDirectInstanceField or
+    // parameterize [forEachInstanceField] to filter members to avoid a
+    // potentially O(n^2) scan of the superclasses.
+    _elementEnvironment.forEachClassMember(cls,
+        (ClassEntity declarer, MemberEntity member) {
+      if (declarer != cls) return;
+      if (!member.isField) return;
+      if (!member.isInstanceMember) return;
+      f(member);
     });
   }
 }

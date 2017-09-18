@@ -210,4 +210,11 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
     assert(mixin.isDeclaration);
     super.registerMixinUse(mixinApplication, mixin);
   }
+
+  @override
+  void forEachLocalFunction(void f(MemberEntity member, Local localFunction)) {
+    for (LocalFunctionElement local in localFunctions) {
+      f(local.memberContext, local);
+    }
+  }
 }

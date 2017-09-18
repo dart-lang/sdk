@@ -56,9 +56,7 @@ class BeginToken extends SimpleToken {
   @override
   Token copy() => new BeginToken(type, offset, copyComments(precedingComments));
 
-  /**
-   * The token that corresponds to this token.
-   */
+  @override
   Token get endGroup => endToken;
 
   /**
@@ -492,6 +490,9 @@ class SimpleToken implements Token {
   int get end => offset + length;
 
   @override
+  Token get endGroup => null;
+
+  @override
   bool get isEof => type == TokenType.EOF;
 
   @override
@@ -723,6 +724,12 @@ abstract class Token implements SyntacticEntity {
 
   @override
   int get end;
+
+  /**
+   * The token that corresponds to this token, or `null` if this token is not
+   * the first of a pair of matching tokens (such as parentheses).
+   */
+  Token get endGroup => null;
 
   /**
    * Return `true` if this token represents an end of file.

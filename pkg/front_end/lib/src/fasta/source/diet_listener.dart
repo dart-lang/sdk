@@ -20,7 +20,11 @@ import '../deprecated_problems.dart'
     show Crash, deprecated_InputError, deprecated_inputError;
 
 import '../fasta_codes.dart'
-    show Message, codeExpectedBlockToSkip, templateInternalProblemNotFound;
+    show
+        Message,
+        codeExpectedBlockToSkip,
+        messageExpectedBlockToSkip,
+        templateInternalProblemNotFound;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
@@ -81,7 +85,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     debugEvent("MetadataStar");
     push(popList(count)?.first ?? NullValue.Metadata);
   }
@@ -94,7 +98,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     debugEvent("PartOf");
     if (hasName) discard(1);
     discard(1); // Metadata.
@@ -288,6 +293,11 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+  }
+
+  @override
   void handleScript(Token token) {
     debugEvent("Script");
   }
@@ -304,7 +314,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endConditionalUri(Token ifKeyword, Token equalitySign) {
+  void endConditionalUri(
+      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
     debugEvent("ConditionalUri");
   }
 
@@ -408,6 +419,24 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBody");
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodyIgnored");
+  }
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodySkipped");
+    if (!enableNative) {
+      super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
+    }
+  }
+
+  @override
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     debugEvent("Method");
     Token bodyToken = pop();
@@ -500,11 +529,6 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    debugEvent("NativeClause");
-  }
-
-  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
@@ -520,7 +544,15 @@ class DietListener extends StackListener {
   @override
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     debugEvent("Enum");
-    discard(count + 2); // Name and metadata.
+
+    discard(count); // values
+    String name = pop();
+    Token metadata = pop();
+
+    Builder enumBuilder = lookupBuilder(enumKeyword, null, name);
+    parseMetadata(
+        enumBuilder, metadata, (enumBuilder.target as Class).addAnnotation);
+
     checkEmpty(enumKeyword.charOffset);
   }
 
@@ -528,7 +560,14 @@ class DietListener extends StackListener {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
-    discard(2); // Name and metadata.
+
+    String name = pop();
+    Token metadata = pop();
+
+    Builder classBuilder = lookupBuilder(classKeyword, null, name);
+    parseMetadata(
+        classBuilder, metadata, (classBuilder.target as Class).addAnnotation);
+
     checkEmpty(beginToken.charOffset);
   }
 

@@ -3542,6 +3542,57 @@ TEST_CASE(IsolateReload_RunNewFieldInitialiazersSuperClass) {
   EXPECT_STREQ("right", SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
+  const char* kScript =
+      "class C {\n"
+      "  final x;\n"
+      "  const C(this.x);\n"
+      "}\n"
+      "var a = const C(const C(1));\n"
+      "var b = const C(const C(2));\n"
+      "var c = const C(const C(3));\n"
+      "var d = const C(const C(4));\n"
+      "class Foo {\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  a; b; c; d;\n"
+      "  return 'Okay';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {\n"
+      "  final x;\n"
+      "  const C(this.x);\n"
+      "}\n"
+      "var a = const C(const C(1));\n"
+      "var b = const C(const C(2));\n"
+      "var c = const C(const C(3));\n"
+      "var d = const C(const C(4));\n"
+      "class Foo {\n"
+      "  var d = const C(const C(4));\n"
+      "  var c = const C(const C(3));\n"
+      "  var b = const C(const C(2));\n"
+      "  var a = const C(const C(1));\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  return '${identical(a, value.a)} ${identical(b, value.b)}'"
+      "      ' ${identical(c, value.c)} ${identical(d, value.d)}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  // Verify that we ran field initializers on existing instances and the const
+  // expressions were properly canonicalized.
+  EXPECT_STREQ("true true true true", SimpleInvokeStr(lib, "main"));
+}
+
 TEST_CASE(IsolateReload_TypedefToNotTypedef) {
   const char* kScript =
       "typedef bool Predicate(dynamic x);\n"

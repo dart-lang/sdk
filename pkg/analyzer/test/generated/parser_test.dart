@@ -44,6 +44,8 @@ main() {
 abstract class AbstractParserTestCase implements ParserTestHelpers {
   bool get allowNativeClause;
 
+  set allowNativeClause(bool value);
+
   void set enableAssertInitializer(bool value);
 
   void set enableGenericMethodComments(bool value);
@@ -937,15 +939,69 @@ void Function<A>(core.List<core.int> x) m() => null;
         new isInstanceOf<ExpressionFunctionBody>());
   }
 
-  void test_parseClassMember_method_native() {
-    createParser('m() native "str";');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
+  void test_parseClassMember_method_native_allowed() {
+    allowNativeClause = true;
+    _parseClassMember_method_native();
     assertNoErrors();
+  }
 
-    var body = method.body as NativeFunctionBody;
-    expect(body.nativeKeyword, isNotNull);
-    expect(body.stringLiteral, isNotNull);
-    expect(body.semicolon, isNotNull);
+  void test_parseClassMember_method_native_missing_literal_allowed() {
+    allowNativeClause = true;
+    _parseClassMember_method_native_missing_literal();
+    assertNoErrors();
+  }
+
+  void test_parseClassMember_method_native_missing_literal_not_allowed() {
+    allowNativeClause = false;
+    _parseClassMember_method_native_missing_literal();
+    if (usingFastaParser) {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+      ]);
+    } else {
+      assertNoErrors();
+    }
+  }
+
+  void test_parseClassMember_method_native_not_allowed() {
+    allowNativeClause = false;
+    _parseClassMember_method_native();
+    if (usingFastaParser) {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+      ]);
+    } else {
+      assertNoErrors();
+    }
+  }
+
+  void test_parseClassMember_method_native_with_body_allowed() {
+    allowNativeClause = true;
+    _parseClassMember_method_native_with_body();
+    if (usingFastaParser) {
+      assertErrorsWithCodes([
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+      ]);
+    } else {
+      assertErrorsWithCodes([
+        ParserErrorCode.EXPECTED_TOKEN,
+      ]);
+    }
+  }
+
+  void test_parseClassMember_method_native_with_body_not_allowed() {
+    allowNativeClause = false;
+    _parseClassMember_method_native_with_body();
+    if (usingFastaParser) {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+      ]);
+    } else {
+      assertErrorsWithCodes([
+        ParserErrorCode.EXPECTED_TOKEN,
+      ]);
+    }
   }
 
   void test_parseClassMember_method_operator_noType() {
@@ -1570,6 +1626,30 @@ int f(
    */
   void _assertIsDeclarationName(SimpleIdentifier name, [bool expected = true]) {
     expect(name.inDeclarationContext(), expected);
+  }
+
+  void _parseClassMember_method_native() {
+    createParser('m() native "str";');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    var body = method.body as NativeFunctionBody;
+    expect(body.nativeKeyword, isNotNull);
+    expect(body.stringLiteral, isNotNull);
+    expect(body.stringLiteral?.stringValue, "str");
+    expect(body.semicolon, isNotNull);
+  }
+
+  void _parseClassMember_method_native_missing_literal() {
+    createParser('m() native;');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    var body = method.body as NativeFunctionBody;
+    expect(body.nativeKeyword, isNotNull);
+    expect(body.stringLiteral, isNull);
+    expect(body.semicolon, isNotNull);
+  }
+
+  void _parseClassMember_method_native_with_body() {
+    createParser('m() native "str" {}');
+    parser.parseClassMember('C') as MethodDeclaration;
   }
 }
 
@@ -13571,7 +13651,51 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
 }
 
 @reflectiveTest
-class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {}
+class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {
+  void test_parseDirectives_complete() {
+    CompilationUnit unit =
+        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_empty() {
+    CompilationUnit unit = parseDirectives("");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseDirectives_mixed() {
+    CompilationUnit unit =
+        parseDirectives("library l; class A {} part 'foo.dart';");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_multiple() {
+    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(2));
+  }
+
+  void test_parseDirectives_script() {
+    CompilationUnit unit = parseDirectives("#! /bin/dart");
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseDirectives_single() {
+    CompilationUnit unit = parseDirectives("library l;");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_topLevelDeclaration() {
+    CompilationUnit unit = parseDirectives("class A {}");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+  }
+}
 
 /**
  * Tests which exercise the parser using a complete compilation unit or
@@ -14657,50 +14781,6 @@ Function(int, String) v;
     expect(partOfDirective.ofKeyword, isNotNull);
     expect(partOfDirective.libraryName, isNotNull);
     expect(partOfDirective.semicolon, isNotNull);
-  }
-
-  void test_parseDirectives_complete() {
-    CompilationUnit unit =
-        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_empty() {
-    CompilationUnit unit = parseDirectives("");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-  }
-
-  void test_parseDirectives_mixed() {
-    CompilationUnit unit =
-        parseDirectives("library l; class A {} part 'foo.dart';");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_multiple() {
-    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(2));
-  }
-
-  void test_parseDirectives_script() {
-    CompilationUnit unit = parseDirectives("#! /bin/dart");
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(0));
-  }
-
-  void test_parseDirectives_single() {
-    CompilationUnit unit = parseDirectives("library l;");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_topLevelDeclaration() {
-    CompilationUnit unit = parseDirectives("class A {}");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
   }
 
   void test_parseEnumDeclaration_one() {

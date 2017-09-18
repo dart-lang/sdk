@@ -16,8 +16,8 @@ import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/library_loader.dart';
+import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -69,14 +69,11 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   if (printSteps) {
     print('---- analyze-all -------------------------------------------------');
   }
+  EnumCreator.matchKernelRepresentationForTesting = true;
   Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [
-        Flags.analyzeAll,
-        Flags.useKernelInSsa,
-        Flags.enableAssertMessage
-      ]);
+      options: [Flags.analyzeAll, Flags.enableAssertMessage]);
   compiler.resolution.retainCachesForTesting = true;
   await compiler.run(entryPoint);
 
@@ -89,13 +86,6 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
       options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler2.resolution.retainCachesForTesting = true;
-  KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
-  KernelToElementMapForImpact elementMap = frontendStrategy.elementMap;
-  compiler2.libraryLoader = new MemoryKernelLibraryLoaderTask(
-      elementMap,
-      compiler2.reporter,
-      compiler2.measurer,
-      compiler.backend.kernelTask.program);
   await compiler2.run(entryPoint);
   return new Pair<Compiler, Compiler>(compiler, compiler2);
 }

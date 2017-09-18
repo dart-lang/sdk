@@ -343,6 +343,8 @@ class ResolverTestCase extends EngineTestCase {
 
   bool get enableNewAnalysisDriver => false;
 
+  bool get enableKernelDriver => false;
+
   /**
    * Return a type provider that can be used to test the results of resolution.
    *
@@ -687,7 +689,8 @@ class ResolverTestCase extends EngineTestCase {
           fileContentOverlay,
           null,
           sourceFactory,
-          options);
+          options,
+          enableKernelDriver: enableKernelDriver);
       scheduler.start();
     } else {
       if (packages != null) {

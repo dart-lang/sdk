@@ -568,14 +568,6 @@ map(values, [K, V]) => JS('', '''(() => {
   return map;
 })()''');
 
-bool dassert(value) {
-  if (JS('bool', '# != null && #[#] instanceof #', value, value, _runtimeType,
-      AbstractFunctionType)) {
-    value = JS('', '#(#)', dcall, value);
-  }
-  return dtest(value);
-}
-
 /// Store a JS error for an exception.  For non-primitives, we store as an
 /// expando.  For primitive, we use a side cache.  To limit memory leakage, we
 /// only keep the last [_maxTraceCache] entries.
@@ -832,7 +824,7 @@ _canonicalMember(obj, name) {
   // Private names are symbols and are already canonical.
   if (JS('bool', 'typeof # === "symbol"', name)) return name;
 
-  if (obj != null && getExtensionType(obj) != null) {
+  if (obj != null && JS('bool', '#[#] != null', obj, _extensionType)) {
     return JS('', 'dartx.#', name);
   }
 

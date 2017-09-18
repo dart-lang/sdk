@@ -14,6 +14,7 @@ import '../elements/names.dart' show Name;
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
+import '../ssa/type_builder.dart';
 import '../world.dart';
 import 'elements.dart';
 import 'closure_visitors.dart';
@@ -102,19 +103,19 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       Map<Local, JRecordField> allBoxedVariables =
           _elementMap.makeRecordContainer(model.scopeInfo, member, localsMap);
-      _scopeMap[member] =
-          new JsScopeInfo.from(allBoxedVariables, model.scopeInfo, localsMap);
+      _scopeMap[member] = new JsScopeInfo.from(
+          allBoxedVariables, model.scopeInfo, localsMap, _elementMap);
 
       model.capturedScopesMap
           .forEach((ir.Node node, KernelCapturedScope scope) {
         Map<Local, JRecordField> boxedVariables =
             _elementMap.makeRecordContainer(scope, member, localsMap);
         if (scope is KernelCapturedLoopScope) {
-          _capturedScopesMap[node] =
-              new JsCapturedLoopScope.from(boxedVariables, scope, localsMap);
+          _capturedScopesMap[node] = new JsCapturedLoopScope.from(
+              boxedVariables, scope, localsMap, _elementMap);
         } else {
-          _capturedScopesMap[node] =
-              new JsCapturedScope.from(boxedVariables, scope, localsMap);
+          _capturedScopesMap[node] = new JsCapturedScope.from(
+              boxedVariables, scope, localsMap, _elementMap);
         }
         allBoxedVariables.addAll(boxedVariables);
       });
@@ -250,8 +251,10 @@ class KernelScopeInfo {
   final NodeBox capturedVariablesAccessor;
 
   /// The set of variables that were defined in another scope, but are used in
-  /// this scope.
-  Set<ir.VariableDeclaration> freeVariables = new Set<ir.VariableDeclaration>();
+  /// this scope. The items in this set are either of type VariableDeclaration
+  /// or TypeParameterTypeWithContext.
+  Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
+      freeVariables = new Set<ir.Node>();
 
   /// If true, `this` is used as a free variable, in this scope. It is stored
   /// separately from [freeVariables] because there is no single
@@ -283,6 +286,22 @@ class KernelScopeInfo {
   }
 }
 
+/// Helper method to get or create a Local variable out of a variable
+/// declaration or type parameter.
+Local _getLocal(ir.Node variable, KernelToLocalsMap localsMap,
+    KernelToElementMap elementMap) {
+  assert(variable is ir.VariableDeclaration ||
+      variable is TypeParameterTypeWithContext);
+  if (variable is ir.VariableDeclaration) {
+    return localsMap.getLocalVariable(variable);
+  } else if (variable is TypeParameterTypeWithContext) {
+    return localsMap.getLocalTypeVariable(variable.type, elementMap);
+  }
+  throw new ArgumentError('Only know how to get/create locals for '
+      'VariableDeclarations or TypeParameterTypeWithContext. Recieved '
+      '${variable.runtimeType}');
+}
+
 class JsScopeInfo extends ScopeInfo {
   final Set<Local> localsUsedInTryOrSync;
   final Local thisLocal;
@@ -292,14 +311,15 @@ class JsScopeInfo extends ScopeInfo {
   /// this scope.
   final Set<Local> freeVariables;
 
-  JsScopeInfo.from(
-      this.boxedVariables, KernelScopeInfo info, KernelToLocalsMap localsMap)
+  JsScopeInfo.from(this.boxedVariables, KernelScopeInfo info,
+      KernelToLocalsMap localsMap, KernelToElementMap elementMap)
       : this.thisLocal =
             info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
         this.localsUsedInTryOrSync =
             info.localsUsedInTryOrSync.map(localsMap.getLocalVariable).toSet(),
-        this.freeVariables =
-            info.freeVariables.map(localsMap.getLocalVariable).toSet() {
+        this.freeVariables = info.freeVariables
+            .map((ir.Node node) => _getLocal(node, localsMap, elementMap))
+            .toSet() {
     if (info.thisUsedAsFreeVariable) {
       this.freeVariables.add(this.thisLocal);
     }
@@ -329,7 +349,8 @@ class KernelCapturedScope extends KernelScopeInfo {
       Set<ir.VariableDeclaration> boxedVariables,
       NodeBox capturedVariablesAccessor,
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
-      Set<ir.VariableDeclaration> freeVariables,
+      Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
+          freeVariables,
       bool hasThisLocal)
       : super.withBoxedVariables(boxedVariables, capturedVariablesAccessor,
             localsUsedInTryOrSync, freeVariables, hasThisLocal);
@@ -340,11 +361,14 @@ class KernelCapturedScope extends KernelScopeInfo {
 class JsCapturedScope extends JsScopeInfo implements CapturedScope {
   final Local context;
 
-  JsCapturedScope.from(Map<Local, JRecordField> boxedVariables,
-      KernelCapturedScope capturedScope, KernelToLocalsMap localsMap)
+  JsCapturedScope.from(
+      Map<Local, JRecordField> boxedVariables,
+      KernelCapturedScope capturedScope,
+      KernelToLocalsMap localsMap,
+      KernelToElementMap elementMap)
       : this.context =
             boxedVariables.isNotEmpty ? boxedVariables.values.first.box : null,
-        super.from(boxedVariables, capturedScope, localsMap);
+        super.from(boxedVariables, capturedScope, localsMap, elementMap);
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
@@ -357,7 +381,8 @@ class KernelCapturedLoopScope extends KernelCapturedScope {
       NodeBox capturedVariablesAccessor,
       this.boxedLoopVariables,
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
-      Set<ir.VariableDeclaration> freeVariables,
+      Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
+          freeVariables,
       bool hasThisLocal)
       : super(boxedVariables, capturedVariablesAccessor, localsUsedInTryOrSync,
             freeVariables, hasThisLocal);
@@ -368,12 +393,15 @@ class KernelCapturedLoopScope extends KernelCapturedScope {
 class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
   final List<Local> boxedLoopVariables;
 
-  JsCapturedLoopScope.from(Map<Local, JRecordField> boxedVariables,
-      KernelCapturedLoopScope capturedScope, KernelToLocalsMap localsMap)
+  JsCapturedLoopScope.from(
+      Map<Local, JRecordField> boxedVariables,
+      KernelCapturedLoopScope capturedScope,
+      KernelToLocalsMap localsMap,
+      KernelToElementMap elementMap)
       : this.boxedLoopVariables = capturedScope.boxedLoopVariables
             .map(localsMap.getLocalVariable)
             .toList(),
-        super.from(boxedVariables, capturedScope, localsMap);
+        super.from(boxedVariables, capturedScope, localsMap, elementMap);
 
   bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 }
@@ -395,8 +423,9 @@ class KernelClosureClass extends JsScopeInfo
       KernelScopeInfo info,
       KernelToLocalsMap localsMap,
       this.closureEntity,
-      this.thisLocal)
-      : super.from(boxedVariables, info, localsMap);
+      this.thisLocal,
+      KernelToElementMap elementMap)
+      : super.from(boxedVariables, info, localsMap, elementMap);
 
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 
@@ -508,24 +537,35 @@ class ClosureClassDefinition implements ClassDefinition {
       'ClosureClassDefinition(kind:$kind,cls:$cls,location:$location)';
 }
 
-class ClosureMemberData implements MemberData {
+abstract class ClosureMemberData implements MemberData {
   final MemberDefinition definition;
+  final InterfaceType memberThisType;
 
-  ClosureMemberData(this.definition);
+  ClosureMemberData(this.definition, this.memberThisType);
 
   @override
   Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
     return const <ConstantValue>[];
+  }
+
+  @override
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+    return memberThisType;
   }
 }
 
 class ClosureFunctionData extends ClosureMemberData implements FunctionData {
   final FunctionType functionType;
   final ir.FunctionNode functionNode;
+  final ClassTypeVariableAccess classTypeVariableAccess;
 
   ClosureFunctionData(
-      ClosureMemberDefinition definition, this.functionType, this.functionNode)
-      : super(definition);
+      ClosureMemberDefinition definition,
+      InterfaceType memberThisType,
+      this.functionType,
+      this.functionNode,
+      this.classTypeVariableAccess)
+      : super(definition, memberThisType);
 
   void forEachParameter(KernelToElementMapForBuilding elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
@@ -559,7 +599,8 @@ class ClosureFunctionData extends ClosureMemberData implements FunctionData {
 }
 
 class ClosureFieldData extends ClosureMemberData implements FieldData {
-  ClosureFieldData(MemberDefinition definition) : super(definition);
+  ClosureFieldData(MemberDefinition definition, InterfaceType memberThisType)
+      : super(definition, memberThisType);
 
   @override
   DartType getFieldType(KernelToElementMap elementMap) {
@@ -594,6 +635,10 @@ class ClosureFieldData extends ClosureMemberData implements FieldData {
   ConstantValue getFieldConstantValue(KernelToElementMap elementMap) {
     return null;
   }
+
+  @override
+  ClassTypeVariableAccess get classTypeVariableAccess =>
+      ClassTypeVariableAccess.none;
 }
 
 class ClosureMemberDefinition implements MemberDefinition {
@@ -635,4 +680,20 @@ class ScopeModel {
   /// Collected [ScopeInfo] data for nodes.
   Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
       <ir.TreeNode, KernelScopeInfo>{};
+}
+
+/// A fake ir.Node that holds the TypeParameterType as well as the context in
+/// which it occurs.
+class TypeParameterTypeWithContext implements ir.Node {
+  final ir.Node memberContext;
+  final ir.TypeParameterType type;
+  TypeParameterTypeWithContext(this.type, this.memberContext);
+
+  accept(ir.Visitor v) {
+    throw new UnsupportedError('TypeParameterTypeWithContext.accept');
+  }
+
+  visitChildren(ir.Visitor v) {
+    throw new UnsupportedError('TypeParameterTypeWithContext.visitChildren');
+  }
 }

@@ -6,10 +6,11 @@
 library test;
 
 class B<T> {
-  void f(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {}
+  void f(T /*@covariance=genericInterface, genericImpl*/ x) {}
 }
 
-class /*@forwardingStub=abstract void f(int x)*/ C extends B<int> {}
+class /*@forwardingStub=abstract void f(covariance=(genericImpl) int x)*/ C
+    extends B<int> {}
 
 void g1(B<num> b) {
   b.f(1.5);

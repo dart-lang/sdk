@@ -986,14 +986,29 @@ class TimelinePage extends Page {
 class TimelineDashboardPage extends Page {
   TimelineDashboardPage(app) : super(app);
 
+  DivElement container = new DivElement();
+
   void onInstall() {
-    element = new TimelineDashboardElement(
-        app.vm, _timelineRepository, app.notifications,
-        queue: app.queue);
+    if (element == null) {
+      element = container;
+    }
   }
 
   void _visit(Uri uri) {
     assert(canVisit(uri));
+    app.vm.load().then((_) {
+      container.children = [
+        new TimelineDashboardElement(
+            app.vm, _timelineRepository, app.notifications,
+            queue: app.queue)
+      ];
+    });
+  }
+
+  @override
+  void onUninstall() {
+    super.onUninstall();
+    container.children = const [];
   }
 
   bool canVisit(Uri uri) => uri.path == 'timeline-dashboard';

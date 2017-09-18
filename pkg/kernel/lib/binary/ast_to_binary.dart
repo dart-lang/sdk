@@ -175,7 +175,7 @@ class BinaryPrinter extends Visitor {
   void writeCanonicalNameEntry(CanonicalName node) {
     var parent = node.parent;
     if (parent.isRoot) {
-      writeByte(0);
+      writeUInt30(0);
     } else {
       writeUInt30(parent.index + 1);
     }
@@ -270,7 +270,7 @@ class BinaryPrinter extends Visitor {
 
   void writeReference(Reference reference) {
     if (reference == null) {
-      writeByte(0);
+      writeUInt30(0);
     } else {
       CanonicalName name = reference.canonicalName;
       if (name == null) {
@@ -294,7 +294,7 @@ class BinaryPrinter extends Visitor {
 
   void writeCanonicalNameReference(CanonicalName name) {
     if (name == null) {
-      writeByte(0);
+      writeUInt30(0);
     } else {
       checkCanonicalName(name);
       writeUInt30(name.index + 1);
@@ -343,11 +343,12 @@ class BinaryPrinter extends Visitor {
     writeByte(insideExternalLibrary ? 1 : 0);
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
+    writeStringReference(node.documentationComment ?? '');
     // TODO(jensj): We save (almost) the same URI twice.
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
-    writeAdditionalExports(node);
+    writeAdditionalExports(node.additionalExports);
     writeLibraryParts(node);
     writeNodeList(node.typedefs);
     writeNodeList(node.classes);
@@ -367,9 +368,9 @@ class BinaryPrinter extends Visitor {
     }
   }
 
-  void writeAdditionalExports(Library library) {
-    writeUInt30(library.additionalExports.length);
-    for (Reference ref in library.additionalExports) {
+  void writeAdditionalExports(List<Reference> additionalExports) {
+    writeUInt30(additionalExports.length);
+    for (Reference ref in additionalExports) {
       writeReference(ref);
     }
   }
@@ -405,6 +406,7 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
     writeUriReference(node.fileUri ?? '');
+    writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.type);
@@ -1038,6 +1040,7 @@ class BinaryPrinter extends Visitor {
 
   visitIfStatement(IfStatement node) {
     writeByte(Tag.IfStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.condition);
     writeNode(node.then);
     writeStatementOrEmpty(node.otherwise);

@@ -10,14 +10,15 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/backend.dart' as js
     show JavaScriptBackend;
 import 'package:compiler/src/commandline_options.dart' show Flags;
+import 'package:js_ast/js_ast.dart' as jsAst;
 import 'package:test/test.dart';
 
+import '../equivalence/check_functions.dart';
 import '../memory_compiler.dart';
 
-Future<String> compile(String code,
+Future<jsAst.Expression> compile(String code,
     {dynamic lookup: 'main',
     bool useKernel: false,
-    bool useKernelInSsa: false,
     bool disableTypeInference: true,
     List<String> extraOptions: const <String>[]}) async {
   List<String> options = <String>[
@@ -25,7 +26,6 @@ Future<String> compile(String code,
   ];
   if (disableTypeInference) options.add(Flags.disableTypeInference);
   if (useKernel) options.add(Flags.useKernel);
-  if (useKernelInSsa) options.add(Flags.useKernelInSsa);
   options.addAll(extraOptions);
 
   if (lookup is String && lookup != 'main' && !code.contains('main')) {
@@ -45,7 +45,7 @@ Future<String> compile(String code,
     element = lookup(compiler);
   }
   js.JavaScriptBackend backend = compiler.backend;
-  return backend.getGeneratedCode(element);
+  return backend.generatedCode[element];
 }
 
 /// Checks that the given Dart [code] compiles to the same JS in kernel and
@@ -58,19 +58,15 @@ Future<String> compile(String code,
 Future check(String code,
     {dynamic lookup: 'main',
     bool disableTypeInference: true,
-    List<String> extraOptions: const <String>[],
-    // TODO(redemption): Remove the need for this.
-    bool useKernelInSsa: false}) async {
-  var original = await compile(code,
+    List<String> extraOptions: const <String>[]}) async {
+  jsAst.Expression original = await compile(code,
       lookup: lookup,
-      useKernelInSsa: false,
       disableTypeInference: disableTypeInference,
       extraOptions: extraOptions);
-  var kernel = await compile(code,
+  jsAst.Expression kernel = await compile(code,
       lookup: lookup,
-      useKernel: !useKernelInSsa,
-      useKernelInSsa: useKernelInSsa,
+      useKernel: true,
       disableTypeInference: disableTypeInference,
       extraOptions: extraOptions);
-  expect(kernel, original);
+  expect(areJsNodesEquivalent(original, kernel), isTrue);
 }

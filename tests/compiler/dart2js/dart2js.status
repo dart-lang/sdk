@@ -67,9 +67,10 @@ quarantined/http_test: Pass, Slow
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_invokes_test: Pass, Slow
 
-check_elements_invariants_test: Slow, Pass, Timeout # Slow due to inlining in the CPS backend
+check_elements_invariants_test: Skip # Times out even with Slow marker. Slow due to inlining in the CPS backend
 
 uri_retention_test: Fail # Issue 26504
+equivalence/id_equivalence_test: Pass, Slow
 
 [ ! $checked ]
 exit_code_test: Skip # This tests requires checked mode.

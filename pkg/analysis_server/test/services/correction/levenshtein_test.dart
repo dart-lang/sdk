@@ -43,16 +43,16 @@ class LevenshteinTest {
   void test_negativeThreshold() {
     expect(() {
       levenshtein('', '', -5);
-    }, throws);
+    }, throwsArgumentError);
   }
 
   void test_null() {
     expect(() {
       levenshtein('', null, 5);
-    }, throws);
+    }, throwsArgumentError);
     expect(() {
       levenshtein(null, '', 5);
-    }, throws);
+    }, throwsArgumentError);
   }
 
   void test_same() {

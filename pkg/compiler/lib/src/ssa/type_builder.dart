@@ -4,19 +4,40 @@
 
 import 'graph_builder.dart';
 import 'nodes.dart';
-import '../closure.dart';
 import '../common.dart';
-import '../types/types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
+import '../types/types.dart';
 import '../universe/use.dart' show TypeUse;
+
+/// Enum that defines how a member has access to the current type variables.
+enum ClassTypeVariableAccess {
+  /// The member has no access to type variables.
+  none,
+
+  /// Type variables are accessible as a property on `this`.
+  property,
+
+  /// Type variables are accessible as parameters in the current context.
+  parameter,
+
+  /// If the current context is a generative constructor, type variables are
+  /// accessible as parameters, otherwise type variables are accessible as
+  /// a property on `this`.
+  ///
+  /// This is used for instance fields whose initializers are executed in the
+  /// constructors.
+  // TODO(johnniwinther): Avoid the need for this by adding a field-setter
+  // to the J-model.
+  instanceField,
+}
 
 /// Functions to insert type checking, coercion, and instruction insertion
 /// depending on the environment for dart code.
-class TypeBuilder {
+abstract class TypeBuilder {
   final GraphBuilder builder;
   TypeBuilder(this.builder);
 
@@ -68,6 +89,8 @@ class TypeBuilder {
     return checkedOrTrusted;
   }
 
+  ClassTypeVariableAccess computeTypeVariableAccess(MemberEntity member);
+
   /// Helper to create an instruction that gets the value of a type variable.
   HInstruction addTypeVariableReference(
       TypeVariableType type, MemberEntity member,
@@ -77,57 +100,35 @@ class TypeBuilder {
       // GENERIC_METHODS:  We currently don't reify method type variables.
       return builder.graph.addConstantNull(builder.closedWorld);
     }
-    bool isClosure = member.enclosingClass.isClosure;
-    if (isClosure) {
-      ClosureClassElement closureClass = member.enclosingClass;
-      LocalFunctionElement localFunction = closureClass.methodElement;
-      member = localFunction.memberContext;
-    }
-    bool isInConstructorContext =
-        member.isConstructor || member is ConstructorBodyEntity;
     Local typeVariableLocal =
         builder.localsHandler.getTypeVariableAsLocal(type);
-    if (isClosure) {
-      if ((member is ConstructorEntity && member.isFactoryConstructor) ||
-          (isInConstructorContext &&
-              builder.hasDirectLocal(typeVariableLocal))) {
-        // The type variable is used from a closure in a factory constructor.
-        // The value of the type argument is stored as a local on the closure
-        // itself.
-        return builder.localsHandler
-            .readLocal(typeVariableLocal, sourceInformation: sourceInformation);
-      } else if (member.isFunction ||
-          member.isGetter ||
-          member.isSetter ||
-          isInConstructorContext) {
-        // The type variable is stored on the "enclosing object" and needs to be
-        // accessed using the this-reference in the closure.
+    ClassTypeVariableAccess typeVariableAccess =
+        computeTypeVariableAccess(member);
+    switch (typeVariableAccess) {
+      case ClassTypeVariableAccess.instanceField:
+        if (member != builder.targetElement) {
+          // When [member] is a field, we can either be generating a checked
+          // setter or inlining its initializer in a constructor. An initializer
+          // is never built standalone, so in that case [target] is not the
+          // [member] itself.
+          continue parameter;
+        }
+        continue property;
+      property:
+      case ClassTypeVariableAccess.property:
         return readTypeVariable(type, member,
             sourceInformation: sourceInformation);
-      } else {
-        assert(member.isField);
-        // The type variable is stored in a parameter of the method.
-        return builder.localsHandler.readLocal(typeVariableLocal);
-      }
-    } else if (isInConstructorContext ||
-        // When [member] is a field, we can be either
-        // generating a checked setter or inlining its
-        // initializer in a constructor. An initializer is
-        // never built standalone, so in that case [target] is not
-        // the [member] itself.
-        (member.isField && member != builder.targetElement)) {
-      // The type variable is stored in a parameter of the method.
-      return builder.localsHandler
-          .readLocal(typeVariableLocal, sourceInformation: sourceInformation);
-    } else if (member.isInstanceMember) {
-      // The type variable is stored on the object.
-      return readTypeVariable(type, member,
-          sourceInformation: sourceInformation);
-    } else {
-      builder.reporter.internalError(
-          type.element, 'Unexpected type variable in static context.');
-      return null;
+      parameter:
+      case ClassTypeVariableAccess.parameter:
+        return builder.localsHandler
+            .readLocal(typeVariableLocal, sourceInformation: sourceInformation);
+      case ClassTypeVariableAccess.none:
+        builder.reporter.internalError(
+            type.element, 'Unexpected type variable in static context.');
     }
+    builder.reporter.internalError(
+        type.element, 'Unexpected type variable access: $typeVariableAccess.');
+    return null;
   }
 
   /// Generate code to extract the type argument from the object.
@@ -168,11 +169,11 @@ class TypeBuilder {
     ClassEntity contextClass = DartTypes.getClassContext(type);
     assert(
         contextClass == null ||
-            contextClass == builder.localsHandler.contextClass,
+            contextClass == builder.localsHandler.instanceType?.element,
         failedAt(
             spannable ?? CURRENT_ELEMENT_SPANNABLE,
             "Type '$type' is not valid context of "
-            "${builder.localsHandler.contextClass}."));
+            "${builder.localsHandler.instanceType?.element}."));
     return true;
   }
 

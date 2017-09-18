@@ -1106,6 +1106,6 @@ class HighlightTypeTest {
   void test_valueOf_unknown() {
     expect(() {
       new HighlightRegionType('no-such-type');
-    }, throws);
+    }, throwsException);
   }
 }

@@ -13,9 +13,6 @@ template("build_libdart_platform") {
     configs += [ "..:dart_config" ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
-      deps = [
-        "//apps/tracing/lib/trace",
-      ]
     }
     public_configs = [ "../vm:libdart_vm_config" ]
 

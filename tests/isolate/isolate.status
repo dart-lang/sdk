@@ -35,24 +35,25 @@ cross_isolate_message_test: Skip # Issue 12627
 message_test: Skip # Issue 12627
 
 [ $compiler == dart2js ]
-spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
-spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
-spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
-issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
+browser/issue_12474_test: CompileTimeError # Issue 22529
+enum_const_test/02: RuntimeError # Issue 21817
+error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+error_exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+function_send1_test: SkipByDesign   # Test uses a ".dart" URI.
 issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
+issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 issue_24243_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
-function_send1_test: SkipByDesign   # Test uses a ".dart" URI.
-error_exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
-error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
-exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+kill_self_synchronously_test: SkipByDesign #  Unsupported operation: Platform._resolvedExecutable
+message3_test/constInstance: RuntimeError # Issue 21817
 message3_test/constList: RuntimeError # Issue 21817
 message3_test/constList_identical: RuntimeError # Issue 21817
 message3_test/constMap: RuntimeError  # Issue 21817
-message3_test/constInstance: RuntimeError # Issue 21817
-browser/issue_12474_test: CompileTimeError # Issue 22529
-enum_const_test/02: RuntimeError # Issue 21817
 non_fatal_exception_in_timer_callback_test: Skip # Issue 23876
+spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
+spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
+spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
 
 [ $compiler == dart2js && $runtime != d8 ]
 error_exit_at_spawn_test: Skip # Issue 23876
@@ -198,7 +199,6 @@ message3_test/int32x4: Crash
 message_test: RuntimeError
 ping_pause_test: Pass, Timeout
 spawn_function_custom_class_test: Pass, Timeout
-spawn_uri_exported_main_test: RuntimeError
 spawn_uri_nested_vm_test: Pass, Timeout
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]

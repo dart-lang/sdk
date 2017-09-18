@@ -420,6 +420,9 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
     case kName:
       name_index_ = builder_->ReadStringReference();  // read name index.
       if (++next_read_ == field) return;
+    case kDocumentation:
+      builder_->ReadStringReference();  // read documentation comment index.
+      if (++next_read_ == field) return;
     case kSourceUriIndex:
       source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
       builder_->current_script_id_ = source_uri_index_;
@@ -477,6 +480,42 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       for (intptr_t i = 0; i < procedure_count; ++i) {
         ProcedureHelper procedure_helper(builder_);
         procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
+      }
+      if (++next_read_ == field) return;
+    }
+    case kEnd:
+      return;
+  }
+}
+
+void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kFlags: {
+      flags_ = builder_->ReadFlags();
+      if (++next_read_ == field) return;
+    }
+    case kAnnotations: {
+      builder_->SkipListOfExpressions();
+      if (++next_read_ == field) return;
+    }
+    case kTargetLibrary: {
+      target_library_canonical_name_ = builder_->ReadCanonicalNameReference();
+      if (++next_read_ == field) return;
+    }
+    case kName: {
+      name_index_ = builder_->ReadStringReference();
+      if (++next_read_ == field) return;
+    }
+    case kCombinators: {
+      intptr_t count = builder_->ReadListLength();
+      for (intptr_t i = 0; i < count; ++i) {
+        // Skip flags
+        builder_->SkipBytes(1);
+        // Skip list of names.
+        builder_->SkipListOfStrings();
       }
       if (++next_read_ == field) return;
     }
@@ -1307,9 +1346,10 @@ void StreamingScopeBuilder::VisitStatement() {
       builder_->ReadUInt();      // read target_index.
       return;
     case kIfStatement:
-      VisitExpression();  // read condition.
-      VisitStatement();   // read then.
-      VisitStatement();   // read otherwise.
+      builder_->ReadPosition();  // read position.
+      VisitExpression();         // read condition.
+      VisitStatement();          // read then.
+      VisitStatement();          // read otherwise.
       return;
     case kReturnStatement: {
       if ((depth_.function_ == 0) && (depth_.finally_ > 0) &&
@@ -4525,6 +4565,7 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       ReadUInt();      // read target_index.
       return;
     case kIfStatement:
+      ReadPosition();    // read position.
       SkipExpression();  // read condition.
       SkipStatement();   // read then.
       SkipStatement();   // read otherwise.
@@ -4639,6 +4680,7 @@ void StreamingFlowGraphBuilder::SkipLibraryTypedef() {
   ReadPosition();                // read position.
   SkipStringReference();         // read name index.
   ReadUInt();                    // read source_uri_index.
+  SkipListOfExpressions();       // read annotations.
   SkipTypeParametersList();      // read type parameters.
   SkipDartType();                // read type.
 }
@@ -5315,6 +5357,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
+  Tag receiver_tag = PeekTag();               // peek tag for receiver.
   Fragment instructions = BuildExpression();  // read receiver.
   NameIndex kernel_name =
       ReadCanonicalNameReference();  // read target_reference.
@@ -5323,14 +5366,24 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   if (H.IsProcedure(kernel_name)) {
     if (H.IsGetter(kernel_name)) {
       target = LookupMethodByMember(kernel_name, H.DartGetterName(kernel_name));
-    } else {
+    } else if (receiver_tag == kThisExpression) {
       // Undo stack change for the BuildExpression.
       Pop();
 
       target = LookupMethodByMember(kernel_name, H.DartMethodName(kernel_name));
       target = target.ImplicitClosureFunction();
       ASSERT(!target.IsNull());
+
+      // Generate inline code for allocating closure object with context which
+      // captures `this`.
       return BuildImplicitClosureCreation(target);
+    } else {
+      // Need to create implicit closure (tear-off), receiver != this.
+      // Ensure method extractor exists and call it directly.
+      const Function& target_method = Function::ZoneHandle(
+          Z, LookupMethodByMember(kernel_name, H.DartMethodName(kernel_name)));
+      const String& getter_name = H.DartGetterName(kernel_name);
+      target = target_method.GetMethodExtractor(getter_name);
     }
   } else {
     ASSERT(H.IsField(kernel_name));
@@ -6929,6 +6982,7 @@ Fragment StreamingFlowGraphBuilder::BuildContinueSwitchStatement() {
 
 Fragment StreamingFlowGraphBuilder::BuildIfStatement() {
   bool negate;
+  ReadPosition();                                       // read position.
   Fragment instructions = TranslateCondition(&negate);  // read condition.
   TargetEntryInstr* then_entry;
   TargetEntryInstr* otherwise_entry;

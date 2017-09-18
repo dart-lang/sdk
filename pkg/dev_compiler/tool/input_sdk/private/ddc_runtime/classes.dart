@@ -219,7 +219,7 @@ bool isJsInterop(obj) {
   // Extension types are not considered JS interop types.
   // Note that it is still possible to call typed JS interop methods on
   // extension types but the calls must be statically typed.
-  if (getExtensionType(obj) != null) return false;
+  if (JS('bool', '#[#] != null', obj, _extensionType)) return false;
   return JS('bool', '!($obj instanceof $Object)');
 }
 
@@ -386,9 +386,6 @@ bool hasField(type, name) => _hasSigEntry(type, _fieldSig, name);
 
 final _extensionType = JS('', 'Symbol("extensionType")');
 
-/// This assumes that obj is not null
-getExtensionType(obj) => JS('', '#[#]', obj, _extensionType);
-
 final dartx = JS('', 'dartx');
 
 /// Install properties in prototype-first order.  Properties / descriptors from
@@ -553,16 +550,6 @@ setExtensionBaseClass(dartType, jsType) {
   var dartProto = JS('', '#.prototype', dartType);
   JS('', '#[#] = #', dartProto, _extensionType, dartType);
   JS('', '#.__proto__ = #.prototype', dartProto, jsType);
-}
-
-defineEnumValues(enumClass, names) {
-  var values = [];
-  for (var i = 0; i < JS('int', '#.length', names); i++) {
-    var value = const_(JS('', 'new #.new(#)', enumClass, i));
-    JS('', '#.push(#)', values, value);
-    defineValue(enumClass, JS('', '#[#]', names, i), value);
-  }
-  JS('', '#.values = #', enumClass, constList(values, enumClass));
 }
 
 /// Adds type test predicates to a class/interface type [ctor], using the

@@ -365,6 +365,7 @@ class Assembler : public ValueObject {
 
   ~Assembler() {}
 
+  void PushRegister(Register r) { Push(r); }
   void PopRegister(Register r) { Pop(r); }
 
   void Bind(Label* label);
@@ -405,6 +406,7 @@ class Assembler : public ValueObject {
   }
 
   // Debugging and bringup support.
+  void Breakpoint() { bkpt(0); }
   void Stop(const char* message);
   void Unimplemented(const char* message);
   void Untested(const char* message);
@@ -904,6 +906,9 @@ class Assembler : public ValueObject {
 
   void PushList(RegList regs, Condition cond = AL);
   void PopList(RegList regs, Condition cond = AL);
+
+  void CompareRegisters(Register rn, Register rm) { cmp(rn, Operand(rm)); }
+  void BranchIf(Condition condition, Label* label) { b(label, condition); }
 
   void MoveRegister(Register rd, Register rm, Condition cond = AL);
 

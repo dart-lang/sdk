@@ -10,9 +10,8 @@ typedef void F<T>(T x);
 typedef U G<T, U>(T x);
 
 class C<T> {
-  void f1(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {}
-  T f2(List<T> /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) =>
-      x.first;
+  void f1(T /*@covariance=genericInterface, genericImpl*/ x) {}
+  T f2(List<T> /*@covariance=genericInterface, genericImpl*/ x) => x.first;
 }
 
 F<num> g1(C<num> c) {

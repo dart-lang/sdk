@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+html/*: Skip # dart:html will be a problem in the VM
+
 [ $runtime == vm && $system == fuchsia ]
 async/first_regression_test: RuntimeError
 async/future_timeout_test: RuntimeError
@@ -9,6 +11,17 @@ async/schedule_microtask2_test: RuntimeError
 async/schedule_microtask3_test: RuntimeError
 async/schedule_microtask5_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
+async/stream_first_where_test: RuntimeError
+async/stream_from_iterable_test: RuntimeError
+async/stream_iterator_test: RuntimeError
+async/stream_join_test: RuntimeError
+async/stream_last_where_test: RuntimeError
+async/stream_periodic2_test: RuntimeError
+async/stream_periodic3_test: RuntimeError
+async/stream_periodic4_test: RuntimeError
+async/stream_periodic5_test: RuntimeError
+async/stream_periodic6_test: RuntimeError
+async/stream_periodic_test: RuntimeError
 async/stream_transform_test: RuntimeError
 async/stream_transformation_broadcast_test: RuntimeError
 async/stream_state_test: RuntimeError
@@ -33,8 +46,18 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 [ $runtime == vm ]
 async/stream_timeout_test: RuntimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
+js/datetime_roundtrip_test: CompileTimeError
+js/null_test: CompileTimeError
 mirrors/deferred_type_test: CompileTimeError
+mirrors/generic_bounded_test/01: MissingCompileTimeError
+mirrors/generic_bounded_test/02: MissingCompileTimeError
+mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
+mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
+mirrors/native_class_test: SkipByDesign # Imports dart:html
+
+[ $runtime == vm && !$checked ]
+mirrors/inference_and_no_such_method_test: RuntimeError
 
 [ $runtime == vm && $mode == debug && $arch == ia32 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
@@ -50,3 +73,6 @@ convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 
 [ $runtime == vm && $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
+
+[ $runtime == vm && $compiler != dartk && $compiler != dartkp ]
+mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21

@@ -371,13 +371,15 @@ class ComputeSpannableMixin {
         : _spanFromTokens(currentElement, position, position, uri);
   }
 
-  SourceSpan spanFromSpannable(Spannable node, Entity currentElement) {
-    if (node is Node) {
-      return _spanFromNode(currentElement, node);
-    } else if (node is Element) {
-      return _spanFromElement(currentElement, node);
-    } else if (node is MetadataAnnotation) {
-      return node.sourcePosition;
+  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
+    if (spannable is Node) {
+      return _spanFromNode(currentElement, spannable);
+    } else if (spannable is Element) {
+      return _spanFromElement(currentElement, spannable);
+    } else if (spannable is MetadataAnnotation) {
+      return spannable.sourcePosition;
+    } else if (spannable is LocalVariable) {
+      return spanFromSpannable(spannable.executableContext, currentElement);
     }
     return null;
   }

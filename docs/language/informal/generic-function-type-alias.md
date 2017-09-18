@@ -132,13 +132,15 @@ parameterTypeList: // NEW
 normalParameterTypes: // NEW
   normalParameterType (',' normalParameterType)*
 normalParameterType: // NEW
-  type | typedIdentifier
+  metadata (type | typedIdentifier)
 optionalParameterTypes: // NEW
   optionalPositionalParameterTypes | namedParameterTypes
 optionalPositionalParameterTypes: // NEW
   '[' normalParameterTypes ','? ']'
 namedParameterTypes: // NEW
-  '{' typedIdentifier (',' typedIdentifier)* ','? '}'
+  '{' namedParameterType (',' namedParameterType)* ','? '}'
+namedParameterType: // NEW
+  metadata typedIdentifier
 typedIdentifier: // NEW
   type identifier
 type: // CHANGED

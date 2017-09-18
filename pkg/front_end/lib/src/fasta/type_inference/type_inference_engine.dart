@@ -6,6 +6,7 @@ import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
+import 'package:front_end/src/fasta/type_inference/covariance_propagator.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
@@ -16,9 +17,7 @@ import 'package:kernel/ast.dart'
         DartTypeVisitor,
         DynamicType,
         Field,
-        FormalSafety,
         FunctionType,
-        InterfaceSafety,
         InterfaceType,
         Location,
         Member,
@@ -327,20 +326,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   @override
   void computeFormalSafety(Class cls) {
-    // First mark all covariant formals as unsafe.
-    // TODO(paulberry): also handle fields
-    for (ShadowProcedure procedure in cls.procedures) {
-      if (procedure.isStatic) continue;
-      void setSafety(VariableDeclaration formal) {
-        if (formal.isCovariant) {
-          formal.formalSafety = FormalSafety.unsafe;
-        }
-      }
-
-      procedure.function.positionalParameters.forEach(setSafety);
-      procedure.function.namedParameters.forEach(setSafety);
-    }
-
     // If any method in the class has a formal parameter whose type depends on
     // one of the class's type parameters, then there may be a mismatch between
     // the type guarantee made by the caller and the type guarantee expected by
@@ -397,23 +382,20 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     if (cls.typeParameters.isNotEmpty) {
       var needsCheckVisitor =
           new IncludesTypeParametersCovariantly(cls.typeParameters);
-      // TODO(paulberry): also handle fields
-      for (ShadowProcedure procedure in cls.procedures) {
+      for (var procedure in cls.procedures) {
         if (procedure.isStatic) continue;
 
         void handleParameter(VariableDeclaration formal) {
           if (formal.type.accept(needsCheckVisitor)) {
-            if (formal.formalSafety == FormalSafety.safe) {
-              formal.formalSafety = FormalSafety.semiSafe;
-            }
-            formal.interfaceSafety = InterfaceSafety.semiTyped;
+            formal.isGenericCovariantImpl = true;
+            formal.isGenericCovariantInterface = true;
           }
         }
 
         void handleTypeParameter(TypeParameter typeParameter) {
           if (typeParameter.bound.accept(needsCheckVisitor)) {
-            typeParameter.formalSafety = FormalSafety.semiSafe;
-            typeParameter.interfaceSafety = InterfaceSafety.semiTyped;
+            typeParameter.isGenericCovariantImpl = true;
+            typeParameter.isGenericCovariantInterface = true;
           }
         }
 
@@ -421,109 +403,18 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         procedure.function.namedParameters.forEach(handleParameter);
         procedure.function.typeParameters.forEach(handleTypeParameter);
       }
+      for (var field in cls.fields) {
+        if (field.isStatic) continue;
+
+        if (field.type.accept(needsCheckVisitor)) {
+          field.isGenericCovariantImpl = true;
+          field.isGenericCovariantInterface = true;
+        }
+      }
     }
 
     // Now, propagate formal safety from overrides.
-    void propagateParameterSafety(VariableDeclaration declaredFormal,
-        VariableDeclaration interfaceFormal) {
-      if (interfaceFormal.formalSafety.index >
-          declaredFormal.formalSafety.index) {
-        declaredFormal.formalSafety = interfaceFormal.formalSafety;
-      }
-      if (interfaceFormal.isCovariant) {
-        declaredFormal.isCovariant = true;
-      }
-    }
-
-    void propagateTypeParameterSafety(TypeParameter declaredTypeParameter,
-        TypeParameter interfaceTypeParameter) {
-      if (interfaceTypeParameter.formalSafety.index >
-          declaredTypeParameter.formalSafety.index) {
-        declaredTypeParameter.formalSafety =
-            interfaceTypeParameter.formalSafety;
-      }
-    }
-
-    classHierarchy.forEachOverridePair(cls,
-        (Member declaredMember, Member interfaceMember, bool isSetter) {
-      if (!identical(declaredMember.enclosingClass, cls)) return;
-      if (declaredMember.function == null || interfaceMember.function == null) {
-        // TODO(paulberry): handle the case where declaredMember or
-        // interfaceMember is a field.
-        return;
-      }
-      for (int i = 0;
-          i < declaredMember.function.positionalParameters.length &&
-              i < interfaceMember.function.positionalParameters.length;
-          i++) {
-        propagateParameterSafety(
-            declaredMember.function.positionalParameters[i],
-            interfaceMember.function.positionalParameters[i]);
-      }
-      for (var namedParameter in declaredMember.function.namedParameters) {
-        var overriddenParameter =
-            getNamedFormal(interfaceMember.function, namedParameter.name);
-        if (overriddenParameter != null) {
-          propagateParameterSafety(namedParameter, overriddenParameter);
-        }
-      }
-      for (int i = 0;
-          i < declaredMember.function.typeParameters.length &&
-              i < interfaceMember.function.typeParameters.length;
-          i++) {
-        propagateTypeParameterSafety(declaredMember.function.typeParameters[i],
-            interfaceMember.function.typeParameters[i]);
-      }
-    });
-
-    if (instrumentation != null) {
-      // TODO(paulberry): also handle fields
-      for (ShadowProcedure procedure in cls.procedures) {
-        if (procedure.isStatic) continue;
-        void recordFormalAnnotations(VariableDeclaration formal) {
-          if (formal.interfaceSafety != InterfaceSafety.typed) {
-            instrumentation.record(Uri.parse(cls.fileUri), formal.fileOffset,
-                'checkInterface', new InstrumentationValueLiteral('semiTyped'));
-          }
-          if (formal.formalSafety != FormalSafety.safe) {
-            instrumentation.record(
-                Uri.parse(cls.fileUri),
-                formal.fileOffset,
-                'checkFormal',
-                new InstrumentationValueLiteral(
-                    formal.formalSafety == FormalSafety.unsafe
-                        ? 'unsafe'
-                        : 'semiSafe'));
-          }
-        }
-
-        void recordTypeParameterAnnotations(TypeParameter typeParameter) {
-          if (typeParameter.interfaceSafety != InterfaceSafety.typed) {
-            instrumentation.record(
-                Uri.parse(cls.fileUri),
-                typeParameter.fileOffset,
-                'checkInterface',
-                new InstrumentationValueLiteral('semiTyped'));
-          }
-          if (typeParameter.formalSafety != FormalSafety.safe) {
-            instrumentation.record(
-                Uri.parse(cls.fileUri),
-                typeParameter.fileOffset,
-                'checkFormal',
-                new InstrumentationValueLiteral(
-                    typeParameter.formalSafety == FormalSafety.unsafe
-                        ? 'unsafe'
-                        : 'semiSafe'));
-          }
-        }
-
-        procedure.function.positionalParameters
-            .forEach(recordFormalAnnotations);
-        procedure.function.namedParameters.forEach(recordFormalAnnotations);
-        procedure.function.typeParameters
-            .forEach(recordTypeParameterAnnotations);
-      }
-    }
+    new CovariancePropagator(classHierarchy, cls, instrumentation).run();
   }
 
   /// Creates an [AccessorNode] to track dependencies of the given [member].

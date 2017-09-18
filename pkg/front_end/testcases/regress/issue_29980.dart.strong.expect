@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29980.dart:6:3: Error: Invalid type prefix: Instance of 'UnresolvedAccessor'.\n  x.y z;\n  ^"]/* from null */;
+static method main() → dynamic {
+  invalid-type z;
+}

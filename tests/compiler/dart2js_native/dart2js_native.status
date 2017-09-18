@@ -134,37 +134,19 @@ native_wrapping_function3_frog_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 bound_closure_super_test: RuntimeError
-bound_closure_test: RuntimeError
-compute_this_script_test: Crash
+compute_this_script_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/types.dart': Failed assertion: line 63 pos 12: '!result.isEmpty': is not true.
 core_type_check_native_test: RuntimeError
-event_loop_test: Crash
 fake_thing_test: RuntimeError
-internal_library_test: Crash
-is_check_test: CompileTimeError
-load_elim_refinement_test: CompileTimeError
-mirror_intercepted_field_test: CompileTimeError
-native_class_inheritance1_frog_test: RuntimeError
-native_class_inheritance2_frog_test: RuntimeError
-native_class_inheritance3_frog_test: RuntimeError
-native_exceptions1_frog_test: Crash
+mirror_intercepted_field_test: RuntimeError
+native_exceptions1_frog_test: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
 native_library_same_name_used_frog_test: CompileTimeError
-native_method_inlining_test: Crash
-native_mirror_test: Crash
-native_mixin_field_test: RuntimeError
-native_named_constructors2_frog_test: CompileTimeError
-native_named_constructors3_frog_test: CompileTimeError
-native_no_such_method_exception3_frog_test: Crash
-native_no_such_method_exception4_frog_test: Crash
-native_no_such_method_exception5_frog_test: Crash
-native_property_frog_test: CompileTimeError
-native_wrapping_function3_frog_test: RuntimeError
-optimization_hints_test: Crash
 native_method_inlining_test: RuntimeError
-native_no_such_method_exception3_frog_test: RuntimeError
+native_mirror_test: RuntimeError
+native_mixin_field_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
+native_property_frog_test: CompileTimeError
 optimization_hints_test: RuntimeError
-runtimetype_test: CompileTimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_constructor_2_test: RuntimeError
 subclassing_super_call_test: RuntimeError
@@ -173,36 +155,17 @@ subclassing_super_field_2_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 bound_closure_super_test: RuntimeError
-bound_closure_test: RuntimeError
 core_type_check_native_test: RuntimeError
-event_loop_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 fake_thing_test: RuntimeError
-internal_library_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-is_check_test: CompileTimeError
-load_elim_refinement_test: CompileTimeError
-mirror_intercepted_field_test: CompileTimeError
-native_class_inheritance1_frog_test: RuntimeError
-native_class_inheritance2_frog_test: RuntimeError
-native_class_inheritance3_frog_test: RuntimeError
-native_exceptions1_frog_test: CompileTimeError
+mirror_intercepted_field_test: RuntimeError
 native_library_same_name_used_frog_test: CompileTimeError
-native_method_inlining_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
-native_mirror_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-native_mixin_field_test: RuntimeError
-native_named_constructors2_frog_test: CompileTimeError
-native_named_constructors3_frog_test: CompileTimeError
-native_no_such_method_exception3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_no_such_method_exception4_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_no_such_method_exception5_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_property_frog_test: CompileTimeError
-native_wrapping_function3_frog_test: RuntimeError
-optimization_hints_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 native_method_inlining_test: RuntimeError
-native_no_such_method_exception3_frog_test: RuntimeError
+native_mirror_test: RuntimeError
+native_mixin_field_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
+native_property_frog_test: CompileTimeError
 optimization_hints_test: RuntimeError
-runtimetype_test: CompileTimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_constructor_2_test: RuntimeError
 subclassing_super_call_test: RuntimeError

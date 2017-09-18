@@ -26,7 +26,7 @@ void computeMemberAstTypeMasks(
   ResolvedAst resolvedAst = member.resolvedAst;
   if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
   compiler.reporter.withCurrentElement(member.implementation, () {
-    new TypeMaskComputer(compiler.reporter, actualMap, resolvedAst,
+    new TypeMaskAstComputer(compiler.reporter, actualMap, resolvedAst,
             compiler.globalInference.results)
         .run();
   });
@@ -54,13 +54,13 @@ abstract class ComputeValueMixin<T> {
 }
 
 /// AST visitor for computing inference data for a member.
-class TypeMaskComputer extends AstDataExtractor
+class TypeMaskAstComputer extends AstDataExtractor
     with ComputeValueMixin<ast.Node> {
   final GlobalTypeInferenceResults<ast.Node> results;
   final GlobalTypeInferenceElementResult<ast.Node> result;
 
-  TypeMaskComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
-      ResolvedAst resolvedAst, this.results)
+  TypeMaskAstComputer(DiagnosticReporter reporter,
+      Map<Id, ActualData> actualMap, ResolvedAst resolvedAst, this.results)
       : result = results.resultOfMember(resolvedAst.element as MemberElement),
         super(reporter, actualMap, resolvedAst);
 
@@ -82,6 +82,8 @@ class TypeMaskComputer extends AstDataExtractor
   String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
     if (element != null && element.isLocal && element.isFunction) {
       return computeElementValue(id, element);
+    } else if (element != null && element.isParameter) {
+      return computeElementValue(id, element);
     } else if (node is ast.SendSet) {
       if (id.kind == IdKind.invoke) {
         return getTypeMaskValue(result.typeOfOperator(node));
@@ -92,6 +94,14 @@ class TypeMaskComputer extends AstDataExtractor
       }
     } else if (node is ast.Send) {
       return getTypeMaskValue(result.typeOfSend(node));
+    } else if (node is ast.ForIn) {
+      if (id.kind == IdKind.iterator) {
+        return getTypeMaskValue(result.typeOfIterator(node));
+      } else if (id.kind == IdKind.current) {
+        return getTypeMaskValue(result.typeOfIteratorCurrent(node));
+      } else if (id.kind == IdKind.moveNext) {
+        return getTypeMaskValue(result.typeOfIteratorMoveNext(node));
+      }
     }
     return null;
   }
@@ -154,6 +164,14 @@ class TypeMaskIrComputer extends IrDataExtractor
       return getMemberValue(info.callMethod);
     } else if (node is ir.MethodInvocation) {
       return getTypeMaskValue(result.typeOfSend(node));
+    } else if (node is ir.ForInStatement) {
+      if (id.kind == IdKind.iterator) {
+        return getTypeMaskValue(result.typeOfIterator(node));
+      } else if (id.kind == IdKind.current) {
+        return getTypeMaskValue(result.typeOfIteratorCurrent(node));
+      } else if (id.kind == IdKind.moveNext) {
+        return getTypeMaskValue(result.typeOfIteratorMoveNext(node));
+      }
     }
     return null;
   }

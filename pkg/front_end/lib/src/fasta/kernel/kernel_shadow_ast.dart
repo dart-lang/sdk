@@ -25,6 +25,7 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     hide InvalidExpression, InvalidInitializer, InvalidStatement;
 import 'package:kernel/frontend/accessors.dart';
@@ -526,7 +527,8 @@ class ShadowConstructorInvocation extends ConstructorInvocation
         fileOffset,
         _initialTarget.function.functionType,
         computeConstructorReturnType(_initialTarget),
-        arguments);
+        arguments,
+        isConst: isConst);
     inferrer.listener.constructorInvocationExit(this, inferredType);
     return inferredType;
   }
@@ -839,8 +841,14 @@ class ShadowFunctionDeclaration extends FunctionDeclaration
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.functionDeclarationEnter(this);
-    inferrer.inferLocalFunction(function, null, false, fileOffset,
-        _hasImplicitReturnType ? null : function.returnType);
+    inferrer.inferLocalFunction(
+        function,
+        null,
+        false,
+        fileOffset,
+        _hasImplicitReturnType
+            ? (inferrer.strongMode ? null : const DynamicType())
+            : function.returnType);
     variable.type = function.functionType;
     inferrer.listener.functionDeclarationExit(this);
   }
@@ -1151,7 +1159,8 @@ class ShadowListLiteral extends ListLiteral implements ShadowExpression {
     if (inferenceNeeded) {
       inferredTypes = [const UnknownType()];
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(listType,
-          listClass.typeParameters, null, null, typeContext, inferredTypes);
+          listClass.typeParameters, null, null, typeContext, inferredTypes,
+          isConst: isConst);
       inferredTypeArgument = inferredTypes[0];
       formalTypes = [];
       actualTypes = [];
@@ -1259,7 +1268,8 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
     if (inferenceNeeded) {
       inferredTypes = [const UnknownType(), const UnknownType()];
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(mapType,
-          mapClass.typeParameters, null, null, typeContext, inferredTypes);
+          mapClass.typeParameters, null, null, typeContext, inferredTypes,
+          isConst: isConst);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
       formalTypes = [];
@@ -1339,7 +1349,9 @@ abstract class ShadowMember implements Member {
     if (member._accessorNode != null) {
       member._accessorNode.overrides.add(overriddenMember);
     }
-    if (member is ShadowProcedure && member._methodNode != null) {
+    if (member is ShadowProcedure &&
+        overriddenMember is Procedure &&
+        member._methodNode != null) {
       member._methodNode.overrides.add(overriddenMember);
     }
   }
@@ -2245,7 +2257,7 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
 /// objects.
 class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
-  final typePromoter = new ShadowTypePromoter();
+  final typePromoter;
 
   ShadowTypeInferrer._(
       ShadowTypeInferenceEngine engine,
@@ -2254,7 +2266,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
       bool topLevel,
       InterfaceType thisType,
       AccessorNode accessorNode)
-      : super(engine, uri, listener, topLevel, thisType, accessorNode);
+      : typePromoter = new ShadowTypePromoter(engine.typeSchemaEnvironment),
+        super(engine, uri, listener, topLevel, thisType, accessorNode);
 
   @override
   Expression getFieldInitializer(ShadowField field) {
@@ -2345,6 +2358,9 @@ class ShadowTypeLiteral extends TypeLiteral implements ShadowExpression {
 /// Concrete implementation of [TypePromoter] specialized to work with kernel
 /// objects.
 class ShadowTypePromoter extends TypePromoterImpl {
+  ShadowTypePromoter(TypeSchemaEnvironment typeSchemaEnvironment)
+      : super(typeSchemaEnvironment);
+
   @override
   int getVariableFunctionNestingLevel(VariableDeclaration variable) {
     if (variable is ShadowVariableDeclaration) {

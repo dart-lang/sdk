@@ -91,12 +91,23 @@ class EntrySet {
   /// Returns true if successful or false if the header's condition doesn't fit
   /// into a single status file and needs to be manually split by the user.
   bool add(String fromFile, String fromDir, String header, String entry) {
-    var toDir = toTwoDirectory(fromDir);
+    var toDir;
+
+    // Since we're migrating isolate and html directories into lib_2 instead of
+    // isolate_2 and html_2, the status file entries are moved from
+    // {isolate,html}.status -> lib_2_*.status. This checks to see if we're
+    // handling these special directories and sets the 'to directory' to lib_2
+    // instead of isolate_2 or html_2.
+    if ((fromDir == "isolate") || (fromDir == "html")) {
+      toDir = "lib_2";
+      entry = p.join(fromDir, entry);
+    } else {
+      toDir = toTwoDirectory(fromDir);
+    }
 
     // Figure out which status file it goes into.
     var possibleFiles = filesForHeader(header);
     var destination = "$toDir.status";
-
     if (possibleFiles.length > 1) {
       // The condition matches multiple files, so the user is going to have to
       // manually split it up into multiple sections first.
@@ -119,8 +130,8 @@ class EntrySet {
     }
 
     var sections = _files.putIfAbsent(p.join(toDir, destination), () => {});
-
     var entries = sections.putIfAbsent(header, () => []);
+
     entries.add(entry);
     return true;
   }

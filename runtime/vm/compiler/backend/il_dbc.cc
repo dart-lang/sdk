@@ -54,6 +54,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 #define FOR_EACH_UNREACHABLE_INSTRUCTION(M)                                    \
   M(CaseInsensitiveCompareUC16)                                                \
   M(GenericCheckBound)                                                         \
+  M(CheckNull)                                                                 \
   M(IndirectGoto)                                                              \
   M(MintToDouble)                                                              \
   M(BinaryInt64Op)                                                             \

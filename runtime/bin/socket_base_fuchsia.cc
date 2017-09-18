@@ -7,7 +7,7 @@
 
 #include "bin/socket_base.h"
 
-// TODO(MG-766): If/when Fuchsia adds getifaddrs(), use that instead of the
+// TODO(ZX-766): If/when Fuchsia adds getifaddrs(), use that instead of the
 // ioctl in netconfig.h.
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT

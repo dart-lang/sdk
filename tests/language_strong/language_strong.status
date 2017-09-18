@@ -10,8 +10,6 @@
 [ $strong ]
 async_or_generator_return_type_stacktrace_test: Skip
 async_return_types_test: Skip
-await_backwards_compatibility_test: Skip
-await_test: Skip
 bad_constructor_test: Skip
 bad_initializer1_negative_test: Skip
 bad_initializer2_negative_test: Skip
@@ -52,6 +50,16 @@ const_list_test: Skip
 const_map2_test: Skip
 const_map3_test: Skip
 const_map4_test: Skip
+constructor_name_test: Skip
+constructor_named_arguments_test: Skip
+constructor_redirect1_negative_test: Skip
+constructor_redirect2_negative_test: Skip
+constructor_redirect2_test: Skip
+constructor_redirect_test: Skip
+constructor_return_test: Skip
+constructor_setter_negative_test: Skip
+constructor_test: Skip
+constructor_with_mixin_test: Skip
 const_native_factory_test: Skip
 const_objects_are_immutable_test: Skip
 const_optional_args_negative_test: Skip
@@ -72,40 +80,9 @@ constructor_call_wrong_argument_count_negative_test: Skip
 constructor_duplicate_final_test: Skip
 constructor_duplicate_initializers_test: Skip
 constructor_initializer_test: Skip
-constructor_name_test: Skip
-constructor_named_arguments_test: Skip
-constructor_redirect1_negative_test: Skip
-constructor_redirect2_negative_test: Skip
-constructor_redirect2_test: Skip
-constructor_redirect_test: Skip
-constructor_return_test: Skip
-constructor_setter_negative_test: Skip
-constructor_test: Skip
-constructor_with_mixin_test: Skip
 crash_6725_test: Skip
 create_unresolved_type_test: Skip
 ct_const_test: Skip
-cyclic_class_member_test: Skip
-cyclic_constructor_test: Skip
-cyclic_default_values_test: Skip
-cyclic_import_test: Skip
-cyclic_type_variable_test: Skip
-cyclic_typedef_test: Skip
-default_factory2_test: Skip
-default_factory_library_test: Skip
-default_factory_test: Skip
-deferred_constraints_constants_test: Skip
-deferred_constraints_constants_test_default: Skip
-deferred_constraints_constants_test: Skip
-deferred_constraints_type_annotation_test: Skip
-deferred_duplicate_prefix1_test: Skip
-deferred_duplicate_prefix2_test: Skip
-deferred_duplicate_prefix3_test: Skip
-deferred_global_test: Skip
-deferred_inheritance_constraints_test: Skip
-deferred_inheritance_constraints_test_redirecting: Skip
-deferred_load_constants_test: Skip
-deferred_no_prefix_test: Skip
 deopt_inlined_function_test: Skip
 double_to_string_as_exponential2_test: Skip
 double_to_string_as_fixed2_test: Skip
@@ -231,20 +208,6 @@ isnot_malformed_type_test: Skip
 issue11724_test: Skip
 issue11793_test: Skip
 issue13474_test: Skip
-issue1363_test: Skip
-issue15606_test: Skip
-issue1578_negative_test: Skip
-issue18628_1_test: Skip
-issue18628_2_test: Skip
-issue21159_test: Skip
-issue3806_test: Skip
-keyword_type_expression_test: Skip
-label2_negative_test: Skip
-label3_negative_test: Skip
-label5_negative_test: Skip
-label6_negative_test: Skip
-label8_negative_test: Skip
-label_test: Skip
 least_upper_bound_expansive_test: Skip
 least_upper_bound_test: Skip
 library_ambiguous_test: Skip
@@ -338,8 +301,6 @@ named_parameters2_test: Skip
 named_parameters3_test: Skip
 named_parameters4_test: Skip
 named_parameters_aggregated_test: Skip
-named_parameters_test: Skip
-named_parameters_type_test: Skip
 naming3_test: Skip
 naming_test: Skip
 new_expression1_negative_test: Skip
@@ -460,24 +421,6 @@ setter_override2_test: Skip
 setter_override_test: Skip
 source_self_negative_test: Skip
 static_call_wrong_argument_count_negative_test: Skip
-static_field1_test: Skip
-static_field1a_test: Skip
-static_field2_test: Skip
-static_field2a_test: Skip
-static_field3_test: Skip
-static_field_test: Skip
-static_final_field2_test: Skip
-static_getter_no_setter1_test: Skip
-static_getter_no_setter2_test: Skip
-static_getter_no_setter3_test: Skip
-static_initializer_type_error_test: Skip
-static_parameter_test: Skip
-static_setter_get_test: Skip
-static_top_level_test: Skip
-string_escape4_negative_test: Skip
-string_interpolate1_negative_test: Skip
-string_interpolate2_negative_test: Skip
-string_interpolate_test: Skip
 string_interpolation1_negative_test: Skip
 string_interpolation2_negative_test: Skip
 string_interpolation3_negative_test: Skip
@@ -560,8 +503,6 @@ type_variable_conflict2_test: Skip
 type_variable_conflict_test: Skip
 type_variable_function_type_test: Skip
 type_variable_identifier_expression_test: Skip
-void_type_test: Skip
-wrong_number_type_arguments_test: Skip
 
 [ $compiler == dart2analyzer && $strong ]
 # async_await_test/02: CompileTimeError # Issue 28823
@@ -578,7 +519,6 @@ bit_operations_test/02: MissingStaticWarning # Issue 28823
 bit_operations_test/03: MissingStaticWarning # Issue 28823
 bit_operations_test/04: MissingStaticWarning # Issue 28823
 # closure_side_effect_test: CompileTimeError # Issue 28823
-constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 field3a_negative_test: StaticWarning # Issue 28823
 interface_inherit_field_test: StaticWarning # Issue 28823
 internal_library_test/02: MissingStaticWarning # Issue 28823
@@ -593,7 +533,6 @@ try_catch5_test: StaticWarning # Issue 28823
 
 [ $compiler == dartdevc ]
 regress_23089_test: CompileTimeError # Issue 29920
-constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 export_private_test/01: MissingCompileTimeError # Issue 29920
 internal_library_test/01: MissingCompileTimeError # Issue 29920
@@ -606,8 +545,7 @@ async_star_test/03: RuntimeError # Issue 28969
 async_star_test/04: RuntimeError # Issue 28969
 async_star_test/05: RuntimeError # Issue 28969
 async_star_test/none: RuntimeError # Issue 28969
-asyncstar_throw_in_catch_test: Timeout # Issue 29920
-await_future_test: Pass, Timeout # Issue 29920
+asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
 bit_operations_test/01: RuntimeError # No bigints on web.
 bit_operations_test/02: RuntimeError # No bigints on web.
 bit_operations_test/03: RuntimeError # No bigints on web.
@@ -617,16 +555,6 @@ canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.
 call_closurization_test: RuntimeError # Issue 29920
 const_evaluation_test/01: RuntimeError # Issue 29920
-const_switch_test/02: RuntimeError # Issue 29920
-const_switch_test/04: RuntimeError # Ints and doubles are unified.
-constructor12_test: RuntimeError # Issue 29920
-custom_await_stack_trace_test: RuntimeError # Issue 29920
-cyclic_type2_test: RuntimeError # Issue 29920
-cyclic_type_test/02: RuntimeError # Issue 29920
-cyclic_type_test/03: RuntimeError # Issue 29920
-cyclic_type_test/04: RuntimeError # Issue 29920
-deferred_call_empty_before_load_test: RuntimeError # Issue 27777
-deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
 deferred_static_seperate_test: RuntimeError # Issue 27777
@@ -655,7 +583,6 @@ instanceof2_test: RuntimeError # Issue 29920
 instanceof4_test/01: RuntimeError # Issue 29920
 instanceof4_test/none: RuntimeError # Issue 29920
 integer_division_by_zero_test: RuntimeError # Issue 29920
-issue23244_test: RuntimeError # Issue 29920
 lazy_static3_test: RuntimeError # Issue 29920
 left_shift_test: RuntimeError # Issue 29920
 list_is_test: RuntimeError # Issue 29920

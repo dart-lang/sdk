@@ -706,24 +706,7 @@ class ConstantEvaluationEngine {
     String superName = null;
     NodeList<Expression> superArguments = null;
     for (ConstructorInitializer initializer in initializers) {
-      if (initializer is AssertInitializer) {
-        Expression condition = initializer.condition;
-        DartObjectImpl conditionResult = condition?.accept(initializerVisitor);
-        if (conditionResult != null) {
-          if (conditionResult.isBool) {
-            if (!conditionResult.toBoolValue()) {
-              errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_FALSE, node);
-            }
-          } else {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_NOT_BOOL, node);
-          }
-        } else {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
-        }
-      } else if (initializer is ConstructorFieldInitializer) {
+      if (initializer is ConstructorFieldInitializer) {
         Expression initializerExpression = initializer.expression;
         DartObjectImpl evaluationResult =
             initializerExpression?.accept(initializerVisitor);

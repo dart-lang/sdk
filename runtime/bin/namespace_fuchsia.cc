@@ -9,7 +9,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <mxio/namespace.h>
+#include <fdio/namespace.h>
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -25,9 +25,9 @@ Namespace* Namespace::Create(const char* path) {
 
 Namespace::~Namespace() {
   if (namespc_ != kNone) {
-    mxio_ns_t* ns = reinterpret_cast<mxio_ns_t*>(namespc_);
-    mx_status_t status = mxio_ns_destroy(ns);
-    ASSERT(status == MX_OK);
+    fdio_ns_t* ns = reinterpret_cast<fdio_ns_t*>(namespc_);
+    zx_status_t status = fdio_ns_destroy(ns);
+    ASSERT(status == ZX_OK);
   }
 }
 
@@ -72,8 +72,8 @@ bool Namespace::ResolvePath(Namespace* namespc,
     *resolved_path = path;
     return false;
   }
-  mxio_ns_t* ns = reinterpret_cast<mxio_ns_t*>(namespc->namespc());
-  *dirfd = mxio_ns_opendir(ns);
+  fdio_ns_t* ns = reinterpret_cast<fdio_ns_t*>(namespc->namespc());
+  *dirfd = fdio_ns_opendir(ns);
   ASSERT(*dirfd >= 0);
   if (File::IsAbsolutePath(path)) {
     if (strcmp(path, File::PathSeparator()) == 0) {

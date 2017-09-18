@@ -2,11 +2,24 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dartkp ]
+mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
+
 [ $compiler == dartk || $compiler == dartkp ]
 async/future_or_strong_test: RuntimeError
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
 async/schedule_microtask2_test: RuntimeError
+isolate/issue_21398_parent_isolate2_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/function_type_mirror_test: RuntimeError
+mirrors/generic_function_typedef_test: RuntimeError
+mirrors/generic_interface_test/01: RuntimeError
+mirrors/generic_interface_test/none: RuntimeError
+
+[ $compiler == dartkp ]
+async/stream_timeout_test: RuntimeError
+
+[ $compiler == dartk ]
 mirrors/abstract_class_test: RuntimeError
 mirrors/class_declarations_test/01: RuntimeError
 mirrors/class_declarations_test/none: RuntimeError
@@ -24,8 +37,11 @@ mirrors/deferred_mirrors_test: CompileTimeError
 mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
+mirrors/hot_get_field_test: RuntimeError
+mirrors/hot_set_field_test: RuntimeError
 mirrors/intercepted_object_test: RuntimeError
 mirrors/invocation_fuzz_test/emptyarray: Crash
 mirrors/invocation_fuzz_test/false: Crash
@@ -76,8 +92,18 @@ mirrors/method_mirror_source_test: Crash
 mirrors/mirrors_nsm_test/dart2js: RuntimeError
 mirrors/mirrors_nsm_mismatch_test: RuntimeError
 mirrors/mirrors_reader_test: Crash
-mirrors/mirrors_test: Crash
 mirrors/mirrors_used_inheritance_test: RuntimeError
+mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
+mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
+mirrors/mixin_application_test: RuntimeError
+mirrors/mixin_test: RuntimeError
+mirrors/mirrors_test: Crash
+mirrors/other_declarations_location_test: RuntimeError
+mirrors/parameter_annotation_mirror_test: RuntimeError
+mirrors/parameter_metadata_test: RuntimeError
+mirrors/parameter_of_mixin_app_constructor_test: RuntimeError
+mirrors/private_class_field_test: RuntimeError
+mirrors/private_symbol_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subclass_test: RuntimeError
@@ -101,6 +127,17 @@ mirrors/variable_is_const_test/01: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
+html/canvasrenderingcontext2d_test: DartkCompileTimeError
+html/custom/document_register_type_extensions_test: DartkCompileTimeError
+html/custom/element_upgrade_test: DartkCompileTimeError
+html/custom/entered_left_view_test: DartkCompileTimeError
+html/custom/js_custom_test: DartkCompileTimeError
+html/custom/mirrors_test: DartkCompileTimeError
+html/custom/regress_194523002_test: DartkCompileTimeError
+html/custom_element_method_clash_test: DartkCompileTimeError
+html/custom_element_name_clash_test: DartkCompileTimeError
+html/custom_elements_23127_test: DartkCompileTimeError
+html/custom_elements_test: DartkCompileTimeError
 mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
@@ -114,6 +151,8 @@ mirrors/empty_test: RuntimeError
 mirrors/equality_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
+mirrors/hot_get_field_test: RuntimeError
+mirrors/hot_set_field_test: RuntimeError
 mirrors/invocation_fuzz_test/emptyarray: Crash
 mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash
@@ -130,6 +169,15 @@ mirrors/metadata_constructed_constant_test: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
 mirrors/method_mirror_source_test: Crash
+mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
+mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
+mirrors/mixin_simple_test: RuntimeError
+mirrors/mixin_test: RuntimeError
+mirrors/other_declarations_location_test: RuntimeError
+mirrors/parameter_annotation_mirror_test: RuntimeError
+mirrors/parameter_metadata_test: Crash
+mirrors/private_class_field_test: RuntimeError
+mirrors/private_field_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError
@@ -146,11 +194,19 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash
 
-[ $compiler == dartkp && $mode == debug ]
-mirrors/variable_is_const_test/01: Crash
-
-[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+[ $checked && ($compiler == dartk) ]
 mirrors/invocation_fuzz_test/smi: Crash
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
+
+[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
+
+[ $compiler == dartk && $runtime == vm ]
+mirrors/generic_mixin_applications_test: RuntimeError
+mirrors/generic_mixin_test: RuntimeError
+
+[ $compiler == dartkp ]
+js/datetime_roundtrip_test: CompileTimeError
+js/null_test: CompileTimeError

@@ -2,6 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This page is not directly reachable from the main Observatory ui.
+/// It is mainly mented to be used from editors as an integrated tool.
+///
+/// This page mainly targeting developers and not VM experts, so concepts like
+/// timeline streams are hidden away.
+///
+/// The page exposes two views over the timeline data.
+/// Both of them are filtered based on the optional argument `mode`.
+/// See [_TimelineView] for the explanation of the two possible values.
+
 import 'dart:async';
 import 'dart:html';
 import 'dart:convert';
@@ -10,6 +20,18 @@ import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
+
+/// The two possible views are available.
+/// * `string`
+///   The events are just filtered by `mode` and maintain their original
+///   timestamp.
+/// * `frame`
+///   The events are organized by frame.
+///   The events are shifted in order to give a high level view of the
+///   computation involved in a frame.
+///   The frame are concatenated one after the other taking care of not
+///   overlapping the related events.
+enum _TimelineView { strict, frame }
 
 class TimelineDashboardElement extends HtmlElement implements Renderable {
   static const tag = const Tag<TimelineDashboardElement>('timeline-dashboard',
@@ -24,6 +46,7 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
   M.TimelineRepository _repository;
   M.NotificationRepository _notifications;
   M.TimelineFlags _flags;
+  _TimelineView _view = _TimelineView.strict;
 
   M.VM get vm => _vm;
   M.NotificationRepository get notifications => _notifications;
@@ -39,6 +62,9 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     e._vm = vm;
     e._repository = repository;
     e._notifications = notifications;
+    if (vm.embedder == 'Flutter') {
+      e._view = _TimelineView.frame;
+    }
     return e;
   }
 
@@ -63,14 +89,22 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
 
   void render() {
     if (_frame == null) {
-      _frame = new IFrameElement()..src = 'timeline.html#basic';
+      _frame = new IFrameElement();
     }
     if (_content == null) {
       _content = new DivElement()..classes = ['content-centered-big'];
     }
+    _frame.src = _makeFrameUrl();
     _content.children = [
       new HeadingElement.h1()
-        ..children = ([new Text("Timeline")]..addAll(_createButtons()))
+        ..children = ([new Text("Timeline")]
+          ..addAll(_createButtons())
+          ..addAll(_createTabs())),
+      new Text(_view == _TimelineView.frame
+          ? 'Logical view of the computation involved in each frame. '
+              '(Timestamps may not be preserved)'
+          : 'Sequence of events generated during the execution. '
+          '(Timestamps are preserved)')
     ];
     if (children.isEmpty) {
       children = [
@@ -87,7 +121,7 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     if (_flags == null) {
       return [new Text('Loading')];
     }
-    if (_flags.streams.any((s) => !s.isRecorded)) {
+    if (_suggestedProfile(_flags.profiles).streams.any((s) => !s.isRecorded)) {
       return [
         new ButtonElement()
           ..classes = ['header_button']
@@ -125,8 +159,51 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     ];
   }
 
+  List<Element> _createTabs() {
+    if (_vm.embedder != 'Flutter') {
+      return const [];
+    }
+    return [
+      new SpanElement()
+        ..classes = ['tab_buttons']
+        ..children = [
+          new ButtonElement()
+            ..text = 'Frame View'
+            ..title = 'Logical view of the computation involved in each frame\n'
+                'Timestamps may not be preserved'
+            ..disabled = _view == _TimelineView.frame
+            ..onClick.listen((_) {
+              _view = _TimelineView.frame;
+              _r.dirty();
+            }),
+          new ButtonElement()
+            ..text = 'Time View'
+            ..title = 'Sequence of events generated during the execution\n'
+                'Timestamps are preserved'
+            ..disabled = _view == _TimelineView.strict
+            ..onClick.listen((_) {
+              _view = _TimelineView.strict;
+              _r.dirty();
+            }),
+        ]
+    ];
+  }
+
+  String _makeFrameUrl() {
+    final String mode = 'basic';
+    final String view = _view == _TimelineView.frame ? 'frame' : 'strict';
+    return 'timeline.html#mode=$mode&view=$view';
+  }
+
+  M.TimelineProfile _suggestedProfile(Iterable<M.TimelineProfile> profiles) {
+    return profiles
+        .where((profile) => profile.name == 'Flutter Developer')
+        .single;
+  }
+
   Future _enable() async {
-    await _repository.setRecordedStreams(vm, _flags.streams);
+    await _repository.setRecordedStreams(
+        vm, _suggestedProfile(_flags.profiles).streams);
     _refresh();
   }
 

@@ -707,14 +707,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedTypeName_as() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TYPE_NAME, found 0
-    super.test_expectedTypeName_as();
-  }
-
-  @override
-  @failingTest
   void test_expectedTypeName_as_void() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: true
@@ -724,14 +716,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   test/generated/parser_fasta_test.dart 2974:5                       ParserProxy._run
     //   test/generated/parser_fasta_test.dart 2661:34                      FastaParserTestCase._runParser
     super.test_expectedTypeName_as_void();
-  }
-
-  @override
-  @failingTest
-  void test_expectedTypeName_is() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TYPE_NAME, found 0
-    super.test_expectedTypeName_is();
   }
 
   @override
@@ -1108,6 +1092,22 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.GETTER_IN_FUNCTION, found 0
     super.test_getterInFunction_expression_returnType();
+  }
+
+  @failingTest
+  void test_getterNativeWithBody() {
+    createParser('String get m native "str" => 0;');
+    parser.parseClassMember('C') as MethodDeclaration;
+    if (!allowNativeClause) {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+      ]);
+    } else {
+      assertErrorsWithCodes([
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+      ]);
+    }
   }
 
   @override
@@ -3356,7 +3356,12 @@ class FastaParserTestCase extends Object
   @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    return _runParser(source, null, errorCodes);
+    // TODO(paulberry,ahe,danrubel): analyzer parser has the ability to
+    // stop parsing as soon as the first non-directive is encountered; this is
+    // useful for quickly traversing an import graph.  Consider adding a similar
+    // ability to Fasta's parser.
+    throw 'fasta parser does not have a method that just parses directives'
+        ' and stops when it finds the first declaration or EOF.';
   }
 
   @override
@@ -3625,12 +3630,14 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseFormalParameterList_prefixedType_partial() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_parseFormalParameterList_prefixedType_partial();
   }
 
   @override
   @failingTest
   void test_parseFormalParameterList_prefixedType_partial2() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_parseFormalParameterList_prefixedType_partial2();
   }
 
@@ -4710,13 +4717,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_relationalExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_relationalExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
   void test_relationalExpression_precedence_shift_right() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_relationalExpression_precedence_shift_right();
@@ -4866,13 +4866,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseTypeArgumentList_empty() {
-    // TODO(brianwilkerson) Does not recover from an empty list.
-    super.test_parseTypeArgumentList_empty();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeArgumentList_nested_withComment_double() {
     // TODO(brianwilkerson) Does not capture comment when splitting '>>' into
     // two tokens.
@@ -4915,20 +4908,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
   @override
   @failingTest
-  void test_parseAssertStatement_trailingComma_message() {
-    // TODO(brianwilkerson) Does not handle optional trailing comma.
-    super.test_parseAssertStatement_trailingComma_message();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssertStatement_trailingComma_noMessage() {
-    // TODO(brianwilkerson) Does not handle optional trailing comma.
-    super.test_parseAssertStatement_trailingComma_noMessage();
-  }
-
-  @override
-  @failingTest
   void test_parseBreakStatement_noLabel() {
     // TODO(brianwilkerson)
     // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
@@ -4949,13 +4928,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson)
     // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
     super.test_parseContinueStatement_noLabel();
-  }
-
-  @override
-  @failingTest
-  void test_parseStatement_emptyTypeArgumentList() {
-    // TODO(brianwilkerson) Does not recover from empty list.
-    super.test_parseStatement_emptyTypeArgumentList();
   }
 }
 
@@ -5077,15 +5049,5 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(danrubel): should not be generating an error
     super.test_parseCompilationUnitMember_abstractAsPrefix();
     assertNoErrors();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirectives_mixed() {
-    // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
-    // stop parsing as soon as the first non-directive is encountered; this is
-    // useful for quickly traversing an import graph.  Consider adding a similar
-    // ability to Fasta's parser.
-    super.test_parseDirectives_mixed();
   }
 }

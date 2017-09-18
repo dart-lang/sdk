@@ -25,14 +25,14 @@ import 'dart:io';
 import 'package:front_end/src/codegen/tools.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
+import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart';
 
 import 'idl_model.dart' as idlModel;
 import 'mini_ast.dart';
 
 main() async {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = normalize(join(dirname(script), '..', '..'));
+  String pkgPath = normalize(join(package_root.packageRoot, 'analyzer'));
   await GeneratedContent.generateAll(pkgPath, allTargets);
 }
 

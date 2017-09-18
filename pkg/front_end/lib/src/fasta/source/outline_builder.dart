@@ -16,6 +16,7 @@ import '../fasta_codes.dart'
     show
         Message,
         codeExpectedBlockToSkip,
+        messageExpectedBlockToSkip,
         messageOperatorWithOptionalFormals,
         messageTypedefNotFunction,
         templateDuplicatedParameterName,
@@ -118,7 +119,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
+  void endMetadataStar(int count) {
     debugEvent("MetadataStar");
     push(popList(count) ?? NullValue.Metadata);
   }
@@ -237,6 +238,18 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+    if (hasName) {
+      // Pop the native clause which in this case is a StringLiteral.
+      pop(); // Char offset.
+      nativeMethodName = pop(); // String.
+    } else {
+      nativeMethodName = '';
+    }
+  }
+
+  @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
     List<String> list =
@@ -271,8 +284,10 @@ class OutlineBuilder extends UnhandledListener {
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
     popCharOffset();
+    String documentationComment = _getDocumentationComment(libraryKeyword);
     String name = pop();
     List<MetadataBuilder> metadata = pop();
+    library.documentationComment = documentationComment;
     library.name = name;
     library.metadata = metadata;
   }
@@ -290,15 +305,6 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void beginNamedMixinApplication(Token beginToken, Token name) {
     library.currentDeclaration.name = name.lexeme;
-  }
-
-  @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    if (hasName) {
-      // Pop the native clause which in this case is a StringLiteral.
-      pop(); // Char offset.
-      pop(); // String.
-    }
   }
 
   @override
@@ -374,9 +380,36 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBody");
+    if (nativeMethodName != null) {
+      push(MethodBody.Regular);
+    } else {
+      push(MethodBody.Abstract);
+    }
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodyIgnored");
+  }
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    if (!enableNative) {
+      super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
+    }
+    push(MethodBody.Regular);
+  }
+
+  @override
   void handleNoFunctionBody(Token token) {
     debugEvent("NoFunctionBody");
-    push(MethodBody.Abstract);
+    if (nativeMethodName != null) {
+      push(MethodBody.Regular);
+    } else {
+      push(MethodBody.Abstract);
+    }
   }
 
   @override
@@ -784,7 +817,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     debugEvent("endPartOf");
     popCharOffset();
     String containingLibrary = pop();
