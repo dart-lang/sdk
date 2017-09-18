@@ -20,36 +20,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_ambiguousExport() async {
-    return super.test_ambiguousExport();
-  }
-
-  @override
-  @failingTest
-  test_ambiguousExport_combinators_hide() async {
-    return super.test_ambiguousExport_combinators_hide();
-  }
-
-  @override
-  @failingTest
-  test_ambiguousExport_combinators_show() async {
-    return super.test_ambiguousExport_combinators_show();
-  }
-
-  @override
-  @failingTest
-  test_ambiguousExport_sameDeclaration() async {
-    return super.test_ambiguousExport_sameDeclaration();
-  }
-
-  @override
-  @failingTest
-  test_ambiguousImport_showCombinator() async {
-    return super.test_ambiguousImport_showCombinator();
-  }
-
-  @override
-  @failingTest
   test_argumentTypeNotAssignable_classWithCall_Function() async {
     return super.test_argumentTypeNotAssignable_classWithCall_Function();
   }
@@ -260,24 +230,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_exportDuplicatedLibraryUnnamed() async {
-    return super.test_exportDuplicatedLibraryUnnamed();
-  }
-
-  @override
-  @failingTest
-  test_exportOfNonLibrary_libraryDeclared() async {
-    return super.test_exportOfNonLibrary_libraryDeclared();
-  }
-
-  @override
-  @failingTest
-  test_exportOfNonLibrary_libraryNotDeclared() async {
-    return super.test_exportOfNonLibrary_libraryNotDeclared();
-  }
-
-  @override
-  @failingTest
   test_fieldFormalParameter_functionTyped_named() async {
     return super.test_fieldFormalParameter_functionTyped_named();
   }
@@ -423,36 +375,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_implicitThisReferenceInInitializer_topLevelField() async {
     return super.test_implicitThisReferenceInInitializer_topLevelField();
-  }
-
-  @override
-  @failingTest
-  test_importDuplicatedLibraryName() async {
-    return super.test_importDuplicatedLibraryName();
-  }
-
-  @override
-  @failingTest
-  test_importDuplicatedLibraryUnnamed() async {
-    return super.test_importDuplicatedLibraryUnnamed();
-  }
-
-  @override
-  @failingTest
-  test_importOfNonLibrary_libraryDeclared() async {
-    return super.test_importOfNonLibrary_libraryDeclared();
-  }
-
-  @override
-  @failingTest
-  test_importOfNonLibrary_libraryNotDeclared() async {
-    return super.test_importOfNonLibrary_libraryNotDeclared();
-  }
-
-  @override
-  @failingTest
-  test_importPrefixes_withFirstLetterDifference() async {
-    return super.test_importPrefixes_withFirstLetterDifference();
   }
 
   @override
@@ -917,12 +839,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_sharedDeferredPrefix() async {
-    return super.test_sharedDeferredPrefix();
-  }
-
-  @override
-  @failingTest
   test_staticAccessToInstanceMember_annotation() async {
     return super.test_staticAccessToInstanceMember_annotation();
   }
@@ -997,12 +913,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new() async {
     return super
         .test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new();
-  }
-
-  @override
-  @failingTest
-  test_unusedShownName_unresolved() async {
-    return super.test_unusedShownName_unresolved();
   }
 
   @override

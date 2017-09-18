@@ -4489,6 +4489,9 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   int get nameOffset {
+    if (_kernel != null) {
+      return _kernel.fileOffset;
+    }
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedExportNonPublic != null) {
       return _unlinkedExportNonPublic.offset;
@@ -5974,6 +5977,9 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   int get nameOffset {
+    if (_kernel != null) {
+      return _kernel.fileOffset;
+    }
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedImport != null) {
       if (_unlinkedImport.isImplicit) {

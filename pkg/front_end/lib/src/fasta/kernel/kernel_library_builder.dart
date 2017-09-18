@@ -774,11 +774,13 @@ class KernelLibraryBuilder
         if (import.deferred && import.prefix != null) {
           library.addDependency(new LibraryDependency.deferredImport(
               importedLibrary, import.prefix,
-              combinators: toKernelCombinators(import.combinators)));
+              combinators: toKernelCombinators(import.combinators))
+            ..fileOffset = import.charOffset);
         } else {
           library.addDependency(new LibraryDependency.import(importedLibrary,
               name: import.prefix,
-              combinators: toKernelCombinators(import.combinators)));
+              combinators: toKernelCombinators(import.combinators))
+            ..fileOffset = import.charOffset);
         }
       }
     }
@@ -787,7 +789,8 @@ class KernelLibraryBuilder
       Library exportedLibrary = export.exported.target;
       if (exportedLibrary != null) {
         library.addDependency(new LibraryDependency.export(exportedLibrary,
-            combinators: toKernelCombinators(export.combinators)));
+            combinators: toKernelCombinators(export.combinators))
+          ..fileOffset = export.charOffset);
       }
     }
 
