@@ -11,3 +11,19 @@ Scheme expression_ind_mutual := Induction for expression Sort Prop
   with method_invocation_ind_mutual := Induction for method_invocation Sort Prop
   with constructor_invocation_ind_mutual := Induction for constructor_invocation Sort Prop
   with arguments_ind_mutual := Induction for arguments Sort Prop.
+
+Definition dart_type_induction prop :=
+  dart_type_ind_mutual
+    prop
+    (fun i => prop (DT_Interface_Type i))
+    (fun f => prop (DT_Function_Type f)).
+
+Definition expr_induction prop :=
+  expression_ind_mutual
+    (fun e => prop e)
+    (fun v => prop (E_Variable_Get v))
+    (fun p => prop (E_Property_Get p))
+    (fun ie => prop (E_Invocation_Expression ie))
+    (fun mi => prop (E_Invocation_Expression (IE_Method_Invocation mi)))
+    (fun ci => prop (E_Invocation_Expression (IE_Constructor_Invocation ci)))
+    (fun args => let (param) := args in prop param).

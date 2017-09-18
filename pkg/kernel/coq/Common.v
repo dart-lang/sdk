@@ -1,8 +1,13 @@
+(* Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file. *)
+
 Require Export List.
 Require Export Coq.FSets.FMapWeakList.
 Require Export Coq.Structures.DecidableTypeEx.
 Require Export Coq.Structures.Equalities.
 Require Export Coq.Strings.String.
+Require Import CpdtTactics.
 
 (** * Auxiliary definitions. *)
 

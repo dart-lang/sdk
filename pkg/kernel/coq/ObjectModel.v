@@ -3,10 +3,11 @@
  * BSD-style license that can be found in the LICENSE file. *)
 
 Require Import Common.
+Require Import CommonTactics.
 Require Import Syntax.
-Import Common.OptionMonad.
 Require Import Coq.Strings.String.
-Require Import CpdtTactics.
+
+Import Common.OptionMonad.
 
 Module N := Coq.Arith.PeanoNat.Nat.
 
@@ -72,14 +73,31 @@ Section Type_Equivalence_Properties.
   Qed.
 
   Lemma type_equiv_trans : forall t s r, s ≡ t /\ t ≡ r -> s ≡ r.
-    apply
-      (dart_type_ind_mutual trans_at
-         (fun i => trans_at (DT_Interface_Type i))
-         (fun f => trans_at (DT_Function_Type f))).
+    apply (dart_type_induction trans_at).
     crush.
     crush.
     apply interface_type_trans.
     apply function_type_trans.
+  Qed.
+
+  Lemma type_equiv_sym : forall s t, s ≡ t -> t ≡ s.
+    apply (dart_type_induction (fun x => forall y, x ≡ y -> y ≡ x)).
+    crush.
+    crush.
+    intros.
+    destruct y.
+    destruct i.
+    crush.
+    destruct f.
+    crush.
+    destruct y.
+    destruct i.
+    crush.
+    destruct f.
+    crush.
+    apply Bool.andb_true_iff in H1; destruct H1.
+    pose proof (H0 d2 H2).
+    crush.
   Qed.
 
 End Type_Equivalence_Properties.
@@ -109,58 +127,7 @@ Record interface : Type := mk_interface {
 Definition class_env : Type := NatMap.t interface.
 Definition type_env : Type := NatMap.t dart_type.
 
-Fixpoint class_type (CE : class_env) (c : class) : option class_env :=
-  let (nn_data, _, procedures) := c in
-  let (ref) := nn_data in
-  let (class_id) := ref in
-  let class_interface := mk_interface (map procedure_dissect procedures) in
-  let CE' := NatMap.add class_id class_interface CE in
-  if forallb (procedure_type CE') procedures then Some CE' else None
-
-with procedure_type (CE : class_env) (p : procedure) : bool :=
-  let (_, _, fn) := p in
-  let (param, ret_type, body) := fn in
-  let (param_var, param_type, _) := param in
-  let TE := NatMap.add param_var param_type (NatMap.empty _) in
-  match statement_type CE TE body with
-  | Some (_, Some t) => type_equiv t ret_type
-  | _ => false
-  end
-
-with statement_type (CE : class_env) (TE : type_env) (s : statement) :
-    option (type_env * option dart_type) :=
-  match s with
-  | S_Expression_Statement (Expression_Statement e) =>
-    _ <- expression_type CE TE e; [(TE, None)]
-  | S_Return_Statement (Return_Statement re) =>
-    rt <- expression_type CE TE re; [(TE, Some rt)]
-  | S_Variable_Declaration (Variable_Declaration _ _ None) => None
-  | S_Variable_Declaration (Variable_Declaration var type (Some init)) =>
-    init_type <- expression_type CE TE init;
-    if type_equiv init_type type then
-      [(NatMap.add var type TE, None)]
-    else
-      None
-  | S_Block (Block stmts) =>
-    let process_statements := fix process_statements TE stmts :=
-      match stmts with
-      | nil => [(TE, None)]
-      | (s::ss) =>
-        st <- statement_type CE TE s;
-        let (TE', s_rt) := st in
-        sst <- process_statements TE' ss;
-        let (TE'', ss_rt) := sst in
-        match (s_rt, ss_rt) with
-        | (None, ss_rt) => [(TE'', ss_rt)]
-        | (Some rt, None) => [(TE'', Some rt)]
-        | (Some rt, Some rt') =>
-          if type_equiv rt rt' then [(TE'', Some rt)] else None
-        end
-      end in
-    process_statements TE stmts
-  end
-
-with expression_type (CE : class_env) (TE : type_env) (e : expression) :
+Fixpoint expression_type (CE : class_env) (TE : type_env) (e : expression) :
     option dart_type :=
   match e with
   | E_Variable_Get (Variable_Get v) => NatMap.find v TE
@@ -201,6 +168,60 @@ with expression_type (CE : class_env) (TE : type_env) (e : expression) :
   end
 .
 
+Fixpoint statement_type (CE : class_env) (TE : type_env) (s : statement) :
+    option (type_env * option dart_type) :=
+  match s with
+  | S_Expression_Statement (Expression_Statement e) =>
+    _ <- expression_type CE TE e; [(TE, None)]
+  | S_Return_Statement (Return_Statement re) =>
+    rt <- expression_type CE TE re; [(TE, Some rt)]
+  | S_Variable_Declaration (Variable_Declaration _ _ None) => None
+  | S_Variable_Declaration (Variable_Declaration var type (Some init)) =>
+    init_type <- expression_type CE TE init;
+    if type_equiv init_type type then
+      [(NatMap.add var type TE, None)]
+    else
+      None
+  | S_Block (Block stmts) =>
+    let process_statements := fix process_statements TE stmts :=
+      match stmts with
+      | nil => [(TE, None)]
+      | (s::ss) =>
+        st <- statement_type CE TE s;
+        let (TE', s_rt) := st in
+        sst <- process_statements TE' ss;
+        let (TE'', ss_rt) := sst in
+        match (s_rt, ss_rt) with
+        | (None, ss_rt) => [(TE'', ss_rt)]
+        | (Some rt, None) => [(TE'', Some rt)]
+        | (Some rt, Some rt') =>
+          if type_equiv rt rt' then [(TE'', Some rt)] else None
+        end
+      end in
+    process_statements TE stmts
+  end
+.
+
+Fixpoint procedure_type (CE : class_env) (p : procedure) : bool :=
+  let (_, _, fn) := p in
+  let (param, ret_type, body) := fn in
+  let (param_var, param_type, _) := param in
+  let TE := NatMap.add param_var param_type (NatMap.empty _) in
+  match statement_type CE TE body with
+  | Some (_, Some t) => type_equiv t ret_type
+  | _ => false
+  end
+.
+
+Fixpoint class_type (CE : class_env) (c : class) : option class_env :=
+  let (nn_data, _, procedures) := c in
+  let (ref) := nn_data in
+  let (class_id) := ref in
+  let class_interface := mk_interface (map procedure_dissect procedures) in
+  let CE' := NatMap.add class_id class_interface CE in
+  if forallb (procedure_type CE') procedures then Some CE' else None
+.
+
 Section Typing_Equivalence_Homomorphism.
 
   Definition equiv_at (e : expression) :=
@@ -222,8 +243,7 @@ Section Typing_Equivalence_Homomorphism.
     exists t.
     assert (et = s).
     unfold expression_type in H.
-    assert (NatMap.find v0 (NatMap.add v0 s TE) = Some s).
-    crush.
+    assert (NatMap.find v0 (NatMap.add v0 s TE) = Some s) by crush.
     rewrite H0 in H.
     crush.
     intuition.
@@ -234,101 +254,162 @@ Section Typing_Equivalence_Homomorphism.
     unfold expression_type in H.
     apply NatMap.find_2 in H.
     exists et.
-    assert (NatMap.MapsTo v et (NatMap.add v0 t TE)); unfold expression_type in *.
+    unfold expression_type in *.
     pose proof (@NatMap.add_3 dart_type TE v0 v et s (not_eq_sym n) H).
     crush.
-    crush.
   Qed.
+  Hint Immediate type_equiv_at_variable_get.
 
   Hint Rewrite N.eqb_eq.
   Lemma type_equiv_at_property_get :
     forall rec prop, equiv_at rec -> equiv_at (E_Property_Get (Property_Get rec prop)).
+  Proof.
     unfold equiv_at.
     intros.
     intuition.
+    destruct prop.
     unfold expression_type in H1.
     fold expression_type in H1.
-    set (Orig := expression_type CE (NatMap.add v s TE) rec).
-    assert (Orig = expression_type CE (NatMap.add v s TE) rec); [auto|idtac].
-    apply eq_sym in H0.
-    rewrite H0 in H1.
+    extract (expression_type CE (NatMap.add v s TE) rec) Orig H0.
 
     (* Go by cases on the original type of the receiver. *)
-    destruct Orig.
-    Focus 2.
-    crush.
+    destruct Orig; [idtac|crush].
     simpl in H1.
+    destruct d.
 
     (* Case 1: receiver has interface type. *)
-    induction d.
     destruct i.
-    set (iface := NatMap.find n CE).
-    assert (NatMap.find n CE = iface); [auto|idtac].
-    rewrite H3 in H1.
-
-    (* Case 1.1: interface exists. *)
-    destruct prop.
-    destruct iface.
+    extract (NatMap.find n CE) iface H3.
+    destruct iface; [idtac|crush].
     simpl in H1.
     pose proof (H CE TE v s t (DT_Interface_Type (Interface_Type n)) (conj H0 H2)).
     destruct H4 as [new_rec_type].
     destruct H4.
     unfold type_equiv in H5.
-    (* We want to prove that the new interface is the same as the old. *)
-    destruct new_rec_type.
-    Focus 2.
-    crush.
-    destruct i0.
+    destruct new_rec_type; [idtac|crush].
     exists et.
-    intuition.
-    assert (n = n0).
-    crush.
-    rewrite H6 in H0.
-    unfold expression_type.
-    fold expression_type.
-    rewrite H4.
-    simpl.
-    rewrite H6 in H3.
-    rewrite H3.
-    simpl.
-    exact H1.
-
-    (* Case 1.2: interface doesn't exist. Reach a contradiction because the
-       expression was well-typed originally. *)
+    destruct i0.
     crush.
 
     (* Case 2: receiver has function type. *)
     destruct f.
-    destruct prop.
-    set (V := string_dec s0 "call").
-    assert (string_dec s0 "call" = V); [auto|idtac].
-    rewrite H3 in *.
-    destruct V.
-
-    (* Case 2.1: property get of ".call". *)
+    force_options.
     pose proof (H CE TE v s t (DT_Function_Type (Function_Type d d0)) (conj H0 H2)).
-    destruct H4 as [new_rec_type].
-    destruct H4.
+    destruct H3 as [new_rec_type].
+    destruct H3.
     exists new_rec_type.
-    intuition.
+    intuition; [idtac|crush].
     unfold expression_type.
     fold expression_type.
-    rewrite H4.
+    rewrite H3.
     simpl.
-    destruct new_rec_type.
-    crush.
-    rewrite H3; simpl.
-    crush.
-    assert (et = DT_Function_Type (Function_Type d d0)); crush.
+    destruct new_rec_type; crush.
+  Qed.
+  Hint Immediate type_equiv_at_property_get.
 
-    (* Case 2.2: not ".call". Contradiction because no other properties exist on function types. *)
+  Lemma type_equiv_at_ctor_invo :
+    forall c, equiv_at (E_Invocation_Expression (IE_Constructor_Invocation c)).
+  Proof.
+    unfold equiv_at; intros; exists et; crush.
+  Qed.
+  Hint Immediate type_equiv_at_ctor_invo.
+
+  Lemma type_equiv_at_meth_invo :
+    forall rec arg name n, equiv_at rec -> equiv_at arg ->
+      equiv_at (E_Invocation_Expression (IE_Method_Invocation (Method_Invocation rec name (Arguments arg) n))).
+  Proof.
+    unfold equiv_at; intros.
+    unfold expression_type in H.
+    fold expression_type in H.
+    destruct H1.
+    unfold expression_type in H1.
+    fold expression_type in H1.
+    force_expr (expression_type CE (NatMap.add v s TE) rec).
+    destruct d.
+
+    (* Case 1: receiver has interface type. *)
+    exists et.
+    simpl in H1.
+    force_options.
+    destruct name.
+    force_options.
+    destruct f.
+    force_options.
+    destruct i.
+    force_options.
+    (* The receiver class must be the same. *)
+    assert (expression_type CE (NatMap.add v t TE) rec = [DT_Interface_Type (Interface_Type n0)]).
+    pose proof (H CE TE v s t (DT_Interface_Type (Interface_Type n0)) (conj H4 H2)) as IH_rec.
+    destruct IH_rec.
+    destruct H3.
+    unfold type_equiv in H10.
+    destruct x.
+    crush.
+    destruct i0.
+    crush.
+    crush.
+    (* The function called must have the same type. *)
+    unfold expression_type.
+    fold expression_type.
+    rewrite H3; simpl.
+    (* The argument is still well typed. *)
+    pose proof (H0 CE TE v s t d (conj H5 H2)) as IH_arg.
+    destruct IH_arg.
+    destruct H10.
+    rewrite H10.
+    simpl.
+    intuition; crush.
+    rewrite H6.
+    assert (d0 ≡ x).
+    pose proof (type_equiv_trans d d0 x (conj H7 H11)); crush.
+    rewrite H1; crush.
+
+    (* Case 2: The receiver has function type. *)
+    rewrite bind_some in H1.
+    force_options.
+    destruct name.
+    force_options.
+    destruct f0.
+    force_options.
+    pose proof (H CE TE v s t (DT_Function_Type f) (conj H4 H2)).
+    destruct H3.
+    destruct H3.
+    destruct x; [crush|idtac].
+    destruct f; destruct f0.
+    unfold type_equiv in H9.
+    fold type_equiv in H9.
+    rewrite Bool.andb_true_iff in H9; destruct H9.
+    assert (et = d3) by crush.
+    exists d5.
+    intuition; [idtac|crush].
+    unfold expression_type.
+    fold expression_type.
+    rewrite H3.
+    rewrite bind_some.
+    pose proof (H0 CE TE v s t d (conj H5 H2)).
+    destruct H12.
+    destruct H12.
+    rewrite H12.
+    rewrite bind_some.
+    rewrite H7.
+    rewrite bind_some.
+    assert (d2 = d0) by crush.
+    assert (d0 ≡ d4) by crush.
+    assert (d0 ≡ x).
+    apply (type_equiv_trans d d0 x (conj H8 H13)).
+    pose proof (type_equiv_sym d0 d4 H15).
+    pose proof (type_equiv_trans d0 d4 x (conj H17 H16)).
+    rewrite H18.
     crush.
   Qed.
+  Hint Immediate type_equiv_at_meth_invo.
 
-  Theorem type_equiv_homo :
-    forall CE TE e v s t et,
-                 expression_type CE (NatMap.add v s TE) e = [et] /\ s ≡ t ->
-      exists es, expression_type CE (NatMap.add v t TE) e = [es] /\ et ≡ es.
-  Admitted.
+  Hint Extern 1 =>
+    match goal with
+      [ x : arguments |- _ ] => destruct x
+    end.
+  Theorem type_equiv_homo : forall e, equiv_at e.
+    apply (expr_induction equiv_at); crush.
+  Qed.
 
 End Typing_Equivalence_Homomorphism.
