@@ -9,13 +9,7 @@ import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:front_end/src/fasta/parser.dart'
-    show
-        Assert,
-        FormalParameterKind,
-        IdentifierContext,
-        MemberKind,
-        Parser,
-        closeBraceTokenFor;
+    show Assert, FormalParameterKind, IdentifierContext, MemberKind, Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
@@ -146,8 +140,7 @@ class AstBuilder extends ScopeListener {
   void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
     Expression expression = pop();
-    push(ast.parenthesizedExpression(
-        token, expression, closeBraceTokenFor(token)));
+    push(ast.parenthesizedExpression(token, expression, token?.endGroup));
   }
 
   void handleStringPart(Token token) {
