@@ -4256,7 +4256,7 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
-    if (serializedExecutable != null) {
+    if (_kernel != null || serializedExecutable != null) {
       _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
           this, null, allEnclosingTypeParameterTypes, false);
     }

@@ -20,12 +20,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_argumentTypeNotAssignable_classWithCall_Function() async {
-    return super.test_argumentTypeNotAssignable_classWithCall_Function();
-  }
-
-  @override
-  @failingTest
   test_argumentTypeNotAssignable_fieldFormalParameterElement_member() async {
     return super
         .test_argumentTypeNotAssignable_fieldFormalParameterElement_member();
@@ -379,58 +373,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_inconsistentMethodInheritance_accessors_typeParameter2() async {
-    return super.test_inconsistentMethodInheritance_accessors_typeParameter2();
-  }
-
-  @override
-  @failingTest
-  test_inconsistentMethodInheritance_accessors_typeParameters1() async {
-    return super.test_inconsistentMethodInheritance_accessors_typeParameters1();
-  }
-
-  @override
-  @failingTest
-  test_inconsistentMethodInheritance_accessors_typeParameters_diamond() async {
-    return super
-        .test_inconsistentMethodInheritance_accessors_typeParameters_diamond();
-  }
-
-  @override
-  @failingTest
-  test_inconsistentMethodInheritance_methods_typeParameter2() async {
-    return super.test_inconsistentMethodInheritance_methods_typeParameter2();
-  }
-
-  @override
-  @failingTest
-  test_inconsistentMethodInheritance_methods_typeParameters1() async {
-    return super.test_inconsistentMethodInheritance_methods_typeParameters1();
-  }
-
-  @override
-  @failingTest
-  test_inconsistentMethodInheritance_overrideTrumpsInherits_getter() async {
-    return super
-        .test_inconsistentMethodInheritance_overrideTrumpsInherits_getter();
-  }
-
-  @override
-  @failingTest
-  test_inconsistentMethodInheritance_overrideTrumpsInherits_method() async {
-    return super
-        .test_inconsistentMethodInheritance_overrideTrumpsInherits_method();
-  }
-
-  @override
-  @failingTest
-  test_inconsistentMethodInheritance_overrideTrumpsInherits_setter() async {
-    return super
-        .test_inconsistentMethodInheritance_overrideTrumpsInherits_setter();
-  }
-
-  @override
-  @failingTest
   test_initializingFormalForNonExistentField() async {
     return super.test_initializingFormalForNonExistentField();
   }
@@ -536,12 +478,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_invalidOverrideReturnType_returnType_parameterizedTypes() async {
-    return super.test_invalidOverrideReturnType_returnType_parameterizedTypes();
-  }
-
-  @override
-  @failingTest
   test_invocationOfNonFunction_functionTypeTypeParameter() async {
     return super.test_invocationOfNonFunction_functionTypeTypeParameter();
   }
@@ -550,12 +486,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_invocationOfNonFunction_proxyOnFunctionClass() async {
     return super.test_invocationOfNonFunction_proxyOnFunctionClass();
-  }
-
-  @override
-  @failingTest
-  test_issue_24191() async {
-    return super.test_issue_24191();
   }
 
   @override
@@ -605,18 +535,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_newWithUndefinedConstructor() async {
     return super.test_newWithUndefinedConstructor();
-  }
-
-  @override
-  @failingTest
-  test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter() async {
-    return super.test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter();
-  }
-
-  @override
-  @failingTest
-  test_nonAbstractClassInheritsAbstractMemberOne_mixin_setter() async {
-    return super.test_nonAbstractClassInheritsAbstractMemberOne_mixin_setter();
   }
 
   @override
@@ -833,12 +751,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_reversedTypeArguments() async {
-    return super.test_reversedTypeArguments();
-  }
-
-  @override
-  @failingTest
   test_staticAccessToInstanceMember_annotation() async {
     return super.test_staticAccessToInstanceMember_annotation();
   }
@@ -882,12 +794,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_undefinedGetter_static_conditionalAccess() async {
     return super.test_undefinedGetter_static_conditionalAccess();
-  }
-
-  @override
-  @failingTest
-  test_undefinedGetter_typeSubstitution() async {
-    return super.test_undefinedGetter_typeSubstitution();
   }
 
   @override
