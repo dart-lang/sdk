@@ -12,7 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Use isNotEmpty for Iterables and Maps.';
+const desc = 'Use isEmpty for Iterables and Maps.';
 
 const useIsNotEmpty = 'Use isNotEmpty instead of length';
 const useIsEmpty = 'Use isEmpty instead of length';
