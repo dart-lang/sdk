@@ -20,6 +20,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/analysis/kernel_context.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
@@ -99,6 +100,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * zero, we stop writing any new exception contexts in this process.
    */
   static int allowedNumberOfContextsToWrite = 10;
+
+  /**
+   * Whether kernel should be used to resynthesize elements.
+   */
+  final bool enableKernelDriver;
 
   /**
    * The scheduler that schedules analysis work in this, and possibly other
@@ -311,7 +317,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {PackageBundle sdkBundle,
+      {this.enableKernelDriver: false,
+      PackageBundle sdkBundle,
       this.disableChangesAndCacheAllResults: false,
       SummaryDataStore externalSummaries})
       : _logger = logger,
@@ -1087,17 +1094,41 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // We need the fully resolved unit, or the result is not cached.
     return _logger.runAsync('Compute analysis result for $path', () async {
       try {
-        LibraryContext libraryContext = await _createLibraryContext(library);
+        LibraryContext libraryContext;
+        KernelContext kernelContext;
         try {
           _testView.numOfAnalyzedLibraries++;
-          LibraryAnalyzer analyzer = new LibraryAnalyzer(
-              analysisOptions,
-              declaredVariables,
-              sourceFactory,
-              libraryContext.isLibraryUri,
-              libraryContext.analysisContext,
-              libraryContext.resynthesizer,
-              library);
+
+          LibraryAnalyzer analyzer;
+          if (enableKernelDriver) {
+            kernelContext = await KernelContext.forSingleLibrary(
+                library,
+                _logger,
+                _byteStore,
+                _analysisOptions,
+                declaredVariables,
+                _sourceFactory,
+                fsState);
+            analyzer = new LibraryAnalyzer(
+                analysisOptions,
+                declaredVariables,
+                sourceFactory,
+                kernelContext.isLibraryUri,
+                kernelContext.analysisContext,
+                kernelContext.resynthesizer,
+                library);
+          } else {
+            libraryContext = await _createLibraryContext(library);
+            analyzer = new LibraryAnalyzer(
+                analysisOptions,
+                declaredVariables,
+                sourceFactory,
+                libraryContext.isLibraryUri,
+                libraryContext.analysisContext,
+                libraryContext.resynthesizer,
+                library);
+          }
+
           Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
           List<int> bytes;
@@ -1132,7 +1163,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           }
           return result;
         } finally {
-          libraryContext.dispose();
+          libraryContext?.dispose();
+          kernelContext?.dispose();
         }
       } catch (exception, stackTrace) {
         String contextKey =

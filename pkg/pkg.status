@@ -81,6 +81,7 @@ analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/services/correction/fix_test: Pass, Slow
 analysis_server/test/socket_server_test: Skip # Pass, Slow
+analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 

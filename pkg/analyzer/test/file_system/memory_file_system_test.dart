@@ -484,7 +484,7 @@ class FolderTest {
   void test_toUri() {
     String path = provider.convertPath('/foo/directory');
     Folder folder = provider.newFolder(path);
-    expect(folder.toUri(), provider.pathContext.toUri(path));
+    expect(folder.toUri(), provider.pathContext.toUri(path + '/'));
   }
 
   /**
