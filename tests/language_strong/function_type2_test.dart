@@ -4,6 +4,15 @@
 
 import "package:expect/expect.dart";
 
+bool get inCheckedMode {
+  try {
+    String a = 42;
+  } catch (e) {
+    return true;
+  }
+  return false;
+}
+
 class A<T> {
   A(f) {
     f(42);
@@ -16,5 +25,12 @@ class B<T> extends A<T> {
 
 main() {
   var t = new B<int>();
-  Expect.throwsTypeError(() => new B<String>());
+  bool caughtException = false;
+
+  try {
+    new B<String>();
+  } on TypeError catch (e) {
+    caughtException = true;
+  }
+  Expect.isTrue(!inCheckedMode || caughtException);
 }

@@ -38,7 +38,7 @@ main() {
   // Test ({Object a})->void <: ({int a})->void.
   Expect.isTrue(new C<void___a_Object>() is C<void___a_int>);
   // Test ({int a})->void <: ({Object a})->void.
-  Expect.isFalse(new C<void___a_int>() is C<void___a_Object>);
+  Expect.isTrue(new C<void___a_int>() is C<void___a_Object>);
   // Test (int,{int a})->void <: (int,{int a})->void.
   Expect.isTrue(new C<void__int__a_int>() is C<void__int__a_int2>);
   // Test ({int a})->void <: ({double a})->void.

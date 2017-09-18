@@ -13,10 +13,9 @@ class I {}
 
 class J extends I {}
 
-typedef void f1(C<J> c);
-typedef void f2(C<I> c);
+typedef J f1();
+typedef I f2();
 
 main() {
-  Expect.isFalse(new C<f1>() is C<f2>);
-  Expect.isTrue(new C<f2>() is C<f1>);
+  Expect.isTrue(new C<f1>() is C<f2>);
 }

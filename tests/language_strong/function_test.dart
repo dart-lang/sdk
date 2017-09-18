@@ -54,30 +54,30 @@ class A {
 class B1 extends A {
   final mfn;
   B1(int a)
-      : this.mfn = (() {
+      : super(a),
+        this.mfn = (() {
           return a;
-        }),
-        super(a);
+        }) {}
 }
 
 class B2 extends A {
   final mfn;
   B2(int a)
-      : this.mfn = (() {
+      : super(2),
+        this.mfn = (() {
           return a;
-        }),
-        super(2);
+        }) {}
 }
 
 class B3 extends A {
   final mfn;
   B3(int a)
-      : this.mfn = (() {
+      : super(() {
           return a;
         }),
-        super(() {
+        this.mfn = (() {
           return a;
-        });
+        }) {}
 }
 
 typedef void Fisk();

@@ -131,6 +131,16 @@ for_in_side_effects_test: Skip
 function_literals2_test: Skip
 function_literals_test: Skip
 function_malformed_result_type_test: Skip
+function_subtype_bound_closure7_test: Skip
+function_subtype_checked0_test: Skip
+function_subtype_closure0_test: Skip
+function_subtype_closure1_test: Skip
+function_subtype_factory1_test: Skip
+function_subtype_inline1_test: Skip
+function_subtype_setter0_test: Skip
+function_syntax_test: Skip
+function_test: Skip
+function_type2_test: Skip
 function_type_alias5_test: Skip
 function_type_alias6_test: Skip
 function_type_alias7_test: Skip
@@ -542,6 +552,12 @@ flatten_test/08: MissingRuntimeError # Issue 29920
 flatten_test/09: MissingRuntimeError # Issue 29920
 flatten_test/12: MissingRuntimeError # Issue 29920
 for_variable_capture_test: RuntimeError # Issue 29920
+function_subtype_named1_test: RuntimeError # Issue 29920
+function_subtype_named2_test: RuntimeError # Issue 29920
+function_subtype_optional1_test: RuntimeError # Issue 29920
+function_subtype_optional2_test: RuntimeError # Issue 29920
+function_subtype_typearg2_test: RuntimeError # Issue 29920
+function_subtype_typearg4_test: RuntimeError # Issue 29920
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
 instanceof2_test: RuntimeError # Issue 29920
 instanceof4_test/01: RuntimeError # Issue 29920

@@ -45,7 +45,7 @@ main() {
   // Test ([Object])->void <: ([int])->void.
   Expect.isTrue(void___Object is t_void___int);
   // Test ([int])->void <: ([Object])->void.
-  Expect.isFalse(void___int is t_void___Object);
+  Expect.isTrue(void___int is t_void___Object);
   // Test (int,[int])->void <: (int)->void.
   Expect.isTrue(void__int__int is t_void__int);
   // Test (int,[int])->void <: (int,[int])->void.

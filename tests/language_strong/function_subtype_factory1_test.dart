@@ -16,5 +16,20 @@ void method(String s) {}
 
 void main() {
   Expect.isNotNull(new C<String>(method));
-  Expect.throwsTypeError(() => new C<bool>(method as dynamic));
+  try {
+    new C<bool>(method);
+    Expect.isFalse(isCheckedMode());
+  } catch (e) {
+    Expect.isTrue(isCheckedMode());
+  }
+}
+
+isCheckedMode() {
+  try {
+    var i = 1;
+    String s = i;
+    return false;
+  } catch (e) {
+    return true;
+  }
 }

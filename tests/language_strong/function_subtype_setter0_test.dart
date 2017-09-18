@@ -21,8 +21,18 @@ class D {
   A<int> bar;
 }
 
-test(c) {
-  Expect.throwsTypeError(() => c.foo = 1);
+test(var c) {
+  bool inCheckedMode = false;
+  try {
+    var x = 42;
+    String a = x;
+  } catch (e) {
+    inCheckedMode = true;
+  }
+  if (inCheckedMode) {
+    Expect.throws(() => c.foo = 1, (e) => true);
+  }
+  c.foo = () {};
 }
 
 void main() {
