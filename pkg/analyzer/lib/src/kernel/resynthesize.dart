@@ -41,6 +41,11 @@ class KernelResynthesizer implements ElementResynthesizer {
    */
   DartType get typeType => getLibrary('dart:core').getType('Type').type;
 
+  /**
+   * Return `true` if strong mode analysis should be used.
+   */
+  bool get strongMode => _analysisContext.analysisOptions.strongMode;
+
   @override
   Element getElement(ElementLocation location) {
     List<String> components = location.components;
@@ -810,8 +815,13 @@ class _KernelUnitResynthesizerContextImpl
     if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
 
     if (kernelType is kernel.InterfaceType) {
-      return _getInterfaceType(context, kernelType.className.canonicalName,
-          kernelType.typeArguments);
+      var name = kernelType.className.canonicalName;
+      if (!libraryContext.resynthesizer.strongMode &&
+          name.name == 'FutureOr' &&
+          name.parent.name == 'dart:async') {
+        return DynamicTypeImpl.instance;
+      }
+      return _getInterfaceType(context, name, kernelType.typeArguments);
     }
 
     if (kernelType is kernel.TypeParameterType) {

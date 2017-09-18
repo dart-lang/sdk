@@ -20,18 +20,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_async_flattened() async {
-    return super.test_async_flattened();
-  }
-
-  @override
-  @failingTest
-  test_async_future_int_with_return_future_int() async {
-    return super.test_async_future_int_with_return_future_int();
-  }
-
-  @override
-  @failingTest
   test_commentReference_beforeMethod() async {
     fail('This test fails only in checked mode.');
     return super.test_commentReference_beforeMethod();
