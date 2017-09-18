@@ -1,4 +1,4 @@
-## 1.25.0
+## 2.0.0
 
 ### Language
 * A string in a `part of` declaration may now be used to refer to the library
