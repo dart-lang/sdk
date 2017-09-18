@@ -58,8 +58,18 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
     return;
   }
 
-  trace_string_ref_t name = trace_context_make_registered_string_copy(
-      context, event->label(), strlen(event->label()));
+  trace_string_ref_t name;
+  if (event->owns_label()) {
+    // If the event owns the name, then the name will be deallocated, so
+    // instruct the system trace to make a copy.
+    name = trace_context_make_registered_string_copy(
+        context, event->label(), strlen(event->label()));
+  } else {
+    // If the event doesn't own the name, then it is a string literal, and
+    // the system trace can use the pointer and not a copy.
+    name = trace_context_make_registered_string_literal(
+        context, event->label());
+  }
 
   trace_thread_ref_t thread;
   trace_context_register_current_thread(context, &thread);
