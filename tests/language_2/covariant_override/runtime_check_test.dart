@@ -27,8 +27,8 @@ main() {
   // ignoring function type failures w/ a warning at the console...
 
   // * -> * not a subtype of Object -> MyView
-  // Expect.throws(() => mv.transform((_) => mv));
+  Expect.throws(() => mv.transform((_) => mv));
 
   // View -> View not a subtype of Object -> MyView
-  // Expect.throws(() => mv.transform((View x) => x));
+  Expect.throws(() => mv.transform((View x) => x));
 }

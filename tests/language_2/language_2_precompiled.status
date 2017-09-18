@@ -106,6 +106,7 @@ closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
+create_unresolved_type_test/01: MissingCompileTimeError
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError
@@ -277,6 +278,14 @@ checked_setter2_test: MissingCompileTimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
+covariant_override/runtime_check_test: RuntimeError
+covariant_subtyping_tearoff1_test: RuntimeError
+covariant_subtyping_tearoff2_test: RuntimeError
+covariant_subtyping_tearoff3_test: RuntimeError
+covariant_subtyping_test: CompileTimeError
+covariant_subtyping_unsafe_call1_test: RuntimeError
+covariant_subtyping_unsafe_call2_test: RuntimeError
+covariant_subtyping_unsafe_call3_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
@@ -340,6 +349,7 @@ generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
 [ $runtime == dart_precompiled || $compiler == app_jit ]
 hello_dart_test: Skip # Incompatible flag: --compile_all
+ct_const2_test: Skip # Incompatible flag: --compile_all
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
 generalized_void_syntax_test: CompileTimeError # Issue #30176

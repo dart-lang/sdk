@@ -53,6 +53,7 @@ closure_internals_test/03: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/01: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/02: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/03: MissingCompileTimeError # Requires strong mode
+crash_6725_test/01: MissingCompileTimeError # Requires strong mode
 void_block_return_test/00: MissingCompileTimeError # Requires strong mode
 void_type_callbacks_test: Skip # Requires strong mode
 void_type_function_types_test: Skip # Requires strong mode

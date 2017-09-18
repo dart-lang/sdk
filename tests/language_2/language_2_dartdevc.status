@@ -119,7 +119,9 @@ compile_time_constant10_test/none: RuntimeError
 const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
 constructor12_test: RuntimeError # Issue 29920
+covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 custom_await_stack_trace_test: RuntimeError # Issue 29920
+ct_const_test: RuntimeError # Issue 2992
 cyclic_type2_test: RuntimeError # Issue 29920
 cyclic_type_test/02: RuntimeError # Issue 29920
 cyclic_type_test/03: RuntimeError # Issue 29920

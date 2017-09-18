@@ -6,7 +6,7 @@
 
 library crash_6725;
 
-part 'crash_6725_part.dart'; //# 01: static type warning
+part 'crash_6725_part.dart'; //# 01: compile-time error
 
 main() {
   test(); //# 01: continued

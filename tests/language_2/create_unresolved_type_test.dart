@@ -3,5 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  new F<int>(); // //# 01: runtime error, static type warning
+  new F<int>(); //# 01: compile-time error
 }

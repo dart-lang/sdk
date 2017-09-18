@@ -28,7 +28,7 @@ class Point {
       : x_ = x,
         y_ = Roman.V - Roman.II - 3;
 
-  bool operator ==(final Point other) {
+  bool operator ==(final dynamic other) {
     return (this.x_ == other.x_) && (this.y_ == other.y_);
   }
 
@@ -64,7 +64,6 @@ class CTConstTest {
     Expect.equals(true, Point.origin == p2); // Point.operator==
 
     Expect.equals(true, identical(const Point.X(5), const Point(5, 0)));
-
     Line l1 = const Line(Point.origin, const Point(1, 1));
     Line l2 = const Line(const Point(0, 0), const Point(1, 1));
     Line l3 = new Line(const Point(0, 0), const Point(1, 1));

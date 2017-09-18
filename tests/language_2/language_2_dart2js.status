@@ -110,6 +110,7 @@ class_literal_test/25: MissingCompileTimeError
 constructor_call_as_function_test/01: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
+create_unresolved_type_test/01: MissingCompileTimeError
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError
@@ -263,6 +264,7 @@ generic_methods_local_variable_declaration_test: RuntimeError
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 assertion_test: RuntimeError # Issue 30326
 bit_operations_test: RuntimeError, OK # Issue 1533
+covariant_override/runtime_check_test: RuntimeError
 generic_closure_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
@@ -273,6 +275,13 @@ instanceof4_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
+covariant_subtyping_tearoff1_test: RuntimeError
+covariant_subtyping_tearoff2_test: RuntimeError
+covariant_subtyping_tearoff3_test: RuntimeError
+covariant_subtyping_test: CompileTimeError
+covariant_subtyping_unsafe_call1_test: RuntimeError
+covariant_subtyping_unsafe_call2_test: RuntimeError
+covariant_subtyping_unsafe_call3_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
@@ -365,6 +374,18 @@ const_qq_test: Crash # Issue 27394
 constructor_named_arguments_test/none: RuntimeError # Issue 27394
 constructor_redirect2_test/02: Crash # Issue 27394
 constructor_redirect2_test/04: Crash # Issue 27394
+covariant_test/10: Crash # Issue 27394
+covariant_test/11: Crash # Issue 27394
+covariant_test/20b: Crash # Issue 27394
+covariant_test/24: Crash # Issue 27394
+deferred_constraints_constants_test/metadata1: Crash # Issue 27394
+deferred_constraints_constants_test/metadata2: Crash # Issue 27394
+deferred_constraints_constants_test/metadata3: Crash # Issue 27394
+deferred_constraints_constants_test/none: Crash # Issue 27394
+deferred_constraints_constants_test/reference_after_load: Crash # Issue 27394
+deferred_constraints_type_annotation_test/as_operation: Crash # Issue 27394
+deferred_inheritance_constraints_test/mixin: Crash # Issue 27394
+deferred_load_constants_test/none: RuntimeError # Issue 27394
 generalized_void_syntax_test: Crash # Issue #30176
 generic_field_mixin2_test: Crash # Issue 27394
 generic_field_mixin3_test: Crash # Issue 27394
@@ -390,19 +411,11 @@ inline_super_field_test: Crash # Issue 27394
 instance_creation_in_function_annotation_test: Crash # Issue 27394
 issue_25671a_test/01: Crash # Issue 27394
 issue_25671b_test/01: Crash # Issue 27394
+issue21079_test: Crash # Issue 27394
+issue9602_test: Crash # Issue 27394
 static_setter_get_test/01: Crash # Issue 27394
 static_top_level_test/00: Crash # Issue 27394
 static_top_level_test/04: Crash # Issue 27394
-deferred_constraints_constants_test/metadata1: Crash # Issue 27394
-deferred_constraints_constants_test/metadata2: Crash # Issue 27394
-deferred_constraints_constants_test/metadata3: Crash # Issue 27394
-deferred_constraints_constants_test/none: Crash # Issue 27394
-deferred_constraints_constants_test/reference_after_load: Crash # Issue 27394
-deferred_constraints_type_annotation_test/as_operation: Crash # Issue 27394
-deferred_inheritance_constraints_test/mixin: Crash # Issue 27394
-deferred_load_constants_test/none: RuntimeError # Issue 27394
-issue21079_test: Crash # Issue 27394
-issue9602_test: Crash # Issue 27394
 
 [ $compiler == dart2js && !$checked ]
 function_subtype_inline2_test: RuntimeError
@@ -972,7 +985,10 @@ bool_check_test: RuntimeError # Issue 29647
 bool_condition_check_test: RuntimeError
 generic_test: RuntimeError, OK
 
-[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
+[ $compiler == dart2js && $checked ]
+covariant_subtyping_test: CompileTimeError
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 function_type/function_type14_test: Crash # Issue 27394
 function_type/function_type15_test: Crash # Issue 27394
 function_type/function_type20_test: Crash # Issue 27394

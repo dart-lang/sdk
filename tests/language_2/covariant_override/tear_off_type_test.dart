@@ -151,7 +151,7 @@ void testImplemented() {
 
 void testMixed() {
   // TODO(rnystrom): https://github.com/dart-lang/sdk/issues/28395
-  // var method = new Mixed().method;
-  // Expect.isTrue(method is TakeInts);
-  // Expect.isTrue(method is TakeObjects);
+  var method = new Mixed().method;
+  Expect.isTrue(method is TakeInts);
+  Expect.isTrue(method is TakeObjects);
 }
