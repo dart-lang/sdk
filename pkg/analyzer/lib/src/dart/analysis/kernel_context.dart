@@ -27,6 +27,7 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/ast.dart' as kernel;
+import 'package:path/path.dart' as pathos;
 import 'package:kernel/target/targets.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -87,17 +88,19 @@ class KernelContext {
       AnalysisOptions analysisOptions,
       DeclaredVariables declaredVariables,
       SourceFactory sourceFactory,
-      FileSystemState fsState) async {
+      FileSystemState fsState,
+      pathos.Context pathContext) async {
     return logger.runAsync('Create kernel context', () async {
       // Prepare SDK libraries.
       Map<String, LibraryInfo> dartLibraries = {};
       {
         DartSdk dartSdk = sourceFactory.dartSdk;
         dartSdk.sdkLibraries.forEach((sdkLibrary) {
-          var name = Uri.parse(sdkLibrary.shortName).path;
-          var path = dartSdk.mapDartUri(sdkLibrary.shortName).fullName;
-          dartLibraries[name] =
-              new LibraryInfo(name, Uri.parse('file://$path'), const []);
+          var dartUri = sdkLibrary.shortName;
+          var name = Uri.parse(dartUri).path;
+          var path = dartSdk.mapDartUri(dartUri).fullName;
+          var fileUri = pathContext.toUri(path);
+          dartLibraries[name] = new LibraryInfo(name, fileUri, const []);
         });
       }
 
