@@ -11,96 +11,176 @@ Import Common.OptionMonad.
 
 Module N := Coq.Arith.PeanoNat.Nat.
 
-Fixpoint type_equiv (s : dart_type) (t : dart_type) : bool :=
-  match (s, t) with
-  | (DT_Interface_Type (Interface_Type s_class),
-     DT_Interface_Type (Interface_Type t_class)) =>
-    N.eqb s_class t_class
-  | (DT_Function_Type (Function_Type s_param s_ret),
-     DT_Function_Type (Function_Type t_param t_ret)) =>
-    type_equiv s_param t_param && type_equiv s_ret t_ret
-  | _ => false
-  end.
+(* The subtyping function doesn't satisfy the ordinary subterm totality
+   condition due to the contravariant property function parameter types.
+   Instead, we prove it terminates by induction on the sum of both types'
+   syntactic sizes. *)
+Section Dart_Type_Pair_Size_Properties.
+  Fixpoint size (d : dart_type) : nat :=
+    match d with
+    | DT_Interface_Type i => size_it i + 1
+    | DT_Function_Type f => size_ft f + 1
+    end
+  with size_it (i : interface_type) : nat :=
+         match i with
+         | Interface_Type n => 0
+         end
+  with size_ft (f : function_type) : nat :=
+         match f with
+         | Function_Type p r => size p + size r
+         end.
 
-Notation "s ≡ t" := (type_equiv s t = true) (at level 70, no associativity).
+  Definition pair_size (d : dart_type * dart_type) :=
+    let (x, y) := d in size x + size y.
 
-Section Type_Equivalence_Properties.
+  Definition pair_size_order (d e : dart_type * dart_type) := pair_size d < pair_size e.
+  Hint Constructors Acc.
+  Lemma pair_size_order_wf' : forall sz, forall d, pair_size d < sz -> Acc pair_size_order d.
+  Proof.
+    unfold pair_size_order; induction sz; crush.
+  Defined.
+  Theorem pair_size_order_wf : well_founded pair_size_order.
+    red; intros; eapply pair_size_order_wf'; eauto.
+  Defined.
+End Dart_Type_Pair_Size_Properties.
 
-  Ltac destruct_types :=
+Module Subtyping.
+
+  Local Definition subtype_rec
+    (p : dart_type * dart_type)
+    (subtype : forall p' : dart_type * dart_type, pair_size_order p' p -> bool) : bool.
+    refine (
+        match p as p' return (p = p' -> bool) with
+        | (DT_Interface_Type (Interface_Type s_class),
+           DT_Interface_Type (Interface_Type t_class)) =>
+          fun H1 => N.eqb s_class t_class
+        | (DT_Function_Type (Function_Type s_param s_ret),
+           DT_Function_Type (Function_Type t_param t_ret)) =>
+          fun H2 => andb (subtype (t_param, s_param) _) (subtype (s_ret, t_ret) _)
+        | _ => fun _ => false
+        end (eq_refl : p = p));
+    destruct p;
+    destruct d1; destruct d2; crush;
+    unfold pair_size_order;
+    unfold pair_size;
+    unfold size;
+    fold size;
+    crush.
+  Defined.
+
+  Definition subtype : dart_type * dart_type -> bool :=
+    Fix pair_size_order_wf (fun _ => bool) subtype_rec.
+
+  Notation "s ◁ t" := (subtype (s, t) = true) (at level 70, no associativity).
+
+  Local Ltac destruct_types :=
     repeat match goal with
            | [H : interface_type |- _] => destruct H
            | [H : function_type |- _] => destruct H
            end.
 
-  Hint Rewrite N.eqb_eq.
-  Hint Unfold type_equiv.
-
-  Lemma type_equiv_refl : forall s : dart_type, s ≡ s.
-    apply
-      (dart_type_ind_mutual
-         (fun s => s ≡ s)
-         (fun i => DT_Interface_Type i ≡ DT_Interface_Type i)
-         (fun f => DT_Function_Type f ≡ DT_Function_Type f)); crush.
+  Local Lemma subtype_rec_equiv :
+    forall (x : dart_type * dart_type)
+           (f g : forall y : dart_type * dart_type, pair_size_order y x -> bool),
+      (forall (y : dart_type * dart_type) (p : pair_size_order y x), f y p = g y p) ->
+      subtype_rec x f = subtype_rec x g.
+  Proof.
+    intros;
+      destruct x;
+      destruct d;
+      destruct d0;
+      destruct_types;
+      cbv;
+      crush.
   Qed.
 
-  Definition trans_at t := forall s r, s ≡ t /\ t ≡ r -> s ≡ r.
+  Definition subtype_rewrite :=
+    Fix_eq pair_size_order_wf (fun _ => bool) subtype_rec subtype_rec_equiv.
+
+  Local Ltac unfold_subtype' H :=
+    match type of H with
+    | ltac_no_arg =>
+      unfold subtype;
+      rewrite subtype_rewrite;
+      unfold subtype_rec at 1;
+      fold subtype
+    | _ =>
+      unfold subtype in H;
+      rewrite subtype_rewrite in H;
+      unfold subtype_rec at 1 in H;
+      fold subtype in H
+    end.
+
+  Tactic Notation "unfold_subtype" := unfold_subtype' Ltac_No_Arg.
+  Tactic Notation "unfold_subtype" constr(x) := unfold_subtype' x.
+
+  Hint Rewrite N.eqb_eq.
+  Hint Unfold subtype.
+
+  Lemma subtype_refl : forall s : dart_type, s ◁ s.
+    apply
+      (dart_type_ind_mutual
+         (fun s => s ◁ s)
+         (fun i => DT_Interface_Type i ◁ DT_Interface_Type i)
+         (fun f => DT_Function_Type f ◁ DT_Function_Type f)); crush.
+    cbv; crush.
+    unfold_subtype; crush.
+  Qed.
+
+  Definition trans_at t := forall s r, s ◁ t /\ t ◁ r -> s ◁ r.
 
   Hint Unfold trans_at.
 
-  Lemma interface_type_trans : forall (n : nat), trans_at (DT_Interface_Type (Interface_Type n)).
-  Proof.
-    intros; unfold trans_at; intros; destruct s; destruct r; destruct_types; crush.
-  Qed.
+  (* TODO(sjindel): how can we generalize this? *)
+  Ltac simplify_subtypes :=
+    repeat ( intuition; repeat ( destruct_types || match goal with
+    | [ H : DT_Interface_Type (Interface_Type _) ◁ _ |- _ ] =>
+      unfold_subtype H
+    | [ H : DT_Function_Type (Function_Type _ _) ◁ _ |- _ ] =>
+      unfold_subtype H
+    | [ H : _ ◁ DT_Interface_Type (Interface_Type _) |- _ ] =>
+      unfold_subtype H
+    | [ H : _ ◁ DT_Function_Type (Function_Type _ _) |- _ ] =>
+      unfold_subtype H
+    | [ |- DT_Interface_Type (Interface_Type _) ◁ _ ] =>
+      unfold_subtype
+    | [ |- DT_Function_Type (Function_Type _ _) ◁ _ ] =>
+      unfold_subtype
+    | [ |- _ ◁ DT_Interface_Type (Interface_Type _) ] =>
+      unfold_subtype
+    | [ |- _ ◁ DT_Function_Type (Function_Type _ _) ] =>
+      unfold_subtype
+  end)).
 
-  Lemma function_type_trans :
+  Local Lemma interface_type_trans : forall (n : nat), trans_at (DT_Interface_Type (Interface_Type n)).
+  Proof.
+    intros.
+    unfold trans_at.
+    intros.
+    destruct s; destruct r; simplify_subtypes; crush.
+  Qed.
+  Hint Immediate interface_type_trans.
+
+  Local Lemma function_type_trans :
     forall d, trans_at d -> forall d', trans_at d' ->
     trans_at (DT_Function_Type (Function_Type d d')).
   Proof.
     intros; unfold trans_at in *; intros; destruct s; destruct r.
     crush.
+    simplify_subtypes.
     crush.
-    crush.
-    destruct_types.
-    intuition.
-    repeat match goal with
-      | [ H : DT_Function_Type (Function_Type _ _) ≡ DT_Function_Type (Function_Type _ _) |- _ ] =>
-        unfold type_equiv in H;
-        apply Bool.andb_true_iff in H;
-        fold type_equiv in H;
-        destruct H
-      end.
-    assert (d3 ≡ d1 /\ d2 ≡ d0); crush.
-  Qed.
-
-  Lemma type_equiv_trans : forall t s r, s ≡ t /\ t ≡ r -> s ≡ r.
-    apply (dart_type_induction trans_at).
-    crush.
-    crush.
-    apply interface_type_trans.
-    apply function_type_trans.
-  Qed.
-
-  Lemma type_equiv_sym : forall s t, s ≡ t -> t ≡ s.
-    apply (dart_type_induction (fun x => forall y, x ≡ y -> y ≡ x)).
-    crush.
-    crush.
-    intros.
-    destruct y.
-    destruct i.
-    crush.
-    destruct f.
-    crush.
-    destruct y.
-    destruct i.
-    crush.
-    destruct f.
-    crush.
-    apply Bool.andb_true_iff in H1; destruct H1.
-    pose proof (H0 d2 H2).
+    simplify_subtypes.
+    rewrite Bool.andb_true_iff in *.
     crush.
   Qed.
+  Hint Immediate function_type_trans.
 
-End Type_Equivalence_Properties.
+  Lemma subtype_trans : forall t s r, s ◁ t /\ t ◁ r -> s ◁ r.
+    apply (dart_type_induction trans_at); crush.
+  Qed.
+
+End Subtyping.
+Import Subtyping.
 
 (* Semantic Types *)
 Record procedure_desc : Type := mk_procedure_desc {
@@ -164,7 +244,7 @@ Fixpoint expression_type (CE : class_env) (TE : type_env) (e : expression) :
         [pr_type proc_desc]
       end;
     let (param_type, ret_type) := fun_type in
-    if type_equiv param_type arg_type then [ret_type] else None
+    if subtype (param_type, arg_type) then [ret_type] else None
   end
 .
 
@@ -178,7 +258,7 @@ Fixpoint statement_type (CE : class_env) (TE : type_env) (s : statement) :
   | S_Variable_Declaration (Variable_Declaration _ _ None) => None
   | S_Variable_Declaration (Variable_Declaration var type (Some init)) =>
     init_type <- expression_type CE TE init;
-    if type_equiv init_type type then
+    if subtype (init_type, type) then
       [(NatMap.add var type TE, None)]
     else
       None
@@ -195,7 +275,7 @@ Fixpoint statement_type (CE : class_env) (TE : type_env) (s : statement) :
         | (None, ss_rt) => [(TE'', ss_rt)]
         | (Some rt, None) => [(TE'', Some rt)]
         | (Some rt, Some rt') =>
-          if type_equiv rt rt' then [(TE'', Some rt)] else None
+          if subtype (rt, rt') then [(TE'', Some rt)] else None
         end
       end in
     process_statements TE stmts
@@ -208,7 +288,7 @@ Fixpoint procedure_type (CE : class_env) (p : procedure) : bool :=
   let (param_var, param_type, _) := param in
   let TE := NatMap.add param_var param_type (NatMap.empty _) in
   match statement_type CE TE body with
-  | Some (_, Some t) => type_equiv t ret_type
+  | Some (_, Some t) => subtype (t, ret_type)
   | _ => false
   end
 .
@@ -224,19 +304,19 @@ Fixpoint class_type (CE : class_env) (c : class) : option class_env :=
 
 Section Typing_Equivalence_Homomorphism.
 
-  Definition equiv_at (e : expression) :=
+  Definition subtype_at (e : expression) :=
     forall CE TE v s t et,
-                 expression_type CE (NatMap.add v s TE) e = [et] /\ s ≡ t ->
-      exists es, expression_type CE (NatMap.add v t TE) e = [es] /\ et ≡ es.
+                 expression_type CE (NatMap.add v s TE) e = [et] /\ s ◁ t ->
+      exists es, expression_type CE (NatMap.add v t TE) e = [es] /\ et ◁ es.
 
   Hint Resolve NatMap.add_1.
   Hint Resolve NatMap.add_2.
   Hint Resolve NatMap.find_1.
-  Hint Resolve type_equiv_refl.
-  Lemma type_equiv_at_variable_get :
-    forall v, equiv_at (E_Variable_Get (Variable_Get v)).
+  Hint Resolve subtype_refl.
+  Lemma subtype_at_variable_get :
+    forall v, subtype_at (E_Variable_Get (Variable_Get v)).
   Proof.
-    unfold equiv_at.
+    unfold subtype_at.
     intros.
     destruct (N.eq_dec v v0).
     rewrite e in *.
@@ -258,13 +338,13 @@ Section Typing_Equivalence_Homomorphism.
     pose proof (@NatMap.add_3 dart_type TE v0 v et s (not_eq_sym n) H).
     crush.
   Qed.
-  Hint Immediate type_equiv_at_variable_get.
+  Hint Immediate subtype_at_variable_get.
 
   Hint Rewrite N.eqb_eq.
-  Lemma type_equiv_at_property_get :
-    forall rec prop, equiv_at rec -> equiv_at (E_Property_Get (Property_Get rec prop)).
+  Lemma subtype_at_property_get :
+    forall rec prop, subtype_at rec -> subtype_at (E_Property_Get (Property_Get rec prop)).
   Proof.
-    unfold equiv_at.
+    unfold subtype_at.
     intros.
     intuition.
     destruct prop.
@@ -285,10 +365,10 @@ Section Typing_Equivalence_Homomorphism.
     pose proof (H CE TE v s t (DT_Interface_Type (Interface_Type n)) (conj H0 H2)).
     destruct H4 as [new_rec_type].
     destruct H4.
-    unfold type_equiv in H5.
     destruct new_rec_type; [idtac|crush].
-    exists et.
     destruct i0.
+    unfold_subtype H5.
+    exists et.
     crush.
 
     (* Case 2: receiver has function type. *)
@@ -305,20 +385,20 @@ Section Typing_Equivalence_Homomorphism.
     simpl.
     destruct new_rec_type; crush.
   Qed.
-  Hint Immediate type_equiv_at_property_get.
+  Hint Immediate subtype_at_property_get.
 
-  Lemma type_equiv_at_ctor_invo :
-    forall c, equiv_at (E_Invocation_Expression (IE_Constructor_Invocation c)).
+  Lemma subtype_at_ctor_invo :
+    forall c, subtype_at (E_Invocation_Expression (IE_Constructor_Invocation c)).
   Proof.
-    unfold equiv_at; intros; exists et; crush.
+    unfold subtype_at; intros; exists et; crush.
   Qed.
-  Hint Immediate type_equiv_at_ctor_invo.
+  Hint Immediate subtype_at_ctor_invo.
 
-  Lemma type_equiv_at_meth_invo :
-    forall rec arg name n, equiv_at rec -> equiv_at arg ->
-      equiv_at (E_Invocation_Expression (IE_Method_Invocation (Method_Invocation rec name (Arguments arg) n))).
+  Lemma subtype_at_meth_invo :
+    forall rec arg name n, subtype_at rec -> subtype_at arg ->
+      subtype_at (E_Invocation_Expression (IE_Method_Invocation (Method_Invocation rec name (Arguments arg) n))).
   Proof.
-    unfold equiv_at; intros.
+    unfold subtype_at; intros.
     unfold expression_type in H.
     fold expression_type in H.
     destruct H1.
@@ -342,10 +422,9 @@ Section Typing_Equivalence_Homomorphism.
     pose proof (H CE TE v s t (DT_Interface_Type (Interface_Type n0)) (conj H4 H2)) as IH_rec.
     destruct IH_rec.
     destruct H3.
-    unfold type_equiv in H10.
     destruct x.
-    crush.
     destruct i0.
+    unfold_subtype H10.
     crush.
     crush.
     (* The function called must have the same type. *)
@@ -360,8 +439,8 @@ Section Typing_Equivalence_Homomorphism.
     simpl.
     intuition; crush.
     rewrite H6.
-    assert (d0 ≡ x).
-    pose proof (type_equiv_trans d d0 x (conj H7 H11)); crush.
+    assert (d0 ◁ x).
+    pose proof (subtype_trans d d0 x (conj H7 H11)); crush.
     rewrite H1; crush.
 
     (* Case 2: The receiver has function type. *)
@@ -376,8 +455,7 @@ Section Typing_Equivalence_Homomorphism.
     destruct H3.
     destruct x; [crush|idtac].
     destruct f; destruct f0.
-    unfold type_equiv in H9.
-    fold type_equiv in H9.
+    simplify_subtypes.
     rewrite Bool.andb_true_iff in H9; destruct H9.
     assert (et = d3) by crush.
     exists d5.
@@ -394,22 +472,21 @@ Section Typing_Equivalence_Homomorphism.
     rewrite H7.
     rewrite bind_some.
     assert (d2 = d0) by crush.
-    assert (d0 ≡ d4) by crush.
-    assert (d0 ≡ x).
-    apply (type_equiv_trans d d0 x (conj H8 H13)).
-    pose proof (type_equiv_sym d0 d4 H15).
-    pose proof (type_equiv_trans d0 d4 x (conj H17 H16)).
-    rewrite H18.
+    rewrite (eq_sym H14) in H8.
+    pose proof (subtype_trans d d2 x (conj H8 H13)).
+    assert (d4 ◁ x).
+    apply (subtype_trans d2); crush.
+    rewrite H16.
     crush.
   Qed.
-  Hint Immediate type_equiv_at_meth_invo.
+  Hint Immediate subtype_at_meth_invo.
 
-  Hint Extern 1 =>
-    match goal with
-      [ x : arguments |- _ ] => destruct x
-    end.
-  Theorem type_equiv_homo : forall e, equiv_at e.
-    apply (expr_induction equiv_at); crush.
+  Theorem subtype_homo : forall e, subtype_at e.
+    Hint Extern 1 =>
+      match goal with
+        [ x : arguments |- _ ] => destruct x
+      end.
+    apply (expr_induction subtype_at); crush.
   Qed.
 
 End Typing_Equivalence_Homomorphism.
