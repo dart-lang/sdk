@@ -461,6 +461,7 @@ class KernelImpactBuilder extends ir.Visitor {
           elementAdapter.getSuperNoSuchMethod(
               elementAdapter.getClass(currentMember.enclosingClass)),
           CallStructure.ONE_ARG));
+      impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
   }
 
@@ -493,6 +494,7 @@ class KernelImpactBuilder extends ir.Visitor {
           elementAdapter.getSuperNoSuchMethod(
               elementAdapter.getClass(currentMember.enclosingClass)),
           CallStructure.ONE_ARG));
+      impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
   }
 

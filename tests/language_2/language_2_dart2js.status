@@ -725,8 +725,6 @@ issue15720_test: Crash # Assertion failure: Runtime type information not availab
 issue21079_test: RuntimeError
 issue23244_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 issue_1751477_test: CompileTimeError
-issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
-issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 many_generic_instanceof_test: RuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_with_conversions_test: RuntimeError
@@ -986,8 +984,6 @@ issue23244_test: Crash # Assertion failure: Cannot find value Instance of 'ThisL
 issue23244_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 issue_1751477_test: CompileTimeError
 issue_1751477_test: CompileTimeError
-issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
-issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 many_generic_instanceof_test: RuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_with_conversions_test: RuntimeError

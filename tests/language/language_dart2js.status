@@ -670,8 +670,6 @@ issue15720_test: Crash # Assertion failure: Runtime type information not availab
 issue21079_test: RuntimeError
 issue23244_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 issue_1751477_test: CompileTimeError
-issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
-issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
@@ -719,13 +717,13 @@ mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/02: MissingCompileTimeError
-mixin_illegal_super_use_test/03: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
+mixin_illegal_super_use_test/03: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/05: MissingCompileTimeError
-mixin_illegal_super_use_test/06: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
+mixin_illegal_super_use_test/06: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
 mixin_illegal_super_use_test/08: MissingCompileTimeError
-mixin_illegal_super_use_test/09: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
+mixin_illegal_super_use_test/09: MissingCompileTimeError
 mixin_illegal_super_use_test/10: MissingCompileTimeError
 mixin_illegal_super_use_test/11: MissingCompileTimeError
 mixin_illegal_superclass_test/01: MissingCompileTimeError
@@ -1183,8 +1181,6 @@ issue15720_test: Crash # Assertion failure: Runtime type information not availab
 issue21079_test: RuntimeError
 issue23244_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 issue_1751477_test: CompileTimeError
-issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
-issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
@@ -1229,13 +1225,13 @@ mixin_forwarding_constructor4_test/03: MissingCompileTimeError
 mixin_generic_test: RuntimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/02: MissingCompileTimeError
-mixin_illegal_super_use_test/03: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
+mixin_illegal_super_use_test/03: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/05: MissingCompileTimeError
-mixin_illegal_super_use_test/06: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
+mixin_illegal_super_use_test/06: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
 mixin_illegal_super_use_test/08: MissingCompileTimeError
-mixin_illegal_super_use_test/09: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
+mixin_illegal_super_use_test/09: MissingCompileTimeError
 mixin_illegal_super_use_test/10: MissingCompileTimeError
 mixin_illegal_super_use_test/11: MissingCompileTimeError
 mixin_illegal_superclass_test/01: MissingCompileTimeError
