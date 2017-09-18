@@ -68,6 +68,12 @@ abstract class AbstractClassElementImpl extends ElementImpl
   AbstractClassElementImpl(String name, int offset) : super(name, offset);
 
   /**
+   * Initialize for resynthesizing from kernel.
+   */
+  AbstractClassElementImpl.forKernel(CompilationUnitElementImpl enclosingUnit)
+      : super.forKernel(enclosingUnit);
+
+  /**
    * Initialize a newly created class element to have the given [name].
    */
   AbstractClassElementImpl.forNode(Identifier name) : super.forNode(name);
@@ -497,7 +503,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   ClassElementImpl.forKernel(
       CompilationUnitElementImpl enclosingUnit, this._kernel)
       : _unlinkedClass = null,
-        super.forSerialized(enclosingUnit);
+        super.forKernel(enclosingUnit);
 
   /**
    * Initialize a newly created class element to have the given [name].
@@ -1566,7 +1572,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       : resynthesizerContext = null,
         _unlinkedUnit = null,
         _unlinkedPart = null,
-        super.forSerialized(null) {
+        super.forKernel(null) {
     _enclosingElement = enclosingLibrary;
     _name = name;
     _nameOffset = -1;
@@ -3043,6 +3049,11 @@ abstract class ElementImpl implements Element {
   }
 
   /**
+   * Initialize for resynthesizing from kernel.
+   */
+  ElementImpl.forKernel(this._enclosingElement);
+
+  /**
    * Initialize a newly created element to have the given [name].
    */
   ElementImpl.forNode(Identifier name)
@@ -3681,7 +3692,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   EnumElementImpl.forKernel(
       CompilationUnitElementImpl enclosingUnit, this._kernel)
       : _unlinkedEnum = null,
-        super.forSerialized(enclosingUnit);
+        super.forKernel(enclosingUnit);
 
   /**
    * Initialize a newly created class element to have the given [name].
@@ -3983,7 +3994,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    */
   ExecutableElementImpl.forKernel(ElementImpl enclosingElement, this._kernel)
       : serializedExecutable = null,
-        super.forSerialized(enclosingElement);
+        super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created executable element to have the given [name].
@@ -4413,7 +4424,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   ExportElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
       : _unlinkedExportPublic = null,
         _unlinkedExportNonPublic = null,
-        super.forSerialized(enclosingLibrary);
+        super.forKernel(enclosingLibrary);
 
   /**
    * Initialize using the given serialized information.
@@ -5063,7 +5074,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   FunctionTypeAliasElementImpl.forKernel(
       CompilationUnitElementImpl enclosingUnit, this._kernel)
       : _unlinkedTypedef = null,
-        super.forSerialized(enclosingUnit);
+        super.forKernel(enclosingUnit);
 
   /**
    * Initialize a newly created type alias element to have the given [name].
@@ -5352,7 +5363,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
    */
   GenericFunctionTypeElementImpl.forKernel(
       ElementImpl enclosingElement, this._kernel)
-      : super.forSerialized(enclosingElement);
+      : super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created function element to have no name and the given
@@ -5908,7 +5919,7 @@ class ImportElementImpl extends UriReferencedElementImpl
       : _unlinkedImport = null,
         _linkedDependency = null,
         _kernelSynthetic = isSynthetic,
-        super.forSerialized(enclosingLibrary);
+        super.forKernel(enclosingLibrary);
 
   /**
    * Initialize using the given serialized information.
@@ -6440,7 +6451,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       : resynthesizerContext = null,
         _unlinkedDefiningUnit = null,
         nameLength = _kernelContext.library.name?.length ?? 0,
-        super.forSerialized(null) {
+        super.forKernel(null) {
     _name = _kernelContext.library.name ?? '';
     _nameOffset = _kernelContext.library.fileOffset;
     setResolutionCapability(
@@ -7862,7 +7873,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   NonParameterVariableElementImpl.forKernel(
       ElementImpl enclosingElement, this._kernel)
       : _unlinkedVariable = null,
-        super.forSerialized(enclosingElement);
+        super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created variable element to have the given [name].
@@ -8107,7 +8118,7 @@ class ParameterElementImpl extends VariableElementImpl
   ParameterElementImpl.forKernel(
       ElementImpl enclosingElement, this._kernel, this._parameterKind)
       : _unlinkedParam = null,
-        super.forSerialized(enclosingElement);
+        super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created parameter element to have the given [name].
@@ -8714,7 +8725,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
    */
   PrefixElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
       : _unlinkedImport = null,
-        super.forSerialized(enclosingLibrary);
+        super.forKernel(enclosingLibrary);
 
   /**
    * Initialize a newly created prefix element to have the given [name].
@@ -9434,7 +9445,7 @@ class TypeParameterElementImpl extends ElementImpl
       TypeParameterizedElementMixin enclosingElement, this._kernel)
       : _unlinkedTypeParam = null,
         nestingLevel = null,
-        super.forSerialized(enclosingElement);
+        super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created type parameter element to have the given [name].
@@ -9784,6 +9795,12 @@ abstract class UriReferencedElementImpl extends ElementImpl
   UriReferencedElementImpl(String name, int offset) : super(name, offset);
 
   /**
+   * Initialize for resynthesizing from kernel.
+   */
+  UriReferencedElementImpl.forKernel(ElementImpl enclosingElement)
+      : super.forKernel(enclosingElement);
+
+  /**
    * Initialize using the given serialized information.
    */
   UriReferencedElementImpl.forSerialized(ElementImpl enclosingElement)
@@ -9865,6 +9882,12 @@ abstract class VariableElementImpl extends ElementImpl
    * [offset].
    */
   VariableElementImpl(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize for resynthesizing form kernel.
+   */
+  VariableElementImpl.forKernel(ElementImpl enclosingElement)
+      : super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created variable element to have the given [name].
