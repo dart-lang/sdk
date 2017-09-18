@@ -35,12 +35,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_assignmentToFinals_importWithPrefix() async {
-    return super.test_assignmentToFinals_importWithPrefix();
-  }
-
-  @override
-  @failingTest
   test_async_flattened() async {
     return super.test_async_flattened();
   }

@@ -9007,6 +9007,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
       PropertyInducingElementImpl property)
       : super.forVariable(property) {
     property.setter = this;
+    enclosingElement = property.enclosingElement;
   }
 
   @override

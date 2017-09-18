@@ -769,12 +769,14 @@ class _ElementWriter {
       expect(e.getter, isNotNull);
       expect(e.getter.isSynthetic, isTrue);
       expect(e.getter.variable, same(e));
+      expect(e.getter.enclosingElement, same(e.enclosingElement));
       if (e.isFinal || e.isConst) {
         expect(e.setter, isNull);
       } else {
         expect(e.setter, isNotNull);
         expect(e.setter.isSynthetic, isTrue);
         expect(e.setter.variable, same(e.getter.variable));
+        expect(e.setter.enclosingElement, same(e.enclosingElement));
       }
     }
 
