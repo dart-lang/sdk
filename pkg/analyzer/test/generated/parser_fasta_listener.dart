@@ -766,11 +766,11 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftSeparator,
+  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     end('ForStatement');
     listener.endForStatement(
-        forKeyword, leftSeparator, updateExpressionCount, endToken);
+        forKeyword, leftParen, leftSeparator, updateExpressionCount, endToken);
   }
 
   @override

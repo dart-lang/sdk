@@ -238,7 +238,7 @@ class Listener {
   /// [endForStatement] or [endForIn].
   void beginForStatement(Token token) {}
 
-  void endForStatement(Token forKeyword, Token leftSeparator,
+  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     logEvent("ForStatement");
   }

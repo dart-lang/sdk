@@ -576,7 +576,7 @@ class AstBuilder extends ScopeListener {
     push(ast.block(beginToken, statements, endToken));
   }
 
-  void endForStatement(Token forKeyword, Token leftSeparator,
+  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     debugEvent("ForStatement");
     Statement body = pop();
@@ -586,8 +586,6 @@ class AstBuilder extends ScopeListener {
     exitLocalScope();
     exitContinueTarget();
     exitBreakTarget();
-    analyzer.BeginToken leftParenthesis =
-        unsafeToken(forKeyword.next, TokenType.OPEN_PAREN);
 
     VariableDeclarationList variableList;
     Expression initializer;
@@ -608,14 +606,14 @@ class AstBuilder extends ScopeListener {
 
     push(ast.forStatement(
         forKeyword,
-        leftParenthesis,
+        leftParen,
         variableList,
         initializer,
         leftSeparator,
         condition,
         rightSeparator,
         updates,
-        leftParenthesis?.endGroup,
+        leftParen?.endGroup,
         body));
   }
 

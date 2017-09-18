@@ -584,7 +584,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftSeparator,
+  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     Statement body = popNode();
     NodeList updates = makeNodeList(updateExpressionCount, null, null, ',');

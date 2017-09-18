@@ -3818,7 +3818,8 @@ class Parser {
     listener.beginForStatementBody(token);
     token = parseStatement(token);
     listener.endForStatementBody(token);
-    listener.endForStatement(forToken, leftSeparator, expressionCount, token);
+    listener.endForStatement(
+        forToken, leftParenthesis, leftSeparator, expressionCount, token);
     return token;
   }
 
