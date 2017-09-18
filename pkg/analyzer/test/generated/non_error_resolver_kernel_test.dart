@@ -20,13 +20,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_argumentTypeNotAssignable_fieldFormalParameterElement_member() async {
-    return super
-        .test_argumentTypeNotAssignable_fieldFormalParameterElement_member();
-  }
-
-  @override
-  @failingTest
   test_argumentTypeNotAssignable_invocation_functionParameter_generic() async {
     fail('This test fails only in checked mode.');
     return super
@@ -43,18 +36,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_async_future_int_with_return_future_int() async {
     return super.test_async_future_int_with_return_future_int();
-  }
-
-  @override
-  @failingTest
-  test_caseExpressionTypeImplementsEquals() async {
-    return super.test_caseExpressionTypeImplementsEquals();
-  }
-
-  @override
-  @failingTest
-  test_caseExpressionTypeImplementsEquals_Object() async {
-    return super.test_caseExpressionTypeImplementsEquals_Object();
   }
 
   @override
@@ -150,12 +131,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_constMapKeyExpressionTypeImplementsEquals_abstract() async {
-    return super.test_constMapKeyExpressionTypeImplementsEquals_abstract();
-  }
-
-  @override
-  @failingTest
   test_constNotInitialized_field() async {
     return super.test_constNotInitialized_field();
   }
@@ -219,6 +194,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   test_fieldFormalParameter_functionTyped_named() async {
+    fail('This test fails only in checked mode.');
     return super.test_fieldFormalParameter_functionTyped_named();
   }
 
@@ -227,31 +203,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal() async {
     return super
         .test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializerOutsideConstructor() async {
-    return super.test_fieldInitializerOutsideConstructor();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializerOutsideConstructor_defaultParameters() async {
-    return super.test_fieldInitializerOutsideConstructor_defaultParameters();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializerRedirectingConstructor_super() async {
-    return super.test_fieldInitializerRedirectingConstructor_super();
-  }
-
-  @override
-  @failingTest
-  test_finalInitializedInDeclarationAndConstructor_initializingFormal() async {
-    return super
-        .test_finalInitializedInDeclarationAndConstructor_initializingFormal();
   }
 
   @override
@@ -269,6 +220,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   test_finalNotInitialized_functionTypedFieldFormal() async {
+    fail('This test fails only in checked mode.');
     return super.test_finalNotInitialized_functionTypedFieldFormal();
   }
 
@@ -367,18 +319,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_initializingFormalForNonExistentField() async {
-    return super.test_initializingFormalForNonExistentField();
-  }
-
-  @override
-  @failingTest
-  test_instance_creation_inside_annotation() async {
-    return super.test_instance_creation_inside_annotation();
-  }
-
-  @override
-  @failingTest
   test_invalidAnnotation_constantVariable_field() async {
     return super.test_invalidAnnotation_constantVariable_field();
   }
@@ -394,12 +334,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_invalidAnnotation_constantVariable_topLevel() async {
     return super.test_invalidAnnotation_constantVariable_topLevel();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_compoundAssignment() async {
-    return super.test_invalidAssignment_compoundAssignment();
   }
 
   @override
@@ -468,12 +402,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_invalidOverrideDifferentDefaultValues_positional_function() async {
     return super
         .test_invalidOverrideDifferentDefaultValues_positional_function();
-  }
-
-  @override
-  @failingTest
-  test_invocationOfNonFunction_functionTypeTypeParameter() async {
-    return super.test_invocationOfNonFunction_functionTypeTypeParameter();
   }
 
   @override
@@ -584,12 +512,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_nonConstantDefaultValue_typedConstList() async {
     return super.test_nonConstantDefaultValue_typedConstList();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantValueInInitializer_namedArgument() async {
-    return super.test_nonConstantValueInInitializer_namedArgument();
   }
 
   @override

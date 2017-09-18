@@ -4720,14 +4720,23 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   FieldElement get field {
-    if (_unlinkedParam != null && _field == null) {
-      Element enclosingConstructor = enclosingElement;
-      if (enclosingConstructor is ConstructorElement) {
-        Element enclosingClass = enclosingConstructor.enclosingElement;
-        if (enclosingClass is ClassElement) {
-          FieldElement field = enclosingClass.getField(_unlinkedParam.name);
-          if (field != null && !field.isSynthetic) {
-            _field = field;
+    if (_field == null) {
+      String fieldName;
+      if (_kernel != null) {
+        fieldName = _kernel.name;
+      }
+      if (_unlinkedParam != null) {
+        fieldName = _unlinkedParam.name;
+      }
+      if (fieldName != null) {
+        Element enclosingConstructor = enclosingElement;
+        if (enclosingConstructor is ConstructorElement) {
+          Element enclosingClass = enclosingConstructor.enclosingElement;
+          if (enclosingClass is ClassElement) {
+            FieldElement field = enclosingClass.getField(fieldName);
+            if (field != null && !field.isSynthetic) {
+              _field = field;
+            }
           }
         }
       }
