@@ -16,6 +16,10 @@ recursive_import_test: Slow, Pass
 dummy_compiler_test: Skip
 recursive_import_test: Skip
 
+[ $compiler == dart2js && $runtime == d8 && $host_checked ]
+dummy_compiler_test: Skip # Issue 30773
+recursive_import_test: Skip # Issue 30773
+
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 dummy_compiler_test: Skip # Issue 28649
 recursive_import_test: Skip # Issue 28649
