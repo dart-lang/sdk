@@ -20,14 +20,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_argumentTypeNotAssignable_invocation_functionParameter_generic() async {
-    fail('This test fails only in checked mode.');
-    return super
-        .test_argumentTypeNotAssignable_invocation_functionParameter_generic();
-  }
-
-  @override
-  @failingTest
   test_async_flattened() async {
     return super.test_async_flattened();
   }
@@ -167,20 +159,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_defaultValueInFunctionTypedParameter_named() async {
-    fail('This test fails only in checked mode.');
-    return super.test_defaultValueInFunctionTypedParameter_named();
-  }
-
-  @override
-  @failingTest
-  test_defaultValueInFunctionTypedParameter_optional() async {
-    fail('This test fails only in checked mode.');
-    return super.test_defaultValueInFunctionTypedParameter_optional();
-  }
-
-  @override
-  @failingTest
   test_deprecatedMemberUse_hide() async {
     return super.test_deprecatedMemberUse_hide();
   }
@@ -189,13 +167,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_duplicateDefinition_emptyName() async {
     return super.test_duplicateDefinition_emptyName();
-  }
-
-  @override
-  @failingTest
-  test_fieldFormalParameter_functionTyped_named() async {
-    fail('This test fails only in checked mode.');
-    return super.test_fieldFormalParameter_functionTyped_named();
   }
 
   @override
@@ -215,13 +186,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_finalNotInitialized_fieldFormal() async {
     return super.test_finalNotInitialized_fieldFormal();
-  }
-
-  @override
-  @failingTest
-  test_finalNotInitialized_functionTypedFieldFormal() async {
-    fail('This test fails only in checked mode.');
-    return super.test_finalNotInitialized_functionTypedFieldFormal();
   }
 
   @override
@@ -669,29 +633,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_staticAccessToInstanceMember_annotation() async {
     return super.test_staticAccessToInstanceMember_annotation();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_noAssignment() async {
-    fail('This test fails only in checked mode.');
-    return super
-        .test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_noAssignment();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_conditional_useInThen_accessedInClosure_noAssignment() async {
-    fail('This test fails only in checked mode.');
-    return super
-        .test_typePromotion_conditional_useInThen_accessedInClosure_noAssignment();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_accessedInClosure_noAssignment() async {
-    fail('This test fails only in checked mode.');
-    return super.test_typePromotion_if_accessedInClosure_noAssignment();
   }
 
   @override

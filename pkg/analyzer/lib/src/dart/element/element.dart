@@ -5323,6 +5323,11 @@ class GenericFunctionTypeElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
     implements GenericFunctionTypeElement {
   /**
+   * The kernel type.
+   */
+  final kernel.FunctionType _kernel;
+
+  /**
    * The unlinked representation of the generic function type in the summary.
    */
   EntityRef _entityRef;
@@ -5343,18 +5348,27 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   FunctionType _type;
 
   /**
+   * Initialize using the given kernel.
+   */
+  GenericFunctionTypeElementImpl.forKernel(
+      ElementImpl enclosingElement, this._kernel)
+      : super.forSerialized(enclosingElement);
+
+  /**
    * Initialize a newly created function element to have no name and the given
    * [nameOffset]. This is used for function expressions, that have no name.
    */
   GenericFunctionTypeElementImpl.forOffset(int nameOffset)
-      : super("", nameOffset);
+      : _kernel = null,
+        super("", nameOffset);
 
   /**
    * Initialize from serialized information.
    */
   GenericFunctionTypeElementImpl.forSerialized(
       ElementImpl enclosingElement, this._entityRef)
-      : super.forSerialized(enclosingElement);
+      : _kernel = null,
+        super.forSerialized(enclosingElement);
 
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext {
@@ -5365,16 +5379,29 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   String get identifier => '-';
 
   @override
-  List<kernel.TypeParameter> get kernelTypeParams => null;
+  List<kernel.TypeParameter> get kernelTypeParams => _kernel?.typeParameters;
 
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
 
   @override
   List<ParameterElement> get parameters {
-    if (_entityRef != null) {
-      _parameters ??= ParameterElementImpl.resynthesizeList(
-          _entityRef.syntheticParams, this);
+    if (_parameters == null) {
+      if (_kernel != null) {
+        var parameters =
+            enclosingUnit._kernelContext.getFunctionTypeParameters(_kernel);
+        var positionalParameters = parameters[0];
+        var namedParameters = parameters[1];
+        _parameters = ParameterElementImpl.forKernelParameters(
+            this,
+            _kernel.requiredParameterCount,
+            positionalParameters,
+            namedParameters);
+      }
+      if (_entityRef != null) {
+        _parameters = ParameterElementImpl.resynthesizeList(
+            _entityRef.syntheticParams, this);
+      }
     }
     return _parameters ?? const <ParameterElement>[];
   }
@@ -5393,10 +5420,16 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   DartType get returnType {
-    if (_entityRef != null && _returnType == null) {
-      _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-          this, _entityRef.syntheticReturnType,
-          defaultVoid: false, declaredType: true);
+    if (_returnType == null) {
+      if (_kernel != null) {
+        _returnType =
+            enclosingUnit._kernelContext.getType(this, _kernel.returnType);
+      }
+      if (_entityRef != null) {
+        _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+            this, _entityRef.syntheticReturnType,
+            defaultVoid: false, declaredType: true);
+      }
     }
     return _returnType;
   }
@@ -5412,7 +5445,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
-    if (_entityRef != null) {
+    if (_kernel != null || _entityRef != null) {
       _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
           this, null, allEnclosingTypeParameterTypes, false);
     }
@@ -8463,7 +8496,6 @@ class ParameterElementImpl extends VariableElementImpl
    * been build yet, build them and remember in the corresponding fields.
    */
   void _resynthesizeTypeAndParameters() {
-    // TODO(scheglov) Don't resynthesize parameters.
     if (_kernel != null && _type == null) {
       kernel.DartType type = _kernel.type;
       _type = enclosingUnit._kernelContext.getType(this, type);

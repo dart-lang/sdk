@@ -826,23 +826,29 @@ class _KernelUnitResynthesizerContextImpl
         return element.type;
       }
 
-      var functionElement = new FunctionElementImpl.synthetic([], null);
-      functionElement.enclosingElement = context;
+      if (context is ParameterElementImpl) {
+        var typeElement =
+            new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
+        return typeElement.type;
+      } else {
+        var functionElement = new FunctionElementImpl.synthetic([], null);
+        functionElement.enclosingElement = context;
 
-      functionElement.typeParameters = kernelType.typeParameters.map((k) {
-        return new TypeParameterElementImpl.forKernel(functionElement, k);
-      }).toList(growable: false);
+        functionElement.typeParameters = kernelType.typeParameters.map((k) {
+          return new TypeParameterElementImpl.forKernel(functionElement, k);
+        }).toList(growable: false);
 
-      var parameters = getFunctionTypeParameters(kernelType);
-      functionElement.parameters = ParameterElementImpl.forKernelParameters(
-          functionElement,
-          kernelType.requiredParameterCount,
-          parameters[0],
-          parameters[1]);
+        var parameters = getFunctionTypeParameters(kernelType);
+        functionElement.parameters = ParameterElementImpl.forKernelParameters(
+            functionElement,
+            kernelType.requiredParameterCount,
+            parameters[0],
+            parameters[1]);
 
-      functionElement.returnType =
-          getType(functionElement, kernelType.returnType);
-      return functionElement.type;
+        functionElement.returnType =
+            getType(functionElement, kernelType.returnType);
+        return functionElement.type;
+      }
     }
 
     // TODO(scheglov) Support other kernel types.
