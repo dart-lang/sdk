@@ -587,3 +587,4 @@ generic_methods_simple_is_expression_test: CompileTimeError # Issue 29070
 generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
 generic_methods_type_expression_test: CompileTimeError # Incorrectly disallows type parameter in "is" test.
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
+string_interpolate_test: CompileTimeError
