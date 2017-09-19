@@ -2048,8 +2048,6 @@ class Parser {
     return expect(';', token);
   }
 
-  bool isModifier(Token token) => modifierOrder(token) < 127;
-
   /// Provides a partial order on modifiers.
   ///
   /// The order is based on the order modifiers must appear in according to the
@@ -2075,7 +2073,7 @@ class Parser {
   }
 
   Token parseModifier(Token token) {
-    assert(isModifier(token));
+    assert(token.isModifier);
     listener.handleModifier(token);
     return token.next;
   }
@@ -2496,7 +2494,7 @@ class Parser {
     Token start = token;
     bool isExternal = false;
     int modifierCount = 0;
-    while (isModifier(token)) {
+    while (token.isModifier) {
       if (optional('external', token)) {
         isExternal = true;
       }
@@ -2911,7 +2909,7 @@ class Parser {
 
   Token parseExpressionStatementOrConstDeclaration(Token token) {
     assert(optional('const', token));
-    if (isModifier(token.next)) {
+    if (token.next.isModifier) {
       return parseVariablesDeclaration(token);
     } else {
       return parseType(
