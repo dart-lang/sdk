@@ -104,6 +104,7 @@ void_type_usage_test/paren_stmt: CompileTimeError # Issue 30514
 void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 
 [ $compiler == dartdevc && $runtime != none ]
+assertion_test: RuntimeError # Issue 30326
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
 async_star_pause_test: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
