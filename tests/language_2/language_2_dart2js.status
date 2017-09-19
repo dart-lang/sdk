@@ -534,94 +534,26 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
 assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
-async_and_or_test: RuntimeError
 async_await_catch_regression_test: RuntimeError
 async_await_foreign_test: RuntimeError
-async_await_syntax_test/a01a: RuntimeError
-async_await_syntax_test/a02a: RuntimeError
-async_await_syntax_test/a03a: RuntimeError
-async_await_syntax_test/a03b: RuntimeError
-async_await_syntax_test/a04a: RuntimeError
-async_await_syntax_test/a04c: RuntimeError
-async_await_syntax_test/a05a: RuntimeError
-async_await_syntax_test/a05b: RuntimeError
 async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/a07a: RuntimeError
-async_await_syntax_test/a08a: RuntimeError
-async_await_syntax_test/a09a: RuntimeError
-async_await_syntax_test/a11b: RuntimeError
-async_await_syntax_test/a11c: RuntimeError
-async_await_syntax_test/a11d: RuntimeError
-async_await_syntax_test/a12g: RuntimeError
-async_await_syntax_test/b01a: RuntimeError
-async_await_syntax_test/b02a: RuntimeError
-async_await_syntax_test/b03a: RuntimeError
-async_await_syntax_test/b04a: RuntimeError
-async_await_syntax_test/b05a: RuntimeError
 async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/b07a: RuntimeError
-async_await_syntax_test/b08a: RuntimeError
-async_await_syntax_test/b09a: RuntimeError
-async_await_syntax_test/b11b: RuntimeError
-async_await_syntax_test/b11c: RuntimeError
-async_await_syntax_test/b11d: RuntimeError
-async_await_syntax_test/b12g: RuntimeError
-async_await_syntax_test/c01a: RuntimeError
-async_await_syntax_test/c02a: RuntimeError
-async_await_syntax_test/c03a: RuntimeError
-async_await_syntax_test/c04a: RuntimeError
-async_await_syntax_test/c05a: RuntimeError
 async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/c07a: RuntimeError
-async_await_syntax_test/c08a: RuntimeError
-async_await_syntax_test/c09a: RuntimeError
-async_await_syntax_test/d01a: RuntimeError
-async_await_syntax_test/d02a: RuntimeError
-async_await_syntax_test/d03a: RuntimeError
-async_await_syntax_test/d04a: RuntimeError
-async_await_syntax_test/d05a: RuntimeError
 async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/d07a: RuntimeError
-async_await_syntax_test/d08a: RuntimeError
-async_await_syntax_test/d09a: RuntimeError
-async_break_in_finally_test: RuntimeError
-async_call_test: RuntimeError
-async_cascade_test: RuntimeError
-async_continue_label_test/await_in_body: RuntimeError
-async_continue_label_test/await_in_condition: RuntimeError
-async_continue_label_test/await_in_init: RuntimeError
-async_continue_label_test/await_in_update: RuntimeError
-async_continue_label_test/none: RuntimeError
-async_control_structures_test: RuntimeError
 async_finally_rethrow_test: RuntimeError
-async_regression_23058_test: RuntimeError
 async_rethrow_test: RuntimeError
-async_return_types_test/none: RuntimeError
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
-async_star_cancel_while_paused_test: RuntimeError
+async_star_cancel_while_paused_test: Fail
 async_star_no_cancel2_test: RuntimeError
 async_star_no_cancel_test: RuntimeError
 async_star_pause_test: RuntimeError
-async_star_regression_2238_test: RuntimeError
-async_star_regression_23116_test: RuntimeError
 async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: RuntimeError
 async_star_take_reyield_test: RuntimeError
-await_and_ifnull_test: RuntimeError
-await_backwards_compatibility_test/none: RuntimeError
 await_exceptions_test: RuntimeError
-await_for_cancel_test: RuntimeError
 await_for_test: RuntimeError
 await_for_use_local_test: RuntimeError
-await_future_test: RuntimeError
-await_in_cascade_test: RuntimeError
-await_nonfuture_test: RuntimeError
-await_not_started_immediately_test: RuntimeError
-await_null_aware_test: RuntimeError
-await_postfix_expr_test: RuntimeError
-await_regression_test: RuntimeError
-await_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -703,7 +635,6 @@ deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: RuntimeError
-generic_async_test: RuntimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_field_mixin4_test: Crash # Assertion failure: No local for j:field(M_closure._captured_T_0).
@@ -722,7 +653,6 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_sync_star_test: RuntimeError
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 getter_override2_test/02: MissingCompileTimeError
@@ -752,12 +682,9 @@ issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_with_conversions_test: RuntimeError
-regress_30339_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
-unused_overridden_async_test: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
@@ -768,94 +695,26 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib5::C::bc02 (Constructor)
 assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
-async_and_or_test: RuntimeError
 async_await_catch_regression_test: RuntimeError
 async_await_foreign_test: RuntimeError
-async_await_syntax_test/a01a: RuntimeError
-async_await_syntax_test/a02a: RuntimeError
-async_await_syntax_test/a03a: RuntimeError
-async_await_syntax_test/a03b: RuntimeError
-async_await_syntax_test/a04a: RuntimeError
-async_await_syntax_test/a04c: RuntimeError
-async_await_syntax_test/a05a: RuntimeError
-async_await_syntax_test/a05b: RuntimeError
 async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/a07a: RuntimeError
-async_await_syntax_test/a08a: RuntimeError
-async_await_syntax_test/a09a: RuntimeError
-async_await_syntax_test/a11b: RuntimeError
-async_await_syntax_test/a11c: RuntimeError
-async_await_syntax_test/a11d: RuntimeError
-async_await_syntax_test/a12g: RuntimeError
-async_await_syntax_test/b01a: RuntimeError
-async_await_syntax_test/b02a: RuntimeError
-async_await_syntax_test/b03a: RuntimeError
-async_await_syntax_test/b04a: RuntimeError
-async_await_syntax_test/b05a: RuntimeError
 async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/b07a: RuntimeError
-async_await_syntax_test/b08a: RuntimeError
-async_await_syntax_test/b09a: RuntimeError
-async_await_syntax_test/b11b: RuntimeError
-async_await_syntax_test/b11c: RuntimeError
-async_await_syntax_test/b11d: RuntimeError
-async_await_syntax_test/b12g: RuntimeError
-async_await_syntax_test/c01a: RuntimeError
-async_await_syntax_test/c02a: RuntimeError
-async_await_syntax_test/c03a: RuntimeError
-async_await_syntax_test/c04a: RuntimeError
-async_await_syntax_test/c05a: RuntimeError
 async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/c07a: RuntimeError
-async_await_syntax_test/c08a: RuntimeError
-async_await_syntax_test/c09a: RuntimeError
-async_await_syntax_test/d01a: RuntimeError
-async_await_syntax_test/d02a: RuntimeError
-async_await_syntax_test/d03a: RuntimeError
-async_await_syntax_test/d04a: RuntimeError
-async_await_syntax_test/d05a: RuntimeError
 async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/d07a: RuntimeError
-async_await_syntax_test/d08a: RuntimeError
-async_await_syntax_test/d09a: RuntimeError
-async_break_in_finally_test: RuntimeError
-async_call_test: RuntimeError
-async_cascade_test: RuntimeError
-async_continue_label_test/await_in_body: RuntimeError
-async_continue_label_test/await_in_condition: RuntimeError
-async_continue_label_test/await_in_init: RuntimeError
-async_continue_label_test/await_in_update: RuntimeError
-async_continue_label_test/none: RuntimeError
-async_control_structures_test: RuntimeError
 async_finally_rethrow_test: RuntimeError
-async_regression_23058_test: RuntimeError
 async_rethrow_test: RuntimeError
-async_return_types_test/none: RuntimeError
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
-async_star_cancel_while_paused_test: RuntimeError
+async_star_cancel_while_paused_test: Fail
 async_star_no_cancel2_test: RuntimeError
 async_star_no_cancel_test: RuntimeError
 async_star_pause_test: RuntimeError
-async_star_regression_2238_test: RuntimeError
-async_star_regression_23116_test: RuntimeError
 async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: RuntimeError
 async_star_take_reyield_test: RuntimeError
-await_and_ifnull_test: RuntimeError
-await_backwards_compatibility_test/none: RuntimeError
 await_exceptions_test: RuntimeError
-await_for_cancel_test: RuntimeError
 await_for_test: RuntimeError
 await_for_use_local_test: RuntimeError
-await_future_test: RuntimeError
-await_in_cascade_test: RuntimeError
-await_nonfuture_test: RuntimeError
-await_not_started_immediately_test: RuntimeError
-await_null_aware_test: RuntimeError
-await_postfix_expr_test: RuntimeError
-await_regression_test: RuntimeError
-await_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -944,7 +803,6 @@ deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: RuntimeError
-generic_async_test: RuntimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_field_mixin4_test: Crash # Assertion failure: No local for j:field(M_closure._captured_T_0).
@@ -963,7 +821,6 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_sync_star_test: RuntimeError
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 getter_override2_test/02: MissingCompileTimeError
@@ -993,10 +850,7 @@ issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_with_conversions_test: RuntimeError
-regress_30339_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
-unused_overridden_async_test: RuntimeError
-yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash

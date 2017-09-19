@@ -7,8 +7,8 @@ library ssa;
 import '../common/codegen.dart' show CodegenWorkItem, CodegenRegistry;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../constants/values.dart';
-import '../elements/elements.dart' show MethodElement;
-import '../elements/entities.dart' show FieldEntity, MemberEntity;
+import '../elements/entities.dart'
+    show FieldEntity, FunctionEntity, MemberEntity;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
@@ -45,9 +45,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     optimizer.optimize(work, graph, closedWorld);
     MemberEntity element = work.element;
     js.Expression result = generator.generateCode(work, graph, closedWorld);
-    if (element is MethodElement) {
-      // TODO(sigmund): replace by kernel transformer when `useKernelInSsa` is
-      // true.
+    if (element is FunctionEntity) {
       result =
           backend.rewriteAsync(closedWorld.commonElements, element, result);
     }
