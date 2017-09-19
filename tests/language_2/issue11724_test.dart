@@ -5,5 +5,5 @@
 import "package:expect/expect.dart";
 
 void main() {
-  Expect.throws(() => method(<int>[]), (e) => e is NoSuchMethodError);
+  method(<int>[]); //# 01: compile-time error
 }

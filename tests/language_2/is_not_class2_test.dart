@@ -16,14 +16,13 @@ class IsNotClass2NegativeTest {
     var a = new A();
     var aa = new A();
 
-    if (a is aa) {
-      // static warning
-      return 0;
-    }
+    if (a is aa) { //# 01: compile-time error
+      return 0; //# 01: continued
+    } //# 01: continued
     return 0;
   }
 }
 
 main() {
-  Expect.throws(IsNotClass2NegativeTest.testMain, (e) => e is TypeError);
+  IsNotClass2NegativeTest.testMain();
 }

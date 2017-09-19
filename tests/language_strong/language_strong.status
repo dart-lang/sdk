@@ -175,16 +175,6 @@ invocation_mirror2_test: Skip
 invocation_mirror_invoke_on2_test: Skip
 invocation_mirror_invoke_on_test: Skip
 invocation_mirror_test: Skip
-is_function_test: Skip
-is_malformed_type_test: Skip
-is_not_class1_negative_test: Skip
-is_not_class2_test: Skip
-is_not_class4_negative_test: Skip
-is_object_test: Skip
-isnot_malformed_type_test: Skip
-issue11724_test: Skip
-issue11793_test: Skip
-issue13474_test: Skip
 least_upper_bound_expansive_test: Skip
 least_upper_bound_test: Skip
 library_ambiguous_test: Skip

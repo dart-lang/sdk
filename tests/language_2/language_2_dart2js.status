@@ -437,6 +437,15 @@ issue9602_test: Crash # Issue 27394
 static_setter_get_test/01: Crash # Issue 27394
 static_top_level_test/00: Crash # Issue 27394
 static_top_level_test/04: Crash # Issue 27394
+is_malformed_type_test/94: Crash # Issue 27394
+is_malformed_type_test/96: Crash # Issue 27394
+is_malformed_type_test/98: Crash # Issue 27394
+is_malformed_type_test/94: Crash # Issue 27394
+is_malformed_type_test/96: Crash # Issue 27394
+is_malformed_type_test/98: Crash # Issue 27394
+is_malformed_type_test/94: Crash # Issue 27394
+is_malformed_type_test/96: Crash # Issue 27394
+is_malformed_type_test/98: Crash # Issue 27394
 
 [ $compiler == dart2js && !$checked ]
 function_subtype_inline2_test: RuntimeError
@@ -676,6 +685,18 @@ instance_creation_in_function_annotation_test: RuntimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
+is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
+is_object_test: RuntimeError
+is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
+is_object_test: RuntimeError
+is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
+is_object_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
@@ -685,6 +706,7 @@ named_parameters_with_conversions_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
@@ -847,10 +869,24 @@ instanceof4_test/none: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
+is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
+is_object_test: RuntimeError
+is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
+is_object_test: RuntimeError
+is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
+is_object_test: RuntimeError
 many_generic_instanceof_test: RuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_with_conversions_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
+unused_overridden_async_test: RuntimeError
+yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash

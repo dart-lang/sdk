@@ -5,12 +5,12 @@
 import "package:expect/expect.dart";
 
 var staticClosure;
-staticMethod() => 42;
+int staticMethod() => 42;
 
 class B {
   var instanceClosure;
   var nullField;
-  instanceMethod() => 43;
+  int instanceMethod() => 43;
 }
 
 checkUntyped(closure) {

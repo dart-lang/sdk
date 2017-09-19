@@ -24,12 +24,12 @@ main() {
   // Test that types that match JS primitive types compare correctly to Object
   var x = 1;
   Expect.isTrue(x is Object);
-  x = 'hi';
-  Expect.isTrue(x is Object);
-  x = true;
-  Expect.isTrue(x is Object);
-  x = null;
-  Expect.isTrue(x is Object);
+  var x2 = 'hi';
+  Expect.isTrue(x2 is Object);
+  var x3 = true;
+  Expect.isTrue(x3 is Object);
+  var x4 = null;
+  Expect.isTrue(x4 is Object);
   var y;
   Expect.isTrue(y is Object);
 

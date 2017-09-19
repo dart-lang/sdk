@@ -14,7 +14,7 @@ main() {
   var a = b + 1;
   if (otherArray[0] == 0) {
     // Use a non-existing selector to prevent adding a bailout check.
-    a.noSuch();
+    (a as dynamic).noSuch();
     a = otherArray[0];
   }
 

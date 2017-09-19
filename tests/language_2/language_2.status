@@ -8,6 +8,7 @@ generic_test: SkipByDesign # Requires checked mode.
 named_parameters_type_test/01: SkipByDesign # Requires checked mode.
 named_parameters_type_test/02: SkipByDesign # Requires checked mode.
 named_parameters_type_test/03: SkipByDesign # Requires checked mode.
+issue13474_test: SkipByDesign # Requires checked mode.
 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error2_test/cc02: Fail
@@ -54,6 +55,16 @@ compile_time_constant_k_test/01: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/02: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/03: MissingCompileTimeError # Requires strong mode
 crash_6725_test/01: MissingCompileTimeError # Requires strong mode
+is_malformed_type_test/94: MissingCompileTimeError # Requires strong mode
+is_malformed_type_test/95: MissingCompileTimeError # Requires strong mode
+is_malformed_type_test/96: MissingCompileTimeError # Requires strong mode
+is_malformed_type_test/97: MissingCompileTimeError # Requires strong mode
+is_malformed_type_test/98: MissingCompileTimeError # Requires strong mode
+is_malformed_type_test/99: MissingCompileTimeError # Requires strong mode
+is_not_class2_test/none: Skip # No interesting functionality in this configuration.
+is_not_class2_test/01: MissingCompileTimeError # Requires strong mode
+isnot_malformed_type_test/01: MissingCompileTimeError
+issue11724_test/01: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError # Requires strong mode
 void_type_callbacks_test: Skip # Requires strong mode
 void_type_function_types_test: Skip # Requires strong mode
