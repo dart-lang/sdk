@@ -12,7 +12,6 @@ import 'package:front_end/src/fasta/parser.dart'
     show Assert, FormalParameterKind, IdentifierContext, MemberKind, Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
-import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
