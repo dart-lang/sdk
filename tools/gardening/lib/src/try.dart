@@ -11,7 +11,7 @@ import 'dart:async';
 class Try<T> {
   final T _val;
   final StackTrace _stackTrace;
-  final Exception _err;
+  final dynamic _err;
 
   Try.from(this._val)
       : _err = null,
@@ -19,29 +19,31 @@ class Try<T> {
 
   Try.fail(this._err, this._stackTrace) : _val = null;
 
-  Try<S> bind<S>(S f(T)) {
+  Try<S> bind<S>(S f(T x)) {
     if (_err != null) {
       return new Try.fail(_err, _stackTrace);
     }
     try {
       return new Try<S>.from(f(_val));
     } catch (ex, stackTrace) {
+      print(ex);
       return new Try<S>.fail(ex, stackTrace);
     }
   }
 
-  Future<Try<S>> bindAsync<S>(Future<S> f(T)) async {
+  Future<Try<S>> bindAsync<S>(Future<S> f(T x)) async {
     if (_err != null) {
       return new Try.fail(_err, _stackTrace);
     }
     try {
       return new Try.from(await f(_val));
     } catch (ex, stackTrace) {
+      print(ex);
       return new Try.fail(ex, stackTrace);
     }
   }
 
-  void fold(caseErr(Exception ex, StackTrace st), caseVal(T)) {
+  void fold(void caseErr(dynamic ex, StackTrace st), void caseVal(T x)) {
     if (_err != null) {
       caseErr(_err, _stackTrace);
     } else {

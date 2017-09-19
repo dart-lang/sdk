@@ -26,7 +26,7 @@ Future<Try<List<BuildDetail>>> fetchBuildsForCommmit(Luci luci, Logger logger,
 
   var cache = createCache(duration: new Duration(minutes: 30));
 
-  return (await buildBots.bindAsync((List<String> buildBots) async {
+  return (await buildBots.bindAsync((buildBots) async {
     var buildBotBuilds = new List<List<BuildDetail>>();
     for (var buildBot in buildBots) {
       (await luci.getBuildBotDetails(client, buildBot, cache, amount)).fold(
@@ -37,7 +37,7 @@ Future<Try<List<BuildDetail>>> fetchBuildsForCommmit(Luci luci, Logger logger,
     logger.debug("All latest $amount builds found for client $client. "
         "Processing results...");
     return buildBotBuilds.expand((id) => id).toList();
-  })).bind((List<BuildDetail> buildDetails) {
+  })).bind((buildDetails) {
     return buildDetails.where((BuildDetail buildDetail) {
       return buildDetail.allChanges.any((change) => change.revision == commit);
     });

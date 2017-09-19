@@ -19,7 +19,8 @@ typedef void ModifyRequestFunction(HttpClientRequest request);
 /// Some information is found through the api
 /// <https://luci-milo.appspot.com/rpcexplorer/services/milo.Buildbot/>,
 /// some information is found via Cbe
-/// <https://chrome-build-extract.appspot.com/get_master/<client>>.
+/// <https://chrome-build-extract.appspot.com/get_master/<client>> and
+/// and some raw log files is found via [Luci]/log/raw.
 class Luci {
   final HttpClient _client = new HttpClient();
 
@@ -33,7 +34,22 @@ class Luci {
         () => _makeGetRequest(new Uri(
             scheme: 'https', host: CBE_HOST, path: "/get_master/${client}")),
         "cbe"));
-    return result.bind(JSON.decode);
+    return result.bind((str) => JSON.decode(str));
+  }
+
+  Future<Try<String>> getRawLogFromLogName(
+      String name, WithCacheFunction withCache) async {
+    return await tryStartAsync(() {
+      return withCache(
+          () => _makeGetRequest(new Uri(
+              scheme: 'https', host: LUCI_HOST, path: "/log/raw/${name}")),
+          name).then((output) {
+        if (output == null || output.contains("Encountered error:")) {
+          throw new Exception("Problem getting log: ${output}");
+        }
+        return output;
+      });
+    });
   }
 
   /// [getMaster] fetches master information for all bots.
@@ -50,7 +66,7 @@ class Luci {
               HttpHeaders.ACCEPT: "application/json"
             }),
         '${uri.path}'));
-    return result.bind(JSON.decode).bind((json) {
+    return result.bind((str) => JSON.decode(str)).bind((json) {
       var data = JSON.decode(UTF8
           .decode(new GZipDecoder().decodeBytes(BASE64.decode(json["data"]))));
       return data;
@@ -78,7 +94,7 @@ class Luci {
               HttpHeaders.ACCEPT: "application/json"
             }),
         '${uri.path}_${botName}_$amount'));
-    return result.bind(JSON.decode).bind((json) {
+    return result.bind((str) => JSON.decode(str)).bind((json) {
       return json["builds"].map((b) {
         var build = JSON.decode(UTF8.decode(BASE64.decode(b["data"])));
         return getBuildDetailFromJson(client, botName, build);
@@ -95,14 +111,13 @@ class Luci {
         host: LUCI_HOST,
         path: "prpc/milo.Buildbot/GetBuildbotBuildJSON");
     var body = {"master": client, "builder": botName, "buildNum": buildNumber};
-    print(body);
     var result = await tryStartAsync(() => withCache(
         () => _makePostRequest(uri, JSON.encode(body), {
               HttpHeaders.CONTENT_TYPE: "application/json",
               HttpHeaders.ACCEPT: "application/json"
             }),
         '${uri.path}_${botName}_$buildNumber'));
-    return result.bind(JSON.decode).bind((json) {
+    return result.bind((str) => JSON.decode(str)).bind((json) {
       var build = JSON.decode(UTF8.decode(BASE64.decode(json["data"])));
       return getBuildDetailFromJson(client, botName, build);
     });

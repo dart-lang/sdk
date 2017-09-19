@@ -112,3 +112,15 @@ String sanitizeCategory(String category) {
   var match = reg.firstMatch(category);
   return match != null ? match.group(1) : category;
 }
+
+exceptionPrint(String message) {
+  return (dynamic ex, StackTrace st) {
+    if (message != null) {
+      print(message);
+    }
+    print(ex);
+    if (st != null) {
+      print(st);
+    }
+  };
+}
