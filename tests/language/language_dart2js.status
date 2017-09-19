@@ -629,9 +629,6 @@ flatten_test/none: RuntimeError
 for_variable_capture_test: RuntimeError
 function_malformed_result_type_test: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-function_subtype_inline0_test: RuntimeError
-function_subtype_local3_test: RuntimeError
-function_subtype_local4_test: RuntimeError
 function_syntax_test/none: RuntimeError
 function_test: RuntimeError
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
@@ -924,7 +921,6 @@ type_parameter_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.da
 type_parameter_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 type_parameter_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 type_variable_bounds_test/10: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-type_variable_function_type_test: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 yieldstar_pause_test: RuntimeError
@@ -1099,9 +1095,6 @@ full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-function_subtype_inline0_test: RuntimeError
-function_subtype_local3_test: RuntimeError
-function_subtype_local4_test: RuntimeError
 function_syntax_test/none: RuntimeError
 function_test: RuntimeError
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
@@ -1378,6 +1371,5 @@ type_parameter_test/04: Crash # Assertion failure: Cannot find value Instance of
 type_parameter_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
 type_parameter_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
-type_variable_function_type_test: RuntimeError
 yieldstar_pause_test: RuntimeError
 
