@@ -852,6 +852,7 @@ class StreamingFlowGraphBuilder {
   uint8_t ReadByte();
   uint32_t ReadUInt();
   uint32_t PeekUInt();
+  uint32_t PeekListLength();
   intptr_t ReadListLength();
   StringIndex ReadStringReference();
   NameIndex ReadCanonicalNameReference();
@@ -860,6 +861,7 @@ class StreamingFlowGraphBuilder {
   const String& ReadNameAsGetterName();
   const String& ReadNameAsSetterName();
   const String& ReadNameAsFieldName();
+  void SkipFlags();
   void SkipStringReference();
   void SkipCanonicalNameReference();
   void SkipDartType();

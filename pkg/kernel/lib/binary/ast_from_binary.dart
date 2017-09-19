@@ -879,9 +879,11 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.PropertyGet:
         int offset = readOffset();
+        int flags = readByte();
         return new PropertyGet.byReference(
             readExpression(), readName(), readMemberReference(allowNull: true))
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.PropertySet:
         int offset = readOffset();
         return new PropertySet.byReference(readExpression(), readName(),
@@ -897,9 +899,11 @@ class BinaryBuilder {
             readName(), readExpression(), readMemberReference(allowNull: true));
       case Tag.DirectPropertyGet:
         int offset = readOffset();
+        int flags = readByte();
         return new DirectPropertyGet.byReference(
             readExpression(), readMemberReference())
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.DirectPropertySet:
         int offset = readOffset();
         return new DirectPropertySet.byReference(
@@ -916,9 +920,11 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.MethodInvocation:
         int offset = readOffset();
+        int flags = readByte();
         return new MethodInvocation.byReference(readExpression(), readName(),
             readArguments(), readMemberReference(allowNull: true))
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
@@ -926,8 +932,10 @@ class BinaryBuilder {
             readName(), readArguments(), readMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.DirectMethodInvocation:
+        int flags = readByte();
         return new DirectMethodInvocation.byReference(
-            readExpression(), readMemberReference(), readArguments());
+            readExpression(), readMemberReference(), readArguments())
+          ..flags = flags;
       case Tag.StaticInvocation:
         int offset = readOffset();
         return new StaticInvocation.byReference(
@@ -1339,6 +1347,7 @@ class BinaryBuilder {
   }
 
   void readTypeParameter(TypeParameter node) {
+    node.flags = readByte();
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
   }

@@ -268,7 +268,8 @@ type Field extends Member {
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  Byte flags (isFinal, isConst, isStatic, isCovariant);
+  Byte flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
+              isCovariant, isGenericCovariantImpl, isGenericCovariantInterface);
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
@@ -443,6 +444,7 @@ type SpecializedVariableSet extends Expression {
 type PropertyGet extends Expression {
   Byte tag = 22;
   FileOffset fileOffset;
+  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   Name name;
   MemberReference interfaceTarget; // May be NullReference.
@@ -473,6 +475,7 @@ type SuperPropertySet extends Expression {
 type DirectPropertyGet extends Expression {
   Byte tag = 15; // Note: tag is out of order
   FileOffset fileOffset;
+  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   MemberReference target;
 }
@@ -515,6 +518,7 @@ type NamedExpression {
 type MethodInvocation extends Expression {
   Byte tag = 28;
   FileOffset fileOffset;
+  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   Name name;
   Arguments arguments;
@@ -531,6 +535,7 @@ type SuperMethodInvocation extends Expression {
 
 type DirectMethodInvocation extends Expression {
   Byte tag = 17; // Note: tag is out of order
+  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   MemberReference target;
   Arguments arguments;
@@ -941,7 +946,8 @@ type VariableDeclaration {
   // If it does not contain one this should be -1.
   FileOffset fileEqualsOffset;
 
-  Byte flags (isFinal, isConst, isCovariant);
+  Byte flags (isFinal, isConst, isFieldFormal, isCovariant,
+              isInScope, isGenericCovariantImpl, isGenericCovariantInterface);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
@@ -1048,6 +1054,7 @@ type TypeParameterType extends DartType {
 
 type TypeParameter {
   // Note: there is no tag on TypeParameter
+  Byte flags (isGenericCovariantImpl, isGenericCovariantInterface);
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
 }

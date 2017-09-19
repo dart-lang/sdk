@@ -1009,20 +1009,6 @@ class Field extends Member {
   /// The uri of the source file this field was loaded from.
   String fileUri;
 
-  /// Indicates whether the implicit setter associated with this field needs to
-  /// contain a runtime type check to deal with generic covariance.
-  ///
-  /// When `true`, runtime checks may need to be performed; see
-  /// [DispatchCategory] for details.
-  bool isGenericCovariantImpl = false;
-
-  /// Indicates whether setter invocations using this interface target may need
-  /// to perform a runtime type check to deal with generic covariance.
-  ///
-  /// When `true`, runtime checks may need to be performed; see
-  /// [DispatchCategory] for details.
-  bool isGenericCovariantInterface = false;
-
   Field(Name name,
       {this.type: const DynamicType(),
       this.initializer,
@@ -1053,6 +1039,8 @@ class Field extends Member {
   static const int FlagHasImplicitGetter = 1 << 3;
   static const int FlagHasImplicitSetter = 1 << 4;
   static const int FlagCovariant = 1 << 5;
+  static const int FlagGenericCovariantImpl = 1 << 6;
+  static const int FlagGenericCovariantInterface = 1 << 7;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1081,6 +1069,21 @@ class Field extends Member {
   /// By default, all non-static, non-final fields have implicit setters.
   bool get hasImplicitSetter => flags & FlagHasImplicitSetter != 0;
 
+  /// Indicates whether the implicit setter associated with this field needs to
+  /// contain a runtime type check to deal with generic covariance.
+  ///
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+
+  /// Indicates whether setter invocations using this interface target may need
+  /// to perform a runtime type check to deal with generic covariance.
+  ///
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool get isGenericCovariantInterface =>
+      flags & FlagGenericCovariantInterface != 0;
+
   void set isCovariant(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
@@ -1107,6 +1110,18 @@ class Field extends Member {
     flags = value
         ? (flags | FlagHasImplicitSetter)
         : (flags & ~FlagHasImplicitSetter);
+  }
+
+  void set isGenericCovariantImpl(bool value) {
+    flags = value
+        ? (flags | FlagGenericCovariantImpl)
+        : (flags & ~FlagGenericCovariantImpl);
+  }
+
+  void set isGenericCovariantInterface(bool value) {
+    flags = value
+        ? (flags | FlagGenericCovariantInterface)
+        : (flags & ~FlagGenericCovariantInterface);
   }
 
   /// True if the field is neither final nor const.
@@ -1803,7 +1818,7 @@ class PropertyGet extends Expression {
   Expression receiver;
   @coq
   Name name;
-  DispatchCategory dispatchCategory = DispatchCategory.dynamicDispatch;
+  int flags = 0;
 
   @nocoq
   Reference interfaceTargetReference;
@@ -1814,6 +1829,19 @@ class PropertyGet extends Expression {
   PropertyGet.byReference(
       this.receiver, this.name, this.interfaceTargetReference) {
     receiver?.parent = this;
+    this.dispatchCategory = DispatchCategory.dynamicDispatch;
+  }
+
+  // Must match serialized bit positions
+  static const int ShiftDispatchCategory = 0;
+  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
+
+  DispatchCategory get dispatchCategory => DispatchCategory
+      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
+
+  void set dispatchCategory(DispatchCategory value) {
+    flags = (flags & ~FlagDispatchCategory) |
+        (value.index << ShiftDispatchCategory);
   }
 
   Member get interfaceTarget => interfaceTargetReference?.asMember;
@@ -1913,14 +1941,26 @@ class PropertySet extends Expression {
 class DirectPropertyGet extends Expression {
   Expression receiver;
   Reference targetReference;
-
-  DispatchCategory dispatchCategory = DispatchCategory.dynamicDispatch;
+  int flags = 0;
 
   DirectPropertyGet(Expression receiver, Member target)
       : this.byReference(receiver, getMemberReference(target));
 
   DirectPropertyGet.byReference(this.receiver, this.targetReference) {
     receiver?.parent = this;
+    this.dispatchCategory = DispatchCategory.dynamicDispatch;
+  }
+
+  // Must match serialized bit positions
+  static const int ShiftDispatchCategory = 0;
+  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
+
+  DispatchCategory get dispatchCategory => DispatchCategory
+      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
+
+  void set dispatchCategory(DispatchCategory value) {
+    flags = (flags & ~FlagDispatchCategory) |
+        (value.index << ShiftDispatchCategory);
   }
 
   Member get target => targetReference?.asMember;
@@ -2004,8 +2044,7 @@ class DirectMethodInvocation extends InvocationExpression {
   Expression receiver;
   Reference targetReference;
   Arguments arguments;
-
-  DispatchCategory dispatchCategory = DispatchCategory.dynamicDispatch;
+  int flags = 0;
 
   DirectMethodInvocation(
       Expression receiver, Procedure target, Arguments arguments)
@@ -2015,6 +2054,19 @@ class DirectMethodInvocation extends InvocationExpression {
       this.receiver, this.targetReference, this.arguments) {
     receiver?.parent = this;
     arguments?.parent = this;
+    this.dispatchCategory = DispatchCategory.dynamicDispatch;
+  }
+
+  // Must match serialized bit positions
+  static const int ShiftDispatchCategory = 0;
+  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
+
+  DispatchCategory get dispatchCategory => DispatchCategory
+      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
+
+  void set dispatchCategory(DispatchCategory value) {
+    flags = (flags & ~FlagDispatchCategory) |
+        (value.index << ShiftDispatchCategory);
   }
 
   Procedure get target => targetReference?.asProcedure;
@@ -2294,8 +2346,7 @@ class MethodInvocation extends InvocationExpression {
   Expression receiver;
   Name name;
   Arguments arguments;
-
-  DispatchCategory dispatchCategory = DispatchCategory.dynamicDispatch;
+  int flags = 0;
 
   Reference interfaceTargetReference;
 
@@ -2308,6 +2359,19 @@ class MethodInvocation extends InvocationExpression {
       this.receiver, this.name, this.arguments, this.interfaceTargetReference) {
     receiver?.parent = this;
     arguments?.parent = this;
+    this.dispatchCategory = DispatchCategory.dynamicDispatch;
+  }
+
+  // Must match serialized bit positions
+  static const int ShiftDispatchCategory = 0;
+  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
+
+  DispatchCategory get dispatchCategory => DispatchCategory
+      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
+
+  void set dispatchCategory(DispatchCategory value) {
+    flags = (flags & ~FlagDispatchCategory) |
+        (value.index << ShiftDispatchCategory);
   }
 
   Member get interfaceTarget => interfaceTargetReference?.asMember;
@@ -3975,22 +4039,6 @@ class VariableDeclaration extends Statement {
   @coqopt
   Expression initializer; // May be null.
 
-  /// If this [VariableDeclaration] is a parameter of a method, indicates
-  /// whether the method implementation needs to contain a runtime type check to
-  /// deal with generic covariance.
-  ///
-  /// When `true`, runtime checks may need to be performed; see
-  /// [DispatchCategory] for details.
-  bool isGenericCovariantImpl = false;
-
-  /// If this [VariableDeclaration] is a parameter of a method, indicates
-  /// whether invocations using the method as an interface target may need to
-  /// perform a runtime type check to deal with generic covariance.
-  ///
-  /// When `true`, runtime checks may need to be performed; see
-  /// [DispatchCategory] for details.
-  bool isGenericCovariantInterface = false;
-
   VariableDeclaration(this.name,
       {this.initializer,
       this.type: const DynamicType(),
@@ -4029,6 +4077,8 @@ class VariableDeclaration extends Statement {
   static const int FlagFieldFormal = 1 << 2;
   static const int FlagCovariant = 1 << 3;
   static const int FlagInScope = 1 << 4; // Temporary flag used by verifier.
+  static const int FlagGenericCovariantImpl = 1 << 5;
+  static const int FlagGenericCovariantInterface = 1 << 6;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -4040,6 +4090,23 @@ class VariableDeclaration extends Statement {
   /// a constructor.
   @informative
   bool get isFieldFormal => flags & FlagFieldFormal != 0;
+
+  /// If this [VariableDeclaration] is a parameter of a method, indicates
+  /// whether the method implementation needs to contain a runtime type check to
+  /// deal with generic covariance.
+  ///
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+
+  /// If this [VariableDeclaration] is a parameter of a method, indicates
+  /// whether invocations using the method as an interface target may need to
+  /// perform a runtime type check to deal with generic covariance.
+  ///
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool get isGenericCovariantInterface =>
+      flags & FlagGenericCovariantInterface != 0;
 
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
@@ -4056,6 +4123,18 @@ class VariableDeclaration extends Statement {
   @informative
   void set isFieldFormal(bool value) {
     flags = value ? (flags | FlagFieldFormal) : (flags & ~FlagFieldFormal);
+  }
+
+  void set isGenericCovariantImpl(bool value) {
+    flags = value
+        ? (flags | FlagGenericCovariantImpl)
+        : (flags & ~FlagGenericCovariantImpl);
+  }
+
+  void set isGenericCovariantInterface(bool value) {
+    flags = value
+        ? (flags | FlagGenericCovariantInterface)
+        : (flags & ~FlagGenericCovariantInterface);
   }
 
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);
@@ -4617,6 +4696,8 @@ class TypeParameterType extends DartType {
 /// parent pointer.  [TypeParameter] objects should not be shared between
 /// different [FunctionType] objects.
 class TypeParameter extends TreeNode {
+  int flags = 0;
+
   String name; // Cosmetic name.
 
   /// The bound on the type variable.
@@ -4625,13 +4706,19 @@ class TypeParameter extends TreeNode {
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
 
+  TypeParameter([this.name, this.bound]);
+
+  // Must match serialized bit positions.
+  static const int FlagGenericCovariantImpl = 1 << 0;
+  static const int FlagGenericCovariantInterface = 1 << 1;
+
   /// If this [TypeParameter] is a type parameter of a generic method, indicates
   /// whether the method implementation needs to contain a runtime type check to
   /// deal with generic covariance.
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
-  bool isGenericCovariantImpl = false;
+  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
 
   /// If this [TypeParameter] is a type parameter of a generic method, indicates
   /// whether invocations using the method as an interface target may need to
@@ -4639,9 +4726,20 @@ class TypeParameter extends TreeNode {
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
-  bool isGenericCovariantInterface = false;
+  bool get isGenericCovariantInterface =>
+      flags & FlagGenericCovariantInterface != 0;
 
-  TypeParameter([this.name, this.bound]);
+  void set isGenericCovariantImpl(bool value) {
+    flags = value
+        ? (flags | FlagGenericCovariantImpl)
+        : (flags & ~FlagGenericCovariantImpl);
+  }
+
+  void set isGenericCovariantInterface(bool value) {
+    flags = value
+        ? (flags | FlagGenericCovariantInterface)
+        : (flags & ~FlagGenericCovariantInterface);
+  }
 
   accept(TreeVisitor v) => v.visitTypeParameter(this);
 
