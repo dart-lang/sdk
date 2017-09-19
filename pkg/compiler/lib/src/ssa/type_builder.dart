@@ -102,26 +102,35 @@ abstract class TypeBuilder {
     }
     Local typeVariableLocal =
         builder.localsHandler.getTypeVariableAsLocal(type);
+
+    /// Read [typeVariable] as a property of on `this`.
+    HInstruction readAsProperty() {
+      return readTypeVariable(type, member,
+          sourceInformation: sourceInformation);
+    }
+
+    /// Read [typeVariable] as a parameter.
+    HInstruction readAsParameter() {
+      return builder.localsHandler
+          .readLocal(typeVariableLocal, sourceInformation: sourceInformation);
+    }
+
     ClassTypeVariableAccess typeVariableAccess =
         computeTypeVariableAccess(member);
     switch (typeVariableAccess) {
+      case ClassTypeVariableAccess.parameter:
+        return readAsParameter();
       case ClassTypeVariableAccess.instanceField:
         if (member != builder.targetElement) {
           // When [member] is a field, we can either be generating a checked
           // setter or inlining its initializer in a constructor. An initializer
           // is never built standalone, so in that case [target] is not the
           // [member] itself.
-          continue parameter;
+          return readAsParameter();
         }
-        continue property;
-      property:
+        return readAsProperty();
       case ClassTypeVariableAccess.property:
-        return readTypeVariable(type, member,
-            sourceInformation: sourceInformation);
-      parameter:
-      case ClassTypeVariableAccess.parameter:
-        return builder.localsHandler
-            .readLocal(typeVariableLocal, sourceInformation: sourceInformation);
+        return readAsProperty();
       case ClassTypeVariableAccess.none:
         builder.reporter.internalError(
             type.element, 'Unexpected type variable in static context.');
