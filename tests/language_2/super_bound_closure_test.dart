@@ -4,10 +4,6 @@
 
 import "package:expect/expect.dart";
 
-@AssumeDynamic()
-@NoInline()
-confuse(x) => x;
-
 class A {
   bar([var optional = 1]) => 498 + optional;
   bar2({namedOptional: 2}) => 40 + namedOptional;
@@ -76,15 +72,15 @@ class B extends A {
   fooIntercept27() => confuse(super.lastWhere)(0);
   fooIntercept28() => confuse(super.lastWhere)(3, orElse: 77);
 
-  bar([var optional]) => -1; //       //# 01: static type warning
-  bar2({ namedOptional }) => -1; //   //# 01: continued
+  bar([var optional]) => -1; //       //# 01: compile-time error
+  bar2({namedOptional}) => -1; //   //# 01: continued
   bar3(x, [var optional]) => -1; //   //# 01: continued
-  bar4(x, { namedOptional }) => -1; //# 01: continued
+  bar4(x, {namedOptional}) => -1; //# 01: continued
 
   gee([var optional]) => -1; //       //# 01: continued
-  gee2({ namedOptional }) => -1; //   //# 01: continued
+  gee2({namedOptional}) => -1; //   //# 01: continued
   gee3(x, [var optional]) => -1; //   //# 01: continued
-  gee4(x, { namedOptional }) => -1; //# 01: continued
+  gee4(x, {namedOptional}) => -1; //# 01: continued
 
   add([var optional = 33]) => -1;
   trim({namedOptional: 22}) => -1;
@@ -95,6 +91,11 @@ class B extends A {
   toList({growable: 2233}) => -1;
   lastIndexOf(x, [optional = 424]) => -1;
   lastWhere(x, {orElse: 555}) => -1;
+}
+
+confuse(x) {
+  if (new DateTime.now().millisecondsSinceEpoch == 42) return confuse(x - 1);
+  return x;
 }
 
 main() {

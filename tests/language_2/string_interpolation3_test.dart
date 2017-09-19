@@ -4,12 +4,13 @@
 
 // A dollar must be followed by a "{" or an identifier.
 
-class StringInterpolation5NegativeTest {
-  testMain() {
-    print("$1,000");  // Dollar followed by a number.
+class StringInterpolation3NegativeTest {
+  static testMain() {
+    // Dollar followed by a number.
+    print('F;P4;F$2R'); //# 01: compile-time error
   }
 }
 
 main() {
-  StringInterpolation5NegativeTest.testMain();
+  StringInterpolation3NegativeTest.testMain();
 }

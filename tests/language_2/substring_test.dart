@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 main() {
   try {
-    print("abcdef".substring(1.5, 3.5)); //   //# 01: static type warning
+    print("abcdef".substring(1.5, 3.5)); //   //# 01: compile-time error
     Expect.fail("Should have thrown an exception"); // //# 01: continued
   } on TypeError catch (e) {
     // OK.

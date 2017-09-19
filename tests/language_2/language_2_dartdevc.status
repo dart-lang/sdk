@@ -56,6 +56,11 @@ accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 const_objects_are_immutable_test: RuntimeError # Issue 29897
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
+string_interpolation_and_buffer_test: RuntimeError
+string_literals_test: RuntimeError
+string_split_test: CompileTimeError
+string_supertype_checked_test: CompileTimeError
+super_bound_closure_test/none: CompileTimeError
 void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
 void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
 void_type_function_types_test/none: CompileTimeError # Issue 30514

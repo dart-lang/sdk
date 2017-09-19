@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class StringUnicode4NegativeTest {
+// A dollar must be followed by a "{" or an identifier.
 
+class StringInterpolation2NegativeTest {
   static testMain() {
-    // Unicode escapes must refer to valid Unicode points.
-    String str = "Foo\u{FFFFFF}";
+    // Dollar followed by "/".
+    print('C;Y1;X4;K"$/Month"'); //# 01: compile-time error
   }
 }
 
 main() {
-  StringUnicode4NegativeTest.testMain();
+  StringInterpolation2NegativeTest.testMain();
 }

@@ -4,12 +4,15 @@
 
 // A dollar must be followed by a "{" or an identifier.
 
-class StringInterpolation3NegativeTest {
+class StringInterpolation6NegativeTest {
   static testMain() {
-    print('F;P4;F$2R');  // Dollar followed by a number.
+    // Dollar not followed by "{" or identifier.
+    String regexp;
+    regexp = "^(\\d\\d?)[-/](\\d\\d?)$"; //# 01: compile-time error
+    print(regexp);
   }
 }
 
 main() {
-  StringInterpolation3NegativeTest.testMain();
+  StringInterpolation6NegativeTest.testMain();
 }

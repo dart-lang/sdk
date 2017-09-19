@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 class A {
   int x;
 }
@@ -17,6 +15,5 @@ class C extends A {
 main() {
   A a = new C();
   a.x = 37;
-  a.setX(42);
-  Expect.equals(42, a.x);
+  a.setX(42); //# 01: compile-time error
 }

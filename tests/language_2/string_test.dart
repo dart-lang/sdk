@@ -31,13 +31,7 @@ class StringTest {
 
   static testNoSuchMethod() {
     String a = "Hello";
-    bool exception_caught = false;
-    try {
-      a[1] = 12; // Throw exception.
-    } on NoSuchMethodError catch (e) {
-      exception_caught = true;
-    }
-    Expect.equals(true, exception_caught);
+    a[1] = 12; //# 01: compile-time error
   }
 
   static testCharCodes() {
