@@ -1093,6 +1093,9 @@ deferred_constraints_constants_test: Pass # mirrors not supported, passes for th
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 await_future_test: Pass, Timeout # Issue 26735
 
+[ $compiler == dart2js && $system == windows ]
+string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
+
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && !$dart2js_with_kernel ]
 deferred_global_test: Crash # Issue 27394
 
