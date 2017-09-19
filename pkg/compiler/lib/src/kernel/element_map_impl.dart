@@ -1186,7 +1186,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         functionType = getFunctionType(node.function);
       }
       return new KLocalFunction(
-          name, memberContext, executableContext, functionType);
+          name, memberContext, executableContext, functionType, node);
     });
   }
 

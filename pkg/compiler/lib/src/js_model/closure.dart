@@ -94,8 +94,12 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   void convertClosures(Iterable<MemberEntity> processedEntities,
       ClosedWorldRefiner closedWorldRefiner) {}
 
-  void createClosureEntities(JsClosedWorldBuilder closedWorldBuilder,
-      Map<MemberEntity, ScopeModel> closureModels) {
+  void createClosureEntities(
+      JsClosedWorldBuilder closedWorldBuilder,
+      Map<MemberEntity, ScopeModel> closureModels,
+      // TODO(johnniwinther,efortuna): Use this to add needed access to type
+      // variables for RTI.
+      Set<ir.Node> localFunctionsNeedingRti) {
     closureModels.forEach((MemberEntity member, ScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       Map<Local, JRecordField> allBoxedVariables =

@@ -420,8 +420,6 @@ class CodegenImpactTransformer {
     for (StaticUse staticUse in impact.staticUses) {
       if (staticUse.kind == StaticUseKind.CALL_METHOD) {
         FunctionEntity callMethod = staticUse.element;
-        // TODO(johnniwinther): Remove [localFunctionNeedsRti] and use
-        // the call method instead.
         if (_rtiNeed.methodNeedsRti(callMethod)) {
           _impacts.computeSignature
               .registerImpact(transformed, _elementEnvironment);

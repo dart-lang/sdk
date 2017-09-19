@@ -29,6 +29,7 @@ import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/kernel_backend_strategy.dart';
 import '../kernel/kernel_strategy.dart';
+import '../kernel/kelements.dart';
 import '../native/behavior.dart';
 import '../ssa/ssa.dart';
 import '../types/types.dart';
@@ -209,11 +210,24 @@ class JsClosedWorldBuilder {
     Iterable<MemberEntity> processedMembers =
         map.toBackendMemberSet(closedWorld.processedMembers);
 
-    RuntimeTypesNeed rtiNeed =
-        _convertRuntimeTypesNeed(map, backendUsage, closedWorld.rtiNeed);
+    RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
+    Set<ir.Node> localFunctionsNodes = new Set<ir.Node>();
+    for (KLocalFunction localFunction
+        in kernelRtiNeed.localFunctionsNeedingRti) {
+      localFunctionsNodes.add(localFunction.node);
+    }
 
-    _closureConversionTask.createClosureEntities(
-        this, map.toBackendMemberMap(closureModels, identity));
+    _closureConversionTask.createClosureEntities(this,
+        map.toBackendMemberMap(closureModels, identity), localFunctionsNodes);
+
+    List<FunctionEntity> callMethodsNeedingRti = <FunctionEntity>[];
+    for (ir.Node node in localFunctionsNodes) {
+      callMethodsNeedingRti
+          .add(_closureConversionTask.getClosureInfo(node).callMethod);
+    }
+
+    RuntimeTypesNeed rtiNeed = _convertRuntimeTypesNeed(
+        map, backendUsage, kernelRtiNeed, callMethodsNeedingRti);
 
     return new JsClosedWorld(_elementMap,
         elementEnvironment: _elementEnvironment,
@@ -372,14 +386,16 @@ class JsClosedWorldBuilder {
             interceptorData.classesMixedIntoInterceptedClasses));
   }
 
-  RuntimeTypesNeed _convertRuntimeTypesNeed(JsToFrontendMap map,
-      BackendUsage backendUsage, RuntimeTypesNeedImpl rtiNeed) {
+  RuntimeTypesNeed _convertRuntimeTypesNeed(
+      JsToFrontendMap map,
+      BackendUsage backendUsage,
+      RuntimeTypesNeedImpl rtiNeed,
+      List<FunctionEntity> callMethodsNeedingRti) {
     Set<ClassEntity> classesNeedingRti =
         map.toBackendClassSet(rtiNeed.classesNeedingRti);
     Set<FunctionEntity> methodsNeedingRti =
         map.toBackendFunctionSet(rtiNeed.methodsNeedingRti);
-    // TODO(johnniwinther): Do we need these?
-    Set<Local> localFunctionsNeedingRti = rtiNeed.localFunctionsNeedingRti;
+    methodsNeedingRti.addAll(callMethodsNeedingRti);
     Set<ClassEntity> classesUsingTypeVariableExpression =
         map.toBackendClassSet(rtiNeed.classesUsingTypeVariableExpression);
     return new RuntimeTypesNeedImpl(
@@ -387,7 +403,7 @@ class JsClosedWorldBuilder {
         backendUsage,
         classesNeedingRti,
         methodsNeedingRti,
-        localFunctionsNeedingRti,
+        null,
         classesUsingTypeVariableExpression);
   }
 
