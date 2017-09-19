@@ -1,0 +1,25 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method foo() → void;
+}
+abstract class C extends self::B {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+  abstract method bar() → void;
+}
+static method f<T extends self::B>(self::f::T a) → void {
+  if(a is core::String) {
+    a.foo();
+  }
+  if(a is self::C) {
+    a{self::f::T extends self::C}.bar();
+  }
+}
+static method main() → dynamic {}
