@@ -160,40 +160,40 @@ class Luci {
 BuildDetail getBuildDetailFromJson(
     String client, String botName, dynamic build) {
   List<GitCommit> changes = build["sourceStamp"]["changes"].map((change) {
-    return new GitCommit(change["revision"], change["revLink"], change["who"],
-        change["comments"], change["files"].map((file) => file["name"]));
+    return new GitCommit(
+        change["revision"],
+        change["revLink"],
+        change["who"],
+        change["comments"],
+        change["files"].map((file) => file["name"]).toList());
   }).toList();
 
   List<BuildProperty> properties = build["properties"].map((prop) {
     return new BuildProperty(prop[0], prop[1].toString(), prop[2]);
   }).toList();
 
-  List<BuildStep> steps = build["steps"].map((step) {
-    var start =
-        new DateTime.fromMillisecondsSinceEpoch(step["times"][0] * 1000);
-    DateTime end = null;
-    if (step["times"][1] != null) {
-      end = new DateTime.fromMillisecondsSinceEpoch(step["times"][1] * 1000);
-    }
+  DateTime parseDateTime(num value) {
+    if (value == null) return null;
+    return new DateTime.fromMillisecondsSinceEpoch((value * 1000).round());
+  }
+
+  List<BuildStep> steps = build["steps"].map((Map step) {
+    DateTime start = parseDateTime(step["times"][0]);
+    DateTime end = parseDateTime(step["times"][1]);
     return new BuildStep(
         step["name"],
-        step["text"],
+        step["text"].join(', '),
         step["results"].toString(),
         start,
         end,
         step["step_number"],
         step["isStarted"],
         step["isFinished"],
-        step["logs"].map((log) => new BuildLog(log[0], log[1])));
+        step["logs"].map((log) => new BuildLog(log[0], log[1])).toList());
   }).toList();
 
-  DateTime end = null;
-  if (build["times"][1] != null) {
-    end = new DateTime.fromMillisecondsSinceEpoch(build["times"][1] * 1000);
-  }
-
   Timing timing = new Timing(
-      new DateTime.fromMillisecondsSinceEpoch(build["times"][0] * 1000), end);
+      parseDateTime(build["times"][0]), parseDateTime(build["times"][1]));
 
   return new BuildDetail(
       client,

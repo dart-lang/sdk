@@ -15,11 +15,18 @@ const UNINTERESTING_BUILDER_SUFFIXES = const [
   "-integration"
 ];
 
+const String DART_CLIENT = 'client.dart';
+
 /// Fetches all builds for a given [commit]-hash, by searching the latest
 /// [amount] builds.
 Future<Try<List<BuildDetail>>> fetchBuildsForCommmit(Luci luci, Logger logger,
     String client, String commit, CreateCacheFunction createCache,
     [int amount = 1]) async {
+  logger.info(
+      "Sorry - this is going to take some time, since we have to look into all "
+      "$amount latest builds for all bots for client ${client}.\n"
+      "Subsequent queries run faster if caching is not turned off...");
+
   logger.debug("Finding primary bots for client $client");
   var buildBots = await getPrimaryBuilders(
       luci, client, createCache(duration: new Duration(minutes: 30)));
@@ -39,8 +46,9 @@ Future<Try<List<BuildDetail>>> fetchBuildsForCommmit(Luci luci, Logger logger,
     return buildBotBuilds.expand((id) => id).toList();
   })).bind((buildDetails) {
     return buildDetails.where((BuildDetail buildDetail) {
-      return buildDetail.allChanges.any((change) => change.revision == commit);
-    });
+      return buildDetail.allChanges
+          .any((change) => change.revision.startsWith(commit));
+    }).toList();
   });
 }
 

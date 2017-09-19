@@ -9,6 +9,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 
 import 'cache.dart';
+import 'cache_new.dart';
+import 'logger.dart';
 
 /// Checks that [haystack] contains substring [needle], case insensitive.
 /// Throws an exception if either parameter is `null`.
@@ -55,6 +57,17 @@ void log(Object text) {
   if (LOG) print(text);
 }
 
+Logger createLogger({bool verbose: false}) {
+  return new StdOutLogger(verbose ? Level.debug : Level.info);
+}
+
+CreateCacheFunction createCacheFunction(Logger logger,
+    {bool disableCache: false}) {
+  return disableCache
+      ? noCache()
+      : initCache(Uri.base.resolve('temp/gardening-cache/'), logger);
+}
+
 class HttpException implements Exception {
   final Uri uri;
   final int statusCode;
@@ -80,28 +93,37 @@ Future<String> readUriAsText(
   }
 }
 
+class Flags {
+  static const String cache = 'cache';
+  static const String commit = 'commit';
+  static const String help = 'help';
+  static const String logdog = 'logdog';
+  static const String noCache = 'no-cache';
+  static const String verbose = 'verbose';
+}
+
 ArgParser createArgParser() {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);
-  argParser.addFlag('help', help: "Help");
-  argParser.addFlag('verbose',
+  argParser.addFlag(Flags.help, help: "Help");
+  argParser.addFlag(Flags.verbose,
       abbr: 'v', negatable: false, help: "Turn on logging output.");
-  argParser.addFlag('no-cache', help: "Disable caching.");
-  argParser.addOption('cache',
+  argParser.addFlag(Flags.noCache, help: "Disable caching.");
+  argParser.addOption(Flags.cache,
       help: "Use <dir> for caching test output.\n"
           "Defaults to 'temp/gardening-cache/'.");
-  argParser.addFlag('logdog',
+  argParser.addFlag(Flags.logdog,
       negatable: false, help: "Pull test results from logdog.");
   return argParser;
 }
 
 void processArgResults(ArgResults argResults) {
-  if (argResults['verbose']) {
+  if (argResults[Flags.verbose]) {
     LOG = true;
   }
-  if (argResults['cache'] != null) {
-    cache.base = Uri.base.resolve('${argResults['cache']}/');
+  if (argResults[Flags.cache] != null) {
+    cache.base = Uri.base.resolve('${argResults[Flags.cache]}/');
   }
-  if (argResults['no-cache']) {
+  if (argResults[Flags.noCache]) {
     cache.base = null;
   }
 }
