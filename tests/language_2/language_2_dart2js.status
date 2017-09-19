@@ -261,6 +261,10 @@ deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTi
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 generic_methods_local_variable_declaration_test: RuntimeError
 
+[ $compiler == dart2js && $runtime != none && $dart2js_with_kernel ]
+covariant_subtyping_tearoff1_test: RuntimeError
+covariant_subtyping_tearoff2_test: RuntimeError
+
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 assertion_test: RuntimeError # Issue 30326
 bit_operations_test: RuntimeError, OK # Issue 1533
