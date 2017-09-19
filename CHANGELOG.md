@@ -1,3 +1,7 @@
+# 0.1.36
+
+* remove unneeded change to Dart SDK constraint.
+
 # 0.1.35
 
 * linter engine updated to use new analysis driver.
