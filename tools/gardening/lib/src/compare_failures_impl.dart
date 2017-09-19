@@ -16,6 +16,7 @@ import 'cache_new.dart';
 import 'logger.dart';
 import 'luci.dart' hide Timing;
 import 'luci_services.dart';
+import 'try.dart';
 import 'util.dart';
 
 Future mainInternal(Bot bot, List<String> args,
@@ -50,20 +51,22 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
     Logger logger = createLogger(verbose: verbose);
     CreateCacheFunction createCache =
         createCacheFunction(logger, disableCache: noCache);
-    buildDetails = (await fetchBuildsForCommmit(
-            luci, logger, DART_CLIENT, commit, createCache, 25))
-        .value;
-    if (buildDetails.isEmpty) {
-      print('No builds found for $commit');
-      buildDetails = null;
-    } else {
-      if (verbose) {
-        log('Found builds for commit $commit:');
-        buildDetails.forEach((b) => log(' ${b.botName}: ${b.buildNumber}'));
+    Try<List<BuildDetail>> tryBuildDetails = await fetchBuildsForCommmit(
+        luci, logger, DART_CLIENT, commit, createCache, 25);
+    tryBuildDetails.fold(exceptionPrint('Failed to fetch commits.'),
+        (List<BuildDetail> result) {
+      if (result.isEmpty) {
+        print('No builds found for $commit');
       } else {
-        print('Found ${buildDetails.length} builds for commit $commit.');
+        buildDetails = result;
+        if (verbose) {
+          log('Found builds for commit $commit:');
+          buildDetails.forEach((b) => log(' ${b.botName}: ${b.buildNumber}'));
+        } else {
+          print('Found ${buildDetails.length} builds for commit $commit.');
+        }
       }
-    }
+    });
   }
 
   BuildUri updateWithCommit(BuildUri buildUri) {

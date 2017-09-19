@@ -26,7 +26,6 @@ class Try<T> {
     try {
       return new Try<S>.from(f(_val));
     } catch (ex, stackTrace) {
-      print('$ex\n$stackTrace');
       return new Try<S>.fail(ex, stackTrace);
     }
   }
@@ -38,7 +37,6 @@ class Try<T> {
     try {
       return new Try.from(await f(_val));
     } catch (ex, stackTrace) {
-      print(ex);
       return new Try.fail(ex, stackTrace);
     }
   }
