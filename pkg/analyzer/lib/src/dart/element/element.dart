@@ -7934,14 +7934,21 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   FunctionElement get initializer {
-    if (_unlinkedVariable != null && _initializer == null) {
-      UnlinkedExecutable unlinkedInitializer = _unlinkedVariable.initializer;
-      if (unlinkedInitializer != null) {
-        _initializer =
-            new FunctionElementImpl.forSerialized(unlinkedInitializer, this)
-              ..isSynthetic = true;
-      } else {
-        return null;
+    if (_initializer == null) {
+      if (_kernel != null && _kernel.initializer != null) {
+        _initializer = new FunctionElementImpl.forOffset(-1)
+          ..enclosingElement = this
+          ..isSynthetic = true;
+      }
+      if (_unlinkedVariable != null) {
+        UnlinkedExecutable unlinkedInitializer = _unlinkedVariable.initializer;
+        if (unlinkedInitializer != null) {
+          _initializer =
+              new FunctionElementImpl.forSerialized(unlinkedInitializer, this)
+                ..isSynthetic = true;
+        } else {
+          return null;
+        }
       }
     }
     return super.initializer;

@@ -33,62 +33,14 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_const_constructor_with_named_generic_parameter() async {
-    return super.test_const_constructor_with_named_generic_parameter();
-  }
-
-  @override
-  @failingTest
-  test_const_dynamic() async {
-    return super.test_const_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_const_imported_defaultParameterValue_withImportPrefix() async {
-    return super.test_const_imported_defaultParameterValue_withImportPrefix();
-  }
-
-  @override
-  @failingTest
   test_constConstructorWithNonConstSuper_unresolved() async {
     return super.test_constConstructorWithNonConstSuper_unresolved();
   }
 
   @override
   @failingTest
-  test_constConstructorWithNonFinalField_finalInstanceVar() async {
-    return super.test_constConstructorWithNonFinalField_finalInstanceVar();
-  }
-
-  @override
-  @failingTest
   test_constDeferredClass_new() async {
     return super.test_constDeferredClass_new();
-  }
-
-  @override
-  @failingTest
-  test_constEval_functionTypeLiteral() async {
-    return super.test_constEval_functionTypeLiteral();
-  }
-
-  @override
-  @failingTest
-  test_constEval_propertyExtraction_fieldStatic_targetType() async {
-    return super.test_constEval_propertyExtraction_fieldStatic_targetType();
-  }
-
-  @override
-  @failingTest
-  test_constEval_propertyExtraction_methodStatic_targetType() async {
-    return super.test_constEval_propertyExtraction_methodStatic_targetType();
-  }
-
-  @override
-  @failingTest
-  test_constEval_symbol() async {
-    return super.test_constEval_symbol();
   }
 
   @override
@@ -101,18 +53,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_constEvalTypeBoolNumString_notEqual() async {
     return super.test_constEvalTypeBoolNumString_notEqual();
-  }
-
-  @override
-  @failingTest
-  test_constEvelTypeNum_String() async {
-    return super.test_constEvelTypeNum_String();
-  }
-
-  @override
-  @failingTest
-  test_constNotInitialized_field() async {
-    return super.test_constNotInitialized_field();
   }
 
   @override
@@ -135,45 +75,14 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_constWithTypeParameters_direct() async {
-    return super.test_constWithTypeParameters_direct();
-  }
-
-  @override
-  @failingTest
   test_constWithUndefinedConstructor() async {
     return super.test_constWithUndefinedConstructor();
   }
 
   @override
   @failingTest
-  test_deprecatedMemberUse_hide() async {
-    return super.test_deprecatedMemberUse_hide();
-  }
-
-  @override
-  @failingTest
   test_duplicateDefinition_emptyName() async {
     return super.test_duplicateDefinition_emptyName();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal() async {
-    return super
-        .test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal();
-  }
-
-  @override
-  @failingTest
-  test_finalNotInitialized_atDeclaration() async {
-    return super.test_finalNotInitialized_atDeclaration();
-  }
-
-  @override
-  @failingTest
-  test_finalNotInitialized_fieldFormal() async {
-    return super.test_finalNotInitialized_fieldFormal();
   }
 
   @override
@@ -265,12 +174,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_implicitThisReferenceInInitializer_topLevelField() async {
-    return super.test_implicitThisReferenceInInitializer_topLevelField();
-  }
-
-  @override
-  @failingTest
   test_invalidAnnotation_constantVariable_field() async {
     return super.test_invalidAnnotation_constantVariable_field();
   }
@@ -284,12 +187,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_invalidAnnotation_constantVariable_topLevel() async {
-    return super.test_invalidAnnotation_constantVariable_topLevel();
-  }
-
-  @override
-  @failingTest
   test_invalidAssignment_defaultValue_named() async {
     return super.test_invalidAssignment_defaultValue_named();
   }
@@ -298,30 +195,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_invalidAssignment_defaultValue_optional() async {
     return super.test_invalidAssignment_defaultValue_optional();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_1() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_1();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_2() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_2();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_3() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_3();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_4() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_4();
   }
 
   @override
@@ -364,21 +237,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_listElementTypeNotAssignable() async {
-    return super.test_listElementTypeNotAssignable();
-  }
-
-  @override
-  @failingTest
   test_loadLibraryDefined() async {
     fail('This test fails only in checked mode.');
     return super.test_loadLibraryDefined();
-  }
-
-  @override
-  @failingTest
-  test_mapKeyTypeNotAssignable() async {
-    return super.test_mapKeyTypeNotAssignable();
   }
 
   @override
@@ -637,12 +498,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_undefinedGetter_static_conditionalAccess() async {
-    return super.test_undefinedGetter_static_conditionalAccess();
-  }
-
-  @override
-  @failingTest
   test_undefinedIdentifier_synthetic_whenExpression() async {
     return super.test_undefinedIdentifier_synthetic_whenExpression();
   }
@@ -651,12 +506,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
-  }
-
-  @override
-  @failingTest
-  test_undefinedOperator_tilde() async {
-    return super.test_undefinedOperator_tilde();
   }
 
   @override
