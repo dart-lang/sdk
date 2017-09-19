@@ -22,7 +22,9 @@ import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'package:kernel/ast.dart' as ir;
 
-const List<String> skipForKernel = const <String>[];
+const List<String> skipForKernel = const <String>[
+  'type_variables.dart',
+];
 
 main(List<String> args) {
   asyncTest(() async {
@@ -62,7 +64,9 @@ void computeKernelClosureData(
   GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
   ClosureDataLookup closureDataLookup = backendStrategy.closureDataLookup;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
-  assert(definition.kind == MemberKind.regular,
+  assert(
+      definition.kind == MemberKind.regular ||
+          definition.kind == MemberKind.constructor,
       failedAt(member, "Unexpected member definition $definition"));
   new ClosureIrChecker(
           compiler.reporter,

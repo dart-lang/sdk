@@ -4,6 +4,7 @@
 
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/resolution/access_semantics.dart';
 import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
@@ -232,6 +233,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   ast.Node computeUpdatePosition(ast.Send node, AccessSemantics access) {
     switch (access.kind) {
+      case AccessKind.THIS_PROPERTY:
       case AccessKind.DYNAMIC_PROPERTY:
       case AccessKind.LOCAL_VARIABLE:
       case AccessKind.PARAMETER:
@@ -307,7 +309,11 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
   }
 
   void run() {
-    resolvedAst.node.accept(this);
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      resolvedAst.node.accept(this);
+    } else {
+      computeForElement(resolvedAst.element);
+    }
   }
 
   visitNode(ast.Node node) {
@@ -462,8 +468,7 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   SourceSpan computeSourceSpan(ir.TreeNode node) {
-    return new SourceSpan(
-        Uri.parse(node.location.file), node.fileOffset, node.fileOffset + 1);
+    return computeSourceSpanFromTreeNode(node);
   }
 
   NodeId computeDefaultNodeId(ir.TreeNode node) {

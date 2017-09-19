@@ -62,6 +62,7 @@ writeLocalInClosure(/**/ parameter) {
   return func;
 }
 
+/*element: Foo.:hasThis*/
 class Foo {
   int /*element: Foo.bar:hasThis*/ bar = 4;
 
