@@ -265,8 +265,7 @@ class TimelineEvent {
   void Metadata(const char* label,
                 int64_t micros = OS::GetCurrentMonotonicMicros());
 
-  // Completes this event with pre-serialized JSON. Copies |json|.
-  void CompleteWithPreSerializedJSON(const char* json);
+  void CompleteWithPreSerializedArgs(char* args_json);
 
   // Get/Set the number of arguments in the event.
   intptr_t GetNumArguments() { return arguments_.length(); }
@@ -367,8 +366,6 @@ class TimelineEvent {
 
   bool Within(int64_t time_origin_micros, int64_t time_extent_micros);
 
-  const char* GetSerializedJSON() const;
-
   void set_owns_label(bool owns_label) {
     state_ = OwnsLabelBit::update(owns_label, state_);
   }
@@ -406,24 +403,26 @@ class TimelineEvent {
     thread_timestamp1_ = value;
   }
 
-  bool pre_serialized_json() const { return PreSerializedJSON::decode(state_); }
+  bool pre_serialized_args() const {
+    return PreSerializedArgsBit::decode(state_);
+  }
 
-  void set_pre_serialized_json(bool pre_serialized_json) {
-    state_ = PreSerializedJSON::update(pre_serialized_json, state_);
+  void set_pre_serialized_args(bool pre_serialized_args) {
+    state_ = PreSerializedArgsBit::update(pre_serialized_args, state_);
   }
 
   bool owns_label() const { return OwnsLabelBit::decode(state_); }
 
   enum StateBits {
     kEventTypeBit = 0,  // reserve 4 bits for type.
-    kPreSerializedJSON = 4,
+    kPreSerializedArgsBit = 4,
     kOwnsLabelBit = 5,
     kNextBit = 6,
   };
 
   class EventTypeField : public BitField<uword, EventType, kEventTypeBit, 4> {};
-  class PreSerializedJSON
-      : public BitField<uword, bool, kPreSerializedJSON, 1> {};
+  class PreSerializedArgsBit
+      : public BitField<uword, bool, kPreSerializedArgsBit, 1> {};
   class OwnsLabelBit : public BitField<uword, bool, kOwnsLabelBit, 1> {};
 
   int64_t timestamp0_;
@@ -896,91 +895,41 @@ class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
 };
 #endif  // defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
 
-// These helper functions have platform specific implementations defined in
-// the timeline_{linux,...}.cc files. They are called from the runtime calls
-// that implement the dart:developer Timeline API.
 class DartTimelineEventHelpers : public AllStatic {
  public:
   static void ReportTaskEvent(Thread* thread,
-                              Zone* zone,
                               TimelineEvent* event,
                               int64_t start,
                               int64_t id,
                               const char* phase,
                               const char* category,
-                              const char* name,
-                              const char* args);
+                              char* name,
+                              char* args);
 
   static void ReportCompleteEvent(Thread* thread,
-                                  Zone* zone,
                                   TimelineEvent* event,
                                   int64_t start,
                                   int64_t start_cpu,
                                   const char* category,
-                                  const char* name,
-                                  const char* args);
+                                  char* name,
+                                  char* args);
 
   static void ReportFlowEvent(Thread* thread,
-                              Zone* zone,
                               TimelineEvent* event,
                               int64_t start,
                               int64_t start_cpu,
                               const char* category,
-                              const char* name,
+                              char* name,
                               int64_t type,
                               int64_t flow_id,
-                              const char* args);
+                              char* args);
 
   static void ReportInstantEvent(Thread* thread,
-                                 Zone* zone,
                                  TimelineEvent* event,
                                  int64_t start,
                                  const char* category,
-                                 const char* name,
-                                 const char* args);
-};
-
-// These are common implementations of the DartTimelineEventHelpers that should
-// be used when there is nothing platform-specific needed.
-class DartCommonTimelineEventHelpers : public AllStatic {
- public:
-  static void ReportTaskEvent(Thread* thread,
-                              Zone* zone,
-                              TimelineEvent* event,
-                              int64_t start,
-                              int64_t id,
-                              const char* phase,
-                              const char* category,
-                              const char* name,
-                              const char* args);
-
-  static void ReportCompleteEvent(Thread* thread,
-                                  Zone* zone,
-                                  TimelineEvent* event,
-                                  int64_t start,
-                                  int64_t start_cpu,
-                                  const char* category,
-                                  const char* name,
-                                  const char* args);
-
-  static void ReportFlowEvent(Thread* thread,
-                              Zone* zone,
-                              TimelineEvent* event,
-                              int64_t start,
-                              int64_t start_cpu,
-                              const char* category,
-                              const char* name,
-                              int64_t type,
-                              int64_t flow_id,
-                              const char* args);
-
-  static void ReportInstantEvent(Thread* thread,
-                                 Zone* zone,
-                                 TimelineEvent* event,
-                                 int64_t start,
-                                 const char* category,
-                                 const char* name,
-                                 const char* args);
+                                 char* name,
+                                 char* args);
 };
 
 }  // namespace dart

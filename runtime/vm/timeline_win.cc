@@ -46,57 +46,6 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
   ThreadBlockCompleteEvent(event);
 }
 
-void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
-                                               Zone* zone,
-                                               TimelineEvent* event,
-                                               int64_t start,
-                                               int64_t id,
-                                               const char* phase,
-                                               const char* category,
-                                               const char* name,
-                                               const char* args) {
-  DartCommonTimelineEventHelpers::ReportTaskEvent(
-      thread, zone, event, start, id, phase, category, name, args);
-}
-
-void DartTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
-                                                   Zone* zone,
-                                                   TimelineEvent* event,
-                                                   int64_t start,
-                                                   int64_t start_cpu,
-                                                   const char* category,
-                                                   const char* name,
-                                                   const char* args) {
-  DartCommonTimelineEventHelpers::ReportCompleteEvent(
-      thread, zone, event, start, start_cpu, category, name, args);
-}
-
-void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
-                                               Zone* zone,
-                                               TimelineEvent* event,
-                                               int64_t start,
-                                               int64_t start_cpu,
-                                               const char* category,
-                                               const char* name,
-                                               int64_t type,
-                                               int64_t flow_id,
-                                               const char* args) {
-  DartCommonTimelineEventHelpers::ReportFlowEvent(thread, zone, event, start,
-                                                  start_cpu, category, name,
-                                                  type, flow_id, args);
-}
-
-void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,
-                                                  Zone* zone,
-                                                  TimelineEvent* event,
-                                                  int64_t start,
-                                                  const char* category,
-                                                  const char* name,
-                                                  const char* args) {
-  DartCommonTimelineEventHelpers::ReportInstantEvent(thread, zone, event, start,
-                                                     category, name, args);
-}
-
 }  // namespace dart
 
 #endif  // defined(HOST_OS_WINDOWS) && !defined(PRODUCT)

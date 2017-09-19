@@ -15,9 +15,6 @@ int _getThreadCpuClock() native "Timeline_getThreadCpuClock";
 int _getNextAsyncId() native "Timeline_getNextAsyncId";
 
 @patch
-int _getIsolateNum() native "Timeline_getIsolateNum";
-
-@patch
 void _reportTaskEvent(int start, int taskId, String phase, String category,
     String name, String argumentsAsJson) native "Timeline_reportTaskEvent";
 

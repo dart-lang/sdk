@@ -6943,6 +6943,7 @@ class String : public Instance {
 
   void* GetPeer() const;
 
+  char* ToMallocCString() const;
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
 
   // Creates a new String object from a C string that is assumed to contain
