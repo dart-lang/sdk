@@ -190,8 +190,10 @@ class KernelDriver {
   }
 
   Future<T> runWithFrontEndContext<T>(String msg, Future<T> f()) async {
-    return await CompilerContext.runWithOptions(
-        _options, (_) => _logger.runAsync(msg, f));
+    return await CompilerContext.runWithOptions(_options, (context) {
+      context.disableColors();
+      return _logger.runAsync(msg, f);
+    });
   }
 
   /// Return the [TypeEnvironment] that corresponds to the [results].
