@@ -86,6 +86,12 @@ class CallSpecializer : public FlowGraphVisitor {
     AddChecksForArgNr(call, call->ArgumentAt(0), /* argument_number = */ 0);
   }
 
+  // Insert a null check if needed.
+  void AddCheckNull(Value* to_check,
+                    intptr_t deopt_id,
+                    Environment* deopt_environment,
+                    Instruction* insert_before);
+
   // Attempt to build ICData for call using propagated class-ids.
   virtual bool TryCreateICData(InstanceCallInstr* call);
 

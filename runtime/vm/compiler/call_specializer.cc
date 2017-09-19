@@ -321,6 +321,7 @@ void CallSpecializer::AddCheckSmi(Definition* to_check,
                                   intptr_t deopt_id,
                                   Environment* deopt_environment,
                                   Instruction* insert_before) {
+  // TODO(alexmarkov): check reaching type instead of definition type
   if (to_check->Type()->ToCid() != kSmiCid) {
     InsertBefore(insert_before,
                  new (Z) CheckSmiInstr(new (Z) Value(to_check), deopt_id,
@@ -345,6 +346,22 @@ void CallSpecializer::AddChecksForArgNr(InstanceCallInstr* call,
                                         int argument_number) {
   const Cids* cids = Cids::Create(Z, *call->ic_data(), argument_number);
   AddCheckClass(instr, *cids, call->deopt_id(), call->env(), call);
+}
+
+void CallSpecializer::AddCheckNull(Value* to_check,
+                                   intptr_t deopt_id,
+                                   Environment* deopt_environment,
+                                   Instruction* insert_before) {
+  ASSERT(FLAG_experimental_strong_mode);
+  if (to_check->Type()->is_nullable()) {
+    CheckNullInstr* check_null = new (Z) CheckNullInstr(
+        to_check->CopyWithType(Z), deopt_id, insert_before->token_pos());
+    if (FLAG_trace_experimental_strong_mode) {
+      THR_Print("[Strong mode] Inserted %s\n", check_null->ToCString());
+    }
+    InsertBefore(insert_before, check_null, deopt_environment,
+                 FlowGraph::kEffect);
+  }
 }
 
 static bool ArgIsAlways(intptr_t cid,
