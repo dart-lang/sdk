@@ -72,6 +72,17 @@ class Foo {
   }
 }
 
+/*element: Repro.:hasThis*/
+class Repro {
+  /*element: Repro.qux:hasThis*/ qux() {
+    /*fields=[this],free=[this],hasThis*/ threeNested(foo) =>
+        /*fields=[this],free=[this],hasThis*/ (bar) => someFunction();
+    return threeNested;
+  }
+
+  /*element: Repro.someFunction:hasThis*/ someFunction() => 3;
+}
+
 main() {
   readParameterInAnonymousClosure(null);
   readParameterInClosure(null);
@@ -82,4 +93,5 @@ main() {
   writeLocalInAnonymousClosure(null);
   writeLocalInClosure(null);
   new Foo().baz();
+  new Repro().qux();
 }
