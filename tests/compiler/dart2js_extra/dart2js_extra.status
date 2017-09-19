@@ -201,7 +201,6 @@ dummy_compiler_test: CompileTimeError
 inference_super_set_call_test: RuntimeError
 invalid_annotation2_test/none: RuntimeError
 label_test/06: MissingCompileTimeError
-many_constants_test: RuntimeError
 mirror_invalid_field_access2_test: RuntimeError
 mirror_invalid_field_access3_test: RuntimeError
 mirror_invalid_field_access4_test: RuntimeError
@@ -273,7 +272,6 @@ dummy_compiler_test: CompileTimeError
 inference_super_set_call_test: RuntimeError
 invalid_annotation2_test/none: RuntimeError
 label_test/06: MissingCompileTimeError
-many_constants_test: RuntimeError
 mirror_invalid_field_access2_test: RuntimeError
 mirror_invalid_field_access3_test: RuntimeError 
 mirror_invalid_field_access4_test: RuntimeError

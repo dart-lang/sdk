@@ -261,10 +261,6 @@ deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTi
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 generic_methods_local_variable_declaration_test: RuntimeError
 
-[ $compiler == dart2js && $runtime != none && $dart2js_with_kernel ]
-covariant_subtyping_tearoff1_test: RuntimeError
-covariant_subtyping_tearoff2_test: RuntimeError
-
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 assertion_test: RuntimeError # Issue 30326
 bit_operations_test: RuntimeError, OK # Issue 1533
@@ -644,15 +640,23 @@ constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in
 constructor8_test: RuntimeError
 constructor_duplicate_final_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 constructor_duplicate_final_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-custom_await_stack_trace_test: RuntimeError
-cyclic_constructor_test/01: Crash # Stack Overflow
-cyclic_default_values_test: RuntimeError
 constructor_named_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(A.named2#x), parameter(A.named2#y), parameter(A.named2#z)) for j:constructor(A.named2).
+covariant_override/runtime_check_test: RuntimeError
+covariant_subtyping_tearoff1_test: RuntimeError
+covariant_subtyping_tearoff2_test: RuntimeError
+covariant_subtyping_tearoff3_test: RuntimeError
+covariant_subtyping_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
+covariant_subtyping_unsafe_call1_test: RuntimeError
+covariant_subtyping_unsafe_call2_test: RuntimeError
+covariant_subtyping_unsafe_call3_test: RuntimeError
+custom_await_stack_trace_test: RuntimeError
+cyclic_constructor_test/01: Crash # Stack Overflow
+cyclic_default_values_test: RuntimeError
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
@@ -722,6 +726,7 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 issue21079_test: RuntimeError
+issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
@@ -733,7 +738,7 @@ wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 yieldstar_pause_test: RuntimeError
 
-[ $compiler == dart2js && ! $dart2js_with_kernel && ! $minified ]
+[ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
@@ -871,11 +876,19 @@ constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
 constructor_named_arguments_test/none: RuntimeError
-constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect1_negative_test/none: MissingCompileTimeError
+constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(A.named2#x), parameter(A.named2#y), parameter(A.named2#z)) for j:constructor(A.named2).
+covariant_override/runtime_check_test: RuntimeError
+covariant_subtyping_tearoff1_test: RuntimeError
+covariant_subtyping_tearoff2_test: RuntimeError
+covariant_subtyping_tearoff3_test: RuntimeError
+covariant_subtyping_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
+covariant_subtyping_unsafe_call1_test: RuntimeError
+covariant_subtyping_unsafe_call2_test: RuntimeError
+covariant_subtyping_unsafe_call3_test: RuntimeError
 custom_await_stack_trace_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: RuntimeError
@@ -954,6 +967,7 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 issue21079_test: RuntimeError
+issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
@@ -992,7 +1006,7 @@ generic_test: RuntimeError, OK
 [ $compiler == dart2js && $checked ]
 covariant_subtyping_test: CompileTimeError
 
-[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 function_type/function_type14_test: Crash # Issue 27394
 function_type/function_type15_test: Crash # Issue 27394
 function_type/function_type20_test: Crash # Issue 27394

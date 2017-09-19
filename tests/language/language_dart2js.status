@@ -599,14 +599,7 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-enum_duplicate_test/01: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
 enum_mirror_test: RuntimeError
-enum_private_test/01: RuntimeError
-enum_private_test/02: RuntimeError
-enum_private_test/none: RuntimeError
-enum_test: RuntimeError
 example_constructor_test: RuntimeError
 execute_finally7_test: RuntimeError
 expect_test: RuntimeError
@@ -966,12 +959,9 @@ await_postfix_expr_test: RuntimeError
 await_regression_test: RuntimeError
 await_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError
-closure_in_field_test/01: Crash # NoSuchMethodError: Class 'TypeParameterTypeWithContext' has no instance getter 'name'.
-closure_in_field_test/01: RuntimeError
-closure_in_field_test/02: Crash # NoSuchMethodError: Class 'TypeParameterTypeWithContext' has no instance getter 'name'.
-closure_in_field_test/02: RuntimeError
-closure_in_field_test/none: Crash # NoSuchMethodError: Class 'TypeParameterTypeWithContext' has no instance getter 'name'.
-closure_in_field_test/none: RuntimeError
+closure_in_field_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
+closure_in_field_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
+closure_in_field_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
@@ -1075,14 +1065,7 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-enum_duplicate_test/01: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
 enum_mirror_test: RuntimeError
-enum_private_test/01: RuntimeError
-enum_private_test/02: RuntimeError
-enum_private_test/none: RuntimeError
-enum_test: RuntimeError
 example_constructor_test: RuntimeError
 execute_finally7_test: RuntimeError
 expect_test: RuntimeError
@@ -1128,7 +1111,6 @@ integer_division_by_zero_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 invocation_mirror2_test: RuntimeError
 invocation_mirror_empty_arguments_test: RuntimeError
-invocation_mirror_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
 invocation_mirror_test: RuntimeError
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack

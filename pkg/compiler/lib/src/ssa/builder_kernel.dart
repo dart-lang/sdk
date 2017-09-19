@@ -2356,6 +2356,31 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
+  void visitDirectPropertyGet(ir.DirectPropertyGet propertyGet) {
+    propertyGet.receiver.accept(this);
+    HInstruction receiver = pop();
+
+    // Fake direct call with a dynamic call.
+    // TODO(sra): Implement direct invocations properly.
+    _pushDynamicInvocation(
+        propertyGet,
+        _typeInferenceMap.typeOfDirectGet(propertyGet),
+        <HInstruction>[receiver],
+        selector: new Selector.getter(
+            _elementMap.getMember(propertyGet.target).memberName));
+  }
+
+  @override
+  void visitDirectPropertySet(ir.DirectPropertySet propertySet) {
+    throw new UnimplementedError('ir.DirectPropertySet');
+  }
+
+  @override
+  void visitDirectMethodInvocation(ir.DirectMethodInvocation invocation) {
+    throw new UnimplementedError('ir.DirectMethodInvocation');
+  }
+
+  @override
   void visitSuperPropertySet(ir.SuperPropertySet propertySet) {
     propertySet.value.accept(this);
     HInstruction value = pop();
