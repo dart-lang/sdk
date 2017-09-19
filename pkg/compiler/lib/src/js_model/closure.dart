@@ -19,7 +19,7 @@ import '../world.dart';
 import 'elements.dart';
 import 'closure_visitors.dart';
 import 'locals.dart';
-import 'js_strategy.dart' show JsClosedWorld;
+import 'js_strategy.dart' show JsClosedWorldBuilder;
 
 class KernelClosureAnalysis {
   /// Inspect members and mark if those members capture any state that needs to
@@ -68,7 +68,6 @@ class KernelClosureAnalysis {
 class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
-  final Map<MemberEntity, ScopeModel> _closureModels;
 
   /// Map of the scoping information that corresponds to a particular entity.
   Map<MemberEntity, ScopeInfo> _scopeMap = <MemberEntity, ScopeInfo>{};
@@ -81,8 +80,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   Map<ir.TreeNode, ClosureRepresentationInfo> _localClosureRepresentationMap =
       <ir.TreeNode, ClosureRepresentationInfo>{};
 
-  KernelClosureConversionTask(Measurer measurer, this._elementMap,
-      this._globalLocalsMap, this._closureModels)
+  KernelClosureConversionTask(
+      Measurer measurer, this._elementMap, this._globalLocalsMap)
       : super(measurer);
 
   /// The combined steps of generating our intermediate representation of
@@ -93,12 +92,10 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// the compiler until we are ready to separate these phases.
   @override
   void convertClosures(Iterable<MemberEntity> processedEntities,
-      ClosedWorldRefiner closedWorldRefiner) {
-    _createClosureEntities(_closureModels, closedWorldRefiner);
-  }
+      ClosedWorldRefiner closedWorldRefiner) {}
 
-  void _createClosureEntities(Map<MemberEntity, ScopeModel> closureModels,
-      JsClosedWorld closedWorldRefiner) {
+  void createClosureEntities(JsClosedWorldBuilder closedWorldBuilder,
+      Map<MemberEntity, ScopeModel> closureModels) {
     closureModels.forEach((MemberEntity member, ScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       Map<Local, JRecordField> allBoxedVariables =
@@ -132,11 +129,11 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
           failedAt(member, "Unexpected closure node ${node}");
         }
         KernelClosureClass closureClass = _produceSyntheticElements(
+            closedWorldBuilder,
             member,
             functionNode,
             closuresToGenerate[node],
-            allBoxedVariables,
-            closedWorldRefiner);
+            allBoxedVariables);
         // Add also for the call method.
         _scopeMap[closureClass.callMethod] = closureClass;
       }
@@ -150,13 +147,13 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// boxForCapturedVariables stores the local context for those variables.
   /// If no variables are captured, this parameter is null.
   KernelClosureClass _produceSyntheticElements(
+      JsClosedWorldBuilder closedWorldBuilder,
       MemberEntity member,
       ir.FunctionNode node,
       KernelScopeInfo info,
-      Map<Local, JRecordField> boxedVariables,
-      JsClosedWorld closedWorldRefiner) {
+      Map<Local, JRecordField> boxedVariables) {
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
-    KernelClosureClass closureClass = closedWorldRefiner.buildClosureClass(
+    KernelClosureClass closureClass = closedWorldBuilder.buildClosureClass(
         member,
         node,
         member.library,

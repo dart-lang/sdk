@@ -59,6 +59,184 @@ class JsBackendStrategy implements KernelBackendStrategy {
 
   GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
 
+  @override
+  ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
+    KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
+    _elementMap = new JsKernelToElementMap(
+        _compiler.reporter, _compiler.environment, strategy.elementMap);
+    _elementEnvironment = _elementMap.elementEnvironment;
+    _commonElements = _elementMap.commonElements;
+    _closureDataLookup = new KernelClosureConversionTask(
+        _compiler.measurer, _elementMap, _globalLocalsMap);
+    JsClosedWorldBuilder closedWorldBuilder =
+        new JsClosedWorldBuilder(_elementMap, _closureDataLookup);
+    return closedWorldBuilder._convertClosedWorld(
+        closedWorld, strategy.closureModels);
+  }
+
+  @override
+  Sorter get sorter {
+    return _sorter ??= new KernelSorter(elementMap);
+  }
+
+  @override
+  ClosureConversionTask get closureDataLookup => _closureDataLookup;
+
+  @override
+  SourceInformationStrategy get sourceInformationStrategy =>
+      const JavaScriptSourceInformationStrategy();
+
+  @override
+  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
+      SourceInformationStrategy sourceInformationStrategy) {
+    return new KernelSsaBuilder(
+        task, backend.compiler, elementMap, _globalLocalsMap);
+  }
+
+  @override
+  WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
+    return new KernelCodegenWorkItemBuilder(_compiler.backend, closedWorld);
+  }
+
+  @override
+  CodegenWorldBuilder createCodegenWorldBuilder(
+      NativeBasicData nativeBasicData,
+      ClosedWorld closedWorld,
+      SelectorConstraintsStrategy selectorConstraintsStrategy) {
+    return new KernelCodegenWorldBuilder(
+        elementMap,
+        closedWorld.elementEnvironment,
+        nativeBasicData,
+        closedWorld,
+        selectorConstraintsStrategy);
+  }
+
+  @override
+  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
+    return _elementMap.getSourceSpan(spannable, currentElement);
+  }
+
+  @override
+  TypesInferrer createTypesInferrer(ClosedWorldRefiner closedWorldRefiner,
+      {bool disableTypeInference: false}) {
+    return new KernelTypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
+        _closureDataLookup, closedWorldRefiner.closedWorld, closedWorldRefiner,
+        disableTypeInference: disableTypeInference);
+  }
+}
+
+class JsClosedWorldBuilder {
+  final JsKernelToElementMap _elementMap;
+  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
+      <ClassEntity, ClassHierarchyNode>{};
+  final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
+  final KernelClosureConversionTask _closureConversionTask;
+
+  JsClosedWorldBuilder(this._elementMap, this._closureConversionTask);
+
+  ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
+  CommonElements get _commonElements => _elementMap.commonElements;
+
+  JsClosedWorld _convertClosedWorld(ClosedWorldBase closedWorld,
+      Map<MemberEntity, ScopeModel> closureModels) {
+    JsToFrontendMap map = new JsToFrontendMapImpl(_elementMap);
+
+    BackendUsage backendUsage =
+        _convertBackendUsage(map, closedWorld.backendUsage);
+    NativeData nativeData = _convertNativeData(map, closedWorld.nativeData);
+    _elementMap.nativeBasicData = nativeData;
+    InterceptorData interceptorData =
+        _convertInterceptorData(map, nativeData, closedWorld.interceptorData);
+
+    Set<ClassEntity> implementedClasses = new Set<ClassEntity>();
+
+    /// Converts [node] from the frontend world to the corresponding
+    /// [ClassHierarchyNode] for the backend world.
+    ClassHierarchyNode convertClassHierarchyNode(ClassHierarchyNode node) {
+      ClassEntity cls = map.toBackendClass(node.cls);
+      if (closedWorld.isImplemented(node.cls)) {
+        implementedClasses.add(cls);
+      }
+      ClassHierarchyNode newNode = _classHierarchyNodes.putIfAbsent(cls, () {
+        ClassHierarchyNode parentNode;
+        if (node.parentNode != null) {
+          parentNode = convertClassHierarchyNode(node.parentNode);
+        }
+        return new ClassHierarchyNode(parentNode, cls, node.hierarchyDepth);
+      });
+      newNode.isAbstractlyInstantiated = node.isAbstractlyInstantiated;
+      newNode.isDirectlyInstantiated = node.isDirectlyInstantiated;
+      return newNode;
+    }
+
+    /// Converts [classSet] from the frontend world to the corresponding
+    /// [ClassSet] for the backend world.
+    ClassSet convertClassSet(ClassSet classSet) {
+      ClassEntity cls = map.toBackendClass(classSet.cls);
+      return _classSets.putIfAbsent(cls, () {
+        ClassHierarchyNode newNode = convertClassHierarchyNode(classSet.node);
+        ClassSet newClassSet = new ClassSet(newNode);
+        for (ClassHierarchyNode subtype in classSet.subtypeNodes) {
+          ClassHierarchyNode newSubtype = convertClassHierarchyNode(subtype);
+          newClassSet.addSubtype(newSubtype);
+        }
+        return newClassSet;
+      });
+    }
+
+    closedWorld
+        .getClassHierarchyNode(closedWorld.commonElements.objectClass)
+        .forEachSubclass((ClassEntity cls) {
+      convertClassSet(closedWorld.getClassSet(cls));
+    }, ClassHierarchyNode.ALL);
+
+    Set<MemberEntity> liveInstanceMembers =
+        map.toBackendMemberSet(closedWorld.liveInstanceMembers);
+
+    Map<ClassEntity, Set<ClassEntity>> mixinUses =
+        map.toBackendClassMap(closedWorld.mixinUses, map.toBackendClassSet);
+
+    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
+        map.toBackendClassMap(
+            closedWorld.typesImplementedBySubclasses, map.toBackendClassSet);
+
+    Iterable<MemberEntity> assignedInstanceMembers =
+        map.toBackendMemberSet(closedWorld.assignedInstanceMembers);
+
+    Iterable<ClassEntity> liveNativeClasses =
+        map.toBackendClassSet(closedWorld.liveNativeClasses);
+
+    Iterable<MemberEntity> processedMembers =
+        map.toBackendMemberSet(closedWorld.processedMembers);
+
+    RuntimeTypesNeed rtiNeed =
+        _convertRuntimeTypesNeed(map, backendUsage, closedWorld.rtiNeed);
+
+    _closureConversionTask.createClosureEntities(
+        this, map.toBackendMemberMap(closureModels, identity));
+
+    return new JsClosedWorld(_elementMap,
+        elementEnvironment: _elementEnvironment,
+        dartTypes: _elementMap.types,
+        commonElements: _commonElements,
+        constantSystem: const JavaScriptConstantSystem(),
+        backendUsage: backendUsage,
+        nativeData: nativeData,
+        interceptorData: interceptorData,
+        rtiNeed: rtiNeed,
+        classHierarchyNodes: _classHierarchyNodes,
+        classSets: _classSets,
+        implementedClasses: implementedClasses,
+        liveNativeClasses: liveNativeClasses,
+        liveInstanceMembers: liveInstanceMembers,
+        assignedInstanceMembers: assignedInstanceMembers,
+        processedMembers: processedMembers,
+        mixinUses: mixinUses,
+        typesImplementedBySubclasses: typesImplementedBySubclasses,
+        // TODO(johnniwinther): Support this:
+        allTypedefs: new ImmutableEmptySet<TypedefEntity>());
+  }
+
   BackendUsage _convertBackendUsage(
       JsToFrontendMap map, BackendUsageImpl backendUsage) {
     Set<FunctionEntity> globalFunctionDependencies =
@@ -213,161 +391,38 @@ class JsBackendStrategy implements KernelBackendStrategy {
         classesUsingTypeVariableExpression);
   }
 
-  @override
-  ClosedWorldRefiner createClosedWorldRefiner(
-      covariant ClosedWorldBase closedWorld) {
-    KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
-    _elementMap = new JsKernelToElementMap(
-        _compiler.reporter, _compiler.environment, strategy.elementMap);
-    _elementEnvironment = _elementMap.elementEnvironment;
-    _commonElements = _elementMap.commonElements;
-    JsToFrontendMap map = new JsToFrontendMapImpl(_elementMap);
-    _closureDataLookup = new KernelClosureConversionTask(
-        _compiler.measurer,
-        _elementMap,
-        _globalLocalsMap,
-        map.toBackendMemberMap(strategy.closureModels, identity));
+  /// Construct a closure class and set up the necessary class inference
+  /// hierarchy.
+  KernelClosureClass buildClosureClass(
+      MemberEntity member,
+      ir.FunctionNode originalClosureFunctionNode,
+      JLibrary enclosingLibrary,
+      Map<Local, JRecordField> boxedVariables,
+      KernelScopeInfo info,
+      ir.Location location,
+      KernelToLocalsMap localsMap) {
+    ClassEntity superclass = _commonElements.closureClass;
 
-    BackendUsage backendUsage =
-        _convertBackendUsage(map, closedWorld.backendUsage);
-    NativeData nativeData = _convertNativeData(map, closedWorld.nativeData);
-    _elementMap.nativeBasicData = nativeData;
-    InterceptorData interceptorData =
-        _convertInterceptorData(map, nativeData, closedWorld.interceptorData);
+    KernelClosureClass cls = _elementMap.constructClosureClass(
+        member,
+        originalClosureFunctionNode,
+        enclosingLibrary,
+        boxedVariables,
+        info,
+        location,
+        localsMap,
+        new InterfaceType(superclass, const []));
 
-    Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes =
-        <ClassEntity, ClassHierarchyNode>{};
-    Map<ClassEntity, ClassSet> classSets = <ClassEntity, ClassSet>{};
-    Set<ClassEntity> implementedClasses = new Set<ClassEntity>();
+    // Tell the hierarchy that this is the super class. then we can use
+    // .getSupertypes(class)
+    ClassHierarchyNode parentNode = _classHierarchyNodes[superclass];
+    ClassHierarchyNode node = new ClassHierarchyNode(
+        parentNode, cls.closureClassEntity, parentNode.hierarchyDepth + 1);
+    _classHierarchyNodes[cls.closureClassEntity] = node;
+    _classSets[cls.closureClassEntity] = new ClassSet(node);
+    node.isDirectlyInstantiated = true;
 
-    ClassHierarchyNode convertClassHierarchyNode(ClassHierarchyNode node) {
-      ClassEntity cls = map.toBackendClass(node.cls);
-      if (closedWorld.isImplemented(node.cls)) {
-        implementedClasses.add(cls);
-      }
-      ClassHierarchyNode newNode = classHierarchyNodes.putIfAbsent(cls, () {
-        ClassHierarchyNode parentNode;
-        if (node.parentNode != null) {
-          parentNode = convertClassHierarchyNode(node.parentNode);
-        }
-        return new ClassHierarchyNode(parentNode, cls, node.hierarchyDepth);
-      });
-      newNode.isAbstractlyInstantiated = node.isAbstractlyInstantiated;
-      newNode.isDirectlyInstantiated = node.isDirectlyInstantiated;
-      return newNode;
-    }
-
-    ClassSet convertClassSet(ClassSet classSet) {
-      ClassEntity cls = map.toBackendClass(classSet.cls);
-      return classSets.putIfAbsent(cls, () {
-        ClassHierarchyNode newNode = convertClassHierarchyNode(classSet.node);
-        ClassSet newClassSet = new ClassSet(newNode);
-        for (ClassHierarchyNode subtype in classSet.subtypeNodes) {
-          ClassHierarchyNode newSubtype = convertClassHierarchyNode(subtype);
-          newClassSet.addSubtype(newSubtype);
-        }
-        return newClassSet;
-      });
-    }
-
-    closedWorld
-        .getClassHierarchyNode(closedWorld.commonElements.objectClass)
-        .forEachSubclass((ClassEntity cls) {
-      convertClassSet(closedWorld.getClassSet(cls));
-    }, ClassHierarchyNode.ALL);
-
-    Set<MemberEntity> liveInstanceMembers =
-        map.toBackendMemberSet(closedWorld.liveInstanceMembers);
-
-    Map<ClassEntity, Set<ClassEntity>> mixinUses =
-        map.toBackendClassMap(closedWorld.mixinUses, map.toBackendClassSet);
-
-    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
-        map.toBackendClassMap(
-            closedWorld.typesImplementedBySubclasses, map.toBackendClassSet);
-
-    Iterable<MemberEntity> assignedInstanceMembers =
-        map.toBackendMemberSet(closedWorld.assignedInstanceMembers);
-
-    Iterable<ClassEntity> liveNativeClasses =
-        map.toBackendClassSet(closedWorld.liveNativeClasses);
-
-    Iterable<MemberEntity> processedMembers =
-        map.toBackendMemberSet(closedWorld.processedMembers);
-
-    RuntimeTypesNeed rtiNeed =
-        _convertRuntimeTypesNeed(map, backendUsage, closedWorld.rtiNeed);
-
-    return new JsClosedWorld(_elementMap,
-        elementEnvironment: _elementEnvironment,
-        dartTypes: _elementMap.types,
-        commonElements: _commonElements,
-        constantSystem: const JavaScriptConstantSystem(),
-        backendUsage: backendUsage,
-        nativeData: nativeData,
-        interceptorData: interceptorData,
-        rtiNeed: rtiNeed,
-        classHierarchyNodes: classHierarchyNodes,
-        classSets: classSets,
-        implementedClasses: implementedClasses,
-        liveNativeClasses: liveNativeClasses,
-        liveInstanceMembers: liveInstanceMembers,
-        assignedInstanceMembers: assignedInstanceMembers,
-        processedMembers: processedMembers,
-        mixinUses: mixinUses,
-        typesImplementedBySubclasses: typesImplementedBySubclasses,
-        // TODO(johnniwinther): Support this:
-        allTypedefs: new ImmutableEmptySet<TypedefEntity>());
-  }
-
-  @override
-  Sorter get sorter {
-    return _sorter ??= new KernelSorter(elementMap);
-  }
-
-  @override
-  ClosureConversionTask get closureDataLookup => _closureDataLookup;
-
-  @override
-  SourceInformationStrategy get sourceInformationStrategy =>
-      const JavaScriptSourceInformationStrategy();
-
-  @override
-  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
-      SourceInformationStrategy sourceInformationStrategy) {
-    return new KernelSsaBuilder(
-        task, backend.compiler, elementMap, _globalLocalsMap);
-  }
-
-  @override
-  WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
-    return new KernelCodegenWorkItemBuilder(_compiler.backend, closedWorld);
-  }
-
-  @override
-  CodegenWorldBuilder createCodegenWorldBuilder(
-      NativeBasicData nativeBasicData,
-      ClosedWorld closedWorld,
-      SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(
-        elementMap,
-        closedWorld.elementEnvironment,
-        nativeBasicData,
-        closedWorld,
-        selectorConstraintsStrategy);
-  }
-
-  @override
-  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
-    return _elementMap.getSourceSpan(spannable, currentElement);
-  }
-
-  @override
-  TypesInferrer createTypesInferrer(ClosedWorldRefiner closedWorldRefiner,
-      {bool disableTypeInference: false}) {
-    return new KernelTypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
-        _closureDataLookup, closedWorldRefiner.closedWorld, closedWorldRefiner,
-        disableTypeInference: disableTypeInference);
+    return cls;
   }
 }
 
@@ -412,46 +467,6 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             typesImplementedBySubclasses,
             classHierarchyNodes,
             classSets);
-
-  /// Construct a closure class and set up the necessary class inference
-  /// hierarchy.
-  KernelClosureClass buildClosureClass(
-      MemberEntity member,
-      ir.FunctionNode originalClosureFunctionNode,
-      JLibrary enclosingLibrary,
-      Map<Local, JRecordField> boxedVariables,
-      KernelScopeInfo info,
-      ir.Location location,
-      KernelToLocalsMap localsMap) {
-    ClassEntity superclass = commonElements.closureClass;
-
-    KernelClosureClass cls = elementMap.constructClosureClass(
-        member,
-        originalClosureFunctionNode,
-        enclosingLibrary,
-        boxedVariables,
-        info,
-        location,
-        localsMap,
-        new InterfaceType(superclass, const []));
-
-    // Tell the hierarchy that this is the super class. then we can use
-    // .getSupertypes(class)
-    ClassHierarchyNode parentNode = getClassHierarchyNode(superclass);
-    ClassHierarchyNode node = new ClassHierarchyNode(
-        parentNode, cls.closureClassEntity, getHierarchyDepth(superclass) + 1);
-    addClassHierarchyNode(cls.closureClassEntity, node);
-    for (InterfaceType type in getOrderedTypeSet(superclass).types) {
-      // TODO(efortuna): assert that the FunctionClass is in this ordered set.
-      // If not, we need to explicitly add node as a subtype of FunctionClass.
-      ClassSet subtypeSet = getClassSet(type.element);
-      subtypeSet.addSubtype(node);
-    }
-    addClassSet(cls.closureClassEntity, new ClassSet(node));
-    node.isDirectlyInstantiated = true;
-
-    return cls;
-  }
 
   @override
   void registerClosureClass(ClassEntity cls) {
