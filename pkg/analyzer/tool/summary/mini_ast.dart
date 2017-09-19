@@ -229,7 +229,7 @@ class MiniAstBuilder extends StackListener {
     push(new ConstructorReference(name, constructorName));
   }
 
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
     List<EnumConstantDeclaration> constants = popList(count);
     String name = pop();

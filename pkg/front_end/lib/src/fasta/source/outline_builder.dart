@@ -684,14 +684,14 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
     String documentationComment = _getDocumentationComment(enumKeyword);
     List constantNamesAndOffsets = popList(count * 3);
     int charOffset = pop();
     String name = pop();
     List<MetadataBuilder> metadata = pop();
     library.addEnum(documentationComment, metadata, name,
-        constantNamesAndOffsets, charOffset, endBrace.charOffset);
+        constantNamesAndOffsets, charOffset, leftBrace?.endGroup?.charOffset);
     checkEmpty(enumKeyword.charOffset);
   }
 

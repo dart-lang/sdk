@@ -163,7 +163,7 @@ class Listener {
   /// - Enum name (identifier)
   /// - [count] times:
   ///   - Enum value (identifier)
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
     logEvent("Enum");
   }
 

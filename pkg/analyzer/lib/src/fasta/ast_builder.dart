@@ -1749,21 +1749,14 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
     List<EnumConstantDeclaration> constants = popList(count);
-    // TODO(paulberry,ahe): the parser should pass in the openBrace token.
-    var openBrace =
-        unsafeToken(enumKeyword.next.next, TokenType.OPEN_CURLY_BRACKET)
-            as analyzer.BeginToken;
-    // TODO(paulberry): what if the '}' is missing and the parser has performed
-    // error recovery?
-    Token closeBrace = openBrace?.endGroup;
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
     declarations.add(ast.enumDeclaration(comment, metadata, enumKeyword, name,
-        openBrace, constants, closeBrace));
+        leftBrace, constants, leftBrace?.endGroup));
   }
 
   @override

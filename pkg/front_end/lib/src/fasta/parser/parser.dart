@@ -843,6 +843,7 @@ class Parser {
     listener.beginEnum(token);
     Token enumKeyword = token;
     token = parseIdentifier(token.next, IdentifierContext.enumDeclaration);
+    Token leftBrace = token;
     token = expect('{', token);
     int count = 0;
     if (!optional('}', token)) {
@@ -855,9 +856,8 @@ class Parser {
         count++;
       }
     }
-    Token endBrace = token;
     token = expect('}', token);
-    listener.endEnum(enumKeyword, endBrace, count);
+    listener.endEnum(enumKeyword, leftBrace, count);
     return token;
   }
 
