@@ -101,6 +101,9 @@ io/file_input_stream_test: Skip # Issue 26109
 [ $runtime != vm || $arch == arm || $arch == arm64 || ($system == windows && $mode == debug) ]
 fragmentation_test: Skip # VM test uses too much memory for small systems.
 
+[ $runtime != vm || $compiler != none ]
+script_snapshot_not_executed_test: SkipByDesign # Only makes sense running from source.
+
 [ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
