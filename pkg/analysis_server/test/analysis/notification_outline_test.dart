@@ -302,6 +302,118 @@ enum MyEnum {
     }
   }
 
+  test_groupAndTest() async {
+    addTestFile('''
+void group(name, closure) {}
+void test(name) {}
+void main() {
+  group('group1', () {
+    group('group1_1', () {
+      test('test1_1_1');
+      test('test1_1_2');
+    });
+    group('group1_2', () {
+      test('test1_2_1');
+    });
+  });
+  group('group2', () {
+      test('test2_1');
+      test('test2_2');
+  });
+}
+''');
+    await prepareOutline();
+    // unit
+    List<Outline> unit_children = outline.children;
+    expect(unit_children, hasLength(3));
+    // main
+    Outline main_outline = unit_children[2];
+    _expect(main_outline,
+        kind: ElementKind.FUNCTION,
+        name: 'main',
+        offset: testCode.indexOf("main() {"),
+        parameters: '()',
+        returnType: 'void');
+    List<Outline> main_children = main_outline.children;
+    expect(main_children, hasLength(2));
+    // group1
+    Outline group1_outline = main_children[0];
+    _expect(group1_outline,
+        kind: ElementKind.UNKNOWN,
+        length: 5,
+        name: 'group group1',
+        offset: testCode.indexOf("group('group1'"));
+    List<Outline> group1_children = group1_outline.children;
+    expect(group1_children, hasLength(2));
+    // group1_1
+    Outline group1_1_outline = group1_children[0];
+    _expect(group1_1_outline,
+        kind: ElementKind.UNKNOWN,
+        length: 5,
+        name: 'group group1_1',
+        offset: testCode.indexOf("group('group1_1'"));
+    List<Outline> group1_1_children = group1_1_outline.children;
+    expect(group1_1_children, hasLength(2));
+    // test1_1_1
+    Outline test1_1_1_outline = group1_1_children[0];
+    _expect(test1_1_1_outline,
+        kind: ElementKind.UNKNOWN,
+        leaf: true,
+        length: 4,
+        name: 'test test1_1_1',
+        offset: testCode.indexOf("test('test1_1_1'"));
+    // test1_1_1
+    Outline test1_1_2_outline = group1_1_children[1];
+    _expect(test1_1_2_outline,
+        kind: ElementKind.UNKNOWN,
+        leaf: true,
+        length: 4,
+        name: 'test test1_1_2',
+        offset: testCode.indexOf("test('test1_1_2'"));
+    // group1_2
+    Outline group1_2_outline = group1_children[1];
+    _expect(group1_2_outline,
+        kind: ElementKind.UNKNOWN,
+        length: 5,
+        name: 'group group1_2',
+        offset: testCode.indexOf("group('group1_2'"));
+    List<Outline> group1_2_children = group1_2_outline.children;
+    expect(group1_2_children, hasLength(1));
+    // test2_1
+    Outline test1_2_1_outline = group1_2_children[0];
+    _expect(test1_2_1_outline,
+        kind: ElementKind.UNKNOWN,
+        leaf: true,
+        length: 4,
+        name: 'test test1_2_1',
+        offset: testCode.indexOf("test('test1_2_1'"));
+    // group2
+    Outline group2_outline = main_children[1];
+    _expect(group2_outline,
+        kind: ElementKind.UNKNOWN,
+        length: 5,
+        name: 'group group2',
+        offset: testCode.indexOf("group('group2'"));
+    List<Outline> group2_children = group2_outline.children;
+    expect(group2_children, hasLength(2));
+    // test2_1
+    Outline test2_1_outline = group2_children[0];
+    _expect(test2_1_outline,
+        kind: ElementKind.UNKNOWN,
+        leaf: true,
+        length: 4,
+        name: 'test test2_1',
+        offset: testCode.indexOf("test('test2_1'"));
+    // test2_2
+    Outline test2_2_outline = group2_children[1];
+    _expect(test2_2_outline,
+        kind: ElementKind.UNKNOWN,
+        leaf: true,
+        length: 4,
+        name: 'test test2_2',
+        offset: testCode.indexOf("test('test2_2'"));
+  }
+
   /**
    * Code like this caused NPE in the past.
    *
@@ -872,6 +984,41 @@ set propB(int v) {}
       }
       expect(element.parameters, "(int v)");
       expect(element.returnType, "");
+    }
+  }
+
+  void _expect(Outline outline,
+      {ElementKind kind,
+      bool leaf: false,
+      int length,
+      String name,
+      int offset,
+      String parameters,
+      String returnType}) {
+    Element element = outline.element;
+    Location location = element.location;
+
+    if (kind != null) {
+      expect(element.kind, kind);
+    }
+    if (leaf) {
+      expect(outline.children, isNull);
+    }
+    length ??= name?.length;
+    if (length != null) {
+      expect(location.length, length);
+    }
+    if (name != null) {
+      expect(element.name, name);
+    }
+    if (offset != null) {
+      expect(location.offset, offset);
+    }
+    if (parameters != null) {
+      expect(element.parameters, parameters);
+    }
+    if (returnType != null) {
+      expect(element.returnType, returnType);
     }
   }
 
