@@ -221,6 +221,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       ProcedureKind kind,
       KernelLibraryBuilder compilationUnit,
       int charOffset,
+      int nameOffset,
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName,
@@ -228,7 +229,8 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       : procedure = new ShadowProcedure(null, kind, null, returnType == null,
             fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset,
+          ..fileEndOffset = charEndOffset
+          ..nameOffset = nameOffset,
         super(
             documentationComment,
             metadata,
@@ -334,12 +336,14 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       List<FormalParameterBuilder> formals,
       KernelLibraryBuilder compilationUnit,
       int charOffset,
+      int nameOffset,
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
       : constructor = new Constructor(null)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset,
+          ..fileEndOffset = charEndOffset
+          ..nameOffset = nameOffset,
         super(
             documentationComment,
             metadata,

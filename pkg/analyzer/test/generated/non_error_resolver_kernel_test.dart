@@ -20,49 +20,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_commentReference_beforeMethod() async {
-    fail('This test fails only in checked mode.');
-    return super.test_commentReference_beforeMethod();
-  }
-
-  @override
-  @failingTest
-  test_conflictingConstructorNameAndMember_setter() async {
-    return super.test_conflictingConstructorNameAndMember_setter();
-  }
-
-  @override
-  @failingTest
-  test_constConstructorWithNonConstSuper_unresolved() async {
-    return super.test_constConstructorWithNonConstSuper_unresolved();
-  }
-
-  @override
-  @failingTest
-  test_constDeferredClass_new() async {
-    return super.test_constDeferredClass_new();
-  }
-
-  @override
-  @failingTest
-  test_constEvalTypeBoolNumString_equal() async {
-    return super.test_constEvalTypeBoolNumString_equal();
-  }
-
-  @override
-  @failingTest
-  test_constEvalTypeBoolNumString_notEqual() async {
-    return super.test_constEvalTypeBoolNumString_notEqual();
-  }
-
-  @override
-  @failingTest
-  test_constRedirectSkipsSupertype() async {
-    return super.test_constRedirectSkipsSupertype();
-  }
-
-  @override
-  @failingTest
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
   }
@@ -71,12 +28,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_constWithNonConstantArgument_constField() async {
     return super.test_constWithNonConstantArgument_constField();
-  }
-
-  @override
-  @failingTest
-  test_constWithUndefinedConstructor() async {
-    return super.test_constWithUndefinedConstructor();
   }
 
   @override
@@ -96,12 +47,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_finalNotInitialized_hasNativeClause_noConstructor() async {
     fail('This test fails only in checked mode.');
     return super.test_finalNotInitialized_hasNativeClause_noConstructor();
-  }
-
-  @override
-  @failingTest
-  test_finalNotInitialized_redirectingConstructor() async {
-    return super.test_finalNotInitialized_redirectingConstructor();
   }
 
   @override
@@ -164,12 +109,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_genericTypeAlias_typeParameters() async {
     return super.test_genericTypeAlias_typeParameters();
-  }
-
-  @override
-  @failingTest
-  test_implicitThisReferenceInInitializer_constructorName() async {
-    return super.test_implicitThisReferenceInInitializer_constructorName();
   }
 
   @override
@@ -268,12 +207,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_newWithUndefinedConstructor() async {
-    return super.test_newWithUndefinedConstructor();
-  }
-
-  @override
-  @failingTest
   test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject() async {
     return super
         .test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject();
@@ -353,56 +286,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_nonConstValueInInitializer_binary_bool() async {
-    return super.test_nonConstValueInInitializer_binary_bool();
-  }
-
-  @override
-  @failingTest
-  test_nonConstValueInInitializer_binary_dynamic() async {
-    return super.test_nonConstValueInInitializer_binary_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_nonConstValueInInitializer_binary_int() async {
-    return super.test_nonConstValueInInitializer_binary_int();
-  }
-
-  @override
-  @failingTest
-  test_nonConstValueInInitializer_binary_num() async {
-    return super.test_nonConstValueInInitializer_binary_num();
-  }
-
-  @override
-  @failingTest
-  test_nonConstValueInInitializer_redirecting() async {
-    return super.test_nonConstValueInInitializer_redirecting();
-  }
-
-  @override
-  @failingTest
-  test_nonConstValueInInitializer_unary() async {
-    return super.test_nonConstValueInInitializer_unary();
-  }
-
-  @override
-  @failingTest
-  test_nonGenerativeConstructor() async {
-    return super.test_nonGenerativeConstructor();
-  }
-
-  @override
-  @failingTest
   test_parameterDefaultDoesNotReferToParameterName() async {
     return super.test_parameterDefaultDoesNotReferToParameterName();
-  }
-
-  @override
-  @failingTest
-  test_propagateTypeArgs_intoSupertype() async {
-    return super.test_propagateTypeArgs_intoSupertype();
   }
 
   @override
@@ -455,45 +340,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_recursiveConstructorRedirect() async {
-    return super.test_recursiveConstructorRedirect();
-  }
-
-  @override
-  @failingTest
-  test_redirectToNonConstConstructor() async {
-    return super.test_redirectToNonConstConstructor();
-  }
-
-  @override
-  @failingTest
-  test_referenceToDeclaredVariableInInitializer_constructorName() async {
-    return super
-        .test_referenceToDeclaredVariableInInitializer_constructorName();
-  }
-
-  @override
-  @failingTest
   test_returnOfInvalidType_dynamicAsTypeArgument() async {
     return super.test_returnOfInvalidType_dynamicAsTypeArgument();
-  }
-
-  @override
-  @failingTest
-  test_staticAccessToInstanceMember_annotation() async {
-    return super.test_staticAccessToInstanceMember_annotation();
-  }
-
-  @override
-  @failingTest
-  test_undefinedConstructorInInitializer_explicit_named() async {
-    return super.test_undefinedConstructorInInitializer_explicit_named();
-  }
-
-  @override
-  @failingTest
-  test_undefinedConstructorInInitializer_redirecting() async {
-    return super.test_undefinedConstructorInInitializer_redirecting();
   }
 
   @override
@@ -506,13 +354,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
-  }
-
-  @override
-  @failingTest
-  test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new() async {
-    return super
-        .test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new();
   }
 
   @override

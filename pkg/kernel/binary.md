@@ -283,6 +283,7 @@ type Constructor extends Member {
   Byte tag = 5;
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
+  FileOffset nameOffset;
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
   Name name;
@@ -306,6 +307,7 @@ type Procedure extends Member {
   Byte tag = 6;
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
+  FileOffset nameOffset;
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst);

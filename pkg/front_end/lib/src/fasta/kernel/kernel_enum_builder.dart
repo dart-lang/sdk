@@ -142,6 +142,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         parent,
         charOffset,
         charOffset,
+        charOffset,
         charEndOffset);
     constructors[""] = constructorBuilder;
     int index = 0;
@@ -167,6 +168,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         null,
         ProcedureKind.Method,
         parent,
+        charOffset,
         charOffset,
         charOffset,
         charEndOffset);

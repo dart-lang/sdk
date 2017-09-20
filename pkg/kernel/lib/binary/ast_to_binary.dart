@@ -471,6 +471,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.Constructor);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
     writeOffset(node.fileOffset);
+    writeOffset(node.nameOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
@@ -493,6 +494,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.Procedure);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
     writeOffset(node.fileOffset);
+    writeOffset(node.nameOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
     writeByte(node.flags);

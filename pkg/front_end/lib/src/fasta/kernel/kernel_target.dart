@@ -345,6 +345,7 @@ class KernelTarget extends TargetImplementation {
           library,
           -1,
           -1,
+          -1,
           -1);
       library.addBuilder(mainBuilder.name, mainBuilder, -1);
       mainBuilder.body = new Block(new List<Statement>.from(errors.map(
