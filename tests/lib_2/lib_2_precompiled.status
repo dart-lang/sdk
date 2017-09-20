@@ -18,3 +18,6 @@ isolate/illegal_msg_mirror_test: SkipByDesign
 isolate/isolate_complex_messages_test: SkipByDesign
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) ]
+async/timer_regress22626_test: Pass, RuntimeError # Issue 28254

@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'dart:async';
-import 'event_helper.dart';
 
 _defaultData(x) {}
 _defaultError(e, [st]) {}
@@ -38,7 +36,7 @@ class MyStreamSubscription<T> implements StreamSubscription<T> {
   void resume() {}
 
   final isPaused = false;
-  Future asFuture([var futureValue]) => null;
+  Future<E> asFuture<E>([E futureValue]) => null;
 }
 
 main() {
@@ -46,7 +44,7 @@ main() {
       (stream, cancelOnError) =>
           new MyStreamSubscription(stream, cancelOnError));
 
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<int>(sync: true);
   var stream = controller.stream;
   var transformed = stream.transform(transformer);
 
@@ -54,7 +52,7 @@ main() {
   var handleError = (e, st) => 42;
   var handleDone = () => 99;
 
-  var subscription =
+  MyStreamSubscription<String> subscription =
       transformed.listen(handleData, onError: handleError, onDone: handleDone);
 
   Expect.identical(stream, subscription.stream);

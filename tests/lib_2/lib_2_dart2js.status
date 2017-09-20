@@ -25,6 +25,7 @@ async/schedule_microtask_test: Fail  # Preamble file does not correctly implemen
 async/schedule_microtask3_test: RuntimeError
 async/stream_controller_test: Fail # Timer interface not supported: Issue 7728.
 async/stream_take_test: Fail # Timer interface not supported: Issue 7728.
+async/timer_regress22626_test: RuntimeError # Non-zero timers not supported; Issue 7728.
 async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: Issue 7728.

@@ -5,7 +5,7 @@
 library timer_cancel_test;
 
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
   final ms = const Duration(milliseconds: 1);

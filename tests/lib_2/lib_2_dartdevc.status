@@ -56,4 +56,3 @@ html/custom/mirrors_2_test: Crash # Compiler crash issue ????
 [ $compiler == dartdevc && $runtime == drt ]
 math/math_test: RuntimeError # Issue 29922
 math/math2_test: RuntimeError # Issue 29922
-
