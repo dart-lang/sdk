@@ -96,6 +96,9 @@ front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 28629
 [ $runtime == vm && ! $use_sdk ]
 front_end/tool/perf_test: Skip # Issue 28698
 
+[ $runtime == vm ]
+front_end/tool/perf_test: Skip # Issue 30825
+
 [ $runtime == vm && $use_sdk ]
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 front_end/test/kernel_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
@@ -225,6 +228,8 @@ kernel/test/closures_test: Fail
 
 [ $runtime == vm ]
 analyzer_cli/test/driver_test: Pass, Slow, Timeout
+
+compiler/tool/perf_test: Fail # Unimplemented Typedef handling in kernel transformation.
 
 [ $runtime == vm && $system == windows ]
 analyzer/test/src/task/strong/checker_test: Pass, Slow
