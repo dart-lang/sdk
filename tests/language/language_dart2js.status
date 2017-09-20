@@ -507,9 +507,6 @@ constructor3_test: RuntimeError
 constructor5_test: RuntimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor8_test: RuntimeError
-constructor_duplicate_final_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-constructor_duplicate_final_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-constructor_named_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
@@ -778,9 +775,10 @@ named_parameters_with_conversions_test: RuntimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
-not_enough_positional_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-not_enough_positional_arguments_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-not_enough_positional_arguments_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+const_error_multiply_initialized_test/02: MissingCompileTimeError
+const_error_multiply_initialized_test/04: MissingCompileTimeError
+final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/02: MissingCompileTimeError
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
 null_test/none: RuntimeError
@@ -798,7 +796,7 @@ override_inheritance_mixed_test/04: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
-private_super_constructor_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+private_super_constructor_test/01: MissingCompileTimeError
 redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
@@ -806,7 +804,7 @@ redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
-regress_20394_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+regress_20394_test/01: MissingCompileTimeError
 regress_22438_test: RuntimeError
 regress_22443_test: CompileTimeError
 regress_22445_test: RuntimeError
@@ -828,8 +826,8 @@ regress_24935_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.d
 regress_26175_test: RuntimeError
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_28217_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-regress_28217_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+regress_28217_test/01: MissingCompileTimeError
+regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
 regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
