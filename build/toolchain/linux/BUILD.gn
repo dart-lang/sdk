@@ -74,8 +74,7 @@ gcc_toolchain("clang_arm") {
     extra_ldflags = "--stdlib=${stdlib}"
   }
   if (stdlib == "libc++" && stdlib_prefix != "") {
-    extra_cxxflags += " -I${stdlib_prefix}/include/c++/v1 -I${stdlib_prefix}/include/libcxxrt"
-    extra_ldflags += " -L${stdlib_prefix}/lib -lcxxrt"
+    extra_cxxflags += " -nostdinc++ -I${stdlib_prefix}/include/c++/v1"
   }
 }
 
