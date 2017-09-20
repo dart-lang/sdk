@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,10 +6,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Statements should have a clear effect.';
+const desc = 'Statements should have a clear effect.';
 
 const details = r'''
-**AVOID** unnecessary statments.
+**AVOID** unnecessary statements.
 
 Statements which have no clear effect are usually unnecessary, or should be
 broken up.
@@ -35,6 +35,7 @@ instance, the getter was likely supposed to be a function call.
 **GOOD:**
 ```
 some.method();
+new SomeClass();
 methodOne();
 methodTwo();
 foo ? bar() : baz();
@@ -64,7 +65,7 @@ class _Visitor extends SimpleAstVisitor {
     if (node.parent is FunctionBody) {
       return;
     }
-    node.accept(reportNoClearEffect);
+    node.expression.accept(reportNoClearEffect);
   }
 
   @override
@@ -76,12 +77,22 @@ class _Visitor extends SimpleAstVisitor {
   }
 }
 
-class _ReportNoClearEffectVisitor extends GeneralizingAstVisitor {
+class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   final LintRule rule;
   _ReportNoClearEffectVisitor(this.rule);
 
   @override
-  visitInvocationExpression(InvocationExpression node) {
+  visitMethodInvocation(MethodInvocation node) {
+    // Has a clear effect
+  }
+
+  @override
+  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    // Has a clear effect
+  }
+
+  @override
+  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // Has a clear effect
   }
 
@@ -125,6 +136,13 @@ class _ReportNoClearEffectVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    // A few APIs use this for side effects, like Timer. Also, for constructors
+    // that have side effects, they should have tests. Those tests will often
+    // include an instantiation expression statement with nothing else.
+  }
+
+  @override
   visitConditionalExpression(ConditionalExpression node) {
     node.thenExpression.accept(this);
     node.elseExpression.accept(this);
@@ -145,7 +163,7 @@ class _ReportNoClearEffectVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitExpression(Expression expression) {
+  visitNode(AstNode expression) {
     rule.reportLint(expression);
   }
 }

@@ -8,13 +8,13 @@ notReturned() {
   1; // LINT
   1 + 1; // LINT
   foo; // LINT
-  new MyClass(); // LINT
   new MyClass().foo; // LINT
   []; // LINT
   <dynamic, dynamic>{}; // LINT
   "blah"; // LINT
   ~1; // LINT
 
+  new MyClass(); // OK
   foo(); // OK
   new MyClass().foo(); // OK
   var x = 2; // OK
@@ -59,7 +59,6 @@ myfun() => new MyClass().foo; // OK
 expressionBranching() {
   null ?? 1 + 1; // LINT
   null ?? foo; // LINT
-  null ?? new MyClass(); // LINT
   null ?? new MyClass().foo; // LINT
   false || 1 + 1 == 2; // LINT
   false || foo == true; // LINT
@@ -78,7 +77,7 @@ expressionBranching() {
       ? foo() // OK
       : foo; // LINT
   someBool // OK
-      ? new MyClass() // LINT
+      ? new MyClass() // OK
       : foo(); // OK
   someBool // OK
       ? foo() // OK
@@ -93,9 +92,9 @@ expressionBranching() {
   foo() && foo == true; // LINT
   foo() ? 1 + 1 : foo(); // LINT
   foo() ? foo() : foo; // LINT
-  foo() ? new MyClass() : foo(); // LINT
   foo() ? foo() : new MyClass().foo; // LINT
 
+  null ?? new MyClass(); // OK
   null ?? foo(); // OK
   null ?? new MyClass().foo(); // OK
   false || foo(); // OK
@@ -104,6 +103,7 @@ expressionBranching() {
   true && new MyClass().foo(); // OK
   someBool ? foo() : new MyClass().foo(); // OK
   foo() ? foo() : new MyClass().foo(); // OK
+  foo() ? new MyClass() : foo(); // OK
 }
 
 inOtherStatements() {
@@ -114,11 +114,11 @@ inOtherStatements() {
     1 + 1; // LINT
   }
   for (foo; foo();) {} // LINT
-  for (; foo(); new MyClass()) {} // LINT
+  for (; foo(); 1 + 1) {} // LINT
   for (;
       foo();
       foo(), // OK
-      new MyClass(), // LINT
+      1 + 1, // LINT
       new MyClass().foo) {} // LINT
   do {
     new MyClass().foo; // LINT
