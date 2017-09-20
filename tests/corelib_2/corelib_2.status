@@ -513,33 +513,23 @@ bool_from_environment2_test/01: MissingCompileTimeError
 bool_from_environment2_test/02: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
 bool_from_environment2_test/04: MissingCompileTimeError
-collection_from_test: RuntimeError
 const_list_literal_test: RuntimeError
-core_runtime_types_test: RuntimeError
 hash_set_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 iterable_element_at_test/static: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 iterable_empty_test: RuntimeError
-iterable_fold_test/01: RuntimeError
-iterable_fold_test/02: RuntimeError
-iterable_fold_test/none: RuntimeError
-iterable_generate_test/none: RuntimeError
 iterable_mapping_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-iterable_reduce_test/01: RuntimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_set_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
-map_from_test: RuntimeError
 map_test: Crash # type 'DillClassBuilder' is not a subtype of type 'SourceClassBuilder' of 'named' where
 queue_test: RuntimeError
 regexp/regexp_kde_test: RuntimeError
-set_test: RuntimeError
 splay_tree_from_iterable_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 splay_tree_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 splay_tree_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-stacktrace_fromstring_test: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
@@ -558,7 +548,6 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_query_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply2_test: RuntimeError
@@ -569,35 +558,25 @@ bool_from_environment2_test/01: MissingCompileTimeError
 bool_from_environment2_test/02: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
 bool_from_environment2_test/04: MissingCompileTimeError
-collection_from_test: RuntimeError
 const_list_literal_test: RuntimeError
-core_runtime_types_test: RuntimeError
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError
 hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
 iterable_element_at_test/static: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 iterable_empty_test: RuntimeError
-iterable_fold_test/01: RuntimeError
-iterable_fold_test/02: RuntimeError
-iterable_fold_test/none: RuntimeError
-iterable_generate_test/none: RuntimeError
 iterable_mapping_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-iterable_reduce_test/01: RuntimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_set_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
-map_from_test: RuntimeError
 map_test: Crash # tests/corelib_2/map_test.dart:870:7: Internal problem: Unhandled Null in installDefaultConstructor.
 queue_test: RuntimeError
 regexp/regexp_kde_test: RuntimeError
-set_test: RuntimeError
 splay_tree_from_iterable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeMap.#v), local(SplayTreeMap.#)) for j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
 splay_tree_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
 splay_tree_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
-stacktrace_fromstring_test: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
@@ -617,7 +596,6 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_query_test: RuntimeError
 
 [$arch == simdbc || $arch == simdbc64]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter

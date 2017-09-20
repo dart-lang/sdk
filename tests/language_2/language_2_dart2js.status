@@ -487,7 +487,6 @@ constructor_duplicate_final_test/02: Pass
 
 [ $compiler == dart2js && $runtime == d8 && !$checked]
 mixin_type_parameters_super_test: RuntimeError
-mock_writable_final_field_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
@@ -574,14 +573,10 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
 assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
-async_await_catch_regression_test: RuntimeError
-async_await_foreign_test: RuntimeError
 async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
 async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
 async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
 async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_finally_rethrow_test: RuntimeError
-async_rethrow_test: RuntimeError
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: Fail
@@ -600,7 +595,6 @@ bad_override_test/05: MissingCompileTimeError
 bit_operations_test/none: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
-bool_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_closurization_test: RuntimeError
 call_function_apply_test: RuntimeError
@@ -617,9 +611,7 @@ closure_in_constructor_test: Crash # Assertion failure: Runtime type information
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
-closure_parameter_types_test: RuntimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-closure_with_super_send_test: RuntimeError
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
@@ -630,7 +622,6 @@ const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib
 const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
-constructor8_test: RuntimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
@@ -648,7 +639,6 @@ covariant_subtyping_test: Crash # NoSuchMethodError: The method 'accept' was cal
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
-custom_await_stack_trace_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: RuntimeError
 deferred_call_empty_before_load_test: RuntimeError
@@ -702,10 +692,8 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
-hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/06: RuntimeError
-if_null_assignment_behavior_test/12: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/03: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
@@ -720,11 +708,11 @@ instanceof4_test/none: RuntimeError
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
-is_object_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
+mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -748,14 +736,10 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib5::C::bc02 (Constructor)
 assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
-async_await_catch_regression_test: RuntimeError
-async_await_foreign_test: RuntimeError
 async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
 async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
 async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
 async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_finally_rethrow_test: RuntimeError
-async_rethrow_test: RuntimeError
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: Fail
@@ -774,7 +758,6 @@ bad_override_test/05: MissingCompileTimeError
 bit_operations_test/none: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
-bool_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_closurization_test: RuntimeError
 call_function_apply_test: RuntimeError
@@ -791,9 +774,6 @@ closure_in_constructor_test: Crash # Assertion failure: Runtime type information
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
-closure_parameter_types_test: RuntimeError
-closure_self_reference_test: RuntimeError
-closure_with_super_send_test: RuntimeError
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
@@ -804,7 +784,6 @@ const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib
 const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
-constructor8_test: RuntimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
@@ -822,7 +801,6 @@ covariant_subtyping_test: Crash # NoSuchMethodError: The method 'accept' was cal
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
-custom_await_stack_trace_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: RuntimeError
 cyclic_type2_test: RuntimeError
@@ -882,10 +860,8 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
-hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/06: RuntimeError
-if_null_assignment_behavior_test/12: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/03: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
@@ -900,11 +876,11 @@ instanceof4_test/none: RuntimeError
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
-is_object_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
+mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
