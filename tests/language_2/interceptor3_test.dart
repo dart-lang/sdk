@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 // Test that code motion in the presence of interceptors work in dart2js.
 
 main() {
-  var a = [2, '2'];
+  var a = <dynamic>[2, '2'];
   var b = a[1];
   if (a[0] == 2 && b is String) {
     Expect.isTrue(b.contains('2'));

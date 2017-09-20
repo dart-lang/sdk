@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test integer division by zero.
 // Test that results before and after optimization are the same.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 

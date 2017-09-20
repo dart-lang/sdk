@@ -19,8 +19,8 @@ main() {
 }
 
 testList() {
-  var list = [];
-  var proxy = new Proxy(list);
+  dynamic list = [];
+  dynamic proxy = new Proxy(list);
 
   Expect.isTrue(proxy.isEmpty);
   Expect.isTrue(list.isEmpty);
@@ -43,39 +43,39 @@ testList() {
   Expect.equals(2, list.length);
   Expect.equals(87, list[1]);
 
-  Expect.throws(() => proxy.funky(), (e) => e is NoSuchMethodError);
-  Expect.throws(() => list.funky(), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => proxy.funky());
+  Expect.throwsNoSuchMethodError(() => list.funky());
 }
 
 testString() {
-  var string = "funky";
-  var proxy = new Proxy(string);
+  dynamic string = "funky";
+  dynamic proxy = new Proxy(string);
 
   Expect.equals(string.codeUnitAt(0), proxy.codeUnitAt(0));
   Expect.equals(string.length, proxy.length);
 
-  Expect.throws(() => proxy.funky(), (e) => e is NoSuchMethodError);
-  Expect.throws(() => string.funky(), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => proxy.funky());
+  Expect.throwsNoSuchMethodError(() => string.funky());
 }
 
 testInt() {
-  var number = 42;
-  var proxy = new Proxy(number);
+  dynamic number = 42;
+  dynamic proxy = new Proxy(number);
 
   Expect.equals(number + 87, proxy + 87);
   Expect.equals(number.toDouble(), proxy.toDouble());
 
-  Expect.throws(() => proxy.funky(), (e) => e is NoSuchMethodError);
-  Expect.throws(() => number.funky(), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => proxy.funky());
+  Expect.throwsNoSuchMethodError(() => number.funky());
 }
 
 testDouble() {
-  var number = 42.99;
-  var proxy = new Proxy(number);
+  dynamic number = 42.99;
+  dynamic proxy = new Proxy(number);
 
   Expect.equals(number + 87, proxy + 87);
   Expect.equals(number.toInt(), proxy.toInt());
 
-  Expect.throws(() => proxy.funky(), (e) => e is NoSuchMethodError);
-  Expect.throws(() => number.funky(), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => proxy.funky());
+  Expect.throwsNoSuchMethodError(() => number.funky());
 }

@@ -13,7 +13,7 @@ class A {
 }
 
 main() {
-  var a = [
+  var a = <dynamic>[
     new A(),
     [1, 1]
   ];

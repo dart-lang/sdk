@@ -12,7 +12,7 @@ class A {
 }
 
 main() {
-  var res = [[], 1, 'foo', new A()];
+  var res = <dynamic>[[], 1, 'foo', new A()];
   Expect.throws(() => res[0].codeUnitAt(1));
   Expect.throws(() => (res[0].codeUnitAt)(1));
 

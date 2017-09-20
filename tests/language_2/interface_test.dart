@@ -8,7 +8,7 @@ abstract class Ai {
 }
 
 abstract class Bi implements Ai {
-  factory Bi() = InterfaceTest;
+  factory Bi() = InterfaceTest; //# 00: compile-time error
 }
 
 abstract class Simple implements Ai {}
@@ -23,7 +23,7 @@ abstract class Foo implements Bar {}
 
 abstract class Baz implements Bar, Foo {}
 
-class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
+abstract class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
   var f;
 
   InterfaceTest() {}
@@ -38,6 +38,5 @@ class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
 }
 
 main() {
-  // instantiate an abstract class
-  var o = new Bi(); //# 00: static type warning
+  new Bi(); //# 00: continued
 }

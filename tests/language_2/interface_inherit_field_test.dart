@@ -5,11 +5,13 @@
 // Test that it is legal to override a field with a field in an interface.
 
 abstract class IA {
-  final int foo; //# static warning
+  final int foo;
+  IA(this.foo);
 }
 
 abstract class IB implements IA {
-  final int foo; //# static warning
+  final int foo;
+  IB(this.foo);
 }
 
 class B implements IB {

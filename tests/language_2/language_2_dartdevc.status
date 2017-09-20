@@ -46,6 +46,10 @@ multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 string_interpolate_test: CompileTimeError
 type_variable_scope_test/none: CompileTimeError
 vm/*: SkipByDesign # VM only tests.
+interceptor6_test: CompileTimeError
+interface_test/00: MissingCompileTimeError
+internal_library_test/01: MissingCompileTimeError # Issue 29920
+internal_library_test/02: Crash
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -160,11 +164,16 @@ identical_closure2_test: RuntimeError # Issue 29920
 infinite_switch_label_test: RuntimeError # Issue 29920
 infinity_test: RuntimeError # Issue 29920
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
+integer_division_by_zero_test: RuntimeError # Issue 29920
+invocation_mirror2_test: RuntimeError
+invocation_mirror_empty_arguments_test: RuntimeError
+invocation_mirror_invoke_on2_test: RuntimeError
+invocation_mirror_invoke_on_test: RuntimeError
+invocation_mirror_test: RuntimeError
 issue21159_test: RuntimeError # Issue 30701
 issue23244_test: RuntimeError # Issue 29920
 label_test: RuntimeError # Issue 30675
-named_parameters_default_eq_test/none: RuntimeError
-yieldstar_pause_test: Skip # Times out
 modulo_test: RuntimeError # Issue 29920
 named_parameter_clash_test: RuntimeError # Issue 29920
-
+named_parameters_default_eq_test/none: RuntimeError
+yieldstar_pause_test: Skip # Times out

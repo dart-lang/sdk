@@ -209,6 +209,7 @@ initializing_formal_type_test: MissingCompileTimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
+interface_test/00: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mixin_type_parameters_super_test: RuntimeError
@@ -287,6 +288,9 @@ wrong_number_type_arguments_test/*: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 deferred_constraints_constants_test: SkipByDesign
 issue21079_test: SkipByDesign
+invocation_mirror2_test: SkipByDesign
+invocation_mirror_invoke_on2_test: SkipByDesign
+invocation_mirror_invoke_on_test: SkipByDesign
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError

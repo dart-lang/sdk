@@ -31,7 +31,7 @@ class B {
 }
 
 main() {
-  var b = new B();
+  dynamic b = new B();
   b.x = 10;
   Expect.equals(10, reachedSetX);
   b.x;

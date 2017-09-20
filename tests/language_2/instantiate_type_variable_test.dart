@@ -7,7 +7,7 @@
 class Foo<T> {
   Foo() {}
   T make() {
-    return new T(); // //# 01: runtime error
+    return new T(); //# 01: runtime error
   }
 }
 

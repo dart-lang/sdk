@@ -373,9 +373,18 @@ getter_setter_in_lib_test: Fail # Issue 23286
 import_core_prefix_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
+interface_test/00: MissingCompileTimeError
+issue1578_negative_test: CompileTimeError
+type_variable_scope_test/none: fail # Issue 11578
+type_variable_static_context_negative_test: fail # Issue 12161
 instance_call_wrong_argument_count_negative_test: fail # Issue 11585
 instance_method2_negative_test: CompileTimeError
 instance_method_negative_test: CompileTimeError
+interface_static_non_final_fields_negative_test: fail # Issue 11594
+interface2_negative_test: CompileTimeError
+interface_injection1_negative_test: CompileTimeError
+interface_injection2_negative_test: CompileTimeError
+interface_static_method_negative_test: CompileTimeError
 issue1578_negative_test: CompileTimeError
 issue1578_negative_test: CompileTimeError
 label2_negative_test: CompileTimeError
@@ -414,6 +423,7 @@ generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
+interceptor6_test: CompileTimeError
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/01r: CompileTimeError
 multiline_newline_test/02: CompileTimeError
@@ -566,6 +576,9 @@ implicit_this_test/04: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
+instantiate_type_variable_test/01: StaticWarning
+interceptor6_test: StaticWarning
+invocation_mirror_test: StaticWarning
 multiple_interface_inheritance_test: StaticWarning # Issue 30552
 named_parameters_test/01: MissingCompileTimeError
 named_parameters_test/02: MissingCompileTimeError
@@ -628,4 +641,5 @@ generic_methods_simple_is_expression_test: CompileTimeError # Issue 29070
 generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
 generic_methods_type_expression_test: CompileTimeError # Incorrectly disallows type parameter in "is" test.
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
+instantiate_type_variable_test/01: CompileTimeError
 string_interpolate_test: CompileTimeError

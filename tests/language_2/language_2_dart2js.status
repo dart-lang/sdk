@@ -198,6 +198,7 @@ import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
+interface_test/00: MissingCompileTimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/03: MissingCompileTimeError
@@ -288,6 +289,8 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 generic_methods_local_variable_declaration_test: RuntimeError
+integer_division_by_zero_test: RuntimeError # Issue 8301
+invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
 multiline_newline_test/01: CompileTimeError # Issue 23888
 multiline_newline_test/02: CompileTimeError # Issue 23888
 multiline_newline_test/03: CompileTimeError # Issue 23888
@@ -312,6 +315,7 @@ generic_typedef_test: RuntimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
+invocation_mirror_test: RuntimeError
 many_generic_instanceof_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
@@ -449,10 +453,11 @@ inference_mixin_field_test: Crash # Issue 27394
 initializing_formal_final_test: RuntimeError # Issue 27394
 inline_super_field_test: Crash # Issue 27394
 instance_creation_in_function_annotation_test: Crash # Issue 27394
-issue_25671a_test/01: Crash # Issue 27394
-issue_25671b_test/01: Crash # Issue 27394
+invocation_mirror_test: Crash # Issue 27394
 issue21079_test: Crash # Issue 27394
 issue9602_test: Crash # Issue 27394
+issue_25671a_test/01: Crash # Issue 27394
+issue_25671b_test/01: Crash # Issue 27394
 mixin_type_variable_test/02: Crash # Issue 27394
 mixin_type_variable_test/03: Crash # Issue 27394
 mixin_type_variable_test/04: Crash # Issue 27394
@@ -709,6 +714,12 @@ instance_creation_in_function_annotation_test: RuntimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
+integer_division_by_zero_test: RuntimeError
+interceptor3_test: RuntimeError
+internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
+invocation_mirror2_test: RuntimeError
+invocation_mirror_invoke_on2_test: RuntimeError
+invocation_mirror_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 2497 pos 14: 'arguments.named.isEmpty': is not true.
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
@@ -877,6 +888,12 @@ instance_creation_in_function_annotation_test: RuntimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
+integer_division_by_zero_test: RuntimeError
+interceptor3_test: RuntimeError
+internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
+invocation_mirror2_test: RuntimeError
+invocation_mirror_invoke_on2_test: RuntimeError
+invocation_mirror_test: RuntimeError
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
@@ -895,6 +912,7 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_with_conversions_test: RuntimeError
+regress_30339_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
@@ -989,6 +1007,9 @@ instance_creation_in_function_annotation_test: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported
 deferred_constraints_constants_test/reference_after_load: Fail # mirrors not supported
 deferred_constraints_constants_test: Pass # mirrors not supported, passes for the wrong reason
+invocation_mirror2_test: Fail # mirrors not supported
+invocation_mirror_invoke_on2_test: Fail # mirrors not supported
+invocation_mirror_invoke_on_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 await_future_test: Pass, Timeout # Issue 26735

@@ -7,10 +7,10 @@
 
 import 'package:expect/expect.dart';
 
-var array = [];
+var array = <dynamic>[];
 
 main() {
   array.add(false);
-  var x = array[0] ? 1.5 : 2;
+  dynamic x = array[0] ? 1.5 : 2;
   Expect.isTrue(x.isEven);
 }

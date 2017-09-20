@@ -9,10 +9,9 @@ library internal_library_test;
 import 'dart:core'; // This loads 'dart:_foreign_helper' and 'patch:core'.
 import 'dart:_foreign_helper'; //# 01: compile-time error
 
-// TODO(vsm): Restore once #618 is fixed.
-// part 'dart:_foreign_helper'; //# 02: static type warning
+part 'dart:_foreign_helper'; //# 02: compile-time error
 
 void main() {
   JS('int', '0'); //# 01: continued
-  // JS('int', '0'); //# 02: continued
+  JS('int', '0'); //# 02: continued
 }
