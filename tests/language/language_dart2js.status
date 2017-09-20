@@ -888,7 +888,7 @@ async_throw_in_catch_test/forceAwait: RuntimeError
 async_throw_in_catch_test/none: RuntimeError
 asyncstar_throw_in_catch_test: RuntimeError
 await_exceptions_test: RuntimeError
-await_for_test: RuntimeError
+await_for_test: Crash # Issue 30826
 await_for_use_local_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError
 closure_in_field_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).

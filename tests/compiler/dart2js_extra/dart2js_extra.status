@@ -289,7 +289,7 @@ mirrors_used_metatargets_test: RuntimeError
 mirrors_used_native_test: RuntimeError
 mirrors_used_warning2_test: RuntimeError
 mirrors_used_warning_test/minif: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-mirrors_used_warning_test/none: RuntimeError
+mirrors_used_warning_test/none: Crash # Issue 30826
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
