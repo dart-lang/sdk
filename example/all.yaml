@@ -93,6 +93,7 @@ linter:
     - unnecessary_null_aware_assignments
     - unnecessary_null_in_if_null_operators
     - unnecessary_overrides
+    - unnecessary_statements
     - unnecessary_this
     - unrelated_type_equality_checks
     - use_rethrow_when_possible
