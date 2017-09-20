@@ -170,12 +170,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_invocationOfNonFunction_proxyOnFunctionClass() async {
-    return super.test_invocationOfNonFunction_proxyOnFunctionClass();
-  }
-
-  @override
-  @failingTest
   test_loadLibraryDefined() async {
     fail('This test fails only in checked mode.');
     return super.test_loadLibraryDefined();
@@ -288,54 +282,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_parameterDefaultDoesNotReferToParameterName() async {
     return super.test_parameterDefaultDoesNotReferToParameterName();
-  }
-
-  @override
-  @failingTest
-  test_proxy_annotation_prefixed() async {
-    return super.test_proxy_annotation_prefixed();
-  }
-
-  @override
-  @failingTest
-  test_proxy_annotation_prefixed2() async {
-    return super.test_proxy_annotation_prefixed2();
-  }
-
-  @override
-  @failingTest
-  test_proxy_annotation_prefixed3() async {
-    return super.test_proxy_annotation_prefixed3();
-  }
-
-  @override
-  @failingTest
-  test_proxy_annotation_proxyHasPrefixedIdentifier() async {
-    return super.test_proxy_annotation_proxyHasPrefixedIdentifier();
-  }
-
-  @override
-  @failingTest
-  test_proxy_annotation_simple() async {
-    return super.test_proxy_annotation_simple();
-  }
-
-  @override
-  @failingTest
-  test_proxy_annotation_superclass() async {
-    return super.test_proxy_annotation_superclass();
-  }
-
-  @override
-  @failingTest
-  test_proxy_annotation_superclass_mixin() async {
-    return super.test_proxy_annotation_superclass_mixin();
-  }
-
-  @override
-  @failingTest
-  test_proxy_annotation_superinterface() async {
-    return super.test_proxy_annotation_superinterface();
   }
 
   @override
