@@ -521,6 +521,9 @@ class JRecordField extends JField {
       : super(containingClass.library, containingClass,
             new Name(name, containingClass.library),
             isStatic: false, isAssignable: true, isConst: isConst);
+
+  @override
+  bool get isInstanceMember => false;
 }
 
 class ClosureClassDefinition implements ClassDefinition {

@@ -72,26 +72,19 @@ wrong_number_type_arguments_test/02: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
+invocation_mirror_invoke_on_test: CompileTimeError
+internal_library_test/01: CompileTimeError
+internal_library_test/02: CompileTimeError
+invocation_mirror2_test: CompileTimeError
+invocation_mirror_invoke_on2_test: CompileTimeError
+internal_library_test/01: MissingCompileTimeError
+internal_library_test/02: MissingCompileTimeError
+is_malformed_type_test/94: CompileTimeError
+is_malformed_type_test/95: CompileTimeError
+is_malformed_type_test/96: CompileTimeError
 is_malformed_type_test/97: CompileTimeError
 is_malformed_type_test/98: CompileTimeError
 is_malformed_type_test/99: CompileTimeError
-is_malformed_type_test/95: CompileTimeError
-is_malformed_type_test/96: CompileTimeError
-is_malformed_type_test/94: CompileTimeError
-is_not_class2_test: RuntimeError
-is_malformed_type_test/97: CompileTimeError
-is_malformed_type_test/98: CompileTimeError
-is_malformed_type_test/99: CompileTimeError
-is_malformed_type_test/95: CompileTimeError
-is_malformed_type_test/96: CompileTimeError
-is_malformed_type_test/94: CompileTimeError
-is_not_class2_test: RuntimeError
-is_malformed_type_test/97: CompileTimeError
-is_malformed_type_test/98: CompileTimeError
-is_malformed_type_test/99: CompileTimeError
-is_malformed_type_test/95: CompileTimeError
-is_malformed_type_test/96: CompileTimeError
-is_malformed_type_test/94: CompileTimeError
 is_not_class2_test: RuntimeError
 
 # The VM doesn't enforce that potentially const expressions are actually

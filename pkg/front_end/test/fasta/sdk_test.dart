@@ -27,4 +27,4 @@ Future<FastaContext> createContext(
   return context;
 }
 
-main(List<String> arguments) => runMe(arguments, createContext);
+main([List<String> arguments = const []]) => runMe(arguments, createContext);

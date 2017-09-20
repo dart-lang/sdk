@@ -207,6 +207,7 @@ import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
+interface_test/00: MissingCompileTimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError

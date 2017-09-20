@@ -2664,6 +2664,10 @@ class Foo {
     listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_CLASS_MEMBER]);
   }
 
+  void test_expectedExecutable_afterAnnotation_atEOF() {
+    parseCompilationUnit('@A', [ParserErrorCode.EXPECTED_EXECUTABLE]);
+  }
+
   void test_expectedExecutable_inClass_afterVoid() {
     createParser('void 2 void');
     ClassMember member = parser.parseClassMember('C');

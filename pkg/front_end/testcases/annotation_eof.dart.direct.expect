@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/annotation_eof.dart:10:1: Error: Expected a declaration, but got ''.\n\n^"]/* from null */;
+static method main() → dynamic {
+  core::print("There is a dangling annotation at the end of this file");
+}

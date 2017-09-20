@@ -166,7 +166,6 @@ regress/4562_test/01: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 21666_test: RuntimeError
-async_stacktrace_test: RuntimeError
 closure_capture2_test: RuntimeError
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
@@ -203,7 +202,7 @@ label_test/06: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
 mirror_invalid_field_access3_test: RuntimeError
 mirror_invalid_field_access4_test: RuntimeError
-mirror_invalid_field_access_test: RuntimeError 
+mirror_invalid_field_access_test: RuntimeError
 mirror_invalid_invoke2_test: RuntimeError
 mirror_invalid_invoke3_test: RuntimeError
 mirror_invalid_invoke_test: RuntimeError
@@ -237,7 +236,6 @@ useful_error_message_1_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 21666_test: RuntimeError
-async_stacktrace_test: RuntimeError
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
@@ -271,7 +269,7 @@ inference_super_set_call_test: RuntimeError
 invalid_annotation2_test/none: RuntimeError
 label_test/06: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
-mirror_invalid_field_access3_test: RuntimeError 
+mirror_invalid_field_access3_test: RuntimeError
 mirror_invalid_field_access4_test: RuntimeError
 mirror_invalid_field_access_test: RuntimeError
 mirror_invalid_invoke2_test: RuntimeError
@@ -287,7 +285,7 @@ mirrors_declarations_filtering_test: RuntimeError
 mirrors_used_closure_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 mirrors_used_metatargets_test: RuntimeError
 mirrors_used_native_test: RuntimeError
-mirrors_used_warning2_test: RuntimeError
+mirrors_used_warning2_test: Crash # Unsupported operation: Unsupported type parameter type node R.
 mirrors_used_warning_test/minif: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 mirrors_used_warning_test/none: Crash # Issue 30826
 private_symbol_literal_test/01: MissingCompileTimeError
