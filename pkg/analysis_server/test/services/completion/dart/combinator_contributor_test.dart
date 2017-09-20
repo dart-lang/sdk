@@ -129,4 +129,25 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestTopLevelVar('PI', 'double',
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
+
+  test_Combinator_show_recursive() async {
+    addSource('/testA.dart', '''
+class A {}
+''');
+    addSource('/testB.dart', '''
+export 'testA.dart';
+export 'testB.dart';
+class B {}
+''');
+    addTestSource('''
+import "/testB.dart" show ^;
+''');
+    await computeSuggestions();
+    assertSuggestClass('A',
+        relevance: DART_RELEVANCE_DEFAULT,
+        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('B',
+        relevance: DART_RELEVANCE_DEFAULT,
+        kind: CompletionSuggestionKind.IDENTIFIER);
+  }
 }

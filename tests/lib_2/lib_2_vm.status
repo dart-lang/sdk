@@ -33,6 +33,11 @@ async/stream_subscription_cancel_test: RuntimeError
 async/stream_transform_test: RuntimeError
 async/stream_transformation_broadcast_test: RuntimeError
 async/timer_test: RuntimeError
+async/timer_cancel1_test: RuntimeError
+async/timer_cancel2_test: RuntimeError
+async/timer_cancel_test: RuntimeError
+async/timer_isActive_test: RuntimeError
+async/timer_repeat_test: RuntimeError
 convert/json_lib_test: RuntimeError
 math/point_test: RuntimeError
 math/rectangle_test: RuntimeError

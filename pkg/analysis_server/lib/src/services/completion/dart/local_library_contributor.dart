@@ -30,6 +30,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   List<String> showNames;
   List<String> hiddenNames;
 
+  /**
+   * The set of libraries that have been, or are currently being, visited.
+   */
+  final Set<LibraryElement> visitedLibraries = new Set<LibraryElement>();
+
   LibraryElementSuggestionBuilder(this.request, this.optype, [this.prefix]) {
     this.kind = request.target.isFunctionalArgument()
         ? CompletionSuggestionKind.IDENTIFIER
@@ -104,7 +109,9 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 
   @override
   void visitLibraryElement(LibraryElement element) {
-    element.visitChildren(this);
+    if (visitedLibraries.add(element)) {
+      element.visitChildren(this);
+    }
   }
 
   @override

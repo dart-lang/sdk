@@ -27,10 +27,6 @@ DEFINE_NATIVE_ENTRY(Timeline_isDartStreamEnabled, 0) {
   return Bool::False().raw();
 }
 
-DEFINE_NATIVE_ENTRY(Timeline_getIsolateNum, 0) {
-  return Integer::New(static_cast<int64_t>(isolate->main_port()), Heap::kOld);
-}
-
 DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0) {
   if (!FLAG_support_timeline) {
     return Integer::New(0);
@@ -74,9 +70,8 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
   }
 
   DartTimelineEventHelpers::ReportTaskEvent(
-      thread, zone, event, start.AsInt64Value(), id.AsInt64Value(),
-      phase.ToCString(), category.ToCString(), name.ToCString(),
-      args.ToCString());
+      thread, event, start.AsInt64Value(), id.AsInt64Value(), phase.ToCString(),
+      category.ToCString(), name.ToMallocCString(), args.ToMallocCString());
 #endif
   return Object::null();
 }
@@ -104,8 +99,8 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
   }
 
   DartTimelineEventHelpers::ReportCompleteEvent(
-      thread, zone, event, start.AsInt64Value(), start_cpu.AsInt64Value(),
-      category.ToCString(), name.ToCString(), args.ToCString());
+      thread, event, start.AsInt64Value(), start_cpu.AsInt64Value(),
+      category.ToCString(), name.ToMallocCString(), args.ToMallocCString());
 #endif  // !defined(PRODUCT)
   return Object::null();
 }
@@ -135,9 +130,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportFlowEvent, 7) {
   }
 
   DartTimelineEventHelpers::ReportFlowEvent(
-      thread, zone, event, start.AsInt64Value(), start_cpu.AsInt64Value(),
-      category.ToCString(), name.ToCString(), type.AsInt64Value(),
-      flow_id.AsInt64Value(), args.ToCString());
+      thread, event, start.AsInt64Value(), start_cpu.AsInt64Value(),
+      category.ToCString(), name.ToMallocCString(), type.AsInt64Value(),
+      flow_id.AsInt64Value(), args.ToMallocCString());
 #endif  // !defined(PRODUCT)
   return Object::null();
 }
@@ -164,8 +159,8 @@ DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
   }
 
   DartTimelineEventHelpers::ReportInstantEvent(
-      thread, zone, event, start.AsInt64Value(), category.ToCString(),
-      name.ToCString(), args.ToCString());
+      thread, event, start.AsInt64Value(), category.ToCString(),
+      name.ToMallocCString(), args.ToMallocCString());
 #endif
   return Object::null();
 }

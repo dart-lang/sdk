@@ -81,12 +81,11 @@ analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/services/correction/fix_test: Pass, Slow
 analysis_server/test/socket_server_test: Skip # Pass, Slow
-analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
+analyzer/test/generated/non_error_resolver_kernel_test: Skip # Timing out even with Pass, Slow: Issue 30796
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 
 [ $runtime == vm && $checked && $system == windows ]
-analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
 front_end/tool/perf_test: Slow, Pass
 
 [ $runtime == vm && $use_sdk ]
@@ -96,6 +95,9 @@ front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 28629
 
 [ $runtime == vm && ! $use_sdk ]
 front_end/tool/perf_test: Skip # Issue 28698
+
+[ $runtime == vm ]
+front_end/tool/perf_test: Skip # Issue 30825
 
 [ $runtime == vm && $use_sdk ]
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
@@ -108,6 +110,7 @@ analysis_server/*: Skip # Issue 27557
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
 analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
+analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
 analyzer/test/generated/source_factory_test: RuntimeError # Issue 26828
 kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28243
 kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
@@ -225,6 +228,8 @@ kernel/test/closures_test: Fail
 
 [ $runtime == vm ]
 analyzer_cli/test/driver_test: Pass, Slow, Timeout
+
+compiler/tool/perf_test: Fail # Unimplemented Typedef handling in kernel transformation.
 
 [ $runtime == vm && $system == windows ]
 analyzer/test/src/task/strong/checker_test: Pass, Slow

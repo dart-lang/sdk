@@ -211,8 +211,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
-    NodeList names = makeNodeList(count, enumKeyword.next.next, endBrace, ",");
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+    NodeList names = makeNodeList(count, leftBrace, leftBrace?.endGroup, ",");
     Identifier name = popNode();
     pushNode(new Enum(enumKeyword, name, names));
   }
@@ -584,7 +584,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftSeparator,
+  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     Statement body = popNode();
     NodeList updates = makeNodeList(updateExpressionCount, null, null, ',');

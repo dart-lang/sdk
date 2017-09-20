@@ -7,3 +7,4 @@ analyzer:
   errors:
     # Allow having TODOs in the code
     todo: ignore
+    uses_dynamic_as_bottom: ignore

@@ -392,6 +392,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   @override
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
 
+  @override
+  TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
+      getDartType(type);
+
   List<DartType> getDartTypes(List<ir.DartType> types) {
     List<DartType> list = <DartType>[];
     types.forEach((ir.DartType type) {
@@ -1182,7 +1186,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         functionType = getFunctionType(node.function);
       }
       return new KLocalFunction(
-          name, memberContext, executableContext, functionType);
+          name, memberContext, executableContext, functionType, node);
     });
   }
 
@@ -2248,7 +2252,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
         info,
         localsMap,
         closureEntity,
-        info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null);
+        info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
+        this);
     _buildClosureClassFields(cls, member, memberThisType, info, localsMap,
         recordFieldsVisibleInScope, memberMap);
 
@@ -2268,42 +2273,56 @@ class JsKernelToElementMap extends KernelToElementMapBase
   }
 
   void _buildClosureClassFields(
-    KernelClosureClass cls,
-    MemberEntity member,
-    InterfaceType memberThisType,
-    KernelScopeInfo info,
-    KernelToLocalsMap localsMap,
-    Map<Local, JRecordField> recordFieldsVisibleInScope,
-    Map<String, MemberEntity> memberMap,
-  ) {
+      KernelClosureClass cls,
+      MemberEntity member,
+      InterfaceType memberThisType,
+      KernelScopeInfo info,
+      KernelToLocalsMap localsMap,
+      Map<Local, JRecordField> recordFieldsVisibleInScope,
+      Map<String, MemberEntity> memberMap) {
     // TODO(efortuna): Limit field number usage to when we need to distinguish
     // between two variables with the same name from different scopes.
     int fieldNumber = 0;
-    for (ir.VariableDeclaration variable in info.freeVariables) {
+    for (ir.Node variable in info.freeVariables) {
       // Make a corresponding field entity in this closure class for the
       // free variables in the KernelScopeInfo.freeVariable.
-      Local capturedLocal = localsMap.getLocalVariable(variable);
-      if (_isInRecord(capturedLocal, recordFieldsVisibleInScope)) {
-        bool constructedField = _constructClosureFieldForRecord(
-            capturedLocal,
-            cls,
-            memberThisType,
-            memberMap,
-            variable,
-            recordFieldsVisibleInScope,
-            fieldNumber);
-        if (constructedField) fieldNumber++;
-      } else {
+      if (variable is ir.VariableDeclaration) {
+        Local capturedLocal = localsMap.getLocalVariable(variable);
+        if (_isInRecord(capturedLocal, recordFieldsVisibleInScope)) {
+          bool constructedField = _constructClosureFieldForRecord(
+              capturedLocal,
+              cls,
+              memberThisType,
+              memberMap,
+              variable,
+              recordFieldsVisibleInScope,
+              fieldNumber);
+          if (constructedField) fieldNumber++;
+        } else {
+          _constructClosureField(
+              capturedLocal,
+              cls,
+              memberThisType,
+              memberMap,
+              variable,
+              variable.isConst,
+              !(variable.isFinal || variable.isConst),
+              fieldNumber);
+          fieldNumber++;
+        }
+      } else if (variable is TypeParameterTypeWithContext) {
         _constructClosureField(
-            capturedLocal,
+            localsMap.getLocalTypeVariable(variable.type, this),
             cls,
             memberThisType,
             memberMap,
-            variable,
-            variable.isConst,
-            !(variable.isFinal || variable.isConst),
+            variable.type.parameter,
+            true,
+            false,
             fieldNumber);
         fieldNumber++;
+      } else {
+        throw new UnsupportedError("Unexpected field node type: $variable");
       }
     }
     if (info.thisUsedAsFreeVariable) {

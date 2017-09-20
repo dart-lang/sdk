@@ -10,6 +10,25 @@ foo(a) {
   return a;
 }
 
-main() {
+// Regression test for https://github.com/dart-lang/sdk/issues/30792 in DDC.
+bar(a) async {
+  var a = 123;
+  return a;
+}
+
+baz(a) sync* {
+  var a = 123;
+  yield a;
+}
+
+qux(a) async* {
+  var a = 123;
+  yield a;
+}
+
+main() async {
   Expect.equals(foo(42), 123);
+  Expect.equals(await bar(42), 123);
+  Expect.equals(baz(42).single, 123);
+  Expect.equals(await qux(42).single, 123);
 }

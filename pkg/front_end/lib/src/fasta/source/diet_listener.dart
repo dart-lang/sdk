@@ -542,7 +542,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
 
     discard(count); // values

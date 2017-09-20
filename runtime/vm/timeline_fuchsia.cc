@@ -58,8 +58,18 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
     return;
   }
 
-  trace_string_ref_t name = trace_context_make_registered_string_copy(
-      context, event->label(), strlen(event->label()));
+  trace_string_ref_t name;
+  if (event->owns_label()) {
+    // If the event owns the name, then the name will be deallocated, so
+    // instruct the system trace to make a copy.
+    name = trace_context_make_registered_string_copy(
+        context, event->label(), strlen(event->label()));
+  } else {
+    // If the event doesn't own the name, then it is a string literal, and
+    // the system trace can use the pointer and not a copy.
+    name = trace_context_make_registered_string_literal(
+        context, event->label());
+  }
 
   trace_thread_ref_t thread;
   trace_context_register_current_thread(context, &thread);
@@ -140,101 +150,6 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
   }
   trace_release_context(context);
   ThreadBlockCompleteEvent(event);
-}
-
-void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
-                                               Zone* zone,
-                                               TimelineEvent* event,
-                                               int64_t start,
-                                               int64_t id,
-                                               const char* phase,
-                                               const char* category,
-                                               const char* name,
-                                               const char* args) {
-  char* name_string = strdup(name);
-  ASSERT(phase != NULL);
-  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e'));
-  ASSERT(phase[1] == '\0');
-  switch (phase[0]) {
-    case 'n':
-      event->AsyncInstant(name_string, id, start);
-      break;
-    case 'b':
-      event->AsyncBegin(name_string, id, start);
-      break;
-    case 'e':
-      event->AsyncEnd(name_string, id, start);
-      break;
-    default:
-      UNREACHABLE();
-  }
-  event->set_owns_label(true);
-  event->SetNumArguments(1);
-  event->CopyArgument(0, "args", args);
-  event->Complete();
-}
-
-void DartTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
-                                                   Zone* zone,
-                                                   TimelineEvent* event,
-                                                   int64_t start,
-                                                   int64_t start_cpu,
-                                                   const char* category,
-                                                   const char* name,
-                                                   const char* args) {
-  const int64_t end = OS::GetCurrentMonotonicMicros();
-  const int64_t end_cpu = OS::GetCurrentThreadCPUMicros();
-  event->Duration(strdup(name), start, end, start_cpu, end_cpu);
-  event->set_owns_label(true);
-  event->SetNumArguments(1);
-  event->CopyArgument(0, "args", args);
-  event->Complete();
-}
-
-void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
-                                               Zone* zone,
-                                               TimelineEvent* event,
-                                               int64_t start,
-                                               int64_t start_cpu,
-                                               const char* category,
-                                               const char* name,
-                                               int64_t type,
-                                               int64_t flow_id,
-                                               const char* args) {
-  char* name_string = strdup(name);
-  ASSERT((type >= 0) && (type <= 2));
-  switch (type) {
-    case 0:
-      event->FlowBegin(name_string, flow_id, start);
-      break;
-    case 1:
-      event->FlowStep(name_string, flow_id, start);
-      break;
-    case 2:
-      event->FlowEnd(name_string, flow_id, start);
-      break;
-    default:
-      UNREACHABLE();
-      break;
-  }
-  event->set_owns_label(true);
-  event->SetNumArguments(1);
-  event->CopyArgument(0, "args", args);
-  event->Complete();
-}
-
-void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,
-                                                  Zone* zone,
-                                                  TimelineEvent* event,
-                                                  int64_t start,
-                                                  const char* category,
-                                                  const char* name,
-                                                  const char* args) {
-  event->Instant(strdup(name), start);
-  event->set_owns_label(true);
-  event->SetNumArguments(1);
-  event->CopyArgument(0, "args", args);
-  event->Complete();
 }
 
 }  // namespace dart

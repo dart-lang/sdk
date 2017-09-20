@@ -31,6 +31,8 @@ Future main(List<String> args) async {
   ArgParser argParser = createArgParser();
   argParser.addOption("run-count",
       defaultsTo: "10", help: "How many previous runs should be fetched");
+  argParser.addOption(Flags.commit,
+      help: "Fetch result start from a given commit hash.");
   ArgResults argResults = argParser.parse(args);
   processArgResults(argResults);
 
@@ -42,7 +44,11 @@ Future main(List<String> args) async {
     exit(1);
   }
 
-  Bot bot = new Bot(logdog: argResults['logdog']);
-  await mainInternal(bot, argResults.rest, runCount: runCount);
+  Bot bot = new Bot(logdog: argResults[Flags.logdog]);
+  await mainInternal(bot, argResults.rest,
+      runCount: runCount,
+      commit: argResults[Flags.commit],
+      verbose: argResults[Flags.verbose],
+      noCache: argResults[Flags.noCache]);
   bot.close();
 }

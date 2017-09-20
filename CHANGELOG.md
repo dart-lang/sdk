@@ -13,6 +13,10 @@
 
 ### Core library changes
 
+* `dart:async`
+  * The `Zone` class was changed to be strong-mode clean. This required
+    some breaking API changes.
+
 * `dart:io`
   * Unified backends for `SecureSocket`, `SecurityContext`, and
     `X509Certificate` to be consistent across all platforms. All

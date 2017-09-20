@@ -103,7 +103,7 @@ var tests = [
     expect(dartEvents.length, equals(11));
     allEventsHaveIsolateNumber(dartEvents);
     allEventsHaveIsolateNumber(result['traceEvents']);
-    expect(eventsContains(dartEvents, 'I', 'ISYNC'), isTrue);
+    expect(eventsContains(dartEvents, 'i', 'ISYNC'), isTrue);
     expect(eventsContains(dartEvents, 'X', 'apple'), isTrue);
     expect(eventsContains(dartEvents, 'b', 'TASK1'), isTrue);
     expect(eventsContains(dartEvents, 'e', 'TASK1'), isTrue);

@@ -38,6 +38,9 @@ abstract class KernelToElementMap {
   /// Returns the [InterfaceType] corresponding to [type].
   InterfaceType getInterfaceType(ir.InterfaceType type);
 
+  /// Returns the [TypeVariableType] corresponding to [type].
+  TypeVariableType getTypeVariableType(ir.TypeParameterType type);
+
   /// Returns the [FunctionType] of the [node].
   FunctionType getFunctionType(ir.FunctionNode node);
 
@@ -349,6 +352,9 @@ abstract class KernelToTypeInferenceMap {
   /// Returns the inferred receiver type of the dynamic [read].
   TypeMask typeOfGet(ir.PropertyGet read);
 
+  /// Returns the inferred receiver type of the direct [read].
+  TypeMask typeOfDirectGet(ir.DirectPropertyGet read);
+
   /// Returns the inferred receiver type of the dynamic [write].
   TypeMask typeOfSet(ir.PropertySet write, ClosedWorld closedWorld);
 
@@ -405,13 +411,11 @@ abstract class KernelToLocalsMap {
   /// Call to notify that [member] is no longer being inlined.
   void leaveInlinedMember(covariant MemberEntity member);
 
-  /// Returns the [Local] for [node]. If [isClosureCallMethod] is true, this
-  /// gives the locals map permission to also look one scope higher within the
-  /// class for the corresponding local. This can happen in the case of free
-  /// variables involved with a closure class.
-  // TODO(efortuna, johnniwinther): convey this information without a boolean
-  // parameter.
+  /// Returns the [Local] for [node].
   Local getLocalVariable(ir.VariableDeclaration node);
+
+  Local getLocalTypeVariable(
+      ir.TypeParameterType node, KernelToElementMap elementMap);
 
   /// Returns the [ir.FunctionNode] that declared [parameter].
   ir.FunctionNode getFunctionNodeForParameter(Local parameter);

@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:front_end/byte_store.dart';
@@ -116,6 +117,10 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
         new KernelResynthesizer(context, kernelResult.types, libraryMap);
     return resynthesizer.getLibrary(testUriStr);
   }
+
+  @override
+  AnalysisOptionsImpl createOptions() =>
+      super.createOptions()..strongMode = true;
 
   @failingTest
   @fastaProblem

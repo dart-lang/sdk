@@ -90,9 +90,9 @@ class DartUnitOutlineComputer {
     return unitOutline;
   }
 
-  List<Outline> _addLocalFunctionOutlines(FunctionBody body) {
+  List<Outline> _addFunctionBodyOutlines(FunctionBody body) {
     List<Outline> contents = <Outline>[];
-    body.accept(new _LocalFunctionOutlinesVisitor(this, contents));
+    body.accept(new _FunctionBodyOutlinesVisitor(this, contents));
     return contents;
   }
 
@@ -212,7 +212,7 @@ class DartUnitOutlineComputer {
             isPrivate: isPrivate, isDeprecated: _isDeprecated(constructor)),
         location: _getLocationOffsetLength(offset, length),
         parameters: parametersStr);
-    List<Outline> contents = _addLocalFunctionOutlines(constructor.body);
+    List<Outline> contents = _addFunctionBodyOutlines(constructor.body);
     Outline outline = new Outline(element, range.offset, range.length,
         children: nullIfEmpty(contents));
     return outline;
@@ -274,7 +274,7 @@ class DartUnitOutlineComputer {
         location: _getLocationNode(nameNode),
         parameters: parametersStr,
         returnType: returnTypeStr);
-    List<Outline> contents = _addLocalFunctionOutlines(functionExpression.body);
+    List<Outline> contents = _addFunctionBodyOutlines(functionExpression.body);
     Outline outline = new Outline(element, range.offset, range.length,
         children: nullIfEmpty(contents));
     return outline;
@@ -328,7 +328,7 @@ class DartUnitOutlineComputer {
         location: _getLocationNode(nameNode),
         parameters: parametersStr,
         returnType: returnTypeStr);
-    List<Outline> contents = _addLocalFunctionOutlines(method.body);
+    List<Outline> contents = _addFunctionBodyOutlines(method.body);
     Outline outline = new Outline(element, range.offset, range.length,
         children: nullIfEmpty(contents));
     return outline;
@@ -384,14 +384,84 @@ class DartUnitOutlineComputer {
 /**
  * A visitor for building local function outlines.
  */
-class _LocalFunctionOutlinesVisitor extends RecursiveAstVisitor {
+class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
   final DartUnitOutlineComputer outlineComputer;
   final List<Outline> contents;
 
-  _LocalFunctionOutlinesVisitor(this.outlineComputer, this.contents);
+  _FunctionBodyOutlinesVisitor(this.outlineComputer, this.contents);
+
+  /**
+   * Return `true` if the given [element] is the method 'group' defined in the
+   * test package.
+   */
+  bool isGroup(engine.ExecutableElement element) {
+    return element is engine.FunctionElement &&
+        element.name == 'group' &&
+        _isInsideTestPackage(element);
+  }
+
+  /**
+   * Return `true` if the given [element] is the method 'test' defined in the
+   * test package.
+   */
+  bool isTest(engine.ExecutableElement element) {
+    return element is engine.FunctionElement &&
+        element.name == 'test' &&
+        _isInsideTestPackage(element);
+  }
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
     contents.add(outlineComputer._newFunctionOutline(node, false));
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    SimpleIdentifier nameNode = node.methodName;
+    engine.ExecutableElement executableElement = nameNode.bestElement;
+
+    String extractString(NodeList<Expression> arguments) {
+      if (arguments != null && arguments.length > 0) {
+        Expression argument = arguments[0];
+        if (argument is StringLiteral) {
+          String value = argument.stringValue;
+          if (value != null) {
+            return value;
+          }
+        }
+        return argument.toSource();
+      }
+      return 'unnamed';
+    }
+
+    void addOutline(String kind, [List<Outline> children]) {
+      SourceRange range = outlineComputer._getSourceRange(node);
+      String name = kind + ' ' + extractString(node.argumentList?.arguments);
+      Element element = new Element(ElementKind.UNKNOWN, name, 0,
+          location: outlineComputer._getLocationNode(nameNode));
+      contents.add(new Outline(element, range.offset, range.length,
+          children: nullIfEmpty(children)));
+    }
+
+    if (isGroup(executableElement)) {
+      List<Outline> groupContents = <Outline>[];
+      node.argumentList.accept(
+          new _FunctionBodyOutlinesVisitor(outlineComputer, groupContents));
+      addOutline('group', groupContents);
+    } else if (isTest(executableElement)) {
+      addOutline('test');
+    } else {
+      super.visitMethodInvocation(node);
+    }
+  }
+
+  /**
+   * Return `true` if the given [element] is a top-level member of the test
+   * package.
+   */
+  bool _isInsideTestPackage(engine.FunctionElement element) {
+    engine.Element parent = element.enclosingElement;
+    return parent is engine.CompilationUnitElement &&
+        parent.source.fullName.endsWith('test.dart');
   }
 }

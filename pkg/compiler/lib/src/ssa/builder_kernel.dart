@@ -546,9 +546,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (!foundSuperOrRedirectCall) {
       assert(
           _elementMap.getClass(constructor.enclosingClass) ==
-              _elementMap.commonElements.objectClass,
+                  _elementMap.commonElements.objectClass ||
+              constructor.initializers.any(_ErroneousInitializerVisitor.check),
           'All constructors should have super- or redirecting- initializers,'
-          ' except Object()');
+          ' except Object()'
+          ' ${constructor.initializers}');
     }
   }
 
@@ -2356,6 +2358,31 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
+  void visitDirectPropertyGet(ir.DirectPropertyGet propertyGet) {
+    propertyGet.receiver.accept(this);
+    HInstruction receiver = pop();
+
+    // Fake direct call with a dynamic call.
+    // TODO(sra): Implement direct invocations properly.
+    _pushDynamicInvocation(
+        propertyGet,
+        _typeInferenceMap.typeOfDirectGet(propertyGet),
+        <HInstruction>[receiver],
+        selector: new Selector.getter(
+            _elementMap.getMember(propertyGet.target).memberName));
+  }
+
+  @override
+  void visitDirectPropertySet(ir.DirectPropertySet propertySet) {
+    throw new UnimplementedError('ir.DirectPropertySet');
+  }
+
+  @override
+  void visitDirectMethodInvocation(ir.DirectMethodInvocation invocation) {
+    throw new UnimplementedError('ir.DirectMethodInvocation');
+  }
+
+  @override
   void visitSuperPropertySet(ir.SuperPropertySet propertySet) {
     propertySet.value.accept(this);
     HInstruction value = pop();
@@ -3802,4 +3829,28 @@ class KernelTypeBuilder extends TypeBuilder {
   ClassTypeVariableAccess computeTypeVariableAccess(MemberEntity member) {
     return _elementMap.getClassTypeVariableAccessForMember(member);
   }
+}
+
+class _ErroneousInitializerVisitor extends ir.Visitor<bool> {
+  _ErroneousInitializerVisitor();
+
+  // TODO(30809): Use const constructor.
+  static bool check(ir.Initializer initializer) =>
+      initializer.accept(new _ErroneousInitializerVisitor());
+
+  bool defaultInitializer(ir.Node node) => false;
+
+  bool visitInvalidInitializer(ir.InvalidInitializer node) => true;
+
+  bool visitLocalInitializer(ir.LocalInitializer node) {
+    return node.variable.initializer?.accept(this) ?? false;
+  }
+
+  // Expressions: Does the expression always throw?
+  bool defaultExpression(ir.Expression node) => false;
+
+  bool visitThrow(ir.Throw node) => true;
+
+  // TODO(sra): We might need to match other expressions that always throw but
+  // in a subexpression.
 }

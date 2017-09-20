@@ -471,6 +471,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.Constructor);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
     writeOffset(node.fileOffset);
+    writeOffset(node.nameOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
@@ -493,6 +494,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.Procedure);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
     writeOffset(node.fileOffset);
+    writeOffset(node.nameOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
     writeByte(node.flags);
@@ -624,6 +626,7 @@ class BinaryPrinter extends Visitor {
   visitPropertyGet(PropertyGet node) {
     writeByte(Tag.PropertyGet);
     writeOffset(node.fileOffset);
+    writeByte(node.flags);
     writeNode(node.receiver);
     writeName(node.name);
     writeReference(node.interfaceTargetReference);
@@ -654,6 +657,7 @@ class BinaryPrinter extends Visitor {
   visitDirectPropertyGet(DirectPropertyGet node) {
     writeByte(Tag.DirectPropertyGet);
     writeOffset(node.fileOffset);
+    writeByte(node.flags);
     writeNode(node.receiver);
     writeReference(node.targetReference);
   }
@@ -682,6 +686,7 @@ class BinaryPrinter extends Visitor {
   visitMethodInvocation(MethodInvocation node) {
     writeByte(Tag.MethodInvocation);
     writeOffset(node.fileOffset);
+    writeByte(node.flags);
     writeNode(node.receiver);
     writeName(node.name);
     writeNode(node.arguments);
@@ -698,6 +703,7 @@ class BinaryPrinter extends Visitor {
 
   visitDirectMethodInvocation(DirectMethodInvocation node) {
     writeByte(Tag.DirectMethodInvocation);
+    writeByte(node.flags);
     writeNode(node.receiver);
     writeReference(node.targetReference);
     writeNode(node.arguments);
@@ -1211,6 +1217,7 @@ class BinaryPrinter extends Visitor {
   }
 
   visitTypeParameter(TypeParameter node) {
+    writeByte(node.flags);
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
   }

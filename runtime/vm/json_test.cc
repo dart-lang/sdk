@@ -313,29 +313,6 @@ TEST_CASE(JSON_JSONStream_Params) {
   EXPECT(!js.ParamIs("dog", "banana"));
 }
 
-TEST_CASE(JSON_JSONStream_AppendJSONStreamConsumer) {
-  JSONStream js;
-
-  {
-    JSONObject obj(&js);
-    {
-      JSONArray arr(&obj, "test");
-      const char* test_data = "{a, b, c},";
-      AppendJSONStreamConsumer(Dart_StreamConsumer_kData, "",
-                               reinterpret_cast<const uint8_t*>(&test_data[0]),
-                               strlen(test_data), &js);
-      AppendJSONStreamConsumer(Dart_StreamConsumer_kData, "",
-                               reinterpret_cast<const uint8_t*>(&test_data[0]),
-                               strlen(test_data), &js);
-      AppendJSONStreamConsumer(Dart_StreamConsumer_kData, "",
-                               reinterpret_cast<const uint8_t*>(&test_data[0]),
-                               strlen(test_data) - 1, &js);
-    }
-  }
-
-  EXPECT_STREQ("{\"test\":[{a, b, c},{a, b, c},{a, b, c}]}", js.ToCString());
-}
-
 #endif  // !PRODUCT
 
 }  // namespace dart

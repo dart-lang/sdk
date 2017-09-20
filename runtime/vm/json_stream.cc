@@ -43,22 +43,6 @@ class MaybeOnStackBuffer {
   char buffer_[kOnStackBufferCapacity];
 };
 
-void AppendJSONStreamConsumer(Dart_StreamConsumer_State state,
-                              const char* stream_name,
-                              const uint8_t* buffer,
-                              intptr_t buffer_length,
-                              void* user_data) {
-  if ((state == Dart_StreamConsumer_kStart) ||
-      (state == Dart_StreamConsumer_kFinish)) {
-    // Ignore.
-    return;
-  }
-  ASSERT(state == Dart_StreamConsumer_kData);
-  JSONStream* js = reinterpret_cast<JSONStream*>(user_data);
-  ASSERT(js != NULL);
-  js->AppendSerializedObject(buffer, buffer_length);
-}
-
 DECLARE_FLAG(bool, trace_service);
 
 JSONStream::JSONStream(intptr_t buf_size)
@@ -365,6 +349,14 @@ void JSONStream::OpenObject(const char* property_name) {
     PrintPropertyName(property_name);
   }
   buffer_.AddChar('{');
+}
+
+void JSONStream::UncloseObject() {
+  intptr_t len = buffer_.length();
+  ASSERT(len > 0);
+  ASSERT(buffer_.buf()[len - 1] == '}');
+  open_objects_++;
+  buffer_.set_length(len - 1);
 }
 
 void JSONStream::CloseObject() {

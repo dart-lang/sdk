@@ -4,6 +4,7 @@
 
 /// Entity model for elements derived from Kernel IR.
 
+import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -256,9 +257,10 @@ class KLocalFunction implements Local {
   final MemberEntity memberContext;
   final Entity executableContext;
   final FunctionType functionType;
+  final ir.Node node;
 
-  KLocalFunction(
-      this.name, this.memberContext, this.executableContext, this.functionType);
+  KLocalFunction(this.name, this.memberContext, this.executableContext,
+      this.functionType, this.node);
 
   String toString() => '${kElementPrefix}local_function'
       '(${memberContext.name}.${name ?? '<anonymous>'})';

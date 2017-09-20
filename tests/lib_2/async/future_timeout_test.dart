@@ -180,15 +180,21 @@ main() {
       return 42;
     };
     forked = Zone.current.fork(specification: new ZoneSpecification(
-        registerCallback: (Zone self, ZoneDelegate parent, Zone origin, f()) {
-      if (!identical(f, callback)) return f;
-      registerCallDelta++; // Increment calls to register.
-      Expect.isTrue(origin == forked);
-      Expect.isTrue(self == forked);
-      return () {
-        registerCallDelta--;
-        return f();
-      };
+        registerCallback:
+            <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
+      R Function() result;
+      if (!identical(f, callback)) {
+        result = f;
+      } else {
+        registerCallDelta++; // Increment calls to register.
+        Expect.isTrue(origin == forked);
+        Expect.isTrue(self == forked);
+        result = () {
+          registerCallDelta--;
+          return f();
+        };
+      }
+      return f;
     }));
     Completer completer = new Completer();
     Future timedOut;

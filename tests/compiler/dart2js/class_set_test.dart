@@ -9,7 +9,7 @@ library class_set_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
-import 'package:compiler/src/elements/elements.dart' show ClassElement;
+import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
 import 'package:compiler/src/util/util.dart';
@@ -17,12 +17,18 @@ import 'package:compiler/src/world.dart';
 
 void main() {
   asyncTest(() async {
-    await testIterators();
-    await testForEach();
+    await testAll(CompileMode.memory);
+    await testAll(CompileMode.dill);
   });
 }
 
-testIterators() async {
+testAll(CompileMode compileMode) async {
+  await testIterators(compileMode);
+  await testForEach(compileMode);
+  await testClosures(compileMode);
+}
+
+testIterators(CompileMode compileMode) async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -46,18 +52,18 @@ testIterators() async {
         new F();
         new G();
       }
-      """, compileMode: CompileMode.memory);
+      """, compileMode: compileMode);
   ClosedWorld world = env.closedWorld;
 
-  ClassElement A = env.getElement("A");
-  ClassElement B = env.getElement("B");
-  ClassElement C = env.getElement("C");
-  ClassElement D = env.getElement("D");
-  ClassElement E = env.getElement("E");
-  ClassElement F = env.getElement("F");
-  ClassElement G = env.getElement("G");
+  ClassEntity A = env.getClass("A");
+  ClassEntity B = env.getClass("B");
+  ClassEntity C = env.getClass("C");
+  ClassEntity D = env.getClass("D");
+  ClassEntity E = env.getClass("E");
+  ClassEntity F = env.getClass("F");
+  ClassEntity G = env.getClass("G");
 
-  void checkClass(ClassElement cls,
+  void checkClass(ClassEntity cls,
       {bool directlyInstantiated: false, bool indirectlyInstantiated: false}) {
     ClassHierarchyNode node = world.getClassHierarchyNode(cls);
     Expect.isNotNull(node, "Expected ClassHierarchyNode for $cls.");
@@ -87,20 +93,20 @@ testIterators() async {
 
   ClassHierarchyNodeIterator iterator;
 
-  void checkState(ClassElement root,
-      {ClassElement currentNode, List<ClassElement> stack}) {
-    ClassElement classOf(ClassHierarchyNode node) {
+  void checkState(ClassEntity root,
+      {ClassEntity currentNode, List<ClassEntity> stack}) {
+    ClassEntity classOf(ClassHierarchyNode node) {
       return node != null ? node.cls : null;
     }
 
-    List<ClassElement> classesOf(Link<ClassHierarchyNode> link) {
+    List<ClassEntity> classesOf(Link<ClassHierarchyNode> link) {
       if (link == null) return null;
       return link.map(classOf).toList();
     }
 
-    ClassElement foundRoot = iterator.root.cls;
-    ClassElement foundCurrentNode = classOf(iterator.currentNode);
-    List<ClassElement> foundStack = classesOf(iterator.stack);
+    ClassEntity foundRoot = iterator.root.cls;
+    ClassEntity foundCurrentNode = classOf(iterator.currentNode);
+    List<ClassEntity> foundStack = classesOf(iterator.stack);
 
     StringBuffer sb = new StringBuffer();
     sb.write('{\n root: $foundRoot');
@@ -345,7 +351,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 }
 
-testForEach() async {
+testForEach(CompileMode compileMode) async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -376,23 +382,23 @@ testForEach() async {
         new H();
         new I();
       }
-      """, compileMode: CompileMode.memory);
+      """, compileMode: compileMode);
   ClosedWorld world = env.closedWorld;
 
-  ClassElement A = env.getElement("A");
-  ClassElement B = env.getElement("B");
-  ClassElement C = env.getElement("C");
-  ClassElement D = env.getElement("D");
-  ClassElement E = env.getElement("E");
-  ClassElement F = env.getElement("F");
-  ClassElement G = env.getElement("G");
-  ClassElement H = env.getElement("H");
-  ClassElement I = env.getElement("I");
-  ClassElement X = env.getElement("X");
+  ClassEntity A = env.getClass("A");
+  ClassEntity B = env.getClass("B");
+  ClassEntity C = env.getClass("C");
+  ClassEntity D = env.getClass("D");
+  ClassEntity E = env.getClass("E");
+  ClassEntity F = env.getClass("F");
+  ClassEntity G = env.getClass("G");
+  ClassEntity H = env.getClass("H");
+  ClassEntity I = env.getClass("I");
+  ClassEntity X = env.getClass("X");
 
-  void checkForEachSubclass(ClassElement cls, List<ClassElement> expected) {
+  void checkForEachSubclass(ClassEntity cls, List<ClassEntity> expected) {
     ClassSet classSet = world.getClassSet(cls);
-    List<ClassElement> visited = <ClassElement>[];
+    List<ClassEntity> visited = <ClassEntity>[];
     classSet.forEachSubclass((cls) {
       visited.add(cls);
     }, ClassHierarchyNode.ALL);
@@ -403,7 +409,7 @@ testForEach() async {
         "Unexpected classes on $cls.forEachSubclass:\n"
         "Actual: $visited, expected: $expected\n$classSet");
 
-    visited = <ClassElement>[];
+    visited = <ClassEntity>[];
     classSet.forEachSubclass((cls) {
       visited.add(cls);
       return IterationStep.CONTINUE;
@@ -427,9 +433,9 @@ testForEach() async {
   checkForEachSubclass(I, [I]);
   checkForEachSubclass(X, [X]);
 
-  void checkForEachSubtype(ClassElement cls, List<ClassElement> expected) {
+  void checkForEachSubtype(ClassEntity cls, List<ClassEntity> expected) {
     ClassSet classSet = world.getClassSet(cls);
-    List<ClassElement> visited = <ClassElement>[];
+    List<ClassEntity> visited = <ClassEntity>[];
     classSet.forEachSubtype((cls) {
       visited.add(cls);
     }, ClassHierarchyNode.ALL);
@@ -440,7 +446,7 @@ testForEach() async {
         "Unexpected classes on $cls.forEachSubtype:\n"
         "Actual: $visited, expected: $expected\n$classSet");
 
-    visited = <ClassElement>[];
+    visited = <ClassEntity>[];
     classSet.forEachSubtype((cls) {
       visited.add(cls);
       return IterationStep.CONTINUE;
@@ -464,9 +470,9 @@ testForEach() async {
   checkForEachSubtype(I, [I]);
   checkForEachSubtype(X, [X, A, B, D, C, G, F, I, H, E]);
 
-  void checkForEach(ClassElement cls, List<ClassElement> expected,
-      {ClassElement stop,
-      List<ClassElement> skipSubclasses: const <ClassElement>[],
+  void checkForEach(ClassEntity cls, List<ClassEntity> expected,
+      {ClassEntity stop,
+      List<ClassEntity> skipSubclasses: const <ClassEntity>[],
       bool forEachSubtype: false,
       EnumSet<Instantiation> mask}) {
     if (mask == null) {
@@ -474,10 +480,10 @@ testForEach() async {
     }
 
     ClassSet classSet = world.getClassSet(cls);
-    List<ClassElement> visited = <ClassElement>[];
+    List<ClassEntity> visited = <ClassEntity>[];
 
     IterationStep visit(_cls) {
-      ClassElement cls = _cls;
+      ClassEntity cls = _cls;
       visited.add(cls);
       if (cls == stop) {
         return IterationStep.STOP;
@@ -528,10 +534,10 @@ testForEach() async {
   checkForEach(X, [A, B, D, C, G, F, I, H, E],
       forEachSubtype: true, mask: ClassHierarchyNode.INSTANTIATED);
 
-  void checkAny(ClassElement cls, List<ClassElement> expected,
-      {ClassElement find, bool expectedResult, bool anySubtype: false}) {
+  void checkAny(ClassEntity cls, List<ClassEntity> expected,
+      {ClassEntity find, bool expectedResult, bool anySubtype: false}) {
     ClassSet classSet = world.getClassSet(cls);
-    List<ClassElement> visited = <ClassElement>[];
+    List<ClassEntity> visited = <ClassEntity>[];
 
     bool visit(cls) {
       visited.add(cls);
@@ -577,4 +583,32 @@ testForEach() async {
   checkAny(X, [X, A, B, D], find: D, anySubtype: true, expectedResult: true);
   checkAny(X, [X, A, B, D, C, G, F, I],
       find: I, anySubtype: true, expectedResult: true);
+}
+
+testClosures(CompileMode compileMode) async {
+  var env = await TypeEnvironment.create(r"""
+      class A {
+        call() => null;
+      }
+      """, mainSource: r"""
+      main() {
+        new A();
+        () {};
+        local() {}
+      }
+      """, compileMode: compileMode, testBackendWorld: true);
+  ClosedWorld world = env.closedWorld;
+
+  ClassEntity functionClass = world.commonElements.functionClass;
+  ClassEntity closureClass = world.commonElements.closureClass;
+  ClassEntity A = env.getClass("A");
+
+  checkIsFunction(ClassEntity cls) {
+    Expect.isTrue(world.isSubtypeOf(cls, functionClass),
+        "Expected $cls to be a subtype of $functionClass.");
+  }
+
+  checkIsFunction(A);
+
+  world.forEachStrictSubtypeOf(closureClass, checkIsFunction);
 }

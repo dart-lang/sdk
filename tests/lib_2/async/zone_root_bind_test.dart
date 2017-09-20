@@ -11,7 +11,7 @@ main() {
   Zone forked = Zone.current.fork();
   var f = Zone.current.bindCallback(() {
     Expect.identical(Zone.ROOT, Zone.current);
-  }, runGuarded: false);
+  });
   forked.run(() {
     f();
   });

@@ -189,8 +189,8 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
-    NodeList names = makeNodeList(count, enumKeyword.next.next, endBrace, ",");
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+    NodeList names = makeNodeList(count, leftBrace, leftBrace?.endGroup, ",");
     Identifier name = popNode();
 
     int id = idGenerator.getNextFreeId();

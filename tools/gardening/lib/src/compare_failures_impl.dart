@@ -9,14 +9,28 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:gardening/src/bot.dart';
-import 'package:gardening/src/buildbot_structures.dart';
-import 'package:gardening/src/buildbot_data.dart';
-import 'package:gardening/src/util.dart';
+import 'bot.dart';
+import 'buildbot_structures.dart';
+import 'buildbot_data.dart';
+import 'cache_new.dart';
+import 'logger.dart';
+import 'luci.dart' hide Timing;
+import 'luci_services.dart';
+import 'try.dart';
+import 'util.dart';
 
-Future mainInternal(Bot bot, List<String> args, {int runCount: 10}) async {
+Future mainInternal(Bot bot, List<String> args,
+    {int runCount: 10,
+    String commit,
+    bool verbose: false,
+    bool noCache: false}) async {
   printBuildResultsSummary(
-      await loadBuildResults(bot, args, runCount: runCount), args);
+      await loadBuildResults(bot, args,
+          runCount: runCount,
+          commit: commit,
+          verbose: verbose,
+          noCache: noCache),
+      args);
 }
 
 RegExp logdogUrlRegexp =
@@ -26,8 +40,46 @@ RegExp logdogUrlRegexp =
 /// [args]. [args] can be a list of [BuildGroup] names or a list of log uris.
 Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
     Bot bot, List<String> args,
-    {int runCount: 10}) async {
+    {int runCount: 10,
+    String commit,
+    bool verbose: false,
+    bool noCache: false}) async {
   List<BuildUri> buildUriList = <BuildUri>[];
+  List<BuildDetail> buildDetails;
+  if (commit != null) {
+    Luci luci = new Luci();
+    Logger logger = createLogger(verbose: verbose);
+    CreateCacheFunction createCache =
+        createCacheFunction(logger, disableCache: noCache);
+    Try<List<BuildDetail>> tryBuildDetails = await fetchBuildsForCommmit(
+        luci, logger, DART_CLIENT, commit, createCache, 25);
+    tryBuildDetails.fold(exceptionPrint('Failed to fetch commits.'),
+        (List<BuildDetail> result) {
+      if (result.isEmpty) {
+        print('No builds found for $commit');
+      } else {
+        buildDetails = result;
+        if (verbose) {
+          log('Found builds for commit $commit:');
+          buildDetails.forEach((b) => log(' ${b.botName}: ${b.buildNumber}'));
+        } else {
+          print('Found ${buildDetails.length} builds for commit $commit.');
+        }
+      }
+    });
+  }
+
+  BuildUri updateWithCommit(BuildUri buildUri) {
+    if (buildDetails == null) return buildUri;
+    for (BuildDetail buildDetail in buildDetails) {
+      if (buildDetail.botName == buildUri.botName) {
+        return buildUri.withBuildNumber(buildDetail.buildNumber);
+      }
+    }
+    print('No build number for $commit found for $buildUri.');
+    return buildUri;
+  }
+
   for (String arg in args) {
     if (logdogUrlRegexp.hasMatch(arg)) {
       print('Encountered a logdog URI ("${arg.substring(0,40)}...").');
@@ -37,14 +89,17 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
   }
   for (BuildGroup buildGroup in buildGroups) {
     if (args.contains(buildGroup.groupName)) {
-      buildUriList.addAll(buildGroup.createUris(bot.mostRecentBuildNumber));
+      buildUriList.addAll(buildGroup
+          .createUris(bot.mostRecentBuildNumber)
+          .map(updateWithCommit));
     }
   }
   if (buildUriList.isEmpty) {
     for (String url in args) {
-      buildUriList.add(new BuildUri.fromUrl(url));
+      buildUriList.add(updateWithCommit(new BuildUri.fromUrl(url)));
     }
   }
+
   Map<BuildUri, List<BuildResult>> pastResultsMap =
       <BuildUri, List<BuildResult>>{};
   List<BuildResult> buildResults = await bot.readResults(buildUriList);

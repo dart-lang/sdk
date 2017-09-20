@@ -9,7 +9,7 @@ Usage:
       -c dart2js -r d8 --dart2js-batch --report      \
       --host-checked                                 \
       --dart2js_options="--library-root=out/ReleaseX64/dart-sdk/ --use-kernel" \
-      language corelib library_2 corelib_2           \
+      language language_2 corelib corelib_2          \
       dart2js_native dart2js_extra                   \
       2>&1 > LOG
 

@@ -2799,18 +2799,6 @@ class CodeGenerator extends Object
       }
     }
 
-    if (body is BlockFunctionBody) {
-      var params = element.parameters.map((e) => e.name).toSet();
-      bool shadowsParam = body.block.statements.any((s) =>
-          s is VariableDeclarationStatement &&
-          s.variables.variables.any((v) => params.contains(v.name.name)));
-      if (shadowsParam) {
-        code = new JS.Block([
-          new JS.Block([code], isScope: true)
-        ]);
-      }
-    }
-
     return new JS.Fun(formals, code,
         typeParams: typeFormals, returnType: emitTypeRef(type.returnType));
   }
@@ -2821,8 +2809,23 @@ class CodeGenerator extends Object
     _currentFunction = body;
 
     var initArgs = _emitArgumentInitializers(element, parameters);
-    var block = _visit(body);
+    var block = _visit<JS.Block>(body);
+
     if (initArgs != null) block = new JS.Block([initArgs, block]);
+
+    if (body is BlockFunctionBody) {
+      var params = element.parameters.map((e) => e.name).toSet();
+      bool shadowsParam = body.block.statements.any((s) =>
+          s is VariableDeclarationStatement &&
+          s.variables.variables.any((v) => params.contains(v.name.name)));
+
+      if (shadowsParam) {
+        block = new JS.Block([
+          new JS.Block([block], isScope: true)
+        ]);
+      }
+    }
+
     _currentFunction = savedFunction;
 
     return block;
@@ -4052,8 +4055,12 @@ class CodeGenerator extends Object
     var conditionType = condition.staticType;
     JS.Expression jsCondition = _visit(condition);
 
-    if (conditionType != types.boolType) {
-      jsCondition = _callHelper('dtest(#)', jsCondition);
+    if (conditionType is FunctionType &&
+        conditionType.parameters.isEmpty &&
+        conditionType.returnType == types.boolType) {
+      jsCondition = _callHelper('test(#())', jsCondition);
+    } else if (conditionType != types.boolType) {
+      jsCondition = _callHelper('dassert(#)', jsCondition);
     } else if (isNullable(condition)) {
       jsCondition = _callHelper('test(#)', jsCondition);
     }

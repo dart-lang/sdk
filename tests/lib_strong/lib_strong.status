@@ -25,7 +25,6 @@ async/future_test/none: Skip
 async/future_value_chain4_test: Skip
 async/print_test/01: Skip
 async/print_test/none: Skip
-async/stream_transformer_test: Skip
 html/cross_frame_test: Skip
 html/element_dimensions_test: Skip
 html/element_test: Skip
@@ -91,8 +90,6 @@ html/custom/document_register_basic_test: CompileTimeError # Issue 29922
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
-async/stream_transformer_from_handlers_test: RuntimeError # Issue 29922, strong mode cast failure
-async/timer_not_available_test: RuntimeError # Issue 29922
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
 html/element_classes_svg_test: RuntimeError # Issue 29922

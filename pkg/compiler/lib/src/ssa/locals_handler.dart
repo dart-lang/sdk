@@ -321,7 +321,7 @@ class LocalsHandler {
         if (local is TypeVariableLocal) {
           failedAt(
               CURRENT_ELEMENT_SPANNABLE,
-              "Runtime type information not available for $local "
+              "Runtime type information not available for $local in ${directLocals.keys}"
               "in $executableContext.");
         } else {
           failedAt(

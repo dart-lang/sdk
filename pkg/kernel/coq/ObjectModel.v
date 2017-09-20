@@ -182,22 +182,11 @@ Module Subtyping.
 End Subtyping.
 Import Subtyping.
 
-(* Semantic Types *)
 Record procedure_desc : Type := mk_procedure_desc {
   pr_name : string;
   pr_ref : nat;
   pr_type : function_type;
 }.
-
-Definition procedure_dissect (p : procedure) : procedure_desc :=
-  let (memb, _, fn) := p in
-  let (nn, name) := memb in
-  let (name_str) := name in
-  let (ref) := nn in
-  let (id) := ref in
-  let (param, ret_type, _) := fn in
-  let (_, param_type, _) := param in
-  mk_procedure_desc name_str id (Function_Type param_type ret_type).
 
 Record interface : Type := mk_interface {
   procedures : list procedure_desc;
@@ -205,14 +194,20 @@ Record interface : Type := mk_interface {
 
 (** Type envronment maps class IDs to their interface type. *)
 Definition class_env : Type := NatMap.t interface.
+
+(** Function environment maps defined functions to their procedure type. Used
+    for direct method invocation, direct property get etc. *)
+Definition func_env : Type := NatMap.t procedure_desc.
+
 Definition type_env : Type := NatMap.t dart_type.
 
-Fixpoint expression_type (CE : class_env) (TE : type_env) (e : expression) :
+Fixpoint expression_type
+    (CE : class_env) (FE : func_env) (TE : type_env) (e : expression) :
     option dart_type :=
   match e with
   | E_Variable_Get (Variable_Get v) => NatMap.find v TE
   | E_Property_Get (Property_Get rec prop) =>
-    rec_type <- expression_type CE TE rec;
+    rec_type <- expression_type CE FE TE rec;
     let (prop_name) := prop in
     match rec_type with
     | DT_Function_Type _ =>
@@ -228,9 +223,9 @@ Fixpoint expression_type (CE : class_env) (TE : type_env) (e : expression) :
     _ <- NatMap.find class CE;
     [DT_Interface_Type (Interface_Type class)]
   | E_Invocation_Expression (IE_Method_Invocation (Method_Invocation rec method args _)) =>
-    rec_type <- expression_type CE TE rec;
+    rec_type <- expression_type CE FE TE rec;
     let (arg_exp) := args in
-    arg_type <- expression_type CE TE arg_exp;
+    arg_type <- expression_type CE FE TE arg_exp;
     let (method_name) := method in
     fun_type <-
       match rec_type with
@@ -248,16 +243,16 @@ Fixpoint expression_type (CE : class_env) (TE : type_env) (e : expression) :
   end
 .
 
-Fixpoint statement_type (CE : class_env) (TE : type_env) (s : statement) :
+Fixpoint statement_type (CE : class_env) (FE: func_env) (TE : type_env) (s : statement) :
     option (type_env * option dart_type) :=
   match s with
   | S_Expression_Statement (Expression_Statement e) =>
-    _ <- expression_type CE TE e; [(TE, None)]
+    _ <- expression_type CE FE TE e; [(TE, None)]
   | S_Return_Statement (Return_Statement re) =>
-    rt <- expression_type CE TE re; [(TE, Some rt)]
+    rt <- expression_type CE FE TE re; [(TE, Some rt)]
   | S_Variable_Declaration (Variable_Declaration _ _ None) => None
   | S_Variable_Declaration (Variable_Declaration var type (Some init)) =>
-    init_type <- expression_type CE TE init;
+    init_type <- expression_type CE FE TE init;
     if subtype (init_type, type) then
       [(NatMap.add var type TE, None)]
     else
@@ -267,7 +262,7 @@ Fixpoint statement_type (CE : class_env) (TE : type_env) (s : statement) :
       match stmts with
       | nil => [(TE, None)]
       | (s::ss) =>
-        st <- statement_type CE TE s;
+        st <- statement_type CE FE TE s;
         let (TE', s_rt) := st in
         sst <- process_statements TE' ss;
         let (TE'', ss_rt) := sst in
@@ -282,32 +277,28 @@ Fixpoint statement_type (CE : class_env) (TE : type_env) (s : statement) :
   end
 .
 
-Fixpoint procedure_type (CE : class_env) (p : procedure) : bool :=
+Definition procedure_type (CE : class_env) (FE: func_env) (p : procedure) : bool :=
   let (_, _, fn) := p in
   let (param, ret_type, body) := fn in
   let (param_var, param_type, _) := param in
   let TE := NatMap.add param_var param_type (NatMap.empty _) in
-  match statement_type CE TE body with
+  match statement_type CE FE TE body with
   | Some (_, Some t) => subtype (t, ret_type)
   | _ => false
   end
 .
 
-Fixpoint class_type (CE : class_env) (c : class) : option class_env :=
+Definition class_type (CE : class_env) (FE: func_env) (c : class) : bool :=
   let (nn_data, _, procedures) := c in
-  let (ref) := nn_data in
-  let (class_id) := ref in
-  let class_interface := mk_interface (map procedure_dissect procedures) in
-  let CE' := NatMap.add class_id class_interface CE in
-  if forallb (procedure_type CE') procedures then Some CE' else None
+  forallb (procedure_type CE FE) procedures
 .
 
 Section Typing_Equivalence_Homomorphism.
 
   Definition subtype_at (e : expression) :=
-    forall CE TE v s t et,
-                 expression_type CE (NatMap.add v s TE) e = [et] /\ s ◁ t ->
-      exists es, expression_type CE (NatMap.add v t TE) e = [es] /\ et ◁ es.
+    forall CE FE TE v s t es,
+                 expression_type CE FE (NatMap.add v s TE) e = [es] /\ s ◁ t ->
+      exists et, expression_type CE FE (NatMap.add v t TE) e = [et] /\ es ◁ et.
 
   Hint Resolve NatMap.add_1.
   Hint Resolve NatMap.add_2.
@@ -321,7 +312,7 @@ Section Typing_Equivalence_Homomorphism.
     destruct (N.eq_dec v v0).
     rewrite e in *.
     exists t.
-    assert (et = s).
+    assert (es = s).
     unfold expression_type in H.
     assert (NatMap.find v0 (NatMap.add v0 s TE) = Some s) by crush.
     rewrite H0 in H.
@@ -333,9 +324,9 @@ Section Typing_Equivalence_Homomorphism.
     destruct H.
     unfold expression_type in H.
     apply NatMap.find_2 in H.
-    exists et.
+    exists es.
     unfold expression_type in *.
-    pose proof (@NatMap.add_3 dart_type TE v0 v et s (not_eq_sym n) H).
+    pose proof (@NatMap.add_3 dart_type TE v0 v es s (not_eq_sym n) H).
     crush.
   Qed.
   Hint Immediate subtype_at_variable_get.
@@ -350,7 +341,7 @@ Section Typing_Equivalence_Homomorphism.
     destruct prop.
     unfold expression_type in H1.
     fold expression_type in H1.
-    extract (expression_type CE (NatMap.add v s TE) rec) Orig H0.
+    extract (expression_type CE FE (NatMap.add v s TE) rec) Orig H0.
 
     (* Go by cases on the original type of the receiver. *)
     destruct Orig; [idtac|crush].
@@ -362,19 +353,19 @@ Section Typing_Equivalence_Homomorphism.
     extract (NatMap.find n CE) iface H3.
     destruct iface; [idtac|crush].
     simpl in H1.
-    pose proof (H CE TE v s t (DT_Interface_Type (Interface_Type n)) (conj H0 H2)).
+    pose proof (H CE FE TE v s t (DT_Interface_Type (Interface_Type n)) (conj H0 H2)).
     destruct H4 as [new_rec_type].
     destruct H4.
     destruct new_rec_type; [idtac|crush].
     destruct i0.
     unfold_subtype H5.
-    exists et.
+    exists es.
     crush.
 
     (* Case 2: receiver has function type. *)
     destruct f.
     force_options.
-    pose proof (H CE TE v s t (DT_Function_Type (Function_Type d d0)) (conj H0 H2)).
+    pose proof (H CE FE TE v s t (DT_Function_Type (Function_Type d d0)) (conj H0 H2)).
     destruct H3 as [new_rec_type].
     destruct H3.
     exists new_rec_type.
@@ -390,7 +381,7 @@ Section Typing_Equivalence_Homomorphism.
   Lemma subtype_at_ctor_invo :
     forall c, subtype_at (E_Invocation_Expression (IE_Constructor_Invocation c)).
   Proof.
-    unfold subtype_at; intros; exists et; crush.
+    unfold subtype_at; intros; exists es; crush.
   Qed.
   Hint Immediate subtype_at_ctor_invo.
 
@@ -404,11 +395,11 @@ Section Typing_Equivalence_Homomorphism.
     destruct H1.
     unfold expression_type in H1.
     fold expression_type in H1.
-    force_expr (expression_type CE (NatMap.add v s TE) rec).
+    force_expr (expression_type CE FE (NatMap.add v s TE) rec).
     destruct d.
 
     (* Case 1: receiver has interface type. *)
-    exists et.
+    exists es.
     simpl in H1.
     force_options.
     destruct name.
@@ -418,8 +409,8 @@ Section Typing_Equivalence_Homomorphism.
     destruct i.
     force_options.
     (* The receiver class must be the same. *)
-    assert (expression_type CE (NatMap.add v t TE) rec = [DT_Interface_Type (Interface_Type n0)]).
-    pose proof (H CE TE v s t (DT_Interface_Type (Interface_Type n0)) (conj H4 H2)) as IH_rec.
+    assert (expression_type CE FE (NatMap.add v t TE) rec = [DT_Interface_Type (Interface_Type n0)]).
+    pose proof (H CE FE TE v s t (DT_Interface_Type (Interface_Type n0)) (conj H4 H2)) as IH_rec.
     destruct IH_rec.
     destruct H3.
     destruct x.
@@ -432,7 +423,7 @@ Section Typing_Equivalence_Homomorphism.
     fold expression_type.
     rewrite H3; simpl.
     (* The argument is still well typed. *)
-    pose proof (H0 CE TE v s t d (conj H5 H2)) as IH_arg.
+    pose proof (H0 CE FE TE v s t d (conj H5 H2)) as IH_arg.
     destruct IH_arg.
     destruct H10.
     rewrite H10.
@@ -450,21 +441,21 @@ Section Typing_Equivalence_Homomorphism.
     force_options.
     destruct f0.
     force_options.
-    pose proof (H CE TE v s t (DT_Function_Type f) (conj H4 H2)).
+    pose proof (H CE FE TE v s t (DT_Function_Type f) (conj H4 H2)).
     destruct H3.
     destruct H3.
     destruct x; [crush|idtac].
     destruct f; destruct f0.
     simplify_subtypes.
     rewrite Bool.andb_true_iff in H9; destruct H9.
-    assert (et = d3) by crush.
+    assert (es = d3) by crush.
     exists d5.
     intuition; [idtac|crush].
     unfold expression_type.
     fold expression_type.
     rewrite H3.
     rewrite bind_some.
-    pose proof (H0 CE TE v s t d (conj H5 H2)).
+    pose proof (H0 CE FE TE v s t d (conj H5 H2)).
     destruct H12.
     destruct H12.
     rewrite H12.
@@ -490,3 +481,44 @@ Section Typing_Equivalence_Homomorphism.
   Qed.
 
 End Typing_Equivalence_Homomorphism.
+
+Section Environments.
+
+Definition func_table := NatMap.t member.
+
+Definition procedure_to_env (envs: class_env * func_env * func_table) (p : procedure) :=
+  let (Cs, FT) := envs in
+  let (CE, FE) := Cs in
+  let (memb, _, fn) := p in
+  let (nn, name) := memb in
+  let (name_str) := name in
+  let (ref) := nn in
+  let (id) := ref in
+  let (param, ret_type, _) := fn in
+  let (_, param_type, _) := param in
+  let proc := mk_procedure_desc name_str id (Function_Type param_type ret_type) in
+  (proc, (CE, NatMap.add id proc FE, NatMap.add id (M_Procedure p) FT)).
+
+Definition class_to_env (envs: class_env * func_env * func_table) (c : class) :=
+  let (nn, name, procs) := c in
+  let (ref) := nn in
+  let (id) := ref in
+  let envs' := List.fold_left (fun p e => snd (procedure_to_env p e)) procs envs in
+  let class_desc := mk_interface (List.map (fun p => fst (procedure_to_env envs' p)) procs) in
+  let (Cs, FT) := envs' in
+  let (CE, FE) := Cs in
+  (NatMap.add id class_desc CE, FE, FT).
+
+Definition lib_to_env (l: library) : class_env * func_env * func_table :=
+  let (_, classes, top_procs) := l in
+  let envs := List.fold_left class_to_env classes (NatMap.empty _, NatMap.empty _, NatMap.empty _) in
+  List.fold_left (fun p e => snd (procedure_to_env p e)) top_procs envs.
+
+Lemma program_wf: forall l CE FE FT class_id intf proc_desc,
+     lib_to_env l = ((CE, FE), FT)
+  -> NatMap.MapsTo class_id intf CE
+  -> List.In proc_desc (procedures intf)
+  -> NatMap.In (pr_ref proc_desc) FE /\ NatMap.In (pr_ref proc_desc) FT.
+Admitted.
+
+End Environments.

@@ -677,6 +677,7 @@ class BinaryBuilder {
       node = new Constructor(null, reference: reference);
     }
     var fileOffset = readOffset();
+    var nameOffset = readOffset();
     var fileEndOffset = readOffset();
     var flags = readByte();
     var name = readName();
@@ -698,6 +699,7 @@ class BinaryBuilder {
       node.fileOffset = fileOffset;
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
+      node.nameOffset = nameOffset;
       node.name = name;
       node.documentationComment = documentationComment;
       node.annotations = annotations;
@@ -718,6 +720,7 @@ class BinaryBuilder {
       node = new Procedure(null, null, null, reference: reference);
     }
     var fileOffset = readOffset();
+    var nameOffset = readOffset();
     var fileEndOffset = readOffset();
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
@@ -735,6 +738,7 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.kind = kind;
       node.flags = flags;
+      node.nameOffset = nameOffset;
       node.name = name;
       node.fileUri = fileUri;
       node.documentationComment = documentationComment;
@@ -879,9 +883,11 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.PropertyGet:
         int offset = readOffset();
+        int flags = readByte();
         return new PropertyGet.byReference(
             readExpression(), readName(), readMemberReference(allowNull: true))
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.PropertySet:
         int offset = readOffset();
         return new PropertySet.byReference(readExpression(), readName(),
@@ -897,9 +903,11 @@ class BinaryBuilder {
             readName(), readExpression(), readMemberReference(allowNull: true));
       case Tag.DirectPropertyGet:
         int offset = readOffset();
+        int flags = readByte();
         return new DirectPropertyGet.byReference(
             readExpression(), readMemberReference())
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.DirectPropertySet:
         int offset = readOffset();
         return new DirectPropertySet.byReference(
@@ -916,9 +924,11 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.MethodInvocation:
         int offset = readOffset();
+        int flags = readByte();
         return new MethodInvocation.byReference(readExpression(), readName(),
             readArguments(), readMemberReference(allowNull: true))
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
@@ -926,8 +936,10 @@ class BinaryBuilder {
             readName(), readArguments(), readMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.DirectMethodInvocation:
+        int flags = readByte();
         return new DirectMethodInvocation.byReference(
-            readExpression(), readMemberReference(), readArguments());
+            readExpression(), readMemberReference(), readArguments())
+          ..flags = flags;
       case Tag.StaticInvocation:
         int offset = readOffset();
         return new StaticInvocation.byReference(
@@ -1339,6 +1351,7 @@ class BinaryBuilder {
   }
 
   void readTypeParameter(TypeParameter node) {
+    node.flags = readByte();
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
   }

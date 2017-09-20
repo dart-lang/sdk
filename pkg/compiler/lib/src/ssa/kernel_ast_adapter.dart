@@ -284,6 +284,12 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
+  Local getLocalTypeVariable(
+      ir.TypeParameterType node, KernelToElementMap elementMap) {
+    return getElement(node) as LocalElement;
+  }
+
+  @override
   ir.FunctionNode getFunctionNodeForParameter(Local parameter) {
     throw new UnsupportedError('KernelAstAdapter.getFunctionNodeForParameter');
   }
@@ -385,6 +391,9 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   InterfaceType getInterfaceType(ir.InterfaceType type) => getDartType(type);
+
+  TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
+      getDartType(type);
 
   InterfaceType getThisType(ClassElement cls) => cls.thisType;
 
@@ -685,6 +694,10 @@ class KernelAstTypeInferenceMap implements KernelToTypeInferenceMap {
 
   TypeMask typeOfSet(ir.PropertySet setter, ClosedWorld closedWorld) {
     return closedWorld.commonMasks.dynamicType;
+  }
+
+  TypeMask typeOfDirectGet(ir.DirectPropertyGet getter) {
+    return _resultOf(_target).typeOfSend(_astAdapter.getNode(getter));
   }
 
   TypeMask typeOfListLiteral(MemberElement owner, ir.ListLiteral listLiteral,

@@ -94,8 +94,8 @@ increaseDepth() {
   Expect.isTrue(depth < 20);
 }
 
-dynamic Function() registerCallback(
-    Zone self, ZoneDelegate parent, Zone zone, f) {
+ZoneCallback<R> registerCallback<R>(
+    Zone self, ZoneDelegate parent, Zone zone, R f()) {
   var oldDepth = depth;
   increaseDepth();
   return parent.registerCallback(zone, () {
@@ -104,8 +104,8 @@ dynamic Function() registerCallback(
   });
 }
 
-dynamic Function(dynamic) registerUnaryCallback(
-    Zone self, ZoneDelegate parent, Zone zone, f) {
+ZoneUnaryCallback<R, T> registerUnaryCallback<R, T>(
+    Zone self, ZoneDelegate parent, Zone zone, R f(T arg)) {
   var oldDepth = depth;
   increaseDepth();
   return parent.registerUnaryCallback(zone, (x) {
@@ -114,8 +114,8 @@ dynamic Function(dynamic) registerUnaryCallback(
   });
 }
 
-dynamic Function(dynamic, dynamic) registerBinaryCallback(
-    Zone self, ZoneDelegate parent, Zone zone, f) {
+ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
+    Zone self, ZoneDelegate parent, Zone zone, R f(T1 arg1, T2 arg2)) {
   var oldDepth = depth;
   increaseDepth();
   return parent.registerBinaryCallback(zone, (x, y) {
@@ -124,7 +124,7 @@ dynamic Function(dynamic, dynamic) registerBinaryCallback(
   });
 }
 
-sm(Zone self, ZoneDelegate parent, Zone zone, f) {
+void sm(Zone self, ZoneDelegate parent, Zone zone, f) {
   var oldDepth = depth;
   increaseDepth();
   return parent.scheduleMicrotask(zone, () {

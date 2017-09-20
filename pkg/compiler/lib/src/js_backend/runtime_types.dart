@@ -39,6 +39,7 @@ abstract class RuntimeTypesNeed {
   bool classNeedsRti(ClassEntity cls);
   bool classNeedsRtiField(ClassEntity cls);
   bool methodNeedsRti(FunctionEntity function);
+  // TODO(redemption): Remove this when the old frontend is deleted.
   bool localFunctionNeedsRti(Local function);
   bool classUsesTypeVariableExpression(ClassEntity cls);
 }
@@ -256,6 +257,10 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   }
 
   bool localFunctionNeedsRti(Local function) {
+    if (localFunctionsNeedingRti == null) {
+      // [localFunctionNeedsRti] is only used by the old frontend.
+      throw new UnsupportedError('RuntimeTypesNeed.localFunctionsNeedingRti');
+    }
     return localFunctionsNeedingRti.contains(function) ||
         _backendUsage.isRuntimeTypeUsed;
   }

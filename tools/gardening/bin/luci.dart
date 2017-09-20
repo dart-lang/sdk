@@ -8,19 +8,20 @@ import 'package:gardening/src/luci.dart';
 import 'package:gardening/src/luci_services.dart';
 import 'package:gardening/src/logger.dart';
 import 'package:gardening/src/cache_new.dart';
+import 'package:gardening/src/util.dart';
 import 'package:args/args.dart';
 
 ArgParser setupArgs() {
   return new ArgParser()
     ..addOption("client",
-        abbr: "c", defaultsTo: 'client.dart', help: "Set which client to use.")
-    ..addFlag("verbose",
+        abbr: "c", defaultsTo: DART_CLIENT, help: "Set which client to use.")
+    ..addFlag(Flags.verbose,
         abbr: "v", negatable: false, help: "Print debugging information.")
-    ..addFlag("no-cache",
+    ..addFlag(Flags.noCache,
         negatable: false,
         defaultsTo: false,
         help: "Use this flag to bypass caching. This may be slower.")
-    ..addFlag("help",
+    ..addFlag(Flags.help,
         negatable: false,
         help: "Shows information on how to use the luci tool.")
     ..addFlag("build-bots",
@@ -47,7 +48,7 @@ ArgParser setupArgs() {
             "a specific build bot.")
     ..addFlag("build-details",
         negatable: false,
-        help: "use this option as `--build-details <name> <buildNo>` where "
+        help: "Use this option as `--build-details <name> <buildNo>` where "
             "<name> is the name of the bot and "
             "<buildNo> is the number of the build.")
     ..addFlag("builds-with-commit",
@@ -74,11 +75,9 @@ main(List<String> args) async {
   }
 
   var luci = new Luci();
-  Logger logger =
-      new StdOutLogger(results['verbose'] ? Level.debug : Level.info);
-  CreateCacheFunction createCache = results['no-cache']
-      ? noCache()
-      : initCache(Uri.base.resolve('temp/gardening-cache/'), logger);
+  Logger logger = createLogger(verbose: results[Flags.verbose]);
+  CreateCacheFunction createCache =
+      createCacheFunction(logger, disableCache: results[Flags.noCache]);
 
   if (results["build-bots"]) {
     await performBuildBotsPrimary(luci, createCache, results);
@@ -204,10 +203,6 @@ Future performFindBuildsForCommit(Luci luci, CreateCacheFunction createCache,
   }
 
   int amount = 25;
-  logger.info(
-      "Sorry - this is going to take some time, since we have to look into all "
-      "$amount latest builds for all bots for client ${results['client']}.\n"
-      "Subsequent queries run faster if caching is not turned off...");
 
   var result = await fetchBuildsForCommmit(
       luci, logger, results['client'], results.rest[0], createCache, amount);

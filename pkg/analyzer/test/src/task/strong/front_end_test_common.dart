@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -174,6 +175,10 @@ class InstrumentationValueForType extends fasta.InstrumentationValue {
       buffer.write('<BottomType>');
     } else if (type is TypeParameterType) {
       elementNamer.appendElementName(buffer, type.element);
+      if (type.element is TypeParameterMember) {
+        buffer.write(' extends ');
+        _appendType(buffer, type.bound);
+      }
     } else {
       buffer.write(type.toString());
     }

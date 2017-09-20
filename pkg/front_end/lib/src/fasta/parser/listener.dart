@@ -163,7 +163,7 @@ class Listener {
   /// - Enum name (identifier)
   /// - [count] times:
   ///   - Enum value (identifier)
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
     logEvent("Enum");
   }
 
@@ -238,7 +238,7 @@ class Listener {
   /// [endForStatement] or [endForIn].
   void beginForStatement(Token token) {}
 
-  void endForStatement(Token forKeyword, Token leftSeparator,
+  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     logEvent("ForStatement");
   }

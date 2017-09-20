@@ -105,7 +105,7 @@ vars = {
   "path_tag": "@1.4.1",
   "plugin_tag": "@0.2.0",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
-  "pool_tag": "@1.3.0",
+  "pool_rev": "@3731963107c705e192c255725bbe5956e9e7a794",
   "protobuf_tag": "@0.5.4",
   "pub_rev": "@cde958f157d3662bf968bcbed05580d5c0355e89",
   "pub_semver_tag": "@1.3.2",
@@ -121,13 +121,13 @@ vars = {
   "source_maps-0.9.4_rev": "@38524",
   "source_maps_tag": "@0.10.4",
   "source_span_tag": "@1.4.0",
-  "stack_trace_tag": "@1.7.2",
+  "stack_trace_rev": "@6332f0259b3b39398c5ce7fc924ea4e430496065",
   "stream_channel_tag": "@1.6.1",
   "string_scanner_tag": "@1.0.1",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "term_glyph_tag": "@1.0.0",
   "test_reflective_loader_tag": "@0.1.0",
-  "test_tag": "@0.12.24+2",
+  "test_tag": "@0.12.24+6",
   "tuple_tag": "@v1.0.1",
   "typed_data_tag": "@1.1.3",
   "usage_tag": "@3.3.0",
@@ -268,7 +268,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/plugin":
       Var("github_mirror") + "plugin.git" + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
-      Var("github_mirror") + "pool.git" + Var("pool_tag"),
+      Var("github_mirror") + "pool.git" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
       Var("github_mirror") + "protobuf.git" + Var("protobuf_tag"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
@@ -301,7 +301,7 @@ deps = {
       Var("github_mirror") + "source_map_stack_trace.git" +
       Var("source_map_stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
-      Var("github_mirror") + "stack_trace.git" + Var("stack_trace_tag"),
+      Var("github_mirror") + "stack_trace.git" + Var("stack_trace_rev"),
   Var("dart_root") + "/third_party/pkg/stream_channel":
       Var("github_mirror") + "stream_channel.git" +
       Var("stream_channel_tag"),

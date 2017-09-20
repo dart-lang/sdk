@@ -1108,7 +1108,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 _analysisOptions,
                 declaredVariables,
                 _sourceFactory,
-                fsState);
+                fsState,
+                _resourceProvider.pathContext);
             analyzer = new LibraryAnalyzer(
                 analysisOptions,
                 declaredVariables,
