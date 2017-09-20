@@ -30,12 +30,6 @@ case "${1//_/-}" in
     ;;
   compile) SCRIPT="${TOOL_DIR}/compile.dart";;
   compile-platform) SCRIPT="${TOOL_DIR}/compile_platform.dart";;
-  compile-platform-dartk)
-    SCRIPT="${TOOL_DIR}/compile_platform_dartk.dart"
-    if [ "$#" != "2" ]; then
-      stop "Usage: $1 file"
-    fi
-    ;;
   log) SCRIPT="${TOOL_DIR}/log_analyzer.dart";;
   logd) SCRIPT="${TOOL_DIR}/log_collector.dart";;
   outline) SCRIPT="${TOOL_DIR}/outline.dart";;
