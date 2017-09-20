@@ -28,6 +28,7 @@
 % - Don't specify the exact object used for empty positionalArguments and
 %   namedArguments on Invocation.
 % - Remove the, now unnecessary, handling of invalid overrides of noSuchMethod.
+% - Add >>> as overridable operator.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -1100,11 +1101,11 @@ It is a static warning if an instance method $m_1$ overrides an instance member 
 An operator declaration is identified using the built-in identifier (\ref{identifierReference}) \OPERATOR{}.
 
 \LMHash{}
-The following names are allowed for user-defined operators: \code{<, >, <=, >=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$,  []=, [], \~{}.}
+The following names are allowed for user-defined operators: \code{<, >, <=, >=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$, $>>>$, []=, [], \~{}.}
 
 
 \LMHash{}
-It is a compile-time error if the arity of the user-declared operator \code{[]=} is not 2. It is a compile-time error if the arity of a user-declared operator with one of the names:  \code{ <, >, <=, >=, ==, -, +,  \~{}/, /, *, \%, $|$, \^{}, \&, $<<$, $>>$, []} is not 1. It is a compile-time error if the arity of the user-declared operator  \code{-} is not 0 or 1.
+It is a compile-time error if the arity of the user-declared operator \code{[]=} is not 2. It is a compile-time error if the arity of a user-declared operator with one of the names:  \code{ <, >, <=, >=, ==, -, +,  \~{}/, /, *, \%, $|$, \^{}, \&, $<<$, $>>$, $>>>$, []} is not 1. It is a compile-time error if the arity of the user-declared operator  \code{-} is not 0 or 1.
 
 \commentary{
 The \code{-} operator is unique in that two overloaded versions are permitted. If the operator has no arguments, it denotes unary minus. If it has an argument, it denotes binary subtraction.
@@ -2632,7 +2633,7 @@ A constant expression is one of the following:
 \item An expression of the form \code{identical($e_1$, $e_2$)} where $e_1$ and $e_2$ are constant expressions  and \code{identical()} is statically bound to the predefined dart function   \code{identical()} discussed above (\ref{objectIdentity}).
 \item An expression of one of the forms  \code{$e_1$ == $e_2$} or  \code{$e_1$ != $e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric, string or boolean value or to \NULL{}.
 \item An expression of one of the forms \code{!$e$}, \code{$e_1$ \&\& $e_2$} or \code{$e_1 || e_2$}, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a boolean value.
-\item An expression of one of the forms \~{}$e$, $e_1$ \^{} $e_2$, \code{$e_1$ \& $e_2$}, $e_1 | e_2$, $e_1 >> e_2$ or $e_1 <<  e_2$, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value  or to \NULL{}.
+\item An expression of one of the forms \~{}$e$, $e_1$ \^{} $e_2$, \code{$e_1$ \& $e_2$}, $e_1 | e_2$, $e_1 << e_2$, $e_1 >> e_2$ or $e_1 >>> e_2$, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value or to \NULL{}.
 \item An expression of the form \code{$e_1 + e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to \NULL{}.
 \item An expression of one of the forms \code{$-e$}, \code{$e_1$ - $e_2$}, \code{$e_1$ * $e_2$}, \code{$e_1$ / $e_2$,} \code{$e_1$ \~{}/ $e_2$},  \code{$e_1  >  e_2$}, \code{$e_1  <  e_2$}, \code{$e_1$ >= $e_2$}, \code{$e_1$ <= $e_2$} or \code{$e_1$ \% $e_2$},  where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value  or to \NULL{}.
 \item An expression of the form \code{$e_1$?$e_2$:$e3$} where $e_1$, $e_2$ and $e_3$ are constant expressions and $e_1$ evaluates to a boolean value.
@@ -4704,7 +4705,8 @@ $C.v$ $op = e_2$.
       `+=';
       `-=';
       `{\escapegrammar \lt \lt}=';
-       `{\escapegrammar \gt \gt}=';
+      `{\escapegrammar \gt \gt}=';
+      `{\escapegrammar \gt \gt \gt}=';
       `\&=';
       `\^{}=';
       `$|$=';
@@ -4951,7 +4953,8 @@ Shift expressions invoke the shift operators on objects.
     .
 
 {\bf shiftOperator:}`{\escapegrammar \lt\lt'};
-       `{\escapegrammar \gt \gt}'
+       `{\escapegrammar \gt \gt}';
+       `{\escapegrammar \gt \gt \gt}'
     .
  \end{grammar}
 
@@ -8016,7 +8019,7 @@ Multiplicative & *, /, \~/,  \%  & Left & 14\\
 \hline
 Additive & +, - & Left & 13\\
 \hline
-Shift &  $<<$, $>>$&  Left & 12\\
+Shift &  $<<$, $>>$, $>>>$&  Left & 12\\
 \hline
 Bitwise AND & \& & Left & 11\\
 \hline
