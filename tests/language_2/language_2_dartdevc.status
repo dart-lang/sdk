@@ -168,5 +168,3 @@ yieldstar_pause_test: Skip # Times out
 modulo_test: RuntimeError # Issue 29920
 named_parameter_clash_test: RuntimeError # Issue 29920
 
-[ $compiler == dartdevc && $system == windows ]
-multiline_strings_test: RuntimeError # Issue 30336
