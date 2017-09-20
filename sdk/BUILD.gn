@@ -660,6 +660,7 @@ group("copy_libraries") {
 # This rule writes the version file.
 action("write_version_file") {
   visibility = [ ":create_common_sdk" ]
+  inputs = [ "../tools/VERSION" ]
   output = "$root_out_dir/dart-sdk/version"
   outputs = [
     output,
