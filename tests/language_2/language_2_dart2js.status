@@ -494,9 +494,6 @@ constructor_duplicate_final_test/02: Pass
 [ $compiler == dart2js && $runtime == d8 && !$checked]
 mixin_type_parameters_super_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == d8 && !$checked &&!$host_checked]
-mock_writable_final_field_test: RuntimeError
-
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
 
