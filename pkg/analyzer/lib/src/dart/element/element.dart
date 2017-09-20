@@ -8273,14 +8273,21 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   FunctionElement get initializer {
-    if (_unlinkedParam != null && _initializer == null) {
-      UnlinkedExecutable unlinkedInitializer = _unlinkedParam.initializer;
-      if (unlinkedInitializer != null) {
-        _initializer =
-            new FunctionElementImpl.forSerialized(unlinkedInitializer, this)
-              ..isSynthetic = true;
-      } else {
-        return null;
+    if (_initializer == null) {
+      if (_kernel != null && _kernel.initializer != null) {
+        _initializer = new FunctionElementImpl.forOffset(-1)
+          ..enclosingElement = this
+          ..isSynthetic = true;
+      }
+      if (_unlinkedParam != null) {
+        UnlinkedExecutable unlinkedInitializer = _unlinkedParam.initializer;
+        if (unlinkedInitializer != null) {
+          _initializer =
+              new FunctionElementImpl.forSerialized(unlinkedInitializer, this)
+                ..isSynthetic = true;
+        } else {
+          return null;
+        }
       }
     }
     return super.initializer;

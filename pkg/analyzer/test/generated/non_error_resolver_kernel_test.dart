@@ -126,50 +126,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_invalidAssignment_defaultValue_named() async {
-    return super.test_invalidAssignment_defaultValue_named();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_defaultValue_optional() async {
-    return super.test_invalidAssignment_defaultValue_optional();
-  }
-
-  @override
-  @failingTest
-  test_invalidOverrideDifferentDefaultValues_named() async {
-    return super.test_invalidOverrideDifferentDefaultValues_named();
-  }
-
-  @override
-  @failingTest
-  test_invalidOverrideDifferentDefaultValues_named_function() async {
-    return super.test_invalidOverrideDifferentDefaultValues_named_function();
-  }
-
-  @override
-  @failingTest
-  test_invalidOverrideDifferentDefaultValues_positional() async {
-    return super.test_invalidOverrideDifferentDefaultValues_positional();
-  }
-
-  @override
-  @failingTest
-  test_invalidOverrideDifferentDefaultValues_positional_changedOrder() async {
-    return super
-        .test_invalidOverrideDifferentDefaultValues_positional_changedOrder();
-  }
-
-  @override
-  @failingTest
-  test_invalidOverrideDifferentDefaultValues_positional_function() async {
-    return super
-        .test_invalidOverrideDifferentDefaultValues_positional_function();
-  }
-
-  @override
-  @failingTest
   test_loadLibraryDefined() async {
     fail('This test fails only in checked mode.');
     return super.test_loadLibraryDefined();
@@ -201,13 +157,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject();
-  }
-
-  @override
-  @failingTest
   test_nonConstantDefaultValue_constField() async {
     return super.test_nonConstantDefaultValue_constField();
   }
@@ -226,18 +175,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_nonConstantDefaultValue_inConstructor_named() async {
-    return super.test_nonConstantDefaultValue_inConstructor_named();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_inConstructor_positional() async {
-    return super.test_nonConstantDefaultValue_inConstructor_positional();
-  }
-
-  @override
-  @failingTest
   test_nonConstantDefaultValue_method_named() async {
     return super.test_nonConstantDefaultValue_method_named();
   }
@@ -246,12 +183,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_nonConstantDefaultValue_method_positional() async {
     return super.test_nonConstantDefaultValue_method_positional();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_typedConstList() async {
-    return super.test_nonConstantDefaultValue_typedConstList();
   }
 
   @override
@@ -276,12 +207,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_nonConstMapValue_constField() async {
     return super.test_nonConstMapValue_constField();
-  }
-
-  @override
-  @failingTest
-  test_parameterDefaultDoesNotReferToParameterName() async {
-    return super.test_parameterDefaultDoesNotReferToParameterName();
   }
 
   @override
