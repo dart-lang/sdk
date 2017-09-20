@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js && $builder_tag != run_webgl_tests ]
+LayoutTests/fast/canvas/webgl*: Skip # Only run WebGL on special builders, issue 29961
+
 [ $compiler == dart2js ]
 Language/Classes/Constructors/Generative_Constructors/execution_t03: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
 Language/Expressions/Function_Invocation/async_cleanup_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
