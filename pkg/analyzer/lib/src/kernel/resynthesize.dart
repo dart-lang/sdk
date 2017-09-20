@@ -7,11 +7,13 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
 import 'package:kernel/kernel.dart' as kernel;
@@ -21,7 +23,7 @@ import 'package:kernel/type_environment.dart' as kernel;
  * Object that can resynthesize analyzer [LibraryElement] from Kernel.
  */
 class KernelResynthesizer implements ElementResynthesizer {
-  final AnalysisContext _analysisContext;
+  final AnalysisContextImpl _analysisContext;
   final kernel.TypeEnvironment _types;
   final Map<String, kernel.Library> _kernelMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
@@ -31,7 +33,13 @@ class KernelResynthesizer implements ElementResynthesizer {
    */
   final Map<String, Source> _sources = <String, Source>{};
 
-  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap);
+  /// The type provider for this resynthesizer.
+  SummaryTypeProvider _typeProvider;
+
+  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap) {
+    _buildTypeProvider();
+    _analysisContext.typeProvider = _typeProvider;
+  }
 
   @override
   AnalysisContext get context => _analysisContext;
@@ -81,8 +89,24 @@ class KernelResynthesizer implements ElementResynthesizer {
       }
       libraryElement.parts = parts;
 
+      // Create the required `loadLibrary` function.
+      if (uriStr != 'dart:core' && uriStr != 'dart:async') {
+        libraryElement.createLoadLibraryFunction(_typeProvider);
+      }
+
       return libraryElement;
     });
+  }
+
+  void _buildTypeProvider() {
+    var coreLibrary = getLibrary('dart:core');
+    var asyncLibrary = getLibrary('dart:async');
+    _typeProvider = new SummaryTypeProvider();
+    _typeProvider.initializeCore(coreLibrary);
+    _typeProvider.initializeAsync(asyncLibrary);
+    // Now, when TypeProvider is ready, we can finalize core/async.
+    coreLibrary.createLoadLibraryFunction(_typeProvider);
+    asyncLibrary.createLoadLibraryFunction(_typeProvider);
   }
 
   /**

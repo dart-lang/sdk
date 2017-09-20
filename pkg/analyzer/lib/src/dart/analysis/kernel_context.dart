@@ -152,19 +152,8 @@ class KernelContext {
       var resynthesizer = new KernelResynthesizer(
           analysisContext, kernelResult.types, libraryMap);
 
-      analysisContext.typeProvider = _buildTypeProvider(resynthesizer);
       return new KernelContext._(analysisContext, resynthesizer);
     });
-  }
-
-  static SummaryTypeProvider _buildTypeProvider(
-      KernelResynthesizer resynthesizer) {
-    var coreLibrary = resynthesizer.getLibrary('dart:core');
-    var asyncLibrary = resynthesizer.getLibrary('dart:async');
-    SummaryTypeProvider summaryTypeProvider = new SummaryTypeProvider();
-    summaryTypeProvider.initializeCore(coreLibrary);
-    summaryTypeProvider.initializeAsync(asyncLibrary);
-    return summaryTypeProvider;
   }
 }
 

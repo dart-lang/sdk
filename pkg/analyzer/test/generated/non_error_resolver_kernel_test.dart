@@ -126,13 +126,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_loadLibraryDefined() async {
-    fail('This test fails only in checked mode.');
-    return super.test_loadLibraryDefined();
-  }
-
-  @override
-  @failingTest
   test_memberWithClassName_setter() async {
     return super.test_memberWithClassName_setter();
   }
