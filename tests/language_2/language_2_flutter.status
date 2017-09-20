@@ -72,6 +72,27 @@ wrong_number_type_arguments_test/02: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
+is_malformed_type_test/97: CompileTimeError
+is_malformed_type_test/98: CompileTimeError
+is_malformed_type_test/99: CompileTimeError
+is_malformed_type_test/95: CompileTimeError
+is_malformed_type_test/96: CompileTimeError
+is_malformed_type_test/94: CompileTimeError
+is_not_class2_test: RuntimeError
+is_malformed_type_test/97: CompileTimeError
+is_malformed_type_test/98: CompileTimeError
+is_malformed_type_test/99: CompileTimeError
+is_malformed_type_test/95: CompileTimeError
+is_malformed_type_test/96: CompileTimeError
+is_malformed_type_test/94: CompileTimeError
+is_not_class2_test: RuntimeError
+is_malformed_type_test/97: CompileTimeError
+is_malformed_type_test/98: CompileTimeError
+is_malformed_type_test/99: CompileTimeError
+is_malformed_type_test/95: CompileTimeError
+is_malformed_type_test/96: CompileTimeError
+is_malformed_type_test/94: CompileTimeError
+is_not_class2_test: RuntimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

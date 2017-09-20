@@ -809,6 +809,7 @@ void KernelLoader::LoadAndSetupTypeParameters(
   {
     AlternativeReadingScope alt(builder_.reader_);
     for (intptr_t i = 0; i < type_parameter_count; i++) {
+      builder_.SkipFlags();
       parameter = TypeParameter::New(
           parameterized_class, parameterized_function, i,
           H.DartSymbol(builder_.ReadStringReference()),  // read ith name index.
@@ -827,6 +828,7 @@ void KernelLoader::LoadAndSetupTypeParameters(
 
   // Step b) Fill in the bounds of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
+    builder_.SkipFlags();
     builder_.SkipStringReference();  // read ith name index.
 
     // TODO(github.com/dart-lang/kernel/issues/42): This should be handled

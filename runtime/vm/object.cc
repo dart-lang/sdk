@@ -20330,6 +20330,33 @@ const char* String::ToCString() const {
   return reinterpret_cast<const char*>(result);
 }
 
+char* String::ToMallocCString() const {
+  if (IsOneByteString()) {
+    // Quick conversion if OneByteString contains only ASCII characters.
+    intptr_t len = Length();
+    uint8_t* result = reinterpret_cast<uint8_t*>(malloc(len + 1));
+    NoSafepointScope no_safepoint;
+    const uint8_t* original_str = OneByteString::CharAddr(*this, 0);
+    for (intptr_t i = 0; i < len; i++) {
+      if (original_str[i] <= Utf8::kMaxOneByteChar) {
+        result[i] = original_str[i];
+      } else {
+        len = -1;
+        break;
+      }
+    }
+    if (len > 0) {
+      result[len] = 0;
+      return reinterpret_cast<char*>(result);
+    }
+  }
+  const intptr_t len = Utf8::Length(*this);
+  uint8_t* result = reinterpret_cast<uint8_t*>(malloc(len + 1));
+  ToUTF8(result, len);
+  result[len] = 0;
+  return reinterpret_cast<char*>(result);
+}
+
 void String::ToUTF8(uint8_t* utf8_array, intptr_t array_len) const {
   ASSERT(array_len >= Utf8::Length(*this));
   Utf8::Encode(*this, reinterpret_cast<char*>(utf8_array), array_len);

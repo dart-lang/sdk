@@ -1581,6 +1581,12 @@ class Printer extends Visitor<Null> {
 
   visitTypeParameterType(TypeParameterType node) {
     writeTypeParameterReference(node.parameter);
+    if (node.promotedBound != null) {
+      writeSpace();
+      writeWord('extends');
+      writeSpace();
+      writeType(node.promotedBound);
+    }
   }
 
   visitTypeParameter(TypeParameter node) {

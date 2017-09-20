@@ -449,14 +449,15 @@ class Driver implements ServerStarter {
    */
   dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
       {void print(String line)}) {
-    var errorFunction = (Zone self, ZoneDelegate parent, Zone zone,
+    void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
       service.logPriorityException(exception, stackTrace);
       AnalysisServer analysisServer = socketServer.analysisServer;
       analysisServer.sendServerErrorNotification(
           'Captured exception', exception, stackTrace);
       throw exception;
-    };
+    }
+
     var printFunction = print == null
         ? null
         : (Zone self, ZoneDelegate parent, Zone zone, String line) {

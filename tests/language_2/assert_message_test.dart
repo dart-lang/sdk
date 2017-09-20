@@ -17,6 +17,7 @@ main() {
 
   // Basics.
   assert(true, "");
+  assert(() => true, "");
 
   int x = null;
   // Successful asserts won't execute message.

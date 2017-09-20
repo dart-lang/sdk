@@ -1019,8 +1019,9 @@ class CommandQueue {
       // If a command is part of many TestCases we set the timeout to be
       // the maximum over all [TestCase.timeout]s. At some point, we might
       // eliminate [TestCase.timeout] completely and move it to [Command].
-      int timeout =
-          testCases.map((TestCase test) => test.timeout).fold(0, math.max);
+      int timeout = testCases
+          .map((TestCase test) => test.timeout)
+          .fold(0, (int a, b) => math.max(a, b));
 
       if (_verbose) {
         print('Running "${command.displayName}" command: $command');

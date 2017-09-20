@@ -1660,34 +1660,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         new ShadowSymbolLiteral(value)..fileOffset = offsetForToken(hashToken));
   }
 
-  DartType kernelTypeFromString(
-      String name, List<DartType> arguments, int charOffset) {
-    Builder builder = scope.lookup(name, charOffset, uri);
-    if (builder == null) {
-      warning(fasta.templateTypeNotFound.withArguments(name), charOffset);
-      return const InvalidType();
-    } else {
-      return kernelTypeFromBuilder(builder, arguments, charOffset);
-    }
-  }
-
-  DartType kernelTypeFromBuilder(
-      Builder builder, List<DartType> arguments, int charOffset) {
-    if (constantExpressionRequired && builder is TypeVariableBuilder) {
-      deprecated_addCompileTimeError(charOffset, "Not a constant expression.");
-    }
-    if (builder.hasProblem) {
-      ProblemBuilder problem = builder;
-      addCompileTimeError(problem.message, charOffset);
-    } else {
-      warningNotError(
-          fasta.templateNotAType.withArguments(builder.fullNameForErrors),
-          charOffset);
-    }
-    // TODO(ahe): Create an error somehow.
-    return const InvalidType();
-  }
-
   @override
   void handleType(Token beginToken, Token endToken) {
     // TODO(ahe): The scope is wrong for return types of generic functions.
@@ -1699,36 +1671,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         unexpected("${name.length}", "2", beginToken.charOffset, uri);
       }
       var prefix = name[0];
-      if (prefix is Identifier) {
-        prefix = prefix.name;
-      }
-      var suffix = name[1];
-      if (suffix is Identifier) {
-        suffix = suffix.name;
-      }
-      Builder builder;
-      if (prefix is Builder) {
-        builder = prefix;
-      } else if (prefix is String) {
-        builder = scope.lookup(prefix, beginToken.charOffset, uri);
+      Identifier suffix = name[1];
+      if (prefix is PrefixBuilder) {
+        name = scopeLookup(prefix.exportScope, suffix.name, beginToken,
+            isQualified: true, prefix: prefix);
       } else {
+        String displayName = debugName(getNodeName(prefix), suffix.name);
+        warningNotError(fasta.templateNotAType.withArguments(displayName),
+            beginToken.charOffset);
         push(const InvalidType());
-        deprecated_addCompileTimeError(
-            beginToken.charOffset, "Invalid type prefix: $prefix.");
         return;
       }
-      if (builder is PrefixBuilder) {
-        name = scopeLookup(builder.exportScope, suffix, beginToken,
-            isQualified: true, prefix: builder);
-      } else {
-        push(const InvalidType());
-        deprecated_addCompileTimeError(beginToken.charOffset,
-            "Can't be used as a type: '${debugName(prefix, suffix)}'.");
-        return;
-      }
-    }
-    if (name is Identifier) {
-      name = name.name;
     }
     if (name is TypeDeclarationAccessor) {
       push(name.buildType(arguments));
@@ -1738,10 +1691,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(const InvalidType());
     } else if (name is TypeBuilder) {
       push(name.build(library));
-    } else if (name is Builder) {
-      push(kernelTypeFromBuilder(name, arguments, beginToken.charOffset));
-    } else if (name is String) {
-      push(kernelTypeFromString(name, arguments, beginToken.charOffset));
+    } else if (name is PrefixBuilder) {
+      warningNotError(fasta.templateNotAType.withArguments(name.name),
+          beginToken.charOffset);
+      push(const InvalidType());
     } else {
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);

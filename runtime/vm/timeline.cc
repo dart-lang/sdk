@@ -420,8 +420,8 @@ void TimelineEvent::Reset() {
   category_ = "";
   label_ = NULL;
   arguments_.Free();
-  set_pre_serialized_json(false);
   set_event_type(kNone);
+  set_pre_serialized_args(false);
   set_owns_label(false);
 }
 
@@ -536,10 +536,10 @@ void TimelineEvent::Metadata(const char* label, int64_t micros) {
   set_timestamp0(micros);
 }
 
-void TimelineEvent::CompleteWithPreSerializedJSON(const char* json) {
-  set_pre_serialized_json(true);
+void TimelineEvent::CompleteWithPreSerializedArgs(char* args_json) {
+  set_pre_serialized_args(true);
   SetNumArguments(1);
-  CopyArgument(0, "Dart", json);
+  SetArgument(0, "Dart Arguments", args_json);
   Complete();
 }
 
@@ -585,8 +585,8 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   }
   label_ = label;
   arguments_.Free();
-  set_pre_serialized_json(false);
   set_event_type(event_type);
+  set_pre_serialized_args(false);
   set_owns_label(false);
 }
 
@@ -611,20 +611,8 @@ bool TimelineEvent::Within(int64_t time_origin_micros,
   return (delta >= 0) && (delta <= time_extent_micros);
 }
 
-const char* TimelineEvent::GetSerializedJSON() const {
-  ASSERT(pre_serialized_json());
-  ASSERT(arguments_.length() == 1);
-  return arguments_[0].value;
-}
-
 void TimelineEvent::PrintJSON(JSONStream* stream) const {
   if (!FLAG_support_service) {
-    return;
-  }
-  if (pre_serialized_json()) {
-    // Event has already been serialized into JSON- just append the
-    // raw data.
-    stream->AppendSerializedObject(GetSerializedJSON());
     return;
   }
   JSONObject obj(stream);
@@ -690,7 +678,18 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     default:
       UNIMPLEMENTED();
   }
-  {
+
+  if (pre_serialized_args()) {
+    ASSERT(arguments_.length() == 1);
+    stream->AppendSerializedObject("args", arguments_[0].value);
+    if (isolate_id_ != ILLEGAL_PORT) {
+      // If we have one, append the isolate id.
+      stream->UncloseObject();
+      stream->PrintfProperty("isolateNumber", "%" Pd64 "",
+                             static_cast<int64_t>(isolate_id_));
+      stream->CloseObject();
+    }
+  } else {
     JSONObject args(&obj, "args");
     for (intptr_t i = 0; i < arguments_.length(); i++) {
       const TimelineEventArgument& arg = arguments_[i];
@@ -1598,161 +1597,86 @@ TimelineEventBlock* TimelineEventBlockIterator::Next() {
   return r;
 }
 
-void DartCommonTimelineEventHelpers::ReportTaskEvent(Thread* thread,
-                                                     Zone* zone,
-                                                     TimelineEvent* event,
-                                                     int64_t start,
-                                                     int64_t id,
-                                                     const char* phase,
-                                                     const char* category,
-                                                     const char* name,
-                                                     const char* args) {
-  const int64_t pid = OS::ProcessId();
-  OSThread* os_thread = thread->os_thread();
-  ASSERT(os_thread != NULL);
-  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
+void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
+                                               TimelineEvent* event,
+                                               int64_t start,
+                                               int64_t id,
+                                               const char* phase,
+                                               const char* category,
+                                               char* name,
+                                               char* args) {
   ASSERT(phase != NULL);
   ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e'));
   ASSERT(phase[1] == '\0');
-  char* json = OS::SCreate(
-      zone,
-      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
-      ","
-      "\"ts\":%" Pd64 ",\"ph\":\"%s\",\"id\":%" Pd64 ", \"args\":%s}",
-      name, category, tid, pid, start, phase, id, args);
   switch (phase[0]) {
     case 'n':
-      event->AsyncInstant("", id, start);
+      event->AsyncInstant(name, id, start);
       break;
     case 'b':
-      event->AsyncBegin("", id, start);
+      event->AsyncBegin(name, id, start);
       break;
     case 'e':
-      event->AsyncEnd("", id, start);
+      event->AsyncEnd(name, id, start);
       break;
     default:
       UNREACHABLE();
   }
-
-  // json was allocated in the zone and a copy will be stored in event.
-  event->CompleteWithPreSerializedJSON(json);
+  event->set_owns_label(true);
+  event->CompleteWithPreSerializedArgs(args);
 }
 
-void DartCommonTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
-                                                         Zone* zone,
-                                                         TimelineEvent* event,
-                                                         int64_t start,
-                                                         int64_t start_cpu,
-                                                         const char* category,
-                                                         const char* name,
-                                                         const char* args) {
+void DartTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
+                                                   TimelineEvent* event,
+                                                   int64_t start,
+                                                   int64_t start_cpu,
+                                                   const char* category,
+                                                   char* name,
+                                                   char* args) {
   const int64_t end = OS::GetCurrentMonotonicMicros();
   const int64_t end_cpu = OS::GetCurrentThreadCPUMicros();
-  const int64_t duration = end - start;
-  const int64_t duration_cpu = end_cpu - start_cpu;
-  const int64_t pid = OS::ProcessId();
-  OSThread* os_thread = thread->os_thread();
-  ASSERT(os_thread != NULL);
-  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
-
-  char* json = NULL;
-  if ((start_cpu != -1) && (end_cpu != -1)) {
-    json = OS::SCreate(
-        zone,
-        "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
-        ","
-        "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64
-        ","
-        "\"tdur\":%" Pd64 ",\"args\":%s}",
-        name, category, tid, pid, start, duration, duration_cpu, args);
-  } else {
-    json = OS::SCreate(
-        zone,
-        "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
-        ","
-        "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64 ",\"args\":%s}",
-        name, category, tid, pid, start, duration, args);
-  }
-  ASSERT(json != NULL);
-
-  event->Duration("", start, end, start_cpu, end_cpu);
-  // json was allocated in the zone and a copy will be stored in event.
-  event->CompleteWithPreSerializedJSON(json);
+  event->Duration(name, start, end, start_cpu, end_cpu);
+  event->set_owns_label(true);
+  event->CompleteWithPreSerializedArgs(args);
 }
 
-void DartCommonTimelineEventHelpers::ReportFlowEvent(Thread* thread,
-                                                     Zone* zone,
-                                                     TimelineEvent* event,
-                                                     int64_t start,
-                                                     int64_t start_cpu,
-                                                     const char* category,
-                                                     const char* name,
-                                                     int64_t type,
-                                                     int64_t flow_id,
-                                                     const char* args) {
-  const int64_t pid = OS::ProcessId();
-  OSThread* os_thread = thread->os_thread();
-  ASSERT(os_thread != NULL);
-  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
-
+void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
+                                               TimelineEvent* event,
+                                               int64_t start,
+                                               int64_t start_cpu,
+                                               const char* category,
+                                               char* name,
+                                               int64_t type,
+                                               int64_t flow_id,
+                                               char* args) {
   TimelineEvent::EventType event_type =
       static_cast<TimelineEvent::EventType>(type);
-  const char* typestr = NULL;
-  const char* bpstr = "";
   switch (event_type) {
     case TimelineEvent::kFlowBegin:
-      typestr = "s";
+      event->FlowBegin(name, flow_id, start);
       break;
     case TimelineEvent::kFlowStep:
-      typestr = "t";
+      event->FlowStep(name, flow_id, start);
       break;
     case TimelineEvent::kFlowEnd:
-      typestr = "f";
-      bpstr = ", \"bp\":\"e\"";
+      event->FlowEnd(name, flow_id, start);
       break;
     default:
       UNREACHABLE();
       break;
   }
-
-  char* json = OS::SCreate(
-      zone,
-      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
-      ","
-      "\"ts\":%" Pd64 ",\"ph\":\"%s\", \"id\":%" Pd64 "%s, \"args\":%s}",
-      name, category, tid, pid, start, typestr, flow_id, bpstr, args);
-  ASSERT(json != NULL);
-
-  // Doesn't really matter what it is since it gets overriden by the
-  // preserialized json.
-  event->FlowBegin("", flow_id, start);
-
-  // json was allocated in the zone and a copy will be stored in event.
-  event->CompleteWithPreSerializedJSON(json);
+  event->set_owns_label(true);
+  event->CompleteWithPreSerializedArgs(args);
 }
 
-void DartCommonTimelineEventHelpers::ReportInstantEvent(Thread* thread,
-                                                        Zone* zone,
-                                                        TimelineEvent* event,
-                                                        int64_t start,
-                                                        const char* category,
-                                                        const char* name,
-                                                        const char* args) {
-  const int64_t pid = OS::ProcessId();
-  OSThread* os_thread = thread->os_thread();
-  ASSERT(os_thread != NULL);
-  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
-
-  char* json = OS::SCreate(zone,
-                           "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64
-                           ",\"pid\":%" Pd64
-                           ","
-                           "\"ts\":%" Pd64 ",\"ph\":\"I\",\"args\":%s}",
-                           name, category, tid, pid, start, args);
-
-  event->Instant("", start);
-  // json was allocated in the zone and a copy will be stored in event.
-  event->CompleteWithPreSerializedJSON(json);
+void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,
+                                                  TimelineEvent* event,
+                                                  int64_t start,
+                                                  const char* category,
+                                                  char* name,
+                                                  char* args) {
+  event->Instant(name, start);
+  event->set_owns_label(true);
+  event->CompleteWithPreSerializedArgs(args);
 }
 
 }  // namespace dart

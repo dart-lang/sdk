@@ -425,6 +425,11 @@ int Options::ParseArguments(int argc,
     return -1;
   }
 
+  // If --snapshot is given without --snapshot-kind, default to script snapshot.
+  if ((snapshot_filename_ != NULL) && (gen_snapshot_kind_ == kNone)) {
+    gen_snapshot_kind_ = kScript;
+  }
+
   return 0;
 }
 

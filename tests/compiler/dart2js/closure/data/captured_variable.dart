@@ -62,6 +62,7 @@ writeLocalInClosure(/**/ parameter) {
   return func;
 }
 
+/*element: Foo.:hasThis*/
 class Foo {
   int /*element: Foo.bar:hasThis*/ bar = 4;
 
@@ -69,6 +70,17 @@ class Foo {
     /*fields=[this],free=[this],hasThis*/ func() => bar;
     return func;
   }
+}
+
+/*element: Repro.:hasThis*/
+class Repro {
+  /*element: Repro.qux:hasThis*/ qux() {
+    /*fields=[this],free=[this],hasThis*/ threeNested(foo) =>
+        /*fields=[this],free=[this],hasThis*/ (bar) => someFunction();
+    return threeNested;
+  }
+
+  /*element: Repro.someFunction:hasThis*/ someFunction() => 3;
 }
 
 main() {
@@ -81,4 +93,5 @@ main() {
   writeLocalInAnonymousClosure(null);
   writeLocalInClosure(null);
   new Foo().baz();
+  new Repro().qux();
 }

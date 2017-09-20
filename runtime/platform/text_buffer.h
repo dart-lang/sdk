@@ -29,6 +29,11 @@ class TextBuffer : ValueObject {
 
   char* buf() { return buf_; }
   intptr_t length() { return msg_len_; }
+  void set_length(intptr_t len) {
+    ASSERT(len >= 0);
+    ASSERT(len <= msg_len_);
+    msg_len_ = len;
+  }
 
   // Steal ownership of the buffer pointer.
   // NOTE: TextBuffer is empty afterwards.

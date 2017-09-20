@@ -63,13 +63,6 @@ enum JSONRpcErrorCode {
   kFileDoesNotExist = 1003,
 };
 
-// Expected that user_data is a JSONStream*.
-void AppendJSONStreamConsumer(Dart_StreamConsumer_State state,
-                              const char* stream_name,
-                              const uint8_t* buffer,
-                              intptr_t buffer_length,
-                              void* user_data);
-
 class JSONStream : ValueObject {
  public:
   explicit JSONStream(intptr_t buf_size = 256);
@@ -157,6 +150,7 @@ class JSONStream : ValueObject {
 
   void OpenObject(const char* property_name = NULL);
   void CloseObject();
+  void UncloseObject();
 
   void OpenArray(const char* property_name = NULL);
   void CloseArray();
@@ -251,6 +245,7 @@ class JSONStream : ValueObject {
 
   friend class JSONObject;
   friend class JSONArray;
+  friend class TimelineEvent;
 };
 
 class JSONObject : public ValueObject {

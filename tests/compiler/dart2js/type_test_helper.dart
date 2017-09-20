@@ -7,6 +7,7 @@ library type_test_helper;
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common/resolution.dart';
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -34,6 +35,7 @@ enum CompileMode { mock, memory, dill }
 
 class TypeEnvironment {
   final Compiler compiler;
+  final bool testBackendWorld;
 
   Resolution get resolution => compiler.resolution;
 
@@ -45,10 +47,17 @@ class TypeEnvironment {
       bool expectNoErrors: false,
       bool expectNoWarningsOrErrors: false,
       bool stopAfterTypeInference: false,
-      String mainSource}) async {
+      String mainSource,
+      bool testBackendWorld: false}) async {
     Uri uri;
     Compiler compiler;
-    bool stopAfterTypeInference = mainSource != null;
+    if (mainSource != null) {
+      stopAfterTypeInference = true;
+    }
+    if (testBackendWorld) {
+      stopAfterTypeInference = true;
+      assert(mainSource != null);
+    }
     if (mainSource == null) {
       source = '''import 'dart:async';
                   main() {}
@@ -106,14 +115,21 @@ class TypeEnvironment {
       var warnings = collector.warnings;
       Expect.isTrue(warnings.isEmpty, 'Unexpected warnings: ${warnings}');
     }
-    return new TypeEnvironment._(compiler);
+    return new TypeEnvironment._(compiler, testBackendWorld: testBackendWorld);
   }
 
-  TypeEnvironment._(Compiler this.compiler);
+  TypeEnvironment._(Compiler this.compiler, {this.testBackendWorld: false});
+
+  ElementEnvironment get elementEnvironment {
+    if (testBackendWorld) {
+      return compiler.backendClosedWorldForTesting.elementEnvironment;
+    } else {
+      return compiler.frontendStrategy.elementEnvironment;
+    }
+  }
 
   Element getElement(String name) {
-    LibraryElement mainApp =
-        compiler.frontendStrategy.elementEnvironment.mainLibrary;
+    LibraryElement mainApp = elementEnvironment.mainLibrary;
     dynamic element = mainApp.find(name);
     Expect.isNotNull(element);
     if (element.isClass) {
@@ -125,10 +141,8 @@ class TypeEnvironment {
   }
 
   ClassEntity getClass(String name) {
-    LibraryEntity mainLibrary =
-        compiler.frontendStrategy.elementEnvironment.mainLibrary;
-    ClassEntity element = compiler.frontendStrategy.elementEnvironment
-        .lookupClass(mainLibrary, name);
+    LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
+    ClassEntity element = elementEnvironment.lookupClass(mainLibrary, name);
     Expect.isNotNull(element);
     if (element is ClassElement) {
       element.ensureResolved(compiler.resolution);
@@ -187,6 +201,10 @@ class TypeEnvironment {
   }
 
   ClosedWorld get closedWorld {
-    return compiler.resolutionWorldBuilder.closedWorldForTesting;
+    if (testBackendWorld) {
+      return compiler.backendClosedWorldForTesting;
+    } else {
+      return compiler.resolutionWorldBuilder.closedWorldForTesting;
+    }
   }
 }

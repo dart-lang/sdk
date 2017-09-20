@@ -4,8 +4,10 @@ name: gardening
 #version: do-not-upload
 dependencies:
   args:
-  http:
+  http: 0.11.3+14
   path:
+  status_file:
+    path: ../../pkg/status_file/
   archive:
   expect:
     path: ../../pkg/expect/

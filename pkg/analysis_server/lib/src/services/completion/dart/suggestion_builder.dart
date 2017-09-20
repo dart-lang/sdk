@@ -220,6 +220,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   final bool typesOnly;
   final bool instCreation;
 
+  /**
+   * The set of libraries that have been, or are currently being, visited.
+   */
+  final Set<LibraryElement> visitedLibraries = new Set<LibraryElement>();
+
   LibraryElementSuggestionBuilder(
       this.containingLibrary, this.kind, this.typesOnly, this.instCreation);
 
@@ -238,7 +243,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     LibraryElement containingLibrary = element.library;
     if (containingLibrary != null) {
       for (var lib in containingLibrary.exportedLibraries) {
-        lib.visitChildren(this);
+        lib.accept(this);
       }
     }
   }
@@ -275,6 +280,13 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     if (!instCreation) {
       addSuggestion(element);
+    }
+  }
+
+  @override
+  visitLibraryElement(LibraryElement element) {
+    if (visitedLibraries.add(element)) {
+      element.visitChildren(this);
     }
   }
 

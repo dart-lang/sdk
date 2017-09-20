@@ -12,6 +12,7 @@ main() {
 
 /// Call default constructor of a field-less class.
 
+/*element: Class1.:[exact=Class1]*/
 class Class1 {}
 
 /*element: generativeConstructorCall:[exact=Class1]*/
@@ -20,6 +21,7 @@ generativeConstructorCall() => new Class1();
 /// Call factory constructor that returns `null`.
 
 class Class2 {
+  /*element: Class2.:[null]*/
   factory Class2() => null;
 }
 
@@ -29,7 +31,9 @@ factoryConstructorCall1() => new Class2();
 /// Call factory constructor that returns an instance of the same class.
 
 class Class3 {
+  /*element: Class3.:[exact=Class3]*/
   factory Class3() => new Class3.named();
+  /*element: Class3.named:[exact=Class3]*/
   Class3.named();
 }
 
@@ -39,9 +43,11 @@ factoryConstructorCall2() => new Class3();
 /// Call factory constructor that returns an instance of another class.
 
 class Class4a {
+  /*element: Class4a.:[exact=Class4b]*/
   factory Class4a() => new Class4b();
 }
 
+/*element: Class4b.:[exact=Class4b]*/
 class Class4b implements Class4a {}
 
 /*element: factoryConstructorCall3:[exact=Class4b]*/

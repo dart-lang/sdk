@@ -20,7 +20,6 @@ const List<String> subtools = const <String>[
   "analyzer-compile",
   "compile",
   "compile-platform",
-  "compile-platform-dartk",
   "log",
   "logd",
   "outline",
@@ -120,11 +119,6 @@ $usage
 Error: Expected three arguments.
 """,
       "stderr": "",
-    },
-    "compile-platform-dartk": {
-      "exitCode": 2,
-      "stdout": "",
-      "stderr": "Usage: compile-platform-dartk file\n",
     },
     "log": {
       "exitCode": 0,

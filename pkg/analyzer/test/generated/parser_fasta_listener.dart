@@ -708,9 +708,9 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
     end('Enum');
-    listener.endEnum(enumKeyword, endBrace, count);
+    listener.endEnum(enumKeyword, leftBrace, count);
   }
 
   @override

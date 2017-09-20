@@ -1116,7 +1116,7 @@ class JavaScriptBackend {
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
   jsAst.Expression rewriteAsync(CommonElements commonElements,
-      MethodElement element, jsAst.Expression code) {
+      FunctionEntity element, jsAst.Expression code) {
     AsyncRewriterBase rewriter = null;
     jsAst.Name name = namer.methodPropertyName(element);
     switch (element.asyncMarker) {

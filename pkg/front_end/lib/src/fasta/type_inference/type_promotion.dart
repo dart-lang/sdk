@@ -651,14 +651,23 @@ class _IsCheck extends TypePromotionFact {
       }
     }
 
-    // If the type we are considering promoting to is not a subtype of the
-    // previous type of the variable, no promotion occurs.
-    if (!promoter.typeSchemaEnvironment
-        .isSubtypeOf(checkedType, previousPromotedType ?? variable.type)) {
+    // What we do now depends on the relationship between the previous type of
+    // the variable and the type we are checking against.
+    var previousType = previousPromotedType ?? variable.type;
+    if (promoter.typeSchemaEnvironment.isSubtypeOf(checkedType, previousType)) {
+      // The type we are checking against is a subtype of the previous type of
+      // the variable, so this is a refinement; we can promote.
+      return checkedType;
+    } else if (previousType is TypeParameterType &&
+        promoter.typeSchemaEnvironment
+            .isSubtypeOf(checkedType, previousType.bound)) {
+      // The type we are checking against is a subtype of the bound of the
+      // previous type of the variable; we can promote the bound.
+      return new TypeParameterType(previousType.parameter, checkedType);
+    } else {
+      // The types aren't sufficiently related; we can't promote.
       return previousPromotedType;
     }
-
-    return checkedType;
   }
 }
 

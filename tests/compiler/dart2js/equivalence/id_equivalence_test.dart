@@ -82,7 +82,6 @@ void computeAstMemberData(
     {bool verbose: false}) {
   MemberElement member = _member;
   ResolvedAst resolvedAst = member.resolvedAst;
-  if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
   new ResolvedAstComputer(compiler.reporter, actualMap, resolvedAst).run();
 }
 
@@ -223,7 +222,9 @@ void computeIrMemberData(
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
-  assert(definition.kind == MemberKind.regular,
+  assert(
+      definition.kind == MemberKind.regular ||
+          definition.kind == MemberKind.constructor,
       failedAt(member, "Unexpected member definition $definition"));
   new IrComputer(compiler.reporter, actualMap).run(definition.node);
 }

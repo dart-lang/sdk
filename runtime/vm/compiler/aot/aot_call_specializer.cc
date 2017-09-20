@@ -284,11 +284,15 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
         if (FLAG_limit_ints_to_64_bits &&
             FlowGraphCompiler::SupportsUnboxedMints()) {
           if (Token::IsRelationalOperator(op_kind)) {
+            AddCheckNull(left_value, instr->deopt_id(), instr->env(), instr);
+            AddCheckNull(right_value, instr->deopt_id(), instr->env(), instr);
             replacement = new (Z) RelationalOpInstr(
                 instr->token_pos(), op_kind, left_value->CopyWithType(Z),
                 right_value->CopyWithType(Z), kMintCid, Thread::kNoDeoptId);
 
           } else {
+            // TODO(dartbug.com/30480): Figure out how to handle null in
+            // equality comparisons.
             replacement = new (Z) EqualityCompareInstr(
                 instr->token_pos(), op_kind, left_value->CopyWithType(Z),
                 right_value->CopyWithType(Z), kMintCid, Thread::kNoDeoptId);
@@ -335,6 +339,8 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
                 new (Z) CheckedSmiOpInstr(op_kind, left_value->CopyWithType(Z),
                                           right_value->CopyWithType(Z), instr);
           } else {
+            AddCheckNull(left_value, instr->deopt_id(), instr->env(), instr);
+            AddCheckNull(right_value, instr->deopt_id(), instr->env(), instr);
             replacement = new BinaryInt64OpInstr(
                 op_kind, left_value->CopyWithType(Z),
                 right_value->CopyWithType(Z), Thread::kNoDeoptId);
@@ -360,6 +366,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
             InsertBefore(instr, smi_to_double, NULL, FlowGraph::kValue);
             left_value = new (Z) Value(smi_to_double);
           } else {
+            AddCheckNull(left_value, instr->deopt_id(), instr->env(), instr);
             left_value = left_value->CopyWithType(Z);
           }
           if (right_type->ToCid() == kSmiCid) {
@@ -368,6 +375,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
             InsertBefore(instr, smi_to_double, NULL, FlowGraph::kValue);
             right_value = new (Z) Value(smi_to_double);
           } else {
+            AddCheckNull(right_value, instr->deopt_id(), instr->env(), instr);
             right_value = right_value->CopyWithType(Z);
           }
           replacement = new (Z)
@@ -413,6 +421,9 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         Value* left_value = call->PushArgumentAt(0)->value();
         Value* right_value = call->PushArgumentAt(1)->value();
         if (right_value->Type()->IsNullableDouble()) {
+          // Only need to check right value, as left value should be checked
+          // when instance call is converted to static.
+          AddCheckNull(right_value, call->deopt_id(), call->env(), call);
           replacement = new (Z)
               BinaryDoubleOpInstr(op_kind, left_value->CopyWithType(Z),
                                   right_value->CopyWithType(Z),

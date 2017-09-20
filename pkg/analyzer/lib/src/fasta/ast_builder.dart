@@ -9,16 +9,9 @@ import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:front_end/src/fasta/parser.dart'
-    show
-        Assert,
-        FormalParameterKind,
-        IdentifierContext,
-        MemberKind,
-        Parser,
-        closeBraceTokenFor;
+    show Assert, FormalParameterKind, IdentifierContext, MemberKind, Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
-import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
@@ -146,8 +139,7 @@ class AstBuilder extends ScopeListener {
   void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
     Expression expression = pop();
-    push(ast.parenthesizedExpression(
-        token, expression, closeBraceTokenFor(token)));
+    push(ast.parenthesizedExpression(token, expression, token?.endGroup));
   }
 
   void handleStringPart(Token token) {
@@ -1756,21 +1748,14 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
     List<EnumConstantDeclaration> constants = popList(count);
-    // TODO(paulberry,ahe): the parser should pass in the openBrace token.
-    var openBrace =
-        unsafeToken(enumKeyword.next.next, TokenType.OPEN_CURLY_BRACKET)
-            as analyzer.BeginToken;
-    // TODO(paulberry): what if the '}' is missing and the parser has performed
-    // error recovery?
-    Token closeBrace = openBrace?.endGroup;
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
     declarations.add(ast.enumDeclaration(comment, metadata, enumKeyword, name,
-        openBrace, constants, closeBrace));
+        leftBrace, constants, leftBrace?.endGroup));
   }
 
   @override

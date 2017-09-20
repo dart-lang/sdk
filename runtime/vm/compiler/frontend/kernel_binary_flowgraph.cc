@@ -198,6 +198,9 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
     case kPosition:
       position_ = builder_->ReadPosition(false);  // read position.
       if (++next_read_ == field) return;
+    case kNameOffset:
+      builder_->ReadPosition(false);  // read name offset.
+      if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition(false);  // read end position.
       if (++next_read_ == field) return;
@@ -251,6 +254,9 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition();  // read position.
+      if (++next_read_ == field) return;
+    case kNameOffset:
+      builder_->ReadPosition();  // read name offset.
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition();  // read end position.
@@ -851,6 +857,7 @@ void StreamingScopeBuilder::VisitFunctionNode() {
   intptr_t list_length =
       builder_->ReadListLength();  // read type_parameters list length.
   for (intptr_t i = 0; i < list_length; ++i) {
+    builder_->ReadFlags();            // read flags.
     builder_->SkipStringReference();  // read ith name index.
     VisitDartType();                  // read ith bound.
   }
@@ -985,6 +992,7 @@ void StreamingScopeBuilder::VisitExpression() {
     }
     case kPropertyGet:
       builder_->ReadPosition();  // read position.
+      builder_->ReadFlags();     // read flags.
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
       // read interface_target_reference.
@@ -1000,6 +1008,7 @@ void StreamingScopeBuilder::VisitExpression() {
       return;
     case kDirectPropertyGet:
       builder_->ReadPosition();                // read position.
+      builder_->ReadFlags();                   // read flags.
       VisitExpression();                       // read receiver.
       builder_->SkipCanonicalNameReference();  // read target_reference.
       return;
@@ -1020,6 +1029,7 @@ void StreamingScopeBuilder::VisitExpression() {
       return;
     case kMethodInvocation:
       builder_->ReadPosition();  // read position.
+      builder_->ReadFlags();     // read flags.
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
       VisitArguments();          // read arguments.
@@ -1027,6 +1037,7 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->SkipCanonicalNameReference();
       return;
     case kDirectMethodInvocation:
+      builder_->ReadFlags();                   // read flags.
       VisitExpression();                       // read receiver.
       builder_->SkipCanonicalNameReference();  // read target_reference.
       VisitArguments();                        // read arguments.
@@ -1562,6 +1573,7 @@ void StreamingScopeBuilder::VisitFunctionType(bool simple) {
     intptr_t list_length =
         builder_->ReadListLength();  // read type_parameters list length.
     for (int i = 0; i < list_length; ++i) {
+      builder_->SkipFlags();            // read flags.
       builder_->SkipStringReference();  // read string index (name).
       VisitDartType();                  // read dart type.
     }
@@ -1988,12 +2000,8 @@ void StreamingDartTypeTranslator::BuildInterfaceType(bool simple) {
 void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
   intptr_t list_length = 0;
   if (!simple) {
-    list_length =
-        builder_->ReadListLength();  // read type_parameters list length
-    for (int i = 0; i < list_length; ++i) {
-      builder_->SkipStringReference();  // read string index (name).
-      builder_->SkipDartType();         // read dart type.
-    }
+    list_length = builder_->PeekListLength();
+    builder_->SkipTypeParametersList();
   }
 
   // The spec describes in section "19.1 Static Types":
@@ -2447,6 +2455,7 @@ void StreamingConstantEvaluator::EvaluateVariableGet(uint8_t payload) {
 
 void StreamingConstantEvaluator::EvaluatePropertyGet() {
   builder_->ReadPosition();  // read position.
+  builder_->ReadFlags();     // read flags.
   intptr_t expression_offset = builder_->ReaderOffset();
   builder_->SkipExpression();                            // read receiver.
   StringIndex name = builder_->ReadNameAsStringIndex();  // read name.
@@ -2502,6 +2511,7 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
 
 void StreamingConstantEvaluator::EvaluateMethodInvocation() {
   builder_->ReadPosition();  // read position.
+  builder_->ReadFlags();     // read flags.
   // This method call wasn't cached, so receiver et al. isn't cached either.
   const Instance& receiver =
       EvaluateExpression(builder_->ReaderOffset(), false);  // read receiver.
@@ -4070,6 +4080,11 @@ uint32_t StreamingFlowGraphBuilder::PeekUInt() {
   return reader_->ReadUInt();
 }
 
+uint32_t StreamingFlowGraphBuilder::PeekListLength() {
+  AlternativeReadingScope alt(reader_);
+  return reader_->ReadUInt();
+}
+
 intptr_t StreamingFlowGraphBuilder::ReadListLength() {
   return reader_->ReadListLength();
 }
@@ -4132,6 +4147,10 @@ const String& StreamingFlowGraphBuilder::ReadNameAsFieldName() {
   } else {
     return H.DartFieldName(NameIndex(), name_index);
   }
+}
+
+void StreamingFlowGraphBuilder::SkipFlags() {
+  ReadFlags();
 }
 
 void StreamingFlowGraphBuilder::SkipStringReference() {
@@ -4249,6 +4268,7 @@ void StreamingFlowGraphBuilder::SkipListOfVariableDeclarations() {
 void StreamingFlowGraphBuilder::SkipTypeParametersList() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
+    SkipFlags();            // read ith flags.
     SkipStringReference();  // read ith name index.
     SkipDartType();         // read ith bound.
   }
@@ -4309,6 +4329,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kPropertyGet:
       ReadPosition();                // read position.
+      SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipCanonicalNameReference();  // read interface_target_reference.
@@ -4322,6 +4343,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kDirectPropertyGet:
       ReadPosition();                // read position.
+      SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
       SkipCanonicalNameReference();  // read target_reference.
       return;
@@ -4342,12 +4364,14 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kMethodInvocation:
       ReadPosition();                // read position.
+      SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
       SkipCanonicalNameReference();  // read interface_target_reference.
       return;
     case kDirectMethodInvocation:
+      SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
       SkipCanonicalNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
@@ -5297,6 +5321,8 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
+  ReadFlags();  // read flags
+
   Fragment instructions = BuildExpression();  // read receiver.
   instructions += PushArgument();
 
@@ -5356,6 +5382,8 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
 Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
+
+  ReadFlags();  // read flags.
 
   Tag receiver_tag = PeekTag();               // peek tag for receiver.
   Fragment instructions = BuildExpression();  // read receiver.
@@ -5513,6 +5541,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
+  ReadFlags();  // read flags.
+
   Tag receiver_tag = PeekTag();  // peek tag for receiver.
   if (IsNumberLiteral(receiver_tag)) {
     intptr_t before_branch_offset = ReaderOffset();
@@ -5612,6 +5642,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
     TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
+
+  ReadFlags();  // read flags.
 
   // TODO(28109) Support generic methods in the VM or reify them away.
   Tag receiver_tag = PeekTag();               // peek tag for receiver.

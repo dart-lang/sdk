@@ -290,6 +290,7 @@ inference/null_literal_should_not_infer_as_bottom: Crash
 inference/overloaded_int_operators: Crash
 inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash
+inference/promote_bounds: Crash
 inference/promotion_subtype_check: Crash
 inference/propagate_inference_to_field_in_class: Crash
 inference/propagate_inference_to_field_in_class_dynamic_warnings: Crash

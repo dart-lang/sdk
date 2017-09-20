@@ -33,8 +33,6 @@ async/future_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
 async/slow_consumer_test: Pass, Timeout # Issue 29922
 async/stream_distinct_test: RuntimeError # Issue 29922
-async/zone_error_callback_test: RuntimeError # Issue 29922
-async/zone_bind_callback_test: RuntimeError # Issue 29922, strong mode cast failure
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by DDC/dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/json_utf8_chunk_test: Slow, Pass

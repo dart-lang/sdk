@@ -19,7 +19,8 @@ typedef void ModifyRequestFunction(HttpClientRequest request);
 /// Some information is found through the api
 /// <https://luci-milo.appspot.com/rpcexplorer/services/milo.Buildbot/>,
 /// some information is found via Cbe
-/// <https://chrome-build-extract.appspot.com/get_master/<client>>.
+/// <https://chrome-build-extract.appspot.com/get_master/<client>> and
+/// and some raw log files is found via [Luci]/log/raw.
 class Luci {
   final HttpClient _client = new HttpClient();
 
@@ -33,7 +34,22 @@ class Luci {
         () => _makeGetRequest(new Uri(
             scheme: 'https', host: CBE_HOST, path: "/get_master/${client}")),
         "cbe"));
-    return result.bind(JSON.decode);
+    return result.bind((str) => JSON.decode(str));
+  }
+
+  Future<Try<String>> getRawLogFromLogName(
+      String name, WithCacheFunction withCache) async {
+    return await tryStartAsync(() {
+      return withCache(
+          () => _makeGetRequest(new Uri(
+              scheme: 'https', host: LUCI_HOST, path: "/log/raw/${name}")),
+          name).then((output) {
+        if (output == null || output.contains("Encountered error:")) {
+          throw new Exception("Problem getting log: ${output}");
+        }
+        return output;
+      });
+    });
   }
 
   /// [getMaster] fetches master information for all bots.
@@ -50,7 +66,7 @@ class Luci {
               HttpHeaders.ACCEPT: "application/json"
             }),
         '${uri.path}'));
-    return result.bind(JSON.decode).bind((json) {
+    return result.bind((str) => JSON.decode(str)).bind((json) {
       var data = JSON.decode(UTF8
           .decode(new GZipDecoder().decodeBytes(BASE64.decode(json["data"]))));
       return data;
@@ -78,7 +94,7 @@ class Luci {
               HttpHeaders.ACCEPT: "application/json"
             }),
         '${uri.path}_${botName}_$amount'));
-    return result.bind(JSON.decode).bind((json) {
+    return result.bind((str) => JSON.decode(str)).bind((json) {
       return json["builds"].map((b) {
         var build = JSON.decode(UTF8.decode(BASE64.decode(b["data"])));
         return getBuildDetailFromJson(client, botName, build);
@@ -95,14 +111,13 @@ class Luci {
         host: LUCI_HOST,
         path: "prpc/milo.Buildbot/GetBuildbotBuildJSON");
     var body = {"master": client, "builder": botName, "buildNum": buildNumber};
-    print(body);
     var result = await tryStartAsync(() => withCache(
         () => _makePostRequest(uri, JSON.encode(body), {
               HttpHeaders.CONTENT_TYPE: "application/json",
               HttpHeaders.ACCEPT: "application/json"
             }),
         '${uri.path}_${botName}_$buildNumber'));
-    return result.bind(JSON.decode).bind((json) {
+    return result.bind((str) => JSON.decode(str)).bind((json) {
       var build = JSON.decode(UTF8.decode(BASE64.decode(json["data"])));
       return getBuildDetailFromJson(client, botName, build);
     });
@@ -145,40 +160,40 @@ class Luci {
 BuildDetail getBuildDetailFromJson(
     String client, String botName, dynamic build) {
   List<GitCommit> changes = build["sourceStamp"]["changes"].map((change) {
-    return new GitCommit(change["revision"], change["revLink"], change["who"],
-        change["comments"], change["files"].map((file) => file["name"]));
+    return new GitCommit(
+        change["revision"],
+        change["revLink"],
+        change["who"],
+        change["comments"],
+        change["files"].map((file) => file["name"]).toList());
   }).toList();
 
   List<BuildProperty> properties = build["properties"].map((prop) {
     return new BuildProperty(prop[0], prop[1].toString(), prop[2]);
   }).toList();
 
-  List<BuildStep> steps = build["steps"].map((step) {
-    var start =
-        new DateTime.fromMillisecondsSinceEpoch(step["times"][0] * 1000);
-    DateTime end = null;
-    if (step["times"][1] != null) {
-      end = new DateTime.fromMillisecondsSinceEpoch(step["times"][1] * 1000);
-    }
+  DateTime parseDateTime(num value) {
+    if (value == null) return null;
+    return new DateTime.fromMillisecondsSinceEpoch((value * 1000).round());
+  }
+
+  List<BuildStep> steps = build["steps"].map((Map step) {
+    DateTime start = parseDateTime(step["times"][0]);
+    DateTime end = parseDateTime(step["times"][1]);
     return new BuildStep(
         step["name"],
-        step["text"],
+        step["text"].join(', '),
         step["results"].toString(),
         start,
         end,
         step["step_number"],
         step["isStarted"],
         step["isFinished"],
-        step["logs"].map((log) => new BuildLog(log[0], log[1])));
+        step["logs"].map((log) => new BuildLog(log[0], log[1])).toList());
   }).toList();
 
-  DateTime end = null;
-  if (build["times"][1] != null) {
-    end = new DateTime.fromMillisecondsSinceEpoch(build["times"][1] * 1000);
-  }
-
   Timing timing = new Timing(
-      new DateTime.fromMillisecondsSinceEpoch(build["times"][0] * 1000), end);
+      parseDateTime(build["times"][0]), parseDateTime(build["times"][1]));
 
   return new BuildDetail(
       client,

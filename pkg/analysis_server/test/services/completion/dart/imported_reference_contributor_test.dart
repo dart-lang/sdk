@@ -4189,6 +4189,26 @@ class B extends A {
     assertNotSuggested('C2');
   }
 
+  test_TypeArgumentList_recursive() async {
+    resolveSource('/testA.dart', '''
+class A {}
+''');
+    resolveSource('/testB.dart', '''
+export 'testA.dart';
+export 'testB.dart';
+class B {}
+''');
+    addTestSource('''
+import '/testB.dart';
+List<^> x;
+''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('A');
+    assertSuggestClass('B');
+  }
+
   test_VariableDeclaration_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block

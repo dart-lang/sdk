@@ -32,17 +32,19 @@ class SomeError implements Error {
 const error1 = const SomeError(1);
 const error2 = const SomeError(2);
 
-void expectError(e, s) {
+Null expectError(e, s) {
   // Remember one asyncStart per use of this callback.
   Expect.identical(error1, e);
   Expect.identical(stack1, s);
   asyncEnd();
+  return null;
 }
 
-void expectErrorOnly(e, s) {
+Null expectErrorOnly(e, s) {
   // Remember one asyncStart per use of this callback.
   Expect.identical(error1, e);
   asyncEnd();
+  return null;
 }
 
 AsyncError replace(self, parent, zone, e, s) {
@@ -54,10 +56,11 @@ AsyncError replace(self, parent, zone, e, s) {
 var replaceZoneSpec = new ZoneSpecification(errorCallback: replace);
 
 // Expectation after replacing.
-void expectReplaced(e, s) {
+Null expectReplaced(e, s) {
   Expect.identical(error2, e);
   Expect.identical(stack2, s);
   asyncEnd();
+  return null;
 }
 
 void testProgrammaticErrors(expectError) {

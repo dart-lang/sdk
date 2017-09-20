@@ -352,6 +352,9 @@ abstract class KernelToTypeInferenceMap {
   /// Returns the inferred receiver type of the dynamic [read].
   TypeMask typeOfGet(ir.PropertyGet read);
 
+  /// Returns the inferred receiver type of the direct [read].
+  TypeMask typeOfDirectGet(ir.DirectPropertyGet read);
+
   /// Returns the inferred receiver type of the dynamic [write].
   TypeMask typeOfSet(ir.PropertySet write, ClosedWorld closedWorld);
 

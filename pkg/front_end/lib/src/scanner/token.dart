@@ -185,7 +185,7 @@ class Keyword extends TokenType {
   static const Keyword EXTENDS = const Keyword("extends", "EXTENDS");
 
   static const Keyword EXTERNAL =
-      const Keyword("external", "EXTERNAL", isBuiltIn: true);
+      const Keyword("external", "EXTERNAL", isBuiltIn: true, isModifier: true);
 
   static const Keyword FACTORY =
       const Keyword("factory", "FACTORY", isBuiltIn: true);
@@ -272,7 +272,7 @@ class Keyword extends TokenType {
   static const Keyword TYPEDEF = const Keyword("typedef", "TYPEDEF",
       isBuiltIn: true, isTopLevelKeyword: true);
 
-  static const Keyword VAR = const Keyword("var", "VAR");
+  static const Keyword VAR = const Keyword("var", "VAR", isModifier: true);
 
   static const Keyword VOID = const Keyword("void", "VOID");
 

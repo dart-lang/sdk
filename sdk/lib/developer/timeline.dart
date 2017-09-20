@@ -110,7 +110,7 @@ class Timeline {
     }
     var block = new _SyncBlock._(name, _getTraceClock(), _getThreadCpuClock());
     if (arguments is Map) {
-      block._appendArguments(arguments);
+      block._arguments = arguments;
     }
     if (flow is Flow) {
       block.flow = flow;
@@ -172,8 +172,6 @@ class Timeline {
   /// microseconds.
   static int get now => _getTraceClock();
   static final List<_SyncBlock> _stack = new List<_SyncBlock>();
-  static final int _isolateId = _getIsolateNum();
-  static final String _isolateIdString = _isolateId.toString();
 }
 
 /// An asynchronous task on the timeline. An asynchronous task can have many
@@ -204,7 +202,7 @@ class TimelineTask {
     }
     var block = new _AsyncBlock._(name, _taskId);
     if (arguments is Map) {
-      block._appendArguments(arguments);
+      block._arguments = arguments;
     }
     _stack.add(block);
     block._start();
@@ -284,13 +282,6 @@ class _AsyncBlock {
     _reportTaskEvent(
         _getTraceClock(), _taskId, 'e', category, name, _argumentsAsJson(null));
   }
-
-  void _appendArguments(Map arguments) {
-    if (_arguments == null) {
-      _arguments = {};
-    }
-    _arguments.addAll(arguments);
-  }
 }
 
 /// A synchronous block of time on the timeline. This block should not be
@@ -327,32 +318,16 @@ class _SyncBlock {
     }
   }
 
-  void _appendArguments(Map arguments) {
-    if (arguments == null) {
-      return;
-    }
-    if (_arguments == null) {
-      _arguments = {};
-    }
-    _arguments.addAll(arguments);
-  }
-
   void set flow(Flow f) {
     _flow = f;
   }
 }
 
-String _fastPathArguments;
 String _argumentsAsJson(Map arguments) {
   if ((arguments == null) || (arguments.length == 0)) {
     // Fast path no arguments. Avoid calling JSON.encode.
-    if (_fastPathArguments == null) {
-      _fastPathArguments = '{"isolateNumber":"${Timeline._isolateId}"}';
-    }
-    return _fastPathArguments;
+    return '{}';
   }
-  // Add isolateNumber to arguments map.
-  arguments['isolateNumber'] = Timeline._isolateIdString;
   return JSON.encode(arguments);
 }
 
@@ -367,9 +342,6 @@ external int _getTraceClock();
 
 /// Returns the current value from the thread CPU usage clock.
 external int _getThreadCpuClock();
-
-/// Returns the isolate's main port number.
-external int _getIsolateNum();
 
 /// Reports an event for a task.
 external void _reportTaskEvent(int start, int taskId, String phase,

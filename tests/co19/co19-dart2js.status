@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js && $builder_tag != run_webgl_tests ]
+LayoutTests/fast/canvas/webgl*: Skip # Only run WebGL on special builders, issue 29961
+
 [ $compiler == dart2js ]
 Language/Classes/Constructors/Generative_Constructors/execution_t03: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
 Language/Expressions/Function_Invocation/async_cleanup_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -897,7 +900,7 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: 
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: RuntimeError, Pass # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Skip # Times out, please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
@@ -1774,7 +1777,6 @@ LayoutTests/fast/canvas/webgl/canvas-test_t01: Skip # Times out. Please triage t
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Skip # Times out flakily.
 LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/percent-height-auto-width-form-controls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance_t04: RuntimeError # Please triage this failure

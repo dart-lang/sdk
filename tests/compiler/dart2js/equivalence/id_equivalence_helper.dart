@@ -74,6 +74,9 @@ Future<IdData> computeData(
       compiler.backendClosedWorldForTesting.elementEnvironment;
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
   elementEnvironment.forEachClass(mainLibrary, (ClassEntity cls) {
+    elementEnvironment.forEachConstructor(cls, (ConstructorEntity constructor) {
+      computeMemberData(compiler, constructor, actualMap, verbose: verbose);
+    });
     elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
       if (cls == declarer) {
@@ -288,7 +291,13 @@ Spannable computeSpannable(
       MemberEntity member =
           elementEnvironment.lookupClassMember(cls, id.memberName);
       if (member == null) {
-        throw new ArgumentError("No class member '${id.memberName}' in $cls.");
+        ConstructorEntity constructor =
+            elementEnvironment.lookupConstructor(cls, id.memberName);
+        if (constructor == null) {
+          throw new ArgumentError(
+              "No class member '${id.memberName}' in $cls.");
+        }
+        return constructor;
       }
       return member;
     } else {

@@ -696,6 +696,10 @@ class KernelAstTypeInferenceMap implements KernelToTypeInferenceMap {
     return closedWorld.commonMasks.dynamicType;
   }
 
+  TypeMask typeOfDirectGet(ir.DirectPropertyGet getter) {
+    return _resultOf(_target).typeOfSend(_astAdapter.getNode(getter));
+  }
+
   TypeMask typeOfListLiteral(MemberElement owner, ir.ListLiteral listLiteral,
       ClosedWorld closedWorld) {
     ast.Node node = _astAdapter.getNodeOrNull(listLiteral);

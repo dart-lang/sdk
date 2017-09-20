@@ -1136,14 +1136,14 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
-    _socket.setHandlers(read: zone.bindCallback(() {
+    _socket.setHandlers(read: zone.bindCallbackGuarded(() {
       while (_socket.available > 0) {
         var socket = _socket.accept();
         if (socket == null) return;
         _controller.add(new _RawSocket(socket));
         if (_controller.isPaused) return;
       }
-    }), error: zone.bindUnaryCallback((e) {
+    }), error: zone.bindUnaryCallbackGuarded((e) {
       _controller.addError(e);
       _controller.close();
     }), destroyed: () {
@@ -1237,7 +1237,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
           _controller.add(RawSocketEvent.CLOSED);
           _controller.close();
         },
-        error: zone.bindUnaryCallback((e) {
+        error: zone.bindUnaryCallbackGuarded((e) {
           _controller.addError(e);
           _socket.close();
         }));
@@ -1734,7 +1734,7 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
           _controller.add(RawSocketEvent.CLOSED);
           _controller.close();
         },
-        error: zone.bindUnaryCallback((e) {
+        error: zone.bindUnaryCallbackGuarded((e) {
           _controller.addError(e);
           _socket.close();
         }));

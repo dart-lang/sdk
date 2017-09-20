@@ -24,7 +24,6 @@ void computeMemberAstTypeMasks(
     {bool verbose: false}) {
   MemberElement member = _member;
   ResolvedAst resolvedAst = member.resolvedAst;
-  if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
   compiler.reporter.withCurrentElement(member.implementation, () {
     new TypeMaskAstComputer(compiler.reporter, actualMap, resolvedAst,
             compiler.globalInference.results)
@@ -38,8 +37,9 @@ abstract class ComputeValueMixin<T> {
   String getMemberValue(MemberEntity member) {
     GlobalTypeInferenceMemberResult<T> memberResult =
         results.resultOfMember(member);
-    return getTypeMaskValue(
-        member.isFunction ? memberResult.returnType : memberResult.type);
+    return getTypeMaskValue(member.isFunction || member.isConstructor
+        ? memberResult.returnType
+        : memberResult.type);
   }
 
   String getParameterValue(Local parameter) {

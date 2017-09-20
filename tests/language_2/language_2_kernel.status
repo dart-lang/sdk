@@ -14,6 +14,7 @@ const_syntax_test/08: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
+ct_const2_test: Pass, Crash # Flaky
 
 [ $compiler == dartk && $runtime == vm ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -131,6 +132,7 @@ initializing_formal_type_test: MissingCompileTimeError
 issue_1751477_test: RuntimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
+covariant_override/runtime_check_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -216,6 +218,7 @@ const_syntax_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluatio
 const_optional_args_negative_test: Fail # Fasta bug: Default parameter values must be const.
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
+covariant_subtyping_test: DartkCrash
 cyclic_constructor_test/01: MissingCompileTimeError # Fasta bug: Cyclic constructor redirection.
 constructor_redirect2_test/01: MissingCompileTimeError # Fasta bug: Body on redirecting constructor.
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
@@ -340,10 +343,12 @@ function_type/function_type99_test: RuntimeError
 function_type/function_type9_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 issue_1751477_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
+named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError

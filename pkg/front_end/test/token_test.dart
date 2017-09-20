@@ -177,8 +177,10 @@ class Foo {
       Keyword.ABSTRACT,
       Keyword.CONST,
       Keyword.COVARIANT,
+      Keyword.EXTERNAL,
       Keyword.FINAL,
       Keyword.STATIC,
+      Keyword.VAR,
     ]);
     for (Keyword keyword in Keyword.values) {
       var isModifier = modifierKeywords.contains(keyword);
