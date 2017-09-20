@@ -449,7 +449,7 @@ class _ExprBuilder {
     throw new UnimplementedError('For ${k.runtimeType}');
   }
 
-  Expression _buildIdentifier(kernel.Reference reference, {bool isGet: false}) {
+  Identifier _buildIdentifier(kernel.Reference reference, {bool isGet: false}) {
     Element element = _getElement(reference);
     if (isGet && element is PropertyInducingElement) {
       element = (element as PropertyInducingElement).getter;
@@ -461,7 +461,7 @@ class _ExprBuilder {
       SimpleIdentifier classRef = AstTestFactory
           .identifier3(enclosingElement.name)
             ..staticElement = enclosingElement;
-      return AstTestFactory.propertyAccess(classRef, property);
+      return AstTestFactory.identifier(classRef, property);
     } else {
       return property;
     }
