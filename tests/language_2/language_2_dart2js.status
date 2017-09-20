@@ -198,6 +198,7 @@ import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
+mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/03: MissingCompileTimeError
 named_parameters2_test: MissingCompileTimeError
@@ -487,6 +488,9 @@ constructor_duplicate_final_test/02: Pass
 
 [ $compiler == dart2js && $runtime == d8 && !$checked]
 mixin_type_parameters_super_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == d8 && !$checked &&!$host_checked]
+mock_writable_final_field_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
@@ -978,6 +982,7 @@ call_through_getter_test: Fail, OK
 generic_closure_test: Fail # Issue 12605
 cyclic_type_test/0*: Fail # Issue 12605
 cyclic_type2_test: Fail # Issue 12605
+mock_writable_final_field_test: RuntimeError
 
 [ $compiler == dart2js && $fast_startup && !$dart2js_with_kernel ]
 instance_creation_in_function_annotation_test: Fail # mirrors not supported
