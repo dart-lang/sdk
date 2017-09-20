@@ -29,6 +29,7 @@
 %   namedArguments on Invocation.
 % - Remove the, now unnecessary, handling of invalid overrides of noSuchMethod.
 % - Add >>> as overridable operator.
+% - If initializing formal has type annotation, require subtype of field.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -1348,7 +1349,7 @@ A {\em constructor parameter list} is a parenthesized, comma-separated list of f
 \LMHash{}
 If an explicit type is attached to the initializing formal, that is its static type.
 Otherwise, the type of an initializing formal named $id$ is $T_{id}$, where $T_{id}$ is the type of the instance variable named $id$ in the immediately enclosing class.
-It is a static warning if the static type of $id$ is not assignable to $T_{id}$.
+It is a static warning if the static type of $id$ is not a subtype of $T_{id}$.
 
 \LMHash{}
 Initializing formals constitute an exception to the rule that every formal parameter introduces a local variable into the formal parameter scope (\ref{formalParameters}).
