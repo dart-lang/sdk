@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:yaml/yaml.dart' show loadYaml;
 
-main(List<String> arguments) async {
+main([List<String> arguments = const []]) async {
   File file = new File.fromUri(Uri.base.resolve('pkg/front_end/messages.yaml'));
   if (!await file.exists()) {
     file = new File.fromUri(Uri.base.resolve('messages.yaml'));
