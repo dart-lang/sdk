@@ -17,7 +17,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
@@ -27,10 +26,10 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/ast.dart' as kernel;
-import 'package:path/path.dart' as pathos;
 import 'package:kernel/target/targets.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
+import 'package:path/path.dart' as pathos;
 
 /**
  * Support for resynthesizing element model from Kernel.
