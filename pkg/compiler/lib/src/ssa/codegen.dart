@@ -2937,11 +2937,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isBooleanConversionCheck) {
       helper = const CheckedModeHelper('boolConversionCheck');
     } else {
-      helper = _checkedModeHelpers.getCheckedModeHelper(type,
+      helper = _checkedModeHelpers.getCheckedModeHelper(
+          type, _closedWorld.commonElements,
           typeCast: node.isCastTypeCheck);
     }
 
-    StaticUse staticUse = helper.getStaticUse(_commonElements);
+    StaticUse staticUse = helper.getStaticUse(_closedWorld.commonElements);
     _registry.registerStaticUse(staticUse);
     List<js.Expression> arguments = <js.Expression>[];
     use(node.checkedInput);

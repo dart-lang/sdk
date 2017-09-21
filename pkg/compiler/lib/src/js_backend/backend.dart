@@ -447,7 +447,7 @@ class JavaScriptBackend {
     _target = new JavaScriptBackendTarget(this);
     _mirrorsData = compiler.frontendStrategy.createMirrorsDataBuilder();
     _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements);
-    _checkedModeHelpers = new CheckedModeHelpers(commonElements);
+    _checkedModeHelpers = new CheckedModeHelpers();
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
     jsInteropAnalysis = new JsInteropAnalysis(this);

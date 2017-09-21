@@ -607,7 +607,8 @@ call_closurization_test: RuntimeError
 call_function_apply_test: RuntimeError
 call_test: RuntimeError
 canonical_const2_test: RuntimeError
-cast_test/none: RuntimeError
+cast_test/02: MissingRuntimeError
+cast_test/03: MissingRuntimeError
 cha_deopt1_test: CompileTimeError
 cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
@@ -713,9 +714,10 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError
+interface_test/00: Crash # 'package:front_end/src/fasta/kernel/body_builder.dart': Failed assertion: line 2160 pos 14: '!target.enclosingClass.isAbstract': is not true.
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
 invocation_mirror2_test: RuntimeError
-invocation_mirror_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 2497 pos 14: 'arguments.named.isEmpty': is not true.
+invocation_mirror_test: RuntimeError
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
@@ -774,7 +776,8 @@ call_closurization_test: RuntimeError
 call_function_apply_test: RuntimeError
 call_test: RuntimeError
 canonical_const2_test: RuntimeError
-cast_test/none: RuntimeError
+cast_test/02: MissingRuntimeError
+cast_test/03: MissingRuntimeError
 cha_deopt1_test: CompileTimeError
 cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError

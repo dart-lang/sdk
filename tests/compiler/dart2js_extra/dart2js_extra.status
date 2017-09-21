@@ -176,8 +176,6 @@ compile_time_constant4_test/03: MissingCompileTimeError
 compile_time_constant4_test/04: MissingCompileTimeError
 compile_time_constant4_test/05: MissingCompileTimeError
 compile_time_constant4_test/06: Crash # 'file:*/pkg/compiler/lib/src/constants/expressions.dart': Failed assertion: line 891 pos 12: 'PRECEDENCE_MAP[operator.kind] != null': is not true.
-consistent_add_error_test: RuntimeError
-consistent_subtract_error_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
 constant_javascript_semantics_test/02: MissingCompileTimeError
 deferred/deferred_class_test: CompileTimeError
@@ -216,9 +214,9 @@ mirrors_declarations_filtering_test: RuntimeError
 mirrors_used_closure_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 mirrors_used_metatargets_test: RuntimeError
 mirrors_used_native_test: RuntimeError
-mirrors_used_warning2_test: RuntimeError
-mirrors_used_warning_test/minif: RuntimeError
-mirrors_used_warning_test/none: RuntimeError
+mirrors_used_warning2_test: Crash # Unsupported operation: Unsupported type parameter type node R.
+mirrors_used_warning_test/minif: Crash # Unsupported operation: Unsupported type parameter type node R.
+mirrors_used_warning_test/none: Crash # Unsupported operation: Unsupported type parameter type node R.
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -245,8 +243,6 @@ compile_time_constant4_test/03: MissingCompileTimeError
 compile_time_constant4_test/04: MissingCompileTimeError
 compile_time_constant4_test/05: MissingCompileTimeError
 compile_time_constant4_test/06: Crash # NoSuchMethodError: The method 'fold' was called on null.
-consistent_add_error_test: RuntimeError
-consistent_subtract_error_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
 constant_javascript_semantics_test/02: MissingCompileTimeError
 deferred/deferred_class_test: CompileTimeError
