@@ -216,7 +216,6 @@ class ProcedureHelper {
     kStart,  // tag.
     kCanonicalName,
     kPosition,
-    kNameOffset,
     kEndPosition,
     kKind,
     kFlags,
@@ -288,7 +287,6 @@ class ConstructorHelper {
     kStart,  // tag.
     kCanonicalName,
     kPosition,
-    kNameOffset,
     kEndPosition,
     kFlags,
     kName,

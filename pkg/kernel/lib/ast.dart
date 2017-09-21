@@ -1172,12 +1172,6 @@ class Field extends Member {
 ///
 /// For unnamed constructors, the name is an empty string (in a [Name]).
 class Constructor extends Member {
-  /// Offset of the name in the source file it comes from.
-  ///
-  /// Valid values are from `-1` and up, where `-1` means that the node does
-  /// not have an explicit name (i.e. unnamed constructor).
-  int nameOffset = TreeNode.noOffset;
-
   int flags = 0;
   FunctionNode function;
   List<Initializer> initializers;
@@ -1272,13 +1266,6 @@ class Constructor extends Member {
 @coq
 class Procedure extends Member {
   ProcedureKind kind;
-
-  /// Offset of the name in the source file it comes from.
-  ///
-  /// Valid values are from `-1` and up, where `-1` means that the node does
-  /// not have an explicit name (i.e. unnamed constructor).
-  int nameOffset = TreeNode.noOffset;
-
   int flags = 0;
   FunctionNode function; // Body is null if and only if abstract or external.
 

@@ -544,35 +544,28 @@ class KernelLibraryBuilder
         charOffset);
   }
 
-  _ConstructorName computeAndValidateConstructorName(
-      String name, int charOffset) {
+  String computeAndValidateConstructorName(String name, int charOffset) {
     String className = currentDeclaration.name;
     bool startsWithClassName = name.startsWith(className);
     if (startsWithClassName && name.length == className.length) {
       // Unnamed constructor or factory.
-      return const _ConstructorName(-1, '');
+      return "";
     }
     int index = name.indexOf(".");
+    if (startsWithClassName && index == className.length) {
+      // Named constructor or factory.
+      return name.substring(index + 1);
+    }
     if (index == -1) {
       // A legal name for a regular method, but not for a constructor.
       return null;
     }
     String suffix = name.substring(index + 1);
-    if (startsWithClassName && index == className.length) {
-      // Named constructor or factory.
-      // This will produce the wrong offset if the source code has spaces
-      // in the constructor name (e.g. `C . foo()`).
-      // TODO(scheglov): Fix after dartbug.com/30812 is fixed.
-      return new _ConstructorName(charOffset + index + 1, suffix);
-    }
     addCompileTimeError(
         templateIllegalMethodName.withArguments(name, "$className.$suffix"),
         charOffset,
         fileUri);
-    // This will produce the wrong offset if the source code has spaces
-    // in the constructor name (e.g. `C . foo()`).
-    // TODO(scheglov): Fix after dartbug.com/30812 is fixed.
-    return new _ConstructorName(charOffset + index + 1, suffix);
+    return suffix;
   }
 
   void addProcedure(
@@ -593,10 +586,10 @@ class KernelLibraryBuilder
     // `OutlineBuilder.beginTopLevelMethod`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
     ProcedureBuilder procedure;
-    _ConstructorName constructorName =
+    String constructorName =
         isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {
-      name = constructorName.name;
+      name = constructorName;
       procedure = new KernelConstructorBuilder(
           documentationComment,
           metadata,
@@ -607,7 +600,6 @@ class KernelLibraryBuilder
           formals,
           this,
           charOffset,
-          constructorName.offset,
           charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
@@ -622,7 +614,6 @@ class KernelLibraryBuilder
           formals,
           kind,
           this,
-          charOffset,
           charOffset,
           charOpenParenOffset,
           charEndOffset,
@@ -652,10 +643,10 @@ class KernelLibraryBuilder
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration("#factory_method");
     String name = constructorNameReference.name;
-    _ConstructorName constructorName =
+    String constructorName =
         computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {
-      name = constructorName.name;
+      name = constructorName;
     }
     assert(constructorNameReference.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
@@ -669,7 +660,6 @@ class KernelLibraryBuilder
         ProcedureKind.Factory,
         this,
         charOffset,
-        constructorName?.offset ?? -1,
         charOpenParenOffset,
         charEndOffset,
         nativeMethodName,
@@ -1016,18 +1006,4 @@ class KernelLibraryBuilder
       }
     });
   }
-}
-
-/// Information about constructor name - offset and the simple name, without
-/// the class name prefix.
-class _ConstructorName {
-  /// The offset of the [name], e.g. the offset of `bar` in `Foo.bar();`,
-  /// or `-1` if the constructor is unnamed.
-  final int offset;
-
-  /// The name of the constructor, e.g. `bar` in `Foo.bar();`, or the empty
-  /// string if the constructor is unnamed.
-  final String name;
-
-  const _ConstructorName(this.offset, this.name);
 }

@@ -677,7 +677,6 @@ class BinaryBuilder {
       node = new Constructor(null, reference: reference);
     }
     var fileOffset = readOffset();
-    var nameOffset = readOffset();
     var fileEndOffset = readOffset();
     var flags = readByte();
     var name = readName();
@@ -699,7 +698,6 @@ class BinaryBuilder {
       node.fileOffset = fileOffset;
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
-      node.nameOffset = nameOffset;
       node.name = name;
       node.documentationComment = documentationComment;
       node.annotations = annotations;
@@ -720,7 +718,6 @@ class BinaryBuilder {
       node = new Procedure(null, null, null, reference: reference);
     }
     var fileOffset = readOffset();
-    var nameOffset = readOffset();
     var fileEndOffset = readOffset();
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
@@ -738,7 +735,6 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.kind = kind;
       node.flags = flags;
-      node.nameOffset = nameOffset;
       node.name = name;
       node.fileUri = fileUri;
       node.documentationComment = documentationComment;

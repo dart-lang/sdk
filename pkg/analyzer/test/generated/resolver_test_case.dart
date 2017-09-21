@@ -341,14 +341,9 @@ class ResolverTestCase extends EngineTestCase {
 
   AnalysisContext get analysisContext => analysisContext2;
 
-  /**
-   * The default [AnalysisOptions] that should be used by [reset].
-   */
-  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
+  bool get enableNewAnalysisDriver => false;
 
   bool get enableKernelDriver => false;
-
-  bool get enableNewAnalysisDriver => false;
 
   /**
    * Return a type provider that can be used to test the results of resolution.
@@ -631,7 +626,6 @@ class ResolverTestCase extends EngineTestCase {
   Expression findTopLevelConstantExpression(
           CompilationUnit compilationUnit, String name) =>
       findTopLevelDeclaration(compilationUnit, name).initializer;
-
   VariableDeclaration findTopLevelDeclaration(
       CompilationUnit compilationUnit, String name) {
     for (CompilationUnitMember member in compilationUnit.declarations) {
@@ -663,7 +657,7 @@ class ResolverTestCase extends EngineTestCase {
       fail('Only packages or options can be specified.');
     }
     if (enableNewAnalysisDriver) {
-      options ??= defaultAnalysisOptions;
+      options ??= new AnalysisOptionsImpl();
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
         ..context.analysisOptions = options;
 

@@ -198,9 +198,6 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
     case kPosition:
       position_ = builder_->ReadPosition(false);  // read position.
       if (++next_read_ == field) return;
-    case kNameOffset:
-      builder_->ReadPosition(false);  // read name offset.
-      if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition(false);  // read end position.
       if (++next_read_ == field) return;
@@ -254,9 +251,6 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition();  // read position.
-      if (++next_read_ == field) return;
-    case kNameOffset:
-      builder_->ReadPosition();  // read name offset.
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition();  // read end position.

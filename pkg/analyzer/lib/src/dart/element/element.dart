@@ -574,24 +574,15 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _computeMixinAppConstructors();
     }
     if (_kernel != null && _constructors == null) {
-      var constructorsAndProcedures = <kernel.Member>[];
-      constructorsAndProcedures.addAll(_kernel.constructors);
-      for (var procedure in _kernel.procedures) {
-        if (procedure.isFactory) {
-          constructorsAndProcedures.add(procedure);
-        }
-      }
-      constructorsAndProcedures.sort((a, b) => a.fileOffset - b.fileOffset);
-      _constructors = <ConstructorElement>[];
-      for (var constructorKernel in constructorsAndProcedures) {
-        if (constructorKernel is kernel.Constructor) {
-          _constructors.add(new ConstructorElementImpl.forKernel(
-              this, constructorKernel, null));
-        } else if (constructorKernel is kernel.Procedure) {
-          _constructors.add(new ConstructorElementImpl.forKernel(
-              this, null, constructorKernel));
-        }
-      }
+      var constructors = _kernel.constructors
+          .map((k) => new ConstructorElementImpl.forKernel(this, k, null));
+      var factories = _kernel.procedures
+          .where((k) => k.isFactory)
+          .map((k) => new ConstructorElementImpl.forKernel(this, null, k));
+      _constructors = <ConstructorElement>[]
+        ..addAll(constructors)
+        ..addAll(factories);
+      _constructors.sort((a, b) => a.nameOffset - b.nameOffset);
     }
     if (_unlinkedClass != null && _constructors == null) {
       _constructors = _unlinkedClass.executables
@@ -2405,17 +2396,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  int get nameOffset {
-    if (_kernelConstructor != null) {
-      return _kernelConstructor.nameOffset;
-    }
-    if (_kernelFactory != null) {
-      return _kernelFactory.nameOffset;
-    }
-    return super.nameOffset;
-  }
-
-  @override
   int get periodOffset {
     if (serializedExecutable != null) {
       if (serializedExecutable.name.isNotEmpty) {
@@ -4223,6 +4203,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   int get nameOffset {
     int offset = super.nameOffset;
+    if (_kernel != null) {
+      return _kernel.fileOffset;
+    }
     if (offset == 0 && serializedExecutable != null) {
       return serializedExecutable.nameOffset;
     }
@@ -8273,21 +8256,14 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   FunctionElement get initializer {
-    if (_initializer == null) {
-      if (_kernel != null && _kernel.initializer != null) {
-        _initializer = new FunctionElementImpl.forOffset(-1)
-          ..enclosingElement = this
-          ..isSynthetic = true;
-      }
-      if (_unlinkedParam != null) {
-        UnlinkedExecutable unlinkedInitializer = _unlinkedParam.initializer;
-        if (unlinkedInitializer != null) {
-          _initializer =
-              new FunctionElementImpl.forSerialized(unlinkedInitializer, this)
-                ..isSynthetic = true;
-        } else {
-          return null;
-        }
+    if (_unlinkedParam != null && _initializer == null) {
+      UnlinkedExecutable unlinkedInitializer = _unlinkedParam.initializer;
+      if (unlinkedInitializer != null) {
+        _initializer =
+            new FunctionElementImpl.forSerialized(unlinkedInitializer, this)
+              ..isSynthetic = true;
+      } else {
+        return null;
       }
     }
     return super.initializer;

@@ -841,8 +841,7 @@ class StrongTypeSystemImpl extends TypeSystem {
       return true;
     }
 
-    if (i2.isDartCoreFunction &&
-        i1.element.getMethod("call")?.isStatic == false) {
+    if (i2.isDartCoreFunction && i1.element.getMethod("call") != null) {
       return true;
     }
 
@@ -2045,8 +2044,7 @@ class _GenericInferrer {
       }
       return;
     }
-    if (i2.isDartCoreFunction &&
-        i1.element.getMethod("call")?.isStatic == false) {
+    if (i2.isDartCoreFunction && i1.element.getMethod("call") != null) {
       return;
     }
     if (i1.isObject) {
