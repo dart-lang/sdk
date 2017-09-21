@@ -195,6 +195,7 @@ class IdData {
 Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeMemberDataFunction computeFromKernel,
     {List<String> skipForKernel: const <String>[],
+    bool filterActualData(IdValue idValue, ActualData actualData),
     List<String> options: const <String>[],
     List<String> args: const <String>[]}) async {
   args = args.toList();
@@ -215,7 +216,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     }
     print('--from kernel---------------------------------------------------');
     await checkCode(annotatedCode, computeFromKernel, compileFromDill,
-        options: options, verbose: verbose);
+        options: options, verbose: verbose, filterActualData: filterActualData);
   }
 }
 
@@ -227,6 +228,7 @@ Future checkCode(
     ComputeMemberDataFunction computeMemberData,
     CompileFunction compileFunction,
     {List<String> options: const <String>[],
+    bool filterActualData(IdValue expected, ActualData actualData),
     bool verbose: false}) async {
   IdData data = await computeData(
       annotatedCode, computeMemberData, compileFunction,
@@ -246,7 +248,9 @@ Future checkCode(
         print(data.diffCode);
         print('--------------------------------------------------------------');
       }
-      Expect.equals('', actual.value);
+      if (filterActualData == null || filterActualData(null, actualData)) {
+        Expect.equals('', actual.value);
+      }
     } else {
       IdValue expected = data.expectedMap[id];
       if (actual != expected) {
@@ -259,7 +263,9 @@ Future checkCode(
         print(data.diffCode);
         print('--------------------------------------------------------------');
       }
-      Expect.equals(expected, actual);
+      if (filterActualData == null || filterActualData(expected, actualData)) {
+        Expect.equals(expected, actual);
+      }
     }
   });
 

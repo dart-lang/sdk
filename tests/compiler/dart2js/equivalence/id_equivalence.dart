@@ -158,6 +158,9 @@ class ActualData {
   final Object object;
 
   ActualData(this.value, this.sourceSpan, this.object);
+
+  String toString() =>
+      'ActualData(value=$value,sourceSpan=$sourceSpan,object=$object)';
 }
 
 abstract class DataRegistry {
