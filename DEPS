@@ -105,7 +105,7 @@ vars = {
   "path_tag": "@1.4.1",
   "plugin_tag": "@0.2.0",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
-  "pool_rev": "@3731963107c705e192c255725bbe5956e9e7a794",
+  "pool_tag": "@1.3.2",
   "protobuf_tag": "@0.5.4",
   "pub_rev": "@cde958f157d3662bf968bcbed05580d5c0355e89",
   "pub_semver_tag": "@1.3.2",
@@ -268,7 +268,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/plugin":
       Var("github_mirror") + "plugin.git" + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
-      Var("github_mirror") + "pool.git" + Var("pool_rev"),
+      Var("github_mirror") + "pool.git" + Var("pool_tag"),
   Var("dart_root") + "/third_party/pkg/protobuf":
       Var("github_mirror") + "protobuf.git" + Var("protobuf_tag"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
