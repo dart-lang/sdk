@@ -7606,6 +7606,8 @@ class Array : public Instance {
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxNewSpaceElements =
+      (Heap::kNewAllocatableSize - sizeof(RawArray)) / kBytesPerElement;
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawArray, type_arguments_);
@@ -8008,6 +8010,12 @@ class TypedData : public Instance {
   static intptr_t MaxElements(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataClassId(class_id));
     return (kSmiMax / ElementSizeInBytes(class_id));
+  }
+
+  static intptr_t MaxNewSpaceElements(intptr_t class_id) {
+    ASSERT(RawObject::IsTypedDataClassId(class_id));
+    return (Heap::kNewAllocatableSize - sizeof(RawTypedData)) /
+           ElementSizeInBytes(class_id);
   }
 
   static RawTypedData* New(intptr_t class_id,

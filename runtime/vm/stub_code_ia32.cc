@@ -575,8 +575,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ j(LESS, &slow_case);
 
   // Check for maximum allowed length.
-  const Immediate& max_len =
-      Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
+  const Immediate& max_len = Immediate(
+      reinterpret_cast<int32_t>(Smi::New(Array::kMaxNewSpaceElements)));
   __ cmpl(EDX, max_len);
   __ j(GREATER, &slow_case);
 

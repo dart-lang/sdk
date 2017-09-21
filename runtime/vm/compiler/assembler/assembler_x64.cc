@@ -3102,12 +3102,12 @@ void Assembler::TryAllocate(const Class& cls,
                             Register instance_reg,
                             Register temp) {
   ASSERT(failure != NULL);
-  if (FLAG_inline_alloc) {
+  const intptr_t instance_size = cls.instance_size();
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), failure, near_jump));
-    const intptr_t instance_size = cls.instance_size();
     NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     movq(instance_reg, Address(THR, Thread::top_offset()));
     addq(instance_reg, Immediate(instance_size));
@@ -3141,7 +3141,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register end_address,
                                  Register temp) {
   ASSERT(failure != NULL);
-  if (FLAG_inline_alloc) {
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.

@@ -1255,12 +1255,12 @@ void Assembler::TryAllocate(const Class& cls,
                             Register instance_reg,
                             Register temp_reg) {
   ASSERT(failure != NULL);
-  if (FLAG_inline_alloc) {
+  const intptr_t instance_size = cls.instance_size();
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), temp_reg, failure));
-    const intptr_t instance_size = cls.instance_size();
     NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     ldr(instance_reg, Address(THR, Thread::top_offset()));
     // TODO(koda): Protect against unsigned overflow here.
@@ -1300,7 +1300,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register end_address,
                                  Register temp1,
                                  Register temp2) {
-  if (FLAG_inline_alloc) {
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.

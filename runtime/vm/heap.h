@@ -252,6 +252,8 @@ class Heap {
     old_space_.SetupImagePage(pointer, size, is_executable);
   }
 
+  static const intptr_t kNewAllocatableSize = 256 * KB;
+
  private:
   class GCStats : public ValueObject {
    public:
@@ -282,8 +284,6 @@ class Heap {
    private:
     DISALLOW_COPY_AND_ASSIGN(GCStats);
   };
-
-  static const intptr_t kNewAllocatableSize = 256 * KB;
 
   Heap(Isolate* isolate,
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.

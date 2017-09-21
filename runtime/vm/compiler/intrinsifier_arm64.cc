@@ -254,7 +254,7 @@ static int GetScaleFactor(intptr_t size) {
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
   void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {       \
     intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);     \
-    intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);         \
+    intptr_t max_len = TypedData::MaxNewSpaceElements(kTypedData##clazz##Cid); \
     int shift = GetScaleFactor(size);                                          \
     TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, shift); \
   }
