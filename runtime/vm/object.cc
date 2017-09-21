@@ -7858,6 +7858,7 @@ void Field::InitializeNew(const Field& result,
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(true);
+  result.set_initializer_changed_after_initialization(false);
   result.set_kernel_offset(0);
   Isolate* isolate = Isolate::Current();
 
@@ -7941,6 +7942,35 @@ RawField* Field::Clone(const Field& original) const {
   clone.SetOriginal(original);
   clone.set_kernel_offset(original.kernel_offset());
   return clone.raw();
+}
+
+TokenPosition Field::ComputeEndTokenPos() const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const class Script& scr = Script::Handle(zone, Script());
+  ASSERT(!scr.IsNull());
+  if (scr.kind() == RawScript::kKernelTag) {
+    return TokenPosition::kNoSource;
+  }
+  const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
+  if (tkns.IsNull()) {
+    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
+    return TokenPosition::kNoSource;
+  }
+  TokenStream::Iterator tkit(zone, tkns, token_pos());
+  while (tkit.CurrentTokenKind() != Token::kSEMICOLON) {
+    tkit.Advance();
+  }
+  return tkit.CurrentPosition();
+}
+
+int32_t Field::SourceFingerprint() const {
+  const class Script& scr = Script::Handle(Script());
+  if (scr.kind() == RawScript::kKernelTag) {
+    // TODO(30756): Implement.
+    return 0;
+  }
+  return scr.SourceFingerprint(token_pos(), ComputeEndTokenPos());
 }
 
 RawString* Field::InitializingExpression() const {
@@ -9562,6 +9592,10 @@ int32_t Script::SourceFingerprint() const {
 
 int32_t Script::SourceFingerprint(TokenPosition start,
                                   TokenPosition end) const {
+  if (kind() == RawScript::kKernelTag) {
+    // TODO(30756): Implemented.
+    return 0;
+  }
   uint32_t result = 0;
   Zone* zone = Thread::Current()->zone();
   TokenStream::Iterator tokens_iterator(

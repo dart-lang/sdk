@@ -1163,6 +1163,64 @@ void IsolateReloadContext::VerifyMaps() {
 }
 #endif
 
+static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
+                          const Class& old_cls,
+                          const Class& new_cls) {
+  if (new_cls.raw() == old_cls.raw()) {
+    // A new class maps to itself. All its functions, field initizers, and so
+    // on are new.
+    changed_in_last_reload.Add(new_cls);
+    return;
+  }
+
+  ASSERT(new_cls.is_finalized() == old_cls.is_finalized());
+  if (!new_cls.is_finalized()) {
+    // We don't know the members. Register interest in the whole class. Creates
+    // false positives.
+    changed_in_last_reload.Add(new_cls);
+    return;
+  }
+
+  Zone* zone = Thread::Current()->zone();
+  const Array& functions = Array::Handle(zone, new_cls.functions());
+  const Array& fields = Array::Handle(zone, new_cls.fields());
+  Function& new_function = Function::Handle(zone);
+  Function& old_function = Function::Handle(zone);
+  Field& new_field = Field::Handle(zone);
+  Field& old_field = Field::Handle(zone);
+  String& selector = String::Handle(zone);
+  for (intptr_t i = 0; i < functions.Length(); i++) {
+    new_function ^= functions.At(i);
+    selector = new_function.name();
+    old_function = old_cls.LookupFunction(selector);
+    // If we made live changes with proper structed edits, this would just be
+    // old != new.
+    if (old_function.IsNull() || (new_function.SourceFingerprint() !=
+                                  old_function.SourceFingerprint())) {
+      ASSERT(!new_function.HasCode());
+      ASSERT(new_function.usage_counter() == 0);
+      changed_in_last_reload.Add(new_function);
+    }
+  }
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    new_field ^= fields.At(i);
+    if (!new_field.is_static()) continue;
+    selector = new_field.name();
+    old_field = old_cls.LookupField(selector);
+    if (old_field.IsNull() || !old_field.is_static()) {
+      // New field.
+      changed_in_last_reload.Add(new_field);
+    } else if (new_field.SourceFingerprint() !=
+               old_field.SourceFingerprint()) {
+      // Changed field.
+      changed_in_last_reload.Add(new_field);
+      if (!old_field.IsUninitialized()) {
+        new_field.set_initializer_changed_after_initialization(true);
+      }
+    }
+  }
+}
+
 void IsolateReloadContext::Commit() {
   TIMELINE_SCOPE(Commit);
   TIR_Print("---- COMMITTING RELOAD\n");
@@ -1182,6 +1240,9 @@ void IsolateReloadContext::Commit() {
 #ifdef DEBUG
   VerifyMaps();
 #endif
+
+  const GrowableObjectArray& changed_in_last_reload =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
 
   {
     TIMELINE_SCOPE(CopyStaticFieldsAndPatchFieldsAndFunctions);
@@ -1208,11 +1269,17 @@ void IsolateReloadContext::Commit() {
           old_cls.PatchFieldsAndFunctions();
           old_cls.MigrateImplicitStaticClosures(this, new_cls);
         }
+        RecordChanges(changed_in_last_reload, old_cls, new_cls);
       }
     }
 
     class_map.Release();
   }
+
+  if (FLAG_identity_reload) {
+    ASSERT(changed_in_last_reload.Length() == 0);
+  }
+  I->object_store()->set_changed_in_last_reload(changed_in_last_reload);
 
   // Copy over certain properties of libraries, e.g. is the library
   // debuggable?

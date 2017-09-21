@@ -295,7 +295,7 @@ cc/DebuggerAPI_ScriptGetTokenInfo_MultiLineInterpolation: Fail
 cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
-cc/FunctionSourceFingerprint: Crash
+cc/FunctionSourceFingerprint: Fail
 cc/IsolateReload_BadClass: Fail
 cc/IsolateReload_ClassFieldAdded: Crash
 cc/IsolateReload_ClassFieldAdded2: Crash
