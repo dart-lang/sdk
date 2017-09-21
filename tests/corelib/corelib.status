@@ -73,7 +73,8 @@ double_round3_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime ro
 double_round_to_double2_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
 
 [ $runtime == jsshell ]
-string_case_test/01: RuntimeError
+string_case_test/01: RuntimeError # jsshell does not recognize character 223 aka \xdf
+unicode_test: RuntimeError # jsshell does not recognize character 223 aka \xdf
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
