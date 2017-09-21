@@ -32,9 +32,8 @@ class FlowGraphInliner : ValueObject {
                    GrowableArray<intptr_t>* inlining_black_list,
                    Precompiler* precompiler);
 
-  // The flow graph is destructively updated upon inlining.  Returns the max
-  // depth that we inlined.
-  int Inline();
+  // The flow graph is destructively updated upon inlining.
+  void Inline();
 
   // Compute graph info if it was not already computed or if 'force' is true.
   static void CollectGraphInfo(FlowGraph* flow_graph, bool force = false);

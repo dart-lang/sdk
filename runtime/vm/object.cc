@@ -6631,7 +6631,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
-  NOT_IN_PRECOMPILED(result.SetWasCompiled(false));
+  NOT_IN_PRECOMPILED(result.set_was_compiled(false));
   result.set_owner(owner);
   NOT_IN_PRECOMPILED(result.set_token_pos(token_pos));
   NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));
@@ -6641,7 +6641,6 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
   NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
-  NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
   result.set_kernel_offset(0);
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
@@ -6682,7 +6681,6 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
-  clone.set_inlining_depth(0);
   clone.set_optimized_call_site_count(0);
   clone.set_kernel_offset(kernel_offset());
   clone.set_kernel_data(TypedData::Handle(zone, kernel_data()));

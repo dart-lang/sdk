@@ -2362,39 +2362,101 @@ class Function : public Object {
 
   intptr_t NumImplicitParameters() const;
 
+  static intptr_t usage_counter_offset() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-#define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
-  static intptr_t name##_offset() {                                            \
-    UNREACHABLE();                                                             \
-    return 0;                                                                  \
-  }                                                                            \
-  return_type name() const { return 0; }                                       \
-                                                                               \
-  void set_##name(type value) const { UNREACHABLE(); }
+    UNREACHABLE();
+    return 0;
 #else
-#define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
-  static intptr_t name##_offset() { return OFFSET_OF(RawFunction, name##_); }  \
-  return_type name() const { return raw_ptr()->name##_; }                      \
-                                                                               \
-  void set_##name(type value) const {                                          \
-    StoreNonPointer(&raw_ptr()->name##_, value);                               \
-  }
+    return OFFSET_OF(RawFunction, usage_counter_);
 #endif
+  }
+  intptr_t usage_counter() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    return raw_ptr()->usage_counter_;
+#endif
+  }
+  void set_usage_counter(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    // TODO(Srdjan): Assert that this is thread-safe, i.e., only
+    // set from mutator-thread or while at a safepoint (e.g., during marking).
+    StoreNonPointer(&raw_ptr()->usage_counter_, value);
+#endif
+  }
 
-  JIT_FUNCTION_COUNTERS(DEFINE_GETTERS_AND_SETTERS)
-
-#undef DEFINE_GETTERS_AND_SETTERS
+  int8_t deoptimization_counter() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    return raw_ptr()->deoptimization_counter_;
+#endif
+  }
+  void set_deoptimization_counter(int8_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->deoptimization_counter_, value);
+#endif
+  }
 
   static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
-
-  void SetOptimizedInstructionCountClamped(uintptr_t value) const {
-    if (value > kMaxInstructionCount) value = kMaxInstructionCount;
-    set_optimized_instruction_count(value);
+  intptr_t optimized_instruction_count() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return 0;
+#else
+    return raw_ptr()->optimized_instruction_count_;
+#endif
+  }
+  void set_optimized_instruction_count(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(value >= 0);
+    if (value > kMaxInstructionCount) {
+      value = kMaxInstructionCount;
+    }
+    StoreNonPointer(&raw_ptr()->optimized_instruction_count_,
+                    static_cast<uint16_t>(value));
+#endif
   }
 
-  void SetOptimizedCallSiteCountClamped(uintptr_t value) const {
-    if (value > kMaxInstructionCount) value = kMaxInstructionCount;
-    set_optimized_call_site_count(value);
+  intptr_t optimized_call_site_count() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    return raw_ptr()->optimized_call_site_count_;
+#endif
+  }
+  void set_optimized_call_site_count(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(value >= 0);
+    if (value > kMaxInstructionCount) {
+      value = kMaxInstructionCount;
+    }
+    StoreNonPointer(&raw_ptr()->optimized_call_site_count_,
+                    static_cast<uint16_t>(value));
+#endif
+  }
+
+  intptr_t kernel_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    return raw_ptr()->kernel_offset_;
+#endif
+  }
+
+  void set_kernel_offset(intptr_t kernel_offset) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    StoreNonPointer(&raw_ptr()->kernel_offset_, kernel_offset);
+#endif
   }
 
   RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
@@ -2681,38 +2743,48 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
-  // 'WasCompiled' is true if the function was compiled once in this
+  // 'was_compiled' is true if the function was compiled once in this
   // VM instantiation. It is independent from presence of type feedback
   // (ic_data_array) and code, which may be loaded from a snapshot.
-  void SetWasCompiled(bool value) const {
-    set_was_compiled_numeric(value ? 1 : 0);
+  void set_was_compiled(bool value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    StoreNonPointer(&raw_ptr()->was_compiled_, value ? 1 : 0);
+#endif
+  }
+  bool was_compiled() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return true;
+#else
+    return raw_ptr()->was_compiled_ == 1;
+#endif
   }
 
-  bool WasCompiled() const { return was_compiled_numeric() != 0; }
-
-  // static: Considered during class-side or top-level resolution rather than
-  //         instance-side resolution.
-  // const: Valid target of a const constructor call.
-  // abstract: Skipped during instance-side resolution.
-  // reflectable: Enumerated by mirrors, invocable by mirrors. False for private
-  //              functions of dart: libraries.
-  // debuggable: Valid location of a breakpoint. Synthetic code is not
-  //             debuggable.
-  // visible: Frame is included in stack traces. Synthetic code such as
-  //          dispatchers is not visible. Synthetic code that can trigger
-  //          exceptions such as the outer async functions that create Futures
-  //          is visible.
-  // optimizable: Candidate for going through the optimizing compiler. False for
-  //              some functions known to be execute infrequently and functions
-  //              which have been de-optimized too many times.
-  // instrinsic: Has a hand-written assembly prologue.
-  // inlinable: Candidate for inlining. False for functions with features we
-  //            don't support during inlining (e.g., optional parameters),
-  //            functions which are too big, etc.
-  // native: Bridge to C/C++ code.
-  // redirecting: Redirecting generative or factory constructor.
-  // external: Just a declaration that expects to be defined in another patch
-  //           file.
+// static: Considered during class-side or top-level resolution rather than
+//         instance-side resolution.
+// const: Valid target of a const constructor call.
+// abstract: Skipped during instance-side resolution.
+// reflectable: Enumerated by mirrors, invocable by mirrors. False for private
+//              functions of dart: libraries.
+// debuggable: Valid location of a breakpoint. Synthetic code is not
+//             debuggable.
+// visible: Frame is included in stack traces. Synthetic code such as
+//          dispatchers is not visible. Synthetic code that can trigger
+//          exceptions such as the outer async functions that create Futures
+//          is visible.
+// optimizable: Candidate for going through the optimizing compiler. False for
+//              some functions known to be execute infrequently and functions
+//              which have been de-optimized too many times.
+// instrinsic: Has a hand-written assembly prologue.
+// inlinable: Candidate for inlining. False for functions with features we
+//            don't support during inlining (e.g., optional parameters),
+//            functions which are too big, etc.
+// native: Bridge to C/C++ code.
+// redirecting: Redirecting generative or factory constructor.
+// external: Just a declaration that expects to be defined in another patch
+//           file.
 
 #define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
   V(Static, is_static)                                                         \
