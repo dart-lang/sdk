@@ -8,8 +8,8 @@ final values = <int>[];
 
 class Mock {
   noSuchMethod(Invocation i) {
-    var expected = i.isGetter ? "_x" : "_x=";
-    Expect.equals('Symbol("$expected")', i.memberName.toString());
+    var expected = i.isGetter ? #_x : const Symbol("_x=");
+    Expect.equals(expected, i.memberName);
     values.add(i.positionalArguments[0]);
   }
 }
