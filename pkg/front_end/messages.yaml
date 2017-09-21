@@ -134,7 +134,7 @@ ExpectedClassBodyToSkip: ExpectedClassBody
 
 ExpectedDeclaration:
   template: "Expected a declaration, but got '#lexeme'."
-  analyzerCode: UNEXPECTED_TOKEN
+  analyzerCode: EXPECTED_EXECUTABLE
   dart2jsCode: "*fatal*"
 
 ExpectedExpression:

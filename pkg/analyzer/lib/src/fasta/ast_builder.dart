@@ -1177,6 +1177,7 @@ class AstBuilder extends ScopeListener {
   void handleInvalidTopLevelDeclaration(Token endToken) {
     debugEvent("InvalidTopLevelDeclaration");
     pop(); // metadata star
+    pop(); // comments
     // TODO(danrubel): consider creating a AST node
     // representing the invalid declaration to better support code completion,
     // quick fixes, etc, rather than discarding the metadata and token
@@ -1955,6 +1956,10 @@ class AstBuilder extends ScopeListener {
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, charOffset, 1);
+        return;
+      case "EXPECTED_EXECUTABLE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPECTED_EXECUTABLE, charOffset, 1);
         return;
       case "EXPECTED_STRING_LITERAL":
         errorReporter?.reportErrorForOffset(

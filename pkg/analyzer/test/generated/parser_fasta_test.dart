@@ -595,14 +595,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedExecutable_afterAnnotation_atEOF() {
-    // TODO(danrubel): Exception rather than error:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_EXECUTABLE, found 0
-    super.test_expectedExecutable_afterAnnotation_atEOF();
-  }
-
-  @override
-  @failingTest
   void test_expectedInterpolationIdentifier() {
     // TODO(brianwilkerson) Does not recover.
     //   RangeError: Value not in range: -1
