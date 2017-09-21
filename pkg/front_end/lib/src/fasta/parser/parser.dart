@@ -1477,7 +1477,22 @@ class Parser {
           }
         } else if (optional('this', nameToken)) {
           thisKeyword = nameToken;
-          token = expect('.', token);
+          if (!optional('.', token)) {
+            // Recover from a missing period by inserting one.
+            Message message = fasta.templateExpectedButGot.withArguments('.');
+            Token newToken =
+                new SyntheticToken(TokenType.PERIOD, token.charOffset);
+            token = rewriteAndRecover(token, message, newToken).next;
+          } else {
+            token = token.next;
+          }
+          if (!token.isIdentifier) {
+            // Recover from a missing identifier by inserting one.
+            Token identifier = new SyntheticStringToken(
+                TokenType.IDENTIFIER, '', token.charOffset, 0);
+            token = rewriteAndRecover(
+                token, fasta.messageMissingIdentifier, identifier);
+          }
           nameToken = token;
           nameContext = IdentifierContext.fieldInitializer;
           token = token.next;
@@ -2028,8 +2043,7 @@ class Parser {
   Token rewriteAndRecover(Token token, Message message, Token newToken) {
     if (firstToken == null) return reportUnrecoverableError(token, message);
     reportRecoverableError(token, message);
-    token = rewriter.insertTokenBefore(newToken, token);
-    return token;
+    return rewriter.insertTokenBefore(newToken, token);
   }
 
   Token parseLiteralStringOrRecoverExpression(Token token) {

@@ -1973,6 +1973,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(ParserErrorCode.EXTRANEOUS_MODIFIER,
             charOffset, text.length, [text]);
         return;
+      case "MISSING_IDENTIFIER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_IDENTIFIER, charOffset, 1);
+        return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, charOffset, 1);

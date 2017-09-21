@@ -182,3 +182,5 @@ ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
 rasta/export: RuntimeError # Expected, this file has no main method.
 rasta/foo: RuntimeError # Expected, this file has no main method.
+
+incomplete_field_formal_parameter: Fail # Fasta doesn't recover well

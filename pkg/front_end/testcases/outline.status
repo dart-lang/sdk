@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
+
 inference/async_closure_return_type_flatten: Fail
 inference/async_closure_return_type_future: Fail
 inference/async_closure_return_type_future_or: Fail

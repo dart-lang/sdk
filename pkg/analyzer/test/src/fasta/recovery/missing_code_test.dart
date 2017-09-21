@@ -10,6 +10,7 @@ import 'recovery_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingCodeTest);
+    defineReflectiveTests(ParameterListTest);
   });
 }
 
@@ -292,6 +293,69 @@ class C {
 ''', [ParserErrorCode.MISSING_IDENTIFIER], '''
 class C {
   int operator $operator(x) => super $operator _s_;
+}
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when tokens are missing in a parameter
+ * list.
+ */
+@reflectiveTest
+class ParameterListTest extends AbstractRecoveryTest {
+  void test_fieldFormalParameter_noPeriod_last() {
+    testRecovery('''
+class C {
+  int f;
+  C(this);
+}
+''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
+class C {
+  int f;
+  C(this._s_);
+}
+''');
+  }
+
+  void test_fieldFormalParameter_noPeriod_notLast() {
+    testRecovery('''
+class C {
+  int f;
+  C(this, p);
+}
+''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
+class C {
+  int f;
+  C(this._s_, p);
+}
+''');
+  }
+
+  void test_fieldFormalParameter_period_last() {
+    testRecovery('''
+class C {
+  int f;
+  C(this.);
+}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+class C {
+  int f;
+  C(this._s_);
+}
+''');
+  }
+
+  void test_fieldFormalParameter_period_notLast() {
+    testRecovery('''
+class C {
+  int f;
+  C(this., p);
+}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+class C {
+  int f;
+  C(this._s_, p);
 }
 ''');
   }
