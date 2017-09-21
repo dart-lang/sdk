@@ -470,6 +470,7 @@ named_parameters_test/09: Crash # Issue 27394
 async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 async_star_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 await_exceptions_test: RuntimeError
+await_for_test: Crash # Unsupported operation: Unsupported type parameter type node R.
 await_for_test: RuntimeError
 await_for_use_local_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError
@@ -605,9 +606,6 @@ internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of 
 invocation_mirror2_test: RuntimeError
 invocation_mirror_empty_arguments_test: RuntimeError
 invocation_mirror_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
-is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
-is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
 issue13474_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -808,7 +806,6 @@ regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError
 regress_24935_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 regress_24935_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-await_for_test: Crash # Unsupported operation: Unsupported type parameter type node R.
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
@@ -1011,9 +1008,6 @@ internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' 
 invocation_mirror2_test: RuntimeError
 invocation_mirror_empty_arguments_test: RuntimeError
 invocation_mirror_test: RuntimeError
-is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
-is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
-is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
 issue13474_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
