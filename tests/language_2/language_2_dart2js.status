@@ -712,10 +712,8 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError
-interceptor3_test: RuntimeError
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
 invocation_mirror2_test: RuntimeError
-invocation_mirror_invoke_on2_test: RuntimeError
 invocation_mirror_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 2497 pos 14: 'arguments.named.isEmpty': is not true.
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
@@ -886,10 +884,8 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError
-interceptor3_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 invocation_mirror2_test: RuntimeError
-invocation_mirror_invoke_on2_test: RuntimeError
 invocation_mirror_test: RuntimeError
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
