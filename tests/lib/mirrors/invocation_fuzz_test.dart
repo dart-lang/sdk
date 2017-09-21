@@ -34,7 +34,7 @@ var blacklist = [
 
   // These prevent the test from exiting.
   'dart.io.sleep',
-  'dart.io.HttpServer.HttpServer.listenOn',
+  'dart._http.HttpServer.HttpServer.listenOn',
 
   // These either cause the VM to segfault or throw uncatchable API errors.
   // TODO(15274): Fix them and remove from blacklist.

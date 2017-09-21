@@ -42,6 +42,7 @@ const char* const DartUtils::kBuiltinLibURL = "dart:_builtin";
 const char* const DartUtils::kCoreLibURL = "dart:core";
 const char* const DartUtils::kInternalLibURL = "dart:_internal";
 const char* const DartUtils::kIsolateLibURL = "dart:isolate";
+const char* const DartUtils::kHttpLibURL = "dart:_http";
 const char* const DartUtils::kIOLibURL = "dart:io";
 const char* const DartUtils::kIOLibPatchURL = "dart:io-patch";
 const char* const DartUtils::kUriLibURL = "dart:uri";

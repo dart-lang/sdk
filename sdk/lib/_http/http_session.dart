@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.io;
+part of dart._http;
 
 const String _DART_SESSION_ID = "DARTSESSID";
 
@@ -89,7 +89,7 @@ class _HttpSessionManager {
 
   String createSessionId() {
     const int _KEY_LENGTH = 16; // 128 bits.
-    var data = _IOCrypto.getRandomBytes(_KEY_LENGTH);
+    var data = _CryptoUtils.getRandomBytes(_KEY_LENGTH);
     return _CryptoUtils.bytesToHex(data);
   }
 
