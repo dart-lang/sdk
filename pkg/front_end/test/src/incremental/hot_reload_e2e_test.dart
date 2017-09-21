@@ -21,7 +21,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:test/test.dart';
 
-import '../../../tool/vm/reload.dart';
+import '../../tool/reload.dart';
 
 main() {
   IncrementalKernelGenerator compiler;
