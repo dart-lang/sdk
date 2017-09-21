@@ -828,6 +828,7 @@ LibTest/typed_data/Int8List/sublist_A02_t01: Pass, Slow # Please triage this fai
 LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # Please triage this failure.
 
 [ $compiler == dart2js && $runtime == chrome ]
+Language/Classes/Instance_Methods/Operators/allowed_names_t01: Pass, RuntimeError # Issue 30853
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: Pass, RuntimeError # Issue 26615
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: Pass, RuntimeError # Issue 26615
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
