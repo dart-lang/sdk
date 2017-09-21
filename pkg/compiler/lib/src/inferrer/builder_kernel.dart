@@ -50,6 +50,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       <JumpTarget, List<LocalsHandler>>{};
   TypeInformation _returnType;
 
+  /// Whether we currently collect [IsCheck]s.
+  bool _accumulateIsChecks = false;
+  bool _conditionIsSimple = false;
+
+  /// The [IsCheck]s that show us what types locals currently _are_.
+  List<IsCheck> _positiveIsChecks;
+
+  /// The [IsCheck]s that show us what types locals currently are _not_.
+  List<IsCheck> _negativeIsChecks;
+
   KernelTypeGraphBuilder(
       this._options,
       this._closedWorld,
@@ -309,6 +319,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitBoolLiteral(ir.BoolLiteral node) {
+    return _types.boolLiteralType(node.value);
+  }
+
+  @override
   TypeInformation visitIntLiteral(ir.IntLiteral node) {
     ConstantSystem constantSystem = _closedWorld.constantSystem;
     // The JavaScript backend may turn this literal into a double at
@@ -376,12 +391,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeMask mask = _memberData.typeOfSend(node);
 
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    if (selector.name == '==' || selector.name == '!=') {
+    if (selector.name == '==') {
       if (_types.isNull(receiverType)) {
-        // TODO(johnniwinther): Add null check.
+        // null == o
+        _potentiallyAddNullCheck(node, node.arguments.positional.first);
         return _types.boolType;
       } else if (_types.isNull(arguments.positional[0])) {
-        // TODO(johnniwinther): Add null check.
+        // o == null
+        _potentiallyAddNullCheck(node, node.receiver);
         return _types.boolType;
       }
     }
@@ -611,4 +628,112 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitThisExpression(ir.ThisExpression node) {
     return thisType;
   }
+
+  bool handleCondition(
+      ir.Node node, List<IsCheck> positiveTests, List<IsCheck> negativeTests) {
+    bool oldConditionIsSimple = _conditionIsSimple;
+    bool oldAccumulateIsChecks = _accumulateIsChecks;
+    List<IsCheck> oldPositiveIsChecks = _positiveIsChecks;
+    List<IsCheck> oldNegativeIsChecks = _negativeIsChecks;
+    _accumulateIsChecks = true;
+    _conditionIsSimple = true;
+    _positiveIsChecks = positiveTests;
+    _negativeIsChecks = negativeTests;
+    visit(node);
+    bool simpleCondition = _conditionIsSimple;
+    _accumulateIsChecks = oldAccumulateIsChecks;
+    _positiveIsChecks = oldPositiveIsChecks;
+    _negativeIsChecks = oldNegativeIsChecks;
+    _conditionIsSimple = oldConditionIsSimple;
+    return simpleCondition;
+  }
+
+  void _potentiallyAddIsCheck(ir.IsExpression node) {
+    if (!_accumulateIsChecks) return;
+    ir.Expression operand = node.operand;
+    if (operand is ir.VariableGet) {
+      _positiveIsChecks.add(new IsCheck(
+          node,
+          _localsMap.getLocalVariable(operand.variable),
+          _elementMap.getDartType(node.type)));
+    }
+  }
+
+  void _potentiallyAddNullCheck(
+      ir.MethodInvocation node, ir.Expression receiver) {
+    if (!_accumulateIsChecks) return;
+    if (receiver is ir.VariableGet) {
+      _positiveIsChecks.add(new IsCheck(
+          node, _localsMap.getLocalVariable(receiver.variable), null));
+    }
+  }
+
+  void _updateIsChecks(
+      List<IsCheck> positiveTests, List<IsCheck> negativeTests) {
+    for (IsCheck check in positiveTests) {
+      if (check.type != null) {
+        _locals.narrow(check.local, check.type, check.node);
+      } else {
+        DartType localType = _localsMap.getLocalType(_elementMap, check.local);
+        _locals.update(check.local, _types.nullType, check.node, localType);
+      }
+    }
+    for (IsCheck check in negativeTests) {
+      if (check.type != null) {
+        // TODO(johnniwinther): Use negative type knowledge.
+      } else {
+        _locals.narrow(
+            check.local, _closedWorld.commonElements.objectType, check.node);
+      }
+    }
+  }
+
+  @override
+  TypeInformation visitIfStatement(ir.IfStatement node) {
+    List<IsCheck> positiveTests = <IsCheck>[];
+    List<IsCheck> negativeTests = <IsCheck>[];
+    bool simpleCondition =
+        handleCondition(node.condition, positiveTests, negativeTests);
+    LocalsHandler saved = _locals;
+    _locals = new LocalsHandler.from(_locals, node);
+    _updateIsChecks(positiveTests, negativeTests);
+    visit(node.then);
+    LocalsHandler thenLocals = _locals;
+    _locals = new LocalsHandler.from(saved, node);
+    if (simpleCondition) {
+      _updateIsChecks(negativeTests, positiveTests);
+    }
+    visit(node.otherwise);
+    saved.mergeDiamondFlow(thenLocals, _locals);
+    _locals = saved;
+    return null;
+  }
+
+  @override
+  TypeInformation visitIsExpression(ir.IsExpression node) {
+    _potentiallyAddIsCheck(node);
+    visit(node.operand);
+    return _types.boolType;
+  }
+
+  @override
+  TypeInformation visitNot(ir.Not node) {
+    // TODO(johnniwinther): This handles more cases than the old implementation.
+    // Show these cases in tests.
+    List<IsCheck> temp = _positiveIsChecks;
+    _positiveIsChecks = _negativeIsChecks;
+    _negativeIsChecks = temp;
+    visit(node.operand);
+    return _types.boolType;
+  }
+}
+
+class IsCheck {
+  final ir.Expression node;
+  final Local local;
+  final DartType type;
+
+  IsCheck(this.node, this.local, this.type);
+
+  String toString() => 'IsCheck($local,$type)';
 }
