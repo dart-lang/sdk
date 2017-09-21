@@ -167,12 +167,18 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       case MemberKind.regular:
         ir.Member node = definition.node;
         if (node is ir.Field) {
+          if (node.isInstanceMember &&
+              !node.isFinal &&
+              node.initializer is ir.NullLiteral) {
+            return null;
+          }
           return node.initializer;
         } else if (node is ir.Procedure) {
           return node.function;
         }
         break;
       case MemberKind.constructor:
+        return definition.node;
       case MemberKind.constructorBody:
         ir.Member node = definition.node;
         if (node is ir.Constructor) {
@@ -428,7 +434,7 @@ class KernelGlobalTypeInferenceElementData
 
   @override
   TypeMask typeOfGetter(ir.Node node) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.typeOfGetter');
+    if (_sendMap == null) return null;
+    return _sendMap[node];
   }
 }

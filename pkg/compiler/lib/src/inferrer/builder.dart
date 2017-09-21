@@ -1041,7 +1041,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           if (field.isFinal) return;
           TypeInformation type = locals.fieldScope.readField(field);
           ResolvedAst resolvedAst = field.resolvedAst;
-          if (type == null && resolvedAst.body == null) {
+          if (type == null &&
+              (resolvedAst.body == null ||
+                  resolvedAst.body is ast.LiteralNull)) {
             inferrer.recordTypeOfField(field, types.nullType);
           }
         });

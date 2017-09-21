@@ -40,6 +40,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
   final GlobalTypeInferenceElementData<ir.Node> _memberData;
+  final bool _inGenerativeConstructor;
 
   LocalsHandler _locals;
   SideEffects _sideEffects = new SideEffects.empty();
@@ -60,13 +61,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       this._localsMap,
       [this._locals])
       : this._types = _inferrer.types,
-        this._memberData = _inferrer.dataOfMember(_analyzedMember) {
+        this._memberData = _inferrer.dataOfMember(_analyzedMember),
+        this._inGenerativeConstructor = _analyzedNode is ir.Constructor {
     if (_locals != null) return;
 
     FieldInitializationScope<ir.Node> fieldScope =
-        _analyzedNode is ir.Constructor
-            ? new FieldInitializationScope(_types)
-            : null;
+        _inGenerativeConstructor ? new FieldInitializationScope(_types) : null;
     _locals = new LocalsHandler(
         _inferrer, _types, _options, _analyzedNode, fieldScope);
   }
@@ -107,9 +107,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   void initializationIsIndefinite() {
-    MemberEntity member = _analyzedMember;
-    if (member is ConstructorEntity && member.isGenerativeConstructor) {
+    if (_inGenerativeConstructor) {
       _locals.fieldScope.isIndefinite = true;
+    }
+  }
+
+  TypeInformation _thisType;
+  TypeInformation get thisType {
+    if (_thisType != null) return _thisType;
+    ClassEntity cls = _elementMap.getMemberThisType(_analyzedMember)?.element;
+    if (_closedWorld.isUsedAsMixin(cls)) {
+      return _thisType = _types.nonNullSubtype(cls);
+    } else {
+      return _thisType = _types.nonNullSubclass(cls);
     }
   }
 
@@ -134,9 +144,56 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitFunctionNode(ir.FunctionNode node) {
-    // TODO(redemption): Handle native methods.
+  TypeInformation visitConstructor(ir.Constructor node) {
+    handleParameters(node.function);
+    node.initializers.forEach(visit);
+    visit(node.function.body);
 
+    ClassEntity cls = _analyzedMember.enclosingClass;
+    if (!(node.initializers.isNotEmpty &&
+        node.initializers.first is ir.RedirectingInitializer)) {
+      // Iterate over all instance fields, and give a null type to
+      // fields that we haven't initialized for sure.
+      _elementMap.elementEnvironment.forEachClassMember(cls,
+          (ClassEntity declarer, MemberEntity member) {
+        if (declarer != cls) return;
+        if (member.isField && member.isInstanceMember && member.isAssignable) {
+          TypeInformation type = _locals.fieldScope.readField(member);
+          MemberDefinition definition = _elementMap.getMemberDefinition(member);
+          assert(definition.kind == MemberKind.regular);
+          ir.Field node = definition.node;
+          if (type == null &&
+              (node.initializer == null ||
+                  node.initializer is ir.NullLiteral)) {
+            _inferrer.recordTypeOfField(member, _types.nullType);
+          }
+        }
+      });
+    }
+
+    if (cls.isAbstract) {
+      if (_closedWorld.isInstantiated(cls)) {
+        _returnType = _types.nonNullSubclass(cls);
+      } else {
+        // TODO(johnniwinther): Avoid analyzing [_analyzedMember] in this
+        // case; it's never called.
+        _returnType = _types.nonNullEmpty();
+      }
+    } else {
+      _returnType = _types.nonNullExact(cls);
+    }
+    return _returnType;
+  }
+
+  @override
+  visitFieldInitializer(ir.FieldInitializer node) {
+    TypeInformation rhsType = visit(node.value);
+    FieldEntity field = _elementMap.getField(node.field);
+    _locals.updateField(field, rhsType);
+    _inferrer.recordTypeOfField(field, rhsType);
+  }
+
+  void handleParameters(ir.FunctionNode node) {
     int position = 0;
     for (ir.VariableDeclaration parameter in node.positionalParameters) {
       handleParameter(parameter,
@@ -146,56 +203,44 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     for (ir.VariableDeclaration parameter in node.namedParameters) {
       handleParameter(parameter, isOptional: true);
     }
+  }
+
+  @override
+  TypeInformation visitFunctionNode(ir.FunctionNode node) {
+    // TODO(redemption): Handle native methods.
+    handleParameters(node);
     visit(node.body);
-    MemberEntity analyzedMember = _analyzedMember;
-    if (analyzedMember is ConstructorEntity &&
-        analyzedMember.isGenerativeConstructor) {
-      // TODO(redemption): Handle initializers.
-      ClassEntity cls = analyzedMember.enclosingClass;
-      if (cls.isAbstract) {
-        if (_closedWorld.isInstantiated(cls)) {
-          _returnType = _types.nonNullSubclass(cls);
-        } else {
-          // TODO(johnniwinther): Avoid analyzing [_analyzedMember] in this
-          // case; it's never called.
-          _returnType = _types.nonNullEmpty();
+    switch (node.asyncMarker) {
+      case ir.AsyncMarker.Sync:
+        if (_returnType == null) {
+          // No return in the body.
+          _returnType = _locals.seenReturnOrThrow
+              ? _types.nonNullEmpty() // Body always throws.
+              : _types.nullType;
+        } else if (!_locals.seenReturnOrThrow) {
+          // We haven'TypeInformation seen returns on all branches. So the
+          // method may also return null.
+          recordReturnType(_types.nullType);
         }
-      } else {
-        _returnType = _types.nonNullExact(cls);
-      }
-    } else {
-      switch (node.asyncMarker) {
-        case ir.AsyncMarker.Sync:
-          if (_returnType == null) {
-            // No return in the body.
-            _returnType = _locals.seenReturnOrThrow
-                ? _types.nonNullEmpty() // Body always throws.
-                : _types.nullType;
-          } else if (!_locals.seenReturnOrThrow) {
-            // We haven'TypeInformation seen returns on all branches. So the
-            // method may also return null.
-            recordReturnType(_types.nullType);
-          }
-          break;
+        break;
 
-        case ir.AsyncMarker.SyncStar:
-          // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
-          //               contained is the method body's return type.
-          recordReturnType(_types.syncStarIterableType);
-          break;
+      case ir.AsyncMarker.SyncStar:
+        // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
+        //               contained is the method body's return type.
+        recordReturnType(_types.syncStarIterableType);
+        break;
 
-        case ir.AsyncMarker.Async:
-          recordReturnType(_types.asyncFutureType);
-          break;
+      case ir.AsyncMarker.Async:
+        recordReturnType(_types.asyncFutureType);
+        break;
 
-        case ir.AsyncMarker.AsyncStar:
-          recordReturnType(_types.asyncStarStreamType);
-          break;
-        case ir.AsyncMarker.SyncYielding:
-          failedAt(
-              _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
-          break;
-      }
+      case ir.AsyncMarker.AsyncStar:
+        recordReturnType(_types.asyncStarStreamType);
+        break;
+      case ir.AsyncMarker.SyncYielding:
+        failedAt(
+            _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
+        break;
     }
     return _returnType;
   }
@@ -344,7 +389,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         CallType.access, node, selector, mask, receiverType, arguments);
   }
 
-  TypeInformation handleDynamicInvoke(
+  TypeInformation _handleDynamic(
       CallType callType,
       ir.Node node,
       Selector selector,
@@ -365,6 +410,30 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return _inferrer.registerCalledSelector(callType, node, selector, mask,
         receiverType, _analyzedMember, arguments, _sideEffects,
         inLoop: inLoop, isConditional: false);
+  }
+
+  TypeInformation handleDynamicGet(ir.Node node, Selector selector,
+      TypeMask mask, TypeInformation receiverType) {
+    return _handleDynamic(
+        CallType.access, node, selector, mask, receiverType, null);
+  }
+
+  TypeInformation handleDynamicSet(ir.Node node, Selector selector,
+      TypeMask mask, TypeInformation receiverType, TypeInformation rhsType) {
+    ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
+    return _handleDynamic(
+        CallType.access, node, selector, mask, receiverType, arguments);
+  }
+
+  TypeInformation handleDynamicInvoke(
+      CallType callType,
+      ir.Node node,
+      Selector selector,
+      TypeMask mask,
+      TypeInformation receiverType,
+      ArgumentsTypes arguments) {
+    return _handleDynamic(
+        callType, node, selector, mask, receiverType, arguments);
   }
 
   @override
@@ -502,5 +571,44 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           _sideEffects,
           inLoop);
     }
+  }
+
+  @override
+  TypeInformation visitPropertyGet(ir.PropertyGet node) {
+    TypeInformation receiverType = visit(node.receiver);
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+    // TODO(redemption): Use `node.interfaceTarget` to narrow the receiver type
+    // for --trust-type-annotations/strong-mode.
+    return handleDynamicGet(node, selector, mask, receiverType);
+  }
+
+  @override
+  TypeInformation visitPropertySet(ir.PropertySet node) {
+    TypeInformation rhsType = visit(node.value);
+    TypeInformation receiverType = visit(node.receiver);
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+    if (_inGenerativeConstructor && node.receiver is ir.ThisExpression) {
+      Iterable<MemberEntity> targets = _closedWorld.locateMembers(
+          selector, _types.newTypedSelector(receiverType, mask));
+      // We just recognized a field initialization of the form:
+      // `this.foo = 42`. If there is only one target, we can update
+      // its type.
+      if (targets.length == 1) {
+        MemberEntity single = targets.first;
+        if (single.isField) {
+          FieldEntity field = single;
+          _locals.updateField(field, rhsType);
+        }
+      }
+    }
+    handleDynamicSet(node, selector, mask, receiverType, rhsType);
+    return rhsType;
+  }
+
+  @override
+  TypeInformation visitThisExpression(ir.ThisExpression node) {
+    return thisType;
   }
 }

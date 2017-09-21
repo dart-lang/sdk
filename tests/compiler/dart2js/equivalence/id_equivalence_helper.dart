@@ -9,6 +9,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 
 import '../annotated_code_helper.dart';
@@ -70,19 +71,24 @@ Future<IdData> computeData(
   Map<Id, ActualData> actualMap = <Id, ActualData>{};
   Uri mainUri = Uri.parse('memory:main.dart');
   Compiler compiler = await compileFunction(code, mainUri, options);
-  ElementEnvironment elementEnvironment =
-      compiler.backendClosedWorldForTesting.elementEnvironment;
+  ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
   elementEnvironment.forEachClass(mainLibrary, (ClassEntity cls) {
-    elementEnvironment.forEachConstructor(cls, (ConstructorEntity constructor) {
-      computeMemberData(compiler, constructor, actualMap, verbose: verbose);
-    });
-    elementEnvironment.forEachClassMember(cls,
-        (ClassEntity declarer, MemberEntity member) {
-      if (cls == declarer) {
-        computeMemberData(compiler, member, actualMap, verbose: verbose);
-      }
-    });
+    if (closedWorld.isInstantiated(cls)) {
+      elementEnvironment.forEachConstructor(cls,
+          (ConstructorEntity constructor) {
+        computeMemberData(compiler, constructor, actualMap, verbose: verbose);
+      });
+    }
+    if (closedWorld.isImplemented(cls)) {
+      elementEnvironment.forEachClassMember(cls,
+          (ClassEntity declarer, MemberEntity member) {
+        if (cls == declarer) {
+          computeMemberData(compiler, member, actualMap, verbose: verbose);
+        }
+      });
+    }
   });
   elementEnvironment.forEachLibraryMember(mainLibrary, (MemberEntity member) {
     computeMemberData(compiler, member, actualMap, verbose: verbose);

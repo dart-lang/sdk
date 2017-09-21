@@ -327,6 +327,9 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         reportHere(reporter, child, 'No element for variable.');
       } else if (!element.isLocal) {
         computeForElement(element);
+      } else if (element.isInitializingFormal) {
+        ast.Send send = child;
+        computeForNode(child, computeDefaultNodeId(send.selector), element);
       } else {
         computeForNode(child, computeDefaultNodeId(child), element);
       }
@@ -555,7 +558,7 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitVariableGet(ir.VariableGet node) {
-    if (node.variable.name != null) {
+    if (node.variable.name != null && !node.variable.isFieldFormal) {
       // Skip use of synthetic variables.
       computeForNode(node, computeDefaultNodeId(node));
     }
