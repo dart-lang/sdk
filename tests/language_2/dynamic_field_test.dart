@@ -13,11 +13,11 @@ class A extends C {
 
 class C {
   foo() {
-    print(a); //# 01: static type warning
+    print(a); //# 01: compile-time error
     return a; //# 01: continued
   }
   bar() {
-    print(b.a); //# 02: static type warning
+    print(b.a); //# 02: compile-time error
     return b.a; //# 02: continued
   }
 }

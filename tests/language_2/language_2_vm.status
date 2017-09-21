@@ -17,6 +17,7 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
+assertion_test: RuntimeError # Issue 30326
 assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError
 assign_static_type_test/03: MissingCompileTimeError
@@ -77,11 +78,11 @@ call_type_literal_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
-checked_setter_test: MissingCompileTimeError
 checked_setter2_test: MissingCompileTimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
+checked_setter_test: MissingCompileTimeError
 class_literal_test/01: MissingCompileTimeError
 class_literal_test/02: MissingCompileTimeError
 class_literal_test/03: MissingCompileTimeError
@@ -135,6 +136,13 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
+dynamic_field_test/01: MissingCompileTimeError
+dynamic_field_test/02: MissingCompileTimeError
+dynamic_prefix_core_test/01: MissingCompileTimeError
+dynamic_prefix_core_test/none: RuntimeError
+empty_block_case_test: MissingCompileTimeError
+enum_private_test/02: MissingCompileTimeError
+error_stacktrace_test/00: MissingCompileTimeError
 generic_closure_test: RuntimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
@@ -142,8 +150,8 @@ generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_field_mixin6_test/01: MissingCompileTimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
-generic_function_typedef_test/01: RuntimeError
 generic_function_typedef2_test/04: MissingCompileTimeError
+generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
@@ -212,9 +220,10 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
-mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mixin_type_parameters_super_test: RuntimeError
 mock_writable_final_private_field_test: RuntimeError # Issue 30849
+mixin_with_two_implicit_constructors_test: MissingCompileTimeError
+mock_writable_final_field_test: RuntimeError
 named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/03: MissingCompileTimeError
 named_parameters2_test: MissingCompileTimeError
@@ -270,13 +279,13 @@ super_assign_test/01: MissingCompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
 type_variable_nested_test/01: RuntimeError
 type_variable_promotion_test: RuntimeError
+type_variable_scope2_test: MissingCompileTimeError
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError
 type_variable_scope_test/02: MissingCompileTimeError
 type_variable_scope_test/03: MissingCompileTimeError
 type_variable_scope_test/04: MissingCompileTimeError
 type_variable_scope_test/05: MissingCompileTimeError
-type_variable_scope2_test: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
 typed_selector2_test: MissingCompileTimeError
 unbound_getter_test: MissingCompileTimeError
@@ -284,9 +293,6 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
-
-[ $runtime == vm ]
-assertion_test: RuntimeError # Issue 30326
 
 [ $compiler == none && $runtime == vm ]
 generic_methods_bounds_test/02: MissingRuntimeError

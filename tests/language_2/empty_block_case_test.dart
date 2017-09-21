@@ -11,7 +11,7 @@ class EmptyBlockCaseTest {
     var exception = null;
     try {
       switch (1) {
-        case 1:
+        case 1: /*@compile-error=unspecified*/
           {}
         case 2:
           Expect.equals(true, false);
