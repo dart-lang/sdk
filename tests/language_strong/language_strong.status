@@ -68,6 +68,16 @@ duplicate_constructor_test: Skip
 duplicate_export_negative_test: Skip
 duplicate_implements_test: Skip
 duplicate_interface_negative_test: Skip
+dynamic2_test: Skip
+dynamic_field_test: Skip
+dynamic_prefix_core_test: Skip
+emit_const_fields_test: Skip
+empty_block_case_test: Skip
+enum_is_keyword_test: Skip
+enum_private_test: Skip
+enum_syntax_test: Skip
+error_stacktrace_test: Skip
+example_constructor_test: Skip
 export_ambiguous_main_negative_test: Skip
 extend_type_parameter2_negative_test: Skip
 extend_type_parameter_negative_test: Skip
@@ -478,6 +488,8 @@ deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
 deferred_static_seperate_test: RuntimeError # Issue 27777
 double_int_to_string_test: RuntimeError # Issue 29920
+dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
+exception_test: RuntimeError # DDC doesn't implement NullThrownError?
 execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920

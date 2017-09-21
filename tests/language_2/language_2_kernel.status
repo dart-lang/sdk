@@ -24,19 +24,23 @@ cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
 const_nested_test: RuntimeError
 const_string_test: RuntimeError
-constructor_named_arguments_test/01: MissingCompileTimeError
-constructor_redirect1_negative_test/01: MissingCompileTimeError
-constructor_redirect1_negative_test/none: MissingCompileTimeError
-constructor_redirect1_negative_test: MissingCompileTimeError
-constructor_redirect2_negative_test: MissingCompileTimeError
-covariant_override/runtime_check_test: RuntimeError
 cyclic_type2_test: CompileTimeError
 cyclic_type_test/02: CompileTimeError
 cyclic_type_test/04: CompileTimeError
+constructor_redirect1_negative_test: MissingCompileTimeError
+constructor_redirect1_negative_test/none: MissingCompileTimeError
+constructor_redirect1_negative_test/01: MissingCompileTimeError
+constructor_redirect2_negative_test: MissingCompileTimeError
+constructor_named_arguments_test/01: MissingCompileTimeError
 default_factory2_test/01: MissingCompileTimeError
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: DartkCrash
 deferred_constant_list_test: RuntimeError
+deferred_function_type_test: RuntimeError
+deferred_inlined_test: RuntimeError
+deferred_load_inval_code_test: RuntimeError
+deferred_load_library_wrong_args_test/none: RuntimeError
+deferred_mixin_test: RuntimeError
 deferred_constraints_type_annotation_test/as_operation: Pass
 deferred_constraints_type_annotation_test/catch_check: Pass
 deferred_constraints_type_annotation_test/is_check: Pass
@@ -55,6 +59,9 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: Pass
 deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_null: Pass
 deferred_constraints_type_annotation_test/type_annotation_top_level: Pass
+deferred_call_empty_before_load_test: RuntimeError
+deferred_closurize_load_library_test: DartkCrash
+deferred_constant_list_test: RuntimeError
 deferred_function_type_test: RuntimeError
 deferred_inlined_test: RuntimeError
 deferred_load_inval_code_test: RuntimeError
@@ -123,8 +130,9 @@ if_null_precedence_test/none: RuntimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 issue_1751477_test: RuntimeError
-void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
+void_block_return_test/00: MissingCompileTimeError
+covariant_override/runtime_check_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -234,7 +242,6 @@ deferred_load_inval_code_test: CompileTimeError # Fasta/KernelVM bug: Deferred l
 deferred_load_library_wrong_args_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_mixin_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_no_prefix_test/01: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
 function_type/function_type0_test: RuntimeError
 function_type/function_type10_test: RuntimeError
 function_type/function_type11_test: RuntimeError
@@ -403,5 +410,4 @@ cyclic_type_variable_test/none: Crash
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 constructor3_test: Fail, OK, Pass
-example_constructor_test: Fail, OK
 vm/regress_29145_test: Skip # Issue 29145

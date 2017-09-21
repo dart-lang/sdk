@@ -32,6 +32,12 @@ deferred_type_dependency_test/as: RuntimeError
 deferred_type_dependency_test/is: RuntimeError
 deferred_type_dependency_test/none: RuntimeError
 deferred_type_dependency_test/type_annotation: RuntimeError
+enum_duplicate_test/01: RuntimeError
+enum_duplicate_test/02: RuntimeError
+enum_duplicate_test/none: RuntimeError
+enum_mirror_test: RuntimeError
+enum_test: RuntimeError
+evaluation_redirecting_constructor_test: RuntimeError
 export_double_same_main_test: DartkCrash
 export_main_test: DartkCrash
 f_bounded_equality_test: RuntimeError

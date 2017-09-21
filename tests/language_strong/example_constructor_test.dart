@@ -23,9 +23,9 @@ class A {
 
 class B extends A {
   B(this.a, int y, int z)
-      : z = rec(3),
-        y = rec(4),
-        super(rec(1)) {
+      : super(rec(1)),
+        z = rec(3),
+        y = rec(4) {
     rec(6);
   }
   int a;

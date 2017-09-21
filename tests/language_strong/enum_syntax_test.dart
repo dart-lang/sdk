@@ -4,6 +4,8 @@
 
 // Basic syntax test for enumeration types
 
+import 'package:expect/expect.dart';
+
 enum Color { red, orange, yellow, green }
 
 // Additional comma at end of list is ok.

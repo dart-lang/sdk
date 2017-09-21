@@ -93,13 +93,13 @@ class Helper3 {
       func5();
     } on MyException catch (e) {
       i = 300;
-      try {// //# 00: continued
+      try {
         // There should be no stackTrace in this normal exception object.
         // We should get a NoSuchMethodError.
-        var trace = e.stackTrace; //  //# 00: compile-time error
-      } on NoSuchMethodError catch (e) {// //# 00: continued
-        Expect.isNotNull(e.stackTrace, "Error needs a stackTrace on throw");// //# 00: continued
-      }// //# 00: continued
+        var trace = e.stackTrace; //# static type warning
+      } on NoSuchMethodError catch (e) {
+        Expect.isNotNull(e.stackTrace, "Error needs a stackTrace on throw");
+      }
     }
     return i;
   }
