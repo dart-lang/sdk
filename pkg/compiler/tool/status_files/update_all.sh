@@ -10,7 +10,7 @@ suites=
 
 for arg in "$@"; do
   case $arg in
-    dart2js_native|dart2js_extra|language|language_2|corelib_2)
+    dart2js_native|dart2js_extra|language|language_2|corelib|corelib_2)
       suites="$suites $arg"
       ;;
     -*)
@@ -25,7 +25,7 @@ for arg in "$@"; do
 done
 
 if [ -z "$suites" ]; then
-  suites="dart2js_native dart2js_extra language language_2 corelib_2"
+  suites="dart2js_native dart2js_extra language language_2 corelib corelib_2"
 fi
 
 repodir=$(cd $(dirname ${BASH_SOURCE[0]})/../../../../; pwd)
