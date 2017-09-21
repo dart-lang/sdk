@@ -108,9 +108,6 @@ list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 string_trimlr_test/01: Fail
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
-string_case_test/01: Fail, OK  # Bug in Firefox.
-
 # Analyzer's implementation of fromEnvironment assumes that undefined
 # environment variables have an unspecified value (rather than being
 # null) because it is expected that the user will supply a value when
