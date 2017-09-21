@@ -295,6 +295,9 @@ generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_reuse_type_variables_test: RuntimeError
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
 
+[ ($compiler == none || $compiler == app_jit) && $runtime == vm && $mode != product ]
+vm/type_vm_test: RuntimeError
+
 [ $runtime == vm && $checked ]
 constructor_call_as_function_test/01: MissingCompileTimeError
 covariant_subtyping_test: RuntimeError
@@ -486,7 +489,7 @@ generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
 
-[$runtime == vm && $compiler == none && $system == fuchsia]
+[ $runtime == vm && $compiler == none && $system == fuchsia ]
 closure_cycles_test: Pass, Crash
 vm/causal_async_exception_stack_test: RuntimeError
 vm/causal_async_exception_stack2_test: RuntimeError
@@ -501,3 +504,6 @@ constructor_call_as_function_test/01: MissingCompileTimeError
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 closure_cycles_test: Pass, Slow
 large_class_declaration_test: SkipSlow # Uses too much memory.
+
+[ $runtime == vm && $compiler == none && $system == windows && $arch == ia32 ]
+vm/optimized_stacktrace_test: Pass, Crash # Issue 28276

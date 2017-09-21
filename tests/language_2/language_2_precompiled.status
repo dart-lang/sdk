@@ -114,6 +114,7 @@ cyclic_type_variable_test/04: MissingCompileTimeError
 cyclic_typedef_test/13: MissingCompileTimeError
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
+deferred_constraints_constants_test: SkipByDesign
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
@@ -210,6 +211,10 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 interface_test/00: MissingCompileTimeError
+invocation_mirror2_test: SkipByDesign
+invocation_mirror_invoke_on2_test: SkipByDesign
+invocation_mirror_invoke_on_test: SkipByDesign
+issue21079_test: SkipByDesign
 many_generic_instanceof_test: RuntimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mixin_type_parameters_super_test: RuntimeError
@@ -284,13 +289,10 @@ unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 instance_creation_in_function_annotation_test: SkipByDesign
-wrong_number_type_arguments_test/*: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
-deferred_constraints_constants_test: SkipByDesign
-issue21079_test: SkipByDesign
-invocation_mirror2_test: SkipByDesign
-invocation_mirror_invoke_on2_test: SkipByDesign
-invocation_mirror_invoke_on_test: SkipByDesign
+vm/type_vm_test: RuntimeError # Expects line and column numbers
+vm/reflect_core_vm_test: SkipByDesign
+wrong_number_type_arguments_test/*: MissingCompileTimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
@@ -326,6 +328,8 @@ generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
+vm/regress_27671_test: Skip # Unsupported
+vm/optimized_stacktrace_test: Skip # Issue 30198
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $checked ]
 assertion_initializer_const_error2_test/cc01: Pass
@@ -383,8 +387,9 @@ generic_local_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
 [ $runtime == dart_precompiled || $compiler == app_jit ]
-hello_dart_test: Skip # Incompatible flag: --compile_all
 ct_const2_test: Skip # Incompatible flag: --compile_all
+hello_dart_test: Skip # Incompatible flag: --compile_all
+vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
 generalized_void_syntax_test: CompileTimeError # Issue #30176
@@ -392,6 +397,7 @@ generalized_void_syntax_test: CompileTimeError # Issue #30176
 [ $compiler == precompiler ]
 deferred_global_test: Fail
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
+vm/regress_27201_test: Fail
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 deferred_load_constants_test/02: Fail
@@ -410,3 +416,15 @@ cyclic_type_test/*: Skip
 [ $runtime == dart_precompiled || $mode == product ]
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/causal_async_exception_stack2_test: SkipByDesign
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled)) && $arch == ia32 ]
+vm/regress_24517_test: Pass, Fail # Issue 24517.
+
+[ $mode == product || $compiler == app_jit || $compiler == precompiler ]
+vm/regress_27201_test: Fail
+
+[ $runtime == dart_precompiled && $minified ]
+vm/no_such_args_error_message_vm_test: Skip
+vm/no_such_method_error_message_callable_vm_test: Skip
+vm/no_such_method_error_message_vm_test: Skip
+vm/regress_28325_test:Skip

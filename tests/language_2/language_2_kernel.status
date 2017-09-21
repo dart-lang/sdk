@@ -350,6 +350,8 @@ vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test usi
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
+vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+vm/type_vm_test: RuntimeError # Fasta bug: Bad position information in stack trace.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError
@@ -381,6 +383,10 @@ named_parameters_type_test/01: Crash
 named_parameters_type_test/02: Crash
 named_parameters_type_test/03: Crash
 vm/integer_type_propagation_test: Crash
+vm/optimized_stacktrace_test: Crash
+vm/regress_27671_test: Crash
+vm/type_vm_test: Crash
+
 
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError
@@ -404,3 +410,4 @@ cyclic_type_variable_test/none: Crash
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 constructor3_test: Fail, OK, Pass
+vm/regress_29145_test: Skip # Issue 29145

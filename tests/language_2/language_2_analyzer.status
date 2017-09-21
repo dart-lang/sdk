@@ -402,6 +402,8 @@ vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
 is_not_class1_negative_test: CompileTimeError
 is_not_class4_negative_test: CompileTimeError
+inst_field_initializer1_negative_test: CompileTimeError
+vm/reflect_core_vm_test: CompileTimeError
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -627,6 +629,7 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+vm/type_vm_test: StaticWarning
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -644,3 +647,6 @@ generic_methods_type_expression_test: CompileTimeError # Incorrectly disallows t
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 instantiate_type_variable_test/01: CompileTimeError
 string_interpolate_test: CompileTimeError
+
+[$compiler == dart2analyzer]
+vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.

@@ -86,6 +86,10 @@ is_malformed_type_test/97: CompileTimeError
 is_malformed_type_test/98: CompileTimeError
 is_malformed_type_test/99: CompileTimeError
 is_not_class2_test: RuntimeError
+instance_creation_in_function_annotation_test: CompileTimeError
+vm/reflect_core_vm_test: CompileTimeError
+vm/no_such_method_error_message_callable_vm_test: RuntimeError # Flutter Issue 9110
+vm/regress_27201_test: Fail # Flutter Issue 9110
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

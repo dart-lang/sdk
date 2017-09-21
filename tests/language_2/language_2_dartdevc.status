@@ -177,4 +177,5 @@ label_test: RuntimeError # Issue 30675
 modulo_test: RuntimeError # Issue 29920
 named_parameter_clash_test: RuntimeError # Issue 29920
 named_parameters_default_eq_test/none: RuntimeError
+vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out

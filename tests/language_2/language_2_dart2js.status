@@ -318,6 +318,7 @@ instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 invocation_mirror_test: RuntimeError
 many_generic_instanceof_test: RuntimeError
+vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 covariant_subtyping_tearoff1_test: RuntimeError
@@ -1007,6 +1008,7 @@ deferred_constraints_constants_test: Pass # mirrors not supported, passes for th
 invocation_mirror2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on_test: Fail # mirrors not supported
+vm/reflect_core_vm_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 await_future_test: Pass, Timeout # Issue 26735

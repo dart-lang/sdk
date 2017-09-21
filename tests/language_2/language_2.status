@@ -40,6 +40,8 @@ deferred_mixin_test: Crash # Requires deferred libraries
 issue21159_test: Pass, Crash # Issue 29094
 issue_22780_test/01: Pass, Crash # Issue 29094
 issue_1751477_test: Crash # Requires deferred libraries
+vm/regress_27201_test: Pass, Crash # Requires deferred libraries
+vm/optimized_stacktrace_test: Pass, Slow
 
 [ ! $checked && ! $strong ]
 closure_type_test: RuntimeError
@@ -68,6 +70,26 @@ is_not_class2_test/01: MissingCompileTimeError # Requires strong mode
 isnot_malformed_type_test/01: MissingCompileTimeError
 issue11724_test/01: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError # Requires strong mode
+vm/type_vm_test/01: MissingCompileTimeError
+vm/type_vm_test/02: MissingCompileTimeError
+vm/type_vm_test/03: MissingCompileTimeError
+vm/type_vm_test/04: MissingCompileTimeError
+vm/type_vm_test/05: MissingCompileTimeError
+vm/type_vm_test/06: MissingCompileTimeError
+vm/type_vm_test/08: MissingCompileTimeError
+vm/type_vm_test/09: MissingCompileTimeError
+vm/type_vm_test/10: MissingCompileTimeError
+vm/type_vm_test/11: MissingCompileTimeError
+vm/type_vm_test/12: MissingCompileTimeError
+vm/type_vm_test/13: MissingCompileTimeError
+vm/type_vm_test/14: MissingCompileTimeError
+vm/type_vm_test/15: MissingCompileTimeError
+vm/type_vm_test/16: MissingCompileTimeError
+vm/type_vm_test/22: MissingCompileTimeError
+vm/type_vm_test/24: MissingCompileTimeError
+vm/type_vm_test/25: MissingCompileTimeError
+vm/type_vm_test/26: MissingCompileTimeError
+vm/type_vm_test/27: MissingCompileTimeError
 void_type_callbacks_test: Skip # Requires strong mode
 void_type_function_types_test: Skip # Requires strong mode
 void_type_override_test: Skip # Requires strong mode
