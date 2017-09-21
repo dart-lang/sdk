@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_XXX.
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
@@ -36,6 +34,13 @@
 namespace dart {
 
 DEFINE_FLAG(bool,
+            trace_inlining_intervals,
+            false,
+            "Inlining interval diagnostics");
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+DEFINE_FLAG(bool,
             enable_simd_inline,
             true,
             "Enable inlining of SIMD related method calls.");
@@ -48,10 +53,6 @@ DEFINE_FLAG(int,
             2000,
             "The scale of invocation count, by size of the function.");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
-DEFINE_FLAG(bool,
-            trace_inlining_intervals,
-            false,
-            "Inlining interval diagnostics");
 
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(charp, deoptimize_filter);
@@ -61,17 +62,6 @@ DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, trace_compiler);
-
-#ifdef DART_PRECOMPILED_RUNTIME
-
-COMPILE_ASSERT(!FLAG_collect_code);
-COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
-COMPILE_ASSERT(!FLAG_print_stop_message);
-COMPILE_ASSERT(!FLAG_use_osr);
-COMPILE_ASSERT(FLAG_deoptimize_every == 0);  // Used in some tests.
-COMPILE_ASSERT(FLAG_load_deferred_eagerly);
-
-#endif  // DART_PRECOMPILED_RUNTIME
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -1924,6 +1914,6 @@ void FlowGraphCompiler::FrameStateClear() {
 }
 #endif  // defined(DEBUG) && !defined(TARGET_ARCH_DBC)
 
-}  // namespace dart
-
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+}  // namespace dart

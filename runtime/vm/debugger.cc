@@ -671,10 +671,8 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::PrintErr("pc_ %" Px "\n", pc_);
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
-#if !defined(DART_PRECOMPILED_RUNTIME)
   DisassembleToStdout formatter;
   code().Disassemble(&formatter);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   PcDescriptors::Handle(code().pc_descriptors()).Print();
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
                             Thread::Current(),
