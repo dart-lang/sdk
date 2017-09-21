@@ -31,3 +31,24 @@ Ltac force_options :=
 
 Inductive ltac_no_arg : Set :=
 | Ltac_No_Arg : ltac_no_arg.
+
+Ltac extract_head_2 term H varid eqid :=
+  match type of H with
+  | context[term ?X] => extract_head_2 (term X) H varid eqid
+  | context[term] => remember term as varid eqn:eqid
+  end.
+
+Ltac extract_head_1 term H varid := let eqid := fresh varid "Eq" in extract_head_2 term H varid eqid.
+Ltac extract_head_0 term H := let varid := fresh H in extract_head_1 term H varid.
+
+Tactic Notation "extract_head" constr(term) "in" constr(H) := extract_head_0 term H.
+Tactic Notation "extract_head" constr(term) "in" constr(H) "as" ident(name) := extract_head_1 term H name.
+Tactic Notation "extract_head" constr(term) "in" constr(H) "as" ident(name) "," ident(name2) := extract_head_2 term H name name2.
+
+Ltac continue_with H :=
+  match type of H with
+  | ?X -> ?Y =>
+    let K := fresh H in
+    let H' := fresh H in
+    assert (X) as K; [idtac|pose proof (H K) as H']
+  end.

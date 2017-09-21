@@ -6,8 +6,11 @@ Require Import Common.
 Require Import CommonTactics.
 Require Import Syntax.
 Require Import Coq.Strings.String.
+(* This is for convenience, we could remove it with some refactoring if we so wished. *)
+Require Import Coq.Logic.FunctionalExtensionality.
 
 Import Common.OptionMonad.
+Import Common.ListExtensions.
 
 Module N := Coq.Arith.PeanoNat.Nat.
 
@@ -486,39 +489,369 @@ Section Environments.
 
 Definition func_table := NatMap.t member.
 
-Definition procedure_to_env (envs: class_env * func_env * func_table) (p : procedure) :=
-  let (Cs, FT) := envs in
-  let (CE, FE) := Cs in
-  let (memb, _, fn) := p in
-  let (nn, name) := memb in
-  let (name_str) := name in
-  let (ref) := nn in
-  let (id) := ref in
+Definition procedure_dissect (envs: class_env * func_env * func_table) (p : procedure) :=
+  let (Cs, FT)             := envs in
+  let (CE, FE)             := Cs in
+  let (memb, _, fn)        := p in
+  let (nn, name)           := memb in
+  let (name_str)           := name in
+  let (ref)                := nn in
+  let (id)                 := ref in
   let (param, ret_type, _) := fn in
-  let (_, param_type, _) := param in
+  let (_, param_type, _)   := param in
   let proc := mk_procedure_desc name_str id (Function_Type param_type ret_type) in
   (proc, (CE, NatMap.add id proc FE, NatMap.add id (M_Procedure p) FT)).
 
-Definition class_to_env (envs: class_env * func_env * func_table) (c : class) :=
+Definition procedure_to_env p envs := snd (procedure_dissect envs p).
+Definition procedure_to_desc envs p := fst (procedure_dissect envs p).
+
+Definition class_to_env (c : class) (envs: class_env * func_env * func_table) :=
   let (nn, name, procs) := c in
-  let (ref) := nn in
-  let (id) := ref in
-  let envs' := List.fold_left (fun p e => snd (procedure_to_env p e)) procs envs in
-  let class_desc := mk_interface (List.map (fun p => fst (procedure_to_env envs' p)) procs) in
-  let (Cs, FT) := envs' in
-  let (CE, FE) := Cs in
+  let (ref)             := nn in
+  let (id)              := ref in
+  let envs'             := List.fold_right procedure_to_env envs procs in
+  let class_desc        := mk_interface (List.map (procedure_to_desc envs') procs) in
+  let (Cs, FT)          := envs' in
+  let (CE, FE)          := Cs in
   (NatMap.add id class_desc CE, FE, FT).
 
 Definition lib_to_env (l: library) : class_env * func_env * func_table :=
   let (_, classes, top_procs) := l in
-  let envs := List.fold_left class_to_env classes (NatMap.empty _, NatMap.empty _, NatMap.empty _) in
-  List.fold_left (fun p e => snd (procedure_to_env p e)) top_procs envs.
+  let envs := List.fold_right class_to_env (NatMap.empty _, NatMap.empty _, NatMap.empty _) classes in
+  List.fold_right procedure_to_env envs top_procs.
 
-Lemma program_wf: forall l CE FE FT class_id intf proc_desc,
+Local Ltac destruct_types :=
+  repeat match goal with
+         | [H : interface_type       |- _] => destruct H
+         | [H : function_type        |- _] => destruct H
+         | [H : procedure            |- _] => destruct H
+         | [H : member_data          |- _] => destruct H
+         | [H : named_node_data      |- _] => destruct H
+         | [H : function_node        |- _] => destruct H
+         | [H : procedure_desc       |- _] => destruct H
+         | [H : name                 |- _] => destruct H
+         | [H : reference            |- _] => destruct H
+         | [H : variable_declaration |- _] => destruct H
+         | [H : class                |- _] => destruct H
+         end.
+
+Local Lemma add_4 {A} : forall m x x' (y : A), NatMap.In x m -> NatMap.In x (NatMap.add x' y m).
+Proof.
+  intros.
+  destruct (N.eq_dec x x').
+  rewrite e in *; clear e.
+  unfold NatMap.In.
+  unfold NatMap.Raw.PX.In.
+  unfold NatMap.this.
+  unfold NatMap.add.
+  destruct m.
+  simpl.
+  exists y.
+  apply NatMap.Raw.add_1.
+  crush.
+
+  unfold NatMap.In in *.
+  unfold NatMap.add in *.
+  destruct m.
+  simpl in *.
+  unfold NatMap.Raw.PX.In in *.
+  destruct H.
+  exists x0.
+  apply NatMap.Raw.add_2; crush.
+Qed.
+Hint Resolve add_4.
+
+Local Lemma proc_desc_noenv : forall env env', procedure_to_desc env = procedure_to_desc env'.
+Proof.
+  intros.
+  apply functional_extensionality.
+  intros.
+  unfold procedure_to_desc.
+  unfold procedure_dissect.
+  destruct env; destruct p.
+  destruct env'; destruct p.
+  destruct_types.
+  crush.
+Qed.
+
+Local Lemma add_in {A} : forall m x (y : A), NatMap.In x (NatMap.add x y m).
+Proof.
+  intros.
+  unfold NatMap.In.
+  unfold NatMap.Raw.PX.In.
+  exists y.
+  fold (NatMap.MapsTo x y (NatMap.add x y m)).
+  apply NatMap.add_1.
+  crush.
+Qed.
+Hint Resolve add_in.
+
+Local Definition mono
+    (envs: class_env * func_env * func_table)
+    (envs': class_env * func_env * func_table) : Prop :=
+  let (Cs, FT) := envs in
+  let (CE, FE) := Cs in
+  let (Cs', FT') := envs' in
+  let (CE', FE') := Cs' in
+  (forall n, NatMap.In n CE -> NatMap.In n CE') /\
+  (forall n, NatMap.In n FE -> NatMap.In n FE') /\
+  (forall n, NatMap.In n FT -> NatMap.In n FT').
+
+Local Lemma mono_trans : forall x y z, mono x y -> mono y z -> mono x z.
+Proof.
+  intros.
+  destruct x; destruct p.
+  destruct y; destruct p.
+  destruct z; destruct p.
+  unfold mono in *.
+  crush.
+Qed.
+
+Local Lemma mono_sym : forall x, mono x x.
+Proof.
+  crush.
+Qed.
+
+Local Lemma proc_mono :
+  forall E1 E2 p p',
+    procedure_dissect E1 p = (p', E2) -> mono E1 E2.
+Proof.
+  intros.
+  unfold procedure_dissect in H.
+  destruct_types.
+  destruct E1; destruct p.
+  destruct E2; destruct p.
+  unfold mono.
+  inject H; crush.
+Qed.
+Hint Resolve proc_mono.
+
+Local Lemma class_mono :
+  forall E1 E2 c, class_to_env c E1 = E2 -> mono E1 E2.
+Proof.
+  intros.
+  destruct E1; destruct p.
+  destruct E2; destruct p.
+  unfold class_to_env in H.
+  destruct_types.
+  extract_head fold_right in H.
+  assert (mono (c0, f0, f) H0).
+  pose proof (foldr_mono mono l (c0, f0, f) procedure_to_env mono_sym mono_trans) as X.
+  continue_with X.
+  intros.
+  unfold procedure_to_env.
+  remember (procedure_dissect a b) as P.
+  destruct P.
+  simpl.
+  apply (proc_mono _ _ _ _ (eq_sym HeqP)).
+  crush.
+
+  destruct H0; destruct p.
+  assert (mono (c, f4, f3) (t, f2, f1)) by
+    (inversion H;
+     unfold mono;
+     crush); crush.
+Qed.
+
+Local Lemma add_3 {A} : forall m x (y y' : A), NatMap.MapsTo x y m /\ NatMap.MapsTo x y' m -> y = y'.
+  intuition.
+  set (Fx := NatMap.find x m).
+  assert (Fx = NatMap.find x m) by auto.
+  pose proof (NatMap.find_1 H0).
+  pose proof (NatMap.find_1 H1).
+  crush.
+Qed.
+
+Local Lemma fold_proc_invar :
+  forall E1 E2 ps,
+    List.fold_right procedure_to_env E1 ps = E2 ->
+    fst (fst E1) = fst (fst E2).
+Proof.
+  intros.
+  destruct E1 as (Cs, FT); destruct Cs as (CE, FE).
+  destruct E2 as (Cs', FT'); destruct Cs' as (CE', FE').
+  pose (x := @foldr_preserve (class_env * func_env * func_table) procedure (fun env => let (X, _) := env in let (CE', _) := X in CE = CE') ps (CE, FE, FT) procedure_to_env).
+  continue_with x.
+  crush.
+  destruct_types.
+  crush.
+  continue_with x.
+  crush.
+  continue_with x3; crush.
+  rewrite H in H3.
+  assumption.
+Qed.
+
+Local Lemma class_env_invar :
+  forall CE FE FT CE' FE' FT' id id' intf n ps,
+    id <> id' ->
+    class_to_env (Class (Named_Node (Reference id')) n ps) (CE, FE, FT) = (CE', FE', FT') ->
+    (NatMap.MapsTo id intf CE' -> NatMap.MapsTo id intf CE).
+Proof.
+  unfold class_to_env.
+  intros.
+  extract_head fold_right in H0 as F.
+  destruct F as (CS, FT_f); destruct CS as (CE_f, FE_f).
+  inversion H0; clear H0.
+  rewrite H4 in *; clear H4.
+  rewrite H5 in *; clear H5.
+  assert (NatMap.MapsTo id intf CE_f).
+  rewrite <- H3 in H1.
+  apply (NatMap.add_3 (not_eq_sym H) H1).
+  apply eq_sym in FEq.
+  apply fold_proc_invar in FEq.
+  simpl in FEq.
+  crush.
+Qed.
+
+Hint Resolve NatMap.add_1.
+Local Lemma program_wf': forall cs CE FE FT class_id intf proc_desc,
+     List.fold_right class_to_env (NatMap.empty _, NatMap.empty _, NatMap.empty _) cs = ((CE, FE), FT)
+  -> NatMap.MapsTo class_id intf CE
+  -> List.In proc_desc (procedures intf)
+  -> NatMap.In (pr_ref proc_desc) FE /\ NatMap.In (pr_ref proc_desc) FT.
+Proof.
+  intro cs.
+  induction cs.
+
+  (* Base case: no classes in the library. Contradiction. *)
+  intros.
+  unfold fold_right in H.
+  inversion H.
+  contradict H0.
+  pose proof (@NatMap.empty_1 interface).
+  rewrite <- H3 in *.
+  clear H3; clear CE.
+  unfold NatMap.Empty in *.
+  unfold NatMap.empty in H0.
+  unfold NatMap.empty.
+  unfold NatMap.MapsTo.
+  simpl in *.
+  unfold NatMap.Raw.Empty in H0.
+  generalize class_id intf.
+  assumption.
+
+  (* Inductive case: consider whether top class is ours or not. *)
+  intros.
+  simpl in *.
+  destruct a; destruct n; destruct r.
+  destruct (N.eq_dec n class_id).
+
+  (* Case 1.1: head class is different. *)
+  Focus 2.
+  extract_head fold_right in H as Fold.
+  destruct Fold as (CS, FT_f); destruct CS as (CE_f, FE_f).
+
+  (* class_id must map to the same interface after applying the previous classes. *)
+  assert (NatMap.MapsTo class_id intf CE_f).
+  pose proof (class_env_invar CE_f FE_f FT_f CE FE FT class_id n intf s l (not_eq_sym n0)) as H2.
+  continue_with H2; crush.
+
+  (* Apply the induction hypothesis. *)
+  pose proof (IHcs CE_f FE_f FT_f class_id intf proc_desc eq_refl H2 H1) as IH.
+  assert (mono (CE_f, FE_f, FT_f) (CE, FE, FT)).
+  apply (class_mono _ _ ((Class (Named_Node (Reference n)) s l))); crush.
+  crush.
+
+  (* Case 1.2: head class is the same. *)
+  extract_head fold_right in H as Fold.
+  unfold class_to_env in H.
+  extract_head fold_right in H as FoldP.
+  destruct FoldP as (CS, FT_f); destruct CS as (CE_f, FE_f).
+  inversion H; clear H.
+  rewrite H4 in *; clear H4.
+  rewrite H5 in *; clear H5.
+  rewrite e in *; clear e.
+  assert (NatMap.MapsTo class_id {| procedures := map (procedure_to_desc (CE_f, FE, FT)) l |} CE) by crush.
+  pose proof (@add_3 _ CE class_id intf ({| procedures := map (procedure_to_desc (CE_f, FE, FT)) l |}) (conj H0 H)).
+  rewrite H2 in *; clear H2.
+  clear H0.
+  clear H.
+  simpl in H1.
+  clear IHcs.
+  generalize H1.
+  generalize FoldPEq.
+  generalize CE_f FE FT.
+  clear H1.
+  clear FoldPEq.
+  clear H3.
+  induction l.
+  intros.
+  unfold In in H1.
+  simpl in H1.
+  crush.
+  intros.
+  destruct a; destruct n0; destruct r.
+  destruct proc_desc.
+  simpl.
+  simpl in H1.
+  destruct H1.
+  unfold procedure_to_desc in H.
+  unfold procedure_dissect in H.
+  destruct_types.
+  simpl in H.
+  inversion H.
+  rewrite H1 in *; clear H1.
+  rewrite H2 in *; clear H2.
+  rewrite H3 in *; clear H3.
+  rewrite H4 in *; clear H4.
+  clear H.
+  simpl in FoldPEq.
+  extract_head (fold_right procedure_to_env) in FoldPEq as Rest.
+  destruct Rest; destruct p.
+  unfold procedure_to_env in FoldPEq.
+  unfold procedure_dissect in FoldPEq.
+  simpl in FoldPEq.
+  inject FoldPEq.
+  crush.
+
+  simpl in FoldPEq.
+  extract_head fold_right in FoldPEq as InnerFold.
+  destruct InnerFold as (CS, FT_i); destruct CS as (CE_i, FE_i).
+  unfold procedure_to_env in FoldPEq.
+  unfold procedure_dissect in FoldPEq.
+  destruct_types.
+  simpl in FoldPEq.
+  rewrite (proc_desc_noenv (CE_f0, FE0, FT0) (CE_i, FE_i, FT_i)) in H.
+  pose proof (IHl CE_i FE_i FT_i eq_refl H).
+  destruct H0.
+  inversion FoldPEq.
+  crush.
+Qed.
+
+Local Lemma program_wf: forall l CE FE FT class_id intf proc_desc,
      lib_to_env l = ((CE, FE), FT)
   -> NatMap.MapsTo class_id intf CE
   -> List.In proc_desc (procedures intf)
   -> NatMap.In (pr_ref proc_desc) FE /\ NatMap.In (pr_ref proc_desc) FT.
-Admitted.
+Proof.
+  intros.
+  destruct l.
+  unfold lib_to_env in *.
+  extract_head (fold_right class_to_env) in H as Inner.
+  destruct Inner as (CS, FT_i); destruct CS as (CE_i, FE_i).
+  assert (NatMap.MapsTo class_id intf CE_i).
+
+  apply eq_sym in InnerEq.
+  apply (fold_proc_invar _ _ _) in H.
+  simpl in H.
+  crush.
+
+  pose proof (program_wf' l CE_i FE_i FT_i class_id intf proc_desc (eq_sym InnerEq) H2 H1).
+  assert (mono (CE_i, FE_i, FT_i) (CE, FE, FT)).
+  rewrite <- H.
+  apply foldr_mono.
+  exact mono_sym.
+  exact mono_trans.
+  intros.
+  unfold procedure_to_env in *.
+  remember (procedure_dissect a b) as Z.
+  destruct Z.
+  simpl.
+  apply (proc_mono a p0 b p).
+  auto.
+  unfold mono in H4.
+  crush.
+Qed.
 
 End Environments.

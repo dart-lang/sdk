@@ -101,4 +101,26 @@ Module ListExtensions.
     | (x::xs) => (x' <- f x; xs' <- mmap f xs; [x' :: xs'])
     end.
 
+  Lemma foldr_mono {A} {B} :
+    forall (P : A -> A -> Prop) (l : list B) (a0 : A) (f : B -> A -> A),
+      (forall x, P x x) ->
+      (forall x y z, P x y -> P y z -> P x z) ->
+      (forall a b, P a (f b a)) ->
+      P a0 (List.fold_right f a0 l).
+  Proof.
+    induction l; crush.
+    pose proof (IHl a0 f H H0 H1).
+    pose proof (H1 (fold_right f a0 l) a).
+    pose proof (H0 _ _ _ H2 H3).
+    crush.
+  Qed.
+
+  Lemma foldr_preserve {A} {B} :
+    forall (P : A -> Prop) (l : list B) (a0 : A) (f : B -> A -> A),
+      (forall a b, P a -> P (f b a)) ->
+      P a0 -> P (List.fold_right f a0 l).
+  Proof.
+    induction l; crush.
+  Qed.
+
 End ListExtensions.
