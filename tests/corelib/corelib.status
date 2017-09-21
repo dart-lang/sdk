@@ -27,7 +27,7 @@ string_trimlr_test/02: RuntimeError # Issue 29060
 string_trimlr_test/02: RuntimeError # Issue 29060
 
 # #void should be a valid symbol.
-[ $compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dart2js ]
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 symbol_reserved_word_test/02: CompileTimeError # bug 20191
 
 # With the exception of 'void', const Symbol() should not accept reserved
@@ -44,6 +44,7 @@ int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 bein
 int_parse_radix_test/02: Fail # No bigints.
 integer_to_radix_string_test: RuntimeError # issue 22045
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
+symbol_reserved_word_test/02: CompileTimeError # bug 20191
 symbol_reserved_word_test/03: RuntimeError # bug 19972, new Symbol('void') should be allowed.
 symbol_reserved_word_test/05: Crash # bug 20191
 
@@ -185,19 +186,13 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow.
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
 
-[ $compiler == dart2js && $dart2js_with_kernel ]
-error_stack_trace1_test: Pass # Issue 27394
-symbol_reserved_word_test/03: Pass # Issue 27394
-map_test: Crash # Issue 27394
-regexp/pcre_test: RuntimeError # Issue 27394
-symbol_operator_test/03: RuntimeError # Issue 27394
-symbol_reserved_word_test/06: RuntimeError # Issue 27394
-symbol_reserved_word_test/09: RuntimeError # Issue 27394
-symbol_reserved_word_test/12: RuntimeError # Issue 27394
-symbol_test/none: RuntimeError # Issue 27394
-
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && $dart2js_with_kernel ]
 regress/4562_test/01: Crash # Issue 27394
+
+[ $compiler == dart2js && ! $dart2js_with_kernel ]
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
 
 [ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
 bool_from_environment2_test/01: MissingCompileTimeError
@@ -477,260 +472,78 @@ regress_11099_test: Crash
 safe_to_string_test: Crash
 sort_test: Crash
 
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && $dart2js_with_kernel ]
+apply2_test: RuntimeError
+apply3_test: RuntimeError
+apply5_test: RuntimeError
+apply_test: RuntimeError
+big_integer_arith_vm_test/add: RuntimeError
+big_integer_arith_vm_test/div: RuntimeError
+big_integer_arith_vm_test/gcd: RuntimeError
+big_integer_arith_vm_test/mod: RuntimeError
+big_integer_arith_vm_test/modInv: RuntimeError
+big_integer_arith_vm_test/modPow: RuntimeError
+big_integer_arith_vm_test/mul: RuntimeError
+big_integer_arith_vm_test/negate: RuntimeError
+big_integer_arith_vm_test/none: RuntimeError
+big_integer_arith_vm_test/overflow: RuntimeError
+big_integer_arith_vm_test/shift: RuntimeError
+big_integer_arith_vm_test/sub: RuntimeError
+big_integer_arith_vm_test/trunDiv: RuntimeError
+big_integer_parsed_arith_vm_test: RuntimeError
 big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
-const_list_literal_test: Crash
-const_list_remove_range_test: Crash
-const_list_set_range_test: Crash
-core_runtime_types_test: Crash
-data_uri_test: Crash
-date_time2_test: Crash
-date_time3_test: Crash
-date_time4_test: Crash
-date_time7_test: Crash
-date_time_parse_test: Crash
-date_time_test: Crash
-double_ceil2_test: Crash
-double_floor2_test: Crash
-double_parse_test/01: Crash
-double_parse_test/02: Crash
-double_parse_test/03: Crash
-double_parse_test/none: Crash
-double_round2_test: Crash
-double_round3_test: Crash
-double_round4_test: Crash
-double_round_test: Crash
-double_round_to_double2_test: Crash
-double_round_to_double3_test: Crash
-double_round_to_double_test: Crash
-double_truncate2_test: Crash
-double_truncate_test: Crash
-double_truncate_to_double_test: Crash
-duration2_test: Crash
-duration_big_num_test: Crash
-duration_double_multiplication_test: Crash
-duration_test: Crash
-error_stack_trace1_test: Crash
-error_stack_trace1_test: Pass # Issue 27394
-error_stack_trace2_test: Crash
-error_stack_trace_test: Crash
-errors_test: Crash
-exception_implementation_test: Crash
-expando_test: Crash
-expression_test: Crash
-for_in_test: Crash
-format_exception_test: Crash
-from_environment_const_type_test/01: Crash
-from_environment_const_type_test/02: Crash
-from_environment_const_type_test/03: Crash
-from_environment_const_type_test/04: Crash
-from_environment_const_type_test/05: Crash
-from_environment_const_type_test/06: Crash
-from_environment_const_type_test/07: Crash
-from_environment_const_type_test/08: Crash
-from_environment_const_type_test/09: Crash
-from_environment_const_type_test/10: Crash
-from_environment_const_type_test/11: Crash
-from_environment_const_type_test/12: Crash
-from_environment_const_type_test/13: Crash
-from_environment_const_type_test/14: Crash
-from_environment_const_type_test/15: Crash
-from_environment_const_type_test/16: Crash
-from_environment_const_type_test/none: Crash
-from_environment_const_type_undefined_test/01: Crash
-from_environment_const_type_undefined_test/02: Crash
-from_environment_const_type_undefined_test/03: Crash
-from_environment_const_type_undefined_test/04: Crash
-from_environment_const_type_undefined_test/05: Crash
-from_environment_const_type_undefined_test/06: Crash
-from_environment_const_type_undefined_test/07: Crash
-from_environment_const_type_undefined_test/08: Crash
-from_environment_const_type_undefined_test/09: Crash
-from_environment_const_type_undefined_test/10: Crash
-from_environment_const_type_undefined_test/11: Crash
-from_environment_const_type_undefined_test/12: Crash
-from_environment_const_type_undefined_test/13: Crash
-from_environment_const_type_undefined_test/14: Crash
-from_environment_const_type_undefined_test/15: Crash
-from_environment_const_type_undefined_test/16: Crash
-from_environment_const_type_undefined_test/none: Crash
-growable_list_test: Crash
-has_next_iterator_test: Crash
-hash_map2_test: Crash
-int_parse_radix_bad_handler_test: Crash
-int_parse_radix_test/01: Crash
-int_parse_radix_test/02: Crash
-int_parse_radix_test/none: Crash
-hash_map_test: Crash
-hashcode_boxed_test: Crash
-int_ceil_test: Crash
-int_ceil_to_double_test: Crash
-int_floor_test: Crash
-int_floor_to_double_test: Crash
-int_from_environment2_test: Crash
-int_from_environment_test: Crash
-int_round_test: Crash
-int_round_to_double_test: Crash
-int_to_int_test: Crash
-int_truncate_test: Crash
-int_truncate_to_double_test: Crash
-integer_to_radix_string_test: Crash
+bit_twiddling_bigint_test: RuntimeError
+bool_from_environment2_test/01: MissingCompileTimeError
+bool_from_environment2_test/02: MissingCompileTimeError
+bool_from_environment2_test/03: MissingCompileTimeError
+bool_from_environment2_test/04: MissingCompileTimeError
+compare_to2_test: RuntimeError
+const_list_literal_test: RuntimeError
+double_parse_test/01: RuntimeError
+hash_set_test/01: RuntimeError
+int_from_environment3_test/01: MissingCompileTimeError
+int_from_environment3_test/02: MissingCompileTimeError
+int_from_environment3_test/03: MissingCompileTimeError
+int_from_environment3_test/04: MissingCompileTimeError
+int_modulo_arith_test/bignum: RuntimeError
+int_modulo_arith_test/modPow: RuntimeError
+int_parse_radix_test/01: RuntimeError
+int_parse_radix_test/02: RuntimeError
+integer_to_radix_string_test: RuntimeError
 integer_to_string_test/01: RuntimeError
-is_operator_basic_types_test: Crash
-iterable_contains2_test: Crash
-iterable_contains_test: Crash
-iterable_element_at_test: Crash
-iterable_empty_test: Crash
-iterable_expand_test: Crash
-iterable_first_test: Crash
-iterable_first_where_test: Crash
-iterable_fold_test: Crash
-iterable_generate_test/01: Crash
-iterable_generate_test/none: Crash
-iterable_join_test: Crash
-iterable_last_test: Crash
-iterable_last_where_test: Crash
-iterable_length_test: Crash
-iterable_mapping_test: Crash
-iterable_reduce_test: Crash
-iterable_return_type_test/01: Crash
-iterable_return_type_test/02: Crash
-iterable_return_type_test/none: Crash
-iterable_single_test: Crash
-iterable_single_where_test: Crash
-iterable_skip_test: Crash
-iterable_skip_while_test: Crash
-iterable_take_test: Crash
-iterable_take_while_test: Crash
-iterable_test: Crash
-iterable_to_list_test/01: Crash
-iterable_to_list_test/none: Crash
-iterable_to_set_test: Crash
-iterable_tostring_test: Crash
-json_map_test: Crash
-linked_hash_map_from_iterable_test: Crash
-linked_hash_map_from_iterables_test: Crash
-linked_hash_map_test: Crash
-list_as_map_test: Crash
-list_contains_argument_order_test: Crash
-list_fill_range_test: Crash
-list_filled_type_argument_test: Crash
-list_first_test: Crash
-list_fixed_test: Crash
-list_for_each_test: Crash
-list_get_range_test: Crash
-list_growable_test: Crash
-list_index_of2_test: Crash
-list_index_of_test: Crash
-list_literal_is_growable_test: Crash
-list_literal_test: Crash
-list_sort_test: Crash
-map_contains_key_test: Crash
-map_index_test: Crash
-map_remove_test: Crash
-nan_infinity_test/01: Crash
-nan_infinity_test/none: Crash
-num_sign_test: Crash
-print_test/01: Crash
-print_test/none: Crash
-reg_exp1_test: Crash
-reg_exp_first_match_test: Crash
-reg_exp_group_test: Crash
-reg_exp_groups_test: Crash
-reg_exp_has_match_test: Crash
-reg_exp_pattern_test: Crash
-reg_exp_string_match_test: Crash
-regexp/UC16_test: Crash
-regexp/alternative-length-miscalculation_test: Crash
-regexp/alternatives_test: Crash
-regexp/assertion_test: Crash
-regexp/backreferences_test: Crash
-regexp/bol-with-multiline_test: Crash
-regexp/bol_test: Crash
-regexp/captures_test: Crash
-regexp/char-insensitive_test: Crash
-regexp/character-match-out-of-order_test: Crash
-regexp/constructor_test: Crash
-regexp/default_arguments_test: Crash
-regexp/dotstar_test: Crash
-regexp/extended-characters-match_test: Crash
-regexp/find-first-asserted_test: Crash
-regexp/look-ahead_test: Crash
-regexp/loop-capture_test: Crash
-regexp/malformed-escapes_test: Crash
-regexp/many-brackets_test: Crash
-regexp/non-bmp_test: Crash
-regexp/non-capturing-backtracking_test: Crash
-regexp/non-character_test: Crash
-regexp/non-greedy-parentheses_test: Crash
-regexp/norepeat_test: Crash
-regexp/overflow_test: Crash
-regexp/parentheses_test: Crash
-regexp/quantified-assertions_test: Crash
-regexp/range-bound-ffff_test: Crash
-regexp/ranges-and-escaped-hyphens_test: Crash
-regexp/regress-6-9-regexp_test: Crash
-regexp/regress-regexp-construct-result_test: Crash
-regexp/repeat-match-waldemar_test: Crash
-regexp/results-cache_test: Crash
-regexp/stack-overflow2_test: Crash
-regexp/stack-overflow_test: Crash
-regexp/zero-length-alternatives_test: Crash
-regress_11099_test: Crash
+iterable_empty_test: RuntimeError
+iterable_return_type_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError
+iterable_to_list_test/01: RuntimeError
+map_test: Crash # Issue 27394
+nan_infinity_test/01: RuntimeError
+queue_test: RuntimeError
+regexp/regexp_kde_test: RuntimeError
 regress_r21715_test: RuntimeError
-safe_to_string_test: Crash
-set_containsAll_test: Crash
-set_contains_test: Crash
-set_intersection_test: Crash
-set_iterator_test: Crash
-set_removeAll_test: Crash
-set_remove_test: Crash
-set_retainAll_test: Crash
-set_test: Crash
-set_to_string_test: Crash
-shuffle_test: Crash
-sort_test: RuntimeError
-splay_tree_from_iterable_test: Crash
-splay_tree_from_iterables_test: Crash
-splay_tree_test: Crash
-stacktrace_current_test: Crash
-stacktrace_fromstring_test: Crash
-stopwatch2_test: Crash
-string_base_vm_test: Crash
-string_buffer_test: Crash
-string_codeunits_test: Crash
+string_base_vm_test: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
-string_from_environment3_test/05: Crash
-string_from_list_test: Crash
-string_fromcharcode_test: Crash
-string_fromcharcodes_test: Crash
-string_operations_with_null_test: Crash
-string_pattern_test: Crash
-string_replace_all_test: Crash
-string_replace_dollar_test: Crash
-string_replace_test: Crash
-string_runes_test: Crash
-string_source_test: Crash
-string_split_test: Crash
-string_substring_test: Crash
-string_test: Crash
-string_to_lower_case_test: Crash
-string_trimlr_test/01: Crash
-string_trimlr_test/02: Crash
-string_trimlr_test/none: Crash
+string_fromcharcodes_test: RuntimeError
 symbol_operator_test/03: Crash
-symbol_operator_test/none: Crash
+symbol_operator_test/03: RuntimeError # Issue 27394
+symbol_reserved_word_test/02: Pass
 symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: Crash
-symbol_reserved_word_test/06: Crash
+symbol_reserved_word_test/06: RuntimeError # Issue 27394
 symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: Crash
+symbol_reserved_word_test/09: RuntimeError # Issue 27394
 symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: Crash
+symbol_reserved_word_test/12: RuntimeError # Issue 27394
+symbol_test/01: Crash
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+symbol_test/none: RuntimeError # Issue 27394
+
+[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+error_stack_trace1_test: RuntimeError
+symbol_operator_test/none: RuntimeError
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
