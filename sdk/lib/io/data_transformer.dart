@@ -448,68 +448,6 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
   }
 }
 
-/**
- * The [RawZLibFilter] class provides a low-level interface to zlib.
- */
-abstract class RawZLibFilter {
-  /**
-   * Returns a a [RawZLibFilter] whose [process] and [processed] methods
-   * compress data.
-   */
-  factory RawZLibFilter.deflateFilter({
-    bool gzip: false,
-    int level: ZLibOption.DEFAULT_LEVEL,
-    int windowBits: ZLibOption.DEFAULT_WINDOW_BITS,
-    int memLevel: ZLibOption.DEFAULT_MEM_LEVEL,
-    int strategy: ZLibOption.STRATEGY_DEFAULT,
-    List<int> dictionary,
-    bool raw: false,
-  }) {
-    return _makeZLibDeflateFilter(
-        gzip, level, windowBits, memLevel, strategy, dictionary, raw);
-  }
-
-  /**
-   * Returns a a [RawZLibFilter] whose [process] and [processed] methods
-   * decompress data.
-   */
-  factory RawZLibFilter.inflateFilter({
-    int windowBits: ZLibOption.DEFAULT_WINDOW_BITS,
-    List<int> dictionary,
-    bool raw: false,
-  }) {
-    return _makeZLibInflateFilter(windowBits, dictionary, raw);
-  }
-
-  /**
-   * Call to process a chunk of data. A call to [process] should only be made
-   * when [processed] returns [:null:].
-   */
-  void process(List<int> data, int start, int end);
-
-  /**
-   * Get a chunk of processed data. When there are no more data available,
-   * [processed] will return [:null:]. Set [flush] to [:false:] for non-final
-   * calls to improve performance of some filters.
-   *
-   * The last call to [processed] should have [end] set to [:true:]. This will
-   * make sure an 'end' packet is written on the stream.
-   */
-  List<int> processed({bool flush: true, bool end: false});
-
-  external static RawZLibFilter _makeZLibDeflateFilter(
-      bool gzip,
-      int level,
-      int windowBits,
-      int memLevel,
-      int strategy,
-      List<int> dictionary,
-      bool raw);
-
-  external static RawZLibFilter _makeZLibInflateFilter(
-      int windowBits, List<int> dictionary, bool raw);
-}
-
 class _BufferSink extends ByteConversionSink {
   final BytesBuilder builder = new BytesBuilder(copy: false);
 
@@ -541,19 +479,18 @@ class _ZLibEncoderSink extends _FilterSink {
       bool raw)
       : super(
             sink,
-            RawZLibFilter._makeZLibDeflateFilter(
+            _Filter._newZLibDeflateFilter(
                 gzip, level, windowBits, memLevel, strategy, dictionary, raw));
 }
 
 class _ZLibDecoderSink extends _FilterSink {
   _ZLibDecoderSink(
       ByteConversionSink sink, int windowBits, List<int> dictionary, bool raw)
-      : super(sink,
-            RawZLibFilter._makeZLibInflateFilter(windowBits, dictionary, raw));
+      : super(sink, _Filter._newZLibInflateFilter(windowBits, dictionary, raw));
 }
 
 class _FilterSink extends ByteConversionSink {
-  final RawZLibFilter _filter;
+  final _Filter _filter;
   final ByteConversionSink _sink;
   bool _closed = false;
   bool _empty = true;
@@ -603,6 +540,39 @@ class _FilterSink extends ByteConversionSink {
     _closed = true;
     _sink.close();
   }
+}
+
+/**
+ * Private helper-class to handle native filters.
+ */
+abstract class _Filter {
+  /**
+   * Call to process a chunk of data. A call to [process] should only be made
+   * when [processed] returns [:null:].
+   */
+  void process(List<int> data, int start, int end);
+
+  /**
+   * Get a chunk of processed data. When there are no more data available,
+   * [processed] will return [:null:]. Set [flush] to [:false:] for non-final
+   * calls to improve performance of some filters.
+   *
+   * The last call to [processed] should have [end] set to [:true:]. This will
+   * make sure an 'end' packet is written on the stream.
+   */
+  List<int> processed({bool flush: true, bool end: false});
+
+  external static _Filter _newZLibDeflateFilter(
+      bool gzip,
+      int level,
+      int windowBits,
+      int memLevel,
+      int strategy,
+      List<int> dictionary,
+      bool raw);
+
+  external static _Filter _newZLibInflateFilter(
+      int windowBits, List<int> dictionary, bool raw);
 }
 
 void _validateZLibWindowBits(int windowBits) {

@@ -28,8 +28,7 @@ class Builtin {
   enum BuiltinLibraryId {
     kInvalidLibrary = -1,
     kBuiltinLibrary = 0,
-    kIOLibrary,
-    kHttpLibrary,
+    kIOLibrary
   };
 
   // Get source corresponding to built in library specified in 'id'.
@@ -68,7 +67,6 @@ class Builtin {
   static const uint8_t* NativeSymbol(Dart_NativeFunction nf);
 
   static const char* _builtin_source_paths_[];
-  static const char* _http_source_paths_[];
   static const char* io_source_paths_[];
   static const char* io_patch_paths_[];
   static const char* html_source_paths_[];

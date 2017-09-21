@@ -227,7 +227,6 @@ class DartUtils {
   static const char* const kCoreLibURL;
   static const char* const kInternalLibURL;
   static const char* const kIsolateLibURL;
-  static const char* const kHttpLibURL;
   static const char* const kIOLibURL;
   static const char* const kIOLibPatchURL;
   static const char* const kUriLibURL;

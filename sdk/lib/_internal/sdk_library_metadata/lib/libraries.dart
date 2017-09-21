@@ -77,8 +77,6 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "Client",
       maturity: Maturity.WEB_STABLE,
       platforms: DART2JS_PLATFORM),
-  "_http":
-      const LibraryInfo("_http/http.dart", categories: "", documented: false),
   "io": const LibraryInfo("io/io.dart",
       categories: "Server",
       dart2jsPatchPath: "_internal/js_runtime/lib/io_patch.dart"),

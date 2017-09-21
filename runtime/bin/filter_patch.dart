@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _FilterImpl extends NativeFieldWrapperClass1 implements RawZLibFilter {
+class _FilterImpl extends NativeFieldWrapperClass1 implements _Filter {
   void process(List<int> data, int start, int end) native "Filter_Process";
 
   List<int> processed({bool flush: true, bool end: false})
@@ -27,20 +27,14 @@ class _ZLibDeflateFilter extends _FilterImpl {
 }
 
 @patch
-class RawZLibFilter {
+class _Filter {
   @patch
-  static RawZLibFilter _makeZLibDeflateFilter(
-          bool gzip,
-          int level,
-          int windowBits,
-          int memLevel,
-          int strategy,
-          List<int> dictionary,
-          bool raw) =>
+  static _Filter _newZLibDeflateFilter(bool gzip, int level, int windowBits,
+          int memLevel, int strategy, List<int> dictionary, bool raw) =>
       new _ZLibDeflateFilter(
           gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   @patch
-  static RawZLibFilter _makeZLibInflateFilter(
+  static _Filter _newZLibInflateFilter(
           int windowBits, List<int> dictionary, bool raw) =>
       new _ZLibInflateFilter(windowBits, dictionary, raw);
 }

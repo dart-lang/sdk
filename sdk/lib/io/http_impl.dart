@@ -2,124 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._http;
-
-int _nextServiceId = 1;
-
-// TODO(ajohnsen): Use other way of getting a unique id.
-abstract class _ServiceObject {
-  int __serviceId = 0;
-  int get _serviceId {
-    if (__serviceId == 0) __serviceId = _nextServiceId++;
-    return __serviceId;
-  }
-
-  Map _toJSON(bool ref);
-
-  String get _servicePath => "$_serviceTypePath/$_serviceId";
-
-  String get _serviceTypePath;
-
-  String get _serviceTypeName;
-
-  String _serviceType(bool ref) {
-    if (ref) return "@$_serviceTypeName";
-    return _serviceTypeName;
-  }
-}
-
-class _CopyingBytesBuilder implements BytesBuilder {
-  // Start with 1024 bytes.
-  static const int _INIT_SIZE = 1024;
-
-  static final _emptyList = new Uint8List(0);
-
-  int _length = 0;
-  Uint8List _buffer;
-
-  _CopyingBytesBuilder([int initialCapacity = 0])
-      : _buffer = (initialCapacity <= 0)
-            ? _emptyList
-            : new Uint8List(_pow2roundup(initialCapacity));
-
-  void add(List<int> bytes) {
-    int bytesLength = bytes.length;
-    if (bytesLength == 0) return;
-    int required = _length + bytesLength;
-    if (_buffer.length < required) {
-      _grow(required);
-    }
-    assert(_buffer.length >= required);
-    if (bytes is Uint8List) {
-      _buffer.setRange(_length, required, bytes);
-    } else {
-      for (int i = 0; i < bytesLength; i++) {
-        _buffer[_length + i] = bytes[i];
-      }
-    }
-    _length = required;
-  }
-
-  void addByte(int byte) {
-    if (_buffer.length == _length) {
-      // The grow algorithm always at least doubles.
-      // If we added one to _length it would quadruple unnecessarily.
-      _grow(_length);
-    }
-    assert(_buffer.length > _length);
-    _buffer[_length] = byte;
-    _length++;
-  }
-
-  void _grow(int required) {
-    // We will create a list in the range of 2-4 times larger than
-    // required.
-    int newSize = required * 2;
-    if (newSize < _INIT_SIZE) {
-      newSize = _INIT_SIZE;
-    } else {
-      newSize = _pow2roundup(newSize);
-    }
-    var newBuffer = new Uint8List(newSize);
-    newBuffer.setRange(0, _buffer.length, _buffer);
-    _buffer = newBuffer;
-  }
-
-  List<int> takeBytes() {
-    if (_length == 0) return _emptyList;
-    var buffer = new Uint8List.view(_buffer.buffer, 0, _length);
-    clear();
-    return buffer;
-  }
-
-  List<int> toBytes() {
-    if (_length == 0) return _emptyList;
-    return new Uint8List.fromList(
-        new Uint8List.view(_buffer.buffer, 0, _length));
-  }
-
-  int get length => _length;
-
-  bool get isEmpty => _length == 0;
-
-  bool get isNotEmpty => _length != 0;
-
-  void clear() {
-    _length = 0;
-    _buffer = _emptyList;
-  }
-
-  static int _pow2roundup(int x) {
-    assert(x > 0);
-    --x;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    return x + 1;
-  }
-}
+part of dart.io;
 
 const int _OUTGOING_BUFFER_SIZE = 8 * 1024;
 
@@ -517,191 +400,6 @@ class _HttpClientResponse extends _HttpInboundMessage
         return this;
       }
     });
-  }
-}
-
-class _StreamSinkImpl<T> implements StreamSink<T> {
-  final StreamConsumer<T> _target;
-  final Completer _doneCompleter = new Completer();
-  StreamController<T> _controllerInstance;
-  Completer _controllerCompleter;
-  bool _isClosed = false;
-  bool _isBound = false;
-  bool _hasError = false;
-
-  _StreamSinkImpl(this._target);
-
-  void _reportClosedSink() {
-    stderr.writeln("StreamSink is closed and adding to it is an error.");
-    stderr.writeln("  See http://dartbug.com/29554.");
-    stderr.writeln(StackTrace.current);
-  }
-
-  void add(T data) {
-    if (_isClosed) {
-      _reportClosedSink();
-      return;
-    }
-    _controller.add(data);
-  }
-
-  void addError(error, [StackTrace stackTrace]) {
-    if (_isClosed) {
-      _reportClosedSink();
-      return;
-    }
-    _controller.addError(error, stackTrace);
-  }
-
-  Future addStream(Stream<T> stream) {
-    if (_isBound) {
-      throw new StateError("StreamSink is already bound to a stream");
-    }
-    _isBound = true;
-    if (_hasError) return done;
-    // Wait for any sync operations to complete.
-    Future targetAddStream() {
-      return _target.addStream(stream).whenComplete(() {
-        _isBound = false;
-      });
-    }
-
-    if (_controllerInstance == null) return targetAddStream();
-    var future = _controllerCompleter.future;
-    _controllerInstance.close();
-    return future.then((_) => targetAddStream());
-  }
-
-  Future flush() {
-    if (_isBound) {
-      throw new StateError("StreamSink is bound to a stream");
-    }
-    if (_controllerInstance == null) return new Future.value(this);
-    // Adding an empty stream-controller will return a future that will complete
-    // when all data is done.
-    _isBound = true;
-    var future = _controllerCompleter.future;
-    _controllerInstance.close();
-    return future.whenComplete(() {
-      _isBound = false;
-    });
-  }
-
-  Future close() {
-    if (_isBound) {
-      throw new StateError("StreamSink is bound to a stream");
-    }
-    if (!_isClosed) {
-      _isClosed = true;
-      if (_controllerInstance != null) {
-        _controllerInstance.close();
-      } else {
-        _closeTarget();
-      }
-    }
-    return done;
-  }
-
-  void _closeTarget() {
-    _target.close().then(_completeDoneValue, onError: _completeDoneError);
-  }
-
-  Future get done => _doneCompleter.future;
-
-  void _completeDoneValue(value) {
-    if (!_doneCompleter.isCompleted) {
-      _doneCompleter.complete(value);
-    }
-  }
-
-  void _completeDoneError(error, StackTrace stackTrace) {
-    if (!_doneCompleter.isCompleted) {
-      _hasError = true;
-      _doneCompleter.completeError(error, stackTrace);
-    }
-  }
-
-  StreamController<T> get _controller {
-    if (_isBound) {
-      throw new StateError("StreamSink is bound to a stream");
-    }
-    if (_isClosed) {
-      throw new StateError("StreamSink is closed");
-    }
-    if (_controllerInstance == null) {
-      _controllerInstance = new StreamController<T>(sync: true);
-      _controllerCompleter = new Completer();
-      _target.addStream(_controller.stream).then((_) {
-        if (_isBound) {
-          // A new stream takes over - forward values to that stream.
-          _controllerCompleter.complete(this);
-          _controllerCompleter = null;
-          _controllerInstance = null;
-        } else {
-          // No new stream, .close was called. Close _target.
-          _closeTarget();
-        }
-      }, onError: (error, stackTrace) {
-        if (_isBound) {
-          // A new stream takes over - forward errors to that stream.
-          _controllerCompleter.completeError(error, stackTrace);
-          _controllerCompleter = null;
-          _controllerInstance = null;
-        } else {
-          // No new stream. No need to close target, as it has already
-          // failed.
-          _completeDoneError(error, stackTrace);
-        }
-      });
-    }
-    return _controllerInstance;
-  }
-}
-
-class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
-  Encoding _encoding;
-  bool _encodingMutable = true;
-
-  _IOSinkImpl(StreamConsumer<List<int>> target, this._encoding) : super(target);
-
-  Encoding get encoding => _encoding;
-
-  void set encoding(Encoding value) {
-    if (!_encodingMutable) {
-      throw new StateError("IOSink encoding is not mutable");
-    }
-    _encoding = value;
-  }
-
-  void write(Object obj) {
-    String string = '$obj';
-    if (string.isEmpty) return;
-    add(_encoding.encode(string));
-  }
-
-  void writeAll(Iterable objects, [String separator = ""]) {
-    Iterator iterator = objects.iterator;
-    if (!iterator.moveNext()) return;
-    if (separator.isEmpty) {
-      do {
-        write(iterator.current);
-      } while (iterator.moveNext());
-    } else {
-      write(iterator.current);
-      while (iterator.moveNext()) {
-        write(separator);
-        write(iterator.current);
-      }
-    }
-  }
-
-  void writeln([Object object = ""]) {
-    write(object);
-    write("\n");
-  }
-
-  void writeCharCode(int charCode) {
-    write(new String.fromCharCode(charCode));
   }
 }
 
@@ -2346,6 +2044,11 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
 
   _HttpConnection(this._socket, this._httpServer)
       : _httpParser = new _HttpParser.requestParser() {
+    try {
+      _socket._owner = this;
+    } catch (_) {
+      print(_);
+    }
     _connections[_serviceId] = this;
     _httpParser.listenToStream(_socket as Object/*=Socket*/);
     _subscription = _httpParser.listen((incoming) {
@@ -2527,6 +2230,7 @@ class _HttpServer extends Stream<HttpRequest>
         new StreamController<HttpRequest>(sync: true, onCancel: close);
     idleTimeout = const Duration(seconds: 120);
     _servers[_serviceId] = this;
+    _serverSocket._owner = this;
   }
 
   _HttpServer.listenOn(this._serverSocket) : _closeServer = false {
@@ -2534,6 +2238,9 @@ class _HttpServer extends Stream<HttpRequest>
         new StreamController<HttpRequest>(sync: true, onCancel: close);
     idleTimeout = const Duration(seconds: 120);
     _servers[_serviceId] = this;
+    try {
+      _serverSocket._owner = this;
+    } catch (_) {}
   }
 
   static HttpHeaders _initDefaultResponseHeaders() {
@@ -2901,6 +2608,10 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
   Map _toJSON(bool ref) {
     return (_socket as dynamic)._toJSON(ref);
   }
+
+  void set _owner(owner) {
+    (_socket as dynamic)._owner = owner;
+  }
 }
 
 class _AuthenticationScheme {
@@ -3070,7 +2781,7 @@ class _HttpClientDigestCredentials extends _HttpClientCredentials
     hasher = new _MD5()..add(credentials.ha1.codeUnits)..add([_CharCode.COLON]);
     if (credentials.qop == "auth") {
       qop = credentials.qop;
-      cnonce = _CryptoUtils.bytesToHex(_CryptoUtils.getRandomBytes(4));
+      cnonce = _CryptoUtils.bytesToHex(_IOCrypto.getRandomBytes(4));
       ++credentials.nonceCount;
       nc = credentials.nonceCount.toRadixString(16);
       nc = "00000000".substring(0, 8 - nc.length + 1) + nc;

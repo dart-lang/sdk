@@ -6,7 +6,7 @@ part of dart.io;
 
 int _nextServiceId = 1;
 
-// TODO(ajohnsen): Use other way of getting a unique id.
+// TODO(ajohnsen): Use other way of getting a uniq id.
 abstract class _ServiceObject {
   int __serviceId = 0;
   int get _serviceId {

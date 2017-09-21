@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._http;
+part of dart.io;
 
 const String _webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const String _clientNoContextTakeover = "client_no_context_takeover";
@@ -427,23 +427,6 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
     return _controller.stream;
   }
 
-  static List<String> _tokenizeFieldValue(String headerValue) {
-    List<String> tokens = new List<String>();
-    int start = 0;
-    int index = 0;
-    while (index < headerValue.length) {
-      if (headerValue[index] == ",") {
-        tokens.add(headerValue.substring(start, index));
-        start = index + 1;
-      } else if (headerValue[index] == " " || headerValue[index] == "\t") {
-        start++;
-      }
-      index++;
-    }
-    tokens.add(headerValue.substring(start, index));
-    return tokens;
-  }
-
   static Future<WebSocket> _upgrade(HttpRequest request,
       _ProtocolSelector _protocolSelector, CompressionOptions compression) {
     var response = request.response;
@@ -484,7 +467,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
       // The suggested protocols can be spread over multiple lines, each
       // consisting of multiple protocols. To unify all of them, first join
       // the lists with ', ' and then tokenize.
-      protocols = _tokenizeFieldValue(protocols.join(', '));
+      protocols = _HttpParser._tokenizeFieldValue(protocols.join(', '));
       return new Future<String>(() => _protocolSelector(protocols))
           .then<String>((protocol) {
         if (protocols.indexOf(protocol) < 0) {
@@ -568,8 +551,8 @@ class _WebSocketPerMessageDeflate {
   int serverMaxWindowBits;
   bool serverSide;
 
-  RawZLibFilter decoder;
-  RawZLibFilter encoder;
+  _Filter decoder;
+  _Filter encoder;
 
   _WebSocketPerMessageDeflate(
       {this.clientMaxWindowBits: _WebSocketImpl.DEFAULT_WINDOW_BITS,
@@ -580,17 +563,21 @@ class _WebSocketPerMessageDeflate {
 
   void _ensureDecoder() {
     if (decoder == null) {
-      decoder = new RawZLibFilter.inflateFilter(
-          windowBits: serverSide ? clientMaxWindowBits : serverMaxWindowBits,
-          raw: true);
+      decoder = _Filter._newZLibInflateFilter(
+          serverSide ? clientMaxWindowBits : serverMaxWindowBits, null, true);
     }
   }
 
   void _ensureEncoder() {
     if (encoder == null) {
-      encoder = new RawZLibFilter.deflateFilter(
-          windowBits: serverSide ? serverMaxWindowBits : clientMaxWindowBits,
-          raw: true);
+      encoder = _Filter._newZLibDeflateFilter(
+          false,
+          ZLibOption.DEFAULT_LEVEL,
+          serverSide ? serverMaxWindowBits : clientMaxWindowBits,
+          ZLibOption.DEFAULT_MEM_LEVEL,
+          ZLibOption.STRATEGY_DEFAULT,
+          null,
+          true);
     }
   }
 
@@ -778,7 +765,7 @@ class _WebSocketOutgoingTransformer
     }
     if (mask) {
       header[1] |= 1 << 7;
-      var maskBytes = _CryptoUtils.getRandomBytes(4);
+      var maskBytes = _IOCrypto.getRandomBytes(4);
       header.setRange(index, index + 4, maskBytes);
       index += 4;
       if (data != null) {
@@ -1167,6 +1154,9 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         onResume: _subscription.resume);
 
     _webSockets[_serviceId] = this;
+    try {
+      _socket._owner = this;
+    } catch (_) {}
   }
 
   StreamSubscription listen(void onData(message),

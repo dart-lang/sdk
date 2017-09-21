@@ -28,7 +28,6 @@ typed_data: typed_data/typed_data.dart
 _native_typed_data: _internal/js_runtime/lib/native_typed_data.dart
 html: unsupported:
 html_common: unsupported:
-_http: _http/http.dart
 indexed_db: unsupported:
 svg: unsupported:
 web_audio: unsupported:

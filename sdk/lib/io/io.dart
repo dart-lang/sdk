@@ -204,9 +204,6 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:nativewrappers';
 
-import 'dart:_http';
-export 'dart:_http';
-
 part 'bytes_builder.dart';
 part 'common.dart';
 part 'crypto.dart';
@@ -218,6 +215,12 @@ part 'eventhandler.dart';
 part 'file.dart';
 part 'file_impl.dart';
 part 'file_system_entity.dart';
+part 'http.dart';
+part 'http_date.dart';
+part 'http_headers.dart';
+part 'http_impl.dart';
+part 'http_parser.dart';
+part 'http_session.dart';
 part 'io_resource_info.dart';
 part 'io_sink.dart';
 part 'io_service.dart';
@@ -234,3 +237,5 @@ part 'socket.dart';
 part 'stdio.dart';
 part 'string_transformer.dart';
 part 'sync_socket.dart';
+part 'websocket.dart';
+part 'websocket_impl.dart';

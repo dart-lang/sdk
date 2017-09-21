@@ -32,8 +32,6 @@
     in 'timeout'.
   * Added `Platform.operatingSystemVersion` that gives a platform-specific
     String describing the version of the operating system.
-  * Added `RawZLibFilter` for low-level access to compression and
-    decompression.
 
 * `dart:core`
   * The `Uri` class now correctly handles paths while running on Node.js on
