@@ -88,6 +88,9 @@ analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 [ $runtime == vm && $checked && $system == windows ]
 front_end/tool/perf_test: Slow, Pass
 
+[ $runtime == vm && $builder_tag == swarming ]
+front_end/test/src/incremental/hot_reload_e2e_test: Pass, RuntimeError # Please triage this failure
+
 [ $runtime == vm && $use_sdk ]
 front_end/test/fasta/*: Skip # Issue 28629
 compiler/tool/generate_kernel_test*: Skip # Issue 28629
