@@ -2856,7 +2856,13 @@ const dynamic V = const
 class C {}
 const V = const C.named();
 ''', allowErrors: true);
-    if (isStrongMode) {
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+class C {
+}
+const dynamic V;
+''');
+    } else if (isStrongMode) {
       checkElementText(library, r'''
 class C {
 }
@@ -2879,11 +2885,17 @@ const dynamic V = const
     var library = await checkLibrary(r'''
 const V = const C.named();
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+const dynamic V;
+''');
+    } else {
+      checkElementText(library, r'''
 const dynamic V = const
         C/*location: null*/.
         named/*location: null*/();
 ''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved3() async {
@@ -2895,7 +2907,12 @@ class C {
 import 'a.dart' as p;
 const V = const p.C.named();
 ''', allowErrors: true);
-    if (isStrongMode) {
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+import 'a.dart' as p;
+const dynamic V;
+''');
+    } else if (isStrongMode) {
       checkElementText(library, r'''
 import 'a.dart' as p;
 const C V = const
@@ -2920,25 +2937,38 @@ const dynamic V = const
 import 'a.dart' as p;
 const V = const p.C.named();
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+import 'a.dart' as p;
+const dynamic V;
+''');
+    } else {
+      checkElementText(library, r'''
 import 'a.dart' as p;
 const dynamic V = const
         p/*location: test.dart;p*/.
         C/*location: null*/.
         named/*location: null*/();
 ''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved5() async {
     var library = await checkLibrary(r'''
 const V = const p.C.named();
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+const dynamic V;
+''');
+    } else {
+      checkElementText(library, r'''
 const dynamic V = const
         p/*location: null*/.
         C/*location: null*/.
         named/*location: null*/();
 ''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved6() async {
@@ -2946,7 +2976,13 @@ const dynamic V = const
 class C<T> {}
 const V = const C.named();
 ''', allowErrors: true);
-    if (isStrongMode) {
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+class C<T> {
+}
+const dynamic V;
+''');
+    } else if (isStrongMode) {
       checkElementText(library, r'''
 class C<T> {
 }
@@ -3045,10 +3081,16 @@ const dynamic V = const
     var library = await checkLibrary(r'''
 const V = const C();
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+const dynamic V;
+''');
+    } else {
+      checkElementText(library, r'''
 const dynamic V = const
         C/*location: null*/();
 ''');
+    }
   }
 
   test_const_invokeConstructor_unnamed_unresolved2() async {
@@ -3058,23 +3100,36 @@ const dynamic V = const
 import 'a.dart' as p;
 const V = const p.C();
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+import 'a.dart' as p;
+const dynamic V;
+''');
+    } else {
+      checkElementText(library, r'''
 import 'a.dart' as p;
 const dynamic V = const
         p/*location: test.dart;p*/.
         C/*location: null*/();
 ''');
+    }
   }
 
   test_const_invokeConstructor_unnamed_unresolved3() async {
     var library = await checkLibrary(r'''
 const V = const p.C();
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+const dynamic V;
+''');
+    } else {
+      checkElementText(library, r'''
 const dynamic V = const
         p/*location: null*/.
         C/*location: null*/();
 ''');
+    }
   }
 
   test_const_length_ofClassConstField() async {
@@ -3929,24 +3984,38 @@ class C<T> {
     var library = await checkLibrary(r'''
 const V = foo;
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+const dynamic V;
+''');
+    } else {
+      checkElementText(library, r'''
 const dynamic V =
         foo/*location: null*/;
 ''');
+    }
   }
 
   test_const_reference_unresolved_prefix1() async {
     var library = await checkLibrary(r'''
 class C {}
-const v = C.foo;
+const V = C.foo;
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
 class C {
 }
-const dynamic v =
+const dynamic V;
+''');
+    } else {
+      checkElementText(library, r'''
+class C {
+}
+const dynamic V =
         C/*location: test.dart;C*/.
         foo/*location: null*/;
 ''');
+    }
   }
 
   test_const_reference_unresolved_prefix2() async {
@@ -3955,15 +4024,22 @@ class C {}
 ''');
     var library = await checkLibrary(r'''
 import 'foo.dart' as p;
-const v = p.C.foo;
+const V = p.C.foo;
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
 import 'foo.dart' as p;
-const dynamic v =
+const dynamic V;
+''');
+    } else {
+      checkElementText(library, r'''
+import 'foo.dart' as p;
+const dynamic V =
         p/*location: test.dart;p*/.
         C/*location: foo.dart;C*/.
         foo/*location: null*/;
 ''');
+    }
   }
 
   test_const_topLevel_binary() async {
@@ -4170,18 +4246,30 @@ const dynamic vComplement = ~1;
     var library = await checkLibrary(r'''
 const vSuper = super;
 ''');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+const dynamic vSuper;
+''');
+    } else {
+      checkElementText(library, r'''
 const dynamic vSuper = super;
 ''');
+    }
   }
 
   test_const_topLevel_this() async {
     var library = await checkLibrary(r'''
 const vThis = this;
 ''');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+const dynamic vThis;
+''');
+    } else {
+      checkElementText(library, r'''
 const dynamic vThis = this;
 ''');
+    }
   }
 
   test_const_topLevel_typedList() async {

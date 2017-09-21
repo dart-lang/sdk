@@ -16,6 +16,7 @@ import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart' as kernel;
 
 /**
  * Object that can resynthesize analyzer [LibraryElement] from Kernel.
@@ -359,6 +360,21 @@ class _ExprBuilder {
       identifier.staticElement = type.element;
       identifier.staticType = _context.libraryContext.resynthesizer.typeType;
       return identifier;
+    }
+
+    // Synthetic expression representing a constant error.
+    if (expr is kernel.ShadowSyntheticExpression) {
+      var desugared = expr.desugared;
+      if (desugared is kernel.MethodInvocation) {
+        if (desugared.name.name == '_throw') {
+          var receiver = desugared.receiver;
+          if (receiver is kernel.ConstructorInvocation &&
+              receiver.target.enclosingClass.name ==
+                  '_ConstantExpressionError') {
+            return null;
+          }
+        }
+      }
     }
 
     // TODO(scheglov): complete getExpression
