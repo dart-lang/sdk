@@ -2471,7 +2471,16 @@ class C {
 }
 int foo() => 42;
 ''', allowErrors: true);
-    if (isStrongMode) {
+    if (isSharedFrontEnd) {
+      // It is OK to keep non-constant initializers.
+      checkElementText(library, r'''
+class C {
+  static const int f = 1 +
+        foo/*location: test.dart;foo*/();
+}
+int foo() {}
+''');
+    } else if (isStrongMode) {
       checkElementText(library, r'''
 class C {
   static const int f;
@@ -2528,7 +2537,14 @@ const int x = 0;
 const v = 1 + foo();
 int foo() => 42;
 ''', allowErrors: true);
-    if (isStrongMode) {
+    if (isSharedFrontEnd) {
+      // It is OK to keep non-constant initializers.
+      checkElementText(library, r'''
+const int v = 1 +
+        foo/*location: test.dart;foo*/();
+int foo() {}
+''');
+    } else if (isStrongMode) {
       checkElementText(library, r'''
 const int v;
 int foo() {}
@@ -4525,7 +4541,19 @@ class C {
 }
 int foo() => 42;
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      // It is OK to keep non-constant initializers.
+      checkElementText(library, r'''
+class C {
+  final dynamic x;
+  const C() :
+        x/*location: test.dart;C;x*/ =
+        foo/*location: test.dart;foo*/();
+}
+int foo() {}
+''');
+    } else {
+      checkElementText(library, r'''
 class C {
   final dynamic x;
   const C() :
@@ -4533,6 +4561,7 @@ class C {
 }
 int foo() {}
 ''');
+    }
   }
 
   test_constructor_initializers_field_withParameter() async {
