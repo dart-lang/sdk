@@ -456,7 +456,7 @@ class PolymorphicInliner : public ValueObject {
                      const Function& caller_function,
                      intptr_t caller_inlining_id);
 
-  void Inline();
+  bool Inline();
 
  private:
   bool CheckInlinedDuplicate(const Function& target);
@@ -620,37 +620,59 @@ class CallSiteInliner : public ValueObject {
 
   bool trace_inlining() const { return inliner_->trace_inlining(); }
 
+  int inlining_depth() { return inlining_depth_; }
+
+  struct InliningDecision {
+    InliningDecision(bool b, const char* r) : value(b), reason(r) {}
+    bool value;
+    const char* reason;
+    static InliningDecision Yes(const char* reason) {
+      return InliningDecision(true, reason);
+    }
+    static InliningDecision No(const char* reason) {
+      return InliningDecision(false, reason);
+    }
+  };
+
   // Inlining heuristics based on Cooper et al. 2008.
-  bool ShouldWeInline(const Function& callee,
-                      intptr_t instr_count,
-                      intptr_t call_site_count,
-                      intptr_t const_arg_count) {
+  InliningDecision ShouldWeInline(const Function& callee,
+                                  intptr_t instr_count,
+                                  intptr_t call_site_count,
+                                  intptr_t const_arg_count) {
     if (inliner_->AlwaysInline(callee)) {
-      return true;
+      return InliningDecision::Yes("AlwaysInline");
     }
     if (inlined_size_ > FLAG_inlining_caller_size_threshold) {
       // Prevent methods becoming humongous and thus slow to compile.
-      return false;
+      return InliningDecision::No("--inlining-caller-size-threshold");
     }
     if (const_arg_count > 0) {
       if (instr_count > FLAG_inlining_constant_arguments_max_size_threshold) {
-        return false;
+        return InliningDecision(
+            false, "--inlining-constant-arguments-max-size-threshold");
       }
     } else if (instr_count > FLAG_inlining_callee_size_threshold) {
-      return false;
+      return InliningDecision::No("--inlining-callee-size-threshold");
+    }
+    int callee_inlining_depth = callee.inlining_depth();
+    if (callee_inlining_depth > 0 && callee_inlining_depth + inlining_depth_ >
+                                         FLAG_inlining_depth_threshold) {
+      return InliningDecision::No("--inlining-depth-threshold");
     }
     // 'instr_count' can be 0 if it was not computed yet.
     if ((instr_count != 0) && (instr_count <= FLAG_inlining_size_threshold)) {
-      return true;
+      return InliningDecision::Yes("--inlining-size-threshold");
     }
     if (call_site_count <= FLAG_inlining_callee_call_sites_threshold) {
-      return true;
+      return InliningDecision::Yes("--inlining-callee-call-sites-threshold");
     }
     if ((const_arg_count >= FLAG_inlining_constant_arguments_count) &&
         (instr_count <= FLAG_inlining_constant_arguments_min_size_threshold)) {
-      return true;
+      return InliningDecision(true,
+                              "--inlining-constant-arguments-count and "
+                              "inlining-constant-arguments-min-size-threshold");
     }
-    return false;
+    return InliningDecision::No("default");
   }
 
   void InlineCalls() {
@@ -685,16 +707,18 @@ class CallSiteInliner : public ValueObject {
       inlining_call_sites_ = call_sites_temp;
       collected_call_sites_->Clear();
       // Inline call sites at the current depth.
-      InlineInstanceCalls();
-      InlineStaticCalls();
-      InlineClosureCalls();
-      // Increment the inlining depths. Checked before subsequent inlining.
-      ++inlining_depth_;
-      if (inlined_recursive_call_) {
-        ++inlining_recursion_depth_;
-        inlined_recursive_call_ = false;
+      bool inlined_instance = InlineInstanceCalls();
+      bool inlined_statics = InlineStaticCalls();
+      bool inlined_closures = InlineClosureCalls();
+      if (inlined_instance || inlined_statics || inlined_closures) {
+        // Increment the inlining depths. Checked before subsequent inlining.
+        ++inlining_depth_;
+        if (inlined_recursive_call_) {
+          ++inlining_recursion_depth_;
+          inlined_recursive_call_ = false;
+        }
+        thread()->CheckForSafepoint();
       }
-      thread()->CheckForSafepoint();
     }
 
     collected_call_sites_ = NULL;
@@ -751,7 +775,7 @@ class CallSiteInliner : public ValueObject {
 
     // Do not rely on function type feedback or presence of code to determine
     // if a function was compiled.
-    if (!FLAG_precompiled_mode && !function.was_compiled()) {
+    if (!FLAG_precompiled_mode && !function.WasCompiled()) {
       TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
       PRINT_INLINING_TREE("Not compiled", &call_data->caller, &function,
                           call_data->call);
@@ -795,16 +819,19 @@ class CallSiteInliner : public ValueObject {
 
     GrowableArray<Value*>* arguments = call_data->arguments;
     const intptr_t constant_arguments = CountConstants(*arguments);
-    if (!ShouldWeInline(function, function.optimized_instruction_count(),
-                        function.optimized_call_site_count(),
-                        constant_arguments)) {
+    InliningDecision decision = ShouldWeInline(
+        function, function.optimized_instruction_count(),
+        function.optimized_call_site_count(), constant_arguments);
+    if (!decision.value) {
       TRACE_INLINING(
-          THR_Print("     Bailout: early heuristics with "
+          THR_Print("     Bailout: early heuristics (%s) with "
                     "code size:  %" Pd ", "
                     "call sites: %" Pd ", "
+                    "inlining depth of callee: %d, "
                     "const args: %" Pd "\n",
-                    function.optimized_instruction_count(),
-                    function.optimized_call_site_count(), constant_arguments));
+                    decision.reason, function.optimized_instruction_count(),
+                    function.optimized_call_site_count(),
+                    function.inlining_depth(), constant_arguments));
       PRINT_INLINING_TREE("Early heuristic", &call_data->caller, &function,
                           call_data->call);
       return false;
@@ -1045,11 +1072,10 @@ class CallSiteInliner : public ValueObject {
         const intptr_t size = function.optimized_instruction_count();
         const intptr_t call_site_count = function.optimized_call_site_count();
 
-        function.set_optimized_instruction_count(size);
-        function.set_optimized_call_site_count(call_site_count);
-
         // Use heuristics do decide if this call should be inlined.
-        if (!ShouldWeInline(function, size, call_site_count, constants_count)) {
+        InliningDecision decision =
+            ShouldWeInline(function, size, call_site_count, constants_count);
+        if (!decision.value) {
           // If size is larger than all thresholds, don't consider it again.
           if ((size > FLAG_inlining_size_threshold) &&
               (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
@@ -1059,11 +1085,13 @@ class CallSiteInliner : public ValueObject {
           }
           thread()->set_deopt_id(prev_deopt_id);
           TRACE_INLINING(
-              THR_Print("     Bailout: heuristics with "
+              THR_Print("     Bailout: heuristics (%s) with "
                         "code size:  %" Pd ", "
                         "call sites: %" Pd ", "
+                        "inlining depth of callee: %d, "
                         "const args: %" Pd "\n",
-                        size, call_site_count, constants_count));
+                        decision.reason, size, call_site_count,
+                        function.inlining_depth(), constants_count));
           PRINT_INLINING_TREE("Heuristic fail", &call_data->caller, &function,
                               call_data->call);
           return false;
@@ -1259,7 +1287,8 @@ class CallSiteInliner : public ValueObject {
     return parsed_function;
   }
 
-  void InlineStaticCalls() {
+  bool InlineStaticCalls() {
+    bool inlined = false;
     const GrowableArray<CallSites::StaticCallInfo>& call_info =
         inlining_call_sites_->static_calls();
     TRACE_INLINING(THR_Print("  Static Calls (%" Pd ")\n", call_info.length()));
@@ -1287,11 +1316,14 @@ class CallSiteInliner : public ValueObject {
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(call->function(), call->argument_names(), &call_data)) {
         InlineCall(&call_data);
+        inlined = true;
       }
     }
+    return inlined;
   }
 
-  void InlineClosureCalls() {
+  bool InlineClosureCalls() {
+    bool inlined = false;
     const GrowableArray<CallSites::ClosureCallInfo>& call_info =
         inlining_call_sites_->closure_calls();
     TRACE_INLINING(
@@ -1333,11 +1365,14 @@ class CallSiteInliner : public ValueObject {
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(target, call->argument_names(), &call_data)) {
         InlineCall(&call_data);
+        inlined = true;
       }
     }
+    return inlined;
   }
 
-  void InlineInstanceCalls() {
+  bool InlineInstanceCalls() {
+    bool inlined = false;
     const GrowableArray<CallSites::InstanceCallInfo>& call_info =
         inlining_call_sites_->instance_calls();
     TRACE_INLINING(THR_Print("  Polymorphic Instance Calls (%" Pd ")\n",
@@ -1355,8 +1390,9 @@ class CallSiteInliner : public ValueObject {
       intptr_t caller_inlining_id =
           call_info[call_idx].caller_graph->inlining_id();
       PolymorphicInliner inliner(this, call, cl, caller_inlining_id);
-      inliner.Inline();
+      if (inliner.Inline()) inlined = true;
     }
+    return inlined;
   }
 
   bool AdjustForOptionalParameters(const ParsedFunction& parsed_function,
@@ -1911,7 +1947,7 @@ bool PolymorphicInliner::trace_inlining() const {
   return owner_->trace_inlining();
 }
 
-void PolymorphicInliner::Inline() {
+bool PolymorphicInliner::Inline() {
   ASSERT(&variants_ == &call_->targets_);
 
   intptr_t total = call_->total_call_count();
@@ -1984,16 +2020,13 @@ void PolymorphicInliner::Inline() {
   }
 
   // If there are no inlined variants, leave the call in place.
-  if (inlined_variants_.is_empty()) return;
+  if (inlined_variants_.is_empty()) return false;
 
   // Now build a decision tree (a DAG because of shared inline variants) and
   // inline it at the call site.
   TargetEntryInstr* entry = BuildDecisionGraph();
   exit_collector_->ReplaceCall(entry);
-}
-
-static uint16_t ClampUint16(intptr_t v) {
-  return (v > 0xFFFF) ? 0xFFFF : static_cast<uint16_t>(v);
+  return true;
 }
 
 static bool ShouldTraceInlining(FlowGraph* flow_graph) {
@@ -2026,9 +2059,8 @@ void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
     GraphInfoCollector info;
     info.Collect(*flow_graph);
 
-    function.set_optimized_instruction_count(
-        ClampUint16(info.instruction_count()));
-    function.set_optimized_call_site_count(ClampUint16(info.call_site_count()));
+    function.SetOptimizedInstructionCountClamped(info.instruction_count());
+    function.SetOptimizedCallSiteCountClamped(info.call_site_count());
   }
 }
 
@@ -2090,7 +2122,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
   return MethodRecognizer::AlwaysInline(function);
 }
 
-void FlowGraphInliner::Inline() {
+int FlowGraphInliner::Inline() {
   // Collect graph info and store it on the function.
   // We might later use it for an early bailout from the inlining.
   CollectGraphInfo(flow_graph_);
@@ -2098,7 +2130,7 @@ void FlowGraphInliner::Inline() {
   const Function& top = flow_graph_->function();
   if ((FLAG_inlining_filter != NULL) &&
       (strstr(top.ToFullyQualifiedCString(), FLAG_inlining_filter) == NULL)) {
-    return;
+    return 0;
   }
 
   if (trace_inlining()) {
@@ -2139,6 +2171,7 @@ void FlowGraphInliner::Inline() {
       }
     }
   }
+  return inliner.inlining_depth();
 }
 
 intptr_t FlowGraphInliner::NextInlineId(const Function& function,

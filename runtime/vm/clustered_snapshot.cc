@@ -644,6 +644,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         func->ptr()->deoptimization_counter_ = 0;
         func->ptr()->optimized_instruction_count_ = 0;
         func->ptr()->optimized_call_site_count_ = 0;
+        func->ptr()->inlining_depth_ = 0;
 #endif
       }
     }
@@ -670,10 +671,10 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         code ^= func.CurrentCode();
         if (func.HasCode() && !code.IsDisabled()) {
           func.SetInstructions(code);
-          func.set_was_compiled(true);
+          func.SetWasCompiled(true);
         } else {
           func.ClearCode();
-          func.set_was_compiled(false);
+          func.SetWasCompiled(false);
         }
       }
     } else {
@@ -682,7 +683,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         func ^= refs.At(i);
         func.ClearICDataArray();
         func.ClearCode();
-        func.set_was_compiled(false);
+        func.SetWasCompiled(false);
       }
     }
   }

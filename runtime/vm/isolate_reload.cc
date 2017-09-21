@@ -1662,7 +1662,7 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
     // Null out the ICData array and code.
     func.ClearICDataArray();
     func.ClearCode();
-    func.set_was_compiled(false);
+    func.SetWasCompiled(false);
   }
 
   void PreserveUnoptimizedCode() {
