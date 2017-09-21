@@ -144,6 +144,7 @@ inferrer_synthesized_constructor_test: RuntimeError
 [ $compiler == dartk && $runtime == vm && $checked ]
 assertion_initializer_const_function_test/01: RuntimeError
 regress_30339_test: RuntimeError
+if_null_precedence_test/none: Pass
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 assert_assignable_type_test: Crash

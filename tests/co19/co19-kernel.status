@@ -214,6 +214,12 @@ Language/Statements/For/Asynchronous_For_in/execution_t04: Crash
 Language/Classes/Constructors/Factories/arguments_type_t01: RuntimeError
 Language/Classes/Constructors/Factories/function_type_t02: Fail # dartbug.com/30527
 Language/Expressions/Constants/exception_t04: Pass
+Language/Expressions/Function_Expressions/static_type_dynamic_asyncs_t03: RuntimeError # dartbgug.com/30667
+Language/Expressions/Function_Expressions/static_type_dynamic_async_t03: RuntimeError # dartbgug.com/30667
+Language/Expressions/Function_Expressions/static_type_dynamic_syncs_t03: RuntimeError # dartbug.com/30667
+Language/Expressions/Function_Expressions/static_type_form_3_asyncs_t03: RuntimeError # dartbgug.com/30667
+Language/Expressions/Function_Expressions/static_type_form_3_async_t03:  RuntimeError # dartbgug.com/30667
+Language/Expressions/Function_Expressions/static_type_form_3_syncs_t03: RuntimeError # dartbgug.com/30667
 Language/Generics/malformed_t02: RuntimeError
 Language/Statements/Return/runtime_type_t04: RuntimeError
 Language/Statements/Switch/execution_t01: RuntimeError
