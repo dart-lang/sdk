@@ -113,6 +113,7 @@ class DartUtils {
   static bool IsDartSchemeURL(const char* url_name);
   static bool IsDartExtensionSchemeURL(const char* url_name);
   static bool IsDartIOLibURL(const char* url_name);
+  static bool IsDartHttpLibURL(const char* url_name);
   static bool IsDartBuiltinLibURL(const char* url_name);
   static bool IsHttpSchemeURL(const char* url_name);
   static const char* RemoveScheme(const char* url);
@@ -227,6 +228,7 @@ class DartUtils {
   static const char* const kCoreLibURL;
   static const char* const kInternalLibURL;
   static const char* const kIsolateLibURL;
+  static const char* const kHttpLibURL;
   static const char* const kIOLibURL;
   static const char* const kIOLibPatchURL;
   static const char* const kUriLibURL;

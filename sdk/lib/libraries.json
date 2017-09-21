@@ -85,6 +85,9 @@
         ],
         "uri": "mirrors/mirrors.dart"
       },
+      "_http": {
+        "uri": "_http/http.dart"
+      },
       "io": {
         "patches": [
           "../../runtime/bin/common_patch.dart",

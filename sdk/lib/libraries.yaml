@@ -83,6 +83,9 @@ vm:
         - "../../runtime/lib/profiler.dart"
         - "../../runtime/lib/timeline.dart"
 
+    _http:
+      uri: "_http/http.dart"
+
     io:
       uri: "io/io.dart"
       patches:

@@ -565,15 +565,21 @@ class _WindowsCodePageEncoder {
 }
 
 @patch
-class _Filter {
+class RawZLibFilter {
   @patch
-  static _Filter _newZLibDeflateFilter(bool gzip, int level, int windowBits,
-      int memLevel, int strategy, List<int> dictionary, bool raw) {
+  static RawZLibFilter _makeZLibDeflateFilter(
+      bool gzip,
+      int level,
+      int windowBits,
+      int memLevel,
+      int strategy,
+      List<int> dictionary,
+      bool raw) {
     throw new UnsupportedError("_newZLibDeflateFilter");
   }
 
   @patch
-  static _Filter _newZLibInflateFilter(
+  static RawZLibFilter _makeZLibInflateFilter(
       int windowBits, List<int> dictionary, bool raw) {
     throw new UnsupportedError("_newZLibInflateFilter");
   }

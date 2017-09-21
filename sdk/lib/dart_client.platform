@@ -26,6 +26,7 @@ core: core/core.dart
 developer: developer/developer.dart
 html: html/dart2js/html_dart2js.dart
 html_common: html/html_common/html_common_dart2js.dart
+_http: unsupported:_http/http.dart
 indexed_db: indexed_db/dart2js/indexed_db_dart2js.dart
 io: unsupported:io/io.dart
 isolate: isolate/isolate.dart

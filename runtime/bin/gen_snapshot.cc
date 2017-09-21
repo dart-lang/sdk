@@ -454,6 +454,9 @@ static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
   if (DartUtils::IsDartIOLibURL(url)) {
     return Builtin::kIOLibrary;
   }
+  if (DartUtils::IsDartHttpLibURL(url)) {
+    return Builtin::kHttpLibrary;
+  }
   return Builtin::kInvalidLibrary;
 }
 
