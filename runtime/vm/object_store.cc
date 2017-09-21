@@ -106,8 +106,7 @@ ObjectStore::ObjectStore()
       megamorphic_cache_table_(GrowableObjectArray::null()),
       megamorphic_miss_code_(Code::null()),
       megamorphic_miss_function_(Function::null()),
-      obfuscation_map_(Array::null()),
-      changed_in_last_reload_(GrowableObjectArray::null()) {
+      obfuscation_map_(Array::null()) {
   for (RawObject** current = from(); current <= to(); current++) {
     ASSERT(*current == Object::null());
   }

@@ -3027,15 +3027,6 @@ class Field : public Object {
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
-  bool initializer_changed_after_initialization() const {
-    return InitializerChangedAfterInitializatonBit::decode(
-        raw_ptr()->kind_bits_);
-  }
-  void set_initializer_changed_after_initialization(bool value) const {
-    set_kind_bits(InitializerChangedAfterInitializatonBit::update(
-        value, raw_ptr()->kind_bits_));
-  }
-
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return NULL;
@@ -3106,9 +3097,6 @@ class Field : public Object {
   static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
-  TokenPosition ComputeEndTokenPos() const;
-
-  int32_t SourceFingerprint() const;
 
   RawString* InitializingExpression() const;
 
@@ -3275,7 +3263,6 @@ class Field : public Object {
     kUnboxingCandidateBit,
     kReflectableBit,
     kDoubleInitializedBit,
-    kInitializerChangedAfterInitializatonBit,
   };
   class ConstBit : public BitField<uint8_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint8_t, bool, kStaticBit, 1> {};
@@ -3287,11 +3274,6 @@ class Field : public Object {
   class ReflectableBit : public BitField<uint8_t, bool, kReflectableBit, 1> {};
   class DoubleInitializedBit
       : public BitField<uint8_t, bool, kDoubleInitializedBit, 1> {};
-  class InitializerChangedAfterInitializatonBit
-      : public BitField<uint8_t,
-                        bool,
-                        kInitializerChangedAfterInitializatonBit,
-                        1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.

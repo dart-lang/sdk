@@ -410,13 +410,6 @@ class ObjectStore {
     obfuscation_map_ = value.raw();
   }
 
-  RawGrowableObjectArray* changed_in_last_reload() const {
-    return changed_in_last_reload_;
-  }
-  void set_changed_in_last_reload(const GrowableObjectArray& value) {
-    changed_in_last_reload_ = value.raw();
-  }
-
   RawGrowableObjectArray* megamorphic_cache_table() const {
     return megamorphic_cache_table_;
   }
@@ -597,16 +590,13 @@ class ObjectStore {
   V(RawCode*, megamorphic_miss_code_)                                          \
   V(RawFunction*, megamorphic_miss_function_)                                  \
   V(RawArray*, obfuscation_map_)                                               \
-  V(RawGrowableObjectArray*, changed_in_last_reload_)                          \
   // Please remember the last entry must be referred in the 'to' function below.
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&object_class_); }
 #define DECLARE_OBJECT_STORE_FIELD(type, name) type name;
   OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&changed_in_last_reload_);
-  }
+  RawObject** to() { return reinterpret_cast<RawObject**>(&obfuscation_map_); }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:

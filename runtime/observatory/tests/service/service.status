@@ -67,7 +67,6 @@ address_mapper_test: CompileTimeError # Issue 27806
 capture_stdio_test: CompileTimeError # Issue 27806
 complex_reload_test: RuntimeError # Issue 27806
 bad_reload_test: RuntimeError # Issue 27806
-unused_changes_in_last_reload_test: RuntimeError # Issue 27806
 evaluate_activation_test/instance: RuntimeError # Issue 27806
 evaluate_activation_test/scope: RuntimeError # Issue 27806
 get_object_rpc_test: RuntimeError # Issue 27806
