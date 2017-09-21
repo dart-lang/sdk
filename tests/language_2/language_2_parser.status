@@ -1,0 +1,53 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This file specifies the status of tests for runs with spec_parser.dart.
+# Note that there are overlaps between groups, because a single test may
+# be skipped for more than one reason. As features are added, groups are
+# expected to be eliminated entirely, and this would not work if all
+# duplicates were removed.
+
+[ $compiler == parser ]
+
+# Tests containing intentional syntax errors.
+double_invalid_test: Skip # Contains illegaly formatted double.
+
+# Wrong tests.
+built_in_identifier_prefix_test: Skip # A built-in identifier can _not_ be a prefix.
+
+# Multi-tests containing compile-time errors.
+abstract_syntax_test: Skip # Not yet supported.
+arg_param_trailing_comma_test: Skip # Not yet supported.
+assert_trailing_comma_test: Skip # Not yet supported.
+assign_static_type_test: Skip # Not yet supported.
+assignable_expression_test: Skip # Not yet supported.
+async_await_syntax_test: Skip # Not yet supported.
+async_return_types_test: Skip # Not yet supported.
+bad_constructor_test: Skip # Not yet supported.
+bad_override_test: Skip # Not yet supported.
+bad_raw_string_test: Skip # Not yet supported.
+bad_typedef_test: Skip # Not yet supported.
+black_listed_test: Skip # Not yet supported.
+built_in_identifier_illegal_test: Skip # Not yet supported.
+canonical_const2_test: Skip # Not yet supported.
+canonical_const_test: Skip # Not yet supported.
+cascade_test: Skip # Not yet supported.
+class_cycle2_test: Skip # Not yet supported.
+class_cycle_test: Skip # Not yet supported.
+class_keyword_test: Skip # Not yet supported.
+class_syntax_test: Skip # Not yet supported.
+compile_time_constant10_test: Skip # Not yet supported.
+compile_time_constant11_test: Skip # Not yet supported.
+compile_time_constant13_test: Skip # Not yet supported.
+get_set_syntax_test: Skip # Not yet supported.
+
+# Tests using assert in initializer list.
+assertion_initializer_test: Skip # Not yet supported.
+assertion_initializer_const_error_test: Skip # Not yet supported.
+assertion_initializer_const_error2_test: Skip # Not yet supported.
+assertion_initializer_const_function_test: Skip # Not yet supported.
+assertion_initializer_const_function_error_test: Skip # Not yet supported.
+
+# Tests using generalized void.
+void_type_function_types_test: Skip # Not yet supported.
