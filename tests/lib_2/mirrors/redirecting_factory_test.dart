@@ -29,14 +29,14 @@ class Class<T1, T2> {
   }
 
   factory Class.redirectingFactoryMoreNamedOptional(a, {b}) =
-      Class.factoryMoreNamedOptional;
+      Class<T1, T2>.factoryMoreNamedOptional;
 
   factory Class.factoryMoreUnnamedOptional(a, [b = 0, c = 2]) {
     return new Class<T1, T2>(a - b - c);
   }
 
   factory Class.redirectingFactoryMoreUnnamedOptional(a, [b]) =
-      Class.factoryMoreUnnamedOptional;
+      Class<T1, T2>.factoryMoreUnnamedOptional;
 
   factory Class.redirectingFactoryStringIntTypeParameters(a, b) =
       Class<String, int>.factoryNoOptional;

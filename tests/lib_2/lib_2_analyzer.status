@@ -11,6 +11,8 @@ mirrors/mirrors_nsm_mismatch_test: StaticWarning, OK
 mirrors/mirrors_nsm_test/dart2js: StaticWarning, OK
 mirrors/mirrors_nsm_test: StaticWarning, OK
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
+mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'
+mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>
 
 [ $compiler == dart2analyzer && $strong ]
 mirrors/deferred_type_test: CompileTimeError, OK # Deliberately refers to a deferred type in a declaration.
@@ -27,3 +29,13 @@ mirrors/generic_bounded_test/01: MissingCompileTimeError
 mirrors/generic_bounded_test/02: MissingCompileTimeError
 mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
+mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
+mirrors/reflect_class_test/01: MissingCompileTimeError
+mirrors/reflect_class_test/02: MissingCompileTimeError
+mirrors/reflected_type_classes_test/01: MissingCompileTimeError
+mirrors/reflected_type_classes_test/02: MissingCompileTimeError
+mirrors/reflected_type_classes_test/03: MissingCompileTimeError
+mirrors/reflected_type_test/01: MissingCompileTimeError
+mirrors/reflected_type_test/02: MissingCompileTimeError
+mirrors/reflected_type_test/03: MissingCompileTimeError
+mirrors/regress_16321_test/01: MissingCompileTimeError

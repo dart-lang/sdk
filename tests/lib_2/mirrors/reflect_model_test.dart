@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 import 'model.dart';
 import 'stringify.dart';
 
-isNoSuchMethodError(e) => e is NoSuchMethodError;
+bool isNoSuchMethodError(e) => e is NoSuchMethodError;
 
 variablesOf(ClassMirror cm) {
   var result = new Map();

@@ -60,9 +60,23 @@ mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/native_class_test: SkipByDesign # Imports dart:html
+mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 
 [ $runtime == vm && !$checked ]
 mirrors/inference_and_no_such_method_test: RuntimeError
+
+[ $runtime == vm && !$strong ]
+mirrors/reflect_class_test/01: MissingCompileTimeError
+mirrors/reflect_class_test/02: MissingCompileTimeError
+mirrors/reflected_type_classes_test/01: MissingCompileTimeError
+mirrors/reflected_type_classes_test/02: MissingCompileTimeError
+mirrors/reflected_type_classes_test/03: MissingCompileTimeError
+mirrors/reflected_type_test/01: MissingCompileTimeError
+mirrors/reflected_type_test/02: MissingCompileTimeError
+mirrors/reflected_type_test/03: MissingCompileTimeError
+
+[ $runtime == vm && !$strong && !$checked ]
+mirrors/regress_16321_test/01: MissingCompileTimeError
 
 [ $runtime == vm && $mode == debug && $arch == ia32 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.

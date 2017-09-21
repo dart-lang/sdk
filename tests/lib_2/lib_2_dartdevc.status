@@ -48,6 +48,14 @@ math/random_big_test: RuntimeError # Issue 29922
 typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
+mirrors/private_types_test: RuntimeError # Issue 29922
+mirrors/reflect_runtime_type_test: RuntimeError # Issue 29922
+mirrors/reflect_uninstantiated_class_test: RuntimeError # Issue 29922
+mirrors/reflected_type_function_type_test: RuntimeError # Issue 29922
+mirrors/reflected_type_special_types_test: RuntimeError # Issue 29922
+mirrors/reflected_type_typedefs_test: RuntimeError # Issue 29922
+mirrors/reflected_type_typevars_test: RuntimeError # Issue 29922
+mirrors/regress_14304_test: RuntimeError # Issue 29922
 
 [ $strong && $compiler == dartdevc ]
 html/custom/document_register_template_test: Crash # Compiler crash issue ????

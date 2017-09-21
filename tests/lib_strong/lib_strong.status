@@ -60,14 +60,6 @@ mirrors/invoke_call_through_implicit_getter_previously_accessed_test: Skip
 mirrors/invoke_call_through_implicit_getter_test: Skip
 mirrors/lazy_static_test: Skip
 mirrors/mirrors_test: Skip
-mirrors/redirecting_factory_different_type_test: Skip
-mirrors/redirecting_factory_test: Skip
-mirrors/reflect_class_test: Skip
-mirrors/reflect_model_test: Skip
-mirrors/reflected_type_classes_test: Skip
-mirrors/reflected_type_test: Skip
-mirrors/regress_16321_test: Skip
-mirrors/regress_19731_test: Skip
 html/custom/created_callback_test: CompileTimeError # Issue 28969
 html/custom/document_register_basic_test: CompileTimeError # Issue 28969
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
@@ -140,14 +132,6 @@ mirrors/library_uri_io_test: RuntimeError # Issue 29922
 mirrors/library_uri_package_test: RuntimeError # Issue 29922
 mirrors/local_function_is_static_test: RuntimeError # Issue 29922
 mirrors/metadata_test: RuntimeError # Issue 29922
-mirrors/private_types_test: RuntimeError # Issue 29922
-mirrors/reflect_runtime_type_test: RuntimeError # Issue 29922
-mirrors/reflect_uninstantiated_class_test: RuntimeError # Issue 29922
-mirrors/reflected_type_function_type_test: RuntimeError # Issue 29922
-mirrors/reflected_type_special_types_test: RuntimeError # Issue 29922
-mirrors/reflected_type_typedefs_test: RuntimeError # Issue 29922
-mirrors/reflected_type_typevars_test: RuntimeError # Issue 29922
-mirrors/regress_14304_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $runtime == chrome ]
 html/css_test: RuntimeError # Issue 29922

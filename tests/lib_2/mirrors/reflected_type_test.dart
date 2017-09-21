@@ -1,18 +1,18 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.reflected_type_classes;
+library test.reflected_type_test;
 
 import 'dart:mirrors';
 
-import 'reflected_type_helper.dart';
+import 'package:expect/expect.dart';
 
 class A<T> {}
 
 class B extends A {}
 
-class C extends A<num, int> {} // //# 01: static type warning
+class C extends A<num, int> {} // //# 01: compile-time error
 class D extends A<int> {}
 
 class E<S> extends A<S> {}
@@ -23,7 +23,29 @@ class G {}
 
 class H<A, B, C> {}
 
+expectReflectedType(classMirror, expectedType) {
+  if (expectedType == null) {
+    Expect.isFalse(classMirror.hasReflectedType,
+        "$classMirror should not have a reflected type");
+    Expect.throws(
+        () => classMirror.reflectedType, (e) => e is UnsupportedError);
+  } else {
+    Expect.isTrue(classMirror.hasReflectedType,
+        "$classMirror should have a reflected type");
+    Expect.equals(expectedType, classMirror.reflectedType);
+  }
+}
+
 main() {
+  // Basic non-generic types, including intercepted types.
+  expectReflectedType(reflectClass(Object), Object);
+  expectReflectedType(reflectClass(String), String);
+  expectReflectedType(reflectClass(int), int);
+  expectReflectedType(reflectClass(num), num);
+  expectReflectedType(reflectClass(double), double);
+  expectReflectedType(reflectClass(bool), bool);
+  expectReflectedType(reflectClass(Null), Null);
+
   // Declarations.
   expectReflectedType(reflectClass(A), null);
   expectReflectedType(reflectClass(B), B);
@@ -45,11 +67,11 @@ main() {
   expectReflectedType(reflect(new H()).type, new H().runtimeType);
 
   expectReflectedType(reflect(new A<num>()).type, new A<num>().runtimeType);
-  expectReflectedType(reflect(new B<num>()).type.superclass, // //# 02: static type warning
+  expectReflectedType(reflect(new B<num>()).type.superclass, // //# 02: compile-time error
                       new A<dynamic>().runtimeType); //         //# 02: continued
   expectReflectedType(reflect(new C<num>()).type.superclass, // //# 01: continued
                       new A<dynamic>().runtimeType); //         //# 01: continued
-  expectReflectedType(reflect(new D<num>()).type.superclass, // //# 03: static type warning
+  expectReflectedType(reflect(new D<num>()).type.superclass, // //# 03: compile-time error
                       new A<int>().runtimeType); //             //# 03: continued
   expectReflectedType(reflect(new E<num>()).type, new E<num>().runtimeType);
   expectReflectedType(

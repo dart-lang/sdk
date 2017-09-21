@@ -169,10 +169,3 @@ mirrors/library_uri_package_test: DartkCompileTimeError
 mirrors/list_constructor_test/01: RuntimeError
 mirrors/list_constructor_test/none: RuntimeError
 mirrors/metadata_test: RuntimeError
-mirrors/private_types_test: RuntimeError
-mirrors/reflect_runtime_type_test: RuntimeError
-mirrors/reflect_uninstantiated_class_test: RuntimeError
-mirrors/reflected_type_function_type_test: RuntimeError
-mirrors/reflected_type_special_types_test: RuntimeError
-mirrors/reflected_type_typedefs_test: RuntimeError
-mirrors/reflected_type_typevars_test: RuntimeError

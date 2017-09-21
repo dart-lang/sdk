@@ -16,6 +16,9 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/multiple_timer_test: Pass, Fail # Timing related
 
+[ $strong ]
+mirrors/redirecting_factory_test: CompileTimeError # Issue 30855
+
 [ $runtime == chrome && $system == macos ]
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 async/catch_errors11_test: Pass, Timeout # Issue 22696
@@ -125,3 +128,9 @@ html/custom/document_register_type_extensions_test/single-parameter: Fail # Issu
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
+
+[ $compiler == none && ! $checked ]
+mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded type argument.
+
+[ $compiler != dart2analyzer && $runtime != none && !$strong && $checked ]
+mirrors/redirecting_factory_different_type_test/02: RuntimeError
