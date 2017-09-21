@@ -121,7 +121,7 @@ vars = {
   "source_maps-0.9.4_rev": "@38524",
   "source_maps_tag": "@0.10.4",
   "source_span_tag": "@1.4.0",
-  "stack_trace_rev": "@6332f0259b3b39398c5ce7fc924ea4e430496065",
+  "stack_trace_tag": "@1.8.2",
   "stream_channel_tag": "@1.6.1",
   "string_scanner_tag": "@1.0.1",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
@@ -301,7 +301,7 @@ deps = {
       Var("github_mirror") + "source_map_stack_trace.git" +
       Var("source_map_stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
-      Var("github_mirror") + "stack_trace.git" + Var("stack_trace_rev"),
+      Var("github_mirror") + "stack_trace.git" + Var("stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/stream_channel":
       Var("github_mirror") + "stream_channel.git" +
       Var("stream_channel_tag"),
