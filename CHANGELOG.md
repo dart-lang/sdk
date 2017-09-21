@@ -15,7 +15,7 @@
 
 * `dart:async`
   * The `Zone` class was changed to be strong-mode clean. This required
-    some breaking API changes.
+    some breaking API changes. See https://goo.gl/y9mW2x for more information.
 
 * `dart:io`
   * Unified backends for `SecureSocket`, `SecurityContext`, and
