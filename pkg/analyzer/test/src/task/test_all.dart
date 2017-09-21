@@ -19,6 +19,7 @@ import 'options_test.dart' as options_test;
 import 'options_work_manager_test.dart' as options_work_manager_test;
 import 'strong/test_all.dart' as strong_mode_test_all;
 import 'strong_mode_driver_test.dart' as strong_mode_driver_test;
+import 'strong_mode_kernel_test.dart' as strong_mode_kernel_test;
 import 'strong_mode_test.dart' as strong_mode_test;
 import 'yaml_test.dart' as yaml_test;
 
@@ -38,6 +39,7 @@ main() {
     options_work_manager_test.main();
     strong_mode_test_all.main();
     strong_mode_driver_test.main();
+    strong_mode_kernel_test.main();
     strong_mode_test.main();
     yaml_test.main();
   }, name: 'task');
