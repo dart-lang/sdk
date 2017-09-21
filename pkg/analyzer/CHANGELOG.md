@@ -1,3 +1,8 @@
+## 0.30.0+4
+
+* Update dependencies on `pkg/kernel` and `pkg/front_end` to allow latest
+  `pkg/args`.
+
 ## 0.30.0+3
 
 * Support the latest version of `package:args`.
