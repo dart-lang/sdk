@@ -303,7 +303,7 @@ multiline_newline_test/03r: CompileTimeError # Issue 23888
 multiline_newline_test/04r: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
 modulo_test: RuntimeError # Issue 15246
-mock_writable_final_field_test: CompileTimeError # Issue 17526
+mock_writable_final_private_field_test: CompileTimeError # Issue 17526
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 assertion_test: RuntimeError # Issue 30326
@@ -897,6 +897,7 @@ issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
+mock_writable_final_private_field_test: RuntimeError # Issue 30847
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError

@@ -213,7 +213,7 @@ interface_test/00: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mixin_type_parameters_super_test: RuntimeError
-mock_writable_final_field_test: RuntimeError
+mock_writable_final_private_field_test: RuntimeError
 named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/03: MissingCompileTimeError
 named_parameters2_test: MissingCompileTimeError
