@@ -63,6 +63,7 @@ symbol_test/03: MissingCompileTimeError # bug 11669
 double_parse_test/02: Fail, OK
 
 [ $runtime == safari || $runtime == safarimobilesim ]
+double_round3_test: RuntimeError
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $runtime == ff ]
