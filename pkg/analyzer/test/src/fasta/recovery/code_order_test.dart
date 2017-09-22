@@ -98,9 +98,17 @@ class A extends C with B {}
  */
 @reflectiveTest
 class CompilationUnitMemberTest extends AbstractRecoveryTest {
-  @failingTest
-  void test_declarationBeforeDirective() {
-    // Expected 1 errors of type ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, found 0
+  void test_declarationBeforeDirective_export() {
+    testRecovery('''
+class C { }
+export 'bar.dart';
+''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+export 'bar.dart';
+class C { }
+''');
+  }
+
+  void test_declarationBeforeDirective_import() {
     testRecovery('''
 class C { }
 import 'bar.dart';
@@ -110,9 +118,27 @@ class C { }
 ''');
   }
 
-  @failingTest
+  void test_declarationBeforeDirective_part() {
+    testRecovery('''
+class C { }
+part 'bar.dart';
+''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+part 'bar.dart';
+class C { }
+''');
+  }
+
+  void test_declarationBeforeDirective_part_of() {
+    testRecovery('''
+class C { }
+part of foo;
+''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+part of foo;
+class C { }
+''');
+  }
+
   void test_exportBeforeLibrary() {
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
     testRecovery('''
 export 'bar.dart';
 library l;
@@ -122,9 +148,7 @@ export 'bar.dart';
 ''');
   }
 
-  @failingTest
   void test_importBeforeLibrary() {
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
     testRecovery('''
 import 'bar.dart';
 library l;
@@ -134,9 +158,7 @@ import 'bar.dart';
 ''');
   }
 
-  @failingTest
   void test_partBeforeExport() {
-    // Expected 1 errors of type ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, found 0
     testRecovery('''
 part 'foo.dart';
 export 'bar.dart';
@@ -146,9 +168,7 @@ part 'foo.dart';
 ''');
   }
 
-  @failingTest
   void test_partBeforeImport() {
-    // Expected 1 errors of type ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, found 0
     testRecovery('''
 part 'foo.dart';
 import 'bar.dart';
@@ -158,9 +178,7 @@ part 'foo.dart';
 ''');
   }
 
-  @failingTest
   void test_partBeforeLibrary() {
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
     testRecovery('''
 part 'foo.dart';
 library l;

@@ -4,6 +4,8 @@
 
 library fasta.parser.parser;
 
+import 'package:front_end/src/fasta/parser/directive_context.dart';
+
 import '../fasta_codes.dart' show Code, Message, Template;
 
 import '../fasta_codes.dart' as fasta;
@@ -248,8 +250,10 @@ class Parser {
     firstToken = token;
     listener.beginCompilationUnit(token);
     int count = 0;
+    DirectiveContext directiveState = new DirectiveContext();
     while (!identical(token.kind, EOF_TOKEN)) {
-      token = parseTopLevelDeclaration(token);
+      token = parseTopLevelDeclarationImpl(token, directiveState);
+      listener.endTopLevelDeclaration(token);
       count++;
     }
     listener.endCompilationUnit(count, token);
@@ -260,18 +264,20 @@ class Parser {
   }
 
   Token parseTopLevelDeclaration(Token token) {
-    token = parseTopLevelDeclarationImpl(token);
+    token = parseTopLevelDeclarationImpl(token, null);
     listener.endTopLevelDeclaration(token);
     return token;
   }
 
-  Token parseTopLevelDeclarationImpl(Token token) {
+  Token parseTopLevelDeclarationImpl(
+      Token token, DirectiveContext directiveState) {
     if (identical(token.type, TokenType.SCRIPT_TAG)) {
+      directiveState?.checkScriptTag(this, token);
       return parseScript(token);
     }
     token = parseMetadataStar(token);
     if (token.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(null, token);
+      return parseTopLevelKeywordDeclaration(null, token, directiveState);
     }
     Token start = token;
     // Skip modifiers to find a top level keyword or identifier
@@ -295,12 +301,15 @@ class Parser {
         }
         modifierToken = modifierToken.next;
       }
-      return parseTopLevelKeywordDeclaration(abstractToken, token);
+      return parseTopLevelKeywordDeclaration(
+          abstractToken, token, directiveState);
     } else if (token.isIdentifier || token.keyword != null) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
+      directiveState?.checkDeclaration();
       return parseTopLevelMember(start);
     } else if (start != token) {
+      directiveState?.checkDeclaration();
       // Handle the edge case where a modifier is being used as an identifier
       return parseTopLevelMember(start);
     }
@@ -310,27 +319,35 @@ class Parser {
     return token.next;
   }
 
-  Token parseTopLevelKeywordDeclaration(Token abstractToken, Token token) {
+  Token parseTopLevelKeywordDeclaration(
+      Token abstractToken, Token token, DirectiveContext directiveState) {
     final String value = token.stringValue;
     if (identical(value, 'class')) {
+      directiveState?.checkDeclaration();
       return parseClassOrNamedMixinApplication(abstractToken, token);
     } else if (identical(value, 'enum')) {
+      directiveState?.checkDeclaration();
       return parseEnum(token);
     } else if (identical(value, 'typedef')) {
       Token next = token.next;
       if (next.isIdentifier || optional("void", next)) {
+        directiveState?.checkDeclaration();
         return parseTypedef(token);
       } else {
+        directiveState?.checkDeclaration();
         return parseTopLevelMember(token);
       }
     } else if (identical(value, 'library')) {
+      directiveState?.checkLibrary(this, token);
       return parseLibraryName(token);
     } else if (identical(value, 'import')) {
+      directiveState?.checkImport(this, token);
       return parseImport(token);
     } else if (identical(value, 'export')) {
+      directiveState?.checkExport(this, token);
       return parseExport(token);
     } else if (identical(value, 'part')) {
-      return parsePartOrPartOf(token);
+      return parsePartOrPartOf(token, directiveState);
     }
 
     throw "Internal error: Unhandled top level keyword '$value'.";
@@ -496,11 +513,13 @@ class Parser {
     return token;
   }
 
-  Token parsePartOrPartOf(Token token) {
+  Token parsePartOrPartOf(Token token, DirectiveContext directiveState) {
     assert(optional('part', token));
     if (optional('of', token.next)) {
+      directiveState?.checkPartOf(this, token);
       return parsePartOf(token);
     } else {
+      directiveState?.checkPart(this, token);
       return parsePart(token);
     }
   }

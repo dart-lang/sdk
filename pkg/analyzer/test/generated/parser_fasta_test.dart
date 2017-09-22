@@ -356,22 +356,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_directiveAfterDeclaration_classBeforeDirective() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, found 0
-    super.test_directiveAfterDeclaration_classBeforeDirective();
-  }
-
-  @override
-  @failingTest
-  void test_directiveAfterDeclaration_classBetweenDirectives() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, found 0
-    super.test_directiveAfterDeclaration_classBetweenDirectives();
-  }
-
-  @override
-  @failingTest
   void test_duplicatedModifier_const() {
     // TODO(brianwilkerson) Does not recover.
     //   UnimplementedError: Failed to map ConstFieldWithoutInitializer at 12
@@ -728,14 +712,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:test                                                       expect
     //   test/generated/parser_fasta_test.dart 2999:5                       ParserProxy._run
     super.test_expectedTypeName_is_void();
-  }
-
-  @override
-  @failingTest
-  void test_exportDirectiveAfterPartDirective() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, found 0
-    super.test_exportDirectiveAfterPartDirective();
   }
 
   @override
@@ -1193,14 +1169,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_importDirectiveAfterPartDirective() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, found 0
-    super.test_importDirectiveAfterPartDirective();
-  }
-
-  @override
-  @failingTest
   void test_initializedVariableInForEach() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, found 0
@@ -1597,22 +1565,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
     //   test/generated/parser_fasta_test.dart 3287:39                      ParserProxy._run
     super.test_invalidUnicodeEscape_tooManyDigits_variable();
-  }
-
-  @override
-  @failingTest
-  void test_libraryDirectiveNotFirst() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
-    super.test_libraryDirectiveNotFirst();
-  }
-
-  @override
-  @failingTest
-  void test_libraryDirectiveNotFirst_afterPart() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
-    super.test_libraryDirectiveNotFirst_afterPart();
   }
 
   @override
@@ -2272,14 +2224,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_multiplePartOfDirectives() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, found 0
-    super.test_multiplePartOfDirectives();
-  }
-
-  @override
-  @failingTest
   void test_multiplePositionalParameterGroups() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, found 0
@@ -2392,22 +2336,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
     //   test/generated/parser_fasta_test.dart 3125:35                      FastaParserTestCase.parseCompilationUnit
     super.test_nonIdentifierLibraryName_partOf();
-  }
-
-  @override
-  @failingTest
-  void test_nonPartOfDirectiveInPart_after() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, found 0
-    super.test_nonPartOfDirectiveInPart_after();
-  }
-
-  @override
-  @failingTest
-  void test_nonPartOfDirectiveInPart_before() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, found 0
-    super.test_nonPartOfDirectiveInPart_before();
   }
 
   @override
@@ -4201,14 +4129,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_conditionalExpression_missingThen() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_conditionalExpression_missingThen();
-  }
-
-  @override
-  @failingTest
-  void test_declarationBeforeDirective() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, found 0
-    super.test_declarationBeforeDirective();
   }
 
   @override

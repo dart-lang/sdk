@@ -532,6 +532,18 @@ Message _withArgumentsDeferredPrefixDuplicatedCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDirectiveAfterDeclaration =
+    messageDirectiveAfterDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
+    "DirectiveAfterDeclaration",
+    analyzerCode: "DIRECTIVE_AFTER_DECLARATION",
+    dart2jsCode: "*ignored*",
+    message: r"""Directives must appear before any declarations.""",
+    tip: r"""Try moving the directive before any declarations.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedDefinition =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Duplicated definition of '#name'.""",
@@ -950,6 +962,16 @@ Message _withArgumentsExpectedType(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExportAfterPart = messageExportAfterPart;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExportAfterPart = const MessageCode("ExportAfterPart",
+    analyzerCode: "EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE",
+    dart2jsCode: "*ignored*",
+    message: r"""Export directives must preceed part directives.""",
+    tip: r"""Try moving the export directives before the part directives.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_, Uri uri2_)>
     templateExportHidesExport =
     const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
@@ -1344,6 +1366,16 @@ Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
       message: """This constructor prevents using '$name' as a mixin.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeImportAfterPart = messageImportAfterPart;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageImportAfterPart = const MessageCode("ImportAfterPart",
+    analyzerCode: "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE",
+    dart2jsCode: "*ignored*",
+    message: r"""Import directives must preceed part directives.""",
+    tip: r"""Try moving the import directives before the part directives.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_, Uri uri2_)>
@@ -1802,6 +1834,18 @@ const MessageCode messageInvalidVoid = const MessageCode("InvalidVoid",
         r"""Try removing 'void' keyword or replace it with 'var', 'final', or a type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLibraryDirectiveNotFirst = messageLibraryDirectiveNotFirst;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLibraryDirectiveNotFirst = const MessageCode(
+    "LibraryDirectiveNotFirst",
+    analyzerCode: "LIBRARY_DIRECTIVE_NOT_FIRST",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""The library directive must appear before all other directives.""",
+    tip: r"""Try moving the library directive before any other directives.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeListLiteralTooManyTypeArguments =
     messageListLiteralTooManyTypeArguments;
 
@@ -2075,6 +2119,18 @@ const Code<Null> codeNonInstanceTypeVariableUse =
 const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     "NonInstanceTypeVariableUse",
     message: r"""Can only use type variables in instance methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonPartOfDirectiveInPart = messageNonPartOfDirectiveInPart;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonPartOfDirectiveInPart = const MessageCode(
+    "NonPartOfDirectiveInPart",
+    analyzerCode: "NON_PART_OF_DIRECTIVE_IN_PART",
+    dart2jsCode: "*ignored*",
+    message: r"""The part-of directive must be the only directive in a part.""",
+    tip:
+        r"""Try removing the other directives, or moving them to the library for which this is a part.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNotAType =
@@ -2410,6 +2466,16 @@ const Code<Null> codePartOfSelf = messagePartOfSelf;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOfSelf = const MessageCode("PartOfSelf",
     message: r"""A file can't be a part of itself.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartOfTwice = messagePartOfTwice;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartOfTwice = const MessageCode("PartOfTwice",
+    analyzerCode: "MULTIPLE_PART_OF_DIRECTIVES",
+    dart2jsCode: "*ignored*",
+    message: r"""Only one part-of directive may be declared in a file.""",
+    tip: r"""Try removing all but one of the part-of directives.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

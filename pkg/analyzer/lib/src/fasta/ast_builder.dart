@@ -1957,6 +1957,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, charOffset, 1);
         return;
+      case "DIRECTIVE_AFTER_DECLARATION":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+        return;
       case "EXPECTED_EXECUTABLE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_EXECUTABLE, charOffset, 1);
@@ -1969,6 +1973,12 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
         return;
+      case "EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+            charOffset,
+            1);
+        return;
       case "EXTERNAL_METHOD_WITH_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, charOffset, 1);
@@ -1978,13 +1988,40 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(ParserErrorCode.EXTRANEOUS_MODIFIER,
             charOffset, text.length, [text]);
         return;
+      case "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+            charOffset,
+            1);
+        return;
+      case "LIBRARY_DIRECTIVE_NOT_FIRST":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, charOffset, 1);
+        return;
       case "MISSING_IDENTIFIER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_IDENTIFIER, charOffset, 1);
         return;
+      case "MULTIPLE_PART_OF_DIRECTIVES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, charOffset, 1);
+        return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, charOffset, 1);
+        return;
+      case "NON_PART_OF_DIRECTIVE_IN_PART":
+        if (directives.isEmpty) {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+        } else {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, charOffset, 1);
+        }
+        return;
+      case "PART_OUT_OF_ORDER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();

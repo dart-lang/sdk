@@ -788,6 +788,57 @@ PlatformPrivateLibraryAccess:
 TypedefNotFunction:
   template: "Can't create typedef from non-function type."
 
+LibraryDirectiveNotFirst:
+  template: "The library directive must appear before all other directives."
+  tip: "Try moving the library directive before any other directives."
+  analyzerCode: LIBRARY_DIRECTIVE_NOT_FIRST
+  dart2jsCode: "*ignored*"
+  script:
+    - "class Foo{} library l;"
+    - "import 'x.dart'; library l;"
+    - "part 'a.dart'; library l;"
+
+ImportAfterPart:
+  template: "Import directives must preceed part directives."
+  tip: "Try moving the import directives before the part directives."
+  analyzerCode: IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  dart2jsCode: "*ignored*"
+  script:
+    - "part 'foo.dart'; import 'bar.dart';"
+
+ExportAfterPart:
+  template: "Export directives must preceed part directives."
+  tip: "Try moving the export directives before the part directives."
+  analyzerCode: EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  dart2jsCode: "*ignored*"
+  script:
+    - "part 'foo.dart'; export 'bar.dart';"
+
+DirectiveAfterDeclaration:
+  template: "Directives must appear before any declarations."
+  tip: "Try moving the directive before any declarations."
+  analyzerCode: DIRECTIVE_AFTER_DECLARATION
+  dart2jsCode: "*ignored*"
+  script:
+    - "class foo { } import 'bar.dart';"
+    - "class foo { } export 'bar.dart';"
+
+NonPartOfDirectiveInPart:
+  template: "The part-of directive must be the only directive in a part."
+  tip: "Try removing the other directives, or moving them to the library for which this is a part."
+  analyzerCode: NON_PART_OF_DIRECTIVE_IN_PART
+  dart2jsCode: "*ignored*"
+  script:
+    - "part of l; part 'f.dart';"
+
+PartOfTwice:
+  template: "Only one part-of directive may be declared in a file."
+  tip: "Try removing all but one of the part-of directives."
+  analyzerCode: MULTIPLE_PART_OF_DIRECTIVES
+  dart2jsCode: "*ignored*"
+  script:
+    - "part of l; part of m;"
+
 PartTwice:
   template: "Can't use '#uri' as a part more than once."
 

@@ -2550,8 +2550,11 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_directiveAfterDeclaration_classBeforeDirective() {
-    CompilationUnit unit = parseCompilationUnit("class Foo{} library l;",
-        [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
+    CompilationUnit unit = parseCompilationUnit(
+        "class Foo{} library l;",
+        usingFastaParser
+            ? [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST]
+            : [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
     expect(unit, isNotNull);
   }
 

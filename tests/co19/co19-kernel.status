@@ -94,23 +94,6 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
 Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/compilation_t11: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/syntax_t01: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t05: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t06: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t07: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t08: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t10: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t14: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t05: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t06: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t07: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t08: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t09: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t10: MissingCompileTimeError
 Language/Metadata/before_export_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_import_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_library_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
