@@ -12,10 +12,10 @@ class A {
 }
 
 class B extends A {
-  foo(required1) => required1;
-  bar(required1, required2, {named1: 29}) =>
-      required1 + required2 * 3 + named1 * 5;
-  gee({named2: 11}) => named2 * 99;
+  foo(required1) => required1; //# 01: compile-time error
+  bar(required1, required2, {named1: 29}) => //# 02: compile-time error
+      required1 + required2 * 3 + named1 * 5; //# 02: continued
+  gee({named2: 11}) => named2 * 99; //# 03: compile-time error
 }
 
 main() {
@@ -28,9 +28,9 @@ main() {
           a.bar(1, 2, named2: 88) +
           a.gee(named1: 3));
   var b = new B();
-  Expect.throws(() => b.foo(499, named1: 88), (e) => e is NoSuchMethodError);
-  Expect.throws(
-      () => b.bar(1, 2, named1: 3, named2: 88), (e) => e is NoSuchMethodError);
-  Expect.throws(() => b.bar(1, 2, named2: 88), (e) => e is NoSuchMethodError);
-  Expect.throws(() => b.gee(named1: 3), (e) => e is NoSuchMethodError);
+  Expect.equals(499, b.foo(499)); //# 01: continued
+  Expect.equals(1 + 3 * 3 + 5 * 5, b.bar(1, 3, named1: 5)); //# 02: continued
+  Expect.equals(1 + 3 * 3 + 29 * 5, b.bar(1, 3)); //# 02: continued
+  Expect.equals(3 * 99, b.gee(named2: 3)); //# 03: continued
+  Expect.equals(11 * 99, b.gee()); //# 03: continued
 }

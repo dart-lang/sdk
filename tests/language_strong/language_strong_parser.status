@@ -199,9 +199,6 @@ malformed2_test: Skip # Not yet supported.
 malformed_inheritance_test: Skip # Not yet supported.
 malformed_test: Skip # Not yet supported.
 map_literal1_test: Skip # Not yet supported.
-method_override7_test: Skip # Not yet supported.
-method_override8_test: Skip # Not yet supported.
-methods_as_constants2_test: Skip # Not yet supported.
 missing_const_constructor_test: Skip # Not yet supported.
 missing_part_of_tag_test: Skip # Not yet supported.
 mixin_black_listed_test: Skip # Not yet supported.
@@ -284,7 +281,6 @@ variable_declaration_metadata_test: Skip # Not yet supported.
 
 # Syntax errors caused by tests being multi-tests.
 main_test: Skip # Not yet supported.
-method_override2_test: Skip # Not yet supported.
 mixin_supertype_subclass2_test: Skip # Not yet supported.
 mixin_supertype_subclass4_test: Skip # Not yet supported.
 mixin_supertype_subclass_test: Skip # Not yet supported.
@@ -308,4 +304,3 @@ assertion_initializer_const_function_error_test: Skip # Not yet supported.
 deep_nesting1_negative_test: Skip # Stack overflow, not important here.
 deep_nesting2_negative_test: Skip # Stack overflow, not important here.
 issue_1751477_test: Skip # Slow: 9 levels, exponential blowup => 430 secs.
-metadata_test: Skip # Syntax error, uses metadata on function expression.

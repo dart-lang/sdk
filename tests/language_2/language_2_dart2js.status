@@ -199,6 +199,19 @@ inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 interface_test/00: MissingCompileTimeError
+method_name_test: Pass
+method_override2_test/none: Pass
+method_override2_test/*: MissingCompileTimeError
+method_override3_test/none: Pass
+method_override3_test/*: MissingCompileTimeError
+method_override4_test/none: Pass
+method_override4_test/*: MissingCompileTimeError
+method_override5_test/none: Pass
+method_override5_test/*: MissingCompileTimeError
+method_override6_test/none: Pass
+method_override6_test/*: MissingCompileTimeError
+method_override7_test/03: MissingCompileTimeError
+method_override8_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/01: CompileTimeError
 mixin_supertype_subclass_test/03: CompileTimeError
 mixin_supertype_subclass_test/04: CompileTimeError
@@ -285,6 +298,9 @@ wrong_number_type_arguments_test/*: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 vm/*: SkipByDesign # Tests for the VM.
 
+[ $compiler != dart2js ]
+minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
+
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 bad_constructor_test/05: CompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
@@ -324,6 +340,7 @@ multiline_newline_test/04r: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
 modulo_test: RuntimeError # Issue 15246
 mock_writable_final_private_field_test: CompileTimeError # Issue 17526
+method_name_test: Fail # issue 25574
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 assertion_test: RuntimeError # Issue 30326
@@ -815,6 +832,14 @@ issue21079_test: RuntimeError
 issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
+method_name_test: CompileTimeError
+method_override4_test: RuntimeError
+method_override5_test: RuntimeError
+method_override7_test/00: MissingCompileTimeError
+method_override7_test/01: MissingCompileTimeError
+method_override7_test/02: MissingCompileTimeError
+method_override8_test/00: MissingCompileTimeError
+method_override8_test/01: MissingCompileTimeError
 mixin_super_constructor2_test: RuntimeError
 mixin_super_constructor_default_test: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
@@ -1037,6 +1062,14 @@ issue21079_test: RuntimeError
 issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
+method_name_test: CompileTimeError
+method_override4_test: RuntimeError
+method_override5_test: RuntimeError
+method_override7_test/00: MissingCompileTimeError
+method_override7_test/01: MissingCompileTimeError
+method_override7_test/02: MissingCompileTimeError
+method_override8_test/00: MissingCompileTimeError
+method_override8_test/01: MissingCompileTimeError
 mixin_super_constructor2_test: RuntimeError
 mixin_super_constructor_default_test: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
@@ -1203,6 +1236,7 @@ const_types_test/30: Crash # Issue 27394
 const_types_test/41: Crash # Issue 27394
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
+method_override5_test: RuntimeError # Issue 12809
 mixin_type_parameters_super_test: RuntimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 multiline_newline_test/01: CompileTimeError # Issue 23888
@@ -1217,3 +1251,6 @@ multiline_newline_test/03r: RuntimeError
 multiline_newline_test/04r: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
 modulo_test: RuntimeError # Issue 15246
+
+[ $compiler == dart2js && $runtime == chrome ]
+enum_mirror_test: pass

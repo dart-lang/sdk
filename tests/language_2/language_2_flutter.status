@@ -57,6 +57,13 @@ deferred_global_test: Skip # Timeout
 generic_function_typedef2_test/04: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 issue21079_test: CompileTimeError
+method_override2_test/01: CompileTimeError
+method_override3_test/00: CompileTimeError
+method_override3_test/01: CompileTimeError
+method_override3_test/02: CompileTimeError
+method_override6_test: CompileTimeError
+method_override4_test: CompileTimeError
+method_override5_test: CompileTimeError
 mixin_type_parameters_errors_test/02: CompileTimeError
 mixin_type_parameters_errors_test/05: CompileTimeError
 mixin_type_parameters_errors_test/01: CompileTimeError
@@ -95,6 +102,9 @@ instance_creation_in_function_annotation_test: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 vm/no_such_method_error_message_callable_vm_test: RuntimeError # Flutter Issue 9110
 vm/regress_27201_test: Fail # Flutter Issue 9110
+wrong_number_type_arguments_test/00: CompileTimeError
+wrong_number_type_arguments_test/01: CompileTimeError
+wrong_number_type_arguments_test/02: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

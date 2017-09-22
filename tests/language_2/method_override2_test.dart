@@ -11,7 +11,7 @@ abstract class I {
 abstract class J extends I {}
 
 abstract class K extends J {
-  m({c, d}); // //# 00: static type warning
+  m({c, d}); // //# 00: compile-time error
 }
 
 class C implements I {
@@ -21,9 +21,9 @@ class C implements I {
 }
 
 class D
-    extends C // //# 01: static type warning
-    implements I // //# 02: static type warning
-    implements J // //# 03: static type warning
+    extends C // //# 01: compile-time error
+    implements I // //# 02: compile-time error
+    implements J // //# 03: compile-time error
 {
   m({c, d}) {
     print("$c $d");

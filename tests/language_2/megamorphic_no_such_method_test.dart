@@ -73,5 +73,5 @@ main() {
       test(obj);
     }
   }
-  Expect.throws(() => test(new B()), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => test(new B()));
 }

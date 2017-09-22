@@ -22,7 +22,7 @@ const extern = const Tag("external");
 
 @meta1
 var topLevelVar;
-@Meta.Alien.unspecified()
+@Meta.Alien.unknown()
 List unknownUnknowns;
 
 @meta1
