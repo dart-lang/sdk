@@ -10,6 +10,7 @@ import 'package:args/args.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/src/tool/batch_util.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/closure_conversion.dart' as closures;
 import 'package:kernel/transformations/continuation.dart' as cont;
@@ -20,7 +21,6 @@ import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
 // import 'package:kernel/verifier.dart';
 import 'package:kernel/transformations/coq.dart' as coq;
 
-import 'batch_util.dart';
 import 'util.dart';
 
 ArgParser parser = new ArgParser()
