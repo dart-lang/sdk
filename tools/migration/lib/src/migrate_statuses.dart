@@ -150,7 +150,7 @@ void _collectEntries(List<Fork> files, EntrySet entriesToMove, {bool isOne}) {
       .toList();
 
   for (var fromDir in isOne ? oneRootDirs : strongRootDirs) {
-    for (var path in listFiles(fromDir, extension: ".status")) {
+    for (var path in listFiles(fromDir, extensions: [".status"])) {
       var editable = new EditableStatusFile(path);
 
       var deleteLines = <int>[];
