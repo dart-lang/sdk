@@ -334,6 +334,10 @@ class _SyntheticSetterParameter implements ParameterMirror {
 }
 
 abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
+  _invoke(reflectee, functionName, arguments, argumentNames);
+  _invokeGetter(reflectee, getterName);
+  _invokeSetter(reflectee, setterName, value);
+
   final _reflectee; // May be a MirrorReference or an ordinary object.
 
   _LocalObjectMirror(this._reflectee);

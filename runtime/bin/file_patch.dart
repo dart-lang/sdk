@@ -90,6 +90,8 @@ class _WatcherPath {
 
 @patch
 class _FileSystemWatcher {
+  void _pathWatchedEnd();
+
   static int _id;
   static final Map<int, _WatcherPath> _idMap = {};
 

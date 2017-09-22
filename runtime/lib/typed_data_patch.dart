@@ -26,6 +26,12 @@ class ByteData implements TypedData {
 // to instances of _TypeListBase. Instead the subclasses use type specific
 // mixins (like _IntListMixin, _DoubleListMixin) to implement ListBase<T>.
 abstract class _TypedListBase {
+  _createList(int length);
+  int get elementSizeInBytes;
+  int get length;
+  _ByteBuffer get buffer;
+  int get offsetInBytes;
+
   // Method(s) implementing the Collection interface.
   bool contains(element) {
     var len = this.length;
@@ -352,7 +358,9 @@ abstract class _TypedListBase {
       int startFromInBytes, int toCid, int fromCid) native "TypedData_setRange";
 }
 
-class _IntListMixin {
+abstract class _IntListMixin {
+  int get length;
+
   Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
 
   Iterable<int> take(int n) => new SubListIterable<int>(this, 0, n);
@@ -385,7 +393,9 @@ class _IntListMixin {
   }
 }
 
-class _DoubleListMixin {
+abstract class _DoubleListMixin {
+  int get length;
+
   Iterable<double> where(bool f(int element)) =>
       new WhereIterable<double>(this, f);
 
@@ -419,7 +429,9 @@ class _DoubleListMixin {
   }
 }
 
-class _Float32x4ListMixin {
+abstract class _Float32x4ListMixin {
+  int get length;
+
   Iterable<Float32x4> where(bool f(int element)) =>
       new WhereIterable<Float32x4>(this, f);
 
@@ -454,7 +466,9 @@ class _Float32x4ListMixin {
   }
 }
 
-class _Int32x4ListMixin {
+abstract class _Int32x4ListMixin {
+  int get length;
+
   Iterable<Int32x4> where(bool f(int element)) =>
       new WhereIterable<Int32x4>(this, f);
 
@@ -488,7 +502,9 @@ class _Int32x4ListMixin {
   }
 }
 
-class _Float64x2ListMixin {
+abstract class _Float64x2ListMixin {
+  int get length;
+
   Iterable<Float64x2> where(bool f(int element)) =>
       new WhereIterable<Float64x2>(this, f);
 
