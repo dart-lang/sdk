@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method test(core::List<core::num> nums) → invalid-type
+static method test(core::List<core::num> nums) → void
   ;
 static method main() → dynamic
   ;

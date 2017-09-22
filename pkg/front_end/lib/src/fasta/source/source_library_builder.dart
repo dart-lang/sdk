@@ -8,6 +8,8 @@ import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
+import '../../base/instrumentation.dart' show InstrumentationValueLiteral;
+
 import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart'
@@ -37,6 +39,8 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        Message,
+        codeTypeNotFound,
         messagePartOfSelf,
         templateConflictsWithMember,
         templateConflictsWithSetter,
@@ -564,6 +568,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     forEach((String name, Builder member) {
       member.prepareInitializerInference(library, currentClass);
     });
+  }
+
+  @override
+  void addWarning(Message message, int charOffset, Uri uri,
+      {bool silent: false}) {
+    super.addWarning(message, charOffset, uri, silent: silent);
+    if (!silent) {
+      // TODO(ahe): All warnings should have a charOffset, but currently, some
+      // unresolved type warnings lack them.
+      if (message.code != codeTypeNotFound && charOffset != -1) {
+        // TODO(ahe): Should I add a value for messages?
+        loader.instrumentation?.record(uri, charOffset, "warning",
+            new InstrumentationValueLiteral(message.code.name));
+      }
+    }
   }
 }
 
