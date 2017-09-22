@@ -15,11 +15,8 @@ analysis_server/tool/spec/check_all_test: Skip  # Issue 29133
 analyzer_plugin/tool/spec/check_all_test: Skip  # Issue 29133
 
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
-analyzer/test/generated/compile_time_error_code_kernel_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
-analyzer/test/generated/non_error_resolver_kernel_test: Slow, Pass
 analyzer/test/generated/static_warning_code_driver_test: Slow, Pass
-analyzer/test/generated/static_warning_code_kernel_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 
@@ -85,7 +82,6 @@ analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/services/correction/fix_test: Pass, Slow
 analysis_server/test/socket_server_test: Skip # Pass, Slow
 analyzer/test/generated/non_error_resolver_kernel_test: Skip # Timing out even with Pass, Slow: Issue 30796
-analyzer/test/generated/strong_mode_kernel_test: Pass, RuntimeError # Issue 30863
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 
