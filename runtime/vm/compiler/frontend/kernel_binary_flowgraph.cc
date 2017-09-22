@@ -2277,11 +2277,17 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kPropertyGet:
         EvaluatePropertyGet();
         break;
+      case kDirectPropertyGet:
+        EvaluateDirectPropertyGet();
+        break;
       case kStaticGet:
         EvaluateStaticGet();
         break;
       case kMethodInvocation:
         EvaluateMethodInvocation();
+        break;
+      case kDirectMethodInvocation:
+        EvaluateDirectMethodInvocation();
         break;
       case kStaticInvocation:
       case kConstStaticInvocation:
@@ -2447,6 +2453,19 @@ void StreamingConstantEvaluator::EvaluateVariableGet(uint8_t payload) {
   result_ = variable->ConstValue()->raw();
 }
 
+void StreamingConstantEvaluator::EvaluateGetStringLength(
+    intptr_t expression_offset) {
+  EvaluateExpression(expression_offset);
+  if (result_.IsString()) {
+    const String& str = String::Handle(Z, String::RawCast(result_.raw()));
+    result_ = Integer::New(str.Length());
+  } else {
+    H.ReportError(
+        "Constant expressions can only call "
+        "'length' on string constants.");
+  }
+}
+
 void StreamingConstantEvaluator::EvaluatePropertyGet() {
   builder_->ReadPosition();  // read position.
   builder_->ReadFlags();     // read flags.
@@ -2456,15 +2475,24 @@ void StreamingConstantEvaluator::EvaluatePropertyGet() {
   builder_->SkipCanonicalNameReference();  // read interface_target_reference.
 
   if (H.StringEquals(name, "length")) {
-    EvaluateExpression(expression_offset);
-    if (result_.IsString()) {
-      const String& str = String::Handle(Z, String::RawCast(result_.raw()));
-      result_ = Integer::New(str.Length());
-    } else {
-      H.ReportError(
-          "Constant expressions can only call "
-          "'length' on string constants.");
-    }
+    EvaluateGetStringLength(expression_offset);
+  } else {
+    UNREACHABLE();
+  }
+}
+
+void StreamingConstantEvaluator::EvaluateDirectPropertyGet() {
+  builder_->ReadPosition();  // read position.
+  builder_->ReadFlags();     // read flags.
+  intptr_t expression_offset = builder_->ReaderOffset();
+  builder_->SkipExpression();  // read receiver.
+  NameIndex kernel_name =
+      builder_->ReadCanonicalNameReference();  // read target_reference.
+
+  // TODO(vegorov): add check based on the complete canonical name.
+  if (H.IsGetter(kernel_name) &&
+      H.StringEquals(H.CanonicalNameString(kernel_name), "length")) {
+    EvaluateGetStringLength(expression_offset);
   } else {
     UNREACHABLE();
   }
@@ -2526,27 +2554,40 @@ void StreamingConstantEvaluator::EvaluateMethodInvocation() {
   // expressions are always valid.
   ASSERT(!function.IsNull());
 
-  // Read first parts of arguments: count and list of types.
-  intptr_t argument_count = builder_->PeekArgumentsCount();
-  // Dart does not support generic methods yet.
-  ASSERT(builder_->PeekArgumentsTypeCount() == 0);
-  builder_->SkipArgumentsBeforeActualArguments();
-
-  // Run the method and canonicalize the result.
-  const Object& result = RunFunction(function, argument_count, &receiver, NULL);
+  // Read arguments, run the method and canonicalize the result.
+  const Object& result = RunMethodCall(function, &receiver);
   result_ ^= result.raw();
   result_ = H.Canonicalize(result_);
 
   builder_->SkipCanonicalNameReference();  // read interface_target_reference.
 }
 
+void StreamingConstantEvaluator::EvaluateDirectMethodInvocation() {
+  builder_->ReadFlags();  // read flags.
+
+  const Instance& receiver =
+      EvaluateExpression(builder_->ReaderOffset(), false);  // read receiver.
+
+  NameIndex kernel_name =
+      builder_->ReadCanonicalNameReference();  // read target_reference.
+
+  const Function& function = Function::ZoneHandle(
+      Z, builder_->LookupMethodByMember(kernel_name,
+                                        H.DartProcedureName(kernel_name)));
+
+  // Read arguments, run the method and canonicalize the result.
+  const Object& result = RunMethodCall(function, &receiver);
+  result_ ^= result.raw();
+  result_ = H.Canonicalize(result_);
+}
+
 void StreamingConstantEvaluator::EvaluateStaticInvocation() {
   builder_->ReadPosition();  // read position.
-  NameIndex procedue_reference =
+  NameIndex procedure_reference =
       builder_->ReadCanonicalNameReference();  // read procedure reference.
 
   const Function& function = Function::ZoneHandle(
-      Z, H.LookupStaticMethodByKernelProcedure(procedue_reference));
+      Z, H.LookupStaticMethodByKernelProcedure(procedure_reference));
   Class& klass = Class::Handle(Z, function.Owner());
 
   intptr_t argument_count =
@@ -2884,6 +2925,19 @@ const Object& StreamingConstantEvaluator::RunFunction(const Function& function,
     H.ReportError(Error::Cast(result), "error evaluating constant constructor");
   }
   return result;
+}
+
+const Object& StreamingConstantEvaluator::RunMethodCall(
+    const Function& function,
+    const Instance* receiver) {
+  intptr_t argument_count = builder_->ReadUInt();  // read arguments count.
+
+  // TODO(28109) Support generic methods in the VM or reify them away.
+  ASSERT(builder_->PeekListLength() == 0);
+  builder_->SkipListOfDartTypes();  // read list of types.
+
+  // Run the method.
+  return RunFunction(function, argument_count, receiver, NULL);
 }
 
 RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
@@ -4076,7 +4130,7 @@ uint32_t StreamingFlowGraphBuilder::PeekUInt() {
 
 uint32_t StreamingFlowGraphBuilder::PeekListLength() {
   AlternativeReadingScope alt(reader_);
-  return reader_->ReadUInt();
+  return reader_->ReadListLength();
 }
 
 intptr_t StreamingFlowGraphBuilder::ReadListLength() {
@@ -4862,17 +4916,6 @@ const TypeArguments& StreamingFlowGraphBuilder::PeekArgumentsInstantiatedType(
 
 intptr_t StreamingFlowGraphBuilder::PeekArgumentsCount() {
   return PeekUInt();
-}
-
-intptr_t StreamingFlowGraphBuilder::PeekArgumentsTypeCount() {
-  AlternativeReadingScope alt(reader_);
-  ReadUInt();               // read arguments count.
-  return ReadListLength();  // read length of types list.
-}
-
-void StreamingFlowGraphBuilder::SkipArgumentsBeforeActualArguments() {
-  ReadUInt();             // read arguments count.
-  SkipListOfDartTypes();  // read list of types.
 }
 
 LocalVariable* StreamingFlowGraphBuilder::LookupVariable(

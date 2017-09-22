@@ -698,8 +698,10 @@ class StreamingConstantEvaluator {
   void EvaluateVariableGet();
   void EvaluateVariableGet(uint8_t payload);
   void EvaluatePropertyGet();
+  void EvaluateDirectPropertyGet();
   void EvaluateStaticGet();
   void EvaluateMethodInvocation();
+  void EvaluateDirectMethodInvocation();
   void EvaluateStaticInvocation();
   void EvaluateConstructorInvocationInternal();
   void EvaluateNot();
@@ -719,6 +721,8 @@ class StreamingConstantEvaluator {
   void EvaluateBoolLiteral(bool value);
   void EvaluateNullLiteral();
 
+  void EvaluateGetStringLength(intptr_t expression_offset);
+
   const Object& RunFunction(const Function& function,
                             intptr_t argument_count,
                             const Instance* receiver,
@@ -727,6 +731,9 @@ class StreamingConstantEvaluator {
   const Object& RunFunction(const Function& function,
                             const Array& arguments,
                             const Array& names);
+
+  const Object& RunMethodCall(const Function& function,
+                              const Instance* receiver);
 
   RawObject* EvaluateConstConstructorCall(const Class& type_class,
                                           const TypeArguments& type_arguments,
@@ -920,8 +927,6 @@ class StreamingFlowGraphBuilder {
   Tag PeekArgumentsFirstPositionalTag();
   const TypeArguments& PeekArgumentsInstantiatedType(const Class& klass);
   intptr_t PeekArgumentsCount();
-  intptr_t PeekArgumentsTypeCount();
-  void SkipArgumentsBeforeActualArguments();
 
   LocalVariable* LookupParameterDirect(intptr_t kernel_offset,
                                        intptr_t parameter_index);
