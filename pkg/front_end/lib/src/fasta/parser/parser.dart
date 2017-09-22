@@ -286,20 +286,17 @@ class Parser {
     }
     if (token.isTopLevelKeyword) {
       Token abstractToken;
-      Token modifierToken = start;
-      while (modifierToken != token) {
-        if (optional('abstract', modifierToken) &&
+      Token modifier = start;
+      while (modifier != token) {
+        if (optional('abstract', modifier) &&
             optional('class', token) &&
             abstractToken == null) {
-          abstractToken = modifierToken;
-        } else if (optional('const', modifierToken) &&
-            optional('class', token)) {
-          reportRecoverableError(modifierToken, fasta.messageConstClass);
+          abstractToken = modifier;
         } else {
-          reportRecoverableErrorWithToken(
-              modifierToken, fasta.templateExtraneousModifier);
+          // Recovery
+          reportTopLevelModifierError(modifier, token);
         }
-        modifierToken = modifierToken.next;
+        modifier = modifier.next;
       }
       return parseTopLevelKeywordDeclaration(
           abstractToken, token, directiveState);
@@ -317,6 +314,28 @@ class Parser {
     reportRecoverableErrorWithToken(token, fasta.templateExpectedDeclaration);
     listener.handleInvalidTopLevelDeclaration(token);
     return token.next;
+  }
+
+  // Report an error for the given modifier preceding a top level keyword
+  // such as `import` or `class`.
+  void reportTopLevelModifierError(Token modifier, Token afterModifiers) {
+    if (optional('const', modifier) && optional('class', afterModifiers)) {
+      reportRecoverableError(modifier, fasta.messageConstClass);
+    } else if (optional('external', modifier)) {
+      if (optional('class', afterModifiers)) {
+        reportRecoverableError(modifier, fasta.messageExternalClass);
+      } else if (optional('enum', afterModifiers)) {
+        reportRecoverableError(modifier, fasta.messageExternalEnum);
+      } else if (optional('typedef', afterModifiers)) {
+        reportRecoverableError(modifier, fasta.messageExternalTypedef);
+      } else {
+        reportRecoverableErrorWithToken(
+            modifier, fasta.templateExtraneousModifier);
+      }
+    } else {
+      reportRecoverableErrorWithToken(
+          modifier, fasta.templateExtraneousModifier);
+    }
   }
 
   Token parseTopLevelKeywordDeclaration(

@@ -1049,6 +1049,26 @@ Message _withArgumentsExtendingRestricted(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalClass = messageExternalClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalClass = const MessageCode("ExternalClass",
+    analyzerCode: "EXTERNAL_CLASS",
+    dart2jsCode: "*ignored*",
+    message: r"""Classes can't be declared to be 'external'.""",
+    tip: r"""Try removing the keyword 'external'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalEnum = messageExternalEnum;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalEnum = const MessageCode("ExternalEnum",
+    analyzerCode: "EXTERNAL_ENUM",
+    dart2jsCode: "*ignored*",
+    message: r"""Enums can't be declared to be 'external'.""",
+    tip: r"""Try removing the keyword 'external'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalMethodWithBody = messageExternalMethodWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1057,6 +1077,16 @@ const MessageCode messageExternalMethodWithBody = const MessageCode(
     analyzerCode: "EXTERNAL_METHOD_WITH_BODY",
     dart2jsCode: "*ignored*",
     message: r"""An external or native method can't have a body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalTypedef = messageExternalTypedef;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalTypedef = const MessageCode("ExternalTypedef",
+    analyzerCode: "EXTERNAL_TYPEDEF",
+    dart2jsCode: "*ignored*",
+    message: r"""Typedefs can't be declared to be 'external'.""",
+    tip: r"""Try removing the keyword 'external'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExtraneousModifier =

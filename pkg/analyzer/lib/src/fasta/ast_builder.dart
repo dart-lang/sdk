@@ -1978,9 +1978,21 @@ class AstBuilder extends ScopeListener {
             charOffset,
             1);
         return;
+      case "EXTERNAL_CLASS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_CLASS, charOffset, 1);
+        return;
+      case "EXTERNAL_ENUM":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_ENUM, charOffset, 1);
+        return;
       case "EXTERNAL_METHOD_WITH_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, charOffset, 1);
+        return;
+      case "EXTERNAL_TYPEDEF":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_TYPEDEF, charOffset, 1);
         return;
       case "EXTRANEOUS_MODIFIER":
         String text = stringOrTokenLexeme();

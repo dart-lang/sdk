@@ -769,6 +769,22 @@ TypeVariableSameNameAsEnclosing:
 EnumDeclartionEmpty:
   template: "An enum declaration can't be empty."
 
+ExternalClass:
+  template: "Classes can't be declared to be 'external'."
+  tip: "Try removing the keyword 'external'."
+  analyzerCode: EXTERNAL_CLASS
+  dart2jsCode: "*ignored*"
+  script:
+    - "external class C {}"
+
+ExternalEnum:
+  template: "Enums can't be declared to be 'external'."
+  tip: "Try removing the keyword 'external'."
+  analyzerCode: EXTERNAL_ENUM
+  dart2jsCode: "*ignored*"
+  script:
+    - "external enum E {ONE}"
+
 ExternalMethodWithBody:
   # TODO(danrubel): remove reference to `native` once support has been removed
   template: "An external or native method can't have a body."
@@ -778,6 +794,14 @@ ExternalMethodWithBody:
     - "class C {external foo() {}}"
     - "class C {foo() native {}}"
     - "class C {foo() native 'bar' {}}"
+
+ExternalTypedef:
+  template: "Typedefs can't be declared to be 'external'."
+  tip: "Try removing the keyword 'external'."
+  analyzerCode: EXTERNAL_TYPEDEF
+  dart2jsCode: "*ignored*"
+  script:
+    - "external typedef F();"
 
 OperatorWithOptionalFormals:
   template: "An operator can't have optional parameters."

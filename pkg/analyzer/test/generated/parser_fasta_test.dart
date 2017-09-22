@@ -742,15 +742,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_externalClass() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_CLASS, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (10)
-    super.test_externalClass();
-  }
-
-  @override
-  @failingTest
   void test_externalConstructorWithBody_factory() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, found 0
@@ -763,15 +754,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, found 0
     super.test_externalConstructorWithBody_named();
-  }
-
-  @override
-  @failingTest
-  void test_externalEnum() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_ENUM, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (10)
-    super.test_externalEnum();
   }
 
   @override
@@ -841,15 +823,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, found 0
     super.test_externalSetterWithBody();
-  }
-
-  @override
-  @failingTest
-  void test_externalTypedef() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_TYPEDEF, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (10)
-    super.test_externalTypedef();
   }
 
   @override
