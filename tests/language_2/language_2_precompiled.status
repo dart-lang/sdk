@@ -338,6 +338,29 @@ generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
+function_subtype_bound_closure3_test: RuntimeError
+function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure7_test: RuntimeError
+function_subtype_call1_test: RuntimeError
+function_subtype_call2_test: RuntimeError
+function_subtype_cast1_test: RuntimeError
+function_subtype_checked0_test: RuntimeError
+function_subtype_closure0_test: RuntimeError
+function_subtype_closure1_test: RuntimeError
+function_subtype_factory1_test: RuntimeError
+function_subtype_inline1_test: RuntimeError
+function_subtype_named1_test: RuntimeError
+function_subtype_named2_test: RuntimeError
+function_subtype_not1_test: RuntimeError
+function_subtype_optional1_test: RuntimeError
+function_subtype_optional2_test: RuntimeError
+function_subtype_regression_ddc_588_test: RuntimeError
+function_subtype_setter0_test: RuntimeError
+function_subtype_typearg2_test: RuntimeError
+function_subtype_typearg3_test: RuntimeError
+function_subtype_typearg5_test: RuntimeError
+function_type2_test: RuntimeError
+function_type_alias2_test: RuntimeError
 vm/regress_27671_test: Skip # Unsupported
 vm/optimized_stacktrace_test: Skip # Issue 30198
 
@@ -353,6 +376,14 @@ assertion_initializer_const_error2_test/cc09: Pass
 assertion_initializer_const_error2_test/cc10: Pass
 assertion_initializer_const_error2_test/cc11: Pass
 assertion_initializer_const_error2_test/none: CompileTimeError
+function_subtype_checked0_test: Pass
+function_subtype_closure0_test: Pass
+function_subtype_closure1_test: Pass
+function_subtype_factory1_test: Pass
+function_subtype_inline1_test: Pass
+function_subtype_inline2_test: Pass
+function_subtype_regression_ddc_588_test: Pass
+function_subtype_setter0_test: Pass
 
 [ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error2_test/cc01: Pass, OK

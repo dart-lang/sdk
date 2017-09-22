@@ -21,20 +21,5 @@ main() {
   Class<B, C> c = new Class<B, C>();
   c.forEach((A a, A b) {});
   c.forEach((B a, C b) {});
-  try {
-    c.forEach((A a, B b) {});
-    Expect.isFalse(isCheckedMode());
-  } catch (e) {
-    Expect.isTrue(isCheckedMode());
-  }
-}
-
-isCheckedMode() {
-  try {
-    var i = 1;
-    String s = i;
-    return false;
-  } catch (e) {
-    return true;
-  }
+  Expect.throwsTypeError(() => c.forEach((A a, B b) {} as dynamic));
 }

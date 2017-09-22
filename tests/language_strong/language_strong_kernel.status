@@ -57,16 +57,6 @@ flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
 for2_test: RuntimeError
 for_variable_capture_test: RuntimeError
-function_subtype2_test: RuntimeError
-function_subtype_bound_closure3_test: RuntimeError
-function_subtype_bound_closure4_test: RuntimeError
-function_subtype_cast1_test: RuntimeError
-function_subtype_inline0_test: RuntimeError
-function_subtype_local3_test: RuntimeError
-function_subtype_local4_test: RuntimeError
-function_subtype_not1_test: RuntimeError
-function_subtype_regression_ddc_588_test: RuntimeError
-function_type_alias2_test: RuntimeError
 function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
 inferrer_closure_test: RuntimeError
