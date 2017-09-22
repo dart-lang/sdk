@@ -91,43 +91,37 @@ void runPackageMapTests() {
     return factory.restoreUri(source);
   }
 
+  String _p(String path) => resourceProvider.convertPath(path);
+
+  Uri _u(String path) => resourceProvider.pathContext.toUri(_p(path));
+
   group('SourceFactoryTest', () {
     group('package mapping', () {
       group('resolveUri', () {
         test('URI in mapping', () {
           String uri = resolvePackageUri(config: '''
-unittest:file:///home/somebody/.pub/cache/unittest-0.9.9/lib/
-async:file:///home/somebody/.pub/cache/async-1.1.0/lib/
-quiver:file:///home/somebody/.pub/cache/quiver-1.2.1/lib
+unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
+async:${_u('/home/somebody/.pub/cache/async-1.1.0/lib/')}
+quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
 ''', uri: 'package:unittest/unittest.dart');
           expect(
               uri,
-              equals(
-                  '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
-        });
-        test('URI in mapping (no scheme)', () {
-          String uri = resolvePackageUri(config: '''
-unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/
-async:/home/somebody/.pub/cache/async-1.1.0/lib/
-quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
-''', uri: 'package:unittest/unittest.dart');
-          expect(
-              uri,
-              equals(
-                  '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
+              equals(_p(
+                  '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart')));
         });
         test('URI not in mapping', () {
-          String uri = resolvePackageUri(
-              config: 'unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/',
-              uri: 'package:foo/foo.dart');
+          String uri = resolvePackageUri(config: '''
+unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
+async:${_u('/home/somebody/.pub/cache/async-1.1.0/lib/')}
+quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
+''', uri: 'package:foo/foo.dart');
           expect(uri, isNull);
         });
         test('Non-package URI', () {
           var testResolver = new CustomUriResolver(uriPath: 'test_uri');
-          String uri = resolvePackageUri(
-              config: 'unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/',
-              uri: 'custom:custom.dart',
-              customResolver: testResolver);
+          String uri = resolvePackageUri(config: '''
+unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
+''', uri: 'custom:custom.dart', customResolver: testResolver);
           expect(uri, testResolver.uriPath);
         });
         test('Bad package URI', () {
@@ -150,22 +144,22 @@ quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
         });
         test('Relative URIs', () {
           Source containingSource = createSource(
-              path: '/foo/bar/baz/foo.dart', uri: 'package:foo/foo.dart');
+              path: _p('/foo/bar/baz/foo.dart'), uri: 'package:foo/foo.dart');
           String uri = resolvePackageUri(
-              config: 'foo:/foo/bar/baz',
+              config: 'foo:${_u('/foo/bar/baz')}',
               uri: 'bar.dart',
               containingSource: containingSource);
           expect(uri, isNotNull);
-          expect(uri, equals('/foo/bar/baz/bar.dart'));
+          expect(uri, equals(_p('/foo/bar/baz/bar.dart')));
         });
       });
       group('restoreUri', () {
         test('URI in mapping', () {
           Uri uri = restorePackageUri(
               config: '''
-unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/
-async:/home/somebody/.pub/cache/async-1.1.0/lib/
-quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
+unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
+async:${_u('/home/somebody/.pub/cache/async-1.1.0/lib/')}
+quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
 ''',
               source: new FileSource(resourceProvider.getFile(
                   '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart')));
@@ -176,7 +170,7 @@ quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
       group('packageMap', () {
         test('non-file URIs filtered', () {
           Map<String, List<Folder>> map = getPackageMap('''
-quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
+quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
 foo:http://www.google.com
 ''');
           expect(map.keys, unorderedEquals(['quiver']));
@@ -260,12 +254,14 @@ class SourceFactoryTest {
   void test_resolveUri_nonAbsolute_absolute() {
     SourceFactory factory =
         new SourceFactory([new AbsoluteUriResolver(resourceProvider)]);
-    String absolutePath = "/does/not/matter.dart";
-    Source containingSource =
-        new FileSource(resourceProvider.getFile("/does/not/exist.dart"));
-    Source result = factory.resolveUri(containingSource, absolutePath);
-    expect(result.fullName,
-        FileUtilities2.createFile(absolutePath).getAbsolutePath());
+    String sourcePath = resourceProvider.convertPath('/does/not/exist.dart');
+    String targetRawPath = '/does/not/matter.dart';
+    String targetPath = resourceProvider.convertPath(targetRawPath);
+    String targetUri =
+        resourceProvider.pathContext.toUri(targetRawPath).toString();
+    Source sourceSource = new FileSource(resourceProvider.getFile(sourcePath));
+    Source result = factory.resolveUri(sourceSource, targetUri);
+    expect(result.fullName, targetPath);
   }
 
   void test_resolveUri_nonAbsolute_relative() {
@@ -318,6 +314,11 @@ class SourceFactoryTest {
     expect(factory.restoreUri(source1), same(expected1));
     expect(factory.restoreUri(source2), same(null));
   }
+
+  /**
+   * Return the [resourceProvider] specific path for the given Posix [path].
+   */
+  String _p(String path) => resourceProvider.convertPath(path);
 }
 
 class UriResolver_absolute extends UriResolver {
