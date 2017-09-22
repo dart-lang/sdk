@@ -445,6 +445,7 @@ class LibraryHelper {
 class LibraryDependencyHelper {
  public:
   enum Field {
+    kFileOffset,
     kFlags,
     kAnnotations,
     kTargetLibrary,
@@ -464,7 +465,7 @@ class LibraryDependencyHelper {
 
   explicit LibraryDependencyHelper(StreamingFlowGraphBuilder* builder) {
     builder_ = builder;
-    next_read_ = kFlags;
+    next_read_ = kFileOffset;
   }
 
   void ReadUntilIncluding(Field field) {

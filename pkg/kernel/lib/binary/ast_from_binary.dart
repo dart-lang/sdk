@@ -500,6 +500,7 @@ class BinaryBuilder {
     }
     library.dependencies.length = length;
     for (int i = 0; i < length; ++i) {
+      var fileOffset = readOffset();
       var flags = readByte();
       var annotations = readExpressionList();
       var targetLibrary = readLibraryReference();
@@ -507,6 +508,7 @@ class BinaryBuilder {
       var names = readCombinatorList();
       library.dependencies[i] = new LibraryDependency.byReference(
           flags, annotations, targetLibrary, prefixName, names)
+        ..fileOffset = fileOffset
         ..parent = library;
     }
   }

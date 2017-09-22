@@ -195,6 +195,7 @@ type Library {
 }
 
 type LibraryDependency {
+  FileOffset fileOffset;
   Byte flags (isExport, isDeferred);
   List<Expression> annotations;
   LibraryReference targetLibrary;

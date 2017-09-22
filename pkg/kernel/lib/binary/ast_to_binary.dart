@@ -376,6 +376,7 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeLibraryDependency(LibraryDependency node) {
+    writeOffset(node.fileOffset);
     writeByte(node.flags);
     writeNodeList(node.annotations);
     writeLibraryReference(node.targetLibrary);

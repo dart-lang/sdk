@@ -493,6 +493,10 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
 
   // Ordered with fall-through.
   switch (next_read_) {
+    case kFileOffset: {
+      builder_->ReadPosition();
+      if (++next_read_ == field) return;
+    }
     case kFlags: {
       flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
@@ -4732,6 +4736,7 @@ void StreamingFlowGraphBuilder::SkipLibraryCombinator() {
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryDependency() {
+  ReadPosition();  // read file offset.
   ReadFlags();
   SkipListOfExpressions();  // Annotations.
   ReadCanonicalNameReference();
