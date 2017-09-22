@@ -27,10 +27,10 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/ast.dart' as kernel;
-import 'package:path/path.dart' as pathos;
 import 'package:kernel/target/targets.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
+import 'package:path/path.dart' as pathos;
 
 /**
  * Support for resynthesizing element model from Kernel.
@@ -124,7 +124,7 @@ class KernelContext {
             new TargetFlags(strongMode: analysisOptions.strongMode))
         ..reportMessages = false
         ..logger = logger
-        ..fileSystem = new _FileSystemAdaptor(fsState)
+        ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
         ..byteStore = byteStore);
       var driver = new KernelDriver(options, uriTranslator);
 
@@ -170,13 +170,15 @@ class KernelContext {
 
 class _FileSystemAdaptor implements FileSystem {
   final FileSystemState fsState;
+  final pathos.Context pathContext;
 
-  _FileSystemAdaptor(this.fsState);
+  _FileSystemAdaptor(this.fsState, this.pathContext);
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
     if (uri.isScheme('file')) {
-      var file = fsState.getFileForPath(uri.path);
+      var path = pathContext.fromUri(uri);
+      var file = fsState.getFileForPath(path);
       return new _FileSystemEntityAdaptor(uri, file);
     } else {
       throw new ArgumentError(
