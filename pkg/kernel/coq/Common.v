@@ -126,3 +126,19 @@ Module ListExtensions.
   Qed.
 
 End ListExtensions.
+
+(* These could be generalized and factored into a functor, like FMapFacts, but
+ * right now there's no need. *)
+Module MoreNatMapFacts.
+
+Module N := Coq.Arith.PeanoNat.Nat.
+Lemma add_3 {A} : forall m x (y y' : A), NatMap.MapsTo x y m /\ NatMap.MapsTo x y' m -> y = y'.
+  intuition.
+  set (Fx := NatMap.find x m).
+  assert (Fx = NatMap.find x m) by auto.
+  pose proof (NatMap.find_1 H0).
+  pose proof (NatMap.find_1 H1).
+  crush.
+Qed.
+
+End MoreNatMapFacts.

@@ -11,6 +11,7 @@ Require Import Coq.Logic.FunctionalExtensionality.
 
 Import Common.OptionMonad.
 Import Common.ListExtensions.
+Import Common.NatMapFacts.
 
 Module N := Coq.Arith.PeanoNat.Nat.
 
@@ -21,17 +22,9 @@ Module N := Coq.Arith.PeanoNat.Nat.
 Section Dart_Type_Pair_Size_Properties.
   Fixpoint size (d : dart_type) : nat :=
     match d with
-    | DT_Interface_Type i => size_it i + 1
-    | DT_Function_Type f => size_ft f + 1
-    end
-  with size_it (i : interface_type) : nat :=
-         match i with
-         | Interface_Type n => 0
-         end
-  with size_ft (f : function_type) : nat :=
-         match f with
-         | Function_Type p r => size p + size r
-         end.
+    | DT_Interface_Type (Interface_Type n) => 1
+    | DT_Function_Type (Function_Type p r) => size p + size r + 1
+    end.
 
   Definition pair_size (d : dart_type * dart_type) :=
     let (x, y) := d in size x + size y.
@@ -65,9 +58,6 @@ Module Subtyping.
     destruct p;
     destruct d1; destruct d2; crush;
     unfold pair_size_order;
-    unfold pair_size;
-    unfold size;
-    fold size;
     crush.
   Defined.
 
@@ -535,32 +525,6 @@ Local Ltac destruct_types :=
          | [H : class                |- _] => destruct H
          end.
 
-Local Lemma add_4 {A} : forall m x x' (y : A), NatMap.In x m -> NatMap.In x (NatMap.add x' y m).
-Proof.
-  intros.
-  destruct (N.eq_dec x x').
-  rewrite e in *; clear e.
-  unfold NatMap.In.
-  unfold NatMap.Raw.PX.In.
-  unfold NatMap.this.
-  unfold NatMap.add.
-  destruct m.
-  simpl.
-  exists y.
-  apply NatMap.Raw.add_1.
-  crush.
-
-  unfold NatMap.In in *.
-  unfold NatMap.add in *.
-  destruct m.
-  simpl in *.
-  unfold NatMap.Raw.PX.In in *.
-  destruct H.
-  exists x0.
-  apply NatMap.Raw.add_2; crush.
-Qed.
-Hint Resolve add_4.
-
 Local Lemma proc_desc_noenv : forall env env', procedure_to_desc env = procedure_to_desc env'.
 Proof.
   intros.
@@ -573,18 +537,6 @@ Proof.
   destruct_types.
   crush.
 Qed.
-
-Local Lemma add_in {A} : forall m x (y : A), NatMap.In x (NatMap.add x y m).
-Proof.
-  intros.
-  unfold NatMap.In.
-  unfold NatMap.Raw.PX.In.
-  exists y.
-  fold (NatMap.MapsTo x y (NatMap.add x y m)).
-  apply NatMap.add_1.
-  crush.
-Qed.
-Hint Resolve add_in.
 
 Local Definition mono
     (envs: class_env * func_env * func_table)
@@ -612,6 +564,7 @@ Proof.
   crush.
 Qed.
 
+Hint Rewrite add_in_iff.
 Local Lemma proc_mono :
   forall E1 E2 p p',
     procedure_dissect E1 p = (p', E2) -> mono E1 E2.
@@ -622,7 +575,8 @@ Proof.
   destruct E1; destruct p.
   destruct E2; destruct p.
   unfold mono.
-  inject H; crush.
+  inject H.
+  crush.
 Qed.
 Hint Resolve proc_mono.
 
@@ -651,15 +605,6 @@ Proof.
     (inversion H;
      unfold mono;
      crush); crush.
-Qed.
-
-Local Lemma add_3 {A} : forall m x (y y' : A), NatMap.MapsTo x y m /\ NatMap.MapsTo x y' m -> y = y'.
-  intuition.
-  set (Fx := NatMap.find x m).
-  assert (Fx = NatMap.find x m) by auto.
-  pose proof (NatMap.find_1 H0).
-  pose proof (NatMap.find_1 H1).
-  crush.
 Qed.
 
 Local Lemma fold_proc_invar :
@@ -763,7 +708,7 @@ Proof.
   rewrite H5 in *; clear H5.
   rewrite e in *; clear e.
   assert (NatMap.MapsTo class_id {| procedures := map (procedure_to_desc (CE_f, FE, FT)) l |} CE) by crush.
-  pose proof (@add_3 _ CE class_id intf ({| procedures := map (procedure_to_desc (CE_f, FE, FT)) l |}) (conj H0 H)).
+  pose proof (@MoreNatMapFacts.add_3 _ CE class_id intf ({| procedures := map (procedure_to_desc (CE_f, FE, FT)) l |}) (conj H0 H)).
   rewrite H2 in *; clear H2.
   clear H0.
   clear H.
@@ -819,7 +764,7 @@ Proof.
   crush.
 Qed.
 
-Local Lemma program_wf: forall l CE FE FT class_id intf proc_desc,
+Lemma program_wf: forall l CE FE FT class_id intf proc_desc,
      lib_to_env l = ((CE, FE), FT)
   -> NatMap.MapsTo class_id intf CE
   -> List.In proc_desc (procedures intf)
