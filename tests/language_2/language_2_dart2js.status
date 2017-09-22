@@ -736,17 +736,32 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
-function_subtype_cast2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#)) for j:closure_call(Class_test_closure.call).
-function_subtype_cast3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-function_subtype_inline0_test: RuntimeError
-function_subtype_local3_test: RuntimeError
-function_subtype_local4_test: RuntimeError
-function_subtype_not3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
 function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-function_syntax_test/none: RuntimeError
+function_subtype_bound_closure3_test: RuntimeError
+function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure7_test: RuntimeError
+function_subtype_call1_test: RuntimeError
+function_subtype_call2_test: RuntimeError
+function_subtype_cast1_test: RuntimeError
+function_subtype_checked0_test: RuntimeError
+function_subtype_closure1_test: RuntimeError
+function_subtype_factory1_test: RuntimeError
+function_subtype_inline1_test: RuntimeError
+function_subtype_named1_test: RuntimeError
+function_subtype_named2_test: RuntimeError
+function_subtype_not1_test: RuntimeError
+function_subtype_optional1_test: RuntimeError
+function_subtype_optional2_test: RuntimeError
+function_subtype_regression_ddc_588_test: RuntimeError
+function_subtype_setter0_test: RuntimeError
+function_subtype_typearg2_test: RuntimeError
+function_subtype_typearg3_test: RuntimeError
+function_subtype_typearg5_test: RuntimeError
 function_test: RuntimeError
+function_type2_test: RuntimeError
+function_type_alias2_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
