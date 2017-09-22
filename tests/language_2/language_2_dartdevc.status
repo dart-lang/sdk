@@ -60,6 +60,10 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 const_objects_are_immutable_test: RuntimeError # Issue 29897
+mixin_super_test: RuntimeError
+mixin_super_use_test: RuntimeError
+mixin_supertype_subclass_test/02: MissingCompileTimeError
+mixin_supertype_subclass_test/05: MissingCompileTimeError
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/01r: CompileTimeError
 multiline_newline_test/02: CompileTimeError

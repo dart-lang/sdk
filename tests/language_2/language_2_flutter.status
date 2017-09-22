@@ -57,6 +57,11 @@ deferred_global_test: Skip # Timeout
 generic_function_typedef2_test/04: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 issue21079_test: CompileTimeError
+mixin_type_parameters_errors_test/02: CompileTimeError
+mixin_type_parameters_errors_test/05: CompileTimeError
+mixin_type_parameters_errors_test/01: CompileTimeError
+mixin_type_parameters_errors_test/03: CompileTimeError
+mixin_type_parameters_errors_test/04: CompileTimeError
 static_initializer_type_error_test: CompileTimeError
 type_variable_scope_test/none: CompileTimeError
 type_variable_scope_test/00: CompileTimeError

@@ -199,6 +199,18 @@ inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 interface_test/00: MissingCompileTimeError
+mixin_supertype_subclass_test/01: CompileTimeError
+mixin_supertype_subclass_test/03: CompileTimeError
+mixin_supertype_subclass_test/04: CompileTimeError
+mixin_supertype_subclass_test/none: CompileTimeError
+mixin_type_parameters_errors_test/01: MissingCompileTimeError
+mixin_type_parameters_errors_test/02: MissingCompileTimeError
+mixin_type_parameters_errors_test/03: MissingCompileTimeError
+mixin_type_parameters_errors_test/04: MissingCompileTimeError
+mixin_type_parameters_errors_test/05: MissingCompileTimeError
+mixin_type_parameters_mixin_extends_test: RuntimeError
+mixin_type_parameters_mixin_test: RuntimeError
+mixin_type_parameters_super_extends_test: RuntimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/03: MissingCompileTimeError
@@ -291,6 +303,14 @@ deferred_constraints_type_annotation_test/type_annotation_top_level: MissingComp
 generic_methods_local_variable_declaration_test: RuntimeError
 integer_division_by_zero_test: RuntimeError # Issue 8301
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
+mixin_supertype_subclass2_test: CompileTimeError # Issue 23773
+mixin_supertype_subclass3_test: CompileTimeError # Issue 23773
+mixin_supertype_subclass4_test: CompileTimeError # Issue 23773
+mixin_super_constructor_named_test/01: Fail # Issue 15101
+mixin_super_constructor_positionals_test/01: Fail # Issue 15101
+mixin_super_test: CompileTimeError # Issue 23773
+mixin_super_use_test: CompileTimeError # Issue 23773
+mixin_superclass_test: CompileTimeError # Issue 23773
 multiline_newline_test/01: CompileTimeError # Issue 23888
 multiline_newline_test/02: CompileTimeError # Issue 23888
 multiline_newline_test/03: CompileTimeError # Issue 23888
@@ -460,6 +480,14 @@ issue21079_test: Crash # Issue 27394
 issue9602_test: Crash # Issue 27394
 issue_25671a_test/01: Crash # Issue 27394
 issue_25671b_test/01: Crash # Issue 27394
+mixin_super_constructor2_test: Crash # Issue 27394
+mixin_super_constructor_default_test: Crash # Issue 27394
+mixin_super_constructor_named_test/01: Crash # Issue 27394
+mixin_super_constructor_named_test/none: Crash # Issue 27394
+mixin_super_constructor_positionals_test/01: Crash # Issue 27394
+mixin_super_constructor_positionals_test/none: Crash # Issue 27394
+mixin_super_constructor_test: Crash # Issue 27394
+mixin_type_parameter5_test: Crash # Issue 27394
 mixin_type_variable_test/02: Crash # Issue 27394
 mixin_type_variable_test/03: Crash # Issue 27394
 mixin_type_variable_test/04: Crash # Issue 27394
@@ -727,6 +755,34 @@ issue21079_test: RuntimeError
 issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
+mixin_super_constructor2_test: RuntimeError
+mixin_super_constructor_default_test: RuntimeError
+mixin_super_constructor_named_test/01: MissingCompileTimeError
+mixin_super_constructor_named_test/none: RuntimeError
+mixin_super_constructor_positionals_test/01: MissingCompileTimeError
+mixin_super_constructor_positionals_test/none: RuntimeError
+mixin_super_constructor_test: RuntimeError
+mixin_super_test: CompileTimeError
+mixin_super_use_test: CompileTimeError
+mixin_superclass_test: CompileTimeError
+mixin_supertype_subclass2_test/01: CompileTimeError
+mixin_supertype_subclass2_test/02: CompileTimeError
+mixin_supertype_subclass2_test/03: CompileTimeError
+mixin_supertype_subclass2_test/04: CompileTimeError
+mixin_supertype_subclass2_test/05: CompileTimeError
+mixin_supertype_subclass2_test/none: CompileTimeError
+mixin_supertype_subclass3_test/01: CompileTimeError
+mixin_supertype_subclass3_test/02: CompileTimeError
+mixin_supertype_subclass3_test/03: CompileTimeError
+mixin_supertype_subclass3_test/04: CompileTimeError
+mixin_supertype_subclass3_test/05: CompileTimeError
+mixin_supertype_subclass3_test/none: CompileTimeError
+mixin_supertype_subclass4_test/01: CompileTimeError
+mixin_supertype_subclass4_test/02: CompileTimeError
+mixin_supertype_subclass4_test/03: CompileTimeError
+mixin_supertype_subclass4_test/04: CompileTimeError
+mixin_supertype_subclass4_test/05: CompileTimeError
+mixin_supertype_subclass4_test/none: CompileTimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
@@ -901,6 +957,34 @@ issue21079_test: RuntimeError
 issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
+mixin_super_constructor2_test: RuntimeError
+mixin_super_constructor_default_test: RuntimeError
+mixin_super_constructor_named_test/01: MissingCompileTimeError
+mixin_super_constructor_named_test/none: RuntimeError
+mixin_super_constructor_positionals_test/01: MissingCompileTimeError
+mixin_super_constructor_positionals_test/none: RuntimeError
+mixin_super_constructor_test: RuntimeError
+mixin_super_test: CompileTimeError
+mixin_super_use_test: CompileTimeError
+mixin_superclass_test: CompileTimeError
+mixin_supertype_subclass2_test/01: CompileTimeError
+mixin_supertype_subclass2_test/02: CompileTimeError
+mixin_supertype_subclass2_test/03: CompileTimeError
+mixin_supertype_subclass2_test/04: CompileTimeError
+mixin_supertype_subclass2_test/05: CompileTimeError
+mixin_supertype_subclass2_test/none: CompileTimeError
+mixin_supertype_subclass3_test/01: CompileTimeError
+mixin_supertype_subclass3_test/02: CompileTimeError
+mixin_supertype_subclass3_test/03: CompileTimeError
+mixin_supertype_subclass3_test/04: CompileTimeError
+mixin_supertype_subclass3_test/05: CompileTimeError
+mixin_supertype_subclass3_test/none: CompileTimeError
+mixin_supertype_subclass4_test/01: CompileTimeError
+mixin_supertype_subclass4_test/02: CompileTimeError
+mixin_supertype_subclass4_test/03: CompileTimeError
+mixin_supertype_subclass4_test/04: CompileTimeError
+mixin_supertype_subclass4_test/05: CompileTimeError
+mixin_supertype_subclass4_test/none: CompileTimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 30847
