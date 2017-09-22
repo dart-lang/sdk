@@ -689,7 +689,7 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token comma, Token rightParenthesis, Token semicolon) {
+      Token comma, Token semicolon) {
     debugEvent("Assert");
     Expression message = popIfNotNull(comma);
     Expression condition = pop();
@@ -700,11 +700,11 @@ class AstBuilder extends ScopeListener {
         break;
       case Assert.Initializer:
         push(ast.assertInitializer(assertKeyword, leftParenthesis, condition,
-            comma, message, rightParenthesis));
+            comma, message, leftParenthesis?.endGroup));
         break;
       case Assert.Statement:
         push(ast.assertStatement(assertKeyword, leftParenthesis, condition,
-            comma, message, rightParenthesis, semicolon));
+            comma, message, leftParenthesis?.endGroup, semicolon));
         break;
     }
   }
@@ -806,7 +806,7 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+      Token inKeyword, Token endToken) {
     debugEvent("ForInExpression");
     Statement body = pop();
     Expression iterator = pop();
@@ -822,7 +822,7 @@ class AstBuilder extends ScopeListener {
           variableOrDeclaration,
           inKeyword,
           iterator,
-          rightParenthesis,
+          leftParenthesis?.endGroup,
           body));
     } else {
       var statement = variableOrDeclaration as VariableDeclarationStatement;
@@ -839,7 +839,7 @@ class AstBuilder extends ScopeListener {
               variableList.variables.single.name),
           inKeyword,
           iterator,
-          rightParenthesis,
+          leftParenthesis?.endGroup,
           body));
     }
   }
@@ -1258,14 +1258,13 @@ class AstBuilder extends ScopeListener {
         semicolon));
   }
 
-  void endConditionalUri(
-      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     debugEvent("ConditionalUri");
     StringLiteral libraryUri = pop();
     StringLiteral value = popIfNotNull(equalSign);
     DottedName name = pop();
-    push(ast.configuration(
-        ifKeyword, leftParen, name, equalSign, value, rightParen, libraryUri));
+    push(ast.configuration(ifKeyword, leftParen, name, equalSign, value,
+        leftParen?.endGroup, libraryUri));
   }
 
   @override

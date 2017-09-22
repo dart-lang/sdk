@@ -415,10 +415,9 @@ class Parser {
       equalitySign = token;
       token = parseLiteralStringOrRecoverExpression(token.next);
     }
-    Token rightParen = token;
     token = expect(')', token);
     token = parseLiteralStringOrRecoverExpression(token);
-    listener.endConditionalUri(ifKeyword, leftParen, equalitySign, rightParen);
+    listener.endConditionalUri(ifKeyword, leftParen, equalitySign);
     return token;
   }
 
@@ -3862,13 +3861,12 @@ class Parser {
     listener.beginForInExpression(token);
     token = parseExpression(token);
     listener.endForInExpression(token);
-    Token rightParenthesis = token;
     token = expect(')', token);
     listener.beginForInBody(token);
     token = parseStatement(token);
     listener.endForInBody(token);
-    listener.endForIn(awaitToken, forKeyword, leftParenthesis, inKeyword,
-        rightParenthesis, token);
+    listener.endForIn(
+        awaitToken, forKeyword, leftParenthesis, inKeyword, token);
     return token;
   }
 
@@ -4160,11 +4158,9 @@ class Parser {
             firstExtra, fasta.messageAssertExtraneousArgument);
       }
     }
-    Token rightParenthesis = token;
     token = expect(')', token);
     mayParseFunctionExpressions = old;
-    listener.endAssert(assertKeyword, kind, leftParenthesis, commaToken,
-        rightParenthesis, token);
+    listener.endAssert(assertKeyword, kind, leftParenthesis, commaToken, token);
     if (kind == Assert.Expression) {
       reportRecoverableError(assertKeyword, fasta.messageAssertAsExpression);
     }

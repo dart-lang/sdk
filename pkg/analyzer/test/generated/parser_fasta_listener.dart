@@ -574,10 +574,10 @@ class ForwardingTestListener implements fasta.Listener {
 
   @override
   void endAssert(Token assertKeyword, fasta.Assert kind, Token leftParenthesis,
-      Token commaToken, Token rightParenthesis, Token semicolonToken) {
+      Token commaToken, Token semicolonToken) {
     end('Assert');
-    listener.endAssert(assertKeyword, kind, leftParenthesis, commaToken,
-        rightParenthesis, semicolonToken);
+    listener.endAssert(
+        assertKeyword, kind, leftParenthesis, commaToken, semicolonToken);
   }
 
   @override
@@ -651,10 +651,9 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endConditionalUri(
-      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     end('ConditionalUri');
-    listener.endConditionalUri(ifKeyword, leftParen, equalSign, rightParen);
+    listener.endConditionalUri(ifKeyword, leftParen, equalSign);
   }
 
   @override
@@ -746,11 +745,10 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+  void endForIn(Token awaitToken, Token forToken, Token leftParen,
+      Token inKeyword, Token endToken) {
     end('ForStatement');
-    listener.endForIn(awaitToken, forToken, leftParenthesis, inKeyword,
-        rightParenthesis, endToken);
+    listener.endForIn(awaitToken, forToken, leftParen, inKeyword, endToken);
   }
 
   @override

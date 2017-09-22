@@ -962,7 +962,7 @@ class NodeListener extends ElementListener {
 
   @override
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+      Token inKeyword, Token endToken) {
     Statement body = popNode();
     Expression expression = popNode();
     Node declaredIdentifier = popNode();
@@ -1023,7 +1023,7 @@ class NodeListener extends ElementListener {
 
   @override
   void endAssert(Token assertKeyword, fasta.Assert kind, Token leftParenthesis,
-      Token commaToken, Token rightParenthesis, Token semicolonToken) {
+      Token commaToken, Token semicolonToken) {
     Node message;
     Node condition;
     if (commaToken != null) {

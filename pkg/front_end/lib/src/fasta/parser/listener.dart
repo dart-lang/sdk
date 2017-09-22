@@ -251,7 +251,7 @@ class Listener {
 
   // One of the two possible corresponding end events for [beginForStatement].
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+      Token inKeyword, Token endToken) {
     logEvent("ForIn");
   }
 
@@ -461,8 +461,7 @@ class Listener {
   /// - Dotted name
   /// - Condition (literal string; only if [equalSign] != null)
   /// - URI (literal string)
-  void endConditionalUri(
-      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     logEvent("ConditionalUri");
   }
 
@@ -959,7 +958,7 @@ class Listener {
   void beginAssert(Token assertKeyword, Assert kind) {}
 
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token commaToken, Token rightParenthesis, Token semicolonToken) {
+      Token commaToken, Token semicolonToken) {
     logEvent("Assert");
   }
 

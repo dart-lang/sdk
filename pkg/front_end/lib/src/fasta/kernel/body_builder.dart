@@ -2583,7 +2583,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+      Token inKeyword, Token endToken) {
     debugEvent("ForIn");
     Statement body = popStatement();
     Expression expression = popForValue();
@@ -2734,13 +2734,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token commaToken, Token rightParenthesis, Token semicolonToken) {
+      Token commaToken, Token semicolonToken) {
     debugEvent("Assert");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
     AssertStatement statement = new ShadowAssertStatement(condition,
         conditionStartOffset: leftParenthesis.offset + 1,
-        conditionEndOffset: rightParenthesis.offset,
+        conditionEndOffset: leftParenthesis.endGroup.offset,
         message: message);
     switch (kind) {
       case Assert.Statement:

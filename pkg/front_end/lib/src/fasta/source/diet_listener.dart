@@ -314,8 +314,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endConditionalUri(
-      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     debugEvent("ConditionalUri");
   }
 
