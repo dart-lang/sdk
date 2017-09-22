@@ -100,34 +100,77 @@ List<TestCase> testCases = <TestCase>[
   notSubtype('FutureOr<double>', 'int', strongMode: true),
   notSubtype('FutureOr<int>', 'Future<num>', strongMode: true),
   notSubtype('FutureOr<int>', 'num', strongMode: true),
+
+  // T & B <: T & A if B <: A
+  subtype('T & int', 'T & int'),
+  subtype('T & int', 'T & num'),
+  subtype('T & num', 'T & num'),
+  notSubtype('T & num', 'T & int'),
+
+  // T & B <: T extends A if B <: A
+  // (Trivially satisfied since promoted bounds are always a subtype of the
+  // original bound)
+  subtype('T & int', 'T', typeParameters: 'T: int'),
+  subtype('T & int', 'T', typeParameters: 'T: num'),
+  subtype('T & num', 'T', typeParameters: 'T: num'),
+
+  // T extends B <: T & A if B <: A
+  subtype('T', 'T & int', typeParameters: 'T: int'),
+  subtype('T', 'T & num', typeParameters: 'T: int'),
+  subtype('T', 'T & num', typeParameters: 'T: num'),
+  notSubtype('T', 'T & int', typeParameters: 'T: num'),
+
+  // T extends A <: T extends A
+  subtype('T', 'T', typeParameters: 'T: num'),
+
+  // S & B <: A if B <: A, A is not S (or a promotion thereof)
+  subtype('S & int', 'int'),
+  subtype('S & int', 'num'),
+  subtype('S & num', 'num'),
+  notSubtype('S & num', 'int'),
+  notSubtype('S & num', 'T'),
+  notSubtype('S & num', 'T & num'),
+
+  // S extends B <: A if B <: A, A is not S (or a promotion thereof)
+  subtype('S', 'int', typeParameters: 'S: int'),
+  subtype('S', 'num', typeParameters: 'S: int'),
+  subtype('S', 'num', typeParameters: 'S: num'),
+  notSubtype('S', 'int', typeParameters: 'S: num'),
+  notSubtype('S', 'T', typeParameters: 'S: num'),
+  notSubtype('S', 'T & num', typeParameters: 'S: num'),
 ];
 
 /// Assert that [subtype] is a subtype of [supertype], and that [supertype]
 /// is not a subtype of [subtype] (unless the two strings are equal).
-TestCase subtype(String subtype_, String supertype, {bool strongMode: false}) {
+TestCase subtype(String subtype_, String supertype,
+    {bool strongMode: false, String typeParameters}) {
   return new TestCase(subtype_, supertype,
-      isSubtype: true, strongMode: strongMode);
+      isSubtype: true, strongMode: strongMode, typeParameters: typeParameters);
 }
 
 /// Assert that neither type is a subtype of the other.
 TestCase notSubtype(String subtype_, String supertype,
-    {bool strongMode: false}) {
+    {bool strongMode: false, String typeParameters}) {
   return new TestCase(subtype_, supertype,
-      isSubtype: false, strongMode: strongMode);
+      isSubtype: false, strongMode: strongMode, typeParameters: typeParameters);
 }
 
 class TestCase {
   String subtype;
   String supertype;
+  String typeParameters;
   bool isSubtype;
   bool strongMode;
 
   TestCase(this.subtype, this.supertype,
-      {this.isSubtype, this.strongMode: false});
+      {this.isSubtype, this.strongMode: false, this.typeParameters});
 
   String toString() {
     var description =
         isSubtype ? '$subtype <: $supertype' : '$subtype </: $supertype';
+    if (typeParameters != null) {
+      description += ' (type parameters: $typeParameters)';
+    }
     if (strongMode) {
       description += ' (strong mode)';
     }
@@ -179,12 +222,16 @@ MockSubtypeTester makeSubtypeTester(Map<String, List<String>> testcase) {
 
 main() {
   var tester = makeSubtypeTester(classEnvironment);
-  var environment = tester.environment;
   for (var testCase in testCases) {
     test('$testCase', () {
       tester.strongMode = testCase.strongMode;
-      var subtype = environment.parseFresh(testCase.subtype);
-      var supertype = environment.parseFresh(testCase.supertype);
+      var environment = tester.environment;
+      environment.clearTypeParameters();
+      if (testCase.typeParameters != null) {
+        environment.setupTypeParameters(testCase.typeParameters);
+      }
+      var subtype = environment.parse(testCase.subtype);
+      var supertype = environment.parse(testCase.supertype);
       if (tester.isSubtypeOf(subtype, supertype) != testCase.isSubtype) {
         fail('isSubtypeOf(${testCase.subtype}, ${testCase.supertype}) returned '
             '${!testCase.isSubtype} but should return ${testCase.isSubtype}');

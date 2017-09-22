@@ -29,6 +29,7 @@ class Token {
   static const int RightBrace = 10;
   static const int Arrow = 11; // '=>'
   static const int Colon = 12;
+  static const int Ampersand = 13;
   static const int Invalid = 100;
 }
 
@@ -92,6 +93,8 @@ class DartTypeParser {
 
   int getTokenType(int character) {
     switch (character) {
+      case 38:
+        return Token.Ampersand;
       case 44:
         return Token.Comma;
       case 60:
@@ -144,10 +147,18 @@ class DartTypeParser {
         } else if (target is Typedef) {
           return new TypedefType(target, parseOptionalTypeArgumentList());
         } else if (target is TypeParameter) {
-          if (peekToken() == Token.LeftAngle) {
-            return fail('Attempt to apply type arguments to a type variable');
+          DartType promotedBound;
+          switch (peekToken()) {
+            case Token.LeftAngle:
+              return fail('Attempt to apply type arguments to a type variable');
+            case Token.Ampersand:
+              scanToken();
+              promotedBound = parseType();
+              break;
+            default:
+              break;
           }
-          return new TypeParameterType(target);
+          return new TypeParameterType(target, promotedBound);
         }
         return fail("Unexpected lookup result for $name: $target");
 
@@ -287,8 +298,13 @@ class LazyTypeEnvironment {
 
   TreeNode lookup(String name) {
     return name.length == 1
-        ? typeParameters.putIfAbsent(name, () => new TypeParameter(name))
-        : classes.putIfAbsent(name, () => makeClass(name));
+        ? typeParameters.putIfAbsent(
+            name, () => new TypeParameter(name, lookupClass('Object').rawType))
+        : lookupClass(name);
+  }
+
+  Class lookupClass(String name) {
+    return classes.putIfAbsent(name, () => makeClass(name));
   }
 
   Class makeClass(String name) {
@@ -299,6 +315,14 @@ class LazyTypeEnvironment {
 
   void clearTypeParameters() {
     typeParameters.clear();
+  }
+
+  void setupTypeParameters(String typeParametersList) {
+    for (var typeParameter
+        in new DartTypeParser('<$typeParametersList>', lookup)
+            .parseAndPushTypeParameterList()) {
+      typeParameters[typeParameter.name] = typeParameter;
+    }
   }
 
   DartType parse(String type) => parseDartType(type, lookup);
