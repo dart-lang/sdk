@@ -481,7 +481,6 @@ conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
-const_conditional_test/08: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib1::f() (ShadowStaticInvocation)
 const_error_multiply_initialized_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C:: (Constructor)
 const_error_multiply_initialized_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
@@ -497,10 +496,7 @@ const_map3_test/00: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib3::C1:: (Constructor)
-const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
@@ -877,7 +873,6 @@ conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
-const_conditional_test/08: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib3::f() (ShadowStaticInvocation)
 const_error_multiply_initialized_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C:: (Constructor)
 const_error_multiply_initialized_test/02: MissingCompileTimeError
@@ -891,10 +886,7 @@ const_map3_test/00: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib2::C1:: (Constructor)
-const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError

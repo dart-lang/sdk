@@ -172,14 +172,7 @@ closure_capture2_test: RuntimeError
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
-compile_time_constant4_test/01: MissingCompileTimeError
-compile_time_constant4_test/02: MissingCompileTimeError
-compile_time_constant4_test/03: MissingCompileTimeError
-compile_time_constant4_test/04: MissingCompileTimeError
-compile_time_constant4_test/05: MissingCompileTimeError
-compile_time_constant4_test/06: Crash # 'file:*/pkg/compiler/lib/src/constants/expressions.dart': Failed assertion: line 891 pos 12: 'PRECEDENCE_MAP[operator.kind] != null': is not true.
 constant_javascript_semantics_test/01: MissingCompileTimeError
-constant_javascript_semantics_test/02: MissingCompileTimeError
 deferred/deferred_class_test: CompileTimeError
 deferred/deferred_constant2_test: CompileTimeError
 deferred/deferred_constant3_test: CompileTimeError
@@ -241,14 +234,7 @@ useful_error_message_1_test: RuntimeError
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
-compile_time_constant4_test/01: MissingCompileTimeError
-compile_time_constant4_test/02: MissingCompileTimeError
-compile_time_constant4_test/03: MissingCompileTimeError
-compile_time_constant4_test/04: MissingCompileTimeError
-compile_time_constant4_test/05: MissingCompileTimeError
-compile_time_constant4_test/06: Crash # NoSuchMethodError: The method 'fold' was called on null.
 constant_javascript_semantics_test/01: MissingCompileTimeError
-constant_javascript_semantics_test/02: MissingCompileTimeError
 deferred/deferred_class_test: CompileTimeError
 deferred/deferred_constant2_test: CompileTimeError
 deferred/deferred_constant3_test: CompileTimeError

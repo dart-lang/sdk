@@ -688,14 +688,10 @@ closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib1::C1:: (Constructor)
-const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor_duplicate_final_test/01: MissingCompileTimeError
@@ -896,14 +892,10 @@ closure_in_constructor_test: Crash # Assertion failure: Runtime type information
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
-compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib1::C1:: (Constructor)
-const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor_duplicate_final_test/01: MissingCompileTimeError

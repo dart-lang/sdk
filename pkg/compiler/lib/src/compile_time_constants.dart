@@ -179,7 +179,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
   void evaluate(ConstantExpression constant) {
     constantValueMap.putIfAbsent(constant, () {
       return constant.evaluate(
-          new _CompilerEnvironment(compiler), constantSystem);
+          new AstEvaluationEnvironment(compiler), constantSystem);
     });
   }
 
@@ -975,7 +975,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           node,
           expression,
           expression.evaluate(
-              new _CompilerEnvironment(compiler), constantSystem));
+              new AstEvaluationEnvironment(compiler), constantSystem));
     } else {
       return makeConstructedConstant(
           compiler,
@@ -1264,12 +1264,12 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           new ConstructedConstantExpression(
               type, targetConstructor, callStructure, arguments);
 
-      Map<FieldEntity, ConstantExpression> fields =
-          expression.computeInstanceFields(new _CompilerEnvironment(compiler));
+      Map<FieldEntity, ConstantExpression> fields = expression
+          .computeInstanceFields(new AstEvaluationEnvironment(compiler));
       fields.forEach((_field, ConstantExpression expression) {
         FieldElement field = _field;
         ConstantValue value = expression.evaluate(
-            new _CompilerEnvironment(compiler), constantSystem);
+            new AstEvaluationEnvironment(compiler), constantSystem);
         fieldValues[field] = new AstConstant(context, null, expression, value);
       });
     } else {
@@ -1446,10 +1446,11 @@ class ErroneousAstConstant extends AstConstant {
             new NullConstantValue());
 }
 
-class _CompilerEnvironment implements EvaluationEnvironment {
+class AstEvaluationEnvironment extends EvaluationEnvironmentBase {
   final Compiler _compiler;
 
-  _CompilerEnvironment(this._compiler);
+  AstEvaluationEnvironment(this._compiler, {bool constantRequired: true})
+      : super(CURRENT_ELEMENT_SPANNABLE, constantRequired: constantRequired);
 
   @override
   CommonElements get commonElements => _compiler.resolution.commonElements;
@@ -1479,4 +1480,7 @@ class _CompilerEnvironment implements EvaluationEnvironment {
   ConstantExpression getLocalConstant(LocalVariableElement local) {
     return local.constant;
   }
+
+  @override
+  DiagnosticReporter get reporter => _compiler.reporter;
 }

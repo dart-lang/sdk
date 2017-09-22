@@ -579,7 +579,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   Uri script = currentDirectory.resolve(arguments[0]);
-  if (useKernel && script.path.endsWith('.dill')) {
+  if (useKernel) {
     diagnosticHandler.autoReadFileUri = true;
   }
   CompilerOptions compilerOptions = new CompilerOptions.parse(

@@ -99,7 +99,8 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
-  ConstantValue computeConstantValue(ConstantExpression constant,
+  ConstantValue computeConstantValue(
+      Spannable spannable, ConstantExpression constant,
       {bool requireConstant: true}) {
     _compiler.backend.constants.evaluate(constant);
     ConstantValue value =
@@ -114,7 +115,7 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   @override
   ConstantValue getFieldConstantValue(covariant FieldElement element) {
     if (element.constant != null) {
-      return computeConstantValue(element.constant);
+      return computeConstantValue(element, element.constant);
     }
     return null;
   }

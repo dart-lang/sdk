@@ -440,9 +440,11 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   @override
-  ConstantValue computeConstantValue(ConstantExpression constant,
+  ConstantValue computeConstantValue(
+      Spannable spannable, ConstantExpression constant,
       {bool requireConstant: true}) {
-    return _constantEnvironment.getConstantValue(constant);
+    return _constantEnvironment._getConstantValue(spannable, constant,
+        constantRequired: requireConstant);
   }
 
   DartType _substByContext(DartType type, InterfaceType context) {
@@ -1562,9 +1564,17 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 
   @override
   ConstantValue getConstantValue(ConstantExpression expression) {
+    return _getConstantValue(CURRENT_ELEMENT_SPANNABLE, expression,
+        constantRequired: true);
+  }
+
+  ConstantValue _getConstantValue(
+      Spannable spannable, ConstantExpression expression,
+      {bool constantRequired}) {
     return _valueMap.putIfAbsent(expression, () {
       return expression.evaluate(
-          new _EvaluationEnvironment(_elementMap, _environment),
+          new KernelEvaluationEnvironment(_elementMap, _environment, spannable,
+              constantRequired: constantRequired),
           constantSystem);
     });
   }
@@ -1577,11 +1587,14 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 
 /// Evaluation environment used for computing [ConstantValue]s for
 /// kernel based [ConstantExpression]s.
-class _EvaluationEnvironment implements EvaluationEnvironment {
+class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
   final KernelToElementMapBase _elementMap;
   final Environment _environment;
 
-  _EvaluationEnvironment(this._elementMap, this._environment);
+  KernelEvaluationEnvironment(
+      this._elementMap, this._environment, Spannable spannable,
+      {bool constantRequired})
+      : super(spannable, constantRequired: constantRequired);
 
   @override
   CommonElements get commonElements => _elementMap.commonElements;
@@ -1610,6 +1623,9 @@ class _EvaluationEnvironment implements EvaluationEnvironment {
   String readFromEnvironment(String name) {
     return _environment.valueOf(name);
   }
+
+  @override
+  DiagnosticReporter get reporter => _elementMap.reporter;
 }
 
 class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
