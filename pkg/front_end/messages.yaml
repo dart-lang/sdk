@@ -1033,3 +1033,9 @@ MissingIdentifier:
   template: "Expected an identifier."
   analyzerCode: MISSING_IDENTIFIER
   dart2jsCode: "*fatal*"
+
+ColonInPlaceOfIn:
+  template: "For-in loops use 'in' rather than a colon."
+  tip: "Try replacing the colon with the keyword 'in'."
+  analyzerCode: COLON_IN_PLACE_OF_IN
+  dart2jsCode: "*fatal*"

@@ -3825,6 +3825,9 @@ class Parser {
     token = parseVariablesDeclarationOrExpressionOpt(token);
     if (optional('in', token)) {
       return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
+    } else if (optional(':', token)) {
+      reportRecoverableError(token, fasta.messageColonInPlaceOfIn);
+      return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
     } else {
       if (awaitToken != null) {
         reportRecoverableError(awaitToken, fasta.messageInvalidAwaitFor);
@@ -3874,7 +3877,7 @@ class Parser {
 
   Token parseForInRest(
       Token awaitToken, Token forKeyword, Token leftParenthesis, Token token) {
-    assert(optional('in', token));
+    assert(optional('in', token) || optional(':', token));
     Token inKeyword = token;
     token = token.next;
     listener.beginForInExpression(token);

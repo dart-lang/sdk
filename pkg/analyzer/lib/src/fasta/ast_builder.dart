@@ -1952,6 +1952,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ABSTRACT_CLASS_MEMBER, charOffset, 1);
         return;
+      case "COLON_IN_PLACE_OF_IN":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.COLON_IN_PLACE_OF_IN, charOffset, 1);
+        return;
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, charOffset, 1);

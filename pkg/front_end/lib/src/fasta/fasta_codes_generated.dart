@@ -269,6 +269,17 @@ const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
         r"""No types are needed, the first is given by 'on', the second is always 'StackTrace'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeColonInPlaceOfIn = messageColonInPlaceOfIn;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageColonInPlaceOfIn = const MessageCode(
+    "ColonInPlaceOfIn",
+    analyzerCode: "COLON_IN_PLACE_OF_IN",
+    dart2jsCode: "*fatal*",
+    message: r"""For-in loops use 'in' rather than a colon.""",
+    tip: r"""Try replacing the colon with the keyword 'in'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConflictsWithConstructor =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Conflicts with constructor '#name'.""",

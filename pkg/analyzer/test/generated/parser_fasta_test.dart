@@ -158,13 +158,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_colonInPlaceOfIn() {
-    // TODO(brianwilkerson) Does not recover.
-    super.test_colonInPlaceOfIn();
-  }
-
-  @override
-  @failingTest
   void test_constAndCovariant() {
     // TODO(brianwilkerson) Does not recover.
     super.test_constAndCovariant();
