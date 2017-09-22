@@ -605,8 +605,9 @@ bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_closurization_test: RuntimeError
-call_function_apply_test: RuntimeError
+call_function_apply_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
 call_test: RuntimeError
+call_with_no_such_method_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
 canonical_const2_test: RuntimeError
 cast_test/02: MissingRuntimeError
 cast_test/03: MissingRuntimeError
@@ -615,7 +616,7 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-classes_static_method_clash_test: RuntimeError
+classes_static_method_clash_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
 closure_in_constructor_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.factory#))in j:closure_call(A_A$factory_closure.call).
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
@@ -649,7 +650,7 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856 
-cyclic_default_values_test: RuntimeError
+cyclic_default_values_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
@@ -774,8 +775,9 @@ bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_closurization_test: RuntimeError
-call_function_apply_test: RuntimeError
+call_function_apply_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 call_test: RuntimeError
+call_with_no_such_method_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 canonical_const2_test: RuntimeError
 cast_test/02: MissingRuntimeError
 cast_test/03: MissingRuntimeError
@@ -784,7 +786,7 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-classes_static_method_clash_test: RuntimeError
+classes_static_method_clash_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 closure_in_constructor_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.factory#))in j:closure_call(A_A$factory_closure.call).
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
@@ -817,7 +819,7 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
-cyclic_default_values_test: RuntimeError
+cyclic_default_values_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 cyclic_type2_test: RuntimeError
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/01: RuntimeError

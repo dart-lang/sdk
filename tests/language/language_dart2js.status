@@ -512,7 +512,7 @@ constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 cyclic_constructor_test/01: Crash # Issue 30856
-cyclic_default_values_test: RuntimeError
+cyclic_default_values_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
@@ -625,7 +625,7 @@ malformed_test/03: Crash # 'package:front_end/src/fasta/kernel/kernel_class_buil
 malformed_test/04: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/06: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/none: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-many_named_arguments_test: RuntimeError
+many_named_arguments_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
@@ -769,9 +769,9 @@ named_parameters_with_conversions_test: RuntimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
-null_test/02: MissingCompileTimeError
-null_test/03: MissingCompileTimeError
-null_test/none: RuntimeError
+null_test/02: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
+null_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
+null_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 override_field_method1_negative_test: Fail
@@ -906,7 +906,7 @@ constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 cyclic_constructor_test/01: Crash # Issue 30856
-cyclic_default_values_test: RuntimeError
+cyclic_default_values_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 cyclic_type2_test: RuntimeError
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/01: RuntimeError
@@ -1022,7 +1022,7 @@ local_function3_test: RuntimeError
 local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 malformed_test/none: RuntimeError
-many_named_arguments_test: RuntimeError
+many_named_arguments_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
@@ -1167,9 +1167,9 @@ named_parameters_with_conversions_test: RuntimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
-null_test/02: MissingCompileTimeError
-null_test/03: MissingCompileTimeError
-null_test/none: RuntimeError
+null_test/02: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+null_test/03: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+null_test/none: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 override_field_method1_negative_test: Fail
