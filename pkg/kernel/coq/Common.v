@@ -4,6 +4,7 @@
 
 Require Export List.
 Require Export Coq.FSets.FMapWeakList.
+Require Export Coq.FSets.FMapFacts.
 Require Export Coq.Structures.DecidableTypeEx.
 Require Export Coq.Structures.Equalities.
 Require Export Coq.Strings.String.
@@ -26,6 +27,7 @@ Module String_as_UDT := Equalities.Make_UDT(String_as_MDT).
 (** [NatMap] is used to map type variables to type locations and to map type
   locations to type values. *)
 Module NatMap := FMapWeakList.Make(Nat_as_DT).
+Module NatMapFacts := FMapFacts.Facts NatMap.
 
 (** [StringMap] is used to map identifiers to getters, setters, and methods. *)
 Module StringMap := FMapWeakList.Make(String_as_UDT).

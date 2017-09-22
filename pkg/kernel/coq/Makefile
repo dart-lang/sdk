@@ -11,5 +11,7 @@ syntax: common SyntaxRaw.vo Syntax.vo
 
 types: common syntax ObjectModel.vo
 
+semantics: common syntax types OperationalSemantics.vo
+
 clean:
 	rm -f *.aux *.vo *.glob .*.aux
