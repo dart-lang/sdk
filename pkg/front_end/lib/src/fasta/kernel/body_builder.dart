@@ -915,9 +915,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   void doDotOrCascadeExpression(Token token) {
     // TODO(ahe): Handle null-aware.
-    IncompleteSend send = pop();
-    Object receiver = optional(".", token) ? pop() : popForValue();
-    push(send.withReceiver(receiver, token.charOffset));
+    var send = pop();
+    if (send is IncompleteSend) {
+      Object receiver = optional(".", token) ? pop() : popForValue();
+      push(send.withReceiver(receiver, token.charOffset));
+    } else {
+      pop();
+      Message message = fasta.templateExpectedIdentifier
+          .withArguments(token.next);
+      push(buildCompileTimeError(message, token.next.charOffset));
+    }
   }
 
   @override

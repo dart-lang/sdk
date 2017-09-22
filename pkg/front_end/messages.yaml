@@ -156,8 +156,7 @@ ExpectedHexDigit:
     }
 
 ExpectedIdentifier:
-  template: "'#lexeme' is a reserved word and can't be used here."
-  tip: "Try using a different name."
+  template: "Expected an identifier, but got '#lexeme'."
   dart2jsCode: EXPECTED_IDENTIFIER
   script: "do() {} main() {}"
 

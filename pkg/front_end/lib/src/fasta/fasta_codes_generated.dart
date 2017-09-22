@@ -883,9 +883,7 @@ const MessageCode messageExpectedHexDigit = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedIdentifier =
     const Template<Message Function(Token token)>(
-        messageTemplate:
-            r"""'#lexeme' is a reserved word and can't be used here.""",
-        tipTemplate: r"""Try using a different name.""",
+        messageTemplate: r"""Expected an identifier, but got '#lexeme'.""",
         withArguments: _withArgumentsExpectedIdentifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -898,8 +896,7 @@ const Code<Message Function(Token token)> codeExpectedIdentifier =
 Message _withArgumentsExpectedIdentifier(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeExpectedIdentifier,
-      message: """'$lexeme' is a reserved word and can't be used here.""",
-      tip: """Try using a different name.""",
+      message: """Expected an identifier, but got '$lexeme'.""",
       arguments: {'token': token});
 }
 
