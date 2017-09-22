@@ -241,7 +241,6 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
           new TestVmFastaTarget(new TargetFlags(strongMode: strongMode)));
-      platformOutline.unbindCanonicalNames();
       dillTarget.loader.appendLibraries(platformOutline);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.

@@ -48,7 +48,6 @@ Future<List<Uri>> getDependencies(Uri script,
     if (platform != null) {
       var bytes = await fileSystem.entityForUri(platform).readAsBytes();
       var platformProgram = loadProgramFromBytes(bytes);
-      platformProgram.unbindCanonicalNames();
       dillTarget.loader.appendLibraries(platformProgram);
     }
     KernelTarget kernelTarget = new KernelTarget(

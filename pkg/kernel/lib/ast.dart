@@ -4826,7 +4826,18 @@ class Program extends TreeNode {
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
         uriToSource = uriToSource ?? <String, Source>{} {
-    setParents(this.libraries, this);
+    if (libraries != null) {
+      for (int i = 0; i < libraries.length; ++i) {
+        // The libraries are owned by this program, and so are their canonical
+        // names if they exist.
+        Library library = libraries[i];
+        library.parent = this;
+        CanonicalName name = library.reference.canonicalName;
+        if (name != null && name.parent != root) {
+          root.adoptChild(name);
+        }
+      }
+    }
   }
 
   void computeCanonicalNames() {

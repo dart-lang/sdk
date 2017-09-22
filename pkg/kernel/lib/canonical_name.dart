@@ -57,7 +57,9 @@ import 'ast.dart';
 /// The "qualified name" allows a member to have a name that is private to
 /// a library other than the one containing that member.
 class CanonicalName {
-  final CanonicalName parent;
+  CanonicalName _parent;
+
+  CanonicalName get parent => _parent;
 
   final String name;
   CanonicalName _nonRootTop;
@@ -70,18 +72,18 @@ class CanonicalName {
   /// Temporary index used during serialization.
   int index = -1;
 
-  CanonicalName._(this.parent, this.name) {
+  CanonicalName._(this._parent, this.name) {
     assert(name != null);
     assert(parent != null);
-    _nonRootTop = parent.isRoot ? this : parent._nonRootTop;
+    _nonRootTop = _parent.isRoot ? this : _parent._nonRootTop;
   }
 
   CanonicalName.root()
-      : parent = null,
+      : _parent = null,
         _nonRootTop = null,
         name = '';
 
-  bool get isRoot => parent == null;
+  bool get isRoot => _parent == null;
   CanonicalName get nonRootTop => _nonRootTop;
 
   Iterable<CanonicalName> get children =>
@@ -112,6 +114,30 @@ class CanonicalName {
 
   CanonicalName getChildFromTypedef(Typedef typedef_) {
     return getChild('@typedefs').getChild(typedef_.name);
+  }
+
+  /// Take ownership of a child canonical name and its subtree.
+  ///
+  /// The child name is removed as a child of its current parent and this name
+  /// becomes the new parent.  Note that this moves the entire subtree rooted at
+  /// the child.
+  ///
+  /// This method can be used to move subtrees within a canonical name tree or
+  /// else move them between trees.  It is safe to call this method if the child
+  /// name is already a child of this name.
+  ///
+  /// The precondition is that this name cannot have a (different) child with
+  /// the same name.
+  void adoptChild(CanonicalName child) {
+    if (child._parent == this) return;
+    if (_children != null && _children.containsKey(child.name)) {
+      throw 'Cannot add a child to $this because this name already has a '
+          'child named ${child.name}';
+    }
+    child._parent.removeChild(child.name);
+    child._parent = this;
+    if (_children == null) _children = <String, CanonicalName>{};
+    _children[child.name] = child;
   }
 
   void removeChild(String name) {
@@ -145,7 +171,7 @@ class CanonicalName {
     }
   }
 
-  String toString() => parent == null ? 'root' : '$parent::$name';
+  String toString() => _parent == null ? 'root' : '$parent::$name';
 
   Reference getReference() {
     return reference ??= (new Reference()..canonicalName = this);
