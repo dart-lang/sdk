@@ -10,20 +10,20 @@ import "package:async_helper/async_helper.dart";
 // If a yield-star completes while the stream is paused, it didn't resume.
 
 main() {
-  asyncStart();
-  var c = new Completer();
-  var s = yieldStream(mkStream());
-  var sub;
-  sub = s.listen((v) {
-    sub.pause();
-    print(v);
-    Timer.run(sub.resume);
-  }, onDone: () {
-    print("DONE");
-    c.complete(null);
+  asyncTest(() {
+    var c = new Completer();
+    var s = yieldStream(mkStream());
+    var sub;
+    sub = s.listen((v) {
+      sub.pause();
+      print(v);
+      Timer.run(sub.resume);
+    }, onDone: () {
+      print("DONE");
+      c.complete(null);
+    });
+    return c.future;
   });
-
-  c.future.whenComplete(asyncEnd);
 }
 
 Stream yieldStream(Stream s) async* {
