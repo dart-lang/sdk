@@ -768,6 +768,15 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
         return;
       }
 
+      if ((pc + 1) < pc) {
+        // It is not uncommon to encounter an invalid pc as we
+        // traverse a stack frame.  Most of these we can tolerate.  If
+        // the pc is so large that adding one to it will cause an
+        // overflow it is invalid and it will cause headaches later
+        // while we are building the profile.  Discard it.
+        return;
+      }
+
       // Move the lower bound up.
       lower_bound_ = reinterpret_cast<uword>(fp);
     }
