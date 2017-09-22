@@ -151,6 +151,10 @@ void _collectEntries(List<Fork> files, EntrySet entriesToMove, {bool isOne}) {
 
   for (var fromDir in isOne ? oneRootDirs : strongRootDirs) {
     for (var path in listFiles(fromDir, extensions: [".status"])) {
+      // Don't copy entries from the special "_parser" status files because
+      // they use an unsupported compiler name.
+      if (path.contains("_parser.status")) continue;
+
       var editable = new EditableStatusFile(path);
 
       var deleteLines = <int>[];
