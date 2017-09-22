@@ -693,6 +693,7 @@ LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 
 [ $compiler == dart2js && $runtime == d8 ]
+Language/Classes/Instance_Methods/Operators/allowed_names_t01: Pass, RuntimeError # Issue 30853
 LibTest/isolate/Isolate/spawn_A03_t01: Pass # co19 issue 77
 LibTest/isolate/Isolate/spawn_A04_t02: RuntimeError # Please triage this failure.
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r587: Please triage this failure
