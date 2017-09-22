@@ -130,6 +130,22 @@ const _Literal literal = const _Literal();
 ///   without invoking the overridden method.
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 
+/// Used to annotate a class that may not be no consumed as an interface.
+///
+/// This is useful because changes that would result in minor version
+/// increments require major version increments when applied to interfaces
+/// so packages may want to prevent consumers from implementing certain
+/// classes in order to protect semantic version guarantees.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with anything other than a class declaration
+/// * a class that has this annotation is used, either directly or
+///   transitively, as an interface (using `implements`)
+///
+/// At this time the analyzer does not enforce this annotation.
+const _NoImplement noImplement = const _NoImplement();
+
 /// Used to annotate a class declaration `C`. Indicates that any type arguments
 /// declared on `C` are to be treated as optional.  Tools such as the analyzer
 /// and linter can use this information to suppress warnings that would
@@ -247,6 +263,10 @@ class _Literal {
 
 class _MustCallSuper {
   const _MustCallSuper();
+}
+
+class _NoImplement {
+  const _NoImplement();
 }
 
 class _OptionalTypeArgs {
