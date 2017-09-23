@@ -33,7 +33,6 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:mockito/mockito.dart' show Mock, when;
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
@@ -52,8 +51,6 @@ main() {
     defineReflectiveTests(DartUriResolverTest);
     // ignore: deprecated_member_use
     defineReflectiveTests(DirectoryBasedDartSdkTest);
-    // ignore: deprecated_member_use
-    defineReflectiveTests(DirectoryBasedSourceContainerTest);
     defineReflectiveTests(ElementLocatorTest);
     defineReflectiveTests(EnumMemberBuilderTest);
     defineReflectiveTests(ErrorReporterTest);
@@ -326,25 +323,6 @@ class DirectoryBasedDartSdkTest {
         reason:
             "No SDK configured; set the property 'com.google.dart.sdk' on the command line");
     return new DirectoryBasedDartSdk(sdkDirectory);
-  }
-}
-
-@deprecated
-@reflectiveTest
-class DirectoryBasedSourceContainerTest {
-  void test_contains() {
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-    File file1 = resourceProvider.getFile('/does/not/exist/some.dart');
-    File file2 = resourceProvider.getFile('/does/not/exist/folder/some2.dart');
-    File file3 = resourceProvider.getFile('/does/not/exist3/some3.dart');
-    Source source1 = new FileSource(file1);
-    Source source2 = new FileSource(file2);
-    Source source3 = new FileSource(file3);
-    DirectoryBasedSourceContainer container =
-        new DirectoryBasedSourceContainer.con2('/does/not/exist');
-    expect(container.contains(source1), isTrue);
-    expect(container.contains(source2), isTrue);
-    expect(container.contains(source3), isFalse);
   }
 }
 
