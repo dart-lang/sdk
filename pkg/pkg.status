@@ -114,7 +114,6 @@ analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
 analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
-analyzer/test/generated/source_factory_test: RuntimeError # Issue 26828
 kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28243
 kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
 analyzer/tool/task_dependency_graph/check_test: Slow, Pass
