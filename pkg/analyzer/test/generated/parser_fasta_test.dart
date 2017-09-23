@@ -1054,14 +1054,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_getterWithParameters() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.GETTER_WITH_PARAMETERS, found 0
-    super.test_getterWithParameters();
-  }
-
-  @override
-  @failingTest
   void test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, found 0

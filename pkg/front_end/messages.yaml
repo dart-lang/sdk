@@ -481,6 +481,7 @@ NoFormals:
 GetterWithFormals:
   template: "A getter can't have formal parameters."
   tip: "Try removing '(...)'."
+  analyzerCode: GETTER_WITH_PARAMETERS
   dart2jsCode: "*ignored*"
 
 CatchSyntax:

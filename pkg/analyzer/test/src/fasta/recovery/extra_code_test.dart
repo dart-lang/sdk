@@ -28,6 +28,14 @@ class B = Object with A {}
 class B = Object with A;
 ''');
   }
+
+  void test_getter_parameters() {
+    testRecovery('''
+int get g() => 0;
+''', [ParserErrorCode.GETTER_WITH_PARAMETERS], '''
+int get g => 0;
+''');
+  }
 }
 
 /**

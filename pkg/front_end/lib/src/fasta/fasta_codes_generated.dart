@@ -1316,6 +1316,7 @@ const Code<Null> codeGetterWithFormals = messageGetterWithFormals;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageGetterWithFormals = const MessageCode(
     "GetterWithFormals",
+    analyzerCode: "GETTER_WITH_PARAMETERS",
     dart2jsCode: "*ignored*",
     message: r"""A getter can't have formal parameters.""",
     tip: r"""Try removing '(...)'.""");

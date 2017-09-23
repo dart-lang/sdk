@@ -9,7 +9,13 @@ import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:front_end/src/fasta/parser.dart'
-    show Assert, FormalParameterKind, IdentifierContext, MemberKind, Parser;
+    show
+        Assert,
+        FormalParameterKind,
+        IdentifierContext,
+        MemberKind,
+        optional,
+        Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 
@@ -1152,18 +1158,20 @@ class AstBuilder extends ScopeListener {
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
-    Token propertyKeyword = getOrSet;
     TypeAnnotation returnType = pop();
     _Modifiers modifiers = pop();
     Token externalKeyword = modifiers?.externalKeyword;
     List<Annotation> metadata = pop();
     Comment comment = pop();
+    if (getOrSet != null && optional('get', getOrSet)) {
+      parameters = null;
+    }
     declarations.add(ast.functionDeclaration(
         comment,
         metadata,
         externalKeyword,
         returnType,
-        propertyKeyword,
+        getOrSet,
         name,
         ast.functionExpression(typeParameters, parameters, body)));
   }
@@ -2002,6 +2010,13 @@ class AstBuilder extends ScopeListener {
         String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(ParserErrorCode.EXTRANEOUS_MODIFIER,
             charOffset, text.length, [text]);
+        return;
+      case "GETTER_WITH_PARAMETERS":
+        // TODO(brianwilkerson) This should highlight either the parameter list
+        // or the name of the getter, but I don't know how to compute the length
+        // of the region.
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.GETTER_WITH_PARAMETERS, charOffset, 1);
         return;
       case "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
         errorReporter?.reportErrorForOffset(
