@@ -355,6 +355,9 @@ mixin_super_constructor_named_test/01: MissingCompileTimeError # KernelVM bug: I
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
+not_enough_positional_arguments_test/01: MissingCompileTimeError
+not_enough_positional_arguments_test/02: MissingCompileTimeError
+not_enough_positional_arguments_test/05: MissingCompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM

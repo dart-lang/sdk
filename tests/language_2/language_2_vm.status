@@ -262,6 +262,10 @@ named_parameters_test/10: MissingCompileTimeError
 named_parameters_type_test/01: MissingCompileTimeError
 named_parameters_type_test/02: MissingCompileTimeError
 named_parameters_type_test/03: MissingCompileTimeError
+not_enough_positional_arguments_test/00: MissingCompileTimeError
+not_enough_positional_arguments_test/03: MissingCompileTimeError
+not_enough_positional_arguments_test/06: MissingCompileTimeError
+not_enough_positional_arguments_test/07: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError

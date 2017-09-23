@@ -175,13 +175,13 @@ void test() {
 
   InstanceMirror im1 = reflect(null);
   Expect.equals(cm, im1.type);
-  Expect.isTrue(im1.invoke(const Symbol("=="), [null]).reflectee);
-  Expect.isFalse(im1.invoke(const Symbol("=="), [42]).reflectee);
+  Expect.isTrue(im1.invoke(const Symbol("=="), [null]).reflectee);//# mirrors: ok
+  Expect.isFalse(im1.invoke(const Symbol("=="), [42]).reflectee); //# mirrors: ok
 
   InstanceMirror im2 = reflect(obj);
   Expect.equals(cm, im2.type);
-  Expect.isTrue(im2.invoke(const Symbol("=="), [null]).reflectee);
-  Expect.isFalse(im2.invoke(const Symbol("=="), [42]).reflectee);
+  Expect.isTrue(im2.invoke(const Symbol("=="), [null]).reflectee);//# mirrors: ok
+  Expect.isFalse(im2.invoke(const Symbol("=="), [42]).reflectee); //# mirrors: ok
 
   // Method/value extraction. The runtimeType was checked above, and operator==
   // cannot be extracted.
@@ -196,8 +196,8 @@ void test() {
 
   Expect.throws(() => obj.notDeclared());
   var noSuchMethod = null.noSuchMethod;
-  // Assign to "var" to prevent warning.
-  var capture = new CaptureInvocationMirror();
+  // Assign to "dynamic" to prevent compile-time error.
+  dynamic capture = new CaptureInvocationMirror();
   var mirror = capture.notDeclared();
   Expect.throws(() => noSuchMethod(mirror));
   Expect.throws(() => Function.apply(noSuchMethod, [mirror]));

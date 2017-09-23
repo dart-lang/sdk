@@ -516,6 +516,9 @@ initializing_formal_final_test: RuntimeError # Issue 27394
 inline_super_field_test: Crash # Issue 27394
 instance_creation_in_function_annotation_test: Crash # Issue 27394
 invocation_mirror_test: Crash # Issue 27394
+is_malformed_type_test/94: Crash # Issue 27394
+is_malformed_type_test/96: Crash # Issue 27394
+is_malformed_type_test/98: Crash # Issue 27394
 issue21079_test: Crash # Issue 27394
 issue9602_test: Crash # Issue 27394
 issue_25671a_test/01: Crash # Issue 27394
@@ -537,18 +540,10 @@ mixin_type_variable_test/07: Crash # Issue 27394
 mixin_type_variable_test/08: Crash # Issue 27394
 mixin_typedef_constructor_test: Crash # Issue 27394
 named_parameters_aggregated_test/05: RuntimeError # Issue 27394
+null_test/none: Crash # Issue 27394
 static_setter_get_test/01: Crash # Issue 27394
 static_top_level_test/00: Crash # Issue 27394
 static_top_level_test/04: Crash # Issue 27394
-is_malformed_type_test/94: Crash # Issue 27394
-is_malformed_type_test/96: Crash # Issue 27394
-is_malformed_type_test/98: Crash # Issue 27394
-is_malformed_type_test/94: Crash # Issue 27394
-is_malformed_type_test/96: Crash # Issue 27394
-is_malformed_type_test/98: Crash # Issue 27394
-is_malformed_type_test/94: Crash # Issue 27394
-is_malformed_type_test/96: Crash # Issue 27394
-is_malformed_type_test/98: Crash # Issue 27394
 
 [ $compiler == dart2js && !$checked ]
 function_subtype_inline2_test: RuntimeError
@@ -879,6 +874,9 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_with_conversions_test: RuntimeError
+null_test/02: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
+null_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
+null_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
 typevariable_substitution2_test/02: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
@@ -1111,6 +1109,9 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_with_conversions_test: RuntimeError
+null_test/02: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+null_test/03: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+null_test/none: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
@@ -1207,6 +1208,8 @@ deferred_constraints_constants_test: Pass # mirrors not supported, passes for th
 invocation_mirror2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on_test: Fail # mirrors not supported
+null_test/0*: Pass # mirrors not supported, fails for the wrong reason
+null_test/none: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
@@ -1254,3 +1257,10 @@ modulo_test: RuntimeError # Issue 15246
 
 [ $compiler == dart2js && $runtime == chrome ]
 enum_mirror_test: pass
+
+[ $compiler == dart2js && $runtime != none ]
+not_enough_positional_arguments_test/00: MissingCompileTimeError
+not_enough_positional_arguments_test/03: MissingCompileTimeError
+not_enough_positional_arguments_test/06: MissingCompileTimeError
+not_enough_positional_arguments_test/07: MissingCompileTimeError
+null_test/mirrors: Skip # Uses mirrors.

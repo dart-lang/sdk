@@ -218,8 +218,6 @@ multiline_newline_test: Skip # Not yet supported.
 named_constructor_test: Skip # Not yet supported.
 named_parameters_aggregated_test: Skip # Not yet supported.
 named_parameters_default_eq_test: Skip # Not yet supported.
-null_is_test: Skip # Not yet supported.
-null_test: Skip # Not yet supported.
 number_identifier_test: Skip # Not yet supported.
 override_field_test: Skip # Not yet supported.
 override_inheritance_mixed_test: Skip # Not yet supported.

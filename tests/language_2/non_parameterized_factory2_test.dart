@@ -7,12 +7,12 @@ abstract class Interface<T> {
   factory Interface.withArg(T value) = Factory<T>.withArg;
 }
 
-class Factory<T> {
+class Factory<T> implements Interface<T> {
   factory Factory() {
     return null;
   }
 
-  factory Factory.withArg(value) {
+  factory Factory.withArg(T value) {
     return null;
   }
 }

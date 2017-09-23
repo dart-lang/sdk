@@ -183,5 +183,6 @@ label_test: RuntimeError # Issue 30675
 modulo_test: RuntimeError # Issue 29920
 named_parameter_clash_test: RuntimeError # Issue 29920
 named_parameters_default_eq_test/none: RuntimeError
+null_test/mirrors: RuntimeError # Uses mirrors.
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out
