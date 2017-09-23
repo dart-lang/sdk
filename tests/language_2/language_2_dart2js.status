@@ -1264,3 +1264,8 @@ not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
 null_test/mirrors: Skip # Uses mirrors.
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $minified ]
+not_enough_positional_arguments_test/01: MissingCompileTimeError
+not_enough_positional_arguments_test/02: MissingCompileTimeError
+not_enough_positional_arguments_test/05: MissingCompileTimeError
