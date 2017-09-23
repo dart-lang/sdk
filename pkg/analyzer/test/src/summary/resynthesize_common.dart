@@ -2852,6 +2852,7 @@ const dynamic V = const
   }
 
   test_const_invokeConstructor_named_unresolved() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 class C {}
 const V = const C.named();
@@ -2860,45 +2861,35 @@ const V = const C.named();
       checkElementText(library, r'''
 class C {
 }
-const dynamic V;
+const dynamic V = #invalidConst;
 ''');
     } else if (isStrongMode) {
       checkElementText(library, r'''
 class C {
 }
-const C V = const
-        C/*location: test.dart;C*/.
-        named/*location: null*/();
+const C V = #invalidConst;
 ''');
     } else {
       checkElementText(library, r'''
 class C {
 }
-const dynamic V = const
-        C/*location: test.dart;C*/.
-        named/*location: null*/();
+const dynamic V = #invalidConst;
 ''');
     }
   }
 
   test_const_invokeConstructor_named_unresolved2() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const V = const C.named();
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-const dynamic V;
+    checkElementText(library, r'''
+const dynamic V = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic V = const
-        C/*location: null*/.
-        named/*location: null*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_named_unresolved3() async {
+    shouldCompareLibraryElements = false;
     addLibrarySource('/a.dart', r'''
 class C {
 }
@@ -2910,68 +2901,46 @@ const V = const p.C.named();
     if (isSharedFrontEnd) {
       checkElementText(library, r'''
 import 'a.dart' as p;
-const dynamic V;
+const dynamic V = #invalidConst;
 ''');
     } else if (isStrongMode) {
       checkElementText(library, r'''
 import 'a.dart' as p;
-const C V = const
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/.
-        named/*location: null*/();
+const C V = #invalidConst;
 ''');
     } else {
       checkElementText(library, r'''
 import 'a.dart' as p;
-const dynamic V = const
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/.
-        named/*location: null*/();
+const dynamic V = #invalidConst;
 ''');
     }
   }
 
   test_const_invokeConstructor_named_unresolved4() async {
+    shouldCompareLibraryElements = false;
     addLibrarySource('/a.dart', '');
     var library = await checkLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
-const dynamic V;
+const dynamic V = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V = const
-        p/*location: test.dart;p*/.
-        C/*location: null*/.
-        named/*location: null*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_named_unresolved5() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const V = const p.C.named();
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-const dynamic V;
+    checkElementText(library, r'''
+const dynamic V = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic V = const
-        p/*location: null*/.
-        C/*location: null*/.
-        named/*location: null*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_named_unresolved6() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 class C<T> {}
 const V = const C.named();
@@ -2980,23 +2949,19 @@ const V = const C.named();
       checkElementText(library, r'''
 class C<T> {
 }
-const dynamic V;
+const dynamic V = #invalidConst;
 ''');
     } else if (isStrongMode) {
       checkElementText(library, r'''
 class C<T> {
 }
-const C<dynamic> V = const
-        C/*location: test.dart;C*/.
-        named/*location: null*/();
+const C<dynamic> V = #invalidConst;
 ''');
     } else {
       checkElementText(library, r'''
 class C<T> {
 }
-const dynamic V = const
-        C/*location: test.dart;C*/.
-        named/*location: null*/();
+const dynamic V = #invalidConst;
 ''');
     }
   }
@@ -3078,19 +3043,13 @@ const dynamic V = const
   }
 
   test_const_invokeConstructor_unnamed_unresolved() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const V = const C();
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-const dynamic V;
+    checkElementText(library, r'''
+const dynamic V = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic V = const
-        C/*location: null*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_unnamed_unresolved2() async {
@@ -3100,36 +3059,20 @@ const dynamic V = const
 import 'a.dart' as p;
 const V = const p.C();
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
-const dynamic V;
+const dynamic V = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V = const
-        p/*location: test.dart;p*/.
-        C/*location: null*/();
-''');
-    }
   }
 
   test_const_invokeConstructor_unnamed_unresolved3() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const V = const p.C();
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-const dynamic V;
+    checkElementText(library, r'''
+const dynamic V = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic V = const
-        p/*location: null*/.
-        C/*location: null*/();
-''');
-    }
   }
 
   test_const_length_ofClassConstField() async {
@@ -3204,17 +3147,10 @@ const int v =
 const v = 'abc'.length;
 ''');
     if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
+      checkElementText(library, r'''
 const int v = 'abc'.
         length/*location: dart:core;String;length?*/;
 ''');
-      } else {
-        checkElementText(library, r'''
-const int v = 'abc'.
-        length/*location: dart:core;String;length?*/;
-''');
-      }
     } else {
       checkElementText(library, r'''
 const dynamic v = 'abc'.
@@ -3229,21 +3165,12 @@ const String S = 'abc';
 const v = S.length;
 ''');
     if (isStrongMode) {
-      if (isSharedFrontEnd) {
-        checkElementText(library, r'''
+      checkElementText(library, r'''
 const String S = 'abc';
 const int v =
         S/*location: test.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
-      } else {
-        checkElementText(library, r'''
-const String S = 'abc';
-const int v =
-        S/*location: test.dart;S?*/.
-        length/*location: dart:core;String;length?*/;
-''');
-      }
     } else {
       checkElementText(library, r'''
 const String S = 'abc';
@@ -3981,44 +3908,30 @@ class C<T> {
   }
 
   test_const_reference_unresolved_prefix0() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const V = foo;
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-const dynamic V;
+    checkElementText(library, r'''
+const dynamic V = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic V =
-        foo/*location: null*/;
-''');
-    }
   }
 
   test_const_reference_unresolved_prefix1() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 class C {}
 const V = C.foo;
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
 }
-const dynamic V;
+const dynamic V = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-}
-const dynamic V =
-        C/*location: test.dart;C*/.
-        foo/*location: null*/;
-''');
-    }
   }
 
   test_const_reference_unresolved_prefix2() async {
+    shouldCompareLibraryElements = false;
     addLibrarySource('/foo.dart', '''
 class C {}
 ''');
@@ -4026,20 +3939,10 @@ class C {}
 import 'foo.dart' as p;
 const V = p.C.foo;
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'foo.dart' as p;
-const dynamic V;
+const dynamic V = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'foo.dart' as p;
-const dynamic V =
-        p/*location: test.dart;p*/.
-        C/*location: foo.dart;C*/.
-        foo/*location: null*/;
-''');
-    }
   }
 
   test_const_topLevel_binary() async {
@@ -4243,33 +4146,23 @@ const dynamic vComplement = ~1;
   }
 
   test_const_topLevel_super() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const vSuper = super;
 ''');
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-const dynamic vSuper;
+    checkElementText(library, r'''
+const dynamic vSuper = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic vSuper = super;
-''');
-    }
   }
 
   test_const_topLevel_this() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const vThis = this;
 ''');
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
-const dynamic vThis;
+    checkElementText(library, r'''
+const dynamic vThis = #invalidConst;
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic vThis = this;
-''');
-    }
   }
 
   test_const_topLevel_typedList() async {
@@ -6549,8 +6442,7 @@ Future<dynamic> f;
 import '';
 ''');
     checkElementText(library, r'''
-@
-        foo/*location: null*/
+@#invalidConst
 import '<unresolved>';
 ''');
   }
@@ -7346,6 +7238,7 @@ class C {
   }
 
   test_invalid_nameConflict_imported() async {
+    shouldCompareLibraryElements = false;
     namesThatCannotBeResolved.add('V');
     addLibrarySource('/a.dart', 'V() {}');
     addLibrarySource('/b.dart', 'V() {}');
@@ -7357,12 +7250,12 @@ foo([p = V]) {}
     checkElementText(library, r'''
 import 'a.dart';
 import 'b.dart';
-dynamic foo([dynamic p =
-        V/*location: null*/]) {}
+dynamic foo([dynamic p = #invalidConst]) {}
 ''');
   }
 
   test_invalid_nameConflict_imported_exported() async {
+    shouldCompareLibraryElements = false;
     namesThatCannotBeResolved.add('V');
     addLibrarySource('/a.dart', 'V() {}');
     addLibrarySource('/b.dart', 'V() {}');
@@ -7376,12 +7269,12 @@ foo([p = V]) {}
 ''');
     checkElementText(library, r'''
 import 'c.dart';
-dynamic foo([dynamic p =
-        V/*location: null*/]) {}
+dynamic foo([dynamic p = #invalidConst]) {}
 ''');
   }
 
   test_invalid_nameConflict_local() async {
+    shouldCompareLibraryElements = false;
     namesThatCannotBeResolved.add('V');
     var library = await checkLibrary('''
 foo([p = V]) {}
@@ -7390,8 +7283,7 @@ var V;
 ''');
     checkElementText(library, r'''
 dynamic V;
-dynamic foo([dynamic p =
-        V/*location: null*/]) {}
+dynamic foo([dynamic p = #invalidConst]) {}
 dynamic V() {}
 ''');
   }
@@ -9692,6 +9584,7 @@ class C {
   }
 
   test_unresolved_annotation_instanceCreation_argument_this() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary('''
 class A {
   const A(_);
@@ -9704,146 +9597,133 @@ class C {}
 class A {
   const A(dynamic _);
 }
-@
-        A/*location: test.dart;A*/(this)
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() async {
+    shouldCompareLibraryElements = false;
     var library =
         await checkLibrary('@foo.bar() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/.
-        bar/*location: null*/()
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_namedConstructorCall_noConstructor() async {
+    shouldCompareLibraryElements = false;
     var library =
         await checkLibrary('@String.foo() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        String/*location: dart:core;String*/.
-        foo/*location: null*/()
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo.bar class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/.
-        bar/*location: null*/
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(
         'import "dart:async" as foo; @foo.bar class C {}',
         allowErrors: true);
     checkElementText(library, r'''
 import 'dart:async' as foo;
-@
-        foo/*location: test.dart;foo*/.
-        bar/*location: null*/
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() async {
+    shouldCompareLibraryElements = false;
     var library =
         await checkLibrary('@foo.bar.baz() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/.
-        bar/*location: null*/.
-        baz/*location: null*/()
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(
         'import "dart:async" as foo; @foo.bar.baz() class C {}',
         allowErrors: true);
     checkElementText(library, r'''
 import 'dart:async' as foo;
-@
-        foo/*location: test.dart;foo*/.
-        bar/*location: null*/.
-        baz/*location: null*/()
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(
         'import "dart:async" as foo; @foo.Future.bar() class C {}',
         allowErrors: true);
     checkElementText(library, r'''
 import 'dart:async' as foo;
-@
-        foo/*location: test.dart;foo*/.
-        Future/*location: dart:async;Future*/.
-        bar/*location: null*/()
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() async {
+    shouldCompareLibraryElements = false;
     var library =
         await checkLibrary('@foo.bar() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/.
-        bar/*location: null*/()
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(
         'import "dart:async" as foo; @foo.bar() class C {}',
         allowErrors: true);
     checkElementText(library, r'''
 import 'dart:async' as foo;
-@
-        foo/*location: test.dart;foo*/.
-        bar/*location: null*/()
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_simpleIdentifier() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/
+@#invalidConst
 class C {
 }
 ''');
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/()
+@#invalidConst
 class C {
 }
 ''');

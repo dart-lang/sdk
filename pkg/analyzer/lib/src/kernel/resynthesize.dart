@@ -362,6 +362,12 @@ class _ExprBuilder {
       return identifier;
     }
 
+    // Invalid annotations are represented as Let.
+    if (expr is kernel.Let &&
+        expr.variable.initializer is kernel.ShadowSyntheticExpression) {
+      expr = (expr as kernel.Let).variable.initializer;
+    }
+
     // Synthetic expression representing a constant error.
     if (expr is kernel.ShadowSyntheticExpression) {
       var desugared = expr.desugared;
@@ -371,7 +377,7 @@ class _ExprBuilder {
           if (receiver is kernel.ConstructorInvocation &&
               receiver.target.enclosingClass.name ==
                   '_ConstantExpressionError') {
-            return null;
+            return AstTestFactory.identifier3('#invalidConst');
           }
         }
       }
