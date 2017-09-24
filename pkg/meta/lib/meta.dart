@@ -130,7 +130,7 @@ const _Literal literal = const _Literal();
 ///   without invoking the overridden method.
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 
-/// Used to annotate a class that may not be no consumed as an interface.
+/// Used to annotate a class that may not be consumed as an interface.
 ///
 /// This is useful because changes that would result in minor version
 /// increments require major version increments when applied to interfaces
