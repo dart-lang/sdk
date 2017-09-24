@@ -56,25 +56,25 @@ class StaticTypeWarningCodeTest_Kernel
   }
 
   @override
-  @failingTest
+  @assertFailingTest
   test_wrongNumberOfTypeArguments_tooFew() async {
     return super.test_wrongNumberOfTypeArguments_tooFew();
   }
 
   @override
-  @failingTest
+  @assertFailingTest
   test_wrongNumberOfTypeArguments_tooMany() async {
     return super.test_wrongNumberOfTypeArguments_tooMany();
   }
 
   @override
-  @failingTest
+  @assertFailingTest
   test_wrongNumberOfTypeArguments_typeTest_tooFew() async {
     return super.test_wrongNumberOfTypeArguments_typeTest_tooFew();
   }
 
   @override
-  @failingTest
+  @assertFailingTest
   test_wrongNumberOfTypeArguments_typeTest_tooMany() async {
     return super.test_wrongNumberOfTypeArguments_typeTest_tooMany();
   }
