@@ -46,14 +46,14 @@ class KernelResynthesizer implements ElementResynthesizer {
   AnalysisContext get context => _analysisContext;
 
   /**
-   * Return the `Type` type.
-   */
-  DartType get typeType => getLibrary('dart:core').getType('Type').type;
-
-  /**
    * Return `true` if strong mode analysis should be used.
    */
   bool get strongMode => _analysisContext.analysisOptions.strongMode;
+
+  /**
+   * Return the `Type` type.
+   */
+  DartType get typeType => getLibrary('dart:core').getType('Type').type;
 
   @override
   Element getElement(ElementLocation location) {
@@ -116,51 +116,40 @@ class KernelResynthesizer implements ElementResynthesizer {
    */
   ElementImpl _getElement(kernel.CanonicalName name) {
     if (name == null) return null;
-    kernel.CanonicalName parentName = name.parent;
 
-    // If the parent is the root, then this name is a library.
-    if (parentName.isRoot) {
-      return getLibrary(name.name);
+    var components = new List<String>(5);
+    var componentPtr = 0;
+    for (var namePart = name;
+        namePart != null && !namePart.isRoot;
+        namePart = namePart.parent) {
+      components[componentPtr++] = namePart.name;
     }
 
-    // If the name is private, it is prefixed with a library URI.
-    if (name.name.startsWith('_')) {
-      parentName = parentName.parent;
+    String libraryUri = components[--componentPtr];
+    String topKindOrClassName = components[--componentPtr];
+
+    LibraryElementImpl library = getLibrary(libraryUri);
+    if (library == null) return null;
+
+    String takeElementName() {
+      String publicNameOrLibraryUri = components[--componentPtr];
+      if (publicNameOrLibraryUri == libraryUri) {
+        return components[--componentPtr];
+      } else {
+        return publicNameOrLibraryUri;
+      }
     }
 
-    // Skip qualifiers.
-    bool isGetter = false;
-    bool isSetter = false;
-    bool isField = false;
-    bool isConstructor = false;
-    bool isMethod = false;
-    if (parentName.name == '@getters') {
-      isGetter = true;
-      parentName = parentName.parent;
-    } else if (parentName.name == '@setters') {
-      isSetter = true;
-      parentName = parentName.parent;
-    } else if (parentName.name == '@fields') {
-      isField = true;
-      parentName = parentName.parent;
-    } else if (parentName.name == '@constructors') {
-      isConstructor = true;
-      parentName = parentName.parent;
-    } else if (parentName.name == '@methods') {
-      isMethod = true;
-      parentName = parentName.parent;
-    } else if (parentName.name == '@typedefs') {
-      parentName = parentName.parent;
-    }
-
-    ElementImpl parentElement = _getElement(parentName);
-    if (parentElement == null) return null;
-
-    // Search in units of the library.
-    if (parentElement is LibraryElementImpl) {
-      for (CompilationUnitElement unit in parentElement.units) {
+    // Top-level element other than class.
+    if (topKindOrClassName == '@fields' ||
+        topKindOrClassName == '@methods' ||
+        topKindOrClassName == '@getters' ||
+        topKindOrClassName == '@setters' ||
+        topKindOrClassName == '@typedefs') {
+      String elementName = takeElementName();
+      for (CompilationUnitElement unit in library.units) {
         CompilationUnitElementImpl unitImpl = unit;
-        ElementImpl child = unitImpl.getChild(name.name);
+        ElementImpl child = unitImpl.getChild(elementName);
         if (child != null) {
           return child;
         }
@@ -168,27 +157,34 @@ class KernelResynthesizer implements ElementResynthesizer {
       return null;
     }
 
-    // Search in the class.
-    if (parentElement is AbstractClassElementImpl) {
-      if (isGetter) {
-        return parentElement.getGetter(name.name) as ElementImpl;
-      } else if (isSetter) {
-        return parentElement.getSetter(name.name) as ElementImpl;
-      } else if (isField) {
-        return parentElement.getField(name.name) as ElementImpl;
-      } else if (isConstructor) {
-        if (name.name.isEmpty) {
-          return parentElement.unnamedConstructor as ConstructorElementImpl;
-        }
-        return parentElement.getNamedConstructor(name.name) as ElementImpl;
-      } else if (isMethod) {
-        return parentElement.getMethod(name.name) as ElementImpl;
+    AbstractClassElementImpl classElement;
+    for (CompilationUnitElement unit in library.units) {
+      CompilationUnitElementImpl unitImpl = unit;
+      classElement = unitImpl.getChild(topKindOrClassName);
+      if (classElement != null) {
+        break;
       }
-      return null;
     }
+    if (classElement == null) return null;
 
-    throw new UnimplementedError(
-        'Internal error: ${parentElement.runtimeType} unexpected.');
+    String kind = components[--componentPtr];
+    String elementName = takeElementName();
+    if (kind == '@methods') {
+      return classElement.getMethod(elementName) as ElementImpl;
+    } else if (kind == '@getters') {
+      return classElement.getGetter(elementName) as ElementImpl;
+    } else if (kind == '@setters') {
+      return classElement.getSetter(elementName) as ElementImpl;
+    } else if (kind == '@fields') {
+      return classElement.getField(elementName) as ElementImpl;
+    } else if (kind == '@constructors') {
+      if (elementName.isEmpty) {
+        return classElement.unnamedConstructor as ElementImpl;
+      }
+      return classElement.getNamedConstructor(elementName) as ElementImpl;
+    } else {
+      throw new UnimplementedError('Internal error: $kind unexpected.');
+    }
   }
 
   /**

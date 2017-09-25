@@ -19,12 +19,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_argument_label() async {
-    return super.test_async_used_as_identifier_in_argument_label();
-  }
-
-  @override
-  @failingTest
   test_async_used_as_identifier_in_for_statement() async {
     return super.test_async_used_as_identifier_in_for_statement();
   }
