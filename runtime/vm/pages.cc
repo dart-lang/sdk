@@ -169,6 +169,12 @@ void HeapPage::WriteProtect(bool read_only) {
   ASSERT(status);
 }
 
+// The initial estimate of how many words we can mark per microsecond (usage
+// before / mark-sweep time). This is a conservative value observed running
+// Flutter on a Nexus 4. After the first mark-sweep, we instead use a value
+// based on the device's actual speed.
+static const intptr_t kConservativeInitialMarkSweepSpeed = 20;
+
 PageSpace::PageSpace(Heap* heap,
                      intptr_t max_capacity_in_words,
                      intptr_t max_external_in_words)
@@ -194,7 +200,8 @@ PageSpace::PageSpace(Heap* heap,
                              FLAG_old_gen_growth_rate,
                              FLAG_old_gen_growth_time_ratio),
       gc_time_micros_(0),
-      collections_(0) {
+      collections_(0),
+      mark_sweep_words_per_micro_(kConservativeInitialMarkSweepSpeed) {
   // We aren't holding the lock but no one can reference us yet.
   UpdateMaxCapacityLocked();
   UpdateMaxUsed();
@@ -818,6 +825,31 @@ void PageSpace::WriteProtectCode(bool read_only) {
   }
 }
 
+bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
+  // To make a consistent decision, we should not yeild for a safepoint in the
+  // middle of deciding whether to perform an idle GC.
+  NoSafepointScope no_safepoint;
+
+  if (!page_space_controller_.NeedsIdleGarbageCollection(usage_)) {
+    return false;
+  }
+
+  {
+    MonitorLocker locker(tasks_lock());
+    if (tasks() > 0) {
+      // A concurrent sweeper is running. If we start a mark sweep now
+      // we'll have to wait for it, and this wait time is not included in
+      // mark_sweep_words_per_micro_.
+      return false;
+    }
+  }
+
+  int64_t estimated_mark_completion =
+      OS::GetCurrentMonotonicMicros() +
+      UsedInWords() / mark_sweep_words_per_micro_;
+  return estimated_mark_completion <= deadline;
+}
+
 void PageSpace::MarkSweep() {
   Thread* thread = Thread::Current();
   Isolate* isolate = heap_->isolate();
@@ -973,6 +1005,16 @@ void PageSpace::MarkSweep() {
     // Record signals for growth control. Include size of external allocations.
     page_space_controller_.EvaluateGarbageCollection(
         usage_before, GetCurrentUsage(), start, end);
+
+    int64_t mark_sweep_micros = end - start;
+    if (mark_sweep_micros == 0) {
+      mark_sweep_micros = 1;
+    }
+    mark_sweep_words_per_micro_ =
+        usage_before.used_in_words / mark_sweep_micros;
+    if (mark_sweep_words_per_micro_ == 0) {
+      mark_sweep_words_per_micro_ = 1;
+    }
 
     heap_->RecordTime(kConcurrentSweep, pre_safe_point - pre_wait_for_sweepers);
     heap_->RecordTime(kSafePoint, start - pre_safe_point);
@@ -1131,7 +1173,9 @@ PageSpaceController::PageSpaceController(Heap* heap,
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
-      last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()) {}
+      last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()),
+      idle_gc_threshold_in_words_(grow_heap_ / 2 *
+                                  PageSpace::kPageSizeInWords) {}
 
 PageSpaceController::~PageSpaceController() {}
 
@@ -1159,7 +1203,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
     double seconds_since_init =
         MicrosecondsToSeconds(heap_->isolate()->UptimeMicros());
     if (seconds_since_init > kInitialTimeoutSeconds) {
-      multiplier *= seconds_since_init / kInitialTimeoutSeconds;
+      multiplier *= (seconds_since_init / kInitialTimeoutSeconds);
     }
   }
   bool needs_gc = capacity_increase_in_pages * multiplier > grow_heap_;
@@ -1168,6 +1212,29 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
                  needs_gc ? "NEEDS GC" : "grow", capacity_increase_in_pages,
                  multiplier, needs_gc ? ">" : "<=", grow_heap_);
   }
+  return needs_gc;
+}
+
+bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
+  if (!is_enabled_) {
+    return false;
+  }
+  if (heap_growth_ratio_ == 100) {
+    return false;
+  }
+  double multiplier = 1.0;
+  // To avoid waste, the first GC should be triggered before too long. After
+  // kInitialTimeoutSeconds, gradually lower the capacity limit.
+  static const double kInitialTimeoutSeconds = 1.00;
+  if (history_.IsEmpty()) {
+    double seconds_since_init =
+        MicrosecondsToSeconds(heap_->isolate()->UptimeMicros());
+    if (seconds_since_init > kInitialTimeoutSeconds) {
+      multiplier *= (seconds_since_init / kInitialTimeoutSeconds);
+    }
+  }
+  bool needs_gc =
+      current.used_in_words * multiplier > idle_gc_threshold_in_words_;
   return needs_gc;
 }
 
@@ -1254,6 +1321,13 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   grow_heap_ = Utils::Maximum(grow_heap_, freed_pages / 2);
   heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap_);
   last_usage_ = after;
+
+  // Set the idle threshold halfway between the current size and the capacity
+  // at which we'd block for a GC.
+  intptr_t gc_threshold_in_words =
+      after.capacity_in_words + (PageSpace::kPageSizeInWords * grow_heap_);
+  idle_gc_threshold_in_words_ =
+      (after.used_in_words + gc_threshold_in_words) / 2;
 }
 
 void PageSpaceGarbageCollectionHistory::AddGarbageCollectionTime(int64_t start,

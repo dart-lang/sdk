@@ -361,10 +361,17 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 #endif
 
 void Heap::NotifyIdle(int64_t deadline) {
+  Thread* thread = Thread::Current();
   if (new_space_.ShouldPerformIdleScavenge(deadline)) {
-    Thread* thread = Thread::Current();
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectNewSpaceGarbage(thread, kIdle);
+  }
+  // Because we use a deadline instead of a timeout, we automatically take any
+  // time used up by a scavenge into account when deciding if we can complete
+  // a mark-sweep on time.
+  if (old_space_.ShouldPerformIdleMarkSweep(deadline)) {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
+    CollectOldSpaceGarbage(thread, kIdle);
   }
 }
 
