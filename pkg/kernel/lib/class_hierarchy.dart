@@ -98,6 +98,13 @@ abstract class ClassHierarchy {
   /// Also see [getInterfaceMember].
   List<Member> getInterfaceMembers(Class class_, {bool setters: false});
 
+  /// Returns the list of members declared in [class_], including abstract
+  /// members.
+  ///
+  /// Members are sorted by name so that they may be efficiently compared across
+  /// classes.
+  List<Member> getDeclaredMembers(Class class_, {bool setters: false});
+
   /// Invokes [callback] for every member declared in or inherited by [class_]
   /// that overrides or implements a member in a supertype of [class_]
   /// (or in rare cases, overrides a member declared in [class_]).
@@ -155,6 +162,68 @@ abstract class ClassHierarchy {
   /// valid anymore. The hierarchy may perform required updates and return the
   /// same instance, or return a new instance.
   ClassHierarchy applyChanges(Iterable<Class> classes);
+
+  /// Compares members by name, using the same sort order as
+  /// [getDeclaredMembers] and [getInterfaceMembers].
+  static int compareMembers(Member first, Member second) {
+    return _compareNames(first.name, second.name);
+  }
+
+  /// Compares names, using the same sort order as [getDeclaredMembers] and
+  /// [getInterfaceMembers].
+  ///
+  /// This is an arbitrary as-fast-as-possible sorting criterion.
+  static int _compareNames(Name firstName, Name secondName) {
+    int firstHash = firstName.hashCode;
+    int secondHash = secondName.hashCode;
+    if (firstHash != secondHash) return firstHash - secondHash;
+    String firstString = firstName.name;
+    String secondString = secondName.name;
+    int firstLength = firstString.length;
+    int secondLength = secondString.length;
+    if (firstLength != secondLength) {
+      return firstLength - secondLength;
+    }
+    Library firstLibrary = firstName.library;
+    Library secondLibrary = secondName.library;
+    if (firstLibrary != secondLibrary) {
+      if (firstLibrary == null) return -1;
+      if (secondLibrary == null) return 1;
+      return firstLibrary.compareTo(secondLibrary);
+    }
+    for (int i = 0; i < firstLength; ++i) {
+      int firstUnit = firstString.codeUnitAt(i);
+      int secondUnit = secondString.codeUnitAt(i);
+      int delta = firstUnit - secondUnit;
+      if (delta != 0) return delta;
+    }
+    return 0;
+  }
+
+  /// Returns the member with the given name, or `null` if no member has the
+  /// name.  In case the list contains multiple members with the given name,
+  /// the one that occurs first in the list is returned.
+  ///
+  /// The list is assumed to be sorted according to [compareMembers].
+  static Member findMemberByName(List<Member> members, Name name) {
+    int low = 0, high = members.length - 1;
+    while (low <= high) {
+      int mid = low + ((high - low) >> 1);
+      Member pivot = members[mid];
+      int comparison = _compareNames(name, pivot.name);
+      if (comparison < 0) {
+        high = mid - 1;
+      } else if (comparison > 0) {
+        low = mid + 1;
+      } else if (high != mid) {
+        // Ensure we find the first element of the given name.
+        high = mid;
+      } else {
+        return pivot;
+      }
+    }
+    return null;
+  }
 }
 
 /// Implementation of [ClassHierarchy] for closed world.
@@ -371,7 +440,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     _ClassInfo info = _infoFor[class_];
     List<Member> list =
         setter ? info.implementedSetters : info.implementedGettersAndCalls;
-    return _findMemberByName(list, name);
+    return ClassHierarchy.findMemberByName(list, name);
   }
 
   /// Returns the list of potential targets of dynamic dispatch to an instance
@@ -416,12 +485,18 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   @override
   Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
     List<Member> list = getInterfaceMembers(class_, setters: setter);
-    return _findMemberByName(list, name);
+    return ClassHierarchy.findMemberByName(list, name);
   }
 
   @override
   List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
     return _buildInterfaceMembers(class_, _infoFor[class_], setters: setters);
+  }
+
+  @override
+  List<Member> getDeclaredMembers(Class class_, {bool setters: false}) {
+    var info = _infoFor[class_];
+    return setters ? info.declaredSetters : info.declaredGettersAndCalls;
   }
 
   @override
@@ -486,7 +561,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         continue;
       }
       Member inherited = inheritedList[j];
-      int comparison = _compareMembers(declared, inherited);
+      int comparison = ClassHierarchy.compareMembers(declared, inherited);
       if (comparison < 0) {
         ++i;
       } else if (comparison > 0) {
@@ -625,8 +700,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           setters.add(field);
         }
       }
-      members.sort(_compareMembers);
-      setters.sort(_compareMembers);
+      members.sort(ClassHierarchy.compareMembers);
+      setters.sort(ClassHierarchy.compareMembers);
     }
   }
 
@@ -700,7 +775,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         ++j;
         continue;
       }
-      int comparison = _compareMembers(declaredMember, inheritedMember);
+      int comparison =
+          ClassHierarchy.compareMembers(declaredMember, inheritedMember);
       if (comparison < 0) {
         result[storeIndex++] = declaredMember;
         ++i;
@@ -740,7 +816,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     while (i < declared.length && j < inherited.length) {
       Member declaredMember = declared[i];
       Member inheritedMember = inherited[j];
-      int comparison = _compareMembers(declaredMember, inheritedMember);
+      int comparison =
+          ClassHierarchy.compareMembers(declaredMember, inheritedMember);
       if (comparison < 0) {
         ++i;
       } else if (comparison > 0) {
@@ -774,7 +851,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     while (i < first.length && j < second.length) {
       Member firstMember = first[i];
       Member secondMember = second[j];
-      int compare = _compareMembers(firstMember, secondMember);
+      int compare = ClassHierarchy.compareMembers(firstMember, secondMember);
       if (compare <= 0) {
         result[storeIndex++] = firstMember;
         ++i;
@@ -1011,62 +1088,6 @@ int _intervalListSize(Uint32List intervalList) {
     size += intervalList[i + 1] - intervalList[i];
   }
   return size;
-}
-
-/// Returns the member with the given name, or `null` if no member has the
-/// name.  In case the list contains multiple members with the given name,
-/// the one that occurs first in the list is returned.
-Member _findMemberByName(List<Member> members, Name name) {
-  int low = 0, high = members.length - 1;
-  while (low <= high) {
-    int mid = low + ((high - low) >> 1);
-    Member pivot = members[mid];
-    int comparison = _compareNames(name, pivot.name);
-    if (comparison < 0) {
-      high = mid - 1;
-    } else if (comparison > 0) {
-      low = mid + 1;
-    } else if (high != mid) {
-      // Ensure we find the first element of the given name.
-      high = mid;
-    } else {
-      return pivot;
-    }
-  }
-  return null;
-}
-
-/// Compares members by name.
-int _compareMembers(Member first, Member second) {
-  return _compareNames(first.name, second.name);
-}
-
-/// Compares names using an arbitrary as-fast-as-possible sorting criterion.
-int _compareNames(Name firstName, Name secondName) {
-  int firstHash = firstName.hashCode;
-  int secondHash = secondName.hashCode;
-  if (firstHash != secondHash) return firstHash - secondHash;
-  String firstString = firstName.name;
-  String secondString = secondName.name;
-  int firstLength = firstString.length;
-  int secondLength = secondString.length;
-  if (firstLength != secondLength) {
-    return firstLength - secondLength;
-  }
-  Library firstLibrary = firstName.library;
-  Library secondLibrary = secondName.library;
-  if (firstLibrary != secondLibrary) {
-    if (firstLibrary == null) return -1;
-    if (secondLibrary == null) return 1;
-    return firstLibrary.compareTo(secondLibrary);
-  }
-  for (int i = 0; i < firstLength; ++i) {
-    int firstUnit = firstString.codeUnitAt(i);
-    int secondUnit = secondString.codeUnitAt(i);
-    int delta = firstUnit - secondUnit;
-    if (delta != 0) return delta;
-  }
-  return 0;
 }
 
 class _ClassInfo {
