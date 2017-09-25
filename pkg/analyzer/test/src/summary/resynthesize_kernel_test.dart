@@ -536,12 +536,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
-  test_unresolved_annotation_instanceCreation_argument_this() async {
-    await super.test_unresolved_annotation_instanceCreation_argument_this();
-  }
-
-  @failingTest
   @potentialAnalyzerProblem
   test_unresolved_import() async {
     await super.test_unresolved_import();

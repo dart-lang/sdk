@@ -15,10 +15,10 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:front_end/src/base/source.dart';
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart' as kernel;
 import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart' as kernel;
 
 /**
  * Object that can resynthesize analyzer [LibraryElement] from Kernel.
@@ -200,6 +200,14 @@ class KernelResynthesizer implements ElementResynthesizer {
 }
 
 /**
+ * This exception is thrown when we detect that the Kernel has a compilation
+ * error, so we cannot resynthesize the constant expression.
+ */
+class _CompilationErrorFound {
+  const _CompilationErrorFound();
+}
+
+/**
  * Builder of [Expression]s from [kernel.Expression]s.
  */
 class _ExprBuilder {
@@ -209,6 +217,78 @@ class _ExprBuilder {
   _ExprBuilder(this._context, this._contextElement);
 
   Expression build(kernel.Expression expr) {
+    try {
+      return _build(expr);
+    } on _CompilationErrorFound {
+      return AstTestFactory.identifier3('#invalidConst');
+    }
+  }
+
+  ConstructorInitializer buildInitializer(kernel.Initializer k) {
+    if (k is kernel.FieldInitializer) {
+      Expression value = _build(k.value);
+      ConstructorFieldInitializer initializer = AstTestFactory
+          .constructorFieldInitializer(false, k.field.name.name, value);
+      initializer.fieldName.staticElement = _getElement(k.fieldReference);
+      return initializer;
+    }
+
+    if (k is kernel.LocalInitializer) {
+      var invocation = k.variable.initializer;
+      if (invocation is kernel.MethodInvocation) {
+        var receiver = invocation.receiver;
+        if (receiver is kernel.FunctionExpression &&
+            invocation.name.name == 'call') {
+          var body = receiver.function.body;
+          if (body is kernel.AssertStatement) {
+            var condition = _build(body.condition);
+            var message = body.message != null ? _build(body.message) : null;
+            return AstTestFactory.assertInitializer(condition, message);
+          }
+        }
+      }
+      throw new StateError('Expected assert initializer $k');
+    }
+
+    if (k is kernel.RedirectingInitializer) {
+      ConstructorElementImpl redirect = _getElement(k.targetReference);
+      var arguments = _toArguments(k.arguments);
+
+      RedirectingConstructorInvocation invocation =
+          AstTestFactory.redirectingConstructorInvocation(arguments);
+      invocation.staticElement = redirect;
+
+      String name = k.target.name.name;
+      if (name.isNotEmpty) {
+        invocation.constructorName = AstTestFactory.identifier3(name)
+          ..staticElement = redirect;
+      }
+
+      return invocation;
+    }
+
+    if (k is kernel.SuperInitializer) {
+      ConstructorElementImpl redirect = _getElement(k.targetReference);
+      var arguments = _toArguments(k.arguments);
+
+      SuperConstructorInvocation invocation =
+          AstTestFactory.superConstructorInvocation(arguments);
+      invocation.staticElement = redirect;
+
+      String name = k.target.name.name;
+      if (name.isNotEmpty) {
+        invocation.constructorName = AstTestFactory.identifier3(name)
+          ..staticElement = redirect;
+      }
+
+      return invocation;
+    }
+
+    // TODO(scheglov) Support other kernel initializer types.
+    throw new UnimplementedError('For ${k.runtimeType}');
+  }
+
+  Expression _build(kernel.Expression expr) {
     if (expr is kernel.NullLiteral) {
       return AstTestFactory.nullLiteral();
     }
@@ -226,7 +306,7 @@ class _ExprBuilder {
     }
     if (expr is kernel.StringConcatenation) {
       List<InterpolationElement> elements = expr.expressions
-          .map(build)
+          .map(_build)
           .map(_newInterpolationElement)
           .toList(growable: false);
       return AstTestFactory.string(elements);
@@ -239,7 +319,7 @@ class _ExprBuilder {
     if (expr is kernel.ListLiteral) {
       Keyword keyword = expr.isConst ? Keyword.CONST : null;
       var typeArguments = _buildTypeArgumentList([expr.typeArgument]);
-      var elements = expr.expressions.map(build).toList();
+      var elements = expr.expressions.map(_build).toList();
       return AstTestFactory.listLiteral2(keyword, typeArguments, elements);
     }
 
@@ -252,8 +332,8 @@ class _ExprBuilder {
       var entries = new List<MapLiteralEntry>(numberOfEntries);
       for (int i = 0; i < numberOfEntries; i++) {
         var entry = expr.entries[i];
-        Expression key = build(entry.key);
-        Expression value = build(entry.value);
+        Expression key = _build(entry.key);
+        Expression value = _build(entry.value);
         entries[i] = AstTestFactory.mapLiteralEntry2(key, value);
       }
 
@@ -265,7 +345,7 @@ class _ExprBuilder {
     }
 
     if (expr is kernel.PropertyGet) {
-      Expression target = build(expr.receiver);
+      Expression target = _build(expr.receiver);
       kernel.Reference reference = expr.interfaceTargetReference;
       SimpleIdentifier identifier = _buildSimpleIdentifier(reference);
       return AstTestFactory.propertyAccess(target, identifier);
@@ -285,22 +365,22 @@ class _ExprBuilder {
     }
 
     if (expr is kernel.ConditionalExpression) {
-      var condition = build(expr.condition);
-      var then = build(expr.then);
-      var otherwise = build(expr.otherwise);
+      var condition = _build(expr.condition);
+      var then = _build(expr.then);
+      var otherwise = _build(expr.otherwise);
       return AstTestFactory.conditionalExpression(condition, then, otherwise);
     }
 
     if (expr is kernel.Not) {
       kernel.Expression kernelOperand = expr.operand;
-      var operand = build(kernelOperand);
+      var operand = _build(kernelOperand);
       return AstTestFactory.prefixExpression(TokenType.BANG, operand);
     }
 
     if (expr is kernel.LogicalExpression) {
       var operator = _toBinaryOperatorTokenType(expr.operator);
-      var left = build(expr.left);
-      var right = build(expr.right);
+      var left = _build(expr.left);
+      var right = _build(expr.right);
       return AstTestFactory.binaryExpression(left, operator, right);
     }
 
@@ -317,8 +397,8 @@ class _ExprBuilder {
               condition.arguments.positional[0] is kernel.NullLiteral &&
               otherwiseExpr is kernel.VariableGet &&
               otherwiseExpr.variable == equalsReceiver.variable) {
-            var left = build(expr.variable.initializer);
-            var right = build(body.then);
+            var left = _build(expr.variable.initializer);
+            var right = _build(body.then);
             return AstTestFactory.binaryExpression(
                 left, TokenType.QUESTION_QUESTION, right);
           }
@@ -330,7 +410,7 @@ class _ExprBuilder {
       kernel.Member member = expr.interfaceTarget;
       if (member is kernel.Procedure) {
         if (member.kind == kernel.ProcedureKind.Operator) {
-          var left = build(expr.receiver);
+          var left = _build(expr.receiver);
           String operatorName = expr.name.name;
           List<kernel.Expression> args = expr.arguments.positional;
           if (args.isEmpty) {
@@ -342,7 +422,7 @@ class _ExprBuilder {
             }
           } else if (args.length == 1) {
             var operator = _toBinaryOperatorTokenType(operatorName);
-            var right = build(args.single);
+            var right = _build(args.single);
             return AstTestFactory.binaryExpression(left, operator, right);
           }
         }
@@ -400,7 +480,7 @@ class _ExprBuilder {
           if (receiver is kernel.ConstructorInvocation &&
               receiver.target.enclosingClass.name ==
                   '_ConstantExpressionError') {
-            return AstTestFactory.identifier3('#invalidConst');
+            throw const _CompilationErrorFound();
           }
         }
       }
@@ -408,70 +488,6 @@ class _ExprBuilder {
 
     // TODO(scheglov): complete getExpression
     throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
-  }
-
-  ConstructorInitializer buildInitializer(kernel.Initializer k) {
-    if (k is kernel.FieldInitializer) {
-      Expression value = build(k.value);
-      ConstructorFieldInitializer initializer = AstTestFactory
-          .constructorFieldInitializer(false, k.field.name.name, value);
-      initializer.fieldName.staticElement = _getElement(k.fieldReference);
-      return initializer;
-    }
-
-    if (k is kernel.LocalInitializer) {
-      var invocation = k.variable.initializer;
-      if (invocation is kernel.MethodInvocation) {
-        var receiver = invocation.receiver;
-        if (receiver is kernel.FunctionExpression &&
-            invocation.name.name == 'call') {
-          var body = receiver.function.body;
-          if (body is kernel.AssertStatement) {
-            var condition = build(body.condition);
-            var message = body.message != null ? build(body.message) : null;
-            return AstTestFactory.assertInitializer(condition, message);
-          }
-        }
-      }
-      throw new StateError('Expected assert initializer $k');
-    }
-
-    if (k is kernel.RedirectingInitializer) {
-      ConstructorElementImpl redirect = _getElement(k.targetReference);
-      var arguments = _toArguments(k.arguments);
-
-      RedirectingConstructorInvocation invocation =
-          AstTestFactory.redirectingConstructorInvocation(arguments);
-      invocation.staticElement = redirect;
-
-      String name = k.target.name.name;
-      if (name.isNotEmpty) {
-        invocation.constructorName = AstTestFactory.identifier3(name)
-          ..staticElement = redirect;
-      }
-
-      return invocation;
-    }
-
-    if (k is kernel.SuperInitializer) {
-      ConstructorElementImpl redirect = _getElement(k.targetReference);
-      var arguments = _toArguments(k.arguments);
-
-      SuperConstructorInvocation invocation =
-          AstTestFactory.superConstructorInvocation(arguments);
-      invocation.staticElement = redirect;
-
-      String name = k.target.name.name;
-      if (name.isNotEmpty) {
-        invocation.constructorName = AstTestFactory.identifier3(name)
-          ..staticElement = redirect;
-      }
-
-      return invocation;
-    }
-
-    // TODO(scheglov) Support other kernel initializer types.
-    throw new UnimplementedError('For ${k.runtimeType}');
   }
 
   Identifier _buildIdentifier(kernel.Reference reference, {bool isGet: false}) {
@@ -555,11 +571,11 @@ class _ExprBuilder {
 
     int i = 0;
     for (kernel.Expression k in kernelArguments.positional) {
-      arguments[i++] = build(k);
+      arguments[i++] = _build(k);
     }
 
     for (kernel.NamedExpression k in kernelArguments.named) {
-      var value = build(k.value);
+      var value = _build(k.value);
       arguments[i++] = AstTestFactory.namedExpression2(k.name, value);
     }
 
