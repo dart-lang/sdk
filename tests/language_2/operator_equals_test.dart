@@ -8,13 +8,13 @@
 import 'package:expect/expect.dart';
 
 class A {
-  operator ==(other) => 42;
+  operator ==(other) => 42; /*@compile-error=unspecified*/
 }
 
 class B extends A {
-  foo() => (super == null) + 4;
+  foo() => (super == null) + 4; /*@compile-error=unspecified*/
 }
 
 main() {
-  Expect.throws(() => new B().foo(), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => new B().foo());
 }

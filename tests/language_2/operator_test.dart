@@ -85,7 +85,7 @@ class Operator {
     return value % other.value;
   }
 
-  operator ==(Operator other) {
+  operator ==(dynamic other) {
     return value == other.value;
   }
 

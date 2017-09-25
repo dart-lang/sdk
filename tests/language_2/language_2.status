@@ -68,7 +68,18 @@ closure_internals_test/03: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/01: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/02: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/03: MissingCompileTimeError # Requires strong mode
+compile_time_constant_static_test: Skip # Requires strong mode
+compile_time_constant_static2_test: Skip # Requires strong mode
+compile_time_constant_static3_test: Skip # Requires strong mode
+compile_time_constant_static4_test: Skip # Requires strong mode
+compile_time_constant_static5_test: Skip # Requires strong mode
+compile_time_constant_static_test: Skip # Requires strong mode
+compile_time_constant_static2_test: Skip # Requires strong mode
+compile_time_constant_static3_test: Skip # Requires strong mode
+compile_time_constant_static4_test: Skip # Requires strong mode
+compile_time_constant_static5_test: Skip # Requires strong mode
 crash_6725_test/01: MissingCompileTimeError # Requires strong mode
+deferred_super_dependency_test/01: MissingCompileTimeError # Requires strong mode
 initializing_formal_type_annotation_test/01: MissingCompileTimeError # Requires strong mode
 initializing_formal_type_annotation_test/02: MissingCompileTimeError # Requires strong mode
 is_malformed_type_test/94: MissingCompileTimeError # Requires strong mode
@@ -81,6 +92,17 @@ is_not_class2_test/none: Skip # No interesting functionality in this configurati
 is_not_class2_test/01: MissingCompileTimeError # Requires strong mode
 isnot_malformed_type_test/01: MissingCompileTimeError
 issue11724_test/01: MissingCompileTimeError
+issue1363_test/01: MissingCompileTimeError # Requires strong mode
+issue15606_test/01: MissingCompileTimeError # Requires strong mode
+issue18628_1_test/01: MissingCompileTimeError # Requires strong mode
+issue18628_2_test/01: MissingCompileTimeError # Requires strong mode
+number_identifier_test/05: MissingCompileTimeError
+number_identifier_test/08: MissingCompileTimeError
+number_identifier_test/09: MissingCompileTimeError
+on_catch_malformed_type_test: MissingCompileTimeError
+operator5_test: MissingCompileTimeError
+operator_equals_test: MissingCompileTimeError
+optimized_constant_array_string_access_test: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError # Requires strong mode
 vm/type_vm_test/01: MissingCompileTimeError
 vm/type_vm_test/02: MissingCompileTimeError
@@ -106,18 +128,8 @@ void_type_callbacks_test: Skip # Requires strong mode
 void_type_function_types_test: Skip # Requires strong mode
 void_type_override_test: Skip # Requires strong mode
 void_type_usage_test: Skip # Requires strong mode
-compile_time_constant_static_test: Skip # Requires strong mode
-compile_time_constant_static2_test: Skip # Requires strong mode
-compile_time_constant_static3_test: Skip # Requires strong mode
-compile_time_constant_static4_test: Skip # Requires strong mode
-compile_time_constant_static5_test: Skip # Requires strong mode
-deferred_super_dependency_test/01: MissingCompileTimeError # Requires strong mode
 wrong_number_type_arguments_test/none: Pass
 wrong_number_type_arguments_test/*: MissingCompileTimeError # Requires strong mode
-issue1363_test/01: MissingCompileTimeError # Requires strong mode
-issue15606_test/01: MissingCompileTimeError # Requires strong mode
-issue18628_1_test/01: MissingCompileTimeError # Requires strong mode
-issue18628_2_test/01: MissingCompileTimeError # Requires strong mode
 
 [ $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546

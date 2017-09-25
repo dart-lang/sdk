@@ -368,6 +368,7 @@ mixin_supertype_subclass4_test: CompileTimeError # Issue 23773
 mixin_type_parameters_super_test: RuntimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 17526
+mock_writable_final_private_field_test: CompileTimeError # Issue 17526
 modulo_test: RuntimeError # Issue 15246
 multiline_newline_test/01: CompileTimeError # Issue 23888
 multiline_newline_test/01r: CompileTimeError # Issue 23888
@@ -380,6 +381,8 @@ multiline_newline_test/04r: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
 multiline_newline_test/none: RuntimeError # Issue 23888
+number_identity2_test: RuntimeError # Issue 12596
+numbers_test: RuntimeError, OK # Issue 1533
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 assertion_test: RuntimeError # Issue 30326
@@ -539,6 +542,7 @@ mixin_type_variable_test/07: Crash # Issue 27394
 mixin_type_variable_test/08: Crash # Issue 27394
 mixin_typedef_constructor_test: Crash # Issue 27394
 named_parameters_aggregated_test/05: RuntimeError # Issue 27394
+nullaware_opt_test: RuntimeError # Issue 27394
 null_test/none: Crash # Issue 27394
 static_setter_get_test/01: Crash # Issue 27394
 static_top_level_test/00: Crash # Issue 27394
@@ -747,6 +751,21 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
+deferred_no_such_method_test: CompileTimeError
+deferred_not_loaded_check_test: RuntimeError
+deferred_only_constant_test: CompileTimeError
+deferred_optimized_test: CompileTimeError
+deferred_redirecting_factory_test: CompileTimeError
+deferred_regression_22995_test: CompileTimeError
+deferred_regression_28678_test: CompileTimeError
+deferred_shadow_load_library_test: RuntimeError
+deferred_shared_and_unshared_classes_test: CompileTimeError
+deferred_static_seperate_test: CompileTimeError
+deferred_super_dependency_test/01: CompileTimeError
+deferred_type_dependency_test/as: CompileTimeError
+deferred_type_dependency_test/is: CompileTimeError
+deferred_type_dependency_test/none: CompileTimeError
+deferred_type_dependency_test/type_annotation: CompileTimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -877,24 +896,11 @@ not_enough_positional_arguments_test/05: MissingCompileTimeError
 null_test/02: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
 null_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
 null_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
+number_identity2_test: RuntimeError
+numbers_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-deferred_no_such_method_test: CompileTimeError
-deferred_not_loaded_check_test: RuntimeError
-deferred_only_constant_test: CompileTimeError
-deferred_optimized_test: CompileTimeError
-deferred_redirecting_factory_test: CompileTimeError
-deferred_regression_22995_test: CompileTimeError
-deferred_regression_28678_test: CompileTimeError
-deferred_shadow_load_library_test: RuntimeError
-deferred_shared_and_unshared_classes_test: CompileTimeError
-deferred_static_seperate_test: CompileTimeError
-deferred_super_dependency_test/01: CompileTimeError
-deferred_type_dependency_test/as: CompileTimeError
-deferred_type_dependency_test/is: CompileTimeError
-deferred_type_dependency_test/none: CompileTimeError
-deferred_type_dependency_test/type_annotation: CompileTimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
@@ -999,6 +1005,21 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
+deferred_no_such_method_test: CompileTimeError
+deferred_not_loaded_check_test: RuntimeError
+deferred_only_constant_test: CompileTimeError
+deferred_optimized_test: CompileTimeError
+deferred_redirecting_factory_test: CompileTimeError
+deferred_regression_22995_test: CompileTimeError
+deferred_regression_28678_test: CompileTimeError
+deferred_shadow_load_library_test: RuntimeError
+deferred_shared_and_unshared_classes_test: CompileTimeError
+deferred_static_seperate_test: CompileTimeError
+deferred_super_dependency_test/01: CompileTimeError
+deferred_type_dependency_test/as: CompileTimeError
+deferred_type_dependency_test/is: CompileTimeError
+deferred_type_dependency_test/none: CompileTimeError
+deferred_type_dependency_test/type_annotation: CompileTimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -1130,22 +1151,9 @@ not_enough_positional_arguments_test/05: MissingCompileTimeError
 null_test/02: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 null_test/03: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 null_test/none: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+number_identity2_test: RuntimeError
+numbers_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
-deferred_no_such_method_test: CompileTimeError
-deferred_not_loaded_check_test: RuntimeError
-deferred_only_constant_test: CompileTimeError
-deferred_optimized_test: CompileTimeError
-deferred_redirecting_factory_test: CompileTimeError
-deferred_regression_22995_test: CompileTimeError
-deferred_regression_28678_test: CompileTimeError
-deferred_shadow_load_library_test: RuntimeError
-deferred_shared_and_unshared_classes_test: CompileTimeError
-deferred_static_seperate_test: CompileTimeError
-deferred_super_dependency_test/01: CompileTimeError
-deferred_type_dependency_test/as: CompileTimeError
-deferred_type_dependency_test/is: CompileTimeError
-deferred_type_dependency_test/none: CompileTimeError
-deferred_type_dependency_test/type_annotation: CompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash

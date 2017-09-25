@@ -236,15 +236,6 @@ no_such_method_mock_test: Skip
 no_such_method_negative_test: Skip
 no_such_method_test: Skip
 non_const_super_negative_test: Skip
-number_identifier_test: Skip
-number_identity_test: Skip
-on_catch_malformed_type_test: Skip
-operator1_negative_test: Skip
-operator2_negative_test: Skip
-operator5_test: Skip
-operator_equals_test: Skip
-operator_test: Skip
-optimized_constant_array_string_access_test: Skip
 optional_named_parameters_test: Skip
 overridden_no_such_method_test: Skip
 override_field_method1_negative_test: Skip
@@ -474,8 +465,6 @@ map_literal7_test: RuntimeError # Issue 29920
 mint_arithmetic_test: RuntimeError # Issue 29920
 nan_identical_test: RuntimeError # Issue 29920
 nested_switch_label_test: RuntimeError # Issue 29920
-number_identity2_test: RuntimeError # Issue 29920
-numbers_test: RuntimeError # Issue 29920
 regress_16640_test: RuntimeError # Issue 29920
 regress_22443_test: RuntimeError # Issue 29920
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920

@@ -61,7 +61,6 @@ mixin_mixin5_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
 no_main_test/01: DartkCrash
-operator4_test: RuntimeError # Throws CastError instead of TypeError
 prefix10_negative_test: Fail
 prefix21_test: RuntimeError
 recursive_generic_test: RuntimeError

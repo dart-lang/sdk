@@ -36,9 +36,9 @@ testNumberIdentity() {
   Expect.isFalse(identical(b, mint));
   Expect.isFalse(identical(b, dbl));
 
-  a = dbl;
-  b = a + 0.0;
-  Expect.isTrue(identical(a, b));
-  Expect.isFalse(identical(b, mint));
-  Expect.isFalse(identical(b, bigint));
+  var a2 = dbl;
+  var b2 = a2 + 0.0;
+  Expect.isTrue(identical(a2, b2));
+  Expect.isFalse(identical(b2, mint));
+  Expect.isFalse(identical(b2, bigint));
 }

@@ -45,7 +45,7 @@ foo(a) {
     return 2;
   }
   var aa = const [1, 2];
-  return aa[2.3];
+  return aa[2.3]; /*@compile-error=unspecified*/
 }
 
 int testNonSmiIndex() {

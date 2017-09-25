@@ -27,8 +27,6 @@ map_literal_negative_test: Skip # Test has syntax error.
 new_expression1_negative_test: Skip # Test has syntax error.
 new_expression2_negative_test: Skip # Test has syntax error.
 new_expression3_negative_test: Skip # Test has syntax error.
-operator1_negative_test: Skip # Test has syntax error.
-operator2_negative_test: Skip # Test has syntax error.
 prefix18_negative_test: Skip # Test has syntax error.
 string_escape4_negative_test: Skip # Test has syntax error.
 string_interpolate1_negative_test: Skip # Test has syntax error.
@@ -218,7 +216,6 @@ multiline_newline_test: Skip # Not yet supported.
 named_constructor_test: Skip # Not yet supported.
 named_parameters_aggregated_test: Skip # Not yet supported.
 named_parameters_default_eq_test: Skip # Not yet supported.
-number_identifier_test: Skip # Not yet supported.
 override_field_test: Skip # Not yet supported.
 override_inheritance_mixed_test: Skip # Not yet supported.
 override_method_with_field_test: Skip # Not yet supported.
