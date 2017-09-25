@@ -1637,16 +1637,26 @@ class StaticSetterNode : public AstNode {
 
 class StaticCallNode : public AstNode {
  public:
+  // The rule below is mapped to ICData::RebindRule (runtime/vm/object.h).
+  enum RebindRule { kNSMDispatch, kStatic, kSuper };
+
   StaticCallNode(TokenPosition token_pos,
                  const Function& function,
-                 ArgumentListNode* arguments)
-      : AstNode(token_pos), function_(function), arguments_(arguments) {
+                 ArgumentListNode* arguments,
+                 RebindRule rebind_rule)
+      : AstNode(token_pos),
+        function_(function),
+        arguments_(arguments),
+        rebind_rule_(rebind_rule) {
     ASSERT(function_.IsZoneHandle());
     ASSERT(arguments_ != NULL);
   }
 
   const Function& function() const { return function_; }
   ArgumentListNode* arguments() const { return arguments_; }
+
+  RebindRule rebind_rule() const { return rebind_rule_; }
+  void set_rebind_rule(RebindRule rule) { rebind_rule_ = rule; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     arguments()->Visit(visitor);
@@ -1659,6 +1669,7 @@ class StaticCallNode : public AstNode {
  private:
   const Function& function_;
   ArgumentListNode* arguments_;
+  RebindRule rebind_rule_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCallNode);
 };

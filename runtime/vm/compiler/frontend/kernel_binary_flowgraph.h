@@ -952,11 +952,13 @@ class StreamingFlowGraphBuilder {
   Fragment LoadStaticField();
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
-                      intptr_t argument_count);
+                      intptr_t argument_count,
+                      ICData::RebindRule rebind_rule);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
                       const Array& argument_names,
+                      ICData::RebindRule rebind_rule,
                       intptr_t type_args_len = 0);
   Fragment InstanceCall(TokenPosition position,
                         const String& name,

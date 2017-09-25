@@ -1748,6 +1748,20 @@ class ICData : public Object {
   bool HasDeoptReason(ICData::DeoptReasonId reason) const;
   void AddDeoptReason(ICData::DeoptReasonId reason) const;
 
+  // Call site classification that is helpful for hot-reload. Call sites with
+  // different `RebindRule` have to be rebound differently.
+  enum RebindRule {
+    kInstance,
+    kNoRebind,
+    kNSMDispatch,
+    kOptimized,
+    kStatic,
+    kSuper,
+    kNumRebindRules,
+  };
+  RebindRule rebind_rule() const;
+  void set_rebind_rule(uint32_t rebind_rule) const;
+
   // The length of the array. This includes all sentinel entries including
   // the final one.
   intptr_t Length() const;
@@ -1887,7 +1901,7 @@ class ICData : public Object {
                         const Array& arguments_descriptor,
                         intptr_t deopt_id,
                         intptr_t num_args_tested,
-                        bool is_static_call);
+                        RebindRule rebind_rule);
   static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
 
   // Generates a new ICData with descriptor and data array copied (deep clone).
@@ -1921,7 +1935,6 @@ class ICData : public Object {
   intptr_t tag() const { return raw_ptr()->tag_; }
 #endif
 
-  void SetIsStaticCall(bool static_call) const;
   bool is_static_call() const;
 
  private:
@@ -1944,9 +1957,11 @@ class ICData : public Object {
     kNumArgsTestedSize = 2,
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
-    kStaticCallPos = kDeoptReasonPos + kDeoptReasonSize,
-    kStaticCallSize = 1,
+    kRebindRulePos = kDeoptReasonPos + kDeoptReasonSize,
+    kRebindRuleSize = 3
   };
+
+  COMPILE_ASSERT(kNumRebindRules <= (1 << kRebindRuleSize));
 
   class NumArgsTestedBits : public BitField<uint32_t,
                                             uint32_t,
@@ -1956,10 +1971,10 @@ class ICData : public Object {
                                           uint32_t,
                                           ICData::kDeoptReasonPos,
                                           ICData::kDeoptReasonSize> {};
-  class StaticCallBit : public BitField<uint32_t,
-                                        bool,
-                                        ICData::kStaticCallPos,
-                                        ICData::kStaticCallSize> {};
+  class RebindRuleBits : public BitField<uint32_t,
+                                         uint32_t,
+                                         ICData::kRebindRulePos,
+                                         ICData::kRebindRuleSize> {};
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
   bool HasCheck(const GrowableArray<intptr_t>& cids) const;
@@ -1974,7 +1989,7 @@ class ICData : public Object {
                                   const Array& arguments_descriptor,
                                   intptr_t deopt_id,
                                   intptr_t num_args_tested,
-                                  bool is_static_call);
+                                  RebindRule rebind_rule);
 
   static void WriteSentinel(const Array& data, intptr_t test_entry_length);
 

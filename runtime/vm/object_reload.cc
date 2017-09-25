@@ -687,7 +687,22 @@ void Library::CheckReload(const Library& replacement,
 static const Function* static_call_target = NULL;
 
 void ICData::Reset(Zone* zone) const {
-  if (is_static_call()) {
+  RebindRule rule = rebind_rule();
+  if (rule == kInstance) {
+    intptr_t num_args = NumArgsTested();
+    if (num_args == 2) {
+      ClearWithSentinel();
+    } else {
+      const Array& data_array =
+          Array::Handle(zone, CachedEmptyICDataArray(num_args));
+      set_ic_data_array(data_array);
+    }
+    return;
+  } else if (rule == kNoRebind || rule == kNSMDispatch) {
+    // TODO(30877) we should account for addition/removal of NSM.
+    // Don't rebind dispatchers.
+    return;
+  } else if (rule == kStatic || rule == kSuper) {
     const Function& old_target = Function::Handle(zone, GetTargetAt(0));
     if (old_target.IsNull()) {
       FATAL("old_target is NULL.\n");
@@ -696,34 +711,19 @@ void ICData::Reset(Zone* zone) const {
 
     const String& selector = String::Handle(zone, old_target.name());
     Function& new_target = Function::Handle(zone);
-    if (!old_target.is_static()) {
-      if (old_target.kind() == RawFunction::kConstructor) {
-        return;  // Super constructor call.
-      }
+
+    if (rule == kStatic) {
+      ASSERT(old_target.is_static() ||
+             old_target.kind() == RawFunction::kConstructor);
+      // This can be incorrect if the call site was an unqualified invocation.
+      const Class& cls = Class::Handle(zone, old_target.Owner());
+      new_target = cls.LookupStaticFunction(selector);
+    } else {
+      // Super call.
       Function& caller = Function::Handle(zone);
       caller ^= Owner();
       ASSERT(!caller.is_static());
       Class& cls = Class::Handle(zone, caller.Owner());
-      if (cls.raw() == old_target.Owner()) {
-        // Dispatcher.
-        if (caller.IsImplicitClosureFunction()) {
-          return;  // Tear-off.
-        }
-        if (caller.kind() == RawFunction::kNoSuchMethodDispatcher) {
-          // TODO(rmacnak): noSuchMethod might have been redefined.
-          return;
-        }
-        const Function& caller_parent =
-            Function::Handle(zone, caller.parent_function());
-        if (!caller_parent.IsNull()) {
-          if (caller_parent.kind() == RawFunction::kInvokeFieldDispatcher) {
-            return;  // Call-through-getter.
-          }
-        }
-        FATAL2("Unexpected dispatcher-like call site: %s from %s\n",
-               selector.ToCString(), caller.ToQualifiedCString());
-      }
-      // Super call.
       cls = cls.SuperClass();
       while (!cls.IsNull()) {
         // TODO(rmacnak): Should use Resolver::ResolveDynamicAnyArgs to handle
@@ -735,12 +735,7 @@ void ICData::Reset(Zone* zone) const {
         }
         cls = cls.SuperClass();
       }
-    } else {
-      // This can be incorrect if the call site was an unqualified invocation.
-      const Class& cls = Class::Handle(zone, old_target.Owner());
-      new_target = cls.LookupStaticFunction(selector);
     }
-
     const Array& args_desc_array = Array::Handle(zone, arguments_descriptor());
     ArgumentsDescriptor args_desc(args_desc_array);
     if (new_target.IsNull() || !new_target.AreValidArguments(args_desc, NULL)) {
@@ -752,14 +747,7 @@ void ICData::Reset(Zone* zone) const {
     }
     ClearAndSetStaticTarget(new_target);
   } else {
-    intptr_t num_args = NumArgsTested();
-    if (num_args == 2) {
-      ClearWithSentinel();
-    } else {
-      const Array& data_array =
-          Array::Handle(zone, CachedEmptyICDataArray(num_args));
-      set_ic_data_array(data_array);
-    }
+    FATAL("Unexpected rebind rule.");
   }
 }
 
