@@ -7,7 +7,6 @@ import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
 import 'package:front_end/src/fasta/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
-import 'package:front_end/src/fasta/util/link.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
 
@@ -1293,12 +1292,6 @@ class ForwardingTestListener implements fasta.Listener {
   void handleLiteralNull(Token token) {
     listener.handleLiteralNull(token);
     // TODO(danrubel): implement handleLiteralNull
-  }
-
-  @override
-  Link<Token> handleMemberName(Link<Token> identifiers) {
-    return listener.handleMemberName(identifiers);
-    // TODO(danrubel): implement handleMemberName
   }
 
   @override

@@ -1738,12 +1738,12 @@ class Parser {
     }
     var modifiers = identifiers.reverse();
     return isField
-        ? parseFields(start, modifiers, type, getOrSet, name, true)
+        ? parseFields(start, modifiers, type, name, true)
         : parseTopLevelMethod(start, modifiers, type, getOrSet, name);
   }
 
-  Token parseFields(Token start, Link<Token> modifiers, Token type,
-      Token getOrSet, Token name, bool isTopLevel) {
+  Token parseFields(Token start, Link<Token> modifiers, Token type, Token name,
+      bool isTopLevel) {
     Token varFinalOrConst = null;
     for (Token modifier in modifiers) {
       if (optional("var", modifier) ||
@@ -1905,13 +1905,21 @@ class Parser {
           optional("=>", token)) {
         // A method.
         identifiers = identifiers.prepend(token);
-        return listener.handleMemberName(identifiers);
+        return identifiers;
       } else if (optional("=", token) ||
           optional(";", token) ||
           optional(",", token)) {
         // A field or abstract getter.
         identifiers = identifiers.prepend(token);
-        return listener.handleMemberName(identifiers);
+        return identifiers;
+      } else if (optional('native', token) &&
+          (token.next.kind == STRING_TOKEN || optional(';', token.next))) {
+        // Skip.
+        token = token.next;
+        if (token.kind == STRING_TOKEN) {
+          token = token.next;
+        }
+        continue;
       } else if (isGetter) {
         hasName = true;
       }
@@ -1984,7 +1992,7 @@ class Parser {
         }
       }
     }
-    return listener.handleMemberName(const Link<Token>());
+    return const Link<Token>();
   }
 
   Token parseFieldInitializerOpt(
@@ -2419,7 +2427,7 @@ class Parser {
 
     var modifiers = identifiers.reverse();
     token = isField
-        ? parseFields(start, modifiers, type, getOrSet, name, false)
+        ? parseFields(start, modifiers, type, name, false)
         : parseMethod(start, modifiers, type, getOrSet, name);
     listener.endMember();
     return token;

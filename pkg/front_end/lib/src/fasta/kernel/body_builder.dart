@@ -24,8 +24,6 @@ import '../messages.dart' as messages show getLocationFromUri;
 
 import '../modifier.dart' show Modifier, constMask, finalMask;
 
-import '../parser/native_support.dart' show skipNativeClause;
-
 import '../parser.dart'
     show
         Assert,
@@ -3098,10 +3096,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Token handleUnrecoverableError(Token token, Message message) {
-    if (enableNative && message.code == fasta.codeExpectedFunctionBody) {
-      Token recover = skipNativeClause(token, stringExpectedAfterNative);
-      if (recover != null) return recover;
-    } else if (message.code == fasta.codeExpectedButGot) {
+    if (message.code == fasta.codeExpectedButGot) {
       String expected = message.arguments["string"];
       const List<String> trailing = const <String>[")", "}", ";", ","];
       if (trailing.contains(token.stringValue) && trailing.contains(expected)) {

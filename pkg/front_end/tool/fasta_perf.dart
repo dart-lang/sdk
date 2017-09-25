@@ -16,8 +16,6 @@ import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
 import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-import 'package:front_end/src/fasta/parser/native_support.dart'
-    show skipNativeClause;
 
 /// Cumulative total number of chars scanned.
 int inputSize = 0;
@@ -172,9 +170,6 @@ class DirectiveListenerWithNative extends DirectiveListener {
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     // Always allow native functions.
   }
-
-  @override
-  Token handleNativeClauseError(Token token) => skipNativeClause(token, true);
 }
 
 /// Parses every file in [files] and reports the time spent doing so.

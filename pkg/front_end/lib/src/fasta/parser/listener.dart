@@ -9,8 +9,6 @@ import '../../scanner/token.dart' show Token, TokenType;
 import '../fasta_codes.dart'
     show Message, messageNativeClauseShouldBeAnnotation;
 
-import '../util/link.dart' show Link;
-
 import 'assert.dart' show Assert;
 
 import 'formal_parameter_kind.dart' show FormalParameterKind;
@@ -582,11 +580,6 @@ class Listener {
   void endMember() {
     logEvent("Member");
   }
-
-  /// This event can be used to support non-compliant (with respect to Dart
-  /// Language Specification) Dart VM native clauses. See
-  /// [native_support.dart].
-  Link<Token> handleMemberName(Link<Token> identifiers) => identifiers;
 
   void beginMethod(Token token, Token name) {}
 

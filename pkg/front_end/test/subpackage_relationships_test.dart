@@ -119,7 +119,6 @@ final subpackageRules = {
     'lib/src/fasta/kernel',
     'lib/src/fasta/parser',
     'lib/src/fasta/type_inference',
-    'lib/src/fasta/util',
     'lib/src/scanner',
   ]),
   'lib/src/fasta/testing': new SubpackageRules(allowedDependencies: [

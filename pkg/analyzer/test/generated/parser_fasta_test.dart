@@ -1036,7 +1036,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     super.test_getterInFunction_expression_returnType();
   }
 
-  @failingTest
   void test_getterNativeWithBody() {
     createParser('String get m native "str" => 0;');
     parser.parseClassMember('C') as MethodDeclaration;

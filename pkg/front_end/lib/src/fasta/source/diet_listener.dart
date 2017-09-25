@@ -20,16 +20,9 @@ import '../deprecated_problems.dart'
     show Crash, deprecated_InputError, deprecated_inputError;
 
 import '../fasta_codes.dart'
-    show
-        Message,
-        codeExpectedBlockToSkip,
-        messageExpectedBlockToSkip,
-        templateInternalProblemNotFound;
+    show Message, messageExpectedBlockToSkip, templateInternalProblemNotFound;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-
-import '../parser/native_support.dart'
-    show removeNativeClause, skipNativeClause;
 
 import '../parser.dart' show MemberKind, Parser, closeBraceTokenFor, optional;
 
@@ -39,8 +32,6 @@ import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
 import '../type_inference/type_inference_listener.dart'
     show TypeInferenceListener;
-
-import '../util/link.dart' show Link;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -568,21 +559,6 @@ class DietListener extends StackListener {
         classBuilder, metadata, (classBuilder.target as Class).addAnnotation);
 
     checkEmpty(beginToken.charOffset);
-  }
-
-  @override
-  Token handleUnrecoverableError(Token token, Message message) {
-    if (enableNative && message.code == codeExpectedBlockToSkip) {
-      Token recover = skipNativeClause(token, stringExpectedAfterNative);
-      if (recover != null) return recover;
-    }
-    return super.handleUnrecoverableError(token, message);
-  }
-
-  @override
-  Link<Token> handleMemberName(Link<Token> identifiers) {
-    if (!enableNative || identifiers.isEmpty) return identifiers;
-    return removeNativeClause(identifiers, stringExpectedAfterNative);
   }
 
   AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();

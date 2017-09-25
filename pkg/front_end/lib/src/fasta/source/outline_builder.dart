@@ -15,7 +15,6 @@ import '../combinator.dart' show Combinator;
 import '../fasta_codes.dart'
     show
         Message,
-        codeExpectedBlockToSkip,
         messageExpectedBlockToSkip,
         messageOperatorWithOptionalFormals,
         messageTypedefNotFunction,
@@ -35,17 +34,12 @@ import '../operator.dart'
         operatorToString,
         operatorRequiredArgumentCount;
 
-import '../parser/native_support.dart'
-    show extractNativeMethodName, removeNativeClause, skipNativeClause;
-
 import '../parser.dart'
     show FormalParameterKind, IdentifierContext, MemberKind, optional;
 
 import '../problems.dart' show unhandled, unimplemented;
 
 import '../quote.dart' show unescapeString;
-
-import '../util/link.dart' show Link;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -959,27 +953,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, Message message) {
-    if (enableNative && message.code == codeExpectedBlockToSkip) {
-      Token recover = skipNativeClause(token, stringExpectedAfterNative);
-      if (recover != null) {
-        nativeMethodName =
-            stringExpectedAfterNative ? extractNativeMethodName(token) : "";
-        return recover;
-      }
-    }
-    return super.handleUnrecoverableError(token, message);
-  }
-
-  @override
   void addCompileTimeError(Message message, int charOffset) {
     library.addCompileTimeError(message, charOffset, uri);
-  }
-
-  @override
-  Link<Token> handleMemberName(Link<Token> identifiers) {
-    if (!enableNative || identifiers.isEmpty) return identifiers;
-    return removeNativeClause(identifiers, stringExpectedAfterNative);
   }
 
   /// Return the documentation comment for the entity that starts at the
