@@ -12,6 +12,12 @@ import "deferred_not_loaded_check_lib.dart" deferred as lib;
 
 var c;
 
+expectSideEffect(test) {
+  c = 0;
+  test();
+  Expect.isTrue(c == 1);
+}
+
 expectNoSideEffect(test) {
   c = 0;
   test();
@@ -28,7 +34,7 @@ int sideEffect() {
 }
 
 void main() {
-  expectNoSideEffect(() {
+  expectSideEffect(() {
     expectThrowsNotLoaded(() {
       lib.foo(sideEffect());
     });
@@ -38,7 +44,7 @@ void main() {
       lib.C.foo(sideEffect());
     });
   });
-  expectNoSideEffect(() {
+  expectSideEffect(() {
     expectThrowsNotLoaded(() {
       new lib.C(sideEffect());
     });
@@ -46,7 +52,7 @@ void main() {
   expectThrowsNotLoaded(() {
     lib.a;
   });
-  expectNoSideEffect(() {
+  expectSideEffect(() {
     expectThrowsNotLoaded(() {
       lib.a = sideEffect();
     });
@@ -54,7 +60,7 @@ void main() {
   expectThrowsNotLoaded(() {
     lib.getter;
   });
-  expectNoSideEffect(() {
+  expectSideEffect(() {
     expectThrowsNotLoaded(() {
       lib.setter = sideEffect();
     });
@@ -64,7 +70,7 @@ void main() {
       lib.list[sideEffect()] = sideEffect();
     });
   });
-  expectNoSideEffect(() {
+  expectSideEffect(() {
     expectThrowsNotLoaded(() {
       lib.closure(sideEffect());
     });

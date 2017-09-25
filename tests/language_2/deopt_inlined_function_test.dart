@@ -13,7 +13,7 @@ class B {
   deopt_here() => 2;
 }
 
-var obj = new A();
+dynamic obj = new A();
 
 bar(x) {
   x = 42;

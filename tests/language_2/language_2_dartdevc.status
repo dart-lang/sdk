@@ -186,3 +186,6 @@ named_parameters_default_eq_test/none: RuntimeError
 null_test/mirrors: RuntimeError # Uses mirrors.
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out
+deferred_not_loaded_check_test: RuntimeError # Issue 27777
+deferred_redirecting_factory_test: RuntimeError # Issue 27777
+deferred_static_seperate_test: RuntimeError # Issue 27777

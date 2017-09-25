@@ -32,6 +32,7 @@ const_types_test/06: CompileTimeError
 const_types_test/13: CompileTimeError
 const_types_test/35: CompileTimeError
 const_types_test/40: CompileTimeError
+default_factory_test/01: CompileTimeError
 deferred_constraints_type_annotation_test/new_before_load: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_null: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic2: CompileTimeError
@@ -46,7 +47,6 @@ deferred_constraints_type_annotation_test/catch_check: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: CompileTimeError
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
-default_factory_test/01: CompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_closurize_load_library_test: Skip # Timeout
@@ -54,6 +54,17 @@ deferred_constraints_type_annotation_test/none: Skip # Timeout
 deferred_constraints_type_annotation_test/static_method: Skip # Timeout
 deferred_constant_list_test: Skip # Timeout
 deferred_global_test: Skip # Timeout
+deferred_not_loaded_check_test: CompileTimeError
+deferred_no_such_method_test: CompileTimeError
+deferred_redirecting_factory_test: Skip # Timeout
+deferred_shadow_load_library_test: Skip # Timeout
+deferred_shared_and_unshared_classes_test: Skip # Timeout
+deferred_static_seperate_test: CompileTimeError
+deferred_super_dependency_test/01: CompileTimeError
+deferred_type_dependency_test/is: Skip # Timeout
+deferred_type_dependency_test/none: Skip # Timeout
+deferred_type_dependency_test/as: Skip # Timeout
+deferred_type_dependency_test/type_annotation: Skip # Timeout
 generic_function_typedef2_test/04: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 invocation_mirror_invoke_on_test: CompileTimeError
@@ -64,6 +75,7 @@ invocation_mirror_invoke_on2_test: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 internal_library_test/01: MissingCompileTimeError
 internal_library_test/02: MissingCompileTimeError
+issue21079_test: CompileTimeError
 is_malformed_type_test/94: CompileTimeError
 is_malformed_type_test/95: CompileTimeError
 is_malformed_type_test/96: CompileTimeError
@@ -71,7 +83,6 @@ is_malformed_type_test/97: CompileTimeError
 is_malformed_type_test/98: CompileTimeError
 is_malformed_type_test/99: CompileTimeError
 is_not_class2_test: RuntimeError
-issue21079_test: CompileTimeError
 method_override2_test/01: CompileTimeError
 method_override3_test/00: CompileTimeError
 method_override3_test/01: CompileTimeError

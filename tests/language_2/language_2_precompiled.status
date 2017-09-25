@@ -425,6 +425,7 @@ generic_field_mixin6_test/none: RuntimeError
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 async_star_regression_2238_test: CompileTimeError, RuntimeError
 multiline_strings_test: Fail # Issue 23020
+deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 
 # These test entries will be valid for vm (with and without kernel).
 [ $runtime == dart_precompiled ]
@@ -457,16 +458,15 @@ generalized_void_syntax_test: CompileTimeError # Issue #30176
 
 [ $compiler == precompiler ]
 deferred_global_test: Fail
+deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 vm/regress_27201_test: Fail
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 deferred_load_constants_test/02: Fail
-deferred_load_constants_test/02: Fail
-deferred_load_constants_test/03: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
-deferred_load_constants_test/05: Fail
+deferred_not_loaded_check_test: RuntimeError
 
 [ $runtime == dart_precompiled && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
