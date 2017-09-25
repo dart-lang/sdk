@@ -568,10 +568,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   String get fullNameForErrors => name ?? "<library '$relativeFileUri'>";
 
   @override
-  void prepareInitializerInference(
+  void prepareTopLevelInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
     forEach((String name, Builder member) {
-      member.prepareInitializerInference(library, currentClass);
+      if (member is ClassBuilder) {
+        // Classes are handled separately, in class hierarchy order.
+        return;
+      }
+      member.prepareTopLevelInference(library, currentClass);
     });
   }
 

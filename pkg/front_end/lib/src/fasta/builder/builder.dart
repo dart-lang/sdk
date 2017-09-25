@@ -139,6 +139,6 @@ abstract class Builder {
     return unhandled("no library parent", "${runtimeType}", -1, null);
   }
 
-  void prepareInitializerInference(
+  void prepareTopLevelInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {}
 }

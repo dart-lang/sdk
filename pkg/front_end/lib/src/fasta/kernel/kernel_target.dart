@@ -251,8 +251,8 @@ class KernelTarget extends TargetImplementation {
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
-      loader.prepareInitializerInference();
-      loader.performInitializerInference();
+      loader.prepareTopLevelInference(sourceClasses);
+      loader.performTopLevelInference();
       loader.computeFormalSafety(sourceClasses);
     } on deprecated_InputError catch (e) {
       handleInputError(e, isFullProgram: false);

@@ -301,7 +301,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   Procedure get target => procedure;
 
   @override
-  void prepareInitializerInference(
+  void prepareTopLevelInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
     if (isEligibleForTopLevelInference) {
       var typeInferenceEngine = library.loader.typeInferenceEngine;

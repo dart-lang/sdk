@@ -50,7 +50,8 @@ import '../fasta_codes.dart'
         templateInternalProblemUriMissingScheme,
         templateUnspecified;
 
-import '../kernel/kernel_shadow_ast.dart' show ShadowTypeInferenceEngine;
+import '../kernel/kernel_shadow_ast.dart'
+    show ShadowClass, ShadowTypeInferenceEngine;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -483,22 +484,27 @@ class SourceLoader<L> extends Loader<L> {
   /// consists of creating kernel objects for all fields and top level variables
   /// that might be subject to type inference, and records dependencies between
   /// them.
-  void prepareInitializerInference() {
+  void prepareTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
-        library.prepareInitializerInference(library, null);
+        library.prepareTopLevelInference(library, null);
       }
     });
-    ticker.logMs("Prepared initializer inference");
+    for (ShadowClass class_ in hierarchy
+        .getOrderedClasses(sourceClasses.map((builder) => builder.target))) {
+      var builder = class_.builder;
+      builder.prepareTopLevelInference(builder.library, builder);
+    }
+    ticker.logMs("Prepared top level inference");
   }
 
   /// Performs the second phase of top level initializer inference, which is to
   /// visit fields and top level variables in topologically-sorted order and
   /// assign their types.
-  void performInitializerInference() {
+  void performTopLevelInference() {
     typeInferenceEngine.finishTopLevel();
-    ticker.logMs("Performed initializer inference");
+    ticker.logMs("Performed top level inference");
   }
 
   /// Annotates method formals that require runtime checks to restore soundness

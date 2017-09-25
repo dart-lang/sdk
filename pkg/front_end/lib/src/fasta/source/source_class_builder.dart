@@ -4,6 +4,9 @@
 
 library fasta.source_class_builder;
 
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
+    show ShadowClass;
+
 import 'package:kernel/ast.dart'
     show Class, Constructor, Supertype, TreeNode, setParents;
 
@@ -37,9 +40,9 @@ import '../problems.dart' show unhandled;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-Class initializeClass(
-    Class cls, String name, KernelLibraryBuilder parent, int charOffset) {
-  cls ??= new Class(name: name);
+ShadowClass initializeClass(
+    ShadowClass cls, String name, KernelLibraryBuilder parent, int charOffset) {
+  cls ??= new ShadowClass(name: name);
   cls.fileUri ??= parent.library.fileUri;
   if (cls.fileOffset == TreeNode.noOffset) {
     cls.fileOffset = charOffset;
@@ -48,7 +51,7 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends KernelClassBuilder {
-  final Class cls;
+  final ShadowClass cls;
   final String documentationComment;
 
   final List<ConstructorReferenceBuilder> constructorReferences;
@@ -68,11 +71,13 @@ class SourceClassBuilder extends KernelClassBuilder {
       LibraryBuilder parent,
       this.constructorReferences,
       int charOffset,
-      [Class cls,
+      [ShadowClass cls,
       this.mixedInType])
       : cls = initializeClass(cls, name, parent, charOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            scope, constructors, parent, charOffset);
+            scope, constructors, parent, charOffset) {
+    this.cls.builder = this;
+  }
 
   @override
   int resolveTypes(LibraryBuilder library) {
@@ -168,10 +173,10 @@ class SourceClassBuilder extends KernelClassBuilder {
   }
 
   @override
-  void prepareInitializerInference(
+  void prepareTopLevelInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
     scope.forEach((name, builder) {
-      builder.prepareInitializerInference(library, this);
+      builder.prepareTopLevelInference(library, this);
     });
   }
 }
