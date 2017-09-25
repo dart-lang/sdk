@@ -1954,6 +1954,16 @@ Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMemberWithSameNameAsClass =
+    messageMemberWithSameNameAsClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMemberWithSameNameAsClass = const MessageCode(
+    "MemberWithSameNameAsClass",
+    message:
+        r"""A class member can't have the same name as the enclosing class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMetadataTypeArguments = messageMetadataTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

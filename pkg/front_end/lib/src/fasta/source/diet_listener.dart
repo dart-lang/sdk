@@ -665,9 +665,6 @@ class DietListener extends StackListener {
       if (getOrSet != null && optional("set", getOrSet)) {
         builder = currentClass.scope.setters[name];
       } else {
-        builder = currentClass.scope.local[name];
-      }
-      if (builder == null) {
         if (name == currentClass.name) {
           name = "";
         } else {
@@ -675,6 +672,9 @@ class DietListener extends StackListener {
           name = name.substring(index + 1);
         }
         builder = currentClass.constructors.local[name];
+        if (builder == null) {
+          builder = currentClass.scope.local[name];
+        }
       }
     } else if (getOrSet != null && optional("set", getOrSet)) {
       builder = library.scope.setters[name];

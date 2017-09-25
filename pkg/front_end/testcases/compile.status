@@ -90,7 +90,6 @@ rasta/unresolved_constructor: Fail
 rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
 
-regress/issue_29944: Crash # Issue 29944.
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError
 regress/issue_29977: Crash # Issue 29977.

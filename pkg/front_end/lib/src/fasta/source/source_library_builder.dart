@@ -42,6 +42,7 @@ import '../fasta_codes.dart'
         Message,
         codeTypeNotFound,
         messagePartOfSelf,
+        messageMemberWithSameNameAsClass,
         templateConflictsWithMember,
         templateConflictsWithSetter,
         templateDeferredPrefixDuplicated,
@@ -325,6 +326,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
     bool isConstructor = builder is ProcedureBuilder &&
         (builder.isConstructor || builder.isFactory);
+    if (!isConstructor && name == currentDeclaration.name) {
+      addCompileTimeError(
+          messageMemberWithSameNameAsClass, charOffset, fileUri);
+    }
     Map<String, Builder> members = isConstructor
         ? currentDeclaration.constructors
         : (builder.isSetter

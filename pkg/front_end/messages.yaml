@@ -894,6 +894,9 @@ DuplicatedParameterName:
 DuplicatedParameterNameCause:
   template: "Other parameter named '#name'."
 
+MemberWithSameNameAsClass:
+  template: "A class member can't have the same name as the enclosing class."
+
 EnumConstantSameNameAsEnclosing:
   template: "Name of enum constant '#name' can't be the same as the enum's own name."
 
