@@ -1764,12 +1764,17 @@ void IntegerInstructionSelector::ReplaceInstructions() {
     }
     Definition* replacement = ConstructReplacementFor(defn);
     ASSERT(replacement != NULL);
+    if (!Range::IsUnknown(defn->range())) {
+      if (defn->range()->IsPositive()) {
+        replacement->set_range(*defn->range());
+      } else {
+        replacement->set_range(Range(RangeBoundary::FromConstant(0),
+                                     RangeBoundary::FromConstant(kMaxUint32)));
+      }
+    }
     if (FLAG_support_il_printer && FLAG_trace_integer_ir_selection) {
       THR_Print("Replacing %s with %s\n", defn->ToCString(),
                 replacement->ToCString());
-    }
-    if (!Range::IsUnknown(defn->range())) {
-      replacement->set_range(*defn->range());
     }
     defn->ReplaceWith(replacement, NULL);
     ASSERT(flow_graph_->VerifyUseLists());
