@@ -142,8 +142,6 @@ const _MustCallSuper mustCallSuper = const _MustCallSuper();
 /// * the annotation is associated with anything other than a class declaration
 /// * a class that has this annotation is used, either directly or
 ///   transitively, as an interface (using `implements`)
-///
-/// At this time the analyzer does not enforce this annotation.
 const _NoImplement noImplement = const _NoImplement();
 
 /// Used to annotate a class declaration `C`. Indicates that any type arguments
