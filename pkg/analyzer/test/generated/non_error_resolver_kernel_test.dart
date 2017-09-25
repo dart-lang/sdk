@@ -20,13 +20,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_commentReference_beforeMethod() async {
-    fail('This test fails only in checked mode.');
-    return super.test_commentReference_beforeMethod();
-  }
-
-  @override
-  @failingTest
   test_conflictingConstructorNameAndMember_setter() async {
     return super.test_conflictingConstructorNameAndMember_setter();
   }
@@ -170,13 +163,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_implicitThisReferenceInInitializer_constructorName() async {
     return super.test_implicitThisReferenceInInitializer_constructorName();
-  }
-
-  @override
-  @failingTest
-  test_loadLibraryDefined() async {
-    fail('This test fails only in checked mode.');
-    return super.test_loadLibraryDefined();
   }
 
   @override
