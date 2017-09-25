@@ -20,6 +20,12 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_async_future_int_with_return_future_int() async {
+    return super.test_async_future_int_with_return_future_int();
+  }
+
+  @override
+  @failingTest
   test_conflictingConstructorNameAndMember_setter() async {
     return super.test_conflictingConstructorNameAndMember_setter();
   }
@@ -58,12 +64,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
-  }
-
-  @override
-  @failingTest
-  test_constWithNonConstantArgument_constField() async {
-    return super.test_constWithNonConstantArgument_constField();
   }
 
   @override
@@ -197,60 +197,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_nonConstantDefaultValue_constField() async {
-    return super.test_nonConstantDefaultValue_constField();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_function_named() async {
-    return super.test_nonConstantDefaultValue_function_named();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_function_positional() async {
-    return super.test_nonConstantDefaultValue_function_positional();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_method_named() async {
-    return super.test_nonConstantDefaultValue_method_named();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_method_positional() async {
-    return super.test_nonConstantDefaultValue_method_positional();
-  }
-
-  @override
-  @failingTest
-  test_nonConstCaseExpression_constField() async {
-    return super.test_nonConstCaseExpression_constField();
-  }
-
-  @override
-  @failingTest
-  test_nonConstListElement_constField() async {
-    return super.test_nonConstListElement_constField();
-  }
-
-  @override
-  @failingTest
-  test_nonConstMapKey_constField() async {
-    return super.test_nonConstMapKey_constField();
-  }
-
-  @override
-  @failingTest
-  test_nonConstMapValue_constField() async {
-    return super.test_nonConstMapValue_constField();
-  }
-
-  @override
-  @failingTest
   test_nonConstValueInInitializer_binary_bool() async {
     return super.test_nonConstValueInInitializer_binary_bool();
   }
@@ -314,12 +260,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_referenceToDeclaredVariableInInitializer_constructorName() async {
     return super
         .test_referenceToDeclaredVariableInInitializer_constructorName();
-  }
-
-  @override
-  @failingTest
-  test_returnOfInvalidType_dynamicAsTypeArgument() async {
-    return super.test_returnOfInvalidType_dynamicAsTypeArgument();
   }
 
   @override
