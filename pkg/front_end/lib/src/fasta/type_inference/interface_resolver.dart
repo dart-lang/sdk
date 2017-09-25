@@ -68,9 +68,6 @@ class InterfaceResolver {
         .map((member) => _makeCandidate(member, setters))
         .toList();
     // Merge in candidates from superclasses.
-    if (class_.mixedInClass != null) {
-      candidates = _mergeCandidates(candidates, class_.mixedInClass, setters);
-    }
     if (class_.superclass != null) {
       candidates = _mergeCandidates(candidates, class_.superclass, setters);
     }

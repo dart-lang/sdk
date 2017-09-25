@@ -40,6 +40,23 @@ class InterfaceResolverTest {
     expect(candidate, same(procedure));
   }
 
+  void checkCandidateOrder(Class class_, Member member) {
+    // Check that InterfaceResolver prioritizes [member]
+    var candidates = getCandidates(class_, false);
+    expect(candidates[0], same(member));
+
+    // Check that both implementations of [ClassHierarchy] prioritize [member]
+    // ahead of [other]
+    void check(ClassHierarchy classHierarchy) {
+      var interfaceMember =
+          classHierarchy.getInterfaceMember(class_, member.name);
+      expect(interfaceMember, same(member));
+    }
+
+    check(new ClosedWorldClassHierarchy(program));
+    check(new IncrementalClassHierarchy());
+  }
+
   Procedure getCandidate(Class class_, bool setter) {
     var candidates = getCandidates(class_, setter);
     expect(candidates, hasLength(1));
@@ -53,7 +70,6 @@ class InterfaceResolverTest {
   }
 
   List<ForwardingNode> getForwardingNodes(Class class_, bool setters) {
-    testLib.addClass(class_);
     var interfaceResolver =
         new InterfaceResolver(new IncrementalClassHierarchy());
     var forwardingNodes = <ForwardingNode>[];
@@ -68,13 +84,15 @@ class InterfaceResolverTest {
       List<Supertype> implementedTypes,
       List<Procedure> procedures,
       List<Field> fields}) {
-    return new Class(
+    var class_ = new Class(
         name: name ?? 'C',
         supertype: supertype ?? objectClass.asThisSupertype,
         mixedInType: mixedInType,
         implementedTypes: implementedTypes,
         procedures: procedures,
         fields: fields);
+    testLib.addClass(class_);
+    return class_;
   }
 
   Procedure makeEmptyMethod({String name: 'foo'}) {
@@ -150,6 +168,40 @@ class InterfaceResolverTest {
     var b = makeClass(name: 'B', supertype: a.asThisSupertype);
     var candidate = getCandidate(b, false);
     expect(candidate, same(method));
+  }
+
+  void test_candidate_order_interfaces() {
+    var methodA = makeEmptyMethod();
+    var methodB = makeEmptyMethod();
+    var a = makeClass(name: 'A', procedures: [methodA]);
+    var b = makeClass(name: 'B', procedures: [methodB]);
+    var c = makeClass(
+        name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
+    checkCandidateOrder(c, methodA);
+  }
+
+  void test_candidate_order_mixin_before_superclass() {
+    var methodA = makeEmptyMethod();
+    var methodB = makeEmptyMethod();
+    var a = makeClass(name: 'A', procedures: [methodA]);
+    var b = makeClass(name: 'B', procedures: [methodB]);
+    var c = makeClass(
+        name: 'C',
+        supertype: a.asThisSupertype,
+        mixedInType: b.asThisSupertype);
+    checkCandidateOrder(c, methodB);
+  }
+
+  void test_candidate_order_superclass_before_interface() {
+    var methodA = makeEmptyMethod();
+    var methodB = makeEmptyMethod();
+    var a = makeClass(name: 'A', procedures: [methodA]);
+    var b = makeClass(name: 'B', procedures: [methodB]);
+    var c = makeClass(
+        name: 'C',
+        supertype: a.asThisSupertype,
+        implementedTypes: [b.asThisSupertype]);
+    checkCandidateOrder(c, methodA);
   }
 
   void test_forwardingNodes_multiple() {
