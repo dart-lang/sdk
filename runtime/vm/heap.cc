@@ -124,11 +124,11 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   return 0;
 }
 
-void Heap::AllocateExternal(intptr_t size, Space space) {
+void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
     isolate()->AssertCurrentThreadIsMutator();
-    new_space_.AllocateExternal(size);
+    new_space_.AllocateExternal(cid, size);
     if (new_space_.ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
       // Attempt to free some external allocation by a scavenge. (If the total
       // remains above the limit, next external alloc will trigger another.)
@@ -136,7 +136,7 @@ void Heap::AllocateExternal(intptr_t size, Space space) {
     }
   } else {
     ASSERT(space == kOld);
-    old_space_.AllocateExternal(size);
+    old_space_.AllocateExternal(cid, size);
     if (old_space_.NeedsGarbageCollection()) {
       CollectAllGarbage();
     }
@@ -152,9 +152,9 @@ void Heap::FreeExternal(intptr_t size, Space space) {
   }
 }
 
-void Heap::PromoteExternal(intptr_t size) {
+void Heap::PromoteExternal(intptr_t cid, intptr_t size) {
   new_space_.FreeExternal(size);
-  old_space_.AllocateExternal(size);
+  old_space_.AllocateExternal(cid, size);
 }
 
 bool Heap::Contains(uword addr) const {
@@ -401,7 +401,6 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
       EndNewSpaceGC();
     }
     if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
-      // Old collections should call the API callbacks.
       CollectOldSpaceGarbage(thread, kPromotion);
     }
   }

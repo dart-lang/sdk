@@ -192,7 +192,9 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
   ScavengerWeakVisitor(Thread* thread, Scavenger* scavenger)
-      : HandleVisitor(thread), scavenger_(scavenger) {
+      : HandleVisitor(thread),
+        scavenger_(scavenger),
+        class_table_(thread->isolate()->class_table()) {
     ASSERT(scavenger->heap_->isolate() == thread->isolate());
   }
 
@@ -204,11 +206,21 @@ class ScavengerWeakVisitor : public HandleVisitor {
       handle->UpdateUnreachable(thread()->isolate());
     } else {
       handle->UpdateRelocated(thread()->isolate());
+#ifndef PRODUCT
+      intptr_t cid = (*p)->GetClassIdMayBeSmi();
+      intptr_t size = handle->external_size();
+      if ((*p)->IsSmiOrOldObject()) {
+        class_table_->UpdateLiveOldExternal(cid, size);
+      } else {
+        class_table_->UpdateLiveNewExternal(cid, size);
+      }
+#endif  // !PRODUCT
     }
   }
 
  private:
   Scavenger* scavenger_;
+  ClassTable* class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
@@ -934,9 +946,11 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
 }
 #endif  // !PRODUCT
 
-void Scavenger::AllocateExternal(intptr_t size) {
+void Scavenger::AllocateExternal(intptr_t cid, intptr_t size) {
   ASSERT(size >= 0);
   external_size_ += size;
+  NOT_IN_PRODUCT(
+      heap_->isolate()->class_table()->UpdateAllocatedExternalNew(cid, size));
 }
 
 void Scavenger::FreeExternal(intptr_t size) {

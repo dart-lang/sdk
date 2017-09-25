@@ -80,10 +80,10 @@ class Heap {
   }
 
   // Track external data.
-  void AllocateExternal(intptr_t size, Space space);
+  void AllocateExternal(intptr_t cid, intptr_t size, Space space);
   void FreeExternal(intptr_t size, Space space);
   // Move external size from new to old space. Does not by itself trigger GC.
-  void PromoteExternal(intptr_t size);
+  void PromoteExternal(intptr_t cid, intptr_t size);
 
   // Heap contains the specified address.
   bool Contains(uword addr) const;

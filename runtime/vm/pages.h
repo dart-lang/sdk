@@ -292,7 +292,7 @@ class PageSpace {
   void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const;
 #endif  // PRODUCT
 
-  void AllocateExternal(intptr_t size);
+  void AllocateExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
   // Bulk data allocation.

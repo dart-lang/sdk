@@ -427,6 +427,10 @@ class RawObject {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
+  intptr_t GetClassIdMayBeSmi() const {
+    return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
+  }
+
   intptr_t Size() const {
     uint32_t tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
