@@ -761,7 +761,7 @@ deferred_regression_28678_test: CompileTimeError
 deferred_shadow_load_library_test: RuntimeError
 deferred_shared_and_unshared_classes_test: CompileTimeError
 deferred_static_seperate_test: CompileTimeError
-deferred_super_dependency_test/01: CompileTimeError
+deferred_super_dependency_test/01: Pass
 deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
@@ -1015,7 +1015,7 @@ deferred_regression_28678_test: CompileTimeError
 deferred_shadow_load_library_test: RuntimeError
 deferred_shared_and_unshared_classes_test: CompileTimeError
 deferred_static_seperate_test: CompileTimeError
-deferred_super_dependency_test/01: CompileTimeError
+deferred_super_dependency_test/01: Pass
 deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
