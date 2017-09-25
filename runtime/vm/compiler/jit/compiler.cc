@@ -899,6 +899,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         FlowGraphInliner::SetInliningId(flow_graph, 0);
 
+        int inlining_depth = 0;
+
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
@@ -917,7 +919,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                    use_speculative_inlining,
                                    /*inlining_black_list=*/NULL,
                                    /*precompiler=*/NULL);
-          inliner.Inline();
+          inlining_depth = inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
           thread()->CheckForSafepoint();
@@ -1152,6 +1154,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Compute and store graph informations (call & instruction counts)
         // to be later used by the inliner.
         FlowGraphInliner::CollectGraphInfo(flow_graph, true);
+        function.set_inlining_depth(inlining_depth);
 
         flow_graph->RemoveRedefinitions();
         {
@@ -1262,7 +1265,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                                         bool optimized,
                                         intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
-  ASSERT(!optimized || function.was_compiled());
+  ASSERT(!optimized || function.WasCompiled());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
@@ -1319,7 +1322,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     const Code& result = Code::Handle(helper.Compile(pipeline));
     if (!result.IsNull()) {
       if (!optimized) {
-        function.set_was_compiled(true);
+        function.SetWasCompiled(true);
       }
     } else {
       if (optimized) {
@@ -1427,7 +1430,7 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
                                      bool optimized,
                                      intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
-  ASSERT(!optimized || function.was_compiled());
+  ASSERT(!optimized || function.WasCompiled());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
