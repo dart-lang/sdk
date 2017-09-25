@@ -921,8 +921,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(send.withReceiver(receiver, token.charOffset));
     } else {
       pop();
-      Message message = fasta.templateExpectedIdentifier
-          .withArguments(token.next);
+      Message message =
+          fasta.templateExpectedIdentifier.withArguments(token.next);
       push(buildCompileTimeError(message, token.next.charOffset));
     }
   }
@@ -932,7 +932,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Member target = lookupSuperMember(node.name);
     if (target == null || (target is Procedure && !target.isAccessor)) {
       if (target == null) {
-        warnUnresolvedSuperMethod(node.name, node.fileOffset);
+        warnUnresolvedMethod(node.name, node.fileOffset, isSuper: true);
       } else if (!areArgumentsCompatible(target.function, node.arguments)) {
         target = null;
         warning(
@@ -978,17 +978,20 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       bool isGetter: false,
       bool isSetter: false,
       bool isStatic: false}) {
-    String errorName = isSuper ? "super.$name" : name;
     Message message;
+    Name kernelName = new Name(name, library.library);
     if (isGetter) {
-      message = fasta.templateGetterNotFound.withArguments(errorName);
+      message = warnUnresolvedGet(kernelName, charOffset,
+          isSuper: isSuper, reportWarning: !constantExpressionRequired);
     } else if (isSetter) {
-      message = fasta.templateSetterNotFound.withArguments(errorName);
+      message = warnUnresolvedSet(kernelName, charOffset,
+          isSuper: isSuper, reportWarning: !constantExpressionRequired);
     } else {
-      message = fasta.templateMethodNotFound.withArguments(errorName);
+      message = warnUnresolvedMethod(kernelName, charOffset,
+          isSuper: isSuper, reportWarning: !constantExpressionRequired);
     }
     if (constantExpressionRequired) {
-      // TODO(ahe): Use error below instead of building a compile-time error,
+      // TODO(ahe): Use [error] below instead of building a compile-time error,
       // should be:
       //    return library.loader.throwCompileConstantError(error, charOffset);
       return buildCompileTimeError(message, charOffset);
@@ -1000,27 +1003,44 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           isSetter: isSetter,
           isStatic: isStatic,
           isTopLevel: !isStatic && !isSuper);
-      warning(message, charOffset);
       return new ShadowSyntheticExpression(new Throw(error));
     }
   }
 
   @override
-  void warnUnresolvedSuperGet(Name name, int charOffset) {
-    warning(fasta.templateSuperclassHasNoGetter.withArguments(name.name),
-        charOffset);
+  Message warnUnresolvedGet(Name name, int charOffset,
+      {bool isSuper: false, bool reportWarning: true}) {
+    Message message = isSuper
+        ? fasta.templateSuperclassHasNoGetter.withArguments(name.name)
+        : fasta.templateGetterNotFound.withArguments(name.name);
+    if (reportWarning) {
+      warning(message, charOffset);
+    }
+    return message;
   }
 
   @override
-  void warnUnresolvedSuperSet(Name name, int charOffset) {
-    warning(fasta.templateSuperclassHasNoSetter.withArguments(name.name),
-        charOffset);
+  Message warnUnresolvedSet(Name name, int charOffset,
+      {bool isSuper: false, bool reportWarning: true}) {
+    Message message = isSuper
+        ? fasta.templateSuperclassHasNoSetter.withArguments(name.name)
+        : fasta.templateSetterNotFound.withArguments(name.name);
+    if (reportWarning) {
+      warning(message, charOffset);
+    }
+    return message;
   }
 
   @override
-  void warnUnresolvedSuperMethod(Name name, int charOffset) {
-    warning(fasta.templateSuperclassHasNoMethod.withArguments(name.name),
-        charOffset);
+  Message warnUnresolvedMethod(Name name, int charOffset,
+      {bool isSuper: false, bool reportWarning: true}) {
+    Message message = isSuper
+        ? fasta.templateSuperclassHasNoMethod.withArguments(name.name)
+        : fasta.templateMethodNotFound.withArguments(name.name);
+    if (reportWarning) {
+      warning(message, charOffset);
+    }
+    return message;
   }
 
   @override

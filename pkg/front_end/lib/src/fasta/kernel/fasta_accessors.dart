@@ -125,11 +125,11 @@ abstract class BuilderHelper {
 
   void warning(Message message, int charOffset);
 
-  void warnUnresolvedSuperGet(Name name, int charOffset);
+  Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper});
 
-  void warnUnresolvedSuperSet(Name name, int charOffset);
+  Message warnUnresolvedSet(Name name, int charOffset, {bool isSuper});
 
-  void warnUnresolvedSuperMethod(Name name, int charOffset);
+  Message warnUnresolvedMethod(Name name, int charOffset, {bool isSuper});
 }
 
 abstract class FastaAccessor implements Accessor {
