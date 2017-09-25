@@ -298,22 +298,4 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
     return super
         .test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new();
   }
-
-  @override
-  @failingTest
-  test_uriDoesNotExist_dll() async {
-    return super.test_uriDoesNotExist_dll();
-  }
-
-  @override
-  @failingTest
-  test_uriDoesNotExist_dylib() async {
-    return super.test_uriDoesNotExist_dylib();
-  }
-
-  @override
-  @failingTest
-  test_uriDoesNotExist_so() async {
-    return super.test_uriDoesNotExist_so();
-  }
 }

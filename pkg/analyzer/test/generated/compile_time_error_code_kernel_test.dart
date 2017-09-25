@@ -311,18 +311,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_invalidUri_export() async {
-    return super.test_invalidUri_export();
-  }
-
-  @override
-  @failingTest
-  test_invalidUri_import() async {
-    return super.test_invalidUri_import();
-  }
-
-  @override
-  @failingTest
   test_invalidUri_part() async {
     return super.test_invalidUri_part();
   }

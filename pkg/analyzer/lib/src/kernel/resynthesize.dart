@@ -75,7 +75,10 @@ class KernelResynthesizer implements ElementResynthesizer {
 
       var libraryContext =
           new _KernelLibraryResynthesizerContextImpl(this, kernel);
+
+      // Build the library.
       LibraryElementImpl libraryElement = libraryContext._buildLibrary(uriStr);
+      if (libraryElement == null) return null;
 
       // Build the defining unit.
       var definingUnit = libraryContext._buildUnit(null).unit;
@@ -613,6 +616,7 @@ class _KernelLibraryResynthesizerContextImpl
 
   LibraryElementImpl _buildLibrary(String uriStr) {
     librarySource = resynthesizer._getSource(uriStr);
+    if (librarySource == null) return null;
     return libraryElement =
         new LibraryElementImpl.forKernel(resynthesizer._analysisContext, this);
   }
