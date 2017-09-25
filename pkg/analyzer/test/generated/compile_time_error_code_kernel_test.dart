@@ -287,12 +287,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_invalidAnnotation_staticMethodReference() async {
-    return super.test_invalidAnnotation_staticMethodReference();
-  }
-
-  @override
-  @failingTest
   test_invalidAnnotationFromDeferredLibrary_namedConstructor() async {
     return super.test_invalidAnnotationFromDeferredLibrary_namedConstructor();
   }

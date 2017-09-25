@@ -174,19 +174,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_invalidAnnotation_constantVariable_field() async {
-    return super.test_invalidAnnotation_constantVariable_field();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_constantVariable_field_importWithPrefix() async {
-    return super
-        .test_invalidAnnotation_constantVariable_field_importWithPrefix();
-  }
-
-  @override
-  @failingTest
   test_invalidAssignment_defaultValue_named() async {
     return super.test_invalidAssignment_defaultValue_named();
   }
