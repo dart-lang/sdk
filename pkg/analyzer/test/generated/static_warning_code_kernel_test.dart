@@ -87,30 +87,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_invalidOverride_defaultOverridesNonDefault() async {
-    return super.test_invalidOverride_defaultOverridesNonDefault();
-  }
-
-  @override
-  @failingTest
-  test_invalidOverride_defaultOverridesNonDefault_named() async {
-    return super.test_invalidOverride_defaultOverridesNonDefault_named();
-  }
-
-  @override
-  @failingTest
-  test_invalidOverride_defaultOverridesNonDefaultNull() async {
-    return super.test_invalidOverride_defaultOverridesNonDefaultNull();
-  }
-
-  @override
-  @failingTest
-  test_invalidOverride_defaultOverridesNonDefaultNull_named() async {
-    return super.test_invalidOverride_defaultOverridesNonDefaultNull_named();
-  }
-
-  @override
-  @failingTest
   test_invalidOverride_nonDefaultOverridesDefault() async {
     return super.test_invalidOverride_nonDefaultOverridesDefault();
   }
@@ -119,18 +95,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @failingTest
   test_invalidOverride_nonDefaultOverridesDefault_named() async {
     return super.test_invalidOverride_nonDefaultOverridesDefault_named();
-  }
-
-  @override
-  @failingTest
-  test_invalidOverrideDifferentDefaultValues_named() async {
-    return super.test_invalidOverrideDifferentDefaultValues_named();
-  }
-
-  @override
-  @failingTest
-  test_invalidOverrideDifferentDefaultValues_positional() async {
-    return super.test_invalidOverrideDifferentDefaultValues_positional();
   }
 
   @override

@@ -27,12 +27,6 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
 
   @override
   @failingTest
-  test_fieldFormalParameterNotAssignableToField_optional() async {
-    return super.test_fieldFormalParameterNotAssignableToField_optional();
-  }
-
-  @override
-  @failingTest
   test_fieldTypeMismatch_unresolved() async {
     return super.test_fieldTypeMismatch_unresolved();
   }

@@ -483,30 +483,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_nonConstantDefaultValue_function_named() async {
-    return super.test_nonConstantDefaultValue_function_named();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_function_positional() async {
-    return super.test_nonConstantDefaultValue_function_positional();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_inConstructor_named() async {
-    return super.test_nonConstantDefaultValue_inConstructor_named();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_inConstructor_positional() async {
-    return super.test_nonConstantDefaultValue_inConstructor_positional();
-  }
-
-  @override
-  @failingTest
   test_nonConstantDefaultValue_method_named() async {
     return super.test_nonConstantDefaultValue_method_named();
   }
@@ -515,12 +491,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_nonConstantDefaultValue_method_positional() async {
     return super.test_nonConstantDefaultValue_method_positional();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValueFromDeferredLibrary() async {
-    return super.test_nonConstantDefaultValueFromDeferredLibrary();
   }
 
   @override
@@ -595,18 +565,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_prefixCollidesWithTopLevelMembers_type() async {
     return super.test_prefixCollidesWithTopLevelMembers_type();
-  }
-
-  @override
-  @failingTest
-  test_privateOptionalParameter_fieldFormal() async {
-    return super.test_privateOptionalParameter_fieldFormal();
-  }
-
-  @override
-  @failingTest
-  test_privateOptionalParameter_withDefaultValue() async {
-    return super.test_privateOptionalParameter_withDefaultValue();
   }
 
   @override

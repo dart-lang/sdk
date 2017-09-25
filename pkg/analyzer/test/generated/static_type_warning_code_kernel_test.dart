@@ -21,18 +21,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_invalidAssignment_defaultValue_named() async {
-    return super.test_invalidAssignment_defaultValue_named();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_defaultValue_optional() async {
-    return super.test_invalidAssignment_defaultValue_optional();
-  }
-
-  @override
-  @failingTest
   test_typeArgumentNotMatchingBounds_redirectingConstructor() async {
     return super.test_typeArgumentNotMatchingBounds_redirectingConstructor();
   }
