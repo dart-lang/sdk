@@ -17,7 +17,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
@@ -152,19 +151,8 @@ class KernelContext {
       var resynthesizer = new KernelResynthesizer(
           analysisContext, kernelResult.types, libraryMap);
 
-      analysisContext.typeProvider = _buildTypeProvider(resynthesizer);
       return new KernelContext._(analysisContext, resynthesizer);
     });
-  }
-
-  static SummaryTypeProvider _buildTypeProvider(
-      KernelResynthesizer resynthesizer) {
-    var coreLibrary = resynthesizer.getLibrary('dart:core');
-    var asyncLibrary = resynthesizer.getLibrary('dart:async');
-    SummaryTypeProvider summaryTypeProvider = new SummaryTypeProvider();
-    summaryTypeProvider.initializeCore(coreLibrary);
-    summaryTypeProvider.initializeAsync(asyncLibrary);
-    return summaryTypeProvider;
   }
 }
 

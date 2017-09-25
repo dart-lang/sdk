@@ -580,12 +580,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @assertFailingTest
-  test_prefix_conditionalPropertyAccess_call_loadLibrary() async {
-    return super.test_prefix_conditionalPropertyAccess_call_loadLibrary();
-  }
-
-  @override
   @failingTest
   test_prefixCollidesWithTopLevelMembers_functionTypeAlias() async {
     return super.test_prefixCollidesWithTopLevelMembers_functionTypeAlias();
