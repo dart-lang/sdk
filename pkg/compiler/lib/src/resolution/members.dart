@@ -52,6 +52,7 @@ import 'resolution_result.dart';
 import 'scope.dart' show BlockScope, MethodScope, Scope;
 import 'send_structure.dart';
 import 'signatures.dart' show SignatureResolver;
+import 'type_resolver.dart' show FunctionTypeParameterScope;
 import 'variables.dart' show VariableDefinitionsVisitor;
 
 /// The state of constants in resolutions.
@@ -580,6 +581,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     function.functionSignature = SignatureResolver.analyze(
         resolution,
         scope,
+        const FunctionTypeParameterScope(),
         node.typeVariables,
         node.parameters,
         node.returnType,
@@ -4132,10 +4134,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionDartType resolveTypeAnnotation(TypeAnnotation node,
-      {bool malformedIsError: false,
+      {FunctionTypeParameterScope functionTypeParameters:
+          const FunctionTypeParameterScope(),
+      bool malformedIsError: false,
       bool deferredIsMalformed: true,
       bool registerCheckedModeCheck: true}) {
-    ResolutionDartType type = typeResolver.resolveTypeAnnotation(this, node,
+    ResolutionDartType type = typeResolver.resolveTypeAnnotation(
+        this, node, functionTypeParameters,
         malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
     if (registerCheckedModeCheck) {

@@ -16,8 +16,6 @@ kernel/*: Slow, Pass
 
 boolified_operator_test: Fail # Issue 8001
 
-kernel/closed_world2_test: Fail # Issue 30826
-
 # Skip most serialization tests. These are very slow and are no longer a 
 # priority.
 serialization/analysis1_test: Skip

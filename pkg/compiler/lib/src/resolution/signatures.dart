@@ -25,6 +25,7 @@ import 'members.dart' show ResolverVisitor;
 import 'registry.dart' show ResolutionRegistry;
 import 'resolution_common.dart' show MappingVisitor;
 import 'scope.dart' show Scope, TypeVariablesScope;
+import 'type_resolver.dart' show FunctionTypeParameterScope;
 
 /**
  * [SignatureResolver] resolves function signatures.
@@ -35,22 +36,17 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   final Scope scope;
   final MessageKind defaultValuesError;
   final bool createRealParameters;
+  final FunctionTypeParameterScope functionTypeParameters;
   List<FormalElement> optionalParameters = const <FormalElement>[];
   int optionalParameterCount = 0;
   bool isOptionalParameter = false;
   bool optionalParametersAreNamed = false;
   VariableDefinitions currentDefinitions;
 
-  SignatureResolver(
-      Resolution resolution,
-      FunctionTypedElement enclosingElement,
-      Scope scope,
-      ResolutionRegistry registry,
-      {this.defaultValuesError,
-      this.createRealParameters})
-      : this.scope = scope,
-        this.enclosingElement = enclosingElement,
-        this.resolver = new ResolverVisitor(
+  SignatureResolver(Resolution resolution, this.enclosingElement, this.scope,
+      this.functionTypeParameters, ResolutionRegistry registry,
+      {this.defaultValuesError, this.createRealParameters})
+      : this.resolver = new ResolverVisitor(
             resolution, enclosingElement, registry,
             scope: scope),
         super(resolution, registry);
@@ -121,7 +117,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       FunctionSignature functionSignature = SignatureResolver.analyze(
           resolution,
           scope,
-          functionExpression.typeVariables,
+          functionTypeParameters.expand(functionExpression.typeVariables),
+          null, // Don't create type variable types for the type parameters.
           functionExpression.parameters,
           functionExpression.returnType,
           element,
@@ -310,6 +307,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   static FunctionSignature analyze(
       Resolution resolution,
       Scope scope,
+      FunctionTypeParameterScope functionTypeParameters,
       NodeList typeVariables,
       NodeList formalParameters,
       Node returnNode,
@@ -353,7 +351,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         createTypeVariables(typeVariables);
     scope = new FunctionSignatureBuildingScope(scope, typeVariableTypes);
     SignatureResolver visitor = new SignatureResolver(
-        resolution, element, scope, registry,
+        resolution, element, scope, functionTypeParameters, registry,
         defaultValuesError: defaultValuesError,
         createRealParameters: createRealParameters);
     List<FormalElement> parameters = const <FormalElement>[];
@@ -493,7 +491,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
 
   ResolutionDartType resolveReturnType(TypeAnnotation annotation) {
     if (annotation == null) return const ResolutionDynamicType();
-    ResolutionDartType result = resolver.resolveTypeAnnotation(annotation);
+    ResolutionDartType result = resolver.resolveTypeAnnotation(annotation,
+        functionTypeParameters: functionTypeParameters);
     if (result == null) {
       return const ResolutionDynamicType();
     }

@@ -1457,6 +1457,8 @@ class KernelElementEnvironment implements ElementEnvironment {
 /// Visitor that converts kernel dart types into [DartType].
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   final KernelToElementMapBase elementMap;
+  final Set<ir.TypeParameter> currentFunctionTypeParameters =
+      new Set<ir.TypeParameter>();
   bool topLevel = true;
 
   DartTypeConverter(this.elementMap);
@@ -1485,12 +1487,18 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitTypeParameterType(ir.TypeParameterType node) {
+    if (currentFunctionTypeParameters.contains(node.parameter)) {
+      // TODO(johnniwinther): Map function type parameters to a new
+      // [FunctionTypeParameter] type.
+      return const DynamicType();
+    }
     return new TypeVariableType(elementMap.getTypeVariable(node.parameter));
   }
 
   @override
   DartType visitFunctionType(ir.FunctionType node) {
-    return new FunctionType(
+    currentFunctionTypeParameters.addAll(node.typeParameters);
+    FunctionType type = new FunctionType(
         visitType(node.returnType),
         visitTypes(node.positionalParameters
             .take(node.requiredParameterCount)
@@ -1500,6 +1508,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             .toList()),
         node.namedParameters.map((n) => n.name).toList(),
         node.namedParameters.map((n) => visitType(n.type)).toList());
+    currentFunctionTypeParameters.removeAll(node.typeParameters);
+    return type;
   }
 
   @override
