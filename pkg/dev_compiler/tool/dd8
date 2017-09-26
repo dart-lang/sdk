@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# Compiles code with DDC and runs the resulting code in d8 (the v8 command
+# line tool).  Only recent versions of v8/d8 that include es6 modules are
+# supported.
+#
+# The first script supplied should be the one with `main()`.
+#
+# Saves the output in the same directory as the sources for convenient
+# inspection, modification or rerunning the code.
+#
+# TODO(vsm): Investigate what polyfills from dart2js would be useful here:
+# sdk/lib/_internal/js_runtime/lib/preambles/d8.js
+#
+D8=$(type -P d8)
+if [ ! $D8 ]; then
+  echo "Please add d8 to your PATH"
+  exit 1
+fi
+set -e
+DDC_PATH=$( cd $( dirname "${BASH_SOURCE[0]}" )/.. && pwd )
+BASENAME=$( basename "${1%.*}")
+LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
+
+# D8 uses relative paths.  That won't work for the sdk right now as the
+# summary is in a slightly different location.
+# D8/ES6 imports also do not add a ".js" extension, so this is "dart_sdk"
+# instead of "dart_sdk.js".
+if [ ! -f dart_sdk ]; then
+    ln -s $DDC_PATH/lib/js/es6/dart_sdk.js dart_sdk
+fi
+
+dart -c $DDC_PATH/bin/dartdevc.dart --modules=es6 --library-root=$LIBROOT \
+    --dart-sdk-summary=$DDC_PATH/lib/sdk/ddc_sdk.sum \
+    -o $LIBROOT/$BASENAME.js $*
+pushd $LIBROOT > /dev/null
+echo "
+    import { dart, _isolate_helper } from 'dart_sdk';
+    import { $BASENAME } from '$BASENAME.js';
+    let main = $BASENAME.main;
+    dart.ignoreWhitelistedErrors(false);
+    try {
+      _isolate_helper.startRootIsolate(() => {}, []);
+      main();
+    } catch(e) {
+      console.error(e.toString(), dart.stackTrace(e).toString());
+    }" \
+    > $LIBROOT/$BASENAME.d8.js
+$D8 --module $BASENAME.d8.js || exit 1
+popd > /dev/null
