@@ -100,24 +100,6 @@ class StrongModeLocalInferenceTest_Kernel
 
   @override
   @failingTest
-  test_futureOr_no_return() async {
-    return super.test_futureOr_no_return();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_no_return_value() async {
-    return super.test_futureOr_no_return_value();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_return_null() async {
-    return super.test_futureOr_return_null();
-  }
-
-  @override
-  @failingTest
   test_futureOr_upwards1() async {
     return super.test_futureOr_upwards1();
   }
@@ -126,24 +108,6 @@ class StrongModeLocalInferenceTest_Kernel
   @failingTest
   test_futureOr_upwards2() async {
     return super.test_futureOr_upwards2();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_no_return() async {
-    return super.test_futureOrNull_no_return();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_no_return_value() async {
-    return super.test_futureOrNull_no_return_value();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_return_null() async {
-    return super.test_futureOrNull_return_null();
   }
 
   @override
@@ -170,24 +134,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
     extends StrongModeStaticTypeAnalyzer2Test_Driver {
   @override
   bool get enableKernelDriver => true;
-
-  @override
-  @failingTest
-  test_genericMethod_then() async {
-    return super.test_genericMethod_then();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_then_prefixed() async {
-    return super.test_genericMethod_then_prefixed();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_then_propagatedType() async {
-    return super.test_genericMethod_then_propagatedType();
-  }
 
   @override
   @failingTest
