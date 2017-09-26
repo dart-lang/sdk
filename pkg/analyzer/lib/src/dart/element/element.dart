@@ -6200,6 +6200,16 @@ abstract class KernelLibraryResynthesizerContext {
   kernel.Library get library;
 
   /**
+   * Return the export namespace of the library.
+   */
+  Namespace buildExportNamespace();
+
+  /**
+   * Return the public namespace of the library.
+   */
+  Namespace buildPublicNamespace();
+
+  /**
    * Return the [LibraryElement] for the given absolute [uriStr].
    */
   LibraryElement getLibrary(String uriStr);
@@ -6560,6 +6570,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   Namespace get exportNamespace {
+    if (_kernelContext != null) {
+      _exportNamespace ??= _kernelContext.buildExportNamespace();
+    }
     if (resynthesizerContext != null) {
       _exportNamespace ??= resynthesizerContext.buildExportNamespace();
     }
@@ -6929,6 +6942,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   Namespace get publicNamespace {
+    if (_kernelContext != null) {
+      _publicNamespace ??= _kernelContext.buildPublicNamespace();
+    }
     if (resynthesizerContext != null) {
       _publicNamespace ??= resynthesizerContext.buildPublicNamespace();
     }

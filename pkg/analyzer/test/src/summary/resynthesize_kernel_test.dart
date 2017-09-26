@@ -507,12 +507,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
     await super.test_unresolved_annotation_instanceCreation_argument_super();
   }
 
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_import() async {
-    await super.test_unresolved_import();
-  }
-
   String _getLibraryText(kernel.Library library) {
     StringBuffer buffer = new StringBuffer();
     new kernel.Printer(buffer, syntheticNames: new kernel.NameSystem())

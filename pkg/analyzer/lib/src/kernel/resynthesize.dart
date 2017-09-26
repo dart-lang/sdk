@@ -11,6 +11,7 @@ import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
@@ -169,6 +170,9 @@ class KernelResynthesizer implements ElementResynthesizer {
       }
     }
     if (classElement == null) return null;
+
+    // If no more component, the class is the element.
+    if (componentPtr == 0) return classElement;
 
     String kind = components[--componentPtr];
     String elementName = takeElementName();
@@ -634,6 +638,30 @@ class _KernelLibraryResynthesizerContextImpl
       }
     }
     return false;
+  }
+
+  @override
+  Namespace buildExportNamespace() {
+    Namespace publicNamespace = buildPublicNamespace();
+    if (library.additionalExports.isEmpty) {
+      return publicNamespace;
+    }
+
+    Map<String, Element> definedNames = publicNamespace.definedNames;
+    for (kernel.Reference additionalExport in library.additionalExports) {
+      var element = resynthesizer._getElement(additionalExport.canonicalName);
+      if (element != null) {
+        definedNames[element.name] = element;
+      }
+    }
+
+    return new Namespace(definedNames);
+  }
+
+  @override
+  Namespace buildPublicNamespace() {
+    return new NamespaceBuilder()
+        .createPublicNamespaceForLibrary(libraryElement);
   }
 
   @override
