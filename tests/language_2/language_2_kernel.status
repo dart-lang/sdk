@@ -11,7 +11,7 @@ constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
-generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
+generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30208
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 ct_const2_test: Pass, Crash # Flaky
@@ -80,7 +80,6 @@ generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
-generic_methods_generic_function_result_test/none: RuntimeError
 generic_methods_named_parameters_test: RuntimeError
 generic_methods_optional_parameters_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError

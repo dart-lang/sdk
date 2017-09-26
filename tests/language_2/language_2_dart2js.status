@@ -134,7 +134,7 @@ generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
-generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
+generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30208
 generic_methods_named_parameters_test: RuntimeError
 generic_methods_optional_parameters_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
