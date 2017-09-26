@@ -443,45 +443,41 @@ ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,
 }
 
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
-    const Function& function,
-    ICData::RebindRule rebind_rule) const {
+    const Function& function) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new (Z) ZoneGrowableArray<PushArgumentInstr*>(0);
-  return StaticCall(function, arguments, rebind_rule);
+  return StaticCall(function, arguments);
 }
 
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
-    PushArgumentInstr* arg1,
-    ICData::RebindRule rebind_rule) const {
+    PushArgumentInstr* arg1) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new (Z) ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(arg1);
 
-  return StaticCall(function, arguments, rebind_rule);
+  return StaticCall(function, arguments);
 }
 
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
     PushArgumentInstr* arg1,
-    PushArgumentInstr* arg2,
-    ICData::RebindRule rebind_rule) const {
+    PushArgumentInstr* arg2) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
   arguments->Add(arg1);
   arguments->Add(arg2);
 
-  return StaticCall(function, arguments, rebind_rule);
+  return StaticCall(function, arguments);
 }
 
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
-    ZoneGrowableArray<PushArgumentInstr*>* arguments,
-    ICData::RebindRule rebind_rule) const {
+    ZoneGrowableArray<PushArgumentInstr*>* arguments) const {
   const intptr_t kTypeArgsLen = 0;
   return new (Z) StaticCallInstr(TokenPosition::kNoSource, function,
                                  kTypeArgsLen, Object::null_array(), arguments,
-                                 ic_data_array_, GetNextDeoptId(), rebind_rule);
+                                 ic_data_array_, GetNextDeoptId());
 }
 
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
@@ -644,7 +640,7 @@ void IRRegExpMacroAssembler::Print(PushArgumentInstr* argument) {
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Function& print_fn =
       Function::ZoneHandle(Z, lib.LookupFunctionAllowPrivate(Symbols::print()));
-  Do(StaticCall(print_fn, argument, ICData::kStatic));
+  Do(StaticCall(print_fn, argument));
 }
 
 void IRRegExpMacroAssembler::PrintBlocks() {
@@ -1473,8 +1469,7 @@ void IRRegExpMacroAssembler::GrowStack() {
   const Library& lib = Library::Handle(Library::InternalLibrary());
   const Function& grow_function = Function::ZoneHandle(
       Z, lib.LookupFunctionAllowPrivate(Symbols::GrowRegExpStack()));
-  StoreLocal(stack_, Bind(StaticCall(grow_function, PushLocal(stack_),
-                                     ICData::kStatic)));
+  StoreLocal(stack_, Bind(StaticCall(grow_function, PushLocal(stack_))));
 
   // Note: :stack and stack_array_cell content might diverge because each
   // instance of :matcher code has its own stack_array_cell embedded into it
