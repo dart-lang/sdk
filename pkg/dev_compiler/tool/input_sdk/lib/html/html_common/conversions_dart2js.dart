@@ -13,13 +13,13 @@ Map convertNativeToDart_Dictionary(object) {
 }
 
 /// Converts a flat Dart map into a JavaScript object with properties.
-convertDartToNative_Dictionary(Map dict, [void postCreate(dynamic)]) {
+convertDartToNative_Dictionary(Map dict, [void postCreate(Object f)]) {
   if (dict == null) return null;
   var object = JS('var', '{}');
   if (postCreate != null) {
     postCreate(object);
   }
-  dict.forEach((String key, value) {
+  dict.forEach((key, value) {
     JS('void', '#[#] = #', object, key, value);
   });
   return object;
