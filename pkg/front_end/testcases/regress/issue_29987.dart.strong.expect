@@ -1,0 +1,5 @@
+library;
+import self as self;
+
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29987.dart:5:13: Error: Couldn't parse URI 'dart_:core':\n  Illegal scheme character.\nimport \"dart_:core\";\n            ^"]/* from null */;
+static method main() → dynamic {}

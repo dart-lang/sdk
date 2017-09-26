@@ -20,6 +20,7 @@ import '../fasta_codes.dart'
         messageTypedefNotFunction,
         templateDuplicatedParameterName,
         templateDuplicatedParameterNameCause,
+        templateCouldNotParseUri,
         templateOperatorMinusParameterMismatch,
         templateOperatorParameterMismatch0,
         templateOperatorParameterMismatch1,
@@ -167,12 +168,21 @@ class OutlineBuilder extends UnhandledListener {
     int prefixOffset = popIfNotNull(asKeyword) ?? -1;
     String prefix = popIfNotNull(asKeyword);
     Unhandled conditionalUris = pop();
-    popCharOffset();
+    int uriOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
     if (uri != null) {
-      library.addImport(metadata, uri, conditionalUris, prefix, combinators,
-          deferredKeyword != null, importKeyword.charOffset, prefixOffset);
+      try {
+        library.addImport(metadata, uri, conditionalUris, prefix, combinators,
+            deferredKeyword != null, importKeyword.charOffset, prefixOffset);
+      } on FormatException catch (e) {
+        // Point to position in string indicated by the exception,
+        // or to the initial quote if no position is given.
+        // (Assumes the import is using a single-line string.)
+        addCompileTimeError(
+            templateCouldNotParseUri.withArguments(uri, e.message),
+            uriOffset + 1 + (e.offset ?? -1));
+      }
     }
     checkEmpty(importKeyword.charOffset);
   }

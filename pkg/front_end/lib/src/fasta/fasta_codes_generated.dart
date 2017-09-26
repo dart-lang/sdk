@@ -456,6 +456,28 @@ Message _withArgumentsConstructorNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String string2)>
+    templateCouldNotParseUri =
+    const Template<Message Function(String string, String string2)>(
+        messageTemplate: r"""Couldn't parse URI '#string':
+  #string2.""", withArguments: _withArgumentsCouldNotParseUri);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeCouldNotParseUri =
+    const Code<Message Function(String string, String string2)>(
+  "CouldNotParseUri",
+  templateCouldNotParseUri,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCouldNotParseUri(String string, String string2) {
+  return new Message(codeCouldNotParseUri,
+      message: """Couldn't parse URI '$string':
+  $string2.""", arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
     templateCyclicClassHierarchy =
     const Template<Message Function(String name, String string)>(
@@ -1836,7 +1858,7 @@ const MessageCode messageInvalidInlineFunctionType = const MessageCode(
 const Template<Message Function(Uri uri_, String string)>
     templateInvalidPackageUri =
     const Template<Message Function(Uri uri_, String string)>(
-        messageTemplate: r"""Invalid package Uri '#uri':
+        messageTemplate: r"""Invalid package URI '#uri':
   #string.""", withArguments: _withArgumentsInvalidPackageUri);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1850,7 +1872,7 @@ const Code<Message Function(Uri uri_, String string)> codeInvalidPackageUri =
 Message _withArgumentsInvalidPackageUri(Uri uri_, String string) {
   String uri = relativizeUri(uri_);
   return new Message(codeInvalidPackageUri,
-      message: """Invalid package Uri '$uri':
+      message: """Invalid package URI '$uri':
   $string.""", arguments: {'uri': uri_, 'string': string});
 }
 

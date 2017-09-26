@@ -1,0 +1,5 @@
+library;
+import self as self;
+
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29977.dart:5:19: Error: Couldn't parse URI 'data:async':\n  Invalid MIME type.\nimport 'data:async';\n                  ^"]/* from null */;
+static method main() → dynamic {}
