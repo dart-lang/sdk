@@ -181,44 +181,52 @@ Record procedure_desc : Type := mk_procedure_desc {
   pr_type : function_type;
 }.
 
+Record getter_desc : Type := mk_getter_desc {
+  gt_name : string;
+  gt_ref : nat;
+  gt_type : dart_type;
+}.
+
 Record interface : Type := mk_interface {
   procedures : list procedure_desc;
+  getters    : list getter_desc;
 }.
+
+Inductive member_desc : Type :=
+  | MD_Method : procedure_desc -> member_desc
+  | MD_Getter : getter_desc -> member_desc
+.
 
 (** Type envronment maps class IDs to their interface type. *)
 Definition class_env : Type := NatMap.t interface.
 
-(** Function environment maps defined functions to their procedure type. Used
-    for direct method invocation, direct property get etc. *)
-Definition func_env : Type := NatMap.t procedure_desc.
-
 Definition type_env : Type := NatMap.t dart_type.
 
 Fixpoint expression_type
-    (CE : class_env) (FE : func_env) (TE : type_env) (e : expression) :
+    (CE : class_env) (TE : type_env) (e : expression) :
     option dart_type :=
   match e with
   | E_Variable_Get (Variable_Get v) => NatMap.find v TE
   | E_Property_Get (Property_Get rec prop) =>
-    rec_type <- expression_type CE FE TE rec;
+    rec_type <- expression_type CE TE rec;
     let (prop_name) := prop in
     match rec_type with
     | DT_Function_Type _ =>
       if string_dec prop_name "call" then [rec_type] else None
     | DT_Interface_Type (Interface_Type class) =>
       interface <- NatMap.find class CE;
-      proc_desc <- List.find (fun P =>
-        if string_dec (pr_name P) prop_name then true else false)
-        (procedures interface);
-      [DT_Function_Type (pr_type proc_desc)]
+      getter <- List.find (fun P =>
+        if string_dec (gt_name P) prop_name then true else false)
+        (getters interface);
+      [gt_type getter]
     end
   | E_Invocation_Expression (IE_Constructor_Invocation (Constructor_Invocation class)) =>
     _ <- NatMap.find class CE;
     [DT_Interface_Type (Interface_Type class)]
   | E_Invocation_Expression (IE_Method_Invocation (Method_Invocation rec method args _)) =>
-    rec_type <- expression_type CE FE TE rec;
+    rec_type <- expression_type CE TE rec;
     let (arg_exp) := args in
-    arg_type <- expression_type CE FE TE arg_exp;
+    arg_type <- expression_type CE TE arg_exp;
     let (method_name) := method in
     fun_type <-
       match rec_type with
@@ -236,16 +244,16 @@ Fixpoint expression_type
   end
 .
 
-Fixpoint statement_type (CE : class_env) (FE: func_env) (TE : type_env) (s : statement) :
+Fixpoint statement_type (CE : class_env) (TE : type_env) (s : statement) :
     option (type_env * option dart_type) :=
   match s with
   | S_Expression_Statement (Expression_Statement e) =>
-    _ <- expression_type CE FE TE e; [(TE, None)]
+    _ <- expression_type CE TE e; [(TE, None)]
   | S_Return_Statement (Return_Statement re) =>
-    rt <- expression_type CE FE TE re; [(TE, Some rt)]
+    rt <- expression_type CE TE re; [(TE, Some rt)]
   | S_Variable_Declaration (Variable_Declaration _ _ None) => None
   | S_Variable_Declaration (Variable_Declaration var type (Some init)) =>
-    init_type <- expression_type CE FE TE init;
+    init_type <- expression_type CE TE init;
     if subtype (init_type, type) then
       [(NatMap.add var type TE, None)]
     else
@@ -255,7 +263,7 @@ Fixpoint statement_type (CE : class_env) (FE: func_env) (TE : type_env) (s : sta
       match stmts with
       | nil => [(TE, None)]
       | (s::ss) =>
-        st <- statement_type CE FE TE s;
+        st <- statement_type CE TE s;
         let (TE', s_rt) := st in
         sst <- process_statements TE' ss;
         let (TE'', ss_rt) := sst in
@@ -263,35 +271,37 @@ Fixpoint statement_type (CE : class_env) (FE: func_env) (TE : type_env) (s : sta
         | (None, ss_rt) => [(TE'', ss_rt)]
         | (Some rt, None) => [(TE'', Some rt)]
         | (Some rt, Some rt') =>
-          if subtype (rt, rt') then [(TE'', Some rt)] else None
+          if subtype (rt, rt') then [(TE'', Some rt')] else
+            if subtype (rt', rt) then [(TE'', Some rt)] else
+              None
         end
       end in
     process_statements TE stmts
   end
 .
 
-Definition procedure_type (CE : class_env) (FE: func_env) (p : procedure) : bool :=
+Definition procedure_type (CE : class_env) (p : procedure) : bool :=
   let (_, _, fn) := p in
   let (param, ret_type, body) := fn in
   let (param_var, param_type, _) := param in
   let TE := NatMap.add param_var param_type (NatMap.empty _) in
-  match statement_type CE FE TE body with
+  match statement_type CE TE body with
   | Some (_, Some t) => subtype (t, ret_type)
   | _ => false
   end
 .
 
-Definition class_type (CE : class_env) (FE: func_env) (c : class) : bool :=
+Definition class_type (CE : class_env) (c : class) : bool :=
   let (nn_data, _, procedures) := c in
-  forallb (procedure_type CE FE) procedures
+  forallb (procedure_type CE) procedures
 .
 
 Section Typing_Equivalence_Homomorphism.
 
   Definition subtype_at (e : expression) :=
-    forall CE FE TE v s t es,
-                 expression_type CE FE (NatMap.add v s TE) e = [es] /\ s ◁ t ->
-      exists et, expression_type CE FE (NatMap.add v t TE) e = [et] /\ es ◁ et.
+    forall CE TE v s t es,
+                 expression_type CE (NatMap.add v s TE) e = [es] /\ s ◁ t ->
+      exists et, expression_type CE (NatMap.add v t TE) e = [et] /\ es ◁ et.
 
   Hint Resolve NatMap.add_1.
   Hint Resolve NatMap.add_2.
@@ -334,7 +344,7 @@ Section Typing_Equivalence_Homomorphism.
     destruct prop.
     unfold expression_type in H1.
     fold expression_type in H1.
-    extract (expression_type CE FE (NatMap.add v s TE) rec) Orig H0.
+    extract (expression_type CE (NatMap.add v s TE) rec) Orig H0.
 
     (* Go by cases on the original type of the receiver. *)
     destruct Orig; [idtac|crush].
@@ -346,7 +356,7 @@ Section Typing_Equivalence_Homomorphism.
     extract (NatMap.find n CE) iface H3.
     destruct iface; [idtac|crush].
     simpl in H1.
-    pose proof (H CE FE TE v s t (DT_Interface_Type (Interface_Type n)) (conj H0 H2)).
+    pose proof (H CE TE v s t (DT_Interface_Type (Interface_Type n)) (conj H0 H2)).
     destruct H4 as [new_rec_type].
     destruct H4.
     destruct new_rec_type; [idtac|crush].
@@ -358,7 +368,7 @@ Section Typing_Equivalence_Homomorphism.
     (* Case 2: receiver has function type. *)
     destruct f.
     force_options.
-    pose proof (H CE FE TE v s t (DT_Function_Type (Function_Type d d0)) (conj H0 H2)).
+    pose proof (H CE TE v s t (DT_Function_Type (Function_Type d d0)) (conj H0 H2)).
     destruct H3 as [new_rec_type].
     destruct H3.
     exists new_rec_type.
@@ -388,7 +398,7 @@ Section Typing_Equivalence_Homomorphism.
     destruct H1.
     unfold expression_type in H1.
     fold expression_type in H1.
-    force_expr (expression_type CE FE (NatMap.add v s TE) rec).
+    force_expr (expression_type CE (NatMap.add v s TE) rec).
     destruct d.
 
     (* Case 1: receiver has interface type. *)
@@ -402,8 +412,8 @@ Section Typing_Equivalence_Homomorphism.
     destruct i.
     force_options.
     (* The receiver class must be the same. *)
-    assert (expression_type CE FE (NatMap.add v t TE) rec = [DT_Interface_Type (Interface_Type n0)]).
-    pose proof (H CE FE TE v s t (DT_Interface_Type (Interface_Type n0)) (conj H4 H2)) as IH_rec.
+    assert (expression_type CE (NatMap.add v t TE) rec = [DT_Interface_Type (Interface_Type n0)]).
+    pose proof (H CE TE v s t (DT_Interface_Type (Interface_Type n0)) (conj H4 H2)) as IH_rec.
     destruct IH_rec.
     destruct H3.
     destruct x.
@@ -416,7 +426,7 @@ Section Typing_Equivalence_Homomorphism.
     fold expression_type.
     rewrite H3; simpl.
     (* The argument is still well typed. *)
-    pose proof (H0 CE FE TE v s t d (conj H5 H2)) as IH_arg.
+    pose proof (H0 CE TE v s t d (conj H5 H2)) as IH_arg.
     destruct IH_arg.
     destruct H10.
     rewrite H10.
@@ -434,7 +444,7 @@ Section Typing_Equivalence_Homomorphism.
     force_options.
     destruct f0.
     force_options.
-    pose proof (H CE FE TE v s t (DT_Function_Type f) (conj H4 H2)).
+    pose proof (H CE TE v s t (DT_Function_Type f) (conj H4 H2)).
     destruct H3.
     destruct H3.
     destruct x; [crush|idtac].
@@ -448,7 +458,7 @@ Section Typing_Equivalence_Homomorphism.
     fold expression_type.
     rewrite H3.
     rewrite bind_some.
-    pose proof (H0 CE FE TE v s t d (conj H5 H2)).
+    pose proof (H0 CE TE v s t d (conj H5 H2)).
     destruct H12.
     destruct H12.
     rewrite H12.
@@ -477,11 +487,12 @@ End Typing_Equivalence_Homomorphism.
 
 Section Environments.
 
-Definition func_table := NatMap.t member.
+(** Function environment maps defined functions to their procedure type. Used
+    for direct method invocation, direct property get etc. *)
+Definition member_env : Type := NatMap.t (member_desc * member).
 
-Definition procedure_dissect (envs: class_env * func_env * func_table) (p : procedure) :=
-  let (Cs, FT)             := envs in
-  let (CE, FE)             := Cs in
+Definition procedure_dissect (envs: class_env * member_env) (p : procedure) :=
+  let (CE, ME)             := envs in
   let (memb, _, fn)        := p in
   let (nn, name)           := memb in
   let (name_str)           := name in
@@ -490,24 +501,24 @@ Definition procedure_dissect (envs: class_env * func_env * func_table) (p : proc
   let (param, ret_type, _) := fn in
   let (_, param_type, _)   := param in
   let proc := mk_procedure_desc name_str id (Function_Type param_type ret_type) in
-  (proc, (CE, NatMap.add id proc FE, NatMap.add id (M_Procedure p) FT)).
+  (proc, (CE, NatMap.add id (MD_Method proc, M_Procedure p) ME)).
 
 Definition procedure_to_env p envs := snd (procedure_dissect envs p).
 Definition procedure_to_desc envs p := fst (procedure_dissect envs p).
 
-Definition class_to_env (c : class) (envs: class_env * func_env * func_table) :=
+Definition class_to_env (c : class) (envs: class_env * member_env) :=
   let (nn, name, procs) := c in
   let (ref)             := nn in
   let (id)              := ref in
   let envs'             := List.fold_right procedure_to_env envs procs in
-  let class_desc        := mk_interface (List.map (procedure_to_desc envs') procs) in
-  let (Cs, FT)          := envs' in
-  let (CE, FE)          := Cs in
-  (NatMap.add id class_desc CE, FE, FT).
+  let procedures        := List.map (procedure_to_desc envs') procs in
+  let getters           := List.map (fun P => mk_getter_desc (pr_name P) (pr_ref P) (DT_Function_Type (pr_type P))) procedures in
+  let (CE, ME)          := envs' in
+  (NatMap.add id (mk_interface procedures getters) CE, ME).
 
-Definition lib_to_env (l: library) : class_env * func_env * func_table :=
+Definition lib_to_env (l: library) : class_env * member_env :=
   let (_, classes, top_procs) := l in
-  let envs := List.fold_right class_to_env (NatMap.empty _, NatMap.empty _, NatMap.empty _) classes in
+  let envs := List.fold_right class_to_env (NatMap.empty _, NatMap.empty _) classes in
   List.fold_right procedure_to_env envs top_procs.
 
 Local Ltac destruct_types :=
@@ -519,6 +530,7 @@ Local Ltac destruct_types :=
          | [H : named_node_data      |- _] => destruct H
          | [H : function_node        |- _] => destruct H
          | [H : procedure_desc       |- _] => destruct H
+         | [H : getter_desc          |- _] => destruct H
          | [H : name                 |- _] => destruct H
          | [H : reference            |- _] => destruct H
          | [H : variable_declaration |- _] => destruct H
@@ -532,29 +544,23 @@ Proof.
   intros.
   unfold procedure_to_desc.
   unfold procedure_dissect.
-  destruct env; destruct p.
-  destruct env'; destruct p.
+  destruct env; destruct env'.
   destruct_types.
   crush.
 Qed.
 
 Local Definition mono
-    (envs: class_env * func_env * func_table)
-    (envs': class_env * func_env * func_table) : Prop :=
-  let (Cs, FT) := envs in
-  let (CE, FE) := Cs in
-  let (Cs', FT') := envs' in
-  let (CE', FE') := Cs' in
+    (envs: class_env * member_env)
+    (envs': class_env * member_env) : Prop :=
+  let (CE, ME) := envs in
+  let (CE', ME') := envs' in
   (forall n, NatMap.In n CE -> NatMap.In n CE') /\
-  (forall n, NatMap.In n FE -> NatMap.In n FE') /\
-  (forall n, NatMap.In n FT -> NatMap.In n FT').
+  (forall n, NatMap.In n ME -> NatMap.In n ME').
 
 Local Lemma mono_trans : forall x y z, mono x y -> mono y z -> mono x z.
 Proof.
   intros.
-  destruct x; destruct p.
-  destruct y; destruct p.
-  destruct z; destruct p.
+  destruct x; destruct y; destruct z.
   unfold mono in *.
   crush.
 Qed.
@@ -572,8 +578,7 @@ Proof.
   intros.
   unfold procedure_dissect in H.
   destruct_types.
-  destruct E1; destruct p.
-  destruct E2; destruct p.
+  destruct E1; destruct E2.
   unfold mono.
   inject H.
   crush.
@@ -584,13 +589,12 @@ Local Lemma class_mono :
   forall E1 E2 c, class_to_env c E1 = E2 -> mono E1 E2.
 Proof.
   intros.
-  destruct E1; destruct p.
-  destruct E2; destruct p.
+  destruct E1; destruct E2.
   unfold class_to_env in H.
   destruct_types.
   extract_head fold_right in H.
-  assert (mono (c0, f0, f) H0).
-  pose proof (foldr_mono mono l (c0, f0, f) procedure_to_env mono_sym mono_trans) as X.
+  assert (mono (c0, m) H0).
+  pose proof (foldr_mono mono l (c0, m) procedure_to_env mono_sym mono_trans) as X.
   continue_with X.
   intros.
   unfold procedure_to_env.
@@ -600,8 +604,8 @@ Proof.
   apply (proc_mono _ _ _ _ (eq_sym HeqP)).
   crush.
 
-  destruct H0; destruct p.
-  assert (mono (c, f4, f3) (t, f2, f1)) by
+  destruct H0.
+  assert (mono (c, m) (t, m0)) by
     (inversion H;
      unfold mono;
      crush); crush.
@@ -610,12 +614,11 @@ Qed.
 Local Lemma fold_proc_invar :
   forall E1 E2 ps,
     List.fold_right procedure_to_env E1 ps = E2 ->
-    fst (fst E1) = fst (fst E2).
+    fst E1 = fst E2.
 Proof.
   intros.
-  destruct E1 as (Cs, FT); destruct Cs as (CE, FE).
-  destruct E2 as (Cs', FT'); destruct Cs' as (CE', FE').
-  pose (x := @foldr_preserve (class_env * func_env * func_table) procedure (fun env => let (X, _) := env in let (CE', _) := X in CE = CE') ps (CE, FE, FT) procedure_to_env).
+  destruct E1 as (CE, ME); destruct E2 as (CE' , ME').
+  pose (x := @foldr_preserve (class_env * member_env) procedure (fun env => let (CE', _) := env in CE = CE') ps (CE, ME) procedure_to_env).
   continue_with x.
   crush.
   destruct_types.
@@ -628,18 +631,17 @@ Proof.
 Qed.
 
 Local Lemma class_env_invar :
-  forall CE FE FT CE' FE' FT' id id' intf n ps,
+  forall CE ME CE' ME' id id' intf n ps,
     id <> id' ->
-    class_to_env (Class (Named_Node (Reference id')) n ps) (CE, FE, FT) = (CE', FE', FT') ->
+    class_to_env (Class (Named_Node (Reference id')) n ps) (CE, ME) = (CE', ME') ->
     (NatMap.MapsTo id intf CE' -> NatMap.MapsTo id intf CE).
 Proof.
   unfold class_to_env.
   intros.
   extract_head fold_right in H0 as F.
-  destruct F as (CS, FT_f); destruct CS as (CE_f, FE_f).
+  destruct F as (CE_f, ME_f).
   inversion H0; clear H0.
   rewrite H4 in *; clear H4.
-  rewrite H5 in *; clear H5.
   assert (NatMap.MapsTo id intf CE_f).
   rewrite <- H3 in H1.
   apply (NatMap.add_3 (not_eq_sym H) H1).
@@ -650,11 +652,11 @@ Proof.
 Qed.
 
 Hint Resolve NatMap.add_1.
-Local Lemma program_wf': forall cs CE FE FT class_id intf proc_desc,
-     List.fold_right class_to_env (NatMap.empty _, NatMap.empty _, NatMap.empty _) cs = ((CE, FE), FT)
+Local Lemma program_wf': forall cs CE ME class_id intf proc_desc,
+     List.fold_right class_to_env (NatMap.empty _, NatMap.empty _) cs = (CE, ME)
   -> NatMap.MapsTo class_id intf CE
   -> List.In proc_desc (procedures intf)
-  -> NatMap.In (pr_ref proc_desc) FE /\ NatMap.In (pr_ref proc_desc) FT.
+  -> NatMap.In (pr_ref proc_desc) ME.
 Proof.
   intro cs.
   induction cs.
@@ -685,16 +687,16 @@ Proof.
   (* Case 1.1: head class is different. *)
   Focus 2.
   extract_head fold_right in H as Fold.
-  destruct Fold as (CS, FT_f); destruct CS as (CE_f, FE_f).
+  destruct Fold as (CE_f, ME_f).
 
   (* class_id must map to the same interface after applying the previous classes. *)
   assert (NatMap.MapsTo class_id intf CE_f).
-  pose proof (class_env_invar CE_f FE_f FT_f CE FE FT class_id n intf s l (not_eq_sym n0)) as H2.
+  pose proof (class_env_invar CE_f ME_f CE ME class_id n intf s l (not_eq_sym n0)) as H2.
   continue_with H2; crush.
 
   (* Apply the induction hypothesis. *)
-  pose proof (IHcs CE_f FE_f FT_f class_id intf proc_desc eq_refl H2 H1) as IH.
-  assert (mono (CE_f, FE_f, FT_f) (CE, FE, FT)).
+  pose proof (IHcs CE_f ME_f class_id intf proc_desc eq_refl H2 H1) as IH.
+  assert (mono (CE_f, ME_f) (CE, ME)).
   apply (class_mono _ _ ((Class (Named_Node (Reference n)) s l))); crush.
   crush.
 
@@ -702,21 +704,24 @@ Proof.
   extract_head fold_right in H as Fold.
   unfold class_to_env in H.
   extract_head fold_right in H as FoldP.
-  destruct FoldP as (CS, FT_f); destruct CS as (CE_f, FE_f).
+  destruct FoldP as (CE_f, ME_f).
   inversion H; clear H.
   rewrite H4 in *; clear H4.
-  rewrite H5 in *; clear H5.
   rewrite e in *; clear e.
-  assert (NatMap.MapsTo class_id {| procedures := map (procedure_to_desc (CE_f, FE, FT)) l |} CE) by crush.
-  pose proof (@MoreNatMapFacts.add_3 _ CE class_id intf ({| procedures := map (procedure_to_desc (CE_f, FE, FT)) l |}) (conj H0 H)).
+  extract_head mk_interface in H3 as I, IEq.
+  assert (NatMap.MapsTo class_id I CE) by crush.
+  pose proof (@MoreNatMapFacts.add_3 _ CE class_id intf I (conj H0 H)).
   rewrite H2 in *; clear H2.
   clear H0.
   clear H.
   simpl in H1.
   clear IHcs.
+  rewrite IEq in *.
+  clear IEq.
+  clear I.
   generalize H1.
   generalize FoldPEq.
-  generalize CE_f FE FT.
+  generalize CE_f ME.
   clear H1.
   clear FoldPEq.
   clear H3.
@@ -743,7 +748,7 @@ Proof.
   clear H.
   simpl in FoldPEq.
   extract_head (fold_right procedure_to_env) in FoldPEq as Rest.
-  destruct Rest; destruct p.
+  destruct Rest.
   unfold procedure_to_env in FoldPEq.
   unfold procedure_dissect in FoldPEq.
   simpl in FoldPEq.
@@ -751,30 +756,32 @@ Proof.
   crush.
 
   simpl in FoldPEq.
+  simpl in IHl.
   extract_head fold_right in FoldPEq as InnerFold.
-  destruct InnerFold as (CS, FT_i); destruct CS as (CE_i, FE_i).
+  destruct InnerFold as (CE_i, ME_i).
   unfold procedure_to_env in FoldPEq.
   unfold procedure_dissect in FoldPEq.
   destruct_types.
   simpl in FoldPEq.
-  rewrite (proc_desc_noenv (CE_f0, FE0, FT0) (CE_i, FE_i, FT_i)) in H.
-  pose proof (IHl CE_i FE_i FT_i eq_refl H).
-  destruct H0.
+  rewrite (proc_desc_noenv (CE_f0, ME0) (CE_i, ME_i)) in H.
+  pose proof (IHl CE_i ME_i eq_refl H).
   inversion FoldPEq.
+  clear FoldPEq.
+  clear H2.
   crush.
 Qed.
 
-Lemma program_wf: forall l CE FE FT class_id intf proc_desc,
-     lib_to_env l = ((CE, FE), FT)
+Lemma program_wf: forall l CE ME class_id intf proc_desc,
+     lib_to_env l = (CE, ME)
   -> NatMap.MapsTo class_id intf CE
   -> List.In proc_desc (procedures intf)
-  -> NatMap.In (pr_ref proc_desc) FE /\ NatMap.In (pr_ref proc_desc) FT.
+  -> NatMap.In (pr_ref proc_desc) ME.
 Proof.
   intros.
   destruct l.
   unfold lib_to_env in *.
   extract_head (fold_right class_to_env) in H as Inner.
-  destruct Inner as (CS, FT_i); destruct CS as (CE_i, FE_i).
+  destruct Inner as (CE_i, ME_i).
   assert (NatMap.MapsTo class_id intf CE_i).
 
   apply eq_sym in InnerEq.
@@ -782,8 +789,8 @@ Proof.
   simpl in H.
   crush.
 
-  pose proof (program_wf' l CE_i FE_i FT_i class_id intf proc_desc (eq_sym InnerEq) H2 H1).
-  assert (mono (CE_i, FE_i, FT_i) (CE, FE, FT)).
+  pose proof (program_wf' l CE_i ME_i class_id intf proc_desc (eq_sym InnerEq) H2 H1).
+  assert (mono (CE_i, ME_i) (CE, ME)).
   rewrite <- H.
   apply foldr_mono.
   exact mono_sym.

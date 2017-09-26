@@ -372,7 +372,7 @@ Inductive step : configuration -> configuration -> Prop :=
       ret_type body ->
     env' = env_extend var_id arg_val empty_env ->
     next_cont = Exit_Sk ret_cont null_val ->
-    value_of_type null_val (mk_interface nil) None ->
+    value_of_type null_val (mk_interface nil nil) None ->
     step (Value_Passing_Configuration
             (Invocation_Ek rcvr_val name env ret_cont) arg_val)
          (Exec_Configuration body env' ret_cont next_cont)
@@ -398,7 +398,9 @@ Inductive step : configuration -> configuration -> Prop :=
     ((pr_name func_proc_desc) = "call")%string ->
     value_of_type
       func_val
-      (mk_interface (func_proc_desc :: nil))
+      (mk_interface (func_proc_desc :: nil)
+                    ((mk_getter_desc (pr_name func_proc_desc) (pr_ref func_proc_desc)
+                                     (DT_Function_Type (pr_type func_proc_desc))) :: nil))
       (Some (DT_Function_Type (pr_type func_proc_desc))) ->
     step (Value_Passing_Configuration (Property_Get_Ek name cont) rcvr_val)
          (Value_Passing_Configuration cont func_val)
@@ -426,7 +428,7 @@ Inductive step : configuration -> configuration -> Prop :=
       where ρ' = ρ#[#var = nullVal#]# *)
   | Exec_Variable_Declaration_Non_Init :
     forall var_id type env ret_cont next_cont null_val env',
-    value_of_type null_val (mk_interface nil) None ->
+    value_of_type null_val (mk_interface nil nil) None ->
     env' = env_extend var_id null_val env ->
     step (Exec_Configuration
             (S_Variable_Declaration (Variable_Declaration var_id type None))
