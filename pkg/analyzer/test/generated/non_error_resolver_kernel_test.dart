@@ -85,7 +85,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   }
 
   @override
-  @failingTest
+  @assertFailingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30836')
   test_finalNotInitialized_hasNativeClause_hasConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_hasConstructor();
