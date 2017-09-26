@@ -358,6 +358,13 @@ class AnalysisDriverTest extends BaseAnalysisDriverTest {
     expect(driver.addedFiles, isNot(contains(b)));
   }
 
+  test_addFile_notAbsolutePath() async {
+    try {
+      driver.addFile('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
+  }
+
   test_addFile_shouldRefresh() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
@@ -796,6 +803,13 @@ var A = B;
     }
   }
 
+  test_changeFile_notAbsolutePath() async {
+    try {
+      driver.changeFile('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
+  }
+
   test_changeFile_notUsed() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/other/b.dart');
@@ -1177,6 +1191,13 @@ bbb() {}
     expect(result.errors, hasLength(1));
   }
 
+  test_getErrors_notAbsolutePath() async {
+    try {
+      await driver.getErrors('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
+  }
+
   test_getFilesDefiningClassMemberName() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');
@@ -1249,6 +1270,13 @@ main() {
     int fooId = index.strings.indexOf('foo');
     expect(unitId, isNonNegative);
     expect(fooId, isNonNegative);
+  }
+
+  test_getIndex_notAbsolutePath() async {
+    try {
+      await driver.getIndex('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
   }
 
   test_getLibraryByUri_external_resynthesize() async {
@@ -1653,6 +1681,13 @@ main() {
     await driver.getResult(testFile);
   }
 
+  test_getResult_notAbsolutePath() async {
+    try {
+      await driver.getResult('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
+  }
+
   test_getResult_notDartFile() async {
     var path = _p('/test/lib/test.txt');
     provider.newFile(path, 'class A {}');
@@ -1782,6 +1817,13 @@ var A2 = B1;
     expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
   }
 
+  test_getSourceKind_notAbsolutePath() async {
+    try {
+      await driver.getSourceKind('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
+  }
+
   test_getSourceKind_notDartFile() async {
     var path = _p('/test/lib/test.txt');
     provider.newFile(path, 'class A {}');
@@ -1872,6 +1914,13 @@ main() {
     expect(unitElement.source.fullName, testFile);
     expect(unitElement.functions.map((c) => c.name),
         unorderedEquals(['foo', 'main']));
+  }
+
+  test_getUnitElement_notAbsolutePath() async {
+    try {
+      await driver.getUnitElement('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
   }
 
   test_getUnitElement_notDart() async {
@@ -2036,6 +2085,13 @@ import 'b.dart';
     driver.removeFile(a);
     expect(driver.knownFiles, isNot(contains(a)));
     expect(driver.knownFiles, isNot(contains(b)));
+  }
+
+  test_parseFile_notAbsolutePath() async {
+    try {
+      await driver.parseFile('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
   }
 
   test_parseFile_notDart() async {
@@ -2439,6 +2495,13 @@ var A = B;
     await scheduler.waitForIdle();
     expect(allResults.singleWhere((r) => r.path == b).errors, hasLength(2));
     allResults.clear();
+  }
+
+  test_removeFile_notAbsolutePath() async {
+    try {
+      driver.removeFile('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
   }
 
   test_results_order() async {
