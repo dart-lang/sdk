@@ -6189,6 +6189,12 @@ abstract class KernelLibraryResynthesizerContext {
   kernel.Library get coreLibrary;
 
   /**
+   * Return `true` if the library has an import directive whose URI uses the
+   * "dart-ext" scheme.
+   */
+  bool get hasExtUri;
+
+  /**
    * The Kernel library being resynthesized.
    */
   kernel.Library get library;
@@ -6616,6 +6622,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   bool get hasExtUri {
+    if (_kernelContext != null) {
+      return _kernelContext.hasExtUri;
+    }
     if (_unlinkedDefiningUnit != null) {
       List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
       for (UnlinkedImport import in unlinkedImports) {

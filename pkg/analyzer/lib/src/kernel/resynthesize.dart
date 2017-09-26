@@ -626,6 +626,17 @@ class _KernelLibraryResynthesizerContextImpl
   kernel.Library get coreLibrary => resynthesizer._kernelMap['dart:core'];
 
   @override
+  bool get hasExtUri {
+    for (var dependency in library.dependencies) {
+      if (dependency.isImport &&
+          dependency.targetLibrary.importUri.isScheme('dart-ext')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   LibraryElementImpl getLibrary(String uriStr) {
     return resynthesizer.getLibrary(uriStr);
   }
@@ -694,6 +705,8 @@ class _KernelUnitImpl implements KernelUnit {
  */
 class _KernelUnitResynthesizerContextImpl
     implements KernelUnitResynthesizerContext {
+  static final Uri dartInternalUri = Uri.parse('dart:_internal');
+
   final _KernelLibraryResynthesizerContextImpl libraryContext;
   final String fileUri;
 
@@ -709,9 +722,11 @@ class _KernelUnitResynthesizerContextImpl
       List<kernel.Expression> expressions) {
     int length = expressions.length;
     if (length != 0) {
-      var annotations = new List<ElementAnnotation>(length);
-      for (int i = 0; i < length; i++) {
-        annotations[i] = _buildAnnotation(unit, expressions[i]);
+      var annotations = <ElementAnnotation>[];
+      for (var expression in expressions) {
+        if (_isSyntheticExternalNameAnnotation(expression)) continue;
+        var annotation = _buildAnnotation(unit, expression);
+        annotations.add(annotation);
       }
       return annotations;
     } else {
@@ -982,5 +997,18 @@ class _KernelUnitResynthesizerContextImpl
       }
     }
     throw new StateError('Not found $kernelTypeParameter in $context');
+  }
+
+  /// Fasta converts `native 'name'` clauses to `@ExternalName('name')`
+  /// annotations. But we don't actually have these annotations in code. So,
+  /// we need to skip them to avoid mismatch with AST.
+  static bool _isSyntheticExternalNameAnnotation(kernel.Expression expr) {
+    if (expr is kernel.ConstructorInvocation) {
+      kernel.Constructor target = expr.target;
+      return target != null &&
+          target.enclosingClass.name == 'ExternalName' &&
+          target.enclosingLibrary.importUri == dartInternalUri;
+    }
+    return false;
   }
 }

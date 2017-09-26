@@ -119,7 +119,7 @@ class KernelContext {
       var uriTranslator = new UriTranslatorImpl(
           new TargetLibrariesSpecification('none', dartLibraries), packages);
       var options = new ProcessedOptions(new CompilerOptions()
-        ..target = new NoneTarget(
+        ..target = new _AnalysisTarget(
             new TargetFlags(strongMode: analysisOptions.strongMode))
         ..reportMessages = false
         ..logger = logger
@@ -154,6 +154,19 @@ class KernelContext {
       return new KernelContext._(analysisContext, resynthesizer);
     });
   }
+}
+
+/**
+ * [Target] for static analysis, with all features enabled.
+ */
+class _AnalysisTarget extends NoneTarget {
+  _AnalysisTarget(TargetFlags flags) : super(flags);
+
+  @override
+  List<String> get extraRequiredLibraries => const <String>['dart:_internal'];
+
+  @override
+  bool enableNative(Uri uri) => true;
 }
 
 class _FileSystemAdaptor implements FileSystem {

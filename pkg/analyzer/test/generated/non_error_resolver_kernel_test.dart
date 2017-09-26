@@ -121,21 +121,21 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30837')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30208')
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
     return super.test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters();
   }
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30837')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30208')
   test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
     return super.test_genericTypeAlias_castsAndTypeChecks_noTypeParameters();
   }
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30837')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30208')
   test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
     return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
   }
@@ -199,13 +199,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30835')
   test_nativeConstConstructor() async {
     return super.test_nativeConstConstructor();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30839')
-  test_nativeFunctionBodyInNonSDKCode_function() async {
-    return super.test_nativeFunctionBodyInNonSDKCode_function();
   }
 
   @override

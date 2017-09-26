@@ -369,6 +369,16 @@ const _MockSdkLibrary _LIB_INTERCEPTORS = const _MockSdkLibrary(
 library dart._interceptors;
 ''');
 
+const _MockSdkLibrary _LIB_INTERNAL = const _MockSdkLibrary(
+    'dart:_internal', '$sdkRoot/lib/_internal/internal.dart', '''
+library dart._internal;
+class Symbol {}
+class ExternalName {
+  final String name;
+  const ExternalName(this.name);
+}
+''');
+
 const _MockSdkLibrary _LIB_MATH =
     const _MockSdkLibrary('dart:math', '$sdkRoot/lib/math/math.dart', '''
 library dart.math;
@@ -400,6 +410,7 @@ const List<SdkLibrary> _LIBRARIES = const [
   _LIB_HTML_DART2JS,
   _LIB_HTML_DARTIUM,
   _LIB_INTERCEPTORS,
+  _LIB_INTERNAL,
 ];
 
 class MockSdk implements DartSdk {
@@ -413,6 +424,7 @@ class MockSdk implements DartSdk {
     "dart:_foreign_helper": "$sdkRoot/lib/_foreign_helper/_foreign_helper.dart",
     "dart:_interceptors":
         "$sdkRoot/lib/_internal/js_runtime/lib/interceptors.dart",
+    "dart:_internal": "$sdkRoot/lib/_internal/internal.dart",
     "dart:math": "$sdkRoot/lib/math/math.dart"
   };
 

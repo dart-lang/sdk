@@ -359,18 +359,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_nativeFunctionBodyInNonSDKCode_function() async {
-    return super.test_nativeFunctionBodyInNonSDKCode_function();
-  }
-
-  @override
-  @failingTest
-  test_nativeFunctionBodyInNonSDKCode_method() async {
-    return super.test_nativeFunctionBodyInNonSDKCode_method();
-  }
-
-  @override
-  @failingTest
   test_noAnnotationConstructorArguments() async {
     return super.test_noAnnotationConstructorArguments();
   }
