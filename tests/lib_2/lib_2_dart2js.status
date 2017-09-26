@@ -36,6 +36,7 @@ async/future_or_strong_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/utf85_test: Slow, Pass
+html/custom_elements_test: Pass, Timeout # Issue 26789
 html/custom/element_upgrade_failure_test: MissingCompileTimeError
 html/custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
 html/custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
