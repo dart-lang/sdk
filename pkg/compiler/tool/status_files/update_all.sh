@@ -10,7 +10,7 @@ suites=
 
 for arg in "$@"; do
   case $arg in
-    dart2js_native|dart2js_extra|language|language_2|corelib|corelib_2)
+    dart2js_native|dart2js_extra|language|language_2|corelib|corelib_2|html)
       suites="$suites $arg"
       ;;
     -*)
@@ -25,7 +25,7 @@ for arg in "$@"; do
 done
 
 if [ -z "$suites" ]; then
-  suites="dart2js_native dart2js_extra language language_2 corelib corelib_2"
+  suites="dart2js_native dart2js_extra language language_2 corelib corelib_2 html"
 fi
 
 repodir=$(cd $(dirname ${BASH_SOURCE[0]})/../../../../; pwd)
@@ -37,15 +37,19 @@ tmp=$(mktemp -d)
 
 function update_suite {
   local suite=$1
+  local runtime="d8"
+  if [ "$suite" == "html" ]; then
+    runtime="drt"
+  fi
   echo -e "\nupdate suite: [32m$suite[0m"
   echo "  - minified tests"
-  ./tools/test.py -m release -c dart2js -r d8 --dart2js-batch \
+  ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch \
       --use-sdk --minified --dart2js-with-kernel \
       $suite > $tmp/$suite-minified.txt
   $dart $update_script minified $tmp/$suite-minified.txt
 
   echo "  - host-checked tests"
-  ./tools/test.py -m release -c dart2js -r d8 --dart2js-batch --host-checked \
+  ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch --host-checked \
     --dart2js-options="--library-root=$sdk" --dart2js-with-kernel \
     $suite > $tmp/$suite-checked.txt
   $dart $update_script checked $tmp/$suite-checked.txt

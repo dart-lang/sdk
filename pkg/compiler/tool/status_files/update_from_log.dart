@@ -36,11 +36,12 @@ final statusFiles = {
   'corelib_2': 'tests/corelib_2/corelib_2.status',
   'dart2js_extra': 'tests/compiler/dart2js_extra/dart2js_extra.status',
   'dart2js_native': 'tests/compiler/dart2js_native/dart2js_native.status',
+  'html': 'tests/html/html.status',
 };
 
 main(args) {
   if (args.length < 2) {
-    print('usage: udpate_from_log.dart <mode> log.txt');
+    print('usage: update_from_log.dart <mode> log.txt');
     print('  where mode is one of these values: ${configurations.keys}');
     exit(1);
   }
