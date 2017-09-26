@@ -1042,6 +1042,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void warnTypeArgumentsMismatch(String name, int expected, int charOffset) {
+    warning(
+        fasta.templateTypeArgumentMismatch.withArguments(name, '${expected}'),
+        charOffset);
+  }
+
+  @override
   Member lookupSuperMember(Name name, {bool isSetter: false}) {
     Class superclass = classBuilder.cls.superclass;
     return superclass == null

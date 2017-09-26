@@ -37,6 +37,7 @@ import 'frontend_accessors.dart' show Accessor;
 import 'kernel_builder.dart'
     show
         Builder,
+        FunctionTypeAliasBuilder,
         KernelClassBuilder,
         KernelInvalidTypeBuilder,
         LibraryBuilder,
@@ -130,6 +131,8 @@ abstract class BuilderHelper {
   Message warnUnresolvedSet(Name name, int charOffset, {bool isSuper});
 
   Message warnUnresolvedMethod(Name name, int charOffset, {bool isSuper});
+
+  void warnTypeArgumentsMismatch(String name, int expected, int charOffset);
 }
 
 abstract class FastaAccessor implements Accessor {
@@ -1025,6 +1028,29 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
 
   DartType buildType(List<DartType> arguments,
       {bool nonInstanceAccessIsError: false}) {
+    if (arguments != null) {
+      int expected = 0;
+      if (declaration is KernelClassBuilder) {
+        expected = declaration.target.typeParameters.length;
+      } else if (declaration is FunctionTypeAliasBuilder) {
+        expected = declaration.target.typeParameters.length;
+      } else {
+        return unhandled(
+            "${declaration.runtimeType}",
+            "TypeDeclarationAccessor.buildType",
+            offsetForToken(token),
+            helper.uri);
+      }
+      if (arguments.length != expected) {
+        helper.warnTypeArgumentsMismatch(
+            declaration.name, expected, offsetForToken(token));
+        // We ignore the provided arguments, which will in turn return the
+        // raw type below.
+        // TODO(sigmund): change to use an InvalidType and include the raw type
+        // as a recovery node once the IR can represent it (Issue #29840).
+        arguments = null;
+      }
+    }
     DartType type =
         declaration.buildTypesWithBuiltArguments(helper.library, arguments);
     if (type is TypeParameterType) {

@@ -541,6 +541,10 @@ ListLiteralTooManyTypeArguments:
 ListLiteralTypeArgumentMismatch:
   template: "Map literal requires two type arguments."
 
+TypeArgumentMismatch:
+  # TODO(sigmund): #string should be a number instead.
+  template: "'#name' expects #string type arguments."
+
 NotAType:
   template: "'#name' isn't a type."
 

@@ -42,30 +42,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedMethodWithConstructor() async {
     return super.test_undefinedMethodWithConstructor();
   }
-
-  @override
-  @assertFailingTest
-  test_wrongNumberOfTypeArguments_tooFew() async {
-    return super.test_wrongNumberOfTypeArguments_tooFew();
-  }
-
-  @override
-  @assertFailingTest
-  test_wrongNumberOfTypeArguments_tooMany() async {
-    return super.test_wrongNumberOfTypeArguments_tooMany();
-  }
-
-  @override
-  @assertFailingTest
-  test_wrongNumberOfTypeArguments_typeTest_tooFew() async {
-    return super.test_wrongNumberOfTypeArguments_typeTest_tooFew();
-  }
-
-  @override
-  @assertFailingTest
-  test_wrongNumberOfTypeArguments_typeTest_tooMany() async {
-    return super.test_wrongNumberOfTypeArguments_typeTest_tooMany();
-  }
 }
 
 @reflectiveTest
