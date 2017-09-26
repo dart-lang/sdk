@@ -8867,45 +8867,30 @@ dynamic set y(dynamic value) {}
 
   test_syntheticFunctionType_genericClosure() async {
     if (!isStrongMode) {
-      // The test below uses generic comment syntax because proper generic
-      // method syntax doesn't support generic closures.  So it can only run in
-      // strong mode.
-      // TODO(paulberry): once proper generic method syntax supports generic
-      // closures, rewrite the test below without using generic comment syntax,
-      // and remove this hack.  See dartbug.com/25819
       return;
     }
     var library = await checkLibrary('''
-final v = f() ? /*<T>*/(T t) => 0 : /*<T>*/(T t) => 1;
+final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
+final (<bottom>) → int v;
+bool f() {}
 ''');
   }
 
   test_syntheticFunctionType_genericClosure_inGenericFunction() async {
     if (!isStrongMode) {
-      // The test below uses generic comment syntax because proper generic
-      // method syntax doesn't support generic closures.  So it can only run in
-      // strong mode.
-      // TODO(paulberry): once proper generic method syntax supports generic
-      // closures, rewrite the test below without using generic comment syntax,
-      // and remove this hack.  See dartbug.com/25819
       return;
     }
     var library = await checkLibrary('''
 void f<T, U>(bool b) {
-  final v = b ? /*<V>*/(T t, U u, V v) => 0 : /*<V>*/(T t, U u, V v) => 1;
+  final v = b ? <V>(T t, U u, V v) => 0 : <V>(T t, U u, V v) => 1;
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 void f<T, U>(bool b) {}
 ''');
-    } else {
-      checkElementText(library, r'''
-''');
-    }
   }
 
   test_syntheticFunctionType_inGenericClass() async {
@@ -8917,9 +8902,10 @@ bool f() => false;
 ''');
     if (isStrongMode) {
       checkElementText(library, r'''
-class C {
-  synthetic C();
+class C<T, U> {
+  (T, U) → int v;
 }
+bool f() {}
 ''');
     } else {
       checkElementText(library, r'''
@@ -8949,6 +8935,8 @@ bool f() => true;
 ''');
     if (isStrongMode) {
       checkElementText(library, r'''
+final () → int v;
+bool f() {}
 ''');
     } else {
       checkElementText(library, r'''
@@ -8965,6 +8953,8 @@ bool f() => true;
 ''');
     if (isStrongMode) {
       checkElementText(library, r'''
+final (int, String) → int v;
+bool f() {}
 ''');
     } else {
       checkElementText(library, r'''

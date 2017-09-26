@@ -889,6 +889,7 @@ class _KernelUnitResynthesizerContextImpl
   DartType getType(ElementImpl context, kernel.DartType kernelType) {
     if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
     if (kernelType is kernel.InvalidType) return DynamicTypeImpl.instance;
+    if (kernelType is kernel.BottomType) return BottomTypeImpl.instance;
     if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
 
     if (kernelType is kernel.InterfaceType) {

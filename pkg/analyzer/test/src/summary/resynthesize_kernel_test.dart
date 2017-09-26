@@ -461,34 +461,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @potentialAnalyzerProblem
-  test_syntheticFunctionType_genericClosure() async {
-    // TODO(scheglov): this does not work even in Analyzer
-    await super.test_syntheticFunctionType_genericClosure();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_syntheticFunctionType_inGenericClass() async {
-    // TODO(scheglov): this does not work even in Analyzer
-    await super.test_syntheticFunctionType_inGenericClass();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_syntheticFunctionType_noArguments() async {
-    // TODO(scheglov): this does not work even in Analyzer
-    await super.test_syntheticFunctionType_noArguments();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_syntheticFunctionType_withArguments() async {
-    // TODO(scheglov): this does not work even in Analyzer
-    await super.test_syntheticFunctionType_withArguments();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
   test_type_reference_to_typedef_with_type_arguments() async {
     // TODO(scheglov): triage
     await super.test_type_reference_to_typedef_with_type_arguments();
