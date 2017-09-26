@@ -5,6 +5,7 @@
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
 #include "platform/assert.h"
+#include "vm/debugger_api_impl_test.h"
 #include "vm/globals.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"

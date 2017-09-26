@@ -14,6 +14,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_state.h"
+#include "vm/debugger_api_impl_test.h"
 #include "vm/lockers.h"
 #include "vm/timeline.h"
 #include "vm/unit_test.h"
