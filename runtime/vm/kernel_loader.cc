@@ -613,6 +613,7 @@ Class& KernelLoader::LoadClass(const Library& library,
 
   class_helper.ReadUntilExcluding(ClassHelper::kProcedures);
   int procedure_count = builder_.ReadListLength();  // read list length.
+  class_helper.procedure_count_ = procedure_count;
   for (intptr_t i = 0; i < procedure_count; ++i) {
     LoadProcedure(library, klass, true);
   }

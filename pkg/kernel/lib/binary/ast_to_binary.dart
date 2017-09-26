@@ -26,6 +26,9 @@ class BinaryPrinter extends Visitor {
 
   final BufferedSink _sink;
 
+  List<int> libraryOffsets;
+  List<int> classOffsets;
+  List<int> procedureOffsets;
   int _binaryOffsetForSourceTable = -1;
   int _binaryOffsetForStringTable = -1;
   int _binaryOffsetForLinkTable = -1;
@@ -85,9 +88,13 @@ class BinaryPrinter extends Visitor {
     writeBytes(utf8Bytes);
   }
 
+  int getBufferOffset() {
+    return _sink.flushedLength + _sink.length;
+  }
+
   void writeStringTable(StringIndexer indexer, bool updateBinaryOffset) {
     if (updateBinaryOffset) {
-      _binaryOffsetForStringTable = _sink.flushedLength + _sink.length;
+      _binaryOffsetForStringTable = getBufferOffset();
     }
 
     // Write the end offsets.
@@ -142,7 +149,7 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeLinkTable(Program program) {
-    _binaryOffsetForLinkTable = _sink.flushedLength + _sink.length;
+    _binaryOffsetForLinkTable = getBufferOffset();
     writeList(_canonicalNameList, writeCanonicalNameEntry);
   }
 
@@ -187,6 +194,7 @@ class BinaryPrinter extends Visitor {
     writeUInt32(Tag.ProgramFile);
     indexLinkTable(program);
     indexUris(program);
+    libraryOffsets = <int>[];
     writeLibraries(program);
     writeUriToSource(program.uriToSource);
     writeLinkTable(program);
@@ -216,12 +224,14 @@ class BinaryPrinter extends Visitor {
     } else {
       writeUInt32(main.index + 1);
     }
-    for (Library library in libraries) {
-      assert(library.binaryOffset >= 0);
-      writeUInt32(library.binaryOffset);
+
+    assert(libraryOffsets.length == libraries.length);
+    for (int offset in libraryOffsets) {
+      writeUInt32(offset);
     }
     writeUInt32(libraries.length);
-    writeUInt32(_sink.flushedLength + _sink.length + 4); // total size.
+
+    writeUInt32(getBufferOffset() + 4); // total size.
   }
 
   void indexUris(Program program) {
@@ -229,7 +239,7 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeUriToSource(Map<String, Source> uriToSource) {
-    _binaryOffsetForSourceTable = _sink.flushedLength + _sink.length;
+    _binaryOffsetForSourceTable = getBufferOffset();
 
     int length = _sourceUriIndexer.numberOfStrings;
     writeUInt32(length);
@@ -237,7 +247,7 @@ class BinaryPrinter extends Visitor {
 
     // Write data.
     for (int i = 0; i < length; ++i) {
-      index[i] = _sink.flushedLength + _sink.length;
+      index[i] = getBufferOffset();
 
       StringTableEntry uri = _sourceUriIndexer.entries[i];
       Source source =
@@ -339,7 +349,7 @@ class BinaryPrinter extends Visitor {
 
   visitLibrary(Library node) {
     insideExternalLibrary = node.isExternal;
-    node.binaryOffset = _sink.flushedLength + _sink.length;
+    libraryOffsets.add(getBufferOffset());
     writeByte(insideExternalLibrary ? 1 : 0);
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
@@ -351,9 +361,26 @@ class BinaryPrinter extends Visitor {
     writeAdditionalExports(node.additionalExports);
     writeLibraryParts(node);
     writeNodeList(node.typedefs);
+    classOffsets = <int>[];
     writeNodeList(node.classes);
+    classOffsets.add(getBufferOffset());
     writeNodeList(node.fields);
+    procedureOffsets = <int>[];
     writeNodeList(node.procedures);
+    procedureOffsets.add(getBufferOffset());
+
+    // Fixed-size ints at the end used as an index.
+    assert(classOffsets.length > 0);
+    for (int offset in classOffsets) {
+      writeUInt32(offset);
+    }
+    writeUInt32(classOffsets.length - 1);
+
+    assert(procedureOffsets.length > 0);
+    for (int offset in procedureOffsets) {
+      writeUInt32(offset);
+    }
+    writeUInt32(procedureOffsets.length - 1);
   }
 
   void writeLibraryDependencies(Library library) {
@@ -437,6 +464,8 @@ class BinaryPrinter extends Visitor {
   }
 
   visitClass(Class node) {
+    classOffsets.add(getBufferOffset());
+
     int flags = _encodeClassFlags(node.isAbstract, node.isEnum,
         node.isSyntheticMixinImplementation, node.level);
     if (node.canonicalName == null) {
@@ -458,8 +487,16 @@ class BinaryPrinter extends Visitor {
     writeNodeList(node.implementedTypes);
     writeNodeList(node.fields);
     writeNodeList(node.constructors);
+    procedureOffsets = <int>[];
     writeNodeList(node.procedures);
+    procedureOffsets.add(getBufferOffset());
     _typeParameterIndexer.exit(node.typeParameters);
+
+    assert(procedureOffsets.length > 0);
+    for (int offset in procedureOffsets) {
+      writeUInt32(offset);
+    }
+    writeUInt32(procedureOffsets.length - 1);
   }
 
   static final Name _emptyName = new Name('');
@@ -487,6 +524,8 @@ class BinaryPrinter extends Visitor {
   }
 
   visitProcedure(Procedure node) {
+    procedureOffsets.add(getBufferOffset());
+
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
@@ -1099,7 +1138,7 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeVariableDeclaration(VariableDeclaration node) {
-    node.binaryOffsetNoTag = _sink.flushedLength + _sink.length;
+    node.binaryOffsetNoTag = getBufferOffset();
     writeOffset(node.fileOffset);
     writeOffset(node.fileEqualsOffset);
     writeByte(node.flags);

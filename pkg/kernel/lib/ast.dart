@@ -249,9 +249,6 @@ class Reference {
 
 @coq
 class Library extends NamedNode implements Comparable<Library> {
-  /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = -1;
-
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.
@@ -1267,12 +1264,44 @@ class Constructor extends Member {
 class Procedure extends Member {
   ProcedureKind kind;
   int flags = 0;
-  FunctionNode function; // Body is null if and only if abstract or external.
+  // function is null if and only if abstract, external,
+  // or builder (below) is set.
+  FunctionNode _function;
+
+  void Function() lazyBuilder;
+
+  void _buildLazy() {
+    if (lazyBuilder != null) {
+      var lazyBuilderLocal = lazyBuilder;
+      lazyBuilder = null;
+      lazyBuilderLocal();
+    }
+  }
+
+  void set transformerFlags(int flags) {
+    _buildLazy();
+    super.transformerFlags = flags;
+  }
+
+  int get transformerFlags {
+    _buildLazy();
+    return super.transformerFlags;
+  }
+
+  void set function(FunctionNode function) {
+    _buildLazy();
+    _function = function;
+  }
+
+  FunctionNode get function {
+    _buildLazy();
+    return _function;
+  }
 
   /// The uri of the source file this procedure was loaded from.
   String fileUri;
 
-  Procedure(Name name, this.kind, this.function,
+  Procedure(Name name, this.kind, this._function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,

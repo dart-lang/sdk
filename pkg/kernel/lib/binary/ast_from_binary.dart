@@ -39,12 +39,13 @@ class BinaryBuilder {
   final List<TypeParameter> typeParameterStack = <TypeParameter>[];
   final String filename;
   final List<int> _bytes;
-  int _byteIndex = 0;
+  int _byteOffset = 0;
   final List<String> _stringTable = <String>[];
   final List<String> _sourceUriTable = <String>[];
   List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
   Library _currentLibrary;
+  int _programStartOffset = 0;
 
   // If something goes wrong, this list should indicate what library,
   // class, and member was being built.
@@ -56,10 +57,10 @@ class BinaryBuilder {
 
   fail(String message) {
     throw new ParseError(message,
-        byteIndex: _byteIndex, filename: filename, path: debugPath.join('::'));
+        byteIndex: _byteOffset, filename: filename, path: debugPath.join('::'));
   }
 
-  int readByte() => _bytes[_byteIndex++];
+  int readByte() => _bytes[_byteOffset++];
 
   int readUInt() {
     var byte = readByte();
@@ -87,8 +88,8 @@ class BinaryBuilder {
 
   List<int> readUtf8Bytes() {
     List<int> bytes = new Uint8List(readUInt());
-    bytes.setRange(0, bytes.length, _bytes, _byteIndex);
-    _byteIndex += bytes.length;
+    bytes.setRange(0, bytes.length, _bytes, _byteOffset);
+    _byteOffset += bytes.length;
     return bytes;
   }
 
@@ -96,17 +97,17 @@ class BinaryBuilder {
     // Utf8Decoder will skip leading BOM characters, but we must preserve them.
     // Collect leading BOMs before passing the bytes onto Utf8Decoder.
     int numByteOrderMarks = 0;
-    while (_byteIndex + 2 < _bytes.length &&
-        _bytes[_byteIndex] == 0xef &&
-        _bytes[_byteIndex + 1] == 0xbb &&
-        _bytes[_byteIndex + 2] == 0xbf) {
+    while (_byteOffset + 2 < _bytes.length &&
+        _bytes[_byteOffset] == 0xef &&
+        _bytes[_byteOffset + 1] == 0xbb &&
+        _bytes[_byteOffset + 2] == 0xbf) {
       ++numByteOrderMarks;
-      _byteIndex += 3;
+      _byteOffset += 3;
       numBytes -= 3;
     }
-    String string =
-        const Utf8Decoder().convert(_bytes, _byteIndex, _byteIndex + numBytes);
-    _byteIndex += numBytes;
+    String string = const Utf8Decoder()
+        .convert(_bytes, _byteOffset, _byteOffset + numBytes);
+    _byteOffset += numBytes;
     if (numByteOrderMarks > 0) {
       return '\ufeff' * numByteOrderMarks + string;
     }
@@ -168,11 +169,11 @@ class BinaryBuilder {
   }
 
   void _fillTreeNodeList(
-      List<TreeNode> list, TreeNode buildObject(), TreeNode parent) {
+      List<TreeNode> list, TreeNode buildObject(int index), TreeNode parent) {
     var length = readUInt();
     list.length = length;
     for (int i = 0; i < length; ++i) {
-      TreeNode object = buildObject();
+      TreeNode object = buildObject(i);
       list[i] = object..parent = parent;
     }
   }
@@ -201,7 +202,7 @@ class BinaryBuilder {
   /// If an existing object is bound to the canonical name, the existing object
   /// must be reused and returned.
   void _mergeNamedNodeList(
-      List<NamedNode> list, NamedNode readObject(), TreeNode parent) {
+      List<NamedNode> list, NamedNode readObject(int index), TreeNode parent) {
     if (_isReadingLibraryImplementation) {
       // When reading the library implementation, overwrite the whole list
       // with the new one.
@@ -212,7 +213,7 @@ class BinaryBuilder {
       // - ignored if the library implementation is already in memory
       int numberOfNodes = readUInt();
       for (int i = 0; i < numberOfNodes; ++i) {
-        var value = readObject();
+        var value = readObject(i);
         // We use the parent pointer of a node to determine if it already is in
         // the AST and hence should not be added again.
         if (value.parent == null) {
@@ -235,17 +236,17 @@ class BinaryBuilder {
   }
 
   List<int> _indexPrograms() {
-    int savedByteIndex = _byteIndex;
-    _byteIndex = _bytes.length - 4;
+    int savedByteOffset = _byteOffset;
+    _byteOffset = _bytes.length - 4;
     List<int> index = <int>[];
-    while (_byteIndex > 0) {
+    while (_byteOffset > 0) {
       int size = readUint32();
-      int start = _byteIndex - size;
+      int start = _byteOffset - size;
       if (start < 0) throw "Invalid program file: Indicated size is invalid.";
       index.add(size);
-      _byteIndex = start - 4;
+      _byteOffset = start - 4;
     }
-    _byteIndex = savedByteIndex;
+    _byteOffset = savedByteOffset;
     return new List.from(index.reversed);
   }
 
@@ -258,7 +259,7 @@ class BinaryBuilder {
   void readProgram(Program program) {
     List<int> programFileSizes = _indexPrograms();
     int programFileIndex = 0;
-    while (_byteIndex < _bytes.length) {
+    while (_byteOffset < _bytes.length) {
       _readOneProgram(program, programFileSizes[programFileIndex]);
       ++programFileIndex;
     }
@@ -276,8 +277,8 @@ class BinaryBuilder {
     List<int> programFileSizes = _indexPrograms();
     if (programFileSizes.isEmpty) throw "Invalid program data.";
     _readOneProgram(program, programFileSizes[0]);
-    if (_byteIndex < _bytes.length) {
-      if (_byteIndex + 3 < _bytes.length) {
+    if (_byteOffset < _bytes.length) {
+      if (_byteOffset + 3 < _bytes.length) {
         int magic = readUint32();
         if (magic == Tag.ProgramFile) {
           throw 'Concatenated program file given when a single program '
@@ -288,16 +289,17 @@ class BinaryBuilder {
     }
   }
 
-  _ProgramIndex _readProgramIndex(
-      int startIndex, Program program, int programFileSize) {
-    int savedByteIndex = _byteIndex;
+  _ProgramIndex _readProgramIndex(int programFileSize) {
+    int savedByteIndex = _byteOffset;
 
     _ProgramIndex result = new _ProgramIndex();
 
-    // To read number of libraries and file size.
-    _byteIndex = startIndex + programFileSize - 2 * 4;
+    // There are two fields: file size and library count.
+    _byteOffset = _programStartOffset + programFileSize - (2) * 4;
     result.libraryCount = readUint32();
-    result.libraryOffsets = new List<int>(result.libraryCount);
+    // Library offsets are used for start and end offsets, so there is one extra
+    // element that this the end offset of the last library
+    result.libraryOffsets = new List<int>(result.libraryCount + 1);
     result.programFileSizeInBytes = readUint32();
     if (result.programFileSizeInBytes != programFileSize) {
       throw 'Malformed binary: This program files program index indicates that'
@@ -307,24 +309,30 @@ class BinaryBuilder {
     }
 
     // Skip to the start of the index.
-    _byteIndex -= 4 * (result.libraryCount + 6);
+    // There are these fields: file size, library count, library count offsets,
+    // main reference, string table offset, canonical name offset and
+    // source table offset. That's 6 fields + number of libraries.
+    _byteOffset -= (result.libraryCount + 6) * 4;
 
     // Now read the program index.
-    result.binaryOffsetForSourceTable = startIndex + readUint32();
-    result.binaryOffsetForCanonicalNames = startIndex + readUint32();
-    result.binaryOffsetForStringTable = startIndex + readUint32();
+    result.binaryOffsetForSourceTable = _programStartOffset + readUint32();
+    result.binaryOffsetForCanonicalNames = _programStartOffset + readUint32();
+    result.binaryOffsetForStringTable = _programStartOffset + readUint32();
     result.mainMethodReference = readUint32();
     for (int i = 0; i < result.libraryCount; ++i) {
-      result.libraryOffsets[i] = startIndex + readUint32();
+      result.libraryOffsets[i] = _programStartOffset + readUint32();
     }
+    // Use the start of the source table as the end of the last library.
+    result.libraryOffsets[result.libraryCount] =
+        result.binaryOffsetForSourceTable;
 
-    _byteIndex = savedByteIndex;
+    _byteOffset = savedByteIndex;
 
     return result;
   }
 
   void _readOneProgram(Program program, int programFileSize) {
-    int startIndex = _byteIndex;
+    _programStartOffset = _byteOffset;
 
     int magic = readUint32();
     if (magic != Tag.ProgramFile) {
@@ -333,31 +341,30 @@ class BinaryBuilder {
     }
 
     // Read program index from the end of this ProgramFiles serialized data.
-    _ProgramIndex index =
-        _readProgramIndex(startIndex, program, programFileSize);
+    _ProgramIndex index = _readProgramIndex(programFileSize);
 
-    _byteIndex = index.binaryOffsetForStringTable;
+    _byteOffset = index.binaryOffsetForStringTable;
     readStringTable(_stringTable);
 
-    _byteIndex = index.binaryOffsetForCanonicalNames;
+    _byteOffset = index.binaryOffsetForCanonicalNames;
     readLinkTable(program.root);
 
-    _byteIndex = index.binaryOffsetForSourceTable;
+    _byteOffset = index.binaryOffsetForSourceTable;
     Map<String, Source> uriToSource = readUriToSource();
     program.uriToSource.addAll(uriToSource);
 
     int numberOfLibraries = index.libraryCount;
     List<Library> libraries = new List<Library>(numberOfLibraries);
     for (int i = 0; i < numberOfLibraries; ++i) {
-      _byteIndex = index.libraryOffsets[i];
-      libraries[i] = readLibrary(program);
+      _byteOffset = index.libraryOffsets[i];
+      libraries[i] = readLibrary(program, index.libraryOffsets[i + 1]);
     }
 
     var mainMethod =
         getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
     program.mainMethodName ??= mainMethod;
 
-    _byteIndex = startIndex + programFileSize;
+    _byteOffset = _programStartOffset + programFileSize;
   }
 
   Map<String, Source> readUriToSource() {
@@ -446,7 +453,33 @@ class BinaryBuilder {
     }
   }
 
-  Library readLibrary(Program program) {
+  Library readLibrary(Program program, int endOffset) {
+    // Read index.
+    int savedByteOffset = _byteOffset;
+
+    // There is a field for the procedure count.
+    _byteOffset = endOffset - (1) * 4;
+    int procedureCount = readUint32();
+    List<int> procedureOffsets = new List<int>(procedureCount + 1);
+
+    // There is a field for the procedure count, that number + 1 (for the end)
+    // offsets, and then the class count (i.e. procedure count + 3 fields).
+    _byteOffset = endOffset - (procedureCount + 3) * 4;
+    int classCount = readUint32();
+    for (int i = 0; i < procedureCount + 1; i++) {
+      procedureOffsets[i] = _programStartOffset + readUint32();
+    }
+    List<int> classOffsets = new List<int>(classCount + 1);
+
+    // There is a field for the procedure count, that number + 1 (for the end)
+    // offsets, then the class count and that number + 1 (for the end) offsets.
+    // (i.e. procedure count + class count + 4 fields).
+    _byteOffset = endOffset - (procedureCount + classCount + 4) * 4;
+    for (int i = 0; i < classCount + 1; i++) {
+      classOffsets[i] = _programStartOffset + readUint32();
+    }
+    _byteOffset = savedByteOffset;
+
     int flags = readByte();
     bool isExternal = (flags & 0x1) != 0;
     _isReadingLibraryImplementation = !isExternal;
@@ -462,6 +495,7 @@ class BinaryBuilder {
     _currentLibrary = library;
     String name = readStringOrNullIfEmpty();
     String documentationComment = readStringOrNullIfEmpty();
+
     // TODO(jensj): We currently save (almost the same) uri twice.
     String fileUri = readUriReference();
 
@@ -475,17 +509,27 @@ class BinaryBuilder {
     debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
 
     if (shouldWriteData) {
-      _fillTreeNodeList(library.annotations, readExpression, library);
+      _fillTreeNodeList(
+          library.annotations, (index) => readExpression(), library);
     } else {
       _skipNodeList(readExpression);
     }
     _readLibraryDependencies(library);
     _readAdditionalExports(library);
     _readLibraryParts(library);
-    _mergeNamedNodeList(library.typedefs, readTypedef, library);
-    _mergeNamedNodeList(library.classes, readClass, library);
-    _mergeNamedNodeList(library.fields, readField, library);
-    _mergeNamedNodeList(library.procedures, readProcedure, library);
+    _mergeNamedNodeList(library.typedefs, (index) => readTypedef(), library);
+
+    _mergeNamedNodeList(library.classes, (index) {
+      _byteOffset = classOffsets[index];
+      return readClass(classOffsets[index + 1]);
+    }, library);
+    _byteOffset = classOffsets.last;
+    _mergeNamedNodeList(library.fields, (index) => readField(), library);
+    _mergeNamedNodeList(library.procedures, (index) {
+      _byteOffset = procedureOffsets[index];
+      return readProcedure(procedureOffsets[index + 1]);
+    }, library);
+    _byteOffset = procedureOffsets.last;
 
     debugPath.removeLast();
     _currentLibrary = null;
@@ -569,9 +613,24 @@ class BinaryBuilder {
     return node;
   }
 
-  Class readClass() {
+  Class readClass(int endOffset) {
     int tag = readByte();
     assert(tag == Tag.Class);
+
+    // Read index.
+    int savedByteOffset = _byteOffset;
+    // There is a field for the procedure count.
+    _byteOffset = endOffset - (1) * 4;
+    int procedureCount = readUint32();
+    List<int> procedureOffsets = new List<int>(procedureCount + 1);
+    // There is a field for the procedure count, that number + 1 (for the end)
+    // offsets (i.e. procedure count + 2 fields).
+    _byteOffset = endOffset - (procedureCount + 2) * 4;
+    for (int i = 0; i < procedureCount + 1; i++) {
+      procedureOffsets[i] = _programStartOffset + readUint32();
+    }
+    _byteOffset = savedByteOffset;
+
     var canonicalName = readCanonicalNameReference();
     var reference = canonicalName.getReference();
     Class node = reference.node;
@@ -603,9 +662,14 @@ class BinaryBuilder {
     } else {
       _skipNodeList(readSupertype);
     }
-    _mergeNamedNodeList(node.fields, readField, node);
-    _mergeNamedNodeList(node.constructors, readConstructor, node);
-    _mergeNamedNodeList(node.procedures, readProcedure, node);
+    _mergeNamedNodeList(node.fields, (index) => readField(), node);
+    _mergeNamedNodeList(node.constructors, (index) => readConstructor(), node);
+
+    _mergeNamedNodeList(node.procedures, (index) {
+      _byteOffset = procedureOffsets[index];
+      return readProcedure(procedureOffsets[index + 1]);
+    }, node);
+    _byteOffset = procedureOffsets.last;
     typeParameterStack.length = 0;
     debugPath.removeLast();
     if (shouldWriteData) {
@@ -616,6 +680,9 @@ class BinaryBuilder {
       node.supertype = supertype;
       node.mixedInType = mixedInType;
     }
+
+    _byteOffset = endOffset;
+
     return node;
   }
 
@@ -689,7 +756,7 @@ class BinaryBuilder {
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
     if (shouldWriteData) {
-      _fillTreeNodeList(node.initializers, readInitializer, node);
+      _fillTreeNodeList(node.initializers, (index) => readInitializer(), node);
     } else {
       _skipNodeList(readInitializer);
     }
@@ -709,7 +776,7 @@ class BinaryBuilder {
     return node;
   }
 
-  Procedure readProcedure() {
+  Procedure readProcedure(int endOffset) {
     int tag = readByte();
     assert(tag == Tag.Procedure);
     var canonicalName = readCanonicalNameReference();
@@ -729,8 +796,16 @@ class BinaryBuilder {
     var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'procedure');
-    var function = readFunctionNodeOption();
-    var transformerFlags = getAndResetTransformerFlags();
+    int functionNodeSize = endOffset - _byteOffset;
+    // Read small factories up front. Postpone everything else.
+    bool readFunctionNodeNow =
+        kind == ProcedureKind.Factory && functionNodeSize <= 50;
+    var function;
+    var transformerFlags;
+    if (readFunctionNodeNow) {
+      function = readFunctionNodeOption();
+      transformerFlags = getAndResetTransformerFlags();
+    }
     debugPath.removeLast();
     if (shouldWriteData) {
       node.fileOffset = fileOffset;
@@ -741,10 +816,27 @@ class BinaryBuilder {
       node.fileUri = fileUri;
       node.documentationComment = documentationComment;
       node.annotations = annotations;
-      node.function = function;
-      node.function?.parent = node;
-      node.transformerFlags = transformerFlags;
+      if (readFunctionNodeNow) {
+        node.function = function;
+        function?.parent = node;
+        node.transformerFlags = transformerFlags;
+      } else {
+        int offset = _byteOffset;
+        int programStartOffset = _programStartOffset;
+        List<TypeParameter> typeParameters = typeParameterStack.toList();
+        node.lazyBuilder = () {
+          _byteOffset = offset;
+          typeParameterStack.clear();
+          typeParameterStack.addAll(typeParameters);
+          _programStartOffset = programStartOffset;
+          FunctionNode functionNode = readFunctionNodeOption();
+          node.function = functionNode;
+          functionNode?.parent = node;
+          node.transformerFlags = getAndResetTransformerFlags();
+        };
+      }
     }
+    _byteOffset = endOffset;
     return node;
   }
 

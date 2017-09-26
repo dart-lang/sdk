@@ -192,6 +192,13 @@ type Library {
   List<Class> classes;
   List<Field> fields;
   List<Procedure> procedures;
+
+  // Library index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
+  // a specific class or procedure. Note the "+1" to account for needing the end of the last entry.
+  UInt32[classes.length + 1] classOffsets;
+  UInt32 classCount = classes.length;
+  UInt32[procedures.length + 1] procedureOffsets;
+  UInt32 procedureCount = procedures.length;
 }
 
 type LibraryDependency {
@@ -260,6 +267,11 @@ type Class extends Node {
   List<Field> fields;
   List<Constructor> constructors;
   List<Procedure> procedures;
+
+  // Class index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
+  // a specific procedure. Note the "+1" to account for needing the end of the last entry.
+  UInt32[procedures.length + 1] procedureOffsets;
+  UInt32 procedureCount = procedures.length;
 }
 
 abstract type Member extends Node {}

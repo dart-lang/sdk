@@ -390,15 +390,22 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
     case kProcedures: {
-      intptr_t list_length =
-          builder_->ReadListLength();  // read procedures list length.
-      for (intptr_t i = 0; i < list_length; i++) {
+      procedure_count_ = builder_->ReadListLength();  // read procedures #.
+      for (intptr_t i = 0; i < procedure_count_; i++) {
         ProcedureHelper procedure_helper(builder_);
         procedure_helper.ReadUntilExcluding(
             ProcedureHelper::kEnd);  // read procedure.
       }
       if (++next_read_ == field) return;
     }
+    case kClassIndex:
+      // Read class index.
+      for (intptr_t i = 0; i < procedure_count_; ++i) {
+        builder_->reader_->ReadUInt32();
+      }
+      builder_->reader_->ReadUInt32();
+      builder_->reader_->ReadUInt32();
+      if (++next_read_ == field) return;
     case kEnd:
       return;
   }
@@ -459,8 +466,8 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
     case kClasses: {
-      int class_count = builder_->ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < class_count; ++i) {
+      class_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < class_count_; ++i) {
         ClassHelper class_helper(builder_);
         class_helper.ReadUntilExcluding(ClassHelper::kEnd);
       }
@@ -475,14 +482,26 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
     case kToplevelProcedures: {
-      intptr_t procedure_count =
-          builder_->ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < procedure_count; ++i) {
+      procedure_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < procedure_count_; ++i) {
         ProcedureHelper procedure_helper(builder_);
         procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
       }
       if (++next_read_ == field) return;
     }
+    case kLibraryIndex:
+      // Read library index.
+      for (intptr_t i = 0; i < class_count_; ++i) {
+        builder_->reader_->ReadUInt32();
+      }
+      builder_->reader_->ReadUInt32();
+      builder_->reader_->ReadUInt32();
+      for (intptr_t i = 0; i < procedure_count_; ++i) {
+        builder_->reader_->ReadUInt32();
+      }
+      builder_->reader_->ReadUInt32();
+      builder_->reader_->ReadUInt32();
+      if (++next_read_ == field) return;
     case kEnd:
       return;
   }

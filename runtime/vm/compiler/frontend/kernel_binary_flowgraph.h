@@ -356,6 +356,7 @@ class ClassHelper {
     kFields,
     kConstructors,
     kProcedures,
+    kClassIndex,
     kEnd,
   };
 
@@ -380,6 +381,7 @@ class ClassHelper {
   StringIndex name_index_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
+  intptr_t procedure_count_;
 
  private:
   StreamingFlowGraphBuilder* builder_;
@@ -409,6 +411,7 @@ class LibraryHelper {
     kClasses,
     kToplevelField,
     kToplevelProcedures,
+    kLibraryIndex,
     kEnd,
   };
 
@@ -436,6 +439,8 @@ class LibraryHelper {
   NameIndex canonical_name_;
   StringIndex name_index_;
   intptr_t source_uri_index_;
+  intptr_t class_count_;
+  intptr_t procedure_count_;
 
  private:
   StreamingFlowGraphBuilder* builder_;
