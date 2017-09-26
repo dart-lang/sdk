@@ -799,13 +799,12 @@ generic_field_mixin5_test: Crash # Assertion failure: Runtime type information n
 generic_field_mixin6_test/none: RuntimeError
 generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_generic_function_parameter_test: Crash # Unsupported operation: Unsupported type parameter type node V.
+generic_function_typedef_test/01: RuntimeError
 generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
@@ -1053,13 +1052,12 @@ generic_field_mixin5_test: Crash # Assertion failure: Runtime type information n
 generic_field_mixin6_test/none: RuntimeError
 generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_generic_function_parameter_test: Crash # Unsupported operation: Unsupported type parameter type node V.
+generic_function_typedef_test/01: RuntimeError
 generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
