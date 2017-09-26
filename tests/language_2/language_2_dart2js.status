@@ -162,6 +162,12 @@ identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
+flatten_test/05: MissingRuntimeError
+flatten_test/08: MissingRuntimeError
+flatten_test/09: MissingRuntimeError
+flatten_test/12: MissingRuntimeError
+for_in3_test: MissingCompileTimeError
+for_in_side_effects_test/01: MissingCompileTimeError
 if_null_assignment_behavior_test/03: MissingCompileTimeError
 if_null_assignment_behavior_test/13: MissingCompileTimeError
 if_null_assignment_behavior_test/15: MissingCompileTimeError
@@ -383,6 +389,8 @@ multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
 multiline_newline_test/none: RuntimeError # Issue 23888
 number_identity2_test: RuntimeError # Issue 12596
 numbers_test: RuntimeError, OK # Issue 1533
+full_stacktrace1_test: Pass, RuntimeError # Issue 12698
+full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 assertion_test: RuntimeError # Issue 30326
@@ -1152,6 +1160,8 @@ null_test/none: Crash # NoSuchMethodError: Class 'JMethod' has no instance gette
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
+full_stacktrace1_test: RuntimeError
+full_stacktrace2_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash

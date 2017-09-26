@@ -215,6 +215,12 @@ invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign
 issue21079_test: SkipByDesign
+flatten_test/05: MissingRuntimeError
+flatten_test/08: MissingRuntimeError
+flatten_test/09: MissingRuntimeError
+flatten_test/12: MissingRuntimeError
+for_in3_test: MissingCompileTimeError
+for_in_side_effects_test/01: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 method_override2_test/none: Pass
 method_override2_test/*: MissingCompileTimeError
@@ -473,6 +479,8 @@ large_class_declaration_test: SkipSlow # Uses too much memory.
 
 [ $runtime == dart_precompiled && $minified ]
 cyclic_type_test/*: Skip
+full_stacktrace1_test: Skip
+full_stacktrace2_test: Skip
 
 [ $runtime == dart_precompiled || $mode == product ]
 vm/causal_async_exception_stack_test: SkipByDesign

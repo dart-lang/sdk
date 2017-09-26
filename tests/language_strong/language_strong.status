@@ -123,7 +123,6 @@ final_super_field_set_test: Skip
 final_syntax_test: Skip
 final_variable_assignment_test: Skip
 first_class_types_literals_test: Skip
-for_in_side_effects_test: Skip
 function_literals2_test: Skip
 function_literals_test: Skip
 function_malformed_result_type_test: Skip
@@ -447,11 +446,6 @@ f_bounded_quantification3_test: RuntimeError # Issue 29920
 field_increment_bailout_test: RuntimeError # Issue 29920
 field_optimization3_test: RuntimeError # Issue 29920
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
-flatten_test/05: MissingRuntimeError # Issue 29920
-flatten_test/08: MissingRuntimeError # Issue 29920
-flatten_test/09: MissingRuntimeError # Issue 29920
-flatten_test/12: MissingRuntimeError # Issue 29920
-for_variable_capture_test: RuntimeError # Issue 29920
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
 instanceof2_test: RuntimeError # Issue 29920
 instanceof4_test/01: RuntimeError # Issue 29920

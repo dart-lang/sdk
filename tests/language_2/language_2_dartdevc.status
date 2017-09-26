@@ -191,3 +191,8 @@ number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out
+flatten_test/05: MissingRuntimeError # Issue 29920
+flatten_test/08: MissingRuntimeError # Issue 29920
+flatten_test/09: MissingRuntimeError # Issue 29920
+flatten_test/12: MissingRuntimeError # Issue 29920
+for_variable_capture_test: RuntimeError # Issue 29920

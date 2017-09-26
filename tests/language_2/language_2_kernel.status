@@ -152,6 +152,8 @@ deferred_type_dependency_test/as: RuntimeError
 deferred_type_dependency_test/is: RuntimeError
 deferred_type_dependency_test/none: RuntimeError
 deferred_type_dependency_test/type_annotation: RuntimeError
+for2_test: RuntimeError
+for_variable_capture_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -392,6 +394,8 @@ vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test u
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/type_vm_test: RuntimeError # Fasta bug: Bad position information in stack trace.
+for2_test: RuntimeError # KernelVM bug: Closure conversion?
+for_variable_capture_test: RuntimeError # KernelVM bug: Closure conversion?
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError

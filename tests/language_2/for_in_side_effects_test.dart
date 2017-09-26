@@ -10,10 +10,10 @@ import "package:expect/expect.dart";
 var global = 42;
 var array = [new A()];
 
-class A {
-  get iterator {
+class A extends Iterable<A> {
+  Iterator<A> get iterator {
     global = 54;
-    return this;
+    return [this].iterator;
   }
 
   moveNext() => false;
