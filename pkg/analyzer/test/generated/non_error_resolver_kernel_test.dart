@@ -13,6 +13,11 @@ main() {
   });
 }
 
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
+}
+
 @reflectiveTest
 class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
@@ -62,6 +67,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
   }
@@ -80,12 +86,14 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30836')
   test_finalNotInitialized_hasNativeClause_hasConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_hasConstructor();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30836')
   test_finalNotInitialized_hasNativeClause_noConstructor() async {
     fail('This test fails only in checked mode.');
     return super.test_finalNotInitialized_hasNativeClause_noConstructor();
@@ -99,36 +107,42 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_functionDeclaration_scope_signature() async {
     return super.test_functionDeclaration_scope_signature();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_functionTypeAlias_scope_signature() async {
     return super.test_functionTypeAlias_scope_signature();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30837')
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
     return super.test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30837')
   test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
     return super.test_genericTypeAlias_castsAndTypeChecks_noTypeParameters();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30837')
   test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
     return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
   test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() async {
     return super
         .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
@@ -136,6 +150,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
   test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() async {
     return super
         .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
@@ -167,24 +182,28 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30834')
   test_memberWithClassName_setter() async {
     return super.test_memberWithClassName_setter();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_methodDeclaration_scope_signature() async {
     return super.test_methodDeclaration_scope_signature();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30835')
   test_nativeConstConstructor() async {
     return super.test_nativeConstConstructor();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30839')
   test_nativeFunctionBodyInNonSDKCode_function() async {
     return super.test_nativeFunctionBodyInNonSDKCode_function();
   }
@@ -282,12 +301,14 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30840')
   test_undefinedIdentifier_synthetic_whenExpression() async {
     return super.test_undefinedIdentifier_synthetic_whenExpression();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30840')
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
   }
