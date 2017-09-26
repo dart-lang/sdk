@@ -12,6 +12,7 @@ async/run_zoned9_test/01: Skip # Flutter Issue 9113
 async/schedule_microtask_test: Skip # Flutter Issue 9113
 async/stream_empty_test: Skip # Flutter Issue 9113
 async/stream_event_transformed_test: Skip # Flutter Issue 9113
+html/*: Skip # dart:html will be a problem in the VM
 isolate/issue_21398_parent_isolate2_test/01: Skip # Flutter Issue 9114
 isolate/isolate_import_test/01: Skip # Flutter Issue 9114
 math/random_secure_test: RuntimeError # Flutter Issue 9113

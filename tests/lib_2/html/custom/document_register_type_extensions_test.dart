@@ -4,7 +4,8 @@
 
 import 'dart:html';
 
-import 'package:expect/minitest.dart';
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 
@@ -57,7 +58,7 @@ class MyCanvas extends CanvasElement {
     width = 100;
     height = 100;
 
-    var context = this.getContext('2d');
+    CanvasRenderingContext2D context = this.getContext('2d');
     context.fillStyle = 'red';
     context.fillRect(0, 0, width, height);
     context.fill();
@@ -223,10 +224,10 @@ main() {
         var fooBarCreated = new Element.tag(Foo.tag, Bar.tag);
         expect(
             fooBarCreated.outerHtml,
-            anyOf(
+            anyOf([
                 '<x-foo is="x-bar"></x-foo>',
                 '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" />'
-                '<x-foo is="x-bar"></x-foo>'));
+                '<x-foo is="x-bar"></x-foo>']));
         expect(fooBarCreated is Foo, isTrue);
       });
 
