@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
+import 'package:gardening/src/luci_api.dart';
 import 'package:gardening/src/luci.dart';
-import 'package:gardening/src/luci_services.dart';
 import 'package:gardening/src/logger.dart';
 import 'package:gardening/src/cache_new.dart';
 import 'package:gardening/src/util.dart';
@@ -74,57 +74,60 @@ main(List<String> args) async {
     return;
   }
 
-  var luci = new Luci();
+  var luciApi = new LuciApi();
   Logger logger = createLogger(verbose: results[Flags.verbose]);
   CreateCacheFunction createCache =
       createCacheFunction(logger, disableCache: results[Flags.noCache]);
 
   if (results["build-bots"]) {
-    await performBuildBotsPrimary(luci, createCache, results);
+    await performBuildBotsPrimary(luciApi, createCache, results);
   } else if (results["build-bots-all"]) {
-    await performBuildBotsAll(luci, createCache, results);
+    await performBuildBotsAll(luciApi, createCache, results);
   } else if (results["master"]) {
-    await performMaster(luci, createCache, results);
+    await performMaster(luciApi, createCache, results);
   } else if (results["build-groups"]) {
-    await performBuilderGroups(luci, createCache, results);
+    await performBuilderGroups(luciApi, createCache, results);
   } else if (results["builders-in-group"]) {
-    await performBuildersInGroup(luci, createCache, results);
+    await performBuildersInGroup(luciApi, createCache, results);
   } else if (results["build-bot-details"]) {
-    await performBuildBotDetails(luci, createCache, results);
+    await performBuildBotDetails(luciApi, createCache, results);
   } else if (results["build-details"]) {
-    await performBuildDetails(luci, createCache, results);
+    await performBuildDetails(luciApi, createCache, results);
   } else if (results["builds-with-commit"]) {
-    await performFindBuildsForCommit(luci, createCache, logger, results);
+    await performFindBuildsForCommit(luciApi, createCache, logger, results);
   } else {
     printHelp(parser);
   }
 
-  luci.close();
+  luciApi.close();
 }
 
-Future performBuildBotsPrimary(
-    Luci luci, CreateCacheFunction createCache, ArgResults results) async {
-  var res = await getPrimaryBuilders(
-      luci, results['client'], createCache(duration: new Duration(hours: 1)));
+/// Get the primary build bots for a `results[client]` (not -dev, -stable etc.).
+Future performBuildBotsPrimary(LuciApi luciApi, CreateCacheFunction createCache,
+    ArgResults results) async {
+  var res = await getPrimaryBuilders(luciApi, results['client'],
+      createCache(duration: new Duration(hours: 1)));
   res.fold((ex, stackTrace) {
     print(ex);
     print(stackTrace);
   }, (bots) => bots.forEach(print));
 }
 
+/// Get all build bots for a `results[client]`.
 Future performBuildBotsAll(
-    Luci luci, CreateCacheFunction cache, ArgResults results) async {
+    LuciApi luciApi, CreateCacheFunction cache, ArgResults results) async {
   var res = await getAllBuilders(
-      luci, results['client'], cache(duration: new Duration(hours: 1)));
+      luciApi, results['client'], cache(duration: new Duration(hours: 1)));
   res.fold((ex, stackTrace) {
     print(ex);
     print(stackTrace);
   }, (bots) => bots.forEach(print));
 }
 
+/// Get master information for `results[client]`.
 Future performMaster(
-    Luci luci, CreateCacheFunction cache, ArgResults results) async {
-  var res = await luci.getMaster(
+    LuciApi luciApi, CreateCacheFunction cache, ArgResults results) async {
+  var res = await luciApi.getMaster(
       results['client'], cache(duration: new Duration(minutes: 15)));
   res.fold((ex, stackTrace) {
     print(ex);
@@ -132,24 +135,26 @@ Future performMaster(
   }, (res) => print(res));
 }
 
+/// Get build groups for a `results[client]`.
 Future performBuilderGroups(
-    Luci luci, CreateCacheFunction cache, ArgResults results) async {
+    LuciApi luciApi, CreateCacheFunction cache, ArgResults results) async {
   var res = await getBuilderGroups(
-      luci, results['client'], cache(duration: new Duration(minutes: 15)));
+      luciApi, results['client'], cache(duration: new Duration(minutes: 15)));
   res.fold((ex, stackTrace) {
     print(ex);
     print(stackTrace);
   }, (res) => res.forEach(print));
 }
 
+/// Get builders in a group, passed in [results].
 Future performBuildersInGroup(
-    Luci luci, CreateCacheFunction cache, ArgResults results) async {
+    LuciApi luciApi, CreateCacheFunction cache, ArgResults results) async {
   if (results.rest.length == 0) {
     print("No argument given for <group>. To see help, use --help");
     return;
   }
 
-  var res = await getBuildersInBuilderGroup(luci, results['client'],
+  var res = await getBuildersInBuilderGroup(luciApi, results['client'],
       cache(duration: new Duration(minutes: 15)), results.rest[0]);
   res.fold((ex, stackTrace) {
     print(ex);
@@ -157,22 +162,24 @@ Future performBuildersInGroup(
   }, (res) => res.forEach(print));
 }
 
+/// Get latest details of builds for a buildbot, passed in [results].
 Future performBuildBotDetails(
-    Luci luci, CreateCacheFunction cache, ArgResults results) async {
+    LuciApi luciApi, CreateCacheFunction cache, ArgResults results) async {
   if (results.rest.length == 0) {
     print("No argument given for <name>. To see help, use --help");
     return;
   }
-  var result = await luci.getBuildBotDetails(results['client'], results.rest[0],
-      cache(duration: new Duration(minutes: 15)));
+  var result = await luciApi.getBuildBotDetails(results['client'],
+      results.rest[0], cache(duration: new Duration(minutes: 15)));
   result.fold((ex, stackTrace) {
     print(ex);
     print(stackTrace);
   }, (detail) => print(detail));
 }
 
-Future performBuildDetails(
-    Luci luci, CreateCacheFunction createCache, ArgResults results) async {
+/// Get build details for a build on a buildbot, passed in [results].
+Future performBuildDetails(LuciApi luciApi, CreateCacheFunction createCache,
+    ArgResults results) async {
   if (results.rest.length < 2) {
     print("Missing argument for <name> or <buildNo>. To see help, use --help");
     return;
@@ -184,7 +191,7 @@ Future performBuildDetails(
     return;
   }
 
-  var result = await luci.getBuildBotBuildDetails(
+  var result = await luciApi.getBuildBotBuildDetails(
       results['client'],
       results.rest[0],
       buildNumber,
@@ -195,8 +202,9 @@ Future performBuildDetails(
   }, (detail) => print(detail));
 }
 
-Future performFindBuildsForCommit(Luci luci, CreateCacheFunction createCache,
-    Logger logger, ArgResults results) async {
+/// Find all builds for a commit hash, passed in [results].
+Future performFindBuildsForCommit(LuciApi luciApi,
+    CreateCacheFunction createCache, Logger logger, ArgResults results) async {
   if (results.rest.length == 0) {
     print("Missing argument for <commit>. To see help, use --help");
     return;
@@ -205,7 +213,7 @@ Future performFindBuildsForCommit(Luci luci, CreateCacheFunction createCache,
   int amount = 25;
 
   var result = await fetchBuildsForCommmit(
-      luci, logger, results['client'], results.rest[0], createCache, amount);
+      luciApi, logger, results['client'], results.rest[0], createCache, amount);
   result.fold((ex, st) {
     print(ex);
     print(st);
