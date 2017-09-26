@@ -397,6 +397,7 @@ vm_sources_tests = [
   "dart_api_impl_test.cc",
   "dart_entry_test.cc",
   "debugger_api_impl_test.cc",
+  "debugger_test.cc",
   "exceptions_test.cc",
   "find_code_object_test.cc",
   "fixed_cache_test.cc",

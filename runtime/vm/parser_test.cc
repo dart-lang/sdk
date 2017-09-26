@@ -6,7 +6,6 @@
 #include "vm/ast_printer.h"
 #include "vm/class_finalizer.h"
 #include "vm/debugger.h"
-#include "vm/debugger_api_impl_test.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/symbols.h"

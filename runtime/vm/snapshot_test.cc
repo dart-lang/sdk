@@ -11,7 +11,6 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
-#include "vm/debugger_api_impl_test.h"
 #include "vm/flags.h"
 #include "vm/malloc_hooks.h"
 #include "vm/snapshot.h"

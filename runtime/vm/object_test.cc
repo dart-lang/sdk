@@ -10,7 +10,6 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
-#include "vm/debugger_api_impl_test.h"
 #include "vm/isolate.h"
 #include "vm/malloc_hooks.h"
 #include "vm/object.h"
