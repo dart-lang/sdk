@@ -9,10 +9,10 @@ class A {
   num get getter2 => null; //# 02: ok
   num get getter3 => null; //# 03: ok
   int get getter4 => null; //# 04: ok
-  int get getter5 => null; //# 05: static type warning
+  int get getter5 => null; //# 05: compile-time error
   int get getter6 => null; //# 06: ok
-  int get getter7 => null; //# 07: static type warning
-  int get getter8 => null; //# 08: static type warning
+  int get getter7 => null; //# 07: compile-time error
+  int get getter8 => null; //# 08: compile-time error
 
   set setter1(_) => null; //# 21: ok
   void set setter2(_) {} //# 22: ok
@@ -21,25 +21,25 @@ class A {
   set setter5(num _) => null; //# 25: ok
   set setter6(num _) => null; //# 26: ok
   set setter7(int _) => null; //# 27: ok
-  set setter8(int _) => null; //# 28: static type warning
+  set setter8(int _) => null; //# 28: compile-time error
   set setter9(int _) => null; //# 29: ok
-  set setter10(int _) => null; //# 30: static type warning
-  set setter11(int _) => null; //# 31: static type warning
+  set setter10(int _) => null; //# 30: compile-time error
+  set setter11(int _) => null; //# 31: compile-time error
 
   @virtual int field1; //# 41: ok
   num field2; //# 42: ok
   int field3; //# 43: ok
-  int field4; //# 44: static type warning
+  int field4; //# 44: compile-time error
   int field5; //# 45: ok
   @virtual num field6; //# 46: ok
-  num field7; //# 47: static type warning
-  num get field8 => null; //# 48: static type warning
+  num field7; //# 47: compile-time error
+  num get field8 => null; //# 48: compile-time error
   num field9; //# 49: ok
   num field10; //# 50: ok
   set field11(int _) {} //# 51: ok
   void set field12(int _) {} //# 52: ok
-  num field13; //# 53: static type warning
-  set field14(num _) {} //# 54: static type warning
+  num field13; //# 53: compile-time error
+  set field14(num _) {} //# 54: compile-time error
 }
 
 class B extends A {
@@ -51,15 +51,15 @@ class B extends A {
 abstract class I {
   num get getter7 => null; //# 07: continued
   String get getter8 => null; //# 08: continued
-  int get getter9 => null; //# 09: static type warning
-  int get getter10 => null; //# 10: static type warning
-  int get getter11 => null; //# 11: static type warning
+  int get getter9 => null; //# 09: compile-time error
+  int get getter10 => null; //# 10: compile-time error
+  int get getter11 => null; //# 11: compile-time error
   set setter10(num _) => null; //# 30: continued
   set setter11(String _) => null; //# 31: continued
-  set setter12(int _) => null; //# 32: static type warning
-  set setter13(int _) => null; //# 33: static type warning
-  set setter13(num _) => null; //# 33a: static type warning
-  set setter14(int _) => null; //# 34: static type warning
+  set setter12(int _) => null; //# 32: compile-time error
+  set setter13(int _) => null; //# 33: compile-time error
+  set setter13(num _) => null; //# 33a: compile-time error
+  set setter14(int _) => null; //# 34: compile-time error
 }
 
 abstract class J {

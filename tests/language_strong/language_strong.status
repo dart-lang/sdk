@@ -234,16 +234,6 @@ no_such_method_empty_selector_test: Skip
 no_such_method_mock_test: Skip
 no_such_method_negative_test: Skip
 no_such_method_test: Skip
-non_const_super_negative_test: Skip
-optional_named_parameters_test: Skip
-overridden_no_such_method_test: Skip
-override_field_method1_negative_test: Skip
-override_field_method2_negative_test: Skip
-override_field_method4_negative_test: Skip
-override_field_method5_negative_test: Skip
-override_field_test: Skip
-override_inheritance_abstract_test: Skip
-override_inheritance_field_test: Skip
 override_inheritance_generic_test: Skip
 override_inheritance_method_test: Skip
 override_inheritance_mixed_test: Skip

@@ -117,6 +117,29 @@ vm/regress_27201_test: Fail # Flutter Issue 9110
 wrong_number_type_arguments_test/00: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
+override_inheritance_field_test/05: CompileTimeError
+override_inheritance_field_test/07: CompileTimeError
+override_inheritance_field_test/06: CompileTimeError
+override_inheritance_field_test/08: CompileTimeError
+override_inheritance_field_test/28: CompileTimeError
+override_inheritance_field_test/29: CompileTimeError
+override_inheritance_field_test/30: CompileTimeError
+override_inheritance_field_test/31: CompileTimeError
+override_inheritance_field_test/44: CompileTimeError
+override_inheritance_field_test/45: CompileTimeError
+override_inheritance_field_test/48: CompileTimeError
+override_inheritance_field_test/47: CompileTimeError
+override_inheritance_field_test/53: CompileTimeError
+override_inheritance_field_test/10: CompileTimeError
+override_inheritance_field_test/54: CompileTimeError
+override_inheritance_field_test/09: CompileTimeError
+override_inheritance_field_test/33a: CompileTimeError
+override_inheritance_field_test/34: CompileTimeError
+override_inheritance_field_test/32: CompileTimeError
+override_inheritance_field_test/11: CompileTimeError
+override_inheritance_field_test/33: CompileTimeError
+overridden_no_such_method_test: CompileTimeError
+overridden_no_such_method_test: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

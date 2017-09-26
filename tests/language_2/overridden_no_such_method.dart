@@ -26,6 +26,6 @@ class OverriddenNoSuchMethod {
 
   static testMain() {
     var obj = new OverriddenNoSuchMethod();
-    Expect.equals(5, obj.foo(101, 202));
+    obj.foo(101, 202); /*@compile-error=unspecified*/
   }
 }

@@ -250,6 +250,56 @@ named_parameters_test/10: MissingCompileTimeError
 named_parameters_type_test/01: MissingCompileTimeError
 named_parameters_type_test/02: MissingCompileTimeError
 named_parameters_type_test/03: MissingCompileTimeError
+optional_named_parameters_test/01: MissingCompileTimeError
+optional_named_parameters_test/02: MissingCompileTimeError
+optional_named_parameters_test/03: MissingCompileTimeError
+optional_named_parameters_test/04: MissingCompileTimeError
+optional_named_parameters_test/05: MissingCompileTimeError
+optional_named_parameters_test/06: MissingCompileTimeError
+optional_named_parameters_test/07: MissingCompileTimeError
+optional_named_parameters_test/08: MissingCompileTimeError
+optional_named_parameters_test/09: MissingCompileTimeError
+overridden_no_such_method_test: MissingCompileTimeError, Pass # Probably wrongly passes in d8 and jsshell
+override_field_test/02: MissingCompileTimeError
+override_field_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/02: MissingCompileTimeError
+override_inheritance_abstract_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/08: MissingCompileTimeError
+override_inheritance_abstract_test/09: MissingCompileTimeError
+override_inheritance_abstract_test/10: MissingCompileTimeError
+override_inheritance_abstract_test/11: MissingCompileTimeError
+override_inheritance_abstract_test/12: MissingCompileTimeError
+override_inheritance_abstract_test/13: MissingCompileTimeError
+override_inheritance_abstract_test/14: MissingCompileTimeError
+override_inheritance_abstract_test/17: MissingCompileTimeError
+override_inheritance_abstract_test/19: MissingCompileTimeError
+override_inheritance_abstract_test/20: MissingCompileTimeError
+override_inheritance_abstract_test/21: MissingCompileTimeError
+override_inheritance_abstract_test/22: MissingCompileTimeError
+override_inheritance_abstract_test/23: MissingCompileTimeError
+override_inheritance_abstract_test/24: MissingCompileTimeError
+override_inheritance_abstract_test/25: MissingCompileTimeError
+override_inheritance_abstract_test/26: MissingCompileTimeError
+override_inheritance_abstract_test/28: MissingCompileTimeError
+override_inheritance_field_test/05: MissingCompileTimeError
+override_inheritance_field_test/07: MissingCompileTimeError
+override_inheritance_field_test/08: MissingCompileTimeError
+override_inheritance_field_test/09: MissingCompileTimeError
+override_inheritance_field_test/10: MissingCompileTimeError
+override_inheritance_field_test/11: MissingCompileTimeError
+override_inheritance_field_test/28: MissingCompileTimeError
+override_inheritance_field_test/30: MissingCompileTimeError
+override_inheritance_field_test/31: MissingCompileTimeError
+override_inheritance_field_test/32: MissingCompileTimeError
+override_inheritance_field_test/33: MissingCompileTimeError
+override_inheritance_field_test/33a: MissingCompileTimeError
+override_inheritance_field_test/34: MissingCompileTimeError
+override_inheritance_field_test/44: MissingCompileTimeError
+override_inheritance_field_test/47: MissingCompileTimeError
+override_inheritance_field_test/48: MissingCompileTimeError
+override_inheritance_field_test/53: MissingCompileTimeError
+override_inheritance_field_test/54: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -552,6 +602,8 @@ mixin_typedef_constructor_test: Crash # Issue 27394
 named_parameters_aggregated_test/05: RuntimeError # Issue 27394
 nullaware_opt_test: RuntimeError # Issue 27394
 null_test/none: Crash # Issue 27394
+optional_named_parameters_test/01: MissingRuntimeError # Issue 27394
+optional_named_parameters_test/03: MissingRuntimeError # Issue 27394
 static_setter_get_test/01: Crash # Issue 27394
 static_top_level_test/00: Crash # Issue 27394
 static_top_level_test/04: Crash # Issue 27394
@@ -905,6 +957,11 @@ null_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/pr
 null_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
+override_field_method1_negative_test: Fail
+override_field_method2_negative_test: Fail
+override_field_method4_negative_test: Fail
+override_field_method5_negative_test: Fail
+override_field_test/01: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
@@ -1159,6 +1216,11 @@ null_test/03: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 
 null_test/none: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
+override_field_method1_negative_test: Fail
+override_field_method2_negative_test: Fail
+override_field_method4_negative_test: Fail
+override_field_method5_negative_test: Fail
+override_field_test/01: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
@@ -1296,3 +1358,6 @@ not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
 null_test/mirrors: Skip # Uses mirrors.
+
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
