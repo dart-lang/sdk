@@ -226,6 +226,7 @@ new_expression2_negative_test: Skip
 new_expression3_negative_test: Skip
 new_expression_type_args_test: Skip
 new_prefix_test: Skip
+non_const_super_negative_test: Skip
 no_such_constructor2_test: Skip
 no_such_constructor_test: Skip
 no_such_method2_test: Skip
