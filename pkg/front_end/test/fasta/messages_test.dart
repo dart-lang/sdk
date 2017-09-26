@@ -4,10 +4,13 @@
 
 import 'dart:io';
 
+import 'package:front_end/src/testing/package_root.dart' as package_root;
+import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' show loadYaml;
 
 main([List<String> arguments = const []]) async {
-  File file = new File.fromUri(Uri.base.resolve('pkg/front_end/messages.yaml'));
+  File file = new File(
+      path.join(package_root.packageRoot, 'front_end', 'messages.yaml'));
   if (!await file.exists()) {
     file = new File.fromUri(Uri.base.resolve('messages.yaml'));
   }
