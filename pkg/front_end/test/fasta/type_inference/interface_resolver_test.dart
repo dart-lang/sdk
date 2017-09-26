@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -69,9 +70,16 @@ class InterfaceResolverTest {
     return ForwardingNode.getCandidates(forwardingNodes[0]);
   }
 
+  ForwardingNode getForwardingNode(Class class_, bool setter) {
+    var forwardingNodes = getForwardingNodes(class_, setter);
+    expect(forwardingNodes, hasLength(1));
+    return forwardingNodes[0];
+  }
+
   List<ForwardingNode> getForwardingNodes(Class class_, bool setters) {
-    var interfaceResolver =
-        new InterfaceResolver(new IncrementalClassHierarchy());
+    var classHierarchy = new IncrementalClassHierarchy();
+    var interfaceResolver = new InterfaceResolver(
+        new TypeSchemaEnvironment(coreTypes, classHierarchy, true));
     var forwardingNodes = <ForwardingNode>[];
     interfaceResolver.createForwardingNodes(class_, forwardingNodes, setters);
     return forwardingNodes;
@@ -81,6 +89,7 @@ class InterfaceResolverTest {
       {String name,
       Supertype supertype,
       Supertype mixedInType,
+      List<TypeParameter> typeParameters,
       List<Supertype> implementedTypes,
       List<Procedure> procedures,
       List<Field> fields}) {
@@ -88,6 +97,7 @@ class InterfaceResolverTest {
         name: name ?? 'C',
         supertype: supertype ?? objectClass.asThisSupertype,
         mixedInType: mixedInType,
+        typeParameters: typeParameters,
         implementedTypes: implementedTypes,
         procedures: procedures,
         fields: fields);
@@ -95,13 +105,29 @@ class InterfaceResolverTest {
     return class_;
   }
 
-  Procedure makeEmptyMethod({String name: 'foo'}) {
-    var function = new FunctionNode(null);
+  Procedure makeEmptyMethod(
+      {String name: 'foo',
+      List<VariableDeclaration> positionalParameters,
+      DartType returnType: const VoidType()}) {
+    var function = new FunctionNode(null,
+        positionalParameters: positionalParameters, returnType: returnType);
     return new Procedure(new Name(name), ProcedureKind.Method, function);
   }
 
+  Field makeField({String name: 'foo'}) {
+    return new Field(new Name(name));
+  }
+
+  Procedure makeSetter(
+      {String name: 'foo', DartType setterType: const DynamicType()}) {
+    var parameter = new VariableDeclaration('value', type: setterType);
+    var function = new FunctionNode(null,
+        positionalParameters: [parameter], returnType: const VoidType());
+    return new Procedure(new Name(name), ProcedureKind.Setter, function);
+  }
+
   void test_candidate_for_field_getter() {
-    var field = new Field(new Name('foo'));
+    var field = makeField();
     var class_ = makeClass(fields: [field]);
     var candidate = getCandidate(class_, false);
     expect(candidate, new isInstanceOf<SyntheticAccessor>());
@@ -114,7 +140,7 @@ class InterfaceResolverTest {
   }
 
   void test_candidate_for_field_setter() {
-    var field = new Field(new Name('foo'));
+    var field = makeField();
     var class_ = makeClass(fields: [field]);
     var candidate = getCandidate(class_, true);
     expect(candidate, new isInstanceOf<SyntheticAccessor>());
@@ -286,5 +312,90 @@ class InterfaceResolverTest {
     expect(candidates[0], same(methodC));
     expect(candidates[1], same(methodA));
     expect(candidates[2], same(methodB));
+  }
+
+  void test_resolve_directly_declared() {
+    var parameterA = new VariableDeclaration('x',
+        type: coreTypes.objectClass.rawType, isCovariant: true);
+    var methodA = makeEmptyMethod(positionalParameters: [parameterA]);
+    var parameterB = new VariableDeclaration('x',
+        type: coreTypes.intClass.rawType, isCovariant: true);
+    var methodB = makeEmptyMethod(positionalParameters: [parameterB]);
+    var a = makeClass(name: 'A', procedures: [methodA]);
+    var b = makeClass(
+        name: 'B', supertype: a.asThisSupertype, procedures: [methodB]);
+    var node = getForwardingNode(b, false);
+    expect(node.resolve(), same(methodB));
+  }
+
+  void test_resolve_field() {
+    var field = makeField();
+    var a = makeClass(name: 'A', fields: [field]);
+    var b = makeClass(name: 'B', supertype: a.asThisSupertype);
+    var node = getForwardingNode(b, false);
+    expect(node.resolve(), same(field));
+  }
+
+  void test_resolve_first() {
+    var methodA = makeEmptyMethod(returnType: coreTypes.intClass.rawType);
+    var methodB = makeEmptyMethod(returnType: coreTypes.numClass.rawType);
+    var a = makeClass(name: 'A', procedures: [methodA]);
+    var b = makeClass(name: 'B', procedures: [methodB]);
+    var c = makeClass(
+        name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
+    var node = getForwardingNode(c, false);
+    expect(node.resolve(), same(methodA));
+  }
+
+  void test_resolve_second() {
+    var methodA = makeEmptyMethod(returnType: coreTypes.numClass.rawType);
+    var methodB = makeEmptyMethod(returnType: coreTypes.intClass.rawType);
+    var a = makeClass(name: 'A', procedures: [methodA]);
+    var b = makeClass(name: 'B', procedures: [methodB]);
+    var c = makeClass(
+        name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
+    var node = getForwardingNode(c, false);
+    expect(node.resolve(), same(methodB));
+  }
+
+  void test_resolve_setters() {
+    var setterA = makeSetter(setterType: coreTypes.intClass.rawType);
+    var setterB = makeSetter(setterType: coreTypes.objectClass.rawType);
+    var setterC = makeSetter(setterType: coreTypes.numClass.rawType);
+    var a = makeClass(name: 'A', procedures: [setterA]);
+    var b = makeClass(name: 'B', procedures: [setterB]);
+    var c = makeClass(name: 'C', procedures: [setterC]);
+    var d = makeClass(name: 'D', implementedTypes: [
+      a.asThisSupertype,
+      b.asThisSupertype,
+      c.asThisSupertype
+    ]);
+    var node = getForwardingNode(d, true);
+    expect(node.resolve(), same(setterB));
+  }
+
+  void test_resolve_with_subsitutions() {
+    var typeParamA = new TypeParameter('T', coreTypes.objectClass.rawType);
+    var typeParamB = new TypeParameter('T', coreTypes.objectClass.rawType);
+    var typeParamC = new TypeParameter('T', coreTypes.objectClass.rawType);
+    var methodA =
+        makeEmptyMethod(returnType: new TypeParameterType(typeParamA));
+    var methodB =
+        makeEmptyMethod(returnType: new TypeParameterType(typeParamB));
+    var methodC =
+        makeEmptyMethod(returnType: new TypeParameterType(typeParamC));
+    var a = makeClass(
+        name: 'A', typeParameters: [typeParamA], procedures: [methodA]);
+    var b = makeClass(
+        name: 'B', typeParameters: [typeParamB], procedures: [methodB]);
+    var c = makeClass(
+        name: 'C', typeParameters: [typeParamC], procedures: [methodC]);
+    var d = makeClass(name: 'D', implementedTypes: [
+      new Supertype(a, [coreTypes.objectClass.rawType]),
+      new Supertype(b, [coreTypes.intClass.rawType]),
+      new Supertype(c, [coreTypes.numClass.rawType])
+    ]);
+    var node = getForwardingNode(d, false);
+    expect(node.resolve(), same(methodB));
   }
 }

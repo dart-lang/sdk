@@ -5,6 +5,8 @@
 import 'package:front_end/src/fasta/problems.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 /// A [ForwardingNode] represents a method, getter, or setter within a class's
 /// interface that is either implemented in the class directly or inherited from
@@ -14,6 +16,9 @@ import 'package:kernel/class_hierarchy.dart';
 /// inherited, as well as the propagation of covariance annotations, and
 /// the creation of forwarding stubs, until type inference.
 class ForwardingNode extends Procedure {
+  /// The [InterfaceResolver] that created this [ForwardingNode].
+  final InterfaceResolver _interfaceResolver;
+
   /// A list containing the directly implemented and directly inherited
   /// procedures of the class in question.
   ///
@@ -21,6 +26,9 @@ class ForwardingNode extends Procedure {
   /// consult [_start] and [_end] to see which entries in this list are relevant
   /// to this [ForwardingNode].
   final List<Procedure> _candidates;
+
+  /// Indicates whether this forwarding node is for a setter.
+  final bool _setter;
 
   /// Index of the first entry in [_candidates] relevant to this
   /// [ForwardingNode].
@@ -30,10 +38,79 @@ class ForwardingNode extends Procedure {
   /// [ForwardingNode].
   final int _end;
 
-  ForwardingNode(
-      Class class_, Name name, this._candidates, this._start, this._end)
+  /// The member this node resolves to (if it has been computed); otherwise
+  /// `null`.
+  Member _resolution;
+
+  ForwardingNode(this._interfaceResolver, Class class_, Name name,
+      this._candidates, this._setter, this._start, this._end, this._resolution)
       : super(name, null, null) {
     parent = class_;
+  }
+
+  /// Returns the inherited member, or the forwarding stub, which this node
+  /// resolves to.
+  Member resolve() => _resolution ??= _resolve();
+
+  /// Determines which inherited member this node resolves to.
+  Member _resolve() {
+    // If the class contains a declaration of the member, the resolution is set
+    // in the constructor call, so we don't have to deal with that case; we only
+    // have to deal with the case where the interface member is inherited from
+    // a base class.
+    //
+    // If there are multiple inheritance candidates, the inherited member is the
+    // member whose type is a subtype of all the others.  We can find it by two
+    // passes over the list of members.  For the first pass, we step through the
+    // candidates, updating bestSoFar each time we find a member whose type is a
+    // subtype of the previous bestSoFar.  As we do this, we also work out the
+    // necessary substitution for matching up type parameters between this class
+    // and the corresponding superclass.
+    var bestSoFar = _candidates[_start];
+    var bestSubstitutionSoFar = _substitutionFor(bestSoFar);
+    var bestTypeSoFar = bestSubstitutionSoFar
+        .substituteType(_setter ? bestSoFar.setterType : bestSoFar.getterType);
+    for (int i = _start + 1; i < _end; i++) {
+      var candidate = _candidates[i];
+      var substitution = _substitutionFor(candidate);
+      bool isBetter;
+      DartType type;
+      if (_setter) {
+        type = substitution.substituteType(candidate.setterType);
+        // Setters are contravariant in their setter type, so we have to reverse
+        // the check.
+        isBetter = _interfaceResolver._typeEnvironment
+            .isSubtypeOf(bestTypeSoFar, type);
+      } else {
+        type = substitution.substituteType(candidate.getterType);
+        isBetter = _interfaceResolver._typeEnvironment
+            .isSubtypeOf(type, bestTypeSoFar);
+      }
+      if (isBetter) {
+        bestSoFar = candidate;
+        bestSubstitutionSoFar = substitution;
+        bestTypeSoFar = type;
+      }
+    }
+    // For the second pass, we verify that bestSoFar is a subtype of all the
+    // other potentially inherited members.
+    // TODO(paulberry): implement this.
+
+    // TODO(paulberry): now decide whether we need a forwarding stub or not.
+
+    if (bestSoFar is SyntheticAccessor) {
+      return bestSoFar._field;
+    } else {
+      return bestSoFar;
+    }
+  }
+
+  /// Determines the appropriate substitution to translate type parameters
+  /// mentioned in the given [candidate] to type parameters on the parent class.
+  Substitution _substitutionFor(Procedure candidate) {
+    return Substitution.fromInterfaceType(
+        _interfaceResolver._typeEnvironment.hierarchy.getTypeAsInstanceOf(
+            enclosingClass.thisType, candidate.enclosingClass));
   }
 
   /// For testing: get the list of candidates relevant to a given node.
@@ -47,9 +124,9 @@ class ForwardingNode extends Procedure {
 /// infer covariance annotations, and to create forwarwding stubs when necessary
 /// to meet covariance requirements.
 class InterfaceResolver {
-  final ClassHierarchy _classHierarchy;
+  final TypeEnvironment _typeEnvironment;
 
-  InterfaceResolver(this._classHierarchy);
+  InterfaceResolver(this._typeEnvironment);
 
   /// Populates [forwardingNodes] with a list of the implemented and inherited
   /// members of the given [class_]'s interface.
@@ -63,7 +140,7 @@ class InterfaceResolver {
       Class class_, List<ForwardingNode> forwardingNodes, bool setters) {
     // First create a list of candidates for inheritance based on the members
     // declared directly in the class.
-    List<Procedure> candidates = _classHierarchy
+    List<Procedure> candidates = _typeEnvironment.hierarchy
         .getDeclaredMembers(class_, setters: setters)
         .map((member) => _makeCandidate(member, setters))
         .toList();
@@ -84,8 +161,13 @@ class InterfaceResolver {
       while (j < candidates.length && candidates[j].name == name) {
         j++;
       }
-      forwardingNodes[storeIndex++] =
-          new ForwardingNode(class_, name, candidates, i, j);
+      // If candidates[i] came from this class, then it is the interface member
+      // and no forwarding stub needs to be generated.
+      var resolvedMember = identical(candidates[i].enclosingClass, class_)
+          ? candidates[i]
+          : null;
+      forwardingNodes[storeIndex++] = new ForwardingNode(
+          this, class_, name, candidates, setters, i, j, resolvedMember);
       i = j;
     }
     forwardingNodes.length = storeIndex;
@@ -98,7 +180,8 @@ class InterfaceResolver {
   List<Member> _getInterfaceMembers(Class class_, bool setters) {
     // TODO(paulberry): if class_ is being compiled from source, retrieve its
     // forwarding nodes.
-    return _classHierarchy.getInterfaceMembers(class_, setters: setters);
+    return _typeEnvironment.hierarchy
+        .getInterfaceMembers(class_, setters: setters);
   }
 
   /// Transforms [member] into a candidate for interface inheritance.
@@ -171,7 +254,10 @@ class InterfaceResolver {
 
 /// A [SyntheticAccessor] represents the getter or setter implied by a field.
 class SyntheticAccessor extends Procedure {
+  /// The field associated with the synthetic accessor.
+  final Field _field;
+
   SyntheticAccessor(
-      Name name, ProcedureKind kind, FunctionNode function, Field field)
+      Name name, ProcedureKind kind, FunctionNode function, this._field)
       : super(name, kind, function);
 }
