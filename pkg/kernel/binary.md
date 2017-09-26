@@ -182,6 +182,7 @@ type Library {
   Byte flags (isExternal);
   CanonicalNameReference canonicalName;
   StringReference name;
+  StringReference documentationComment;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
   List<Expression> annotations;
