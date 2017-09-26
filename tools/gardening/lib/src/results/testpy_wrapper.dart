@@ -10,11 +10,8 @@ import 'util.dart';
 
 /// Calls test.py with arguments gathered from a specific [configuration] and
 /// lists all tests included for that particular configuration.
-Future<Iterable<String>> testLister(
-    Configuration configuration, List<String> extraArgs) async {
-  var args = configuration.toArgs()
-    ..add("--list")
-    ..addAll(extraArgs);
+Future<Iterable<String>> testLister(Configuration configuration) async {
+  var args = configuration.toArgs()..add("--list");
   var testPyPath = path.absolute(PathHelper.testPyPath());
   var result = await Process.run(testPyPath, args);
   if (result.exitCode != 0) {
@@ -31,11 +28,8 @@ Future<Iterable<String>> testLister(
 
 /// Calls test.py with arguments gathered from a specific [configuration] and
 /// lists all status files included for that particular configuration.
-Future<Iterable<String>> statusFileLister(
-    Configuration configuration, List<String> extraArgs) async {
-  var args = configuration.toArgs()
-    ..add("--list-status-files")
-    ..addAll(extraArgs);
+Future<Iterable<String>> statusFileLister(Configuration configuration) async {
+  var args = configuration.toArgs()..add("--list-status-files");
   var testPyPath = path.absolute(PathHelper.testPyPath());
   var result = await Process.run(testPyPath, args);
   if (result.exitCode != 0) {
@@ -52,9 +46,9 @@ Future<Iterable<String>> statusFileLister(
 /// Calls test.py with arguments gathered from a specific [configuration] and
 /// returns a map from test-suite to a list of status-files.
 Future<Map<String, Iterable<String>>> statusFileListerMap(
-    Configuration configuration, List<String> extraArgs) async {
+    Configuration configuration) async {
   Map<String, List<String>> returnMap = {};
-  var suitesWithStatusFiles = await statusFileLister(configuration, extraArgs);
+  var suitesWithStatusFiles = await statusFileLister(configuration);
   String currentSuite = "";
   for (var line in suitesWithStatusFiles) {
     bool isSuiteLine = !line.startsWith("\t");

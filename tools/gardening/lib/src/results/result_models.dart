@@ -25,6 +25,8 @@ class Configuration {
   final bool enableAsserts;
   final bool hotReload;
   final bool hotReloadRollback;
+  final bool previewDart2;
+  final List<String> selectors;
 
   Configuration(
       this.mode,
@@ -46,7 +48,9 @@ class Configuration {
       this.dart2JsWithKernelInSsa,
       this.enableAsserts,
       this.hotReload,
-      this.hotReloadRollback);
+      this.hotReloadRollback,
+      this.previewDart2,
+      this.selectors);
 
   static Configuration getFromJson(dynamic json) {
     return new Configuration(
@@ -69,47 +73,61 @@ class Configuration {
         json["dart2js_with_kernel_in_ssa"] ?? false,
         json["enable_asserts"] ?? false,
         json["hot_reload"] ?? false,
-        json["hot_reload_rollback"] ?? false);
+        json["hot_reload_rollback"] ?? false,
+        json["preview_dart_2"] ?? false,
+        json["selectors"] ?? []);
   }
 
   /// Returns the arguments needed for running test.py with the arguments
   /// corresponding to this configuration.
   List<String> toArgs() {
-    return [
-      stringToArg("mode", mode),
-      stringToArg("arch", arch),
-      stringToArg("compiler", compiler),
-      stringToArg("runtime", runtime),
-      boolToArg("checked", checked),
-      boolToArg("strong", strong),
-      boolToArg("host-checked", hostChecked),
-      boolToArg("minified", minified),
-      boolToArg("csp", csp),
-      stringToArg("system", system),
-      listToArg("vm-options", vmOptions),
-      boolToArg("use-sdk", useSdk),
-      stringToArg("builder-tag", builderTag),
-      boolToArg("fast-startup", fastStartup),
-      boolToArg("dart2js-with-kernel", dart2JsWithKernel),
-      boolToArg("dart2js-with-kernel-in-ssa", dart2JsWithKernelInSsa),
-      boolToArg("enable-asserts", enableAsserts),
-      boolToArg("hot-reload", hotReload),
-      boolToArg("hot-reload-rollback", hotReloadRollback),
+    var args = [
+      _stringToArg("mode", mode),
+      _stringToArg("arch", arch),
+      _stringToArg("compiler", compiler),
+      _stringToArg("runtime", runtime),
+      _boolToArg("checked", checked),
+      _boolToArg("strong", strong),
+      _boolToArg("host-checked", hostChecked),
+      _boolToArg("minified", minified),
+      _boolToArg("csp", csp),
+      _stringToArg("system", system),
+      _listToArg("vm-options", vmOptions),
+      _boolToArg("use-sdk", useSdk),
+      _stringToArg("builder-tag", builderTag),
+      _boolToArg("fast-startup", fastStartup),
+      _boolToArg("dart2js-with-kernel", dart2JsWithKernel),
+      _boolToArg("dart2js-with-kernel-in-ssa", dart2JsWithKernelInSsa),
+      _boolToArg("enable-asserts", enableAsserts),
+      _boolToArg("hot-reload", hotReload),
+      _boolToArg("hot-reload-rollback", hotReloadRollback),
+      _boolToArg("preview-dart-2", previewDart2)
     ].where((x) => x != null).toList();
+    if (selectors != null && selectors.length > 0) {
+      args.addAll(selectors);
+    }
+    return args;
   }
 
-  String stringToArg(String name, String value) {
+  String toCsvString() {
+    return "$mode;$arch;$compiler;$runtime;$checked;$strong;$hostChecked;"
+        "$minified;$csp;$system;$vmOptions;$useSdk;$builderTag;$fastStartup;"
+        "$dart2JsWithKernel;$dart2JsWithKernelInSsa;$enableAsserts;$hotReload;"
+        "$hotReloadRollback;$previewDart2;$selectors";
+  }
+
+  String _stringToArg(String name, String value) {
     if (value == null || value.length == 0) {
       return null;
     }
     return "--$name=$value";
   }
 
-  String boolToArg(String name, bool value) {
+  String _boolToArg(String name, bool value) {
     return value ? "--$name" : null;
   }
 
-  String listToArg(String name, List<String> strings) {
+  String _listToArg(String name, List<String> strings) {
     if (strings == null || strings.length == 0) {
       return null;
     }
@@ -120,7 +138,8 @@ class Configuration {
 /// [Result] contains the [result] of executing a single test on a specified
 /// [configuration].
 class Result {
-  final String configuration;
+  // Not final since we have to update it when combining test results.
+  String configuration;
   final String name;
   final String result;
   final List<Command> commands;
@@ -154,7 +173,12 @@ class Command {
 class TestResult {
   final dynamic jsonObject;
 
-  TestResult(this.jsonObject);
+  TestResult() : jsonObject = null {
+    _configurations = {};
+    _results = [];
+  }
+
+  TestResult.fromJson(this.jsonObject);
 
   Map<String, Configuration> _configurations;
   Map<String, Configuration> get configurations {

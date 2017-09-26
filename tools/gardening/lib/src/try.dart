@@ -49,6 +49,15 @@ class Try<T> {
     }
   }
 
+  Future foldAsync(
+      Future caseErr(dynamic ex, StackTrace st), Future caseVal(T x)) async {
+    if (_err != null) {
+      await caseErr(_err, _stackTrace);
+    } else {
+      await caseVal(_val);
+    }
+  }
+
   bool get isError => _err != null;
 
   Exception get error => _err;

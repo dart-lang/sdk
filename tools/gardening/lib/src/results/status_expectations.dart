@@ -19,7 +19,7 @@ Future<List<TestExpectationResult>> getTestResultsWithExpectation(
   Map<String, Map<String, ExpectationSet>> expectationsMap = {};
   await Future.forEach(testResult.configurations.keys, (key) async {
     var value = testResult.configurations[key];
-    var statusFilesMap = await statusFileListerMap(value, []);
+    var statusFilesMap = await statusFileListerMap(value);
     expectationsMap[key] = {};
     await Future.forEach(statusFilesMap.keys, (suite) async {
       var statusFilesPaths = statusFilesMap[suite].where((sf) {
@@ -29,23 +29,30 @@ Future<List<TestExpectationResult>> getTestResultsWithExpectation(
           await ExpectationSet.read(statusFilesPaths, value);
     });
   });
-  List<Result> results = testResult.results;
-  return results.map((result) {
-    var testSuite = getSuiteNameForTest(result.name);
-    var qualifiedName = getQualifiedNameForTest(result.name);
-    var expectationMap = expectationsMap[result.configuration];
-    var expectationSuite = expectationMap[testSuite];
-    var expectations = expectationSuite.expectations(qualifiedName);
-
-    var resultAsExpectation = Expectation.find(result.result);
-    bool isSuccess = expectations.contains(resultAsExpectation);
-    return new TestExpectationResult(result.name, result.result,
-        expectations.map((x) => x.toString()).toList(), isSuccess);
-  }).toList();
+  List<TestExpectationResult> returnList = [];
+  testResult.results.forEach((result) {
+    try {
+      var testSuite = getSuiteNameForTest(result.name);
+      var qualifiedName = getQualifiedNameForTest(result.name);
+      var expectationMap = expectationsMap[result.configuration];
+      var expectationSuite = expectationMap[testSuite];
+      var expectations = expectationSuite.expectations(qualifiedName);
+      var outcome = Expectation.find(result.result);
+      bool isSuccess = expectations.any((expectation) {
+        return outcome.canBeOutcomeOf(expectation);
+      });
+      returnList.add(new TestExpectationResult(result.name, result.result,
+          expectations.map((x) => x.toString()).toList(), isSuccess));
+    } catch (ex, st) {
+      print(ex);
+      print(st);
+    }
+  });
+  return returnList;
 }
 
-/// [TestExpectationResult] is a class that contains information about the
-/// result of running a test, along with the expectation.
+/// [TestExpectationResult] contains information about the result of running a
+/// test, along with the expectation.
 class TestExpectationResult {
   final String name;
   final String result;
