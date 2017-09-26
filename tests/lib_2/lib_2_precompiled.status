@@ -11,6 +11,7 @@ async/stream_timeout_test: RuntimeError
 mirrors/*: SkipByDesign # Mirrors not supported on AOT.
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
+html/*: SkipByDesign # HTML not supported.
 
 [ $compiler == precompiler || $runtime == flutter ]
 isolate/illegal_msg_function_test: SkipByDesign
