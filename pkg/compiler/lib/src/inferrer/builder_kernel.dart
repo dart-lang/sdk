@@ -718,13 +718,74 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitNot(ir.Not node) {
-    // TODO(johnniwinther): This handles more cases than the old implementation.
-    // Show these cases in tests.
     List<IsCheck> temp = _positiveIsChecks;
     _positiveIsChecks = _negativeIsChecks;
     _negativeIsChecks = temp;
     visit(node.operand);
+    temp = _positiveIsChecks;
+    _positiveIsChecks = _negativeIsChecks;
+    _negativeIsChecks = temp;
     return _types.boolType;
+  }
+
+  @override
+  TypeInformation visitLogicalExpression(ir.LogicalExpression node) {
+    if (node.operator == '&&') {
+      _conditionIsSimple = false;
+      bool oldAccumulateIsChecks = _accumulateIsChecks;
+      List<IsCheck> oldPositiveIsChecks = _positiveIsChecks;
+      List<IsCheck> oldNegativeIsChecks = _negativeIsChecks;
+      if (!_accumulateIsChecks) {
+        _accumulateIsChecks = true;
+        _positiveIsChecks = <IsCheck>[];
+        _negativeIsChecks = <IsCheck>[];
+      }
+      visit(node.left);
+      LocalsHandler saved = _locals;
+      _locals = new LocalsHandler.from(_locals, node);
+      _updateIsChecks(_positiveIsChecks, _negativeIsChecks);
+      LocalsHandler narrowed;
+      if (oldAccumulateIsChecks) {
+        narrowed = new LocalsHandler.topLevelCopyOf(_locals);
+      } else {
+        _accumulateIsChecks = false;
+        _positiveIsChecks = oldPositiveIsChecks;
+        _negativeIsChecks = oldNegativeIsChecks;
+      }
+      visit(node.right);
+      if (oldAccumulateIsChecks) {
+        bool invalidatedInRightHandSide(IsCheck check) {
+          return narrowed.locals[check.local] != _locals.locals[check.local];
+        }
+
+        _positiveIsChecks.removeWhere(invalidatedInRightHandSide);
+        _negativeIsChecks.removeWhere(invalidatedInRightHandSide);
+      }
+      saved.mergeDiamondFlow(_locals, null);
+      _locals = saved;
+      return _types.boolType;
+    } else if (node.operator == '||') {
+      _conditionIsSimple = false;
+      List<IsCheck> positiveIsChecks = <IsCheck>[];
+      List<IsCheck> negativeIsChecks = <IsCheck>[];
+      bool isSimple =
+          handleCondition(node.left, positiveIsChecks, negativeIsChecks);
+      LocalsHandler saved = _locals;
+      _locals = new LocalsHandler.from(_locals, node);
+      if (isSimple) {
+        _updateIsChecks(negativeIsChecks, positiveIsChecks);
+      }
+      bool oldAccumulateIsChecks = _accumulateIsChecks;
+      _accumulateIsChecks = false;
+      visit(node.right);
+      _accumulateIsChecks = oldAccumulateIsChecks;
+      saved.mergeDiamondFlow(_locals, null);
+      _locals = saved;
+      return _types.boolType;
+    }
+    failedAt(CURRENT_ELEMENT_SPANNABLE,
+        "Unexpected logical operator '${node.operator}'.");
+    return null;
   }
 }
 

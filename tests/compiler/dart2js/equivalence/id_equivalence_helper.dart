@@ -194,7 +194,8 @@ class IdData {
 /// contains the name of the test file it isn't tested for kernel.
 Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeMemberDataFunction computeFromKernel,
-    {List<String> skipForKernel: const <String>[],
+    {List<String> skipforAst: const <String>[],
+    List<String> skipForKernel: const <String>[],
     bool filterActualData(IdValue idValue, ActualData actualData),
     List<String> options: const <String>[],
     List<String> args: const <String>[]}) async {
@@ -207,16 +208,22 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     print('Checking ${entity.uri}');
     print('----------------------------------------------------------------');
     String annotatedCode = await new File.fromUri(entity.uri).readAsString();
-    print('--from ast------------------------------------------------------');
-    await checkCode(annotatedCode, computeFromAst, compileFromSource,
-        options: options, verbose: verbose);
+    if (skipforAst.contains(name)) {
+      print('--skipped for kernel------------------------------------------');
+    } else {
+      print('--from ast------------------------------------------------------');
+      await checkCode(annotatedCode, computeFromAst, compileFromSource,
+          options: options, verbose: verbose);
+    }
     if (skipForKernel.contains(name)) {
       print('--skipped for kernel------------------------------------------');
-      continue;
+    } else {
+      print('--from kernel---------------------------------------------------');
+      await checkCode(annotatedCode, computeFromKernel, compileFromDill,
+          options: options,
+          verbose: verbose,
+          filterActualData: filterActualData);
     }
-    print('--from kernel---------------------------------------------------');
-    await checkCode(annotatedCode, computeFromKernel, compileFromDill,
-        options: options, verbose: verbose, filterActualData: filterActualData);
   }
 }
 
