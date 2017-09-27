@@ -65,6 +65,16 @@ List<DartType> getExplicitTypeArguments(Arguments arguments) {
   }
 }
 
+/// Information associated with a class during type inference.
+class ClassInferenceInfo {
+  /// The builder associated with this class.
+  SourceClassBuilder builder;
+
+  /// The visitor for determining if a given type makes covariant use of one of
+  /// the class's generic parameters, and therefore requires covariant checks.
+  IncludesTypeParametersCovariantly needsCheckVisitor;
+}
+
 /// Concrete shadow object representing a set of invocation arguments.
 class ShadowArguments extends Arguments {
   bool _hasExplicitTypeArguments;
@@ -298,9 +308,27 @@ class ShadowCascadeExpression extends Let implements ShadowExpression {
 
 /// Shadow object representing a class in kernel form.
 class ShadowClass extends Class {
-  SourceClassBuilder builder;
+  var _inferenceInfo = new ClassInferenceInfo();
 
-  ShadowClass({String name}) : super(name: name);
+  ShadowClass(
+      {String name,
+      Supertype supertype,
+      Supertype mixedInType,
+      List<TypeParameter> typeParameters,
+      List<Supertype> implementedTypes,
+      List<Procedure> procedures,
+      List<Field> fields})
+      : super(
+            name: name,
+            supertype: supertype,
+            mixedInType: mixedInType,
+            typeParameters: typeParameters,
+            implementedTypes: implementedTypes,
+            procedures: procedures,
+            fields: fields);
+
+  static ClassInferenceInfo getClassInferenceInfo(ShadowClass class_) =>
+      class_._inferenceInfo;
 }
 
 /// Abstract shadow object representing a complex assignment in kernel form.

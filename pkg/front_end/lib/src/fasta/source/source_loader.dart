@@ -493,7 +493,7 @@ class SourceLoader<L> extends Loader<L> {
     });
     for (ShadowClass class_ in hierarchy
         .getOrderedClasses(sourceClasses.map((builder) => builder.target))) {
-      var builder = class_.builder;
+      var builder = ShadowClass.getClassInferenceInfo(class_).builder;
       builder.prepareTopLevelInference(builder.library, builder);
     }
     ticker.logMs("Prepared top level inference");

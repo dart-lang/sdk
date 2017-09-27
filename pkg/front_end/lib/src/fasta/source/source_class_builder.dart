@@ -76,7 +76,7 @@ class SourceClassBuilder extends KernelClassBuilder {
       : cls = initializeClass(cls, name, parent, charOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             scope, constructors, parent, charOffset) {
-    this.cls.builder = this;
+    ShadowClass.getClassInferenceInfo(this.cls).builder = this;
   }
 
   @override

@@ -2,11 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/problems.dart';
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
+
+/// Type of a closure which applies a covariance annotation to a class member.
+///
+/// This is necessary since we need to determine which covariance annotations
+/// need to be added before creating a forwarding stub, but the covariance
+/// annotations themselves need to be applied to the forwarding stub.
+typedef void _CovarianceFix(FunctionNode);
 
 /// A [ForwardingNode] represents a method, getter, or setter within a class's
 /// interface that is either implemented in the class directly or inherited from
@@ -42,9 +52,16 @@ class ForwardingNode extends Procedure {
   /// `null`.
   Member _resolution;
 
-  ForwardingNode(this._interfaceResolver, Class class_, Name name,
-      this._candidates, this._setter, this._start, this._end, this._resolution)
-      : super(name, null, null) {
+  ForwardingNode(
+      this._interfaceResolver,
+      Class class_,
+      Name name,
+      ProcedureKind kind,
+      this._candidates,
+      this._setter,
+      this._start,
+      this._end)
+      : super(name, kind, null) {
     parent = class_;
   }
 
@@ -52,56 +69,237 @@ class ForwardingNode extends Procedure {
   /// resolves to.
   Member resolve() => _resolution ??= _resolve();
 
-  /// Determines which inherited member this node resolves to.
-  Member _resolve() {
-    // If the class contains a declaration of the member, the resolution is set
-    // in the constructor call, so we don't have to deal with that case; we only
-    // have to deal with the case where the interface member is inherited from
-    // a base class.
-    //
-    // If there are multiple inheritance candidates, the inherited member is the
-    // member whose type is a subtype of all the others.  We can find it by two
-    // passes over the list of members.  For the first pass, we step through the
-    // candidates, updating bestSoFar each time we find a member whose type is a
-    // subtype of the previous bestSoFar.  As we do this, we also work out the
-    // necessary substitution for matching up type parameters between this class
-    // and the corresponding superclass.
-    var bestSoFar = _candidates[_start];
-    var bestSubstitutionSoFar = _substitutionFor(bestSoFar);
-    var bestTypeSoFar = bestSubstitutionSoFar
-        .substituteType(_setter ? bestSoFar.setterType : bestSoFar.getterType);
-    for (int i = _start + 1; i < _end; i++) {
-      var candidate = _candidates[i];
-      var substitution = _substitutionFor(candidate);
-      bool isBetter;
-      DartType type;
-      if (_setter) {
-        type = substitution.substituteType(candidate.setterType);
-        // Setters are contravariant in their setter type, so we have to reverse
-        // the check.
-        isBetter = _interfaceResolver._typeEnvironment
-            .isSubtypeOf(bestTypeSoFar, type);
-      } else {
-        type = substitution.substituteType(candidate.getterType);
-        isBetter = _interfaceResolver._typeEnvironment
-            .isSubtypeOf(type, bestTypeSoFar);
+  /// Determines which covariance fixes need to be applied to the given
+  /// [interfaceMember].
+  ///
+  /// [substitution] indicates the necessary substitutions to convert types
+  /// named in [interfaceMember] to types in the target class.
+  ///
+  /// The fixes are not applied immediately (since [interfaceMember] might be
+  /// a member of another class, and a forwarding stub may need to be
+  /// generated).
+  void _computeCovarianceFixes(Substitution substitution,
+      Procedure interfaceMember, List<_CovarianceFix> fixes) {
+    var class_ = enclosingClass;
+    var interfaceFunction = interfaceMember.function;
+    var interfacePositionalParameters = interfaceFunction.positionalParameters;
+    var interfaceNamedParameters = interfaceFunction.namedParameters;
+    var interfaceTypeParameters = interfaceFunction.typeParameters;
+    if (class_.typeParameters.isNotEmpty) {
+      IncludesTypeParametersCovariantly needsCheckVisitor =
+          ShadowClass.getClassInferenceInfo(class_).needsCheckVisitor ??=
+              new IncludesTypeParametersCovariantly(class_.typeParameters);
+      bool needsCheck(DartType type) =>
+          substitution.substituteType(type).accept(needsCheckVisitor);
+      for (int i = 0; i < interfacePositionalParameters.length; i++) {
+        var parameter = interfacePositionalParameters[i];
+        var isCovariant = needsCheck(parameter.type);
+        if (isCovariant != parameter.isGenericCovariantInterface) {
+          fixes.add((FunctionNode function) => function.positionalParameters[i]
+              .isGenericCovariantInterface = isCovariant);
+        }
+        if (isCovariant != parameter.isGenericCovariantImpl) {
+          fixes.add((FunctionNode function) => function
+              .positionalParameters[i].isGenericCovariantImpl = isCovariant);
+        }
       }
-      if (isBetter) {
-        bestSoFar = candidate;
-        bestSubstitutionSoFar = substitution;
-        bestTypeSoFar = type;
+      for (int i = 0; i < interfaceNamedParameters.length; i++) {
+        var parameter = interfaceNamedParameters[i];
+        var isCovariant = needsCheck(parameter.type);
+        if (isCovariant != parameter.isGenericCovariantInterface) {
+          fixes.add((FunctionNode function) => function
+              .namedParameters[i].isGenericCovariantInterface = isCovariant);
+        }
+        if (isCovariant != parameter.isGenericCovariantImpl) {
+          fixes.add((FunctionNode function) =>
+              function.namedParameters[i].isGenericCovariantImpl = isCovariant);
+        }
+      }
+      for (int i = 0; i < interfaceTypeParameters.length; i++) {
+        var typeParameter = interfaceTypeParameters[i];
+        var isCovariant = needsCheck(typeParameter.bound);
+        if (isCovariant != typeParameter.isGenericCovariantInterface) {
+          fixes.add((FunctionNode function) => function
+              .typeParameters[i].isGenericCovariantInterface = isCovariant);
+        }
+        if (isCovariant != typeParameter.isGenericCovariantImpl) {
+          fixes.add((FunctionNode function) =>
+              function.typeParameters[i].isGenericCovariantImpl = isCovariant);
+        }
       }
     }
-    // For the second pass, we verify that bestSoFar is a subtype of all the
-    // other potentially inherited members.
-    // TODO(paulberry): implement this.
+    for (int i = _start; i < _end; i++) {
+      var otherMember = _candidates[i];
+      if (identical(otherMember, interfaceMember)) continue;
+      var otherFunction = otherMember.function;
+      var otherPositionalParameters = otherFunction.positionalParameters;
+      for (int j = 0;
+          j < interfacePositionalParameters.length &&
+              j < otherPositionalParameters.length;
+          j++) {
+        var parameter = interfacePositionalParameters[j];
+        var otherParameter = otherPositionalParameters[j];
+        if (otherParameter.isGenericCovariantImpl &&
+            !parameter.isGenericCovariantImpl) {
+          fixes.add((FunctionNode function) =>
+              function.positionalParameters[j].isGenericCovariantImpl = true);
+        }
+        if (otherParameter.isCovariant && !parameter.isCovariant) {
+          fixes.add((FunctionNode function) =>
+              function.positionalParameters[j].isCovariant = true);
+        }
+      }
+      for (int j = 0; j < interfaceNamedParameters.length; j++) {
+        var parameter = interfaceNamedParameters[j];
+        var otherParameter = getNamedFormal(otherFunction, parameter.name);
+        if (otherParameter != null) {
+          if (otherParameter.isGenericCovariantImpl &&
+              !parameter.isGenericCovariantImpl) {
+            fixes.add((FunctionNode function) =>
+                function.namedParameters[j].isGenericCovariantImpl = true);
+          }
+          if (otherParameter.isCovariant && !parameter.isCovariant) {
+            fixes.add((FunctionNode function) =>
+                function.namedParameters[j].isCovariant = true);
+          }
+        }
+      }
+      var otherTypeParameters = otherFunction.typeParameters;
+      for (int j = 0;
+          j < interfaceTypeParameters.length && j < otherTypeParameters.length;
+          j++) {
+        var typeParameter = interfaceTypeParameters[j];
+        var otherTypeParameter = otherTypeParameters[j];
+        if (otherTypeParameter.isGenericCovariantImpl &&
+            !typeParameter.isGenericCovariantImpl) {
+          fixes.add((FunctionNode function) =>
+              function.typeParameters[j].isGenericCovariantImpl = true);
+        }
+      }
+    }
+  }
 
-    // TODO(paulberry): now decide whether we need a forwarding stub or not.
+  /// Creates a forwarding stub based on the given [target].
+  ForwardingStub _createForwardingStub(
+      Substitution substitution, Procedure target) {
+    VariableDeclaration copyParameter(VariableDeclaration parameter) {
+      return new VariableDeclaration(parameter.name,
+          type: substitution.substituteType(parameter.type));
+    }
 
-    if (bestSoFar is SyntheticAccessor) {
-      return bestSoFar._field;
+    TypeParameter copyTypeParameter(TypeParameter typeParameter) {
+      return new TypeParameter(
+          typeParameter.name, substitution.substituteType(typeParameter.bound));
+    }
+
+    var positionalParameters = <VariableDeclaration>[];
+    var positionalArguments = <Expression>[];
+    for (var parameter in target.function.positionalParameters) {
+      var copiedParameter = copyParameter(parameter);
+      positionalParameters.add(copiedParameter);
+      positionalArguments.add(new VariableGet(copiedParameter));
+    }
+    var namedParameters = <VariableDeclaration>[];
+    var namedArguments = <NamedExpression>[];
+    for (var parameter in target.function.namedParameters) {
+      var copiedParameter = copyParameter(parameter);
+      namedParameters.add(copiedParameter);
+      namedArguments.add(new NamedExpression(
+          parameter.name, new VariableGet(copiedParameter)));
+    }
+    var typeParameters = <TypeParameter>[];
+    var typeArguments = <DartType>[];
+    for (var typeParameter in target.function.typeParameters) {
+      var copiedTypeParameter = copyTypeParameter(typeParameter);
+      typeParameters.add(copiedTypeParameter);
+      typeArguments.add(new TypeParameterType(copiedTypeParameter));
+    }
+    var arguments = new Arguments(positionalArguments,
+        types: typeArguments, named: namedArguments);
+    Expression superCall;
+    if (target is SyntheticAccessor) {
+      // TODO(paulberry): handle this case
+      unhandled('SyntheticAccessor', '_createForwardingStub', -1, null);
     } else {
-      return bestSoFar;
+      superCall = new SuperMethodInvocation(name, arguments, target);
+    }
+    var function = new FunctionNode(new ReturnStatement(superCall),
+        positionalParameters: positionalParameters,
+        namedParameters: namedParameters,
+        typeParameters: typeParameters,
+        requiredParameterCount: target.function.requiredParameterCount,
+        returnType: substitution.substituteType(target.function.returnType));
+    return new ForwardingStub(name, kind, function);
+  }
+
+  /// Determines which inherited member this node resolves to.
+  Member _resolve() {
+    var inheritedMember = _candidates[_start];
+    var inheritedMemberSubstitution = Substitution.empty;
+    bool isDeclaredInThisClass =
+        identical(inheritedMember.enclosingClass, enclosingClass);
+    if (!isDeclaredInThisClass) {
+      // If there are multiple inheritance candidates, the inherited member is
+      // the member whose type is a subtype of all the others.  We can find it
+      // by two passes over the list of members.  For the first pass, we step
+      // through the candidates, updating inheritedMember each time we find a
+      // member whose type is a subtype of the previous inheritedMember.  As we
+      // do this, we also work out the necessary substitution for matching up
+      // type parameters between this class and the corresponding superclass.
+      inheritedMemberSubstitution = _substitutionFor(inheritedMember);
+      var inheritedMemberType = inheritedMemberSubstitution.substituteType(
+          _setter ? inheritedMember.setterType : inheritedMember.getterType);
+      for (int i = _start + 1; i < _end; i++) {
+        var candidate = _candidates[i];
+        var substitution = _substitutionFor(candidate);
+        bool isBetter;
+        DartType type;
+        if (_setter) {
+          type = substitution.substituteType(candidate.setterType);
+          // Setters are contravariant in their setter type, so we have to
+          // reverse the check.
+          isBetter = _interfaceResolver._typeEnvironment
+              .isSubtypeOf(inheritedMemberType, type);
+        } else {
+          type = substitution.substituteType(candidate.getterType);
+          isBetter = _interfaceResolver._typeEnvironment
+              .isSubtypeOf(type, inheritedMemberType);
+        }
+        if (isBetter) {
+          inheritedMember = candidate;
+          inheritedMemberSubstitution = substitution;
+          inheritedMemberType = type;
+        }
+      }
+      // For the second pass, we verify that inheritedMember is a subtype of all
+      // the other potentially inherited members.
+      // TODO(paulberry): implement this.
+    }
+
+    // Now decide whether we need a forwarding stub or not, and propagate
+    // covariance.
+    var covarianceFixes = <_CovarianceFix>[];
+    _computeCovarianceFixes(
+        inheritedMemberSubstitution, inheritedMember, covarianceFixes);
+    if (!isDeclaredInThisClass &&
+        (!identical(inheritedMember, _candidates[_start]) ||
+            covarianceFixes.isNotEmpty)) {
+      var stub =
+          _createForwardingStub(inheritedMemberSubstitution, inheritedMember);
+      var function = stub.function;
+      for (var fix in covarianceFixes) {
+        fix(function);
+      }
+      return stub;
+    } else if (inheritedMember is SyntheticAccessor) {
+      // TODO(paulberry): propagate covariance fixes to the field.
+      return inheritedMember._field;
+    } else {
+      var function = inheritedMember.function;
+      for (var fix in covarianceFixes) {
+        fix(function);
+      }
+      return inheritedMember;
     }
   }
 
@@ -113,10 +311,28 @@ class ForwardingNode extends Procedure {
             enclosingClass.thisType, candidate.enclosingClass));
   }
 
+  /// Public method allowing tests to access [_createForwardingStub].
+  ///
+  /// This method is static so that it can be easily eliminated by tree shaking
+  /// when not needed.
+  static ForwardingStub createForwardingStubForTesting(
+      ForwardingNode node, Substitution substitution, Procedure target) {
+    return node._createForwardingStub(substitution, target);
+  }
+
   /// For testing: get the list of candidates relevant to a given node.
   static List<Procedure> getCandidates(ForwardingNode node) {
     return node._candidates.sublist(node._start, node._end);
   }
+}
+
+/// A forwarding stub created by the [InterfaceResolver].
+///
+/// This needs to be a derived class from [Procedure] so that we can tell
+/// whether a given member is a forwarding stub using an "is" check.
+class ForwardingStub extends Procedure {
+  ForwardingStub(Name name, ProcedureKind kind, FunctionNode function)
+      : super(name, kind, function);
 }
 
 /// An [InterfaceResolver] keeps track of the information necessary to resolve
@@ -161,13 +377,8 @@ class InterfaceResolver {
       while (j < candidates.length && candidates[j].name == name) {
         j++;
       }
-      // If candidates[i] came from this class, then it is the interface member
-      // and no forwarding stub needs to be generated.
-      var resolvedMember = identical(candidates[i].enclosingClass, class_)
-          ? candidates[i]
-          : null;
       forwardingNodes[storeIndex++] = new ForwardingNode(
-          this, class_, name, candidates, setters, i, j, resolvedMember);
+          this, class_, name, candidates[i].kind, candidates, setters, i, j);
       i = j;
     }
     forwardingNodes.length = storeIndex;
