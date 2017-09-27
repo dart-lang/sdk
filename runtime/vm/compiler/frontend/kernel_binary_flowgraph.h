@@ -864,6 +864,7 @@ class StreamingFlowGraphBuilder {
   bool ReadBool();
   uint8_t ReadByte();
   uint32_t ReadUInt();
+  uint32_t ReadUInt32();
   uint32_t PeekUInt();
   uint32_t PeekListLength();
   intptr_t ReadListLength();

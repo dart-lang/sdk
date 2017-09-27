@@ -24,12 +24,11 @@ Program* Program::ReadFrom(Reader* reader) {
   program->kernel_data_size_ = reader->size();
 
   // Read backwards at the end.
-  reader->set_offset(reader->size() - (4 * LibraryCountFieldCountFromEnd));
-  program->library_count_ = reader->ReadUInt32();
-  reader->set_offset(reader->size() - (4 * LibraryCountFieldCountFromEnd) -
-                     (4 * program->library_count_) -
-                     (SourceTableFieldCountFromFirstLibraryOffset * 4));
-  program->source_table_offset_ = reader->ReadUInt32();
+  program->library_count_ = reader->ReadFromIndexNoReset(
+      reader->size_, LibraryCountFieldCountFromEnd, 1, 0);
+  program->source_table_offset_ = reader->ReadFromIndexNoReset(
+      reader->size_,
+      LibraryCountFieldCountFromEnd + 1 + program->library_count_ + 1, 4, 0);
   program->name_table_offset_ = reader->ReadUInt32();
   program->string_table_offset_ = reader->ReadUInt32();
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);

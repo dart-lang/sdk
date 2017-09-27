@@ -229,6 +229,7 @@ class BinaryPrinter extends Visitor {
     for (int offset in libraryOffsets) {
       writeUInt32(offset);
     }
+    writeUInt32(_binaryOffsetForSourceTable); // end of last library.
     writeUInt32(libraries.length);
 
     writeUInt32(getBufferOffset() + 4); // total size.

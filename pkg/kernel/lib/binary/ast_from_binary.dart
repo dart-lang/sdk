@@ -309,22 +309,19 @@ class BinaryBuilder {
     }
 
     // Skip to the start of the index.
-    // There are these fields: file size, library count, library count offsets,
-    // main reference, string table offset, canonical name offset and
+    // There are these fields: file size, library count, library count + 1
+    // offsets, main reference, string table offset, canonical name offset and
     // source table offset. That's 6 fields + number of libraries.
-    _byteOffset -= (result.libraryCount + 6) * 4;
+    _byteOffset -= (result.libraryCount + 7) * 4;
 
     // Now read the program index.
     result.binaryOffsetForSourceTable = _programStartOffset + readUint32();
     result.binaryOffsetForCanonicalNames = _programStartOffset + readUint32();
     result.binaryOffsetForStringTable = _programStartOffset + readUint32();
     result.mainMethodReference = readUint32();
-    for (int i = 0; i < result.libraryCount; ++i) {
+    for (int i = 0; i < result.libraryCount + 1; ++i) {
       result.libraryOffsets[i] = _programStartOffset + readUint32();
     }
-    // Use the start of the source table as the end of the last library.
-    result.libraryOffsets[result.libraryCount] =
-        result.binaryOffsetForSourceTable;
 
     _byteOffset = savedByteIndex;
 

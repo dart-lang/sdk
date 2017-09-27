@@ -136,7 +136,7 @@ type ProgramIndex {
   UInt32 binaryOffsetForCanonicalNames;
   UInt32 binaryOffsetForStringTable;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
-  UInt32[libraryCount] libraryOffsets;
+  UInt32[libraryCount + 1] libraryOffsets;
   UInt32 libraryCount;
   UInt32 programFileSizeInBytes;
 }

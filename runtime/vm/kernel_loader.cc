@@ -178,7 +178,7 @@ Object& KernelLoader::LoadProgram() {
   if (setjmp(*jump.Set()) == 0) {
     intptr_t length = program_->library_count();
     for (intptr_t i = 0; i < length; i++) {
-      LoadLibrary(library_offset(i));
+      LoadLibrary(i);
     }
 
     for (intptr_t i = 0; i < length; i++) {
@@ -248,8 +248,17 @@ void KernelLoader::FindModifiedLibraries(Isolate* isolate,
   }
 }
 
-void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
-  builder_.SetOffset(kernel_offset);
+void KernelLoader::LoadLibrary(intptr_t index) {
+  // Read library index.
+  intptr_t library_end = library_offset(index + 1);
+  intptr_t procedure_count =
+      builder_.reader_->ReadFromIndex(library_end, 0, 1, 0);
+  intptr_t procedure_list_size = procedure_count + 1;
+  intptr_t class_count = builder_.reader_->ReadFromIndex(
+      library_end, 1 + procedure_list_size, 1, 0);
+  intptr_t class_list_size = class_count + 1;
+
+  builder_.SetOffset(library_offset(index));
   LibraryHelper library_helper(&builder_);
   library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
   Library& library = LookupLibrary(library_helper.canonical_name_);
@@ -288,13 +297,20 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(Z, I->object_store()->pending_classes());
 
-  library_helper.ReadUntilExcluding(LibraryHelper::kClasses);
+  // Everything up til the classes are skipped implicitly, and library_helper
+  // is no longer used.
 
   // Load all classes.
-  int class_count = builder_.ReadListLength();  // read list length.
+  intptr_t next_class_offset = builder_.reader_->ReadFromIndex(
+      library_end, 1 + procedure_list_size + 1, class_list_size, 0);
   for (intptr_t i = 0; i < class_count; ++i) {
-    classes.Add(LoadClass(library, toplevel_class), Heap::kOld);
+    builder_.SetOffset(next_class_offset);
+    next_class_offset = builder_.reader_->ReadFromIndex(
+        library_end, 1 + procedure_list_size + 1, class_list_size, i + 1);
+    classes.Add(LoadClass(library, toplevel_class, next_class_offset),
+                Heap::kOld);
   }
+  builder_.SetOffset(next_class_offset);
 
   fields_.Clear();
   functions_.Clear();
@@ -343,13 +359,16 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
   toplevel_class.AddFields(fields_);
 
   // Load toplevel procedures.
-  intptr_t procedure_count = builder_.ReadListLength();  // read list length.
+  intptr_t next_procedure_offset =
+      builder_.reader_->ReadFromIndex(library_end, 1, procedure_list_size, 0);
   for (intptr_t i = 0; i < procedure_count; ++i) {
-    LoadProcedure(library, toplevel_class, false);
+    builder_.SetOffset(next_procedure_offset);
+    next_procedure_offset = builder_.reader_->ReadFromIndex(
+        library_end, 1, procedure_list_size, i + 1);
+    LoadProcedure(library, toplevel_class, false, next_procedure_offset);
   }
 
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
-
   classes.Add(toplevel_class, Heap::kOld);
 }
 
@@ -471,9 +490,15 @@ void KernelLoader::LoadPreliminaryClass(Class* klass,
 }
 
 Class& KernelLoader::LoadClass(const Library& library,
-                               const Class& toplevel_class) {
-  ClassHelper class_helper(&builder_);
+                               const Class& toplevel_class,
+                               intptr_t class_end) {
   intptr_t class_offset = builder_.ReaderOffset();
+
+  // Read part of class index.
+  intptr_t procedure_count =
+      builder_.reader_->ReadFromIndex(class_end, 0, 1, 0);
+
+  ClassHelper class_helper(&builder_);
   class_helper.ReadUntilIncluding(ClassHelper::kCanonicalName);
   Class& klass = LookupClass(class_helper.canonical_name_);
 
@@ -609,15 +634,18 @@ Class& KernelLoader::LoadClass(const Library& library,
                                   constructor_offset, &kernel_data);
     }
   }
-  class_helper.SetJustRead(ClassHelper::kConstructors);
 
-  class_helper.ReadUntilExcluding(ClassHelper::kProcedures);
-  int procedure_count = builder_.ReadListLength();  // read list length.
-  class_helper.procedure_count_ = procedure_count;
+  // Everything up til the procedures are skipped implicitly, and class_helper
+  // is no longer used.
+
+  intptr_t next_procedure_offset =
+      builder_.reader_->ReadFromIndex(class_end, 1, procedure_count + 1, 0);
   for (intptr_t i = 0; i < procedure_count; ++i) {
-    LoadProcedure(library, klass, true);
+    builder_.SetOffset(next_procedure_offset);
+    next_procedure_offset = builder_.reader_->ReadFromIndex(
+        class_end, 1, procedure_count + 1, i + 1);
+    LoadProcedure(library, klass, true, next_procedure_offset);
   }
-  class_helper.SetJustRead(ClassHelper::kProcedures);
 
   klass.SetFunctions(Array::Handle(MakeFunctionsArray()));
 
@@ -632,14 +660,15 @@ Class& KernelLoader::LoadClass(const Library& library,
                              class_offset, &header_data);
   }
 
-  class_helper.ReadUntilExcluding(ClassHelper::kEnd);
+  builder_.SetOffset(class_end);
 
   return klass;
 }
 
 void KernelLoader::LoadProcedure(const Library& library,
                                  const Class& owner,
-                                 bool in_class) {
+                                 bool in_class,
+                                 intptr_t procedure_end) {
   intptr_t procedure_offset = builder_.ReaderOffset();
   ProcedureHelper procedure_helper(&builder_);
 
@@ -724,6 +753,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   ActiveMemberScope active_member(&active_class_, &function);
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
+
   Tag function_node_tag = builder_.ReadTag();
   ASSERT(function_node_tag == kSomething);
   FunctionNodeHelper function_node_helper(&builder_);
@@ -767,8 +797,10 @@ void KernelLoader::LoadProcedure(const Library& library,
   builder_.SetupFunctionParameters(owner, function, is_method,
                                    false,  // is_closure
                                    &function_node_helper);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
-  procedure_helper.SetJustRead(ProcedureHelper::kFunction);
+
+  // Everything else is skipped implicitly, and procedure_helper and
+  // function_node_helper are no longer used.
+  builder_.SetOffset(procedure_end);
 
   if (!in_class) {
     library.AddObject(function, name);
@@ -778,7 +810,6 @@ void KernelLoader::LoadProcedure(const Library& library,
                 .IsNull());
   }
 
-  procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
   TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
       Z, procedure_offset, builder_.ReaderOffset());
   function.set_kernel_data(kernel_data);
