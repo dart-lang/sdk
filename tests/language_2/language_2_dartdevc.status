@@ -191,6 +191,12 @@ deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
 deferred_static_seperate_test: RuntimeError # Issue 27777
 double_to_string_as_fixed2_test/none: RuntimeError # Issue 29920
+execute_finally6_test: RuntimeError # Issue 29920
+flatten_test/05: MissingRuntimeError # Issue 29920
+flatten_test/08: MissingRuntimeError # Issue 29920
+flatten_test/09: MissingRuntimeError # Issue 29920
+flatten_test/12: MissingRuntimeError # Issue 29920
+for_variable_capture_test: RuntimeError # Issue 29920
 function_subtype_inline2_test: RuntimeError
 function_type/function_type50_test: RuntimeError # Issue 29920
 function_type/function_type58_test: RuntimeError # Issue 29920
@@ -222,8 +228,3 @@ number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out
-flatten_test/05: MissingRuntimeError # Issue 29920
-flatten_test/08: MissingRuntimeError # Issue 29920
-flatten_test/09: MissingRuntimeError # Issue 29920
-flatten_test/12: MissingRuntimeError # Issue 29920
-for_variable_capture_test: RuntimeError # Issue 29920

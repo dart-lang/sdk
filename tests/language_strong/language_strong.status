@@ -423,7 +423,6 @@ call_closurization_test: RuntimeError # Issue 29920
 const_evaluation_test/01: RuntimeError # Issue 29920
 dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?
-execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 field_increment_bailout_test: RuntimeError # Issue 29920
