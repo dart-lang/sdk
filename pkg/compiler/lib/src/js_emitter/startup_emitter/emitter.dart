@@ -130,7 +130,7 @@ class Emitter extends emitterTask.EmitterBase {
         return _backend.rtiEncoder.templateForIsFunctionType;
 
       case JsBuiltin.rawRtiToJsConstructorName:
-        return js.js.expressionTemplateFor("#.$typeNameProperty");
+        return js.js.expressionTemplateFor("#.name");
 
       case JsBuiltin.rawRuntimeType:
         return js.js.expressionTemplateFor("#.constructor");
