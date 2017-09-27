@@ -313,9 +313,9 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
     const Object& script_class =
         ClassForScriptAt(toplevel_class, field_helper.source_uri_index_);
     Field& field = Field::Handle(
-        Z,
-        Field::NewTopLevel(name, field_helper.IsFinal(), field_helper.IsConst(),
-                           script_class, field_helper.position_));
+        Z, Field::NewTopLevel(name, field_helper.IsFinal(),
+                              field_helper.IsConst(), script_class,
+                              field_helper.position_, field_helper.position_));
     field.set_kernel_offset(field_offset);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
@@ -543,7 +543,7 @@ Class& KernelLoader::LoadClass(const Library& library,
                         // are not explicitly declared that way.
                         field_helper.IsFinal() || field_helper.IsConst(),
                         field_helper.IsConst(), is_reflectable, script_class,
-                        type, field_helper.position_));
+                        type, field_helper.position_, field_helper.position_));
       field.set_kernel_offset(field_offset);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = builder_.ReaderOffset();

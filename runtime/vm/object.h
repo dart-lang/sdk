@@ -966,6 +966,8 @@ class Class : public Object {
 
   TokenPosition ComputeEndTokenPos() const;
 
+  int32_t SourceFingerprint() const;
+
   // This class represents a typedef if the signature function is not null.
   RawFunction* signature_function() const {
     return raw_ptr()->signature_function_;
@@ -2955,6 +2957,15 @@ class Field : public Object {
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
+  bool initializer_changed_after_initialization() const {
+    return InitializerChangedAfterInitializatonBit::decode(
+        raw_ptr()->kind_bits_);
+  }
+  void set_initializer_changed_after_initialization(bool value) const {
+    set_kind_bits(InitializerChangedAfterInitializatonBit::update(
+        value, raw_ptr()->kind_bits_));
+  }
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return NULL;
@@ -3000,13 +3011,15 @@ class Field : public Object {
                        bool is_reflectable,
                        const Object& owner,
                        const AbstractType& type,
-                       TokenPosition token_pos);
+                       TokenPosition token_pos,
+                       TokenPosition end_token_pos);
 
   static RawField* NewTopLevel(const String& name,
                                bool is_final,
                                bool is_const,
                                const Object& owner,
-                               TokenPosition token_pos);
+                               TokenPosition token_pos,
+                               TokenPosition end_token_pos);
 
   // Allocate new field object, clone values from this field. The
   // owner of the clone is new_owner.
@@ -3025,6 +3038,9 @@ class Field : public Object {
   static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  TokenPosition end_token_pos() const { return raw_ptr()->end_token_pos_; }
+
+  int32_t SourceFingerprint() const;
 
   RawString* InitializingExpression() const;
 
@@ -3180,7 +3196,8 @@ class Field : public Object {
                             bool is_const,
                             bool is_reflectable,
                             const Object& owner,
-                            TokenPosition token_pos);
+                            TokenPosition token_pos,
+                            TokenPosition end_token_pos);
   friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
 
   enum {
@@ -3191,6 +3208,7 @@ class Field : public Object {
     kUnboxingCandidateBit,
     kReflectableBit,
     kDoubleInitializedBit,
+    kInitializerChangedAfterInitializatonBit,
   };
   class ConstBit : public BitField<uint8_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint8_t, bool, kStaticBit, 1> {};
@@ -3202,6 +3220,11 @@ class Field : public Object {
   class ReflectableBit : public BitField<uint8_t, bool, kReflectableBit, 1> {};
   class DoubleInitializedBit
       : public BitField<uint8_t, bool, kDoubleInitializedBit, 1> {};
+  class InitializerChangedAfterInitializatonBit
+      : public BitField<uint8_t,
+                        bool,
+                        kInitializerChangedAfterInitializatonBit,
+                        1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -3225,6 +3248,9 @@ class Field : public Object {
   }
   void set_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
+  }
+  void set_end_token_pos(TokenPosition token_pos) const {
+    StoreNonPointer(&raw_ptr()->end_token_pos_, token_pos);
   }
   void set_kind_bits(uint8_t value) const {
     StoreNonPointer(&raw_ptr()->kind_bits_, value);

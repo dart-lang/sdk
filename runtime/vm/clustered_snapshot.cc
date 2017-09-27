@@ -1024,6 +1024,7 @@ class FieldSerializationCluster : public SerializationCluster {
 
       if (kind != Snapshot::kFullAOT) {
         s->WriteTokenPosition(field->ptr()->token_pos_);
+        s->WriteTokenPosition(field->ptr()->end_token_pos_);
         s->WriteCid(field->ptr()->guarded_cid_);
         s->WriteCid(field->ptr()->is_nullable_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1074,6 +1075,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
 
       if (kind != Snapshot::kFullAOT) {
         field->ptr()->token_pos_ = d->ReadTokenPosition();
+        field->ptr()->end_token_pos_ = d->ReadTokenPosition();
         field->ptr()->guarded_cid_ = d->ReadCid();
         field->ptr()->is_nullable_ = d->ReadCid();
 #if !defined(DART_PRECOMPILED_RUNTIME)
