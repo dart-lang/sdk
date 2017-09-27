@@ -35,5 +35,4 @@ int main() {
   c.m(a: "hello", b: "world");
   var d = new D();
   d.m(c: "hello", d: "world");
-  print("${c is I} ${d is I} ${d is I} ${d is J}");
 }

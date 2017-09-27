@@ -44,10 +44,9 @@ class B extends A {
 }
 
 main() {
+  // Ensure that compile-time errors are reached.
   var b = new B();
-  Expect.equals(499, b.foo(499));
-  Expect.equals(1 + 3 * 3 + 5 * 5, b.bar(1, 3, named1: 5));
-  Expect.equals(1 + 3 * 3 + 13 * 5, b.bar(1, 3));
-  Expect.equals(3 * 99, b.gee(named2: 3));
-  Expect.equals(11 * 99, b.gee());
+  b.foo(499);
+  b.bar(1, 3, named1: 5);
+  b.gee(named2: 3);
 }
