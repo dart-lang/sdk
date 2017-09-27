@@ -560,10 +560,10 @@ class InterfaceResolverTest {
     var a = makeClass(name: 'A', procedures: [methodA]);
     var b = makeClass(
         name: 'B', typeParameters: [typeParameterB], procedures: [methodB]);
-    var c = makeClass(
-        name: 'C',
-        supertype: a.asThisSupertype,
-        implementedTypes: [b.asThisSupertype]);
+    var c =
+        makeClass(name: 'C', supertype: a.asThisSupertype, implementedTypes: [
+      new Supertype(b, [numType])
+    ]);
     var node = getForwardingNode(c, false);
     var stub = node.resolve() as ForwardingStub;
     var u = stub.function.typeParameters[0];
@@ -628,6 +628,18 @@ class InterfaceResolverTest {
         name: 'B', supertype: a.asThisSupertype, procedures: [methodB]);
     var node = getForwardingNode(b, false);
     expect(node.resolve(), same(methodB));
+  }
+
+  void test_resolve_favor_first() {
+    // When multiple methods have equivalent types, favor the first one.
+    var methodA = makeEmptyMethod();
+    var methodB = makeEmptyMethod();
+    var a = makeClass(name: 'A', procedures: [methodA]);
+    var b = makeClass(name: 'B', procedures: [methodB]);
+    var c = makeClass(
+        name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
+    var node = getForwardingNode(c, false);
+    expect(node.resolve(), same(methodA));
   }
 
   void test_resolve_field() {

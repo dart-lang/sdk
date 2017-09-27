@@ -256,10 +256,16 @@ class ForwardingNode extends Procedure {
       // member whose type is a subtype of the previous inheritedMember.  As we
       // do this, we also work out the necessary substitution for matching up
       // type parameters between this class and the corresponding superclass.
+      //
+      // Since the subtyping relation is reflexive, we will favor the most
+      // recently visited candidate in the case where the types are the same.
+      // We want to favor earlier candidates, so we visit the candidate list
+      // backwards.
+      inheritedMember = _candidates[_end - 1];
       inheritedMemberSubstitution = _substitutionFor(inheritedMember);
       var inheritedMemberType = inheritedMemberSubstitution.substituteType(
           _setter ? inheritedMember.setterType : inheritedMember.getterType);
-      for (int i = _start + 1; i < _end; i++) {
+      for (int i = _end - 2; i >= _start; i--) {
         var candidate = _candidates[i];
         var substitution = _substitutionFor(candidate);
         bool isBetter;
