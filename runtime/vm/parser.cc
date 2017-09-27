@@ -74,7 +74,7 @@ DEFINE_FLAG(
     "await and yield are treated as proper keywords in synchronous code.");
 DEFINE_FLAG(bool,
             assert_initializer,
-            false,
+            true,
             "Allow asserts in initializer lists.");
 
 DECLARE_FLAG(bool, profile_vm);
