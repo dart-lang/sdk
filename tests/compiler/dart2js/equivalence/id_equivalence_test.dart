@@ -117,6 +117,8 @@ class ComputerMixin {
   String get switchName => 'switch';
 
   String get switchCaseName => 'case';
+
+  String get labelName => 'label';
 }
 
 /// AST visitor for computing a descriptive mapping of the [Id]s in a member.
@@ -138,6 +140,8 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
       return switchName;
     } else if (node is ast.SwitchCase) {
       return switchCaseName;
+    } else if (node is ast.LabeledStatement) {
+      return labelName;
     }
 
     dynamic sendStructure;
@@ -268,6 +272,8 @@ class IrComputer extends IrDataExtractor with ComputerMixin {
       return switchName;
     } else if (node is ir.SwitchCase) {
       return switchCaseName;
+    } else if (node is ir.LabeledStatement) {
+      return labelName;
     }
     return '<unknown:$node (${node.runtimeType})>';
   }

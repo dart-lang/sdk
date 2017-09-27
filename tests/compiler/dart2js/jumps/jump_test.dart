@@ -160,6 +160,19 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
   }
 
   @override
+  visitLabeledStatement(ast.LabeledStatement node) {
+    if (node.statement is! ast.Loop && node.statement is! ast.SwitchStatement) {
+      JumpTarget target = elements.getTargetDefinition(node.statement);
+      if (target != null) {
+        NodeId id = createLabeledStatementId(node);
+        SourceSpan sourceSpan = computeSourceSpan(node);
+        targets[target] = new TargetData(index++, id, sourceSpan, target);
+      }
+    }
+    super.visitLabeledStatement(node);
+  }
+
+  @override
   visitSwitchStatement(ast.SwitchStatement node) {
     JumpTarget target = elements.getTargetDefinition(node);
     if (target != null) {
@@ -244,6 +257,17 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
     super.visitBreakStatement(node);
+  }
+
+  @override
+  visitLabeledStatement(ir.LabeledStatement node) {
+    JumpTarget target = _localsMap.getJumpTargetForLabel(node);
+    if (target != null) {
+      NodeId id = createLabeledStatementId(node);
+      SourceSpan sourceSpan = computeSourceSpan(node);
+      targets[target] = new TargetData(index++, id, sourceSpan, target);
+    }
+    super.visitLabeledStatement(node);
   }
 
   visitSwitchStatement(ir.SwitchStatement node) {

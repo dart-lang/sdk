@@ -217,7 +217,7 @@ class JumpVisitor extends ir.Visitor {
   @override
   defaultNode(ir.Node node) => node.visitChildren(this);
 
-  bool _canBeBreakTarget(ir.TreeNode node) {
+  static bool canBeBreakTarget(ir.TreeNode node) {
     return node is ir.ForStatement ||
         node is ir.ForInStatement ||
         node is ir.WhileStatement ||
@@ -225,8 +225,7 @@ class JumpVisitor extends ir.Visitor {
         node is ir.SwitchStatement;
   }
 
-  bool _canBeContinueTarget(ir.TreeNode node) {
-    // TODO(johnniwinther): Add more.
+  static bool canBeContinueTarget(ir.TreeNode node) {
     return node is ir.ForStatement ||
         node is ir.ForInStatement ||
         node is ir.WhileStatement ||
@@ -238,7 +237,7 @@ class JumpVisitor extends ir.Visitor {
     JJumpTarget target;
     ir.TreeNode body = node.target.body;
     ir.TreeNode parent = node.target.parent;
-    if (_canBeBreakTarget(body)) {
+    if (canBeBreakTarget(body)) {
       // We have code like
       //
       //     l1: for (int i = 0; i < 10; i++) {
@@ -251,7 +250,7 @@ class JumpVisitor extends ir.Visitor {
       ir.TreeNode search = node;
       bool needsLabel = false;
       while (search != node.target) {
-        if (_canBeBreakTarget(search)) {
+        if (canBeBreakTarget(search)) {
           needsLabel = search != body;
           break;
         }
@@ -261,7 +260,7 @@ class JumpVisitor extends ir.Visitor {
         JLabelDefinition label = _getOrCreateLabel(target, node.target);
         label.isBreakTarget = true;
       }
-    } else if (_canBeContinueTarget(parent)) {
+    } else if (canBeContinueTarget(parent)) {
       // We have code like
       //
       //     for (int i = 0; i < 10; i++) l1: {
@@ -275,7 +274,7 @@ class JumpVisitor extends ir.Visitor {
       ir.TreeNode search = node;
       bool needsLabel = false;
       while (search != node.target) {
-        if (_canBeContinueTarget(search)) {
+        if (canBeContinueTarget(search)) {
           needsLabel = search != body;
           break;
         }
