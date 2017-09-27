@@ -516,6 +516,8 @@ constructor3_negative_test: fail # Issue 11585
 constructor_call_wrong_argument_count_negative_test: fail # Issue 11585
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
+duplicate_export_negative_test: CompileTimeError
+duplicate_interface_negative_test: CompileTimeError
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_list_checked_test: StaticWarning

@@ -10,10 +10,7 @@ main() {
   Expect.throws(() => v.toStringAsPrecision(0), (e) => e is RangeError);
   Expect.throws(() => v.toStringAsPrecision(22), (e) => e is RangeError);
   Expect.throws(() => v.toStringAsPrecision(null), (e) => e is ArgumentError);
-  Expect.throws(() => v.toStringAsPrecision(1.5),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => v.toStringAsPrecision("string"),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => v.toStringAsPrecision("3"),
-      (e) => e is ArgumentError || e is TypeError);
+  v.toStringAsPrecision(1.5); //# 01: compile-time error
+  v.toStringAsPrecision("string"); //# 02: compile-time error
+  v.toStringAsPrecision("3"); //# 03: compile-time error
 }

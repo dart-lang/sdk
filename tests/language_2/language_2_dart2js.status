@@ -394,6 +394,7 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_not_loaded_check_test: Fail # Issue 27577
+double_int_to_string_test: RuntimeError # Issue 1533
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
@@ -956,6 +957,12 @@ override_field_test/01: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+double_int_to_string_test: RuntimeError
+duplicate_export_negative_test: Fail
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
+duplicate_implements_test/03: MissingCompileTimeError
+duplicate_implements_test/04: MissingCompileTimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
@@ -1070,6 +1077,12 @@ deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
 deferred_type_dependency_test/type_annotation: CompileTimeError
+double_int_to_string_test: RuntimeError
+duplicate_export_negative_test: Fail
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
+duplicate_implements_test/03: MissingCompileTimeError
+duplicate_implements_test/04: MissingCompileTimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError

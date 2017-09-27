@@ -10,10 +10,7 @@ main() {
   Expect.throws(() => v.toStringAsFixed(-1), (e) => e is RangeError);
   Expect.throws(() => v.toStringAsFixed(21), (e) => e is RangeError);
   Expect.throws(() => v.toStringAsFixed(null), (e) => e is ArgumentError);
-  Expect.throws(() => v.toStringAsFixed(1.5),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => v.toStringAsFixed("string"),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => v.toStringAsFixed("3"),
-      (e) => e is ArgumentError || e is TypeError);
+  v.toStringAsFixed(1.5);//# 01: compile-time error
+  v.toStringAsFixed("string");//# 02: compile-time error
+  v.toStringAsFixed("3");//# 03: compile-time error
 }

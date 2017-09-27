@@ -60,13 +60,6 @@ constructor_return_test: Skip
 constructor_setter_negative_test: Skip
 constructor_test: Skip
 constructor_with_mixin_test: Skip
-double_to_string_as_exponential2_test: Skip
-double_to_string_as_fixed2_test: Skip
-double_to_string_as_precision2_test: Skip
-duplicate_constructor_test: Skip
-duplicate_export_negative_test: Skip
-duplicate_implements_test: Skip
-duplicate_interface_negative_test: Skip
 dynamic2_test: Skip
 dynamic_field_test: Skip
 dynamic_prefix_core_test: Skip
@@ -428,7 +421,6 @@ canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.
 call_closurization_test: RuntimeError # Issue 29920
 const_evaluation_test/01: RuntimeError # Issue 29920
-double_int_to_string_test: RuntimeError # Issue 29920
 dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?
 execute_finally6_test: RuntimeError # Issue 29920
