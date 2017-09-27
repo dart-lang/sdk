@@ -2376,6 +2376,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool get isStatic => false;
 
   @override
+  List<kernel.TypeParameter> get kernelTypeParams => const [];
+
+  @override
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override

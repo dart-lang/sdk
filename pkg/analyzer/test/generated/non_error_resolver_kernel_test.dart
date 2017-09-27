@@ -29,13 +29,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_async_future_int_with_return_future_int() async {
-    return super.test_async_future_int_with_return_future_int();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_conflictingConstructorNameAndMember_setter() async {
     return super.test_conflictingConstructorNameAndMember_setter();
   }

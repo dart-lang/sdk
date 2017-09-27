@@ -558,18 +558,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_recursiveFactoryRedirect_diverging() async {
-    return super.test_recursiveFactoryRedirect_diverging();
-  }
-
-  @override
-  @failingTest
-  test_recursiveFactoryRedirect_generic() async {
-    return super.test_recursiveFactoryRedirect_generic();
-  }
-
-  @override
-  @failingTest
   test_recursiveFactoryRedirect_named() async {
     return super.test_recursiveFactoryRedirect_named();
   }
