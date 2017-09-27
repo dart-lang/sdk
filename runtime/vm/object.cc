@@ -81,6 +81,7 @@ DEFINE_FLAG(bool,
             "Remove script timestamps to allow for deterministic testing.");
 
 DECLARE_FLAG(bool, show_invisible_frames);
+DECLARE_FLAG(bool, strong);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);
@@ -3778,10 +3779,11 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       return true;
     }
     // In the case of a subtype test, each occurrence of DynamicType in type S
-    // is interpreted as the bottom type, a subtype of all types.
+    // is interpreted as the bottom type, a subtype of all types, but not in
+    // strong mode.
     // However, DynamicType is not more specific than any type.
     if (thsi.IsDynamicClass()) {
-      return test_kind == Class::kIsSubtypeOf;
+      return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
     }
     // Check for ObjectType. Any type that is not NullType or DynamicType
     // (already checked above), is more specific than ObjectType/VoidType.
@@ -3813,7 +3815,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
-        return test_kind == Class::kIsSubtypeOf;
+        return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
       }
       return type_arguments.TypeTest(test_kind, other_type_arguments,
                                      from_index, num_type_params, bound_error,
@@ -6312,12 +6314,25 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   // Note that type parameters declared by a generic signature are preserved.
   Function& this_fun = Function::Handle(raw());
   if (!this_fun.HasInstantiatedSignature()) {
+    // HasCompatibleParametersWith is called at compile time to check for bad
+    // overrides and can only detect some obviously wrong overrides, but it
+    // should never give false negatives.
+    if (FLAG_strong) {
+      // Instantiating all type parameters to dynamic is not the right thing
+      // to do in strong mode, because of contravariance of parameter types.
+      // It is better to skip the test than to give a false negative.
+      return true;
+    }
     this_fun = this_fun.InstantiateSignatureFrom(Object::null_type_arguments(),
                                                  Object::null_type_arguments(),
                                                  Heap::kOld);
   }
   Function& other_fun = Function::Handle(other.raw());
   if (!other_fun.HasInstantiatedSignature()) {
+    if (FLAG_strong) {
+      // See comment above.
+      return true;
+    }
     other_fun = other_fun.InstantiateSignatureFrom(
         Object::null_type_arguments(), Object::null_type_arguments(),
         Heap::kOld);
@@ -6400,12 +6415,14 @@ RawFunction* Function::InstantiateSignatureFrom(
 
 // If test_kind == kIsSubtypeOf, checks if the type of the specified parameter
 // of this function is a subtype or a supertype of the type of the specified
-// parameter of the other function.
+// parameter of the other function. In strong mode, we only check for supertype,
+// i.e. contravariance.
+// Note that types marked as covariant are already dealt with in the front-end.
 // If test_kind == kIsMoreSpecificThan, checks if the type of the specified
 // parameter of this function is more specific than the type of the specified
 // parameter of the other function.
-// Note that we do not apply contravariance of parameter types, but covariance
-// of both parameter types and result type.
+// Note that for kIsMoreSpecificThan, we do not apply contravariance of
+// parameter types, but covariance of both parameter types and result type.
 bool Function::TestParameterType(TypeTestKind test_kind,
                                  intptr_t parameter_position,
                                  intptr_t other_parameter_position,
@@ -6415,7 +6432,7 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  Heap::Space space) const {
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-  if (other_param_type.IsDynamicType()) {
+  if (!FLAG_strong && other_param_type.IsDynamicType()) {
     return true;
   }
   const AbstractType& param_type =
@@ -6424,10 +6441,10 @@ bool Function::TestParameterType(TypeTestKind test_kind,
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
-                                space) &&
-        !other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
-                                      space)) {
+    if (!((!FLAG_strong && param_type.IsSubtypeOf(other_param_type, bound_error,
+                                                  bound_trail, space)) ||
+          other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
+                                       space))) {
       return false;
     }
   } else {
@@ -6516,10 +6533,10 @@ bool Function::TypeTest(TypeTestKind test_kind,
       return false;
     }
     if (test_kind == kIsSubtypeOf) {
-      if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
-                                space) &&
-          !other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
-                                      space)) {
+      if (!(res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
+                                 space) ||
+            (!FLAG_strong && other_res_type.IsSubtypeOf(res_type, bound_error,
+                                                        bound_trail, space)))) {
         return false;
       }
     } else {
@@ -6548,7 +6565,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
   // function type, there exists an optional named parameter of this function
   // type with an identical name and with a type S that is a either a subtype
   // or supertype of T (if test_kind == kIsSubtypeOf) or that is more specific
-  // than T (if test_kind == kIsMoreSpecificThan).
+  // than T (if test_kind == kIsMoreSpecificThan). In strong mode, we only check
+  // for supertype, i.e. contravariance.
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
   const int num_params = num_fixed_params + num_opt_named_params;

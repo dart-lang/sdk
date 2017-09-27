@@ -44,6 +44,8 @@
 #define FLAG_LIST(P, R, D, C)                                                  \
   P(abort_on_oom, bool, false,                                                 \
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
+  C(async_debugger, false, false, bool, true,                                  \
+    "Debugger support async functions.")                                       \
   P(background_compilation, bool, USING_MULTICORE,                             \
     "Run optimizing compilation in background")                                \
   R(background_compilation_stop_alot, false, bool, false,                      \
@@ -147,8 +149,7 @@
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  C(async_debugger, false, false, bool, true,                                  \
-    "Debugger support async functions.")                                       \
+  P(strong, bool, false, "Use strong mode in type checks.")                    \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \

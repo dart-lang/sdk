@@ -7738,22 +7738,29 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
       Array::Handle(Array::New(num_parameters, Heap::kOld)));
   func.set_parameter_names(
       Array::Handle(Array::New(num_parameters, Heap::kOld)));
+  AbstractType& param_type = AbstractType::Handle();
   for (int i = 0; i < num_parameters; i++) {
     ParamDesc& param_desc = (*params->parameters)[i];
-    func.SetParameterTypeAt(i, *param_desc.type);
-    func.SetParameterNameAt(i, *param_desc.name);
-    if (param_desc.is_field_initializer && !func.IsGenerativeConstructor()) {
-      // Redirecting constructors are detected later in ParseConstructor.
-      ReportError(param_desc.name_pos,
-                  "only generative constructors may have "
-                  "initializing formal parameters");
-    }
+    param_type = param_desc.type->raw();
     if (param_desc.is_covariant) {
       if (!func.IsDynamicFunction(true)) {
         ReportError(param_desc.name_pos,
                     "only instance functions may have "
                     "covariant parameters");
       }
+      // In non-strong mode, the covariant keyword is ignored. In strong mode,
+      // the parameter type is changed to Object.
+      if (FLAG_strong) {
+        param_type = Type::ObjectType();
+      }
+    }
+    func.SetParameterTypeAt(i, param_type);
+    func.SetParameterNameAt(i, *param_desc.name);
+    if (param_desc.is_field_initializer && !func.IsGenerativeConstructor()) {
+      // Redirecting constructors are detected later in ParseConstructor.
+      ReportError(param_desc.name_pos,
+                  "only generative constructors may have "
+                  "initializing formal parameters");
     }
   }
 }
