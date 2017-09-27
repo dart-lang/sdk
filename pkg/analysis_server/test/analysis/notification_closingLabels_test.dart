@@ -33,7 +33,7 @@ Widget build(BuildContext context) {
 
   static final expectedResults = [
     new ClosingLabel(51, 96, "Row"),
-    new ClosingLabel(79, 57, "List<Widget>")
+    new ClosingLabel(79, 57, "<Widget>[]")
   ];
 
   List<ClosingLabel> lastLabels;

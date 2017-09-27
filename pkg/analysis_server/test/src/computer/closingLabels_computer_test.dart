@@ -102,20 +102,6 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 1);
   }
 
-  test_instanceMethod() async {
-    String content = """
-void myMethod() {
-  return /*1*/createWidget(
-    1,
-    2
-  )/*1:createWidget*/;
-}
-""";
-
-    var labels = await _computeElements(content);
-    _compareLabels(labels, content, expectedLabelCount: 1);
-  }
-
   test_knownBadCode1() async {
     // This code crashed during testing when I accidentally inserted a test snippet.
     String content = """
@@ -138,9 +124,9 @@ Widget build(BuildContext context) {
 }
 """;
 
-    // TODO(dantup) Results here are currently bad so this test is just checking that we
-    // dont crash. Need to confirm what to do here; the bad labels might not be fixed
-    // until the code is using the new shared parser.
+    // TODO(dantup) Results here are currently bad so this test is just checking
+    // that we don't crash. Need to confirm what to do here; the bad labels
+    // might not be fixed until the code is using the new shared parser.
     // https://github.com/dart-lang/sdk/issues/30370
     await _computeElements(content);
   }
@@ -148,15 +134,15 @@ Widget build(BuildContext context) {
   test_listLiterals() async {
     String content = """
 void myMethod() {
-  return /*1*/Widget.createWidget(/*2*/<Widget>[
+  return Widget.createWidget(/*1*/<Widget>[
     1,
     2
-  ]/*2:List<Widget>*/)/*1:Widget.createWidget*/;
+  ]/*1:<Widget>[]*/);
 }
 """;
 
     var labels = await _computeElements(content);
-    _compareLabels(labels, content, expectedLabelCount: 2);
+    _compareLabels(labels, content, expectedLabelCount: 1);
   }
 
   /// When a line contains the end of a label, we need to ensure we also include any
@@ -165,12 +151,12 @@ void myMethod() {
   test_mixedLineSpanning() async {
     String content = """
 main() {
-    /*1*/expectedLabels.forEach((m) {
-      /*2*/expect(
+    /*1*/new Foo((m) {
+      /*2*/new Bar(
           labels,
-          /*3*/contains(
-              /*4*/new ClosingLabel(expectedStart, expectedLength, expectedLabel)/*4:ClosingLabel*/)/*3:contains*/)/*2:expect*/;
-    })/*1:expectedLabels.forEach*/;
+          /*3*/new Padding(
+              /*4*/new ClosingLabel(expectedStart, expectedLength, expectedLabel)/*4:ClosingLabel*/)/*3:Padding*/)/*2:Bar*/;
+    })/*1:Foo*/;
   }
 }
   """;
@@ -190,17 +176,17 @@ Widget build(BuildContext context) {
           'Increment'
         )/*4:Text*/,
       )/*3:RaisedButton*/,
-      /*5*/_makeWidget(
+      _makeWidget(
         'a',
         'b'
-      )/*5:_makeWidget*/,
+      ),
       new Text('Count: \$counter'),
-    ]/*2:List<Widget>*/,
+    ]/*2:<Widget>[]*/,
   )/*1:Row*/;
 }
 """;
     var labels = await _computeElements(content);
-    _compareLabels(labels, content, expectedLabelCount: 5);
+    _compareLabels(labels, content, expectedLabelCount: 4);
   }
 
   test_newConstructor() async {
@@ -231,12 +217,12 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 1);
   }
 
-  test_NnLabelsFromInterpolatedStrings() async {
+  test_NoLabelsFromInterpolatedStrings() async {
     String content = """
 void main(HighlightRegionType type, int offset, int length) {
-  /*1*/fail(
+  /*1*/new Fail(
       'Not expected to find (offset=\$offset; length=\$length; type=\$type) in\\n'
-      '\${regions.join('\\n')}')/*1:fail*/;
+      '\${regions.join('\\n')}')/*1:Fail*/;
 }
     """;
 
@@ -304,21 +290,6 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 1);
   }
 
-  test_prefixedStaticMethod() async {
-    String content = """
-import 'widgets.dart' as a;
-void myMethod() {
-  return /*1*/a.Widget.createWidget(
-    1,
-    2
-  )/*1:a.Widget.createWidget*/;
-}
-""";
-
-    var labels = await _computeElements(content);
-    _compareLabels(labels, content, expectedLabelCount: 1);
-  }
-
   test_sameLineExcluded() async {
     String content = """
 void myMethod() {
@@ -328,20 +299,6 @@ void myMethod() {
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 0);
-  }
-
-  test_staticMethod() async {
-    String content = """
-void myMethod() {
-  return /*1*/Widget.createWidget(
-    1,
-    2
-  )/*1:Widget.createWidget*/;
-}
-""";
-
-    var labels = await _computeElements(content);
-    _compareLabels(labels, content, expectedLabelCount: 1);
   }
 
   /// Compares provided closing labels with expected
