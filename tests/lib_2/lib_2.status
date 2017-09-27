@@ -128,6 +128,7 @@ html/custom/document_register_type_extensions_test/single-parameter: Fail # Issu
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
+async/stream_periodic4_test: Pass, RuntimeError # Issue 30904
 
 [ $compiler == none && ! $checked ]
 mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded type argument.
