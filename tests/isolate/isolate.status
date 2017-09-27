@@ -18,7 +18,7 @@ ping_test: Skip           # Resolve test issues
 ping_pause_test: Skip     # Resolve test issues
 kill3_test: Pass, Fail    # Bad test: expects total message order
 
-message3_test/int32x4: Crash, Timeout # Issue 21818
+message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 compile_time_error_test/none: Pass, Slow
