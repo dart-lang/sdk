@@ -222,7 +222,7 @@ regress/4562_test/none: CompileTimeError
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
-unconditional_dartio_import_test: RuntimeError
+unconditional_dartio_import_test: CompileTimeError
 useful_error_message_1_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
@@ -282,5 +282,5 @@ regress/4562_test/none: CompileTimeError
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
-unconditional_dartio_import_test: RuntimeError
+unconditional_dartio_import_test: CompileTimeError
 
