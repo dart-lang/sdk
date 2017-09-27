@@ -1206,6 +1206,7 @@ class AstBuilder extends ScopeListener {
         beginToken, scriptTag, directives, declarations, endToken));
   }
 
+  @override
   void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
       Token semicolon) {
     debugEvent("Import");
@@ -1216,6 +1217,7 @@ class AstBuilder extends ScopeListener {
     List<Annotation> metadata = pop();
     assert(metadata == null); // TODO(paulberry): fix.
     Comment comment = pop();
+
     directives.add(ast.importDirective(
         comment,
         metadata,
@@ -1227,6 +1229,29 @@ class AstBuilder extends ScopeListener {
         prefix,
         combinators,
         semicolon));
+  }
+
+  @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    debugEvent("RecoverImport");
+    List<Combinator> combinators = pop();
+    SimpleIdentifier prefix = popIfNotNull(asKeyword);
+    List<Configuration> configurations = pop();
+
+    ImportDirective directive = directives.last;
+    if (combinators != null) {
+      directive.combinators.addAll(combinators);
+    }
+    directive.deferredKeyword ??= deferredKeyword;
+    if (directive.asKeyword == null && asKeyword != null) {
+      directive.asKeyword = asKeyword;
+      directive.prefix = prefix;
+    }
+    if (configurations != null) {
+      directive.configurations.addAll(configurations);
+    }
+    directive.semicolon = semicolon;
   }
 
   void endExport(Token exportKeyword, Token semicolon) {
@@ -1972,6 +1997,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
         return;
+      case "DUPLICATE_PREFIX":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DUPLICATE_PREFIX, charOffset, 1);
+        return;
       case "EXPECTED_EXECUTABLE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_EXECUTABLE, charOffset, 1);
@@ -2032,6 +2061,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_IDENTIFIER, charOffset, 1);
         return;
+      case "MISSING_PREFIX_IN_DEFERRED_IMPORT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, charOffset, 1);
+        return;
       case "MULTIPLE_PART_OF_DIRECTIVES":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, charOffset, 1);
@@ -2052,6 +2085,10 @@ class AstBuilder extends ScopeListener {
       case "PART_OUT_OF_ORDER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+        return;
+      case "PREFIX_AFTER_COMBINATOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.PREFIX_AFTER_COMBINATOR, charOffset, 1);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();

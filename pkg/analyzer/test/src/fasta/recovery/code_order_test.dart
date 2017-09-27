@@ -195,23 +195,75 @@ part 'foo.dart';
  */
 @reflectiveTest
 class ImportDirectiveTest extends AbstractRecoveryTest {
-  @failingTest
   void test_combinatorsBeforeAndAfterPrefix() {
-    // Parser crashes
     testRecovery('''
 import 'bar.dart' show A as p show B;
-''', [/*ParserErrorCode.PREFIX_AFTER_COMBINATOR*/], '''
+''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
 import 'bar.dart' as p show A show B;
 ''');
   }
 
-  @failingTest
   void test_combinatorsBeforePrefix() {
-    // Parser crashes
     testRecovery('''
 import 'bar.dart' show A as p;
-''', [/*ParserErrorCode.PREFIX_AFTER_COMBINATOR*/], '''
+''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
 import 'bar.dart' as p show A;
+''');
+  }
+
+  void test_combinatorsBeforePrefixAfterDeferred() {
+    testRecovery('''
+import 'bar.dart' deferred show A as p;
+''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
+import 'bar.dart' deferred as p show A;
+''');
+  }
+
+  void test_deferredAfterPrefix() {
+    // TODO(danrubel): Add a new error messages for this situation
+    // indicating that `deferred` should be moved before `as`.
+    testRecovery('''
+import 'bar.dart' as p deferred;
+''', [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT], '''
+import 'bar.dart' deferred as p;
+''');
+  }
+
+  void test_duplicatePrefix() {
+    testRecovery('''
+import 'bar.dart' as p as q;
+''', [ParserErrorCode.DUPLICATE_PREFIX], '''
+import 'bar.dart' as p;
+''');
+  }
+
+  void test_unknownTokenBeforePrefix() {
+    testRecovery('''
+import 'bar.dart' d as p;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+import 'bar.dart' as p;
+''');
+  }
+
+  void test_unknownTokenBeforePrefixAfterDeferred() {
+    testRecovery('''
+import 'bar.dart' deferred s as p;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+import 'bar.dart' deferred as p;
+''');
+  }
+
+  void test_unknownTokenBeforePrefixAfterCombinatorMissingSemicolon() {
+    testRecovery('''
+import 'bar.dart' d show A as p
+import 'b.dart';
+''', [
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.PREFIX_AFTER_COMBINATOR,
+      ParserErrorCode.EXPECTED_TOKEN
+    ], '''
+import 'bar.dart' as p show A;
+import 'b.dart';
 ''');
   }
 }

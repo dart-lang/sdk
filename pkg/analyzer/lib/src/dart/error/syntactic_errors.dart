@@ -630,7 +630,7 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode MISSING_PREFIX_IN_DEFERRED_IMPORT =
       const ParserErrorCode(
           'MISSING_PREFIX_IN_DEFERRED_IMPORT',
-          "Deferred imports must have a prefix.",
+          "Deferred imports should have a prefix.",
           "Try adding a prefix to the import.");
 
   static const ParserErrorCode MISSING_STAR_AFTER_SYNC = const ParserErrorCode(
@@ -826,6 +826,16 @@ class ParserErrorCode extends ErrorCode {
           'POSITIONAL_PARAMETER_OUTSIDE_GROUP',
           "Positional parameters must be enclosed in square brackets ('[' and ']').",
           "Try surrounding the positional parameters in square brackets.");
+
+  static const PREFIX_AFTER_COMBINATOR = const ParserErrorCode(
+      'PREFIX_AFTER_COMBINATOR',
+      "The 'as prefix' should come before any show/hide combinators.",
+      "Try moving the prefix before the combinators.");
+
+  static const DUPLICATE_PREFIX = const ParserErrorCode(
+      'DUPLICATE_PREFIX',
+      "An import directive can only have one prefix ('as' clause).",
+      "Try removing all but one prefix.");
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =
       const ParserErrorCode(

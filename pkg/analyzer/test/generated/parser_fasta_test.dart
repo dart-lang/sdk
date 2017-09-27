@@ -660,14 +660,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedToken_semicolonMissingAfterImport() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
-    super.test_expectedToken_semicolonMissingAfterImport();
-  }
-
-  @override
-  @failingTest
   void test_expectedToken_whileMissingInDoStatement() {
     // TODO(brianwilkerson) Does not recover.
     //   NoSuchMethodError: Class 'SimpleToken' has no instance getter 'endGroup'.
@@ -2016,14 +2008,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
     //   test/generated/parser_fasta_test.dart 3016:35                      FastaParserTestCase.parseCompilationUnit
     super.test_missingNameInPartOfDirective();
-  }
-
-  @override
-  @failingTest
-  void test_missingPrefixInDeferredImport() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, found 0
-    super.test_missingPrefixInDeferredImport();
   }
 
   @override
@@ -4172,27 +4156,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Unhandled compile-time error:
     // A function expression can't have a name.
     super.test_functionExpression_named();
-  }
-
-  @override
-  @failingTest
-  void test_importDirectivePartial_as() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_importDirectivePartial_as();
-  }
-
-  @override
-  @failingTest
-  void test_importDirectivePartial_hide() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_importDirectivePartial_hide();
-  }
-
-  @override
-  @failingTest
-  void test_importDirectivePartial_show() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_importDirectivePartial_show();
   }
 
   @override

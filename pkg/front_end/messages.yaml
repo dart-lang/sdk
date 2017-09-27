@@ -318,7 +318,10 @@ UnexpectedDollarInString:
 
 UnexpectedToken:
   template: "Unexpected token '#lexeme'."
+  analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: "*fatal*"
+  script:
+    - "import 'b.dart' d as b;"
 
 UnmatchedToken:
   template: "Can't find '#string' to match '#lexeme'."
@@ -691,6 +694,24 @@ ExportHidesExport:
 
 ImportHidesImport:
   template: "Import of '#name' (from '#uri') hides import from '#uri2'."
+
+MissingPrefixInDeferredImport:
+  template: "Deferred imports should have a prefix."
+  tip: "Try adding a prefix to the import."
+  analyzerCode: MISSING_PREFIX_IN_DEFERRED_IMPORT
+  dart2jsCode: "*fatal*"
+
+DuplicatePrefix:
+  template: "An import directive can only have one prefix ('as' clause)."
+  tip: "Try removing all but one prefix."
+  analyzerCode: DUPLICATE_PREFIX
+  dart2jsCode: "*fatal*"
+
+PrefixAfterCombinator:
+  template: "The 'as prefix' should come before any show/hide combinators."
+  tip: "Try moving the prefix before the combinators."
+  analyzerCode: PREFIX_AFTER_COMBINATOR
+  dart2jsCode: "*fatal*"
 
 DuplicatedExport:
   template: "'#name' is exported from both '#uri' and '#uri2'."

@@ -1214,6 +1214,13 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    expectIn('CompilationUnit');
+    listener.handleRecoverImport(deferredKeyword, asKeyword, semicolon);
+  }
+
+  @override
   void handleIndexedExpression(
       Token openSquareBracket, Token closeSquareBracket) {
     listener.handleIndexedExpression(openSquareBracket, closeSquareBracket);

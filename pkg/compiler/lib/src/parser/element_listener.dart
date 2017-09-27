@@ -165,6 +165,17 @@ class ElementListener extends Listener {
   }
 
   @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    popNode(); // combinators
+    if (asKeyword != null) {
+      popNode(); // prefix
+    }
+    popNode(); // conditionalUris
+    // TODO(danrubel): recover
+  }
+
+  @override
   void endDottedName(int count, Token token) {
     NodeList identifiers = makeNodeList(count, null, null, '.');
     pushNode(new DottedName(token, identifiers));

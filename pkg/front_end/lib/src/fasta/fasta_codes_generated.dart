@@ -577,6 +577,16 @@ const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
     tip: r"""Try moving the directive before any declarations.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDuplicatePrefix = messageDuplicatePrefix;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDuplicatePrefix = const MessageCode("DuplicatePrefix",
+    analyzerCode: "DUPLICATE_PREFIX",
+    dart2jsCode: "*fatal*",
+    message: r"""There can only be one prefix in an import directive.""",
+    tip: r"""Try removing all but one prefix.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedDefinition =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Duplicated definition of '#name'.""",
@@ -2076,6 +2086,18 @@ Message _withArgumentsMissingPartOf(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingPrefixInDeferredImport =
+    messageMissingPrefixInDeferredImport;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
+    "MissingPrefixInDeferredImport",
+    analyzerCode: "MISSING_PREFIX_IN_DEFERRED_IMPORT",
+    dart2jsCode: "*fatal*",
+    message: r"""Deferred imports must have a prefix.""",
+    tip: r"""Try adding a prefix to the import.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNamedFunctionExpression = messageNamedFunctionExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2657,6 +2679,17 @@ const MessageCode messagePositionalParameterWithEquals = const MessageCode(
     tip: r"""Try replacing ':' with '='.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePrefixAfterCombinator = messagePrefixAfterCombinator;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePrefixAfterCombinator = const MessageCode(
+    "PrefixAfterCombinator",
+    analyzerCode: "PREFIX_AFTER_COMBINATOR",
+    dart2jsCode: "*fatal*",
+    message: r"""The 'as prefix' must come before any show/hide combinators.""",
+    tip: r"""Try moving the prefix before the combinators.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templatePreviousUseOfName =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Previous use of '#name'.""",
@@ -3205,7 +3238,7 @@ const Template<Message Function(Token token)> templateUnexpectedToken =
 const Code<Message Function(Token token)> codeUnexpectedToken =
     const Code<Message Function(Token token)>(
         "UnexpectedToken", templateUnexpectedToken,
-        dart2jsCode: "*fatal*");
+        analyzerCode: "UNEXPECTED_TOKEN", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnexpectedToken(Token token) {

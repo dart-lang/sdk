@@ -447,6 +447,18 @@ class Listener {
     logEvent("Import");
   }
 
+  /// Handle recovery associated with an import directive.
+  /// This may be called multiple times after [endImport]
+  /// to recover information about the previous import directive.
+  /// The substructures are a subset of and in the same order as [endImport]:
+  /// - conditional uris
+  /// - prefix identifier (only if asKeyword != null)
+  /// - combinators
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    logEvent("ImportRecovery");
+  }
+
   void beginConditionalUris(Token token) {}
 
   void endConditionalUris(int count) {

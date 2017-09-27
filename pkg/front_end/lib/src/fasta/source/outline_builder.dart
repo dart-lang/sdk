@@ -163,7 +163,7 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
       Token semicolon) {
-    debugEvent("endImport");
+    debugEvent("EndImport");
     List<Combinator> combinators = pop();
     int prefixOffset = popIfNotNull(asKeyword) ?? -1;
     String prefix = popIfNotNull(asKeyword);
@@ -185,6 +185,16 @@ class OutlineBuilder extends UnhandledListener {
       }
     }
     checkEmpty(importKeyword.charOffset);
+  }
+
+  @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    debugEvent("RecoverImport");
+    pop(); // combinators
+    popIfNotNull(asKeyword); // prefixOffset
+    popIfNotNull(asKeyword); // prefix
+    pop(); // conditionalUris
   }
 
   @override

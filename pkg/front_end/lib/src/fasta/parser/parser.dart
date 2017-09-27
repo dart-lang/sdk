@@ -393,7 +393,7 @@ class Parser {
     token = parseLiteralStringOrRecoverExpression(token.next);
     token = parseConditionalUris(token);
     Token deferredKeyword;
-    if (optional('deferred', token)) {
+    if (optional('deferred', token) && optional('as', token.next)) {
       deferredKeyword = token;
       token = token.next;
     }
@@ -404,10 +404,104 @@ class Parser {
           token.next, IdentifierContext.importPrefixDeclaration);
     }
     token = parseCombinators(token);
-    Token semicolon = token;
-    token = expect(';', token);
-    listener.endImport(importKeyword, deferredKeyword, asKeyword, semicolon);
-    return token;
+    if (optional(';', token)) {
+      listener.endImport(importKeyword, deferredKeyword, asKeyword, token);
+      return token.next;
+    } else {
+      // Recovery
+      listener.endImport(importKeyword, deferredKeyword, asKeyword, null);
+      return parseImportRecovery(
+          importKeyword, asKeyword, deferredKeyword, token);
+    }
+  }
+
+  Token parseImportRecovery(Token importKeyword, Token firstAsKeyword,
+      Token firstDeferredKeyword, Token token) {
+    Token firstCombinator =
+        firstAsKeyword ?? firstDeferredKeyword ?? importKeyword;
+    while (!optional('show', firstCombinator) &&
+        !optional('hide', firstCombinator)) {
+      if (firstCombinator == token) {
+        firstCombinator = null;
+        break;
+      }
+      firstCombinator = firstCombinator.next;
+    }
+    Token semicolon;
+    do {
+      Token start = token;
+      Token deferredKeyword;
+      Token asKeyword;
+
+      // Check for extraneous token in the middle of an import statement.
+      if (token.keyword == null) {
+        Token next = token.next;
+        if (optional('if', next) ||
+            optional('deferred', next) ||
+            optional('as', next) ||
+            optional('hide', next) ||
+            optional('show', next)) {
+          reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
+          token = token.next;
+        }
+      }
+
+      // During recovery, clauses are parsed in the same order
+      // and generate the same events as in the section above.
+      token = parseConditionalUris(token);
+      if (optional('deferred', token)) {
+        if (firstDeferredKeyword != null) {
+          // TODO(danrubel): report duplicate deferred keyword error
+        } else {
+          if (firstAsKeyword != null) {
+            // TODO(danrubel): report deferred after as keyword error
+            // instead of the error below
+            reportRecoverableError(
+                token, fasta.messageMissingPrefixInDeferredImport);
+          }
+          firstDeferredKeyword = token;
+        }
+        deferredKeyword = token;
+        token = token.next;
+      }
+      if (optional('as', token)) {
+        asKeyword = token;
+        token = parseIdentifier(
+            token.next, IdentifierContext.importPrefixDeclaration);
+      }
+      Token startCombinators = token;
+      token = parseCombinators(token);
+
+      // TODO(danrubel): report conditional out of order
+      if (asKeyword != null) {
+        if (firstAsKeyword != null) {
+          reportRecoverableError(token, fasta.messageDuplicatePrefix);
+        } else {
+          if (firstCombinator != null) {
+            reportRecoverableError(token, fasta.messagePrefixAfterCombinator);
+          }
+          firstAsKeyword = asKeyword;
+        }
+      }
+      if (firstCombinator == null && startCombinators != token) {
+        firstCombinator = startCombinators;
+      }
+
+      if (optional(';', token)) {
+        semicolon = token;
+      } else if (identical(start, token)) {
+        // If no forward progress was made, insert ';' so that we exit loop.
+        semicolon = ensureSemicolon(token);
+      }
+      listener.handleRecoverImport(deferredKeyword, asKeyword, semicolon);
+    } while (semicolon == null);
+
+    if (firstDeferredKeyword != null && firstAsKeyword == null) {
+      reportRecoverableError(
+          firstDeferredKeyword, fasta.messageMissingPrefixInDeferredImport);
+    }
+
+    return semicolon.next;
   }
 
   /// if (test) uri

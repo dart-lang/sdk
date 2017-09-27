@@ -289,6 +289,13 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    debugEvent("RecoverImport");
+    popIfNotNull(asKeyword); // Prefix identifier
+  }
+
+  @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("LibraryName");
     pop(); // Library name

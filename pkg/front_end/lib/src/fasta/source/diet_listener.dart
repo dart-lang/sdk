@@ -350,6 +350,12 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    popIfNotNull(asKeyword);
+  }
+
+  @override
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
     discard(1); // Metadata.
