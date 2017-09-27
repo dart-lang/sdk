@@ -19,12 +19,6 @@ conditional_import_string_test: DartkCompileTimeError
 conditional_import_test: DartkCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_locals_test: RuntimeError
-enum_duplicate_test/01: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
-enum_mirror_test: RuntimeError
-enum_test: RuntimeError
-evaluation_redirecting_constructor_test: RuntimeError
 export_double_same_main_test: DartkCrash
 export_main_test: DartkCrash
 f_bounded_equality_test: RuntimeError

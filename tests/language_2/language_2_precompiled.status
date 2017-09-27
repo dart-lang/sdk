@@ -129,6 +129,14 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
+dynamic_field_test/01: MissingCompileTimeError
+dynamic_field_test/02: MissingCompileTimeError
+dynamic_prefix_core_test/01: MissingCompileTimeError
+dynamic_prefix_core_test/none: RuntimeError
+empty_block_case_test: MissingCompileTimeError
+enum_mirror_test: SkipByDesign
+enum_private_test/02: MissingCompileTimeError
+error_stacktrace_test/00: MissingCompileTimeError
 generic_closure_test: RuntimeError
 generic_field_mixin6_test/01: MissingCompileTimeError
 generic_function_bounds_test: RuntimeError
@@ -481,8 +489,9 @@ generic_field_mixin6_test/none: RuntimeError
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 async_star_regression_2238_test: CompileTimeError, RuntimeError
-multiline_strings_test: Fail # Issue 23020
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
+dynamic_prefix_core_test/01: RuntimeError # Issue 12478
+multiline_strings_test: Fail # Issue 23020
 
 # These test entries will be valid for vm (with and without kernel).
 [ $runtime == dart_precompiled ]
@@ -530,6 +539,9 @@ large_class_declaration_test: SkipSlow # Uses too much memory.
 
 [ $runtime == dart_precompiled && $minified ]
 cyclic_type_test/*: Skip
+enum_duplicate_test/*: Skip  # Uses Enum.toString()
+enum_private_test/*: Skip  # Uses Enum.toString()
+enum_test: Skip  # Uses Enum.toString()
 full_stacktrace1_test: Skip
 full_stacktrace2_test: Skip
 

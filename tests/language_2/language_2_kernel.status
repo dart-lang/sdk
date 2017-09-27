@@ -277,6 +277,7 @@ deferred_type_dependency_test/as: CompileTimeError # Fasta/KernelVM bug: Deferre
 deferred_type_dependency_test/is: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/type_annotation: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
 function_type/function_type0_test: RuntimeError
 function_type/function_type10_test: RuntimeError
 function_type/function_type11_test: RuntimeError
@@ -429,7 +430,6 @@ vm/optimized_stacktrace_test: Crash
 vm/regress_27671_test: Crash
 vm/type_vm_test: Crash
 
-
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError
 
@@ -443,6 +443,7 @@ cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 duplicate_export_negative_test: Fail # Issue 6134
+example_constructor_test: Fail, OK
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 cyclic_type_variable_test/01: Crash

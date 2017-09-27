@@ -119,6 +119,13 @@ cyclic_typedef_test/13: MissingCompileTimeError
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
+dynamic_field_test/01: MissingCompileTimeError
+dynamic_field_test/02: MissingCompileTimeError
+dynamic_prefix_core_test/01: MissingCompileTimeError
+empty_block_case_test: MissingCompileTimeError
+enum_private_test/02: MissingCompileTimeError
+error_stacktrace_test/00: MissingCompileTimeError
+example_constructor_test: RuntimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
@@ -395,6 +402,7 @@ deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTi
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_not_loaded_check_test: Fail # Issue 27577
 double_int_to_string_test: RuntimeError # Issue 1533
+enum_test: Fail # Issue 28340
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
@@ -552,6 +560,7 @@ deferred_constraints_type_annotation_test/as_operation: Crash # Issue 27394
 deferred_inheritance_constraints_test/mixin: Crash # Issue 27394
 deferred_load_constants_test/none: RuntimeError # Issue 27394
 deferred_super_dependency_test/01: Crash # Issue 27394
+enum_mirror_test: Crash # Issue 27394
 generalized_void_syntax_test: Crash # Issue #30176
 generic_field_mixin2_test: Crash # Issue 27394
 generic_field_mixin3_test: Crash # Issue 27394
@@ -821,6 +830,10 @@ deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
 deferred_type_dependency_test/type_annotation: CompileTimeError
+dynamic_prefix_core_test/01: RuntimeError
+dynamic_prefix_core_test/none: RuntimeError
+enum_mirror_test: RuntimeError
+example_constructor_test: RuntimeError
 execute_finally7_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
@@ -1083,9 +1096,13 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
+dynamic_prefix_core_test/01: RuntimeError
+dynamic_prefix_core_test/none: RuntimeError
 execute_finally7_test: RuntimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
+enum_mirror_test: RuntimeError
+example_constructor_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -1313,6 +1330,7 @@ instance_creation_in_function_annotation_test: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported
 deferred_constraints_constants_test/reference_after_load: Fail # mirrors not supported
 deferred_constraints_constants_test: Pass # mirrors not supported, passes for the wrong reason
+enum_mirror_test: Fail # mirrors not supported
 invocation_mirror2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on_test: Fail # mirrors not supported

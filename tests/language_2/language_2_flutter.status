@@ -65,6 +65,7 @@ deferred_type_dependency_test/is: Skip # Timeout
 deferred_type_dependency_test/none: Skip # Timeout
 deferred_type_dependency_test/as: Skip # Timeout
 deferred_type_dependency_test/type_annotation: Skip # Timeout
+enum_mirror_test: CompileTimeError
 generic_function_typedef2_test/04: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 invocation_mirror_invoke_on_test: CompileTimeError

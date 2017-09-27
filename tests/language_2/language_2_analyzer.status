@@ -94,6 +94,10 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
+dynamic_field_test/01: MissingCompileTimeError
+dynamic_field_test/02: MissingCompileTimeError
+dynamic_prefix_core_test/01: MissingCompileTimeError
+enum_private_test/02: MissingCompileTimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
@@ -356,6 +360,10 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
+dynamic_field_test/01: MissingCompileTimeError
+dynamic_field_test/02: MissingCompileTimeError
+dynamic_prefix_core_test/01: MissingCompileTimeError
+enum_private_test/02: MissingCompileTimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 generic_list_checked_test: CompileTimeError
@@ -518,6 +526,9 @@ deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 duplicate_export_negative_test: CompileTimeError
 duplicate_interface_negative_test: CompileTimeError
+emit_const_fields_test: CompileTimeError
+enum_syntax_test/05: Fail # Issue 21649
+enum_syntax_test/06: Fail # Issue 21649
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_list_checked_test: StaticWarning
@@ -597,6 +608,7 @@ bit_operations_test/01: MissingStaticWarning # Issue 28823
 bit_operations_test/02: MissingStaticWarning # Issue 28823
 bit_operations_test/03: MissingStaticWarning # Issue 28823
 bit_operations_test/04: MissingStaticWarning # Issue 28823
+error_stacktrace_test/00: Pass
 generic_list_checked_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 generic_methods_test: CompileTimeError
@@ -844,6 +856,8 @@ vm/type_vm_test: StaticWarning
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: CompileTimeError
+error_stacktrace_test/00: MissingCompileTimeError
+vm/lazy_deopt_with_exception_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $strong ]
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29070
