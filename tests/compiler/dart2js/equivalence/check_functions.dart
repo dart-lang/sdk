@@ -522,6 +522,9 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
       Uri.parse('dart:js'),
       Uri.parse('dart:js_util'),
       Uri.parse('dart:_chrome'),
+      Uri.parse('dart:io'),
+      Uri.parse('dart:_http'),
+      Uri.parse('dart:developer'),
     ];
     return libraries.where((l) => !skippedLibraries.contains(l.canonicalUri));
   }

@@ -37,6 +37,7 @@ class Dart2jsTarget extends Target {
         'dart:html',
         'dart:html_common',
         'dart:indexed_db',
+        'dart:io',
         'dart:js',
         'dart:js_util',
         'dart:mirrors',
