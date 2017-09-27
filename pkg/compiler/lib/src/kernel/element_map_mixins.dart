@@ -30,7 +30,8 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
   ElementEnvironment get elementEnvironment;
   LibraryEntity getLibrary(ir.Library node);
 
-  ConstantValue computeConstantValue(ConstantExpression constant,
+  ConstantValue computeConstantValue(
+      Spannable spannable, ConstantExpression constant,
       {bool requireConstant: true});
 
   @override
@@ -319,7 +320,13 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
       }
       return null;
     }
-    return computeConstantValue(constant, requireConstant: requireConstant);
+    ConstantValue value = computeConstantValue(
+        computeSourceSpanFromTreeNode(node), constant,
+        requireConstant: requireConstant);
+    if (!value.isConstant && !requireConstant) {
+      return null;
+    }
+    return value;
   }
 
   /// Converts [annotations] into a list of [ConstantValue]s.
@@ -491,7 +498,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       elementMap.reporter.reportErrorMessage(
           computeSourceSpanFromTreeNode(failNode ?? node),
           MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
-      return new NullConstantExpression();
+      return new ErroneousConstantExpression();
     }
     return constant;
   }

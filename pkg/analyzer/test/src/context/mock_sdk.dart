@@ -43,9 +43,9 @@ class Future<T> {
   factory Future.delayed(Duration duration, [T computation()]) => null;
   factory Future.value([FutureOr<T> result]) => null;
 
-  static Future<List/*<T>*/> wait/*<T>*/(
-      Iterable<Future/*<T>*/> futures) => null;
-  Future/*<R>*/ then/*<R>*/(FutureOr/*<R>*/ onValue(T value)) => null;
+  static Future<List<T>> wait<T>(
+      Iterable<Future<T>> futures) => null;
+  Future<R> then<R>(FutureOr<R> onValue(T value)) => null;
 
   Future<T> whenComplete(action());
 }
@@ -70,7 +70,7 @@ abstract class Stream<T> {
                                  void onDone(),
                                  bool cancelOnError});
   Stream();
-  factory Stream.fromIterable(Iterable<T> data);
+  factory Stream.fromIterable(Iterable<T> data) => null;
 }
 
 abstract class StreamSubscription<T> {
@@ -124,9 +124,11 @@ class Function {}
 class StackTrace {}
 
 class Symbol {
-  const factory Symbol(String name) {
-    return null;
-  }
+  const factory Symbol(String name) = _SymbolImpl;
+}
+
+class _SymbolImpl {
+  const _SymbolImpl(String name);
 }
 
 class Type {}
@@ -256,15 +258,15 @@ abstract class Iterable<E> {
   bool get isEmpty;
   E get first;
 
-  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
+  Iterable<R> map<R>(R f(E e));
 
-  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
-      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
+  R fold<R>(R initialValue,
+      R combine(R previousValue, E element)) => null;
 
-  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element));
+  Iterable<T> expand<T>(Iterable<T> f(E element));
 
   Iterable<E> where(bool test(E element));
-  
+
   void forEach(void f(E element));
 
   List<E> toList();
@@ -369,6 +371,16 @@ const _MockSdkLibrary _LIB_INTERCEPTORS = const _MockSdkLibrary(
 library dart._interceptors;
 ''');
 
+const _MockSdkLibrary _LIB_INTERNAL = const _MockSdkLibrary(
+    'dart:_internal', '$sdkRoot/lib/_internal/internal.dart', '''
+library dart._internal;
+class Symbol {}
+class ExternalName {
+  final String name;
+  const ExternalName(this.name);
+}
+''');
+
 const _MockSdkLibrary _LIB_MATH =
     const _MockSdkLibrary('dart:math', '$sdkRoot/lib/math/math.dart', '''
 library dart.math;
@@ -400,6 +412,7 @@ const List<SdkLibrary> _LIBRARIES = const [
   _LIB_HTML_DART2JS,
   _LIB_HTML_DARTIUM,
   _LIB_INTERCEPTORS,
+  _LIB_INTERNAL,
 ];
 
 class MockSdk implements DartSdk {
@@ -413,6 +426,7 @@ class MockSdk implements DartSdk {
     "dart:_foreign_helper": "$sdkRoot/lib/_foreign_helper/_foreign_helper.dart",
     "dart:_interceptors":
         "$sdkRoot/lib/_internal/js_runtime/lib/interceptors.dart",
+    "dart:_internal": "$sdkRoot/lib/_internal/internal.dart",
     "dart:math": "$sdkRoot/lib/math/math.dart"
   };
 

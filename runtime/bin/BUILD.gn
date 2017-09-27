@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/compiled_action.gni")
+import("../../sdk/lib/_http/http_sources.gni")
 import("../../sdk/lib/io/io_sources.gni")
 import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
@@ -103,6 +104,16 @@ gen_library_src_path("generate_io_patch_cc_file") {
   kind = "patch"
   sources = io_runtime_sources
   output = "$target_gen_dir/io_patch_gen.cc"
+}
+
+rebased_http_sdk_sources =
+    rebase_path(http_sdk_sources, ".", "../../sdk/lib/_http")
+
+gen_library_src_path("generate_http_cc_file") {
+  name = "_http"
+  kind = "source"
+  sources = [ "../../sdk/lib/_http/http.dart" ] + rebased_http_sdk_sources
+  output = "$target_gen_dir/http_gen.cc"
 }
 
 gen_library_src_path("generate_html_cc_file") {
@@ -229,6 +240,7 @@ template("build_libdart_builtin") {
       ":generate_builtin_cc_file",
       ":generate_html_cc_file",
       ":generate_html_common_cc_file",
+      ":generate_http_cc_file",
       ":generate_indexed_db_cc_file",
       ":generate_io_cc_file",
       ":generate_io_patch_cc_file",
@@ -283,6 +295,7 @@ template("build_gen_snapshot") {
     deps = [
              ":gen_resources_cc",
              ":generate_builtin_cc_file",
+             ":generate_http_cc_file",
              ":generate_io_cc_file",
              ":generate_io_patch_cc_file",
            ] + extra_deps
@@ -290,6 +303,7 @@ template("build_gen_snapshot") {
     sources = [
       # Include generated source files.
       "$target_gen_dir/builtin_gen.cc",
+      "$target_gen_dir/http_gen.cc",
       "$target_gen_dir/io_gen.cc",
       "$target_gen_dir/io_patch_gen.cc",
       "$target_gen_dir/resources_gen.cc",
@@ -786,6 +800,7 @@ dart_executable("dart_bootstrap") {
     ":generate_builtin_cc_file",
     ":generate_html_cc_file",
     ":generate_html_common_cc_file",
+    ":generate_http_cc_file",
     ":generate_indexed_db_cc_file",
     ":generate_io_cc_file",
     ":generate_io_patch_cc_file",
@@ -815,6 +830,7 @@ dart_executable("dart_bootstrap") {
     "$target_gen_dir/builtin_gen.cc",
     "$target_gen_dir/html_common_gen.cc",
     "$target_gen_dir/html_gen.cc",
+    "$target_gen_dir/http_gen.cc",
     "$target_gen_dir/indexed_db_gen.cc",
     "$target_gen_dir/io_gen.cc",
     "$target_gen_dir/io_patch_gen.cc",

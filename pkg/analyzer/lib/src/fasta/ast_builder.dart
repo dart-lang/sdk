@@ -9,7 +9,13 @@ import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:front_end/src/fasta/parser.dart'
-    show Assert, FormalParameterKind, IdentifierContext, MemberKind, Parser;
+    show
+        Assert,
+        FormalParameterKind,
+        IdentifierContext,
+        MemberKind,
+        optional,
+        Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 
@@ -689,7 +695,7 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token comma, Token rightParenthesis, Token semicolon) {
+      Token comma, Token semicolon) {
     debugEvent("Assert");
     Expression message = popIfNotNull(comma);
     Expression condition = pop();
@@ -700,11 +706,11 @@ class AstBuilder extends ScopeListener {
         break;
       case Assert.Initializer:
         push(ast.assertInitializer(assertKeyword, leftParenthesis, condition,
-            comma, message, rightParenthesis));
+            comma, message, leftParenthesis?.endGroup));
         break;
       case Assert.Statement:
         push(ast.assertStatement(assertKeyword, leftParenthesis, condition,
-            comma, message, rightParenthesis, semicolon));
+            comma, message, leftParenthesis?.endGroup, semicolon));
         break;
     }
   }
@@ -806,7 +812,7 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+      Token inKeyword, Token endToken) {
     debugEvent("ForInExpression");
     Statement body = pop();
     Expression iterator = pop();
@@ -822,7 +828,7 @@ class AstBuilder extends ScopeListener {
           variableOrDeclaration,
           inKeyword,
           iterator,
-          rightParenthesis,
+          leftParenthesis?.endGroup,
           body));
     } else {
       var statement = variableOrDeclaration as VariableDeclarationStatement;
@@ -839,7 +845,7 @@ class AstBuilder extends ScopeListener {
               variableList.variables.single.name),
           inKeyword,
           iterator,
-          rightParenthesis,
+          leftParenthesis?.endGroup,
           body));
     }
   }
@@ -1152,18 +1158,20 @@ class AstBuilder extends ScopeListener {
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
-    Token propertyKeyword = getOrSet;
     TypeAnnotation returnType = pop();
     _Modifiers modifiers = pop();
     Token externalKeyword = modifiers?.externalKeyword;
     List<Annotation> metadata = pop();
     Comment comment = pop();
+    if (getOrSet != null && optional('get', getOrSet)) {
+      parameters = null;
+    }
     declarations.add(ast.functionDeclaration(
         comment,
         metadata,
         externalKeyword,
         returnType,
-        propertyKeyword,
+        getOrSet,
         name,
         ast.functionExpression(typeParameters, parameters, body)));
   }
@@ -1177,6 +1185,7 @@ class AstBuilder extends ScopeListener {
   void handleInvalidTopLevelDeclaration(Token endToken) {
     debugEvent("InvalidTopLevelDeclaration");
     pop(); // metadata star
+    pop(); // comments
     // TODO(danrubel): consider creating a AST node
     // representing the invalid declaration to better support code completion,
     // quick fixes, etc, rather than discarding the metadata and token
@@ -1197,6 +1206,7 @@ class AstBuilder extends ScopeListener {
         beginToken, scriptTag, directives, declarations, endToken));
   }
 
+  @override
   void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
       Token semicolon) {
     debugEvent("Import");
@@ -1207,6 +1217,7 @@ class AstBuilder extends ScopeListener {
     List<Annotation> metadata = pop();
     assert(metadata == null); // TODO(paulberry): fix.
     Comment comment = pop();
+
     directives.add(ast.importDirective(
         comment,
         metadata,
@@ -1218,6 +1229,29 @@ class AstBuilder extends ScopeListener {
         prefix,
         combinators,
         semicolon));
+  }
+
+  @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    debugEvent("RecoverImport");
+    List<Combinator> combinators = pop();
+    SimpleIdentifier prefix = popIfNotNull(asKeyword);
+    List<Configuration> configurations = pop();
+
+    ImportDirective directive = directives.last;
+    if (combinators != null) {
+      directive.combinators.addAll(combinators);
+    }
+    directive.deferredKeyword ??= deferredKeyword;
+    if (directive.asKeyword == null && asKeyword != null) {
+      directive.asKeyword = asKeyword;
+      directive.prefix = prefix;
+    }
+    if (configurations != null) {
+      directive.configurations.addAll(configurations);
+    }
+    directive.semicolon = semicolon;
   }
 
   void endExport(Token exportKeyword, Token semicolon) {
@@ -1257,14 +1291,13 @@ class AstBuilder extends ScopeListener {
         semicolon));
   }
 
-  void endConditionalUri(
-      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     debugEvent("ConditionalUri");
     StringLiteral libraryUri = pop();
     StringLiteral value = popIfNotNull(equalSign);
     DottedName name = pop();
-    push(ast.configuration(
-        ifKeyword, leftParen, name, equalSign, value, rightParen, libraryUri));
+    push(ast.configuration(ifKeyword, leftParen, name, equalSign, value,
+        leftParen?.endGroup, libraryUri));
   }
 
   @override
@@ -1952,9 +1985,25 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ABSTRACT_CLASS_MEMBER, charOffset, 1);
         return;
+      case "COLON_IN_PLACE_OF_IN":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.COLON_IN_PLACE_OF_IN, charOffset, 1);
+        return;
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, charOffset, 1);
+        return;
+      case "DIRECTIVE_AFTER_DECLARATION":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+        return;
+      case "DUPLICATE_PREFIX":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DUPLICATE_PREFIX, charOffset, 1);
+        return;
+      case "EXPECTED_EXECUTABLE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPECTED_EXECUTABLE, charOffset, 1);
         return;
       case "EXPECTED_STRING_LITERAL":
         errorReporter?.reportErrorForOffset(
@@ -1964,18 +2013,82 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
         return;
+      case "EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+            charOffset,
+            1);
+        return;
+      case "EXTERNAL_CLASS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_CLASS, charOffset, 1);
+        return;
+      case "EXTERNAL_ENUM":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_ENUM, charOffset, 1);
+        return;
       case "EXTERNAL_METHOD_WITH_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, charOffset, 1);
+        return;
+      case "EXTERNAL_TYPEDEF":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_TYPEDEF, charOffset, 1);
         return;
       case "EXTRANEOUS_MODIFIER":
         String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(ParserErrorCode.EXTRANEOUS_MODIFIER,
             charOffset, text.length, [text]);
         return;
+      case "GETTER_WITH_PARAMETERS":
+        // TODO(brianwilkerson) This should highlight either the parameter list
+        // or the name of the getter, but I don't know how to compute the length
+        // of the region.
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.GETTER_WITH_PARAMETERS, charOffset, 1);
+        return;
+      case "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+            charOffset,
+            1);
+        return;
+      case "LIBRARY_DIRECTIVE_NOT_FIRST":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, charOffset, 1);
+        return;
+      case "MISSING_IDENTIFIER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_IDENTIFIER, charOffset, 1);
+        return;
+      case "MISSING_PREFIX_IN_DEFERRED_IMPORT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, charOffset, 1);
+        return;
+      case "MULTIPLE_PART_OF_DIRECTIVES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, charOffset, 1);
+        return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, charOffset, 1);
+        return;
+      case "NON_PART_OF_DIRECTIVE_IN_PART":
+        if (directives.isEmpty) {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+        } else {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, charOffset, 1);
+        }
+        return;
+      case "PART_OUT_OF_ORDER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+        return;
+      case "PREFIX_AFTER_COMBINATOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.PREFIX_AFTER_COMBINATOR, charOffset, 1);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();

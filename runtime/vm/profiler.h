@@ -505,7 +505,8 @@ class CodeLookupTable : public ZoneAllocated {
 // Ring buffer of Samples that is (usually) shared by many isolates.
 class SampleBuffer {
  public:
-  static const intptr_t kDefaultBufferCapacity = 120000;  // 2 minutes @ 1000hz.
+  // Up to 1 minute @ 1000Hz, less if samples are deep.
+  static const intptr_t kDefaultBufferCapacity = 60000;
 
   explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity);
   virtual ~SampleBuffer();

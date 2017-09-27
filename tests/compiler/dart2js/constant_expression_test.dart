@@ -9,6 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/compile_time_constants.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'memory_compiler.dart';
 import 'constant_expression_evaluate_test.dart' show MemoryEnvironment;
@@ -202,7 +203,8 @@ Future testData(TestData data) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source}, options: ['--analyze-all']);
   Compiler compiler = result.compiler;
-  MemoryEnvironment environment = new MemoryEnvironment(compiler);
+  MemoryEnvironment environment =
+      new MemoryEnvironment(new AstEvaluationEnvironment(compiler));
   dynamic library = compiler.frontendStrategy.elementEnvironment.mainLibrary;
   constants.forEach((String name, ConstantData data) {
     FieldElement field = library.localLookup(name);

@@ -186,7 +186,7 @@ class Server {
   }
 
   bool _originCheck(HttpRequest request) {
-    if (_originCheckDisabled || Platform.isFuchsia) {
+    if (_originCheckDisabled) {
       // Always allow.
       return true;
     }
@@ -339,15 +339,11 @@ class Server {
     Future<bool> poll() async {
       try {
         var address;
-        if (Platform.isFuchsia) {
-          address = InternetAddress.ANY_IP_V6;
-        } else {
-          var addresses = await InternetAddress.lookup(_ip);
-          // Prefer IPv4 addresses.
-          for (var i = 0; i < addresses.length; i++) {
-            address = addresses[i];
-            if (address.type == InternetAddressType.IP_V4) break;
-          }
+        var addresses = await InternetAddress.lookup(_ip);
+        // Prefer IPv4 addresses.
+        for (var i = 0; i < addresses.length; i++) {
+          address = addresses[i];
+          if (address.type == InternetAddressType.IP_V4) break;
         }
         _server = await HttpServer.bind(address, _port);
         return true;

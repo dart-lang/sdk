@@ -8,33 +8,33 @@ final values = <int>[];
 
 class Mock {
   noSuchMethod(Invocation i) {
-    var expected = i.isGetter ? "_x" : "_x=";
-    Expect.equals('Symbol("$expected")', i.memberName.toString());
+    var expected = i.isGetter ? #x : const Symbol("x=");
+    Expect.equals(expected, i.memberName);
     values.add(i.positionalArguments[0]);
   }
 }
 
 class Foo {
-  int _x;
+  int x;
 }
 
 class Bar extends Mock implements Foo {
-  final int _x = 42;
+  final int x = 42;
 }
 
 void main() {
   {
     Bar b = new Bar();
-    Expect.equals(b._x, 42);
-    b._x = 123;
+    Expect.equals(b.x, 42);
+    b.x = 123;
     Expect.listEquals(values, [123]);
     values.clear();
   }
   {
     // It works the same if called statically through the Foo interface.
     Foo b = new Bar();
-    Expect.equals(b._x, 42);
-    b._x = 123;
+    Expect.equals(b.x, 42);
+    b.x = 123;
     Expect.listEquals(values, [123]);
     values.clear();
   }

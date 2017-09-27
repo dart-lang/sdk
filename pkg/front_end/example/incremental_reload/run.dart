@@ -49,7 +49,7 @@ import 'dart:convert' show ASCII;
 import 'package:args/args.dart';
 import 'package:kernel/target/targets.dart';
 
-import '../../tool/vm/reload.dart';
+import '../../test/tool/reload.dart';
 
 import 'compiler_with_invalidation.dart';
 

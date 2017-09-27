@@ -213,12 +213,19 @@ abstract class SubtypeTester {
     if (subtype is TypeParameterType) {
       if (supertype is TypeParameterType &&
           subtype.parameter == supertype.parameter) {
-        return true;
+        if (supertype.promotedBound != null) {
+          return isSubtypeOf(subtype.bound, supertype.bound);
+        } else {
+          // Promoted bound should always be a subtype of the declared bound.
+          assert(subtype.promotedBound == null ||
+              isSubtypeOf(subtype.bound, supertype.bound));
+          return true;
+        }
       }
       // Termination: if there are no cyclically bound type parameters, this
       // recursive call can only occur a finite number of times, before reaching
       // a shrinking recursive call (or terminating).
-      return isSubtypeOf(subtype.parameter.bound, supertype);
+      return isSubtypeOf(subtype.bound, supertype);
     }
     if (subtype is FunctionType) {
       if (supertype == rawFunctionType) return true;

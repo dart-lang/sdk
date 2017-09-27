@@ -164,6 +164,10 @@ class TypeMaskIrComputer extends IrDataExtractor
       return getMemberValue(info.callMethod);
     } else if (node is ir.MethodInvocation) {
       return getTypeMaskValue(result.typeOfSend(node));
+    } else if (node is ir.PropertyGet) {
+      return getTypeMaskValue(result.typeOfGetter(node));
+    } else if (node is ir.PropertySet) {
+      return getTypeMaskValue(result.typeOfSend(node));
     } else if (node is ir.ForInStatement) {
       if (id.kind == IdKind.iterator) {
         return getTypeMaskValue(result.typeOfIterator(node));

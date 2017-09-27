@@ -10,11 +10,60 @@ typedef String CellTextCallback(dynamic item);
 enum ALIGNMENT { left, center, right }
 enum TEXTBEHAVIOUR { truncateLeft, truncateRight, wrap }
 
+/// [OutputTable] defines a base class for outputting tabular data to outputs.
+abstract class OutputTable {
+  void addHeader(Column column, CellTextCallback callback);
+  void print(List items);
+  void printToSink(List items, StringSink sink);
+}
+
+/// [ScripTable] outputs items without any formatting except tabs for
+/// separators.
+class ScriptTable extends OutputTable {
+  final Map<Column, CellTextCallback> _columns = {};
+  @override
+  void addHeader(Column column, CellTextCallback callback) {
+    _columns[column] = callback;
+  }
+
+  @override
+  void print(List items) {
+    printToSink(items, io.stdout);
+  }
+
+  @override
+  void printToSink(List items, StringSink sink) {
+    if (_columns.length == 0) {
+      return;
+    }
+    // Print headers.
+    var columns = _columns.keys.toList();
+    columns.forEach((column) {
+      if (column != columns[0]) {
+        sink.write("\t");
+      }
+      sink.write(column.header);
+    });
+    sink.writeln("");
+
+    // Print items.
+    items.forEach((item) {
+      columns.forEach((column) {
+        if (column != columns[0]) {
+          sink.write("\t");
+        }
+        sink.write(_columns[column](item));
+      });
+      sink.writeln("");
+    });
+  }
+}
+
 /// [ConsoleTable] outputs a list of items as a table, width a default width of
 /// 80 units. Column sizes can be set individually. If zero-width for a column
 /// is specified, the free available space is distributed equally amongst these.
 /// The table can be styled by giving it a custom template.
-class ConsoleTable {
+class ConsoleTable extends OutputTable {
   final int width;
   final Template template;
 
@@ -24,16 +73,19 @@ class ConsoleTable {
 
   /// [addHeader] adds a new column to the table. When a row is processed the
   /// callback given will be invoked with the item for the row.
+  @override
   void addHeader(Column column, CellTextCallback callback) {
     _columns[column] = callback;
   }
 
   /// Prints the [items] as a table in columns given by [addHeader] to stdout.
+  @override
   void print(List items) {
     printToSink(items, io.stdout);
   }
 
   /// Prints the [items] as a table in columns given by [addHeader] to [sink].
+  @override
   void printToSink(List items, StringSink sink) {
     if (_columns.length == 0) {
       return;
@@ -206,19 +258,19 @@ class ConsoleTable {
     var regexpAddHyphon = new RegExp(r"[_]");
     while (finger + width < text.length) {
       var nicerIndex = text.lastIndexOf(regexpBlank, finger + width);
-      if (nicerIndex > -1 && nicerIndex > finger) {
+      if (nicerIndex > finger) {
         wrappedStrings.add(text.substring(finger, nicerIndex));
         finger = nicerIndex + 1; // change space for return;
         continue;
       }
-      nicerIndex = text.lastIndexOf(regexpIncludeChars, finger + width);
-      if (nicerIndex > -1 && nicerIndex > finger) {
+      nicerIndex = text.lastIndexOf(regexpIncludeChars, finger + width - 1);
+      if (nicerIndex > finger) {
         wrappedStrings.add(text.substring(finger, nicerIndex + 1));
         finger = nicerIndex + 1;
         continue;
       }
-      nicerIndex = text.lastIndexOf(regexpAddHyphon, finger + width - 1);
-      if (nicerIndex > -1 && nicerIndex > finger) {
+      nicerIndex = text.lastIndexOf(regexpAddHyphon, finger + width - 2);
+      if (nicerIndex > finger) {
         wrappedStrings.add(text.substring(finger, nicerIndex + 1) + '-');
         finger = nicerIndex + 1;
         continue;

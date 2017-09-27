@@ -44,7 +44,7 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 import 'testing/suite.dart';
 
-main(List<String> arguments) =>
+main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, "../../testing.json");
 
 Future<TreeShakerContext> createContext(
@@ -102,7 +102,6 @@ class BuildProgram
     return await CompilerContext.runWithOptions(context.options, (_) async {
       try {
         var platformOutline = context.loadPlatformOutline();
-        platformOutline.unbindCanonicalNames();
         var uriTranslator = await context.options.getUriTranslator();
         var dillTarget = new DillTarget(context.options.ticker, uriTranslator,
             new VmFastaTarget(new TargetFlags(strongMode: false)));

@@ -119,7 +119,6 @@ final subpackageRules = {
     'lib/src/fasta/kernel',
     'lib/src/fasta/parser',
     'lib/src/fasta/type_inference',
-    'lib/src/fasta/util',
     'lib/src/scanner',
   ]),
   'lib/src/fasta/testing': new SubpackageRules(allowedDependencies: [
@@ -158,6 +157,13 @@ final subpackageRules = {
   'lib/src/testing': new SubpackageRules(allowedDependencies: [
     'lib',
     'lib/src/fasta/testing',
+  ]),
+  'lib/src/tool': new SubpackageRules(allowedDependencies: [
+    'lib',
+    'lib/src',
+    'lib/src/base',
+    'lib/src/fasta',
+    'lib/src/fasta/kernel',
   ]),
 };
 
@@ -241,7 +247,7 @@ class _SubpackageRelationshipsTest {
     var frontEndLibPath = pathos.fromUri(frontEndLibUri);
     for (var entity in new Directory(frontEndLibPath)
         .listSync(recursive: true, followLinks: false)) {
-      if (entity is File && entity.path.endsWith('.dart')) {
+      if (entity.path.endsWith('.dart')) {
         var posixRelativePath = pathos.url.joinAll(
             pathos.split(pathos.relative(entity.path, from: frontEndLibPath)));
         frontEndUris.add(Uri.parse('package:front_end/$posixRelativePath'));
@@ -260,7 +266,9 @@ class _SubpackageRelationshipsTest {
   /// appropriate exit code.
   Future<int> run() async {
     var frontEndUris = await findFrontEndUris();
-    var packagesFileUri = frontEndLibUri.resolve('../../../.packages');
+    var packagesFileUri = Platform.packageConfig != null
+        ? Uri.parse(Platform.packageConfig)
+        : frontEndLibUri.resolve('../../../.packages');
     var graph = await graphForProgram(
         frontEndUris,
         new CompilerOptions()

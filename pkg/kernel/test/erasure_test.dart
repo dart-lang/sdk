@@ -9,7 +9,7 @@ import "package:kernel/testing/mock_sdk_program.dart";
 import "package:kernel/text/ast_to_text.dart";
 import "package:kernel/transformations/erasure.dart";
 
-void main(List<String> arguments) {
+void main([List<String> arguments = const []]) {
   new Tester().testLocalFunction();
 }
 

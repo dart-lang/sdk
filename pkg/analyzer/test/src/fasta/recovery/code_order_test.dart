@@ -98,9 +98,17 @@ class A extends C with B {}
  */
 @reflectiveTest
 class CompilationUnitMemberTest extends AbstractRecoveryTest {
-  @failingTest
-  void test_declarationBeforeDirective() {
-    // Expected 1 errors of type ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, found 0
+  void test_declarationBeforeDirective_export() {
+    testRecovery('''
+class C { }
+export 'bar.dart';
+''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+export 'bar.dart';
+class C { }
+''');
+  }
+
+  void test_declarationBeforeDirective_import() {
     testRecovery('''
 class C { }
 import 'bar.dart';
@@ -110,9 +118,27 @@ class C { }
 ''');
   }
 
-  @failingTest
+  void test_declarationBeforeDirective_part() {
+    testRecovery('''
+class C { }
+part 'bar.dart';
+''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+part 'bar.dart';
+class C { }
+''');
+  }
+
+  void test_declarationBeforeDirective_part_of() {
+    testRecovery('''
+class C { }
+part of foo;
+''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+part of foo;
+class C { }
+''');
+  }
+
   void test_exportBeforeLibrary() {
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
     testRecovery('''
 export 'bar.dart';
 library l;
@@ -122,9 +148,7 @@ export 'bar.dart';
 ''');
   }
 
-  @failingTest
   void test_importBeforeLibrary() {
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
     testRecovery('''
 import 'bar.dart';
 library l;
@@ -134,9 +158,7 @@ import 'bar.dart';
 ''');
   }
 
-  @failingTest
   void test_partBeforeExport() {
-    // Expected 1 errors of type ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, found 0
     testRecovery('''
 part 'foo.dart';
 export 'bar.dart';
@@ -146,9 +168,7 @@ part 'foo.dart';
 ''');
   }
 
-  @failingTest
   void test_partBeforeImport() {
-    // Expected 1 errors of type ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, found 0
     testRecovery('''
 part 'foo.dart';
 import 'bar.dart';
@@ -158,9 +178,7 @@ part 'foo.dart';
 ''');
   }
 
-  @failingTest
   void test_partBeforeLibrary() {
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
     testRecovery('''
 part 'foo.dart';
 library l;
@@ -177,23 +195,75 @@ part 'foo.dart';
  */
 @reflectiveTest
 class ImportDirectiveTest extends AbstractRecoveryTest {
-  @failingTest
   void test_combinatorsBeforeAndAfterPrefix() {
-    // Parser crashes
     testRecovery('''
 import 'bar.dart' show A as p show B;
-''', [/*ParserErrorCode.PREFIX_AFTER_COMBINATOR*/], '''
+''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
 import 'bar.dart' as p show A show B;
 ''');
   }
 
-  @failingTest
   void test_combinatorsBeforePrefix() {
-    // Parser crashes
     testRecovery('''
 import 'bar.dart' show A as p;
-''', [/*ParserErrorCode.PREFIX_AFTER_COMBINATOR*/], '''
+''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
 import 'bar.dart' as p show A;
+''');
+  }
+
+  void test_combinatorsBeforePrefixAfterDeferred() {
+    testRecovery('''
+import 'bar.dart' deferred show A as p;
+''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
+import 'bar.dart' deferred as p show A;
+''');
+  }
+
+  void test_deferredAfterPrefix() {
+    // TODO(danrubel): Add a new error messages for this situation
+    // indicating that `deferred` should be moved before `as`.
+    testRecovery('''
+import 'bar.dart' as p deferred;
+''', [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT], '''
+import 'bar.dart' deferred as p;
+''');
+  }
+
+  void test_duplicatePrefix() {
+    testRecovery('''
+import 'bar.dart' as p as q;
+''', [ParserErrorCode.DUPLICATE_PREFIX], '''
+import 'bar.dart' as p;
+''');
+  }
+
+  void test_unknownTokenBeforePrefix() {
+    testRecovery('''
+import 'bar.dart' d as p;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+import 'bar.dart' as p;
+''');
+  }
+
+  void test_unknownTokenBeforePrefixAfterDeferred() {
+    testRecovery('''
+import 'bar.dart' deferred s as p;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+import 'bar.dart' deferred as p;
+''');
+  }
+
+  void test_unknownTokenBeforePrefixAfterCombinatorMissingSemicolon() {
+    testRecovery('''
+import 'bar.dart' d show A as p
+import 'b.dart';
+''', [
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.PREFIX_AFTER_COMBINATOR,
+      ParserErrorCode.EXPECTED_TOKEN
+    ], '''
+import 'bar.dart' as p show A;
+import 'b.dart';
 ''');
   }
 }

@@ -150,18 +150,12 @@ rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
 rasta/unsupported_platform_library: Fail
 
-regress/issue_29941: Crash # Issue 29941.
-regress/issue_29943: Crash # Issue 29943.
-regress/issue_29944: Crash # Issue 29944.
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Issue 29976.
-regress/issue_29977: Crash # Issue 29977.
-regress/issue_29981: Crash # Issue 29981.
 regress/issue_29982: RuntimeError # Issue 29982.
 regress/issue_29983: Crash # Issue 29983.
 regress/issue_29984: Crash # Issue 29984.
 regress/issue_29985: Crash # Issue 29985.
-regress/issue_29987: Crash # Issue 29987.
 
 runtime_checks/contravariant_generic_return: Fail
 runtime_checks/contravariant_generic_return_tear_off: Fail
@@ -182,3 +176,5 @@ ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
 rasta/export: RuntimeError # Expected, this file has no main method.
 rasta/foo: RuntimeError # Expected, this file has no main method.
+
+incomplete_field_formal_parameter: Fail # Fasta doesn't recover well

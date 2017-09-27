@@ -32,6 +32,7 @@ const_types_test/06: CompileTimeError
 const_types_test/13: CompileTimeError
 const_types_test/35: CompileTimeError
 const_types_test/40: CompileTimeError
+default_factory_test/01: CompileTimeError
 deferred_constraints_type_annotation_test/new_before_load: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_null: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic2: CompileTimeError
@@ -46,7 +47,6 @@ deferred_constraints_type_annotation_test/catch_check: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: CompileTimeError
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
-default_factory_test/01: CompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_closurize_load_library_test: Skip # Timeout
@@ -54,9 +54,51 @@ deferred_constraints_type_annotation_test/none: Skip # Timeout
 deferred_constraints_type_annotation_test/static_method: Skip # Timeout
 deferred_constant_list_test: Skip # Timeout
 deferred_global_test: Skip # Timeout
+deferred_not_loaded_check_test: CompileTimeError
+deferred_no_such_method_test: CompileTimeError
+deferred_redirecting_factory_test: Skip # Timeout
+deferred_shadow_load_library_test: Skip # Timeout
+deferred_shared_and_unshared_classes_test: Skip # Timeout
+deferred_static_seperate_test: CompileTimeError
+deferred_super_dependency_test/01: CompileTimeError
+deferred_type_dependency_test/is: Skip # Timeout
+deferred_type_dependency_test/none: Skip # Timeout
+deferred_type_dependency_test/as: Skip # Timeout
+deferred_type_dependency_test/type_annotation: Skip # Timeout
 generic_function_typedef2_test/04: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
+invocation_mirror_invoke_on_test: CompileTimeError
+internal_library_test/01: CompileTimeError
+internal_library_test/02: CompileTimeError
+invocation_mirror2_test: CompileTimeError
+invocation_mirror_invoke_on2_test: CompileTimeError
+instance_creation_in_function_annotation_test: CompileTimeError
+internal_library_test/01: MissingCompileTimeError
+internal_library_test/02: MissingCompileTimeError
 issue21079_test: CompileTimeError
+is_malformed_type_test/94: CompileTimeError
+is_malformed_type_test/95: CompileTimeError
+is_malformed_type_test/96: CompileTimeError
+is_malformed_type_test/97: CompileTimeError
+is_malformed_type_test/98: CompileTimeError
+is_malformed_type_test/99: CompileTimeError
+is_not_class2_test: RuntimeError
+method_override2_test/01: CompileTimeError
+method_override3_test/00: CompileTimeError
+method_override3_test/01: CompileTimeError
+method_override3_test/02: CompileTimeError
+method_override6_test: CompileTimeError
+method_override4_test: CompileTimeError
+method_override5_test: CompileTimeError
+mixin_type_parameters_errors_test/02: CompileTimeError
+mixin_type_parameters_errors_test/05: CompileTimeError
+mixin_type_parameters_errors_test/01: CompileTimeError
+mixin_type_parameters_errors_test/03: CompileTimeError
+mixin_type_parameters_errors_test/04: CompileTimeError
+non_parameterized_factory_test: CompileTimeError
+non_parameterized_factory2_test: CompileTimeError
+null_test/none: CompileTimeError
+on_catch_malformed_type_test: CompileTimeError
 static_initializer_type_error_test: CompileTimeError
 type_variable_scope_test/none: CompileTimeError
 type_variable_scope_test/00: CompileTimeError
@@ -67,32 +109,37 @@ type_variable_scope_test/04: CompileTimeError
 type_variable_scope_test/05: CompileTimeError
 type_variable_scope2_test: CompileTimeError
 unicode_bom_test: CompileTimeError
+vm/debug_break_enabled_vm_test/01: CompileTimeError
+vm/debug_break_enabled_vm_test/none: CompileTimeError
+vm/reflect_core_vm_test: CompileTimeError
+vm/no_such_method_error_message_callable_vm_test: RuntimeError # Flutter Issue 9110
+vm/regress_27201_test: Fail # Flutter Issue 9110
 wrong_number_type_arguments_test/00: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
-vm/debug_break_enabled_vm_test/01: CompileTimeError
-vm/debug_break_enabled_vm_test/none: CompileTimeError
-is_malformed_type_test/97: CompileTimeError
-is_malformed_type_test/98: CompileTimeError
-is_malformed_type_test/99: CompileTimeError
-is_malformed_type_test/95: CompileTimeError
-is_malformed_type_test/96: CompileTimeError
-is_malformed_type_test/94: CompileTimeError
-is_not_class2_test: RuntimeError
-is_malformed_type_test/97: CompileTimeError
-is_malformed_type_test/98: CompileTimeError
-is_malformed_type_test/99: CompileTimeError
-is_malformed_type_test/95: CompileTimeError
-is_malformed_type_test/96: CompileTimeError
-is_malformed_type_test/94: CompileTimeError
-is_not_class2_test: RuntimeError
-is_malformed_type_test/97: CompileTimeError
-is_malformed_type_test/98: CompileTimeError
-is_malformed_type_test/99: CompileTimeError
-is_malformed_type_test/95: CompileTimeError
-is_malformed_type_test/96: CompileTimeError
-is_malformed_type_test/94: CompileTimeError
-is_not_class2_test: RuntimeError
+override_inheritance_field_test/05: CompileTimeError
+override_inheritance_field_test/07: CompileTimeError
+override_inheritance_field_test/06: CompileTimeError
+override_inheritance_field_test/08: CompileTimeError
+override_inheritance_field_test/28: CompileTimeError
+override_inheritance_field_test/29: CompileTimeError
+override_inheritance_field_test/30: CompileTimeError
+override_inheritance_field_test/31: CompileTimeError
+override_inheritance_field_test/44: CompileTimeError
+override_inheritance_field_test/45: CompileTimeError
+override_inheritance_field_test/48: CompileTimeError
+override_inheritance_field_test/47: CompileTimeError
+override_inheritance_field_test/53: CompileTimeError
+override_inheritance_field_test/10: CompileTimeError
+override_inheritance_field_test/54: CompileTimeError
+override_inheritance_field_test/09: CompileTimeError
+override_inheritance_field_test/33a: CompileTimeError
+override_inheritance_field_test/34: CompileTimeError
+override_inheritance_field_test/32: CompileTimeError
+override_inheritance_field_test/11: CompileTimeError
+override_inheritance_field_test/33: CompileTimeError
+overridden_no_such_method_test: CompileTimeError
+overridden_no_such_method_test: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

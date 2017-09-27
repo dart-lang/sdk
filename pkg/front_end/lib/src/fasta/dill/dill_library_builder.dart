@@ -73,7 +73,6 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
         for (StaticGet get in initializer.expressions) {
           RedirectingFactoryBody.restoreFromDill(get.target);
         }
-        initializer.expressions.clear();
       } else {
         classBulder.addMember(field);
       }

@@ -5,6 +5,7 @@
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/resolution/access_semantics.dart';
 import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
@@ -158,6 +159,9 @@ class ActualData {
   final Object object;
 
   ActualData(this.value, this.sourceSpan, this.object);
+
+  String toString() =>
+      'ActualData(value=$value,sourceSpan=$sourceSpan,object=$object)';
 }
 
 abstract class DataRegistry {
@@ -290,6 +294,9 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
     return new NodeId(node.getBeginToken().charOffset, IdKind.moveNext);
   }
 
+  NodeId createLabeledStatementId(ast.LabeledStatement node) =>
+      computeDefaultNodeId(node.statement);
+
   NodeId createLoopId(ast.Node node) => computeDefaultNodeId(node);
 
   NodeId createGotoId(ast.Node node) => computeDefaultNodeId(node);
@@ -327,6 +334,9 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         reportHere(reporter, child, 'No element for variable.');
       } else if (!element.isLocal) {
         computeForElement(element);
+      } else if (element.isInitializingFormal) {
+        ast.Send send = child;
+        computeForNode(child, computeDefaultNodeId(send.selector), element);
       } else {
         computeForNode(child, computeDefaultNodeId(child), element);
       }
@@ -404,6 +414,13 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   visitGotoStatement(ast.GotoStatement node) {
     computeForNode(node, createGotoId(node));
+    visitNode(node);
+  }
+
+  visitLabeledStatement(ast.LabeledStatement node) {
+    if (node.statement is! ast.Loop && node.statement is! ast.SwitchStatement) {
+      computeForNode(node, createLabeledStatementId(node));
+    }
     visitNode(node);
   }
 
@@ -507,6 +524,8 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
     return new NodeId(node.fileOffset, IdKind.moveNext);
   }
 
+  NodeId createLabeledStatementId(ir.LabeledStatement node) =>
+      computeDefaultNodeId(node.body);
   NodeId createLoopId(ir.TreeNode node) => computeDefaultNodeId(node);
   NodeId createGotoId(ir.TreeNode node) => computeDefaultNodeId(node);
   NodeId createSwitchId(ir.SwitchStatement node) => computeDefaultNodeId(node);
@@ -555,7 +574,7 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitVariableGet(ir.VariableGet node) {
-    if (node.variable.name != null) {
+    if (node.variable.name != null && !node.variable.isFieldFormal) {
       // Skip use of synthetic variables.
       computeForNode(node, computeDefaultNodeId(node));
     }
@@ -596,6 +615,14 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   visitWhileStatement(ir.WhileStatement node) {
     computeForNode(node, createLoopId(node));
     super.visitWhileStatement(node);
+  }
+
+  visitLabeledStatement(ir.LabeledStatement node) {
+    if (!JumpVisitor.canBeBreakTarget(node.body) &&
+        !JumpVisitor.canBeContinueTarget(node.parent)) {
+      computeForNode(node, createLabeledStatementId(node));
+    }
+    super.visitLabeledStatement(node);
   }
 
   visitBreakStatement(ir.BreakStatement node) {

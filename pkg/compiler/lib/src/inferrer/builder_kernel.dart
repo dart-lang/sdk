@@ -40,6 +40,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
   final GlobalTypeInferenceElementData<ir.Node> _memberData;
+  final bool _inGenerativeConstructor;
 
   LocalsHandler _locals;
   SideEffects _sideEffects = new SideEffects.empty();
@@ -48,6 +49,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final Map<JumpTarget, List<LocalsHandler>> _continuesFor =
       <JumpTarget, List<LocalsHandler>>{};
   TypeInformation _returnType;
+
+  /// Whether we currently collect [IsCheck]s.
+  bool _accumulateIsChecks = false;
+  bool _conditionIsSimple = false;
+
+  /// The [IsCheck]s that show us what types locals currently _are_.
+  List<IsCheck> _positiveIsChecks;
+
+  /// The [IsCheck]s that show us what types locals currently are _not_.
+  List<IsCheck> _negativeIsChecks;
 
   KernelTypeGraphBuilder(
       this._options,
@@ -60,13 +71,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       this._localsMap,
       [this._locals])
       : this._types = _inferrer.types,
-        this._memberData = _inferrer.dataOfMember(_analyzedMember) {
+        this._memberData = _inferrer.dataOfMember(_analyzedMember),
+        this._inGenerativeConstructor = _analyzedNode is ir.Constructor {
     if (_locals != null) return;
 
     FieldInitializationScope<ir.Node> fieldScope =
-        _analyzedNode is ir.Constructor
-            ? new FieldInitializationScope(_types)
-            : null;
+        _inGenerativeConstructor ? new FieldInitializationScope(_types) : null;
     _locals = new LocalsHandler(
         _inferrer, _types, _options, _analyzedNode, fieldScope);
   }
@@ -107,9 +117,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   void initializationIsIndefinite() {
-    MemberEntity member = _analyzedMember;
-    if (member is ConstructorEntity && member.isGenerativeConstructor) {
+    if (_inGenerativeConstructor) {
       _locals.fieldScope.isIndefinite = true;
+    }
+  }
+
+  TypeInformation _thisType;
+  TypeInformation get thisType {
+    if (_thisType != null) return _thisType;
+    ClassEntity cls = _elementMap.getMemberThisType(_analyzedMember)?.element;
+    if (_closedWorld.isUsedAsMixin(cls)) {
+      return _thisType = _types.nonNullSubtype(cls);
+    } else {
+      return _thisType = _types.nonNullSubclass(cls);
     }
   }
 
@@ -134,9 +154,56 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitFunctionNode(ir.FunctionNode node) {
-    // TODO(redemption): Handle native methods.
+  TypeInformation visitConstructor(ir.Constructor node) {
+    handleParameters(node.function);
+    node.initializers.forEach(visit);
+    visit(node.function.body);
 
+    ClassEntity cls = _analyzedMember.enclosingClass;
+    if (!(node.initializers.isNotEmpty &&
+        node.initializers.first is ir.RedirectingInitializer)) {
+      // Iterate over all instance fields, and give a null type to
+      // fields that we haven't initialized for sure.
+      _elementMap.elementEnvironment.forEachClassMember(cls,
+          (ClassEntity declarer, MemberEntity member) {
+        if (declarer != cls) return;
+        if (member.isField && member.isInstanceMember && member.isAssignable) {
+          TypeInformation type = _locals.fieldScope.readField(member);
+          MemberDefinition definition = _elementMap.getMemberDefinition(member);
+          assert(definition.kind == MemberKind.regular);
+          ir.Field node = definition.node;
+          if (type == null &&
+              (node.initializer == null ||
+                  node.initializer is ir.NullLiteral)) {
+            _inferrer.recordTypeOfField(member, _types.nullType);
+          }
+        }
+      });
+    }
+
+    if (cls.isAbstract) {
+      if (_closedWorld.isInstantiated(cls)) {
+        _returnType = _types.nonNullSubclass(cls);
+      } else {
+        // TODO(johnniwinther): Avoid analyzing [_analyzedMember] in this
+        // case; it's never called.
+        _returnType = _types.nonNullEmpty();
+      }
+    } else {
+      _returnType = _types.nonNullExact(cls);
+    }
+    return _returnType;
+  }
+
+  @override
+  visitFieldInitializer(ir.FieldInitializer node) {
+    TypeInformation rhsType = visit(node.value);
+    FieldEntity field = _elementMap.getField(node.field);
+    _locals.updateField(field, rhsType);
+    _inferrer.recordTypeOfField(field, rhsType);
+  }
+
+  void handleParameters(ir.FunctionNode node) {
     int position = 0;
     for (ir.VariableDeclaration parameter in node.positionalParameters) {
       handleParameter(parameter,
@@ -146,56 +213,44 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     for (ir.VariableDeclaration parameter in node.namedParameters) {
       handleParameter(parameter, isOptional: true);
     }
+  }
+
+  @override
+  TypeInformation visitFunctionNode(ir.FunctionNode node) {
+    // TODO(redemption): Handle native methods.
+    handleParameters(node);
     visit(node.body);
-    MemberEntity analyzedMember = _analyzedMember;
-    if (analyzedMember is ConstructorEntity &&
-        analyzedMember.isGenerativeConstructor) {
-      // TODO(redemption): Handle initializers.
-      ClassEntity cls = analyzedMember.enclosingClass;
-      if (cls.isAbstract) {
-        if (_closedWorld.isInstantiated(cls)) {
-          _returnType = _types.nonNullSubclass(cls);
-        } else {
-          // TODO(johnniwinther): Avoid analyzing [_analyzedMember] in this
-          // case; it's never called.
-          _returnType = _types.nonNullEmpty();
+    switch (node.asyncMarker) {
+      case ir.AsyncMarker.Sync:
+        if (_returnType == null) {
+          // No return in the body.
+          _returnType = _locals.seenReturnOrThrow
+              ? _types.nonNullEmpty() // Body always throws.
+              : _types.nullType;
+        } else if (!_locals.seenReturnOrThrow) {
+          // We haven'TypeInformation seen returns on all branches. So the
+          // method may also return null.
+          recordReturnType(_types.nullType);
         }
-      } else {
-        _returnType = _types.nonNullExact(cls);
-      }
-    } else {
-      switch (node.asyncMarker) {
-        case ir.AsyncMarker.Sync:
-          if (_returnType == null) {
-            // No return in the body.
-            _returnType = _locals.seenReturnOrThrow
-                ? _types.nonNullEmpty() // Body always throws.
-                : _types.nullType;
-          } else if (!_locals.seenReturnOrThrow) {
-            // We haven'TypeInformation seen returns on all branches. So the
-            // method may also return null.
-            recordReturnType(_types.nullType);
-          }
-          break;
+        break;
 
-        case ir.AsyncMarker.SyncStar:
-          // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
-          //               contained is the method body's return type.
-          recordReturnType(_types.syncStarIterableType);
-          break;
+      case ir.AsyncMarker.SyncStar:
+        // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
+        //               contained is the method body's return type.
+        recordReturnType(_types.syncStarIterableType);
+        break;
 
-        case ir.AsyncMarker.Async:
-          recordReturnType(_types.asyncFutureType);
-          break;
+      case ir.AsyncMarker.Async:
+        recordReturnType(_types.asyncFutureType);
+        break;
 
-        case ir.AsyncMarker.AsyncStar:
-          recordReturnType(_types.asyncStarStreamType);
-          break;
-        case ir.AsyncMarker.SyncYielding:
-          failedAt(
-              _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
-          break;
-      }
+      case ir.AsyncMarker.AsyncStar:
+        recordReturnType(_types.asyncStarStreamType);
+        break;
+      case ir.AsyncMarker.SyncYielding:
+        failedAt(
+            _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
+        break;
     }
     return _returnType;
   }
@@ -254,6 +309,24 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitMapLiteral(ir.MapLiteral node) {
+    return _inferrer.concreteTypes.putIfAbsent(node, () {
+      List keyTypes = [];
+      List valueTypes = [];
+
+      for (ir.MapEntry entry in node.entries) {
+        keyTypes.add(visit(entry.key));
+        valueTypes.add(visit(entry.value));
+      }
+
+      TypeInformation type =
+          node.isConst ? _types.constMapType : _types.mapType;
+      return _types.allocateMap(
+          type, node, _analyzedMember, keyTypes, valueTypes);
+    });
+  }
+
+  @override
   TypeInformation visitReturnStatement(ir.ReturnStatement node) {
     ir.Node expression = node.expression;
     recordReturnType(
@@ -261,6 +334,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _locals.seenReturnOrThrow = true;
     initializationIsIndefinite();
     return null;
+  }
+
+  @override
+  TypeInformation visitBoolLiteral(ir.BoolLiteral node) {
+    return _types.boolLiteralType(node.value);
   }
 
   @override
@@ -279,6 +357,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // runtime.
     return _types.getConcreteTypeFor(
         computeTypeMask(_closedWorld, constantSystem.createDouble(node.value)));
+  }
+
+  @override
+  TypeInformation visitStringLiteral(ir.StringLiteral node) {
+    return _types.stringLiteralType(node.value);
+  }
+
+  @override
+  TypeInformation visitStringConcatenation(ir.StringConcatenation node) {
+    node.visitChildren(this);
+    return _types.stringType;
   }
 
   @override
@@ -331,12 +420,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeMask mask = _memberData.typeOfSend(node);
 
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    if (selector.name == '==' || selector.name == '!=') {
+    if (selector.name == '==') {
       if (_types.isNull(receiverType)) {
-        // TODO(johnniwinther): Add null check.
+        // null == o
+        _potentiallyAddNullCheck(node, node.arguments.positional.first);
         return _types.boolType;
       } else if (_types.isNull(arguments.positional[0])) {
-        // TODO(johnniwinther): Add null check.
+        // o == null
+        _potentiallyAddNullCheck(node, node.receiver);
         return _types.boolType;
       }
     }
@@ -344,7 +435,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         CallType.access, node, selector, mask, receiverType, arguments);
   }
 
-  TypeInformation handleDynamicInvoke(
+  TypeInformation _handleDynamic(
       CallType callType,
       ir.Node node,
       Selector selector,
@@ -365,6 +456,30 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return _inferrer.registerCalledSelector(callType, node, selector, mask,
         receiverType, _analyzedMember, arguments, _sideEffects,
         inLoop: inLoop, isConditional: false);
+  }
+
+  TypeInformation handleDynamicGet(ir.Node node, Selector selector,
+      TypeMask mask, TypeInformation receiverType) {
+    return _handleDynamic(
+        CallType.access, node, selector, mask, receiverType, null);
+  }
+
+  TypeInformation handleDynamicSet(ir.Node node, Selector selector,
+      TypeMask mask, TypeInformation receiverType, TypeInformation rhsType) {
+    ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
+    return _handleDynamic(
+        CallType.access, node, selector, mask, receiverType, arguments);
+  }
+
+  TypeInformation handleDynamicInvoke(
+      CallType callType,
+      ir.Node node,
+      Selector selector,
+      TypeMask mask,
+      TypeInformation receiverType,
+      ArgumentsTypes arguments) {
+    return _handleDynamic(
+        callType, node, selector, mask, receiverType, arguments);
   }
 
   @override
@@ -503,4 +618,212 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           inLoop);
     }
   }
+
+  @override
+  TypeInformation visitPropertyGet(ir.PropertyGet node) {
+    TypeInformation receiverType = visit(node.receiver);
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+    // TODO(redemption): Use `node.interfaceTarget` to narrow the receiver type
+    // for --trust-type-annotations/strong-mode.
+    return handleDynamicGet(node, selector, mask, receiverType);
+  }
+
+  @override
+  TypeInformation visitPropertySet(ir.PropertySet node) {
+    TypeInformation rhsType = visit(node.value);
+    TypeInformation receiverType = visit(node.receiver);
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+    if (_inGenerativeConstructor && node.receiver is ir.ThisExpression) {
+      Iterable<MemberEntity> targets = _closedWorld.locateMembers(
+          selector, _types.newTypedSelector(receiverType, mask));
+      // We just recognized a field initialization of the form:
+      // `this.foo = 42`. If there is only one target, we can update
+      // its type.
+      if (targets.length == 1) {
+        MemberEntity single = targets.first;
+        if (single.isField) {
+          FieldEntity field = single;
+          _locals.updateField(field, rhsType);
+        }
+      }
+    }
+    handleDynamicSet(node, selector, mask, receiverType, rhsType);
+    return rhsType;
+  }
+
+  @override
+  TypeInformation visitThisExpression(ir.ThisExpression node) {
+    return thisType;
+  }
+
+  bool handleCondition(
+      ir.Node node, List<IsCheck> positiveTests, List<IsCheck> negativeTests) {
+    bool oldConditionIsSimple = _conditionIsSimple;
+    bool oldAccumulateIsChecks = _accumulateIsChecks;
+    List<IsCheck> oldPositiveIsChecks = _positiveIsChecks;
+    List<IsCheck> oldNegativeIsChecks = _negativeIsChecks;
+    _accumulateIsChecks = true;
+    _conditionIsSimple = true;
+    _positiveIsChecks = positiveTests;
+    _negativeIsChecks = negativeTests;
+    visit(node);
+    bool simpleCondition = _conditionIsSimple;
+    _accumulateIsChecks = oldAccumulateIsChecks;
+    _positiveIsChecks = oldPositiveIsChecks;
+    _negativeIsChecks = oldNegativeIsChecks;
+    _conditionIsSimple = oldConditionIsSimple;
+    return simpleCondition;
+  }
+
+  void _potentiallyAddIsCheck(ir.IsExpression node) {
+    if (!_accumulateIsChecks) return;
+    ir.Expression operand = node.operand;
+    if (operand is ir.VariableGet) {
+      _positiveIsChecks.add(new IsCheck(
+          node,
+          _localsMap.getLocalVariable(operand.variable),
+          _elementMap.getDartType(node.type)));
+    }
+  }
+
+  void _potentiallyAddNullCheck(
+      ir.MethodInvocation node, ir.Expression receiver) {
+    if (!_accumulateIsChecks) return;
+    if (receiver is ir.VariableGet) {
+      _positiveIsChecks.add(new IsCheck(
+          node, _localsMap.getLocalVariable(receiver.variable), null));
+    }
+  }
+
+  void _updateIsChecks(
+      List<IsCheck> positiveTests, List<IsCheck> negativeTests) {
+    for (IsCheck check in positiveTests) {
+      if (check.type != null) {
+        _locals.narrow(check.local, check.type, check.node);
+      } else {
+        DartType localType = _localsMap.getLocalType(_elementMap, check.local);
+        _locals.update(check.local, _types.nullType, check.node, localType);
+      }
+    }
+    for (IsCheck check in negativeTests) {
+      if (check.type != null) {
+        // TODO(johnniwinther): Use negative type knowledge.
+      } else {
+        _locals.narrow(
+            check.local, _closedWorld.commonElements.objectType, check.node);
+      }
+    }
+  }
+
+  @override
+  TypeInformation visitIfStatement(ir.IfStatement node) {
+    List<IsCheck> positiveTests = <IsCheck>[];
+    List<IsCheck> negativeTests = <IsCheck>[];
+    bool simpleCondition =
+        handleCondition(node.condition, positiveTests, negativeTests);
+    LocalsHandler saved = _locals;
+    _locals = new LocalsHandler.from(_locals, node);
+    _updateIsChecks(positiveTests, negativeTests);
+    visit(node.then);
+    LocalsHandler thenLocals = _locals;
+    _locals = new LocalsHandler.from(saved, node);
+    if (simpleCondition) {
+      _updateIsChecks(negativeTests, positiveTests);
+    }
+    visit(node.otherwise);
+    saved.mergeDiamondFlow(thenLocals, _locals);
+    _locals = saved;
+    return null;
+  }
+
+  @override
+  TypeInformation visitIsExpression(ir.IsExpression node) {
+    _potentiallyAddIsCheck(node);
+    visit(node.operand);
+    return _types.boolType;
+  }
+
+  @override
+  TypeInformation visitNot(ir.Not node) {
+    List<IsCheck> temp = _positiveIsChecks;
+    _positiveIsChecks = _negativeIsChecks;
+    _negativeIsChecks = temp;
+    visit(node.operand);
+    temp = _positiveIsChecks;
+    _positiveIsChecks = _negativeIsChecks;
+    _negativeIsChecks = temp;
+    return _types.boolType;
+  }
+
+  @override
+  TypeInformation visitLogicalExpression(ir.LogicalExpression node) {
+    if (node.operator == '&&') {
+      _conditionIsSimple = false;
+      bool oldAccumulateIsChecks = _accumulateIsChecks;
+      List<IsCheck> oldPositiveIsChecks = _positiveIsChecks;
+      List<IsCheck> oldNegativeIsChecks = _negativeIsChecks;
+      if (!_accumulateIsChecks) {
+        _accumulateIsChecks = true;
+        _positiveIsChecks = <IsCheck>[];
+        _negativeIsChecks = <IsCheck>[];
+      }
+      visit(node.left);
+      LocalsHandler saved = _locals;
+      _locals = new LocalsHandler.from(_locals, node);
+      _updateIsChecks(_positiveIsChecks, _negativeIsChecks);
+      LocalsHandler narrowed;
+      if (oldAccumulateIsChecks) {
+        narrowed = new LocalsHandler.topLevelCopyOf(_locals);
+      } else {
+        _accumulateIsChecks = false;
+        _positiveIsChecks = oldPositiveIsChecks;
+        _negativeIsChecks = oldNegativeIsChecks;
+      }
+      visit(node.right);
+      if (oldAccumulateIsChecks) {
+        bool invalidatedInRightHandSide(IsCheck check) {
+          return narrowed.locals[check.local] != _locals.locals[check.local];
+        }
+
+        _positiveIsChecks.removeWhere(invalidatedInRightHandSide);
+        _negativeIsChecks.removeWhere(invalidatedInRightHandSide);
+      }
+      saved.mergeDiamondFlow(_locals, null);
+      _locals = saved;
+      return _types.boolType;
+    } else if (node.operator == '||') {
+      _conditionIsSimple = false;
+      List<IsCheck> positiveIsChecks = <IsCheck>[];
+      List<IsCheck> negativeIsChecks = <IsCheck>[];
+      bool isSimple =
+          handleCondition(node.left, positiveIsChecks, negativeIsChecks);
+      LocalsHandler saved = _locals;
+      _locals = new LocalsHandler.from(_locals, node);
+      if (isSimple) {
+        _updateIsChecks(negativeIsChecks, positiveIsChecks);
+      }
+      bool oldAccumulateIsChecks = _accumulateIsChecks;
+      _accumulateIsChecks = false;
+      visit(node.right);
+      _accumulateIsChecks = oldAccumulateIsChecks;
+      saved.mergeDiamondFlow(_locals, null);
+      _locals = saved;
+      return _types.boolType;
+    }
+    failedAt(CURRENT_ELEMENT_SPANNABLE,
+        "Unexpected logical operator '${node.operator}'.");
+    return null;
+  }
+}
+
+class IsCheck {
+  final ir.Expression node;
+  final Local local;
+  final DartType type;
+
+  IsCheck(this.node, this.local, this.type);
+
+  String toString() => 'IsCheck($local,$type)';
 }

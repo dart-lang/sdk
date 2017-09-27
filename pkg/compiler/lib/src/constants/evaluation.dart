@@ -9,8 +9,10 @@ import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../util/util.dart' show Link;
 import 'constructors.dart';
 import 'expressions.dart';
+import 'values.dart';
 
 /// Environment used for evaluating constant expressions.
 abstract class EvaluationEnvironment {
@@ -34,6 +36,81 @@ abstract class EvaluationEnvironment {
   /// corresponding type variables in [type].
   InterfaceType substByContext(
       covariant InterfaceType base, covariant InterfaceType target);
+
+  void reportWarning(
+      ConstantExpression expression, MessageKind kind, Map arguments);
+
+  void reportError(
+      ConstantExpression expression, MessageKind kind, Map arguments);
+
+  ConstantValue evaluateConstructor(
+      ConstructorEntity constructor, ConstantValue evaluate());
+
+  ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate());
+}
+
+abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
+  Link<Spannable> _spannableStack = const Link<Spannable>();
+  final Set<FieldEntity> _currentlyEvaluatedFields = new Set<FieldEntity>();
+  final Set<ConstructorEntity> _currentlyEvaluatedConstructors =
+      new Set<ConstructorEntity>();
+  final bool constantRequired;
+
+  EvaluationEnvironmentBase(Spannable spannable, {this.constantRequired}) {
+    _spannableStack = _spannableStack.prepend(spannable);
+  }
+
+  DiagnosticReporter get reporter;
+
+  @override
+  ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate()) {
+    if (_currentlyEvaluatedFields.add(field)) {
+      _spannableStack = _spannableStack.prepend(field);
+      ConstantValue result = evaluate();
+      _currentlyEvaluatedFields.remove(field);
+      _spannableStack = _spannableStack.tail;
+      return result;
+    }
+    if (constantRequired) {
+      reporter.reportErrorMessage(
+          field, MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS);
+    }
+    return new NonConstantValue();
+  }
+
+  @override
+  ConstantValue evaluateConstructor(
+      ConstructorEntity constructor, ConstantValue evaluate()) {
+    if (_currentlyEvaluatedConstructors.add(constructor)) {
+      _spannableStack = _spannableStack.prepend(constructor);
+      ConstantValue result = evaluate();
+      _currentlyEvaluatedConstructors.remove(constructor);
+      _spannableStack = _spannableStack.tail;
+      return result;
+    }
+    if (constantRequired) {
+      reporter.reportErrorMessage(
+          constructor, MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS);
+    }
+    return new NonConstantValue();
+  }
+
+  @override
+  void reportError(
+      ConstantExpression expression, MessageKind kind, Map arguments) {
+    if (constantRequired) {
+      // TODO(johnniwinther): Should [ConstantExpression] have a location?
+      reporter.reportErrorMessage(_spannableStack.head, kind, arguments);
+    }
+  }
+
+  @override
+  void reportWarning(
+      ConstantExpression expression, MessageKind kind, Map arguments) {
+    if (constantRequired) {
+      reporter.reportWarningMessage(_spannableStack.head, kind, arguments);
+    }
+  }
 }
 
 /// The normalized arguments passed to a const constructor computed from the

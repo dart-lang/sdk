@@ -11,63 +11,6 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/heap.dart';
 import 'package:kernel/type_algebra.dart';
 
-/// Compares members by name.
-int _compareMembers(Member first, Member second) {
-  return _compareNames(first.name, second.name);
-}
-
-/// Compares names using an arbitrary as-fast-as-possible sorting criterion.
-int _compareNames(Name firstName, Name secondName) {
-  int firstHash = firstName.hashCode;
-  int secondHash = secondName.hashCode;
-  if (firstHash != secondHash) return firstHash - secondHash;
-  String firstString = firstName.name;
-  String secondString = secondName.name;
-  int firstLength = firstString.length;
-  int secondLength = secondString.length;
-  if (firstLength != secondLength) {
-    return firstLength - secondLength;
-  }
-  Library firstLibrary = firstName.library;
-  Library secondLibrary = secondName.library;
-  if (firstLibrary != secondLibrary) {
-    if (firstLibrary == null) return -1;
-    if (secondLibrary == null) return 1;
-    return firstLibrary.compareTo(secondLibrary);
-  }
-  for (int i = 0; i < firstLength; ++i) {
-    int firstUnit = firstString.codeUnitAt(i);
-    int secondUnit = secondString.codeUnitAt(i);
-    int delta = firstUnit - secondUnit;
-    if (delta != 0) return delta;
-  }
-  return 0;
-}
-
-/// Returns the member with the given [name] in the given sorted list of
-/// [members], or `null` if no member has the name.  In case the list contains
-/// multiple members with the given name, the one that occurs first in the list
-/// is returned.
-Member _findMemberByName(List<Member> members, Name name) {
-  int low = 0, high = members.length - 1;
-  while (low <= high) {
-    int mid = low + ((high - low) >> 1);
-    Member pivot = members[mid];
-    int comparison = _compareNames(name, pivot.name);
-    if (comparison < 0) {
-      high = mid - 1;
-    } else if (comparison > 0) {
-      low = mid + 1;
-    } else if (high != mid) {
-      // Ensure we find the first element of the given name.
-      high = mid;
-    } else {
-      return pivot;
-    }
-  }
-  return null;
-}
-
 /// Lazy and incremental implementation of [ClassHierarchy].
 class IncrementalClassHierarchy implements ClassHierarchy {
   /// The next unique identifier for [_ClassInfo]s.
@@ -259,7 +202,7 @@ class IncrementalClassHierarchy implements ClassHierarchy {
     _ClassInfo info = _getInfo(node);
     List<Member> targets =
         setter ? info.implementedSetters : info.implementedGettersAndCalls;
-    return _findMemberByName(targets, name);
+    return ClassHierarchy.findMemberByName(targets, name);
   }
 
   @override
@@ -267,13 +210,19 @@ class IncrementalClassHierarchy implements ClassHierarchy {
     _ClassInfo info = _getInfo(node);
     List<Member> members =
         setter ? info.interfaceSetters : info.interfaceGettersAndCalls;
-    return _findMemberByName(members, name);
+    return ClassHierarchy.findMemberByName(members, name);
   }
 
   @override
   List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
     var info = _getInfo(class_);
     return setters ? info.interfaceSetters : info.interfaceGettersAndCalls;
+  }
+
+  @override
+  List<Member> getDeclaredMembers(Class class_, {bool setters: false}) {
+    var info = _getInfo(class_);
+    return setters ? info.declaredSetters : info.declaredGettersAndCalls;
   }
 
   @override
@@ -331,8 +280,8 @@ class IncrementalClassHierarchy implements ClassHierarchy {
           setters.add(field);
         }
       }
-      members.sort(_compareMembers);
-      setters.sort(_compareMembers);
+      members.sort(ClassHierarchy.compareMembers);
+      setters.sort(ClassHierarchy.compareMembers);
     }
   }
 
@@ -508,7 +457,8 @@ class IncrementalClassHierarchy implements ClassHierarchy {
     while (i < declared.length && j < inherited.length) {
       Member declaredMember = declared[i];
       Member inheritedMember = inherited[j];
-      int comparison = _compareMembers(declaredMember, inheritedMember);
+      int comparison =
+          ClassHierarchy.compareMembers(declaredMember, inheritedMember);
       if (comparison < 0) {
         ++i;
       } else if (comparison > 0) {
@@ -552,7 +502,8 @@ class IncrementalClassHierarchy implements ClassHierarchy {
         ++j;
         continue;
       }
-      int comparison = _compareMembers(declaredMember, inheritedMember);
+      int comparison =
+          ClassHierarchy.compareMembers(declaredMember, inheritedMember);
       if (comparison < 0) {
         result[storeIndex++] = declaredMember;
         ++i;
@@ -595,7 +546,7 @@ class IncrementalClassHierarchy implements ClassHierarchy {
     while (i < first.length && j < second.length) {
       Member firstMember = first[i];
       Member secondMember = second[j];
-      int compare = _compareMembers(firstMember, secondMember);
+      int compare = ClassHierarchy.compareMembers(firstMember, secondMember);
       if (compare <= 0) {
         result[storeIndex++] = firstMember;
         ++i;
@@ -632,7 +583,7 @@ class IncrementalClassHierarchy implements ClassHierarchy {
         continue;
       }
       Member inherited = inheritedList[j];
-      int comparison = _compareMembers(declared, inherited);
+      int comparison = ClassHierarchy.compareMembers(declared, inherited);
       if (comparison < 0) {
         ++i;
       } else if (comparison > 0) {

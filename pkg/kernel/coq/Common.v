@@ -4,6 +4,7 @@
 
 Require Export List.
 Require Export Coq.FSets.FMapWeakList.
+Require Export Coq.FSets.FMapFacts.
 Require Export Coq.Structures.DecidableTypeEx.
 Require Export Coq.Structures.Equalities.
 Require Export Coq.Strings.String.
@@ -26,6 +27,7 @@ Module String_as_UDT := Equalities.Make_UDT(String_as_MDT).
 (** [NatMap] is used to map type variables to type locations and to map type
   locations to type values. *)
 Module NatMap := FMapWeakList.Make(Nat_as_DT).
+Module NatMapFacts := FMapFacts.Facts NatMap.
 
 (** [StringMap] is used to map identifiers to getters, setters, and methods. *)
 Module StringMap := FMapWeakList.Make(String_as_UDT).
@@ -101,4 +103,42 @@ Module ListExtensions.
     | (x::xs) => (x' <- f x; xs' <- mmap f xs; [x' :: xs'])
     end.
 
+  Lemma foldr_mono {A} {B} :
+    forall (P : A -> A -> Prop) (l : list B) (a0 : A) (f : B -> A -> A),
+      (forall x, P x x) ->
+      (forall x y z, P x y -> P y z -> P x z) ->
+      (forall a b, P a (f b a)) ->
+      P a0 (List.fold_right f a0 l).
+  Proof.
+    induction l; crush.
+    pose proof (IHl a0 f H H0 H1).
+    pose proof (H1 (fold_right f a0 l) a).
+    pose proof (H0 _ _ _ H2 H3).
+    crush.
+  Qed.
+
+  Lemma foldr_preserve {A} {B} :
+    forall (P : A -> Prop) (l : list B) (a0 : A) (f : B -> A -> A),
+      (forall a b, P a -> P (f b a)) ->
+      P a0 -> P (List.fold_right f a0 l).
+  Proof.
+    induction l; crush.
+  Qed.
+
 End ListExtensions.
+
+(* These could be generalized and factored into a functor, like FMapFacts, but
+ * right now there's no need. *)
+Module MoreNatMapFacts.
+
+Module N := Coq.Arith.PeanoNat.Nat.
+Lemma add_3 {A} : forall m x (y y' : A), NatMap.MapsTo x y m /\ NatMap.MapsTo x y' m -> y = y'.
+  intuition.
+  set (Fx := NatMap.find x m).
+  assert (Fx = NatMap.find x m) by auto.
+  pose proof (NatMap.find_1 H0).
+  pose proof (NatMap.find_1 H1).
+  crush.
+Qed.
+
+End MoreNatMapFacts.

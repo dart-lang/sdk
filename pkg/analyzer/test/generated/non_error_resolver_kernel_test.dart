@@ -13,6 +13,11 @@ main() {
   });
 }
 
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
+}
+
 @reflectiveTest
 class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
@@ -20,14 +25,57 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_async_future_int_with_return_future_int() async {
+    return super.test_async_future_int_with_return_future_int();
+  }
+
+  @override
+  @failingTest
+  test_conflictingConstructorNameAndMember_setter() async {
+    return super.test_conflictingConstructorNameAndMember_setter();
+  }
+
+  @override
+  @failingTest
+  test_constConstructorWithNonConstSuper_unresolved() async {
+    return super.test_constConstructorWithNonConstSuper_unresolved();
+  }
+
+  @override
+  @failingTest
+  test_constDeferredClass_new() async {
+    return super.test_constDeferredClass_new();
+  }
+
+  @override
+  @failingTest
+  test_constEvalTypeBoolNumString_equal() async {
+    return super.test_constEvalTypeBoolNumString_equal();
+  }
+
+  @override
+  @failingTest
+  test_constEvalTypeBoolNumString_notEqual() async {
+    return super.test_constEvalTypeBoolNumString_notEqual();
+  }
+
+  @override
+  @failingTest
+  test_constRedirectSkipsSupertype() async {
+    return super.test_constRedirectSkipsSupertype();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
   }
 
   @override
   @failingTest
-  test_constWithNonConstantArgument_constField() async {
-    return super.test_constWithNonConstantArgument_constField();
+  test_constWithUndefinedConstructor() async {
+    return super.test_constWithUndefinedConstructor();
   }
 
   @override
@@ -37,13 +85,15 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   }
 
   @override
-  @failingTest
+  @assertFailingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30836')
   test_finalNotInitialized_hasNativeClause_hasConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_hasConstructor();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30836')
   test_finalNotInitialized_hasNativeClause_noConstructor() async {
     fail('This test fails only in checked mode.');
     return super.test_finalNotInitialized_hasNativeClause_noConstructor();
@@ -51,36 +101,48 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_finalNotInitialized_redirectingConstructor() async {
+    return super.test_finalNotInitialized_redirectingConstructor();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_functionDeclaration_scope_signature() async {
     return super.test_functionDeclaration_scope_signature();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_functionTypeAlias_scope_signature() async {
     return super.test_functionTypeAlias_scope_signature();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30208')
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
     return super.test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30208')
   test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
     return super.test_genericTypeAlias_castsAndTypeChecks_noTypeParameters();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30208')
   test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
     return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
   test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() async {
     return super
         .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
@@ -88,6 +150,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
   test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() async {
     return super
         .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
@@ -113,135 +176,140 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_invalidAnnotation_constantVariable_field() async {
-    return super.test_invalidAnnotation_constantVariable_field();
+  test_implicitThisReferenceInInitializer_constructorName() async {
+    return super.test_implicitThisReferenceInInitializer_constructorName();
   }
 
   @override
   @failingTest
-  test_invalidAnnotation_constantVariable_field_importWithPrefix() async {
-    return super
-        .test_invalidAnnotation_constantVariable_field_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  test_loadLibraryDefined() async {
-    fail('This test fails only in checked mode.');
-    return super.test_loadLibraryDefined();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30834')
   test_memberWithClassName_setter() async {
     return super.test_memberWithClassName_setter();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_methodDeclaration_scope_signature() async {
     return super.test_methodDeclaration_scope_signature();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30835')
   test_nativeConstConstructor() async {
     return super.test_nativeConstConstructor();
   }
 
   @override
   @failingTest
-  test_nativeFunctionBodyInNonSDKCode_function() async {
-    return super.test_nativeFunctionBodyInNonSDKCode_function();
+  test_newWithUndefinedConstructor() async {
+    return super.test_newWithUndefinedConstructor();
   }
 
   @override
   @failingTest
-  test_nonConstantDefaultValue_constField() async {
-    return super.test_nonConstantDefaultValue_constField();
+  test_nonConstValueInInitializer_binary_bool() async {
+    return super.test_nonConstValueInInitializer_binary_bool();
   }
 
   @override
   @failingTest
-  test_nonConstantDefaultValue_function_named() async {
-    return super.test_nonConstantDefaultValue_function_named();
+  test_nonConstValueInInitializer_binary_dynamic() async {
+    return super.test_nonConstValueInInitializer_binary_dynamic();
   }
 
   @override
   @failingTest
-  test_nonConstantDefaultValue_function_positional() async {
-    return super.test_nonConstantDefaultValue_function_positional();
+  test_nonConstValueInInitializer_binary_int() async {
+    return super.test_nonConstValueInInitializer_binary_int();
   }
 
   @override
   @failingTest
-  test_nonConstantDefaultValue_method_named() async {
-    return super.test_nonConstantDefaultValue_method_named();
+  test_nonConstValueInInitializer_binary_num() async {
+    return super.test_nonConstValueInInitializer_binary_num();
   }
 
   @override
   @failingTest
-  test_nonConstantDefaultValue_method_positional() async {
-    return super.test_nonConstantDefaultValue_method_positional();
+  test_nonConstValueInInitializer_redirecting() async {
+    return super.test_nonConstValueInInitializer_redirecting();
   }
 
   @override
   @failingTest
-  test_nonConstCaseExpression_constField() async {
-    return super.test_nonConstCaseExpression_constField();
+  test_nonConstValueInInitializer_unary() async {
+    return super.test_nonConstValueInInitializer_unary();
   }
 
   @override
   @failingTest
-  test_nonConstListElement_constField() async {
-    return super.test_nonConstListElement_constField();
+  test_nonGenerativeConstructor() async {
+    return super.test_nonGenerativeConstructor();
   }
 
   @override
   @failingTest
-  test_nonConstMapKey_constField() async {
-    return super.test_nonConstMapKey_constField();
+  test_propagateTypeArgs_intoSupertype() async {
+    return super.test_propagateTypeArgs_intoSupertype();
   }
 
   @override
   @failingTest
-  test_nonConstMapValue_constField() async {
-    return super.test_nonConstMapValue_constField();
+  test_recursiveConstructorRedirect() async {
+    return super.test_recursiveConstructorRedirect();
   }
 
   @override
   @failingTest
-  test_returnOfInvalidType_dynamicAsTypeArgument() async {
-    return super.test_returnOfInvalidType_dynamicAsTypeArgument();
+  test_redirectToNonConstConstructor() async {
+    return super.test_redirectToNonConstConstructor();
   }
 
   @override
   @failingTest
+  test_referenceToDeclaredVariableInInitializer_constructorName() async {
+    return super
+        .test_referenceToDeclaredVariableInInitializer_constructorName();
+  }
+
+  @override
+  @failingTest
+  test_staticAccessToInstanceMember_annotation() async {
+    return super.test_staticAccessToInstanceMember_annotation();
+  }
+
+  @override
+  @failingTest
+  test_undefinedConstructorInInitializer_explicit_named() async {
+    return super.test_undefinedConstructorInInitializer_explicit_named();
+  }
+
+  @override
+  @failingTest
+  test_undefinedConstructorInInitializer_redirecting() async {
+    return super.test_undefinedConstructorInInitializer_redirecting();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30840')
   test_undefinedIdentifier_synthetic_whenExpression() async {
     return super.test_undefinedIdentifier_synthetic_whenExpression();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30840')
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
   }
 
   @override
   @failingTest
-  test_uriDoesNotExist_dll() async {
-    return super.test_uriDoesNotExist_dll();
-  }
-
-  @override
-  @failingTest
-  test_uriDoesNotExist_dylib() async {
-    return super.test_uriDoesNotExist_dylib();
-  }
-
-  @override
-  @failingTest
-  test_uriDoesNotExist_so() async {
-    return super.test_uriDoesNotExist_so();
+  test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new() async {
+    return super
+        .test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new();
   }
 }

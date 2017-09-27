@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method bad() → dynamic {
+  dynamic a = "";
+  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_29941.dart:7:5: Error: Expected an identifier, but got '\"\"'.\n  a.\"\";\n    ^"));
+}
+static method main() → dynamic {}

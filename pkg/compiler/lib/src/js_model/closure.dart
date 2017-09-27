@@ -32,9 +32,16 @@ class KernelClosureAnalysis {
       if (field.initializer == null) return null;
     }
 
+    bool hasThisLocal = false;
+    if (entity.isInstanceMember) {
+      hasThisLocal = true;
+    } else if (entity.isConstructor) {
+      ConstructorEntity constructor = entity;
+      hasThisLocal = !constructor.isFactoryConstructor;
+    }
     ScopeModel model = new ScopeModel();
-    CapturedScopeBuilder translator = new CapturedScopeBuilder(model,
-        hasThisLocal: entity.isInstanceMember || entity.isConstructor);
+    CapturedScopeBuilder translator =
+        new CapturedScopeBuilder(model, hasThisLocal: hasThisLocal);
     if (entity.isField) {
       if (node is ir.Field && node.initializer != null) {
         node.accept(translator);
@@ -589,7 +596,7 @@ class ClosureFunctionData extends ClosureMemberData implements FunctionData {
 
     for (int i = 0; i < functionNode.positionalParameters.length; i++) {
       handleParameter(functionNode.positionalParameters[i],
-          isOptional: i < functionNode.requiredParameterCount);
+          isOptional: i >= functionNode.requiredParameterCount);
     }
     functionNode.namedParameters.toList()
       ..sort(namedOrdering)

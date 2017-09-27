@@ -8,6 +8,8 @@ import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
+import '../../base/instrumentation.dart' show InstrumentationValueLiteral;
+
 import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart'
@@ -37,7 +39,10 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        Message,
+        codeTypeNotFound,
         messagePartOfSelf,
+        messageMemberWithSameNameAsClass,
         templateConflictsWithMember,
         templateConflictsWithSetter,
         templateDeferredPrefixDuplicated,
@@ -321,6 +326,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
     bool isConstructor = builder is ProcedureBuilder &&
         (builder.isConstructor || builder.isFactory);
+    if (!isConstructor && name == currentDeclaration.name) {
+      addCompileTimeError(
+          messageMemberWithSameNameAsClass, charOffset, fileUri);
+    }
     Map<String, Builder> members = isConstructor
         ? currentDeclaration.constructors
         : (builder.isSetter
@@ -559,11 +568,30 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   String get fullNameForErrors => name ?? "<library '$relativeFileUri'>";
 
   @override
-  void prepareInitializerInference(
+  void prepareTopLevelInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
     forEach((String name, Builder member) {
-      member.prepareInitializerInference(library, currentClass);
+      if (member is ClassBuilder) {
+        // Classes are handled separately, in class hierarchy order.
+        return;
+      }
+      member.prepareTopLevelInference(library, currentClass);
     });
+  }
+
+  @override
+  void addWarning(Message message, int charOffset, Uri uri,
+      {bool silent: false}) {
+    super.addWarning(message, charOffset, uri, silent: silent);
+    if (!silent) {
+      // TODO(ahe): All warnings should have a charOffset, but currently, some
+      // unresolved type warnings lack them.
+      if (message.code != codeTypeNotFound && charOffset != -1) {
+        // TODO(ahe): Should I add a value for messages?
+        loader.instrumentation?.record(uri, charOffset, "warning",
+            new InstrumentationValueLiteral(message.code.name));
+      }
+    }
   }
 }
 

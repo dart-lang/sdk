@@ -42,10 +42,44 @@ getter_setter_in_lib_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
+mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 string_interpolate_test: CompileTimeError
 type_variable_scope_test/none: CompileTimeError
 vm/*: SkipByDesign # VM only tests.
+interceptor6_test: CompileTimeError
+interface_test/00: MissingCompileTimeError
+internal_library_test/01: MissingCompileTimeError # Issue 29920
+internal_library_test/02: Crash
+override_field_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/02: MissingCompileTimeError
+override_inheritance_abstract_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/08: MissingCompileTimeError
+override_inheritance_abstract_test/09: MissingCompileTimeError
+override_inheritance_abstract_test/10: MissingCompileTimeError
+override_inheritance_abstract_test/11: MissingCompileTimeError
+override_inheritance_abstract_test/12: MissingCompileTimeError
+override_inheritance_abstract_test/13: MissingCompileTimeError
+override_inheritance_abstract_test/14: MissingCompileTimeError
+override_inheritance_abstract_test/17: MissingCompileTimeError
+override_inheritance_abstract_test/19: MissingCompileTimeError
+override_inheritance_abstract_test/20: MissingCompileTimeError
+override_inheritance_abstract_test/21: MissingCompileTimeError
+override_inheritance_abstract_test/22: MissingCompileTimeError
+override_inheritance_abstract_test/23: MissingCompileTimeError
+override_inheritance_abstract_test/24: MissingCompileTimeError
+override_inheritance_abstract_test/25: MissingCompileTimeError
+override_inheritance_abstract_test/26: MissingCompileTimeError
+override_inheritance_field_test/04: CompileTimeError
+override_inheritance_field_test/06: CompileTimeError
+override_inheritance_field_test/26: CompileTimeError
+override_inheritance_field_test/29: CompileTimeError
+override_inheritance_field_test/42: CompileTimeError
+override_inheritance_field_test/43: CompileTimeError
+override_inheritance_field_test/45: CompileTimeError
+override_inheritance_field_test/49: CompileTimeError
+override_inheritance_field_test/50: CompileTimeError
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -55,6 +89,12 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 const_objects_are_immutable_test: RuntimeError # Issue 29897
+method_override_test: CompileTimeError # Negative test
+method_override7_test/03: MissingCompileTimeError # Issue 30514
+mixin_super_test: RuntimeError
+mixin_super_use_test: RuntimeError
+mixin_supertype_subclass_test/02: MissingCompileTimeError
+mixin_supertype_subclass_test/05: MissingCompileTimeError
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/01r: CompileTimeError
 multiline_newline_test/02: CompileTimeError
@@ -143,9 +183,20 @@ cyclic_type2_test: RuntimeError # Issue 29920
 cyclic_type_test/02: RuntimeError # Issue 29920
 cyclic_type_test/03: RuntimeError # Issue 29920
 cyclic_type_test/04: RuntimeError # Issue 29920
+double_int_to_string_test: RuntimeError # Issue 29920
 deferred_call_empty_before_load_test: RuntimeError # Issue 27777
 deferred_load_constants_test/none: RuntimeError # Issue 27394
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
+deferred_not_loaded_check_test: RuntimeError # Issue 27777
+deferred_redirecting_factory_test: RuntimeError # Issue 27777
+deferred_static_seperate_test: RuntimeError # Issue 27777
+double_to_string_as_fixed2_test/none: RuntimeError # Issue 29920
+execute_finally6_test: RuntimeError # Issue 29920
+flatten_test/05: MissingRuntimeError # Issue 29920
+flatten_test/08: MissingRuntimeError # Issue 29920
+flatten_test/09: MissingRuntimeError # Issue 29920
+flatten_test/12: MissingRuntimeError # Issue 29920
+for_variable_capture_test: RuntimeError # Issue 29920
 function_subtype_inline2_test: RuntimeError
 function_type/function_type50_test: RuntimeError # Issue 29920
 function_type/function_type58_test: RuntimeError # Issue 29920
@@ -160,11 +211,20 @@ identical_closure2_test: RuntimeError # Issue 29920
 infinite_switch_label_test: RuntimeError # Issue 29920
 infinity_test: RuntimeError # Issue 29920
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
+integer_division_by_zero_test: RuntimeError # Issue 29920
+invocation_mirror2_test: RuntimeError
+invocation_mirror_empty_arguments_test: RuntimeError
+invocation_mirror_invoke_on2_test: RuntimeError
+invocation_mirror_invoke_on_test: RuntimeError
+invocation_mirror_test: RuntimeError
 issue21159_test: RuntimeError # Issue 30701
 issue23244_test: RuntimeError # Issue 29920
 label_test: RuntimeError # Issue 30675
-named_parameters_default_eq_test/none: RuntimeError
-yieldstar_pause_test: Skip # Times out
 modulo_test: RuntimeError # Issue 29920
 named_parameter_clash_test: RuntimeError # Issue 29920
-
+named_parameters_default_eq_test/none: RuntimeError
+null_test/mirrors: RuntimeError # Uses mirrors.
+number_identity2_test: RuntimeError # Issue 29920
+numbers_test: RuntimeError # Issue 29920
+vm/*: SkipByDesign # Tests for the VM.
+yieldstar_pause_test: Skip # Times out

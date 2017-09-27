@@ -4,6 +4,7 @@
 
 library dart._isolate_helper;
 
+import 'dart:_runtime' as dart;
 import 'dart:_js_embedded_names'
     show
         CLASS_ID_EXTRACTOR,
@@ -697,14 +698,9 @@ class _IsolateEvent {
   }
 }
 
-// "self" is a way to refer to the global context object that
-// works in HTML pages and in Web Workers.  It does not work in d8, iojs
-// and Firefox jsshell, because that would have been too easy. In iojs
-// "global" works.
-//
-// See: http://www.w3.org/TR/workers/#the-global-scope
-// and: http://www.w3.org/TR/Window/#dfn-self-attribute
-final global = JS("", "typeof global == 'undefined' ? self : global");
+// TODO(vsm): Other libraries import global from here.  Consider replacing
+// those uses to just refer to the one in dart:runtime.
+final global = dart.global_;
 
 /** A stub for interacting with the main manager. */
 class _MainManagerStub {
@@ -764,7 +760,8 @@ class IsolateNatives {
   static String computeThisScript() {
     // See: https://github.com/dart-lang/dev_compiler/issues/164
     // var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
-    var currentScript = JS('var', 'document.currentScript');
+    var currentScript = JS(
+        'var', '#.document ? #.document.currentScript : null', global, global);
     if (currentScript != null) {
       return JS('String', 'String(#.src)', currentScript);
     }

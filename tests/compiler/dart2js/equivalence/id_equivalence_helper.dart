@@ -9,6 +9,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 
 import '../annotated_code_helper.dart';
@@ -70,19 +71,24 @@ Future<IdData> computeData(
   Map<Id, ActualData> actualMap = <Id, ActualData>{};
   Uri mainUri = Uri.parse('memory:main.dart');
   Compiler compiler = await compileFunction(code, mainUri, options);
-  ElementEnvironment elementEnvironment =
-      compiler.backendClosedWorldForTesting.elementEnvironment;
+  ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
   elementEnvironment.forEachClass(mainLibrary, (ClassEntity cls) {
-    elementEnvironment.forEachConstructor(cls, (ConstructorEntity constructor) {
-      computeMemberData(compiler, constructor, actualMap, verbose: verbose);
-    });
-    elementEnvironment.forEachClassMember(cls,
-        (ClassEntity declarer, MemberEntity member) {
-      if (cls == declarer) {
-        computeMemberData(compiler, member, actualMap, verbose: verbose);
-      }
-    });
+    if (closedWorld.isInstantiated(cls)) {
+      elementEnvironment.forEachConstructor(cls,
+          (ConstructorEntity constructor) {
+        computeMemberData(compiler, constructor, actualMap, verbose: verbose);
+      });
+    }
+    if (closedWorld.isImplemented(cls)) {
+      elementEnvironment.forEachClassMember(cls,
+          (ClassEntity declarer, MemberEntity member) {
+        if (cls == declarer) {
+          computeMemberData(compiler, member, actualMap, verbose: verbose);
+        }
+      });
+    }
   });
   elementEnvironment.forEachLibraryMember(mainLibrary, (MemberEntity member) {
     computeMemberData(compiler, member, actualMap, verbose: verbose);
@@ -188,7 +194,9 @@ class IdData {
 /// contains the name of the test file it isn't tested for kernel.
 Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeMemberDataFunction computeFromKernel,
-    {List<String> skipForKernel: const <String>[],
+    {List<String> skipforAst: const <String>[],
+    List<String> skipForKernel: const <String>[],
+    bool filterActualData(IdValue idValue, ActualData actualData),
     List<String> options: const <String>[],
     List<String> args: const <String>[]}) async {
   args = args.toList();
@@ -200,16 +208,22 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     print('Checking ${entity.uri}');
     print('----------------------------------------------------------------');
     String annotatedCode = await new File.fromUri(entity.uri).readAsString();
-    print('--from ast------------------------------------------------------');
-    await checkCode(annotatedCode, computeFromAst, compileFromSource,
-        options: options, verbose: verbose);
+    if (skipforAst.contains(name)) {
+      print('--skipped for kernel------------------------------------------');
+    } else {
+      print('--from ast------------------------------------------------------');
+      await checkCode(annotatedCode, computeFromAst, compileFromSource,
+          options: options, verbose: verbose);
+    }
     if (skipForKernel.contains(name)) {
       print('--skipped for kernel------------------------------------------');
-      continue;
+    } else {
+      print('--from kernel---------------------------------------------------');
+      await checkCode(annotatedCode, computeFromKernel, compileFromDill,
+          options: options,
+          verbose: verbose,
+          filterActualData: filterActualData);
     }
-    print('--from kernel---------------------------------------------------');
-    await checkCode(annotatedCode, computeFromKernel, compileFromDill,
-        options: options, verbose: verbose);
   }
 }
 
@@ -221,6 +235,7 @@ Future checkCode(
     ComputeMemberDataFunction computeMemberData,
     CompileFunction compileFunction,
     {List<String> options: const <String>[],
+    bool filterActualData(IdValue expected, ActualData actualData),
     bool verbose: false}) async {
   IdData data = await computeData(
       annotatedCode, computeMemberData, compileFunction,
@@ -240,7 +255,9 @@ Future checkCode(
         print(data.diffCode);
         print('--------------------------------------------------------------');
       }
-      Expect.equals('', actual.value);
+      if (filterActualData == null || filterActualData(null, actualData)) {
+        Expect.equals('', actual.value);
+      }
     } else {
       IdValue expected = data.expectedMap[id];
       if (actual != expected) {
@@ -253,7 +270,9 @@ Future checkCode(
         print(data.diffCode);
         print('--------------------------------------------------------------');
       }
-      Expect.equals(expected, actual);
+      if (filterActualData == null || filterActualData(expected, actualData)) {
+        Expect.equals(expected, actual);
+      }
     }
   });
 

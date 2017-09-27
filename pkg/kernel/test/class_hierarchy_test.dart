@@ -846,6 +846,66 @@ class I implements self::C, self::D, self::E {}
         hierarchy.getClassicLeastUpperBound(h.rawType, i.rawType), a.rawType);
   }
 
+  void test_getDeclaredMembers() {
+    var method = newEmptyMethod('method');
+    var getter = newEmptyGetter('getter');
+    var setter = newEmptySetter('setter');
+    var abstractMethod = newEmptyMethod('abstractMethod', isAbstract: true);
+    var abstractGetter = newEmptyGetter('abstractGetter', isAbstract: true);
+    var abstractSetter = newEmptySetter('abstractSetter', isAbstract: true);
+    var nonFinalField = new Field(new Name('nonFinalField'));
+    var finalField = new Field(new Name('finalField'), isFinal: true);
+    var a = addClass(new Class(
+        isAbstract: true,
+        name: 'A',
+        supertype: objectSuper,
+        fields: [
+          nonFinalField,
+          finalField
+        ],
+        procedures: [
+          method,
+          getter,
+          setter,
+          abstractMethod,
+          abstractGetter,
+          abstractSetter
+        ]));
+    var b = addClass(
+        new Class(isAbstract: true, name: 'B', supertype: a.asThisSupertype));
+
+    _assertTestLibraryText('''
+abstract class A {
+  field dynamic nonFinalField;
+  final field dynamic finalField;
+  method method() → void {}
+  get getter() → dynamic {
+    return null;
+  }
+  set setter(dynamic _) → void {}
+  abstract method abstractMethod() → void;
+  get abstractGetter() → dynamic;
+  set abstractSetter(dynamic _) → void;
+}
+abstract class B extends self::A {}
+''');
+
+    expect(
+        hierarchy.getDeclaredMembers(a),
+        unorderedEquals([
+          method,
+          getter,
+          abstractMethod,
+          abstractGetter,
+          nonFinalField,
+          finalField
+        ]));
+    expect(hierarchy.getDeclaredMembers(a, setters: true),
+        unorderedEquals([setter, abstractSetter, nonFinalField]));
+    expect(hierarchy.getDeclaredMembers(b), isEmpty);
+    expect(hierarchy.getDeclaredMembers(b, setters: true), isEmpty);
+  }
+
   void test_getDispatchTarget() {
     var aMethod = newEmptyMethod('aMethod');
     var aSetter = newEmptySetter('aSetter');

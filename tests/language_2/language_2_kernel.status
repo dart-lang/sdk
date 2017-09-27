@@ -11,7 +11,7 @@ constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
-generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
+generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30208
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 ct_const2_test: Pass, Crash # Flaky
@@ -67,6 +67,12 @@ deferred_inlined_test: RuntimeError
 deferred_load_inval_code_test: RuntimeError
 deferred_load_library_wrong_args_test/none: RuntimeError
 deferred_mixin_test: RuntimeError
+function_subtype_bound_closure3_test: RuntimeError
+function_subtype_bound_closure4_test: RuntimeError
+function_subtype_cast1_test: RuntimeError
+function_subtype_not1_test: RuntimeError
+function_subtype_regression_ddc_588_test: RuntimeError
+function_type_alias2_test: RuntimeError
 generic_function_dcall_test: CompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
@@ -74,7 +80,6 @@ generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
-generic_methods_generic_function_result_test/none: RuntimeError
 generic_methods_named_parameters_test: RuntimeError
 generic_methods_optional_parameters_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
@@ -133,6 +138,21 @@ issue_1751477_test: RuntimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 covariant_override/runtime_check_test: RuntimeError
+deferred_no_such_method_test: RuntimeError
+deferred_not_loaded_check_test: RuntimeError
+deferred_only_constant_test: RuntimeError
+deferred_optimized_test: RuntimeError
+deferred_redirecting_factory_test: RuntimeError
+deferred_regression_22995_test: RuntimeError
+deferred_shadow_load_library_test: RuntimeError
+deferred_shared_and_unshared_classes_test: RuntimeError
+deferred_static_seperate_test: RuntimeError
+deferred_type_dependency_test/as: RuntimeError
+deferred_type_dependency_test/is: RuntimeError
+deferred_type_dependency_test/none: RuntimeError
+deferred_type_dependency_test/type_annotation: RuntimeError
+for2_test: RuntimeError
+for_variable_capture_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -144,6 +164,7 @@ inferrer_synthesized_constructor_test: RuntimeError
 [ $compiler == dartk && $runtime == vm && $checked ]
 assertion_initializer_const_function_test/01: RuntimeError
 regress_30339_test: RuntimeError
+if_null_precedence_test/none: Pass
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 assert_assignable_type_test: Crash
@@ -206,6 +227,7 @@ assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 compile_time_constant_checked_test/02: MissingCompileTimeError
 default_factory2_test/01: Fail
+function_type2_test: RuntimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -240,7 +262,21 @@ deferred_load_constants_test/none: CompileTimeError # Fasta/KernelVM bug: Deferr
 deferred_load_inval_code_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_load_library_wrong_args_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_mixin_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-deferred_no_prefix_test/01: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_no_such_method_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_only_constant_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_optimized_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_redirecting_factory_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_regression_22995_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_regression_28678_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_shadow_load_library_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_shared_and_unshared_classes_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_static_seperate_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_super_dependency_test/01: Pass
+deferred_type_dependency_test/as: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/is: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/type_annotation: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 function_type/function_type0_test: RuntimeError
 function_type/function_type10_test: RuntimeError
 function_type/function_type11_test: RuntimeError
@@ -343,12 +379,21 @@ function_type/function_type99_test: RuntimeError
 function_type/function_type9_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 issue_1751477_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+method_override_test: RuntimeError # Not triaged.
+mixin_super_constructor_named_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
+mixin_super_constructor_positionals_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
+not_enough_positional_arguments_test/01: MissingCompileTimeError
+not_enough_positional_arguments_test/02: MissingCompileTimeError
+not_enough_positional_arguments_test/05: MissingCompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
-named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
+vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+vm/type_vm_test: RuntimeError # Fasta bug: Bad position information in stack trace.
+for2_test: RuntimeError # KernelVM bug: Closure conversion?
+for_variable_capture_test: RuntimeError # KernelVM bug: Closure conversion?
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError
@@ -380,6 +425,10 @@ named_parameters_type_test/01: Crash
 named_parameters_type_test/02: Crash
 named_parameters_type_test/03: Crash
 vm/integer_type_propagation_test: Crash
+vm/optimized_stacktrace_test: Crash
+vm/regress_27671_test: Crash
+vm/type_vm_test: Crash
+
 
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError
@@ -393,6 +442,7 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeE
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
+duplicate_export_negative_test: Fail # Issue 6134
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 cyclic_type_variable_test/01: Crash
@@ -403,3 +453,7 @@ cyclic_type_variable_test/none: Crash
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 constructor3_test: Fail, OK, Pass
+vm/regress_29145_test: Skip # Issue 29145
+
+[ $compiler == dartk && $mode == debug ]
+deopt_inlined_function_lazy_test: Skip

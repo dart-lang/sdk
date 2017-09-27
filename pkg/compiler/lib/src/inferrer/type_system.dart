@@ -440,7 +440,7 @@ class TypeSystem<T> {
     int inferredLength = isFixed ? length : null;
     TypeMask elementTypeMask =
         isElementInferred ? elementType.type : dynamicType.type;
-    ContainerTypeMask mask = new ContainerTypeMask(
+    ContainerTypeMask<T> mask = new ContainerTypeMask<T>(
         type.type, node, enclosing, elementTypeMask, inferredLength);
     ElementInContainerTypeInformation element =
         new ElementInContainerTypeInformation(currentMember, elementType);

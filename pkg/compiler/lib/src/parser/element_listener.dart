@@ -165,6 +165,17 @@ class ElementListener extends Listener {
   }
 
   @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    popNode(); // combinators
+    if (asKeyword != null) {
+      popNode(); // prefix
+    }
+    popNode(); // conditionalUris
+    // TODO(danrubel): recover
+  }
+
+  @override
   void endDottedName(int count, Token token) {
     NodeList identifiers = makeNodeList(count, null, null, '.');
     pushNode(new DottedName(token, identifiers));
@@ -180,8 +191,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endConditionalUri(
-      Token ifToken, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifToken, Token leftParen, Token equalSign) {
     StringNode uri = popNode();
     LiteralString conditionValue = (equalSign != null) ? popNode() : null;
     DottedName identifier = popNode();

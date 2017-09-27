@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-viod test(List<num> nums) {
+void test(List<num> nums) {
   for (var /*@type=num*/ x in nums) {
     if (x is int) {
       var /*@type=int*/ y = /*@promotedType=int*/ x;

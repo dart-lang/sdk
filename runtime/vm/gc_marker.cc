@@ -432,7 +432,8 @@ static bool IsUnreachable(const RawObject* raw_obj) {
 
 class MarkingWeakVisitor : public HandleVisitor {
  public:
-  explicit MarkingWeakVisitor(Thread* thread) : HandleVisitor(thread) {}
+  explicit MarkingWeakVisitor(Thread* thread)
+      : HandleVisitor(thread), class_table_(thread->isolate()->class_table()) {}
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
@@ -440,10 +441,22 @@ class MarkingWeakVisitor : public HandleVisitor {
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
       handle->UpdateUnreachable(thread()->isolate());
+    } else {
+#ifndef PRODUCT
+      intptr_t cid = raw_obj->GetClassIdMayBeSmi();
+      intptr_t size = handle->external_size();
+      if (raw_obj->IsSmiOrOldObject()) {
+        class_table_->UpdateLiveOldExternal(cid, size);
+      } else {
+        class_table_->UpdateLiveNewExternal(cid, size);
+      }
+#endif  // !PRODUCT
     }
   }
 
  private:
+  ClassTable* class_table_;
+
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };
 

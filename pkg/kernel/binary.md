@@ -136,7 +136,7 @@ type ProgramIndex {
   UInt32 binaryOffsetForCanonicalNames;
   UInt32 binaryOffsetForStringTable;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
-  UInt32[libraryCount] libraryOffsets;
+  UInt32[libraryCount + 1] libraryOffsets;
   UInt32 libraryCount;
   UInt32 programFileSizeInBytes;
 }
@@ -182,6 +182,7 @@ type Library {
   Byte flags (isExternal);
   CanonicalNameReference canonicalName;
   StringReference name;
+  StringReference documentationComment;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
   List<Expression> annotations;
@@ -192,9 +193,17 @@ type Library {
   List<Class> classes;
   List<Field> fields;
   List<Procedure> procedures;
+
+  // Library index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
+  // a specific class or procedure. Note the "+1" to account for needing the end of the last entry.
+  UInt32[classes.length + 1] classOffsets;
+  UInt32 classCount = classes.length;
+  UInt32[procedures.length + 1] procedureOffsets;
+  UInt32 procedureCount = procedures.length;
 }
 
 type LibraryDependency {
+  FileOffset fileOffset;
   Byte flags (isExport, isDeferred);
   List<Expression> annotations;
   LibraryReference targetLibrary;
@@ -259,6 +268,11 @@ type Class extends Node {
   List<Field> fields;
   List<Constructor> constructors;
   List<Procedure> procedures;
+
+  // Class index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
+  // a specific procedure. Note the "+1" to account for needing the end of the last entry.
+  UInt32[procedures.length + 1] procedureOffsets;
+  UInt32 procedureCount = procedures.length;
 }
 
 abstract type Member extends Node {}
@@ -283,7 +297,6 @@ type Constructor extends Member {
   Byte tag = 5;
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
-  FileOffset nameOffset;
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
   Name name;
@@ -307,7 +320,6 @@ type Procedure extends Member {
   Byte tag = 6;
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
-  FileOffset nameOffset;
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst);

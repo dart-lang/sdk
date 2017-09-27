@@ -65,6 +65,17 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    popNode(); // combinators
+    if (asKeyword != null) {
+      popNode(); // prefix
+    }
+    popNode(); // conditionalUris
+    // TODO(danrubel): recover
+  }
+
+  @override
   void endExport(Token exportKeyword, Token semicolon) {
     NodeList combinators = popNode();
     NodeList conditionalUris = popNode();
@@ -962,7 +973,7 @@ class NodeListener extends ElementListener {
 
   @override
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+      Token inKeyword, Token endToken) {
     Statement body = popNode();
     Expression expression = popNode();
     Node declaredIdentifier = popNode();
@@ -1023,7 +1034,7 @@ class NodeListener extends ElementListener {
 
   @override
   void endAssert(Token assertKeyword, fasta.Assert kind, Token leftParenthesis,
-      Token commaToken, Token rightParenthesis, Token semicolonToken) {
+      Token commaToken, Token semicolonToken) {
     Node message;
     Node condition;
     if (commaToken != null) {

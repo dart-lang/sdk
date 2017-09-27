@@ -421,13 +421,27 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         Value* left_value = call->PushArgumentAt(0)->value();
         Value* right_value = call->PushArgumentAt(1)->value();
         if (right_value->Type()->IsNullableDouble()) {
+          // Make sure type of the left operand is double.
+          // It is necessary as VM has limited knowledge of generic types
+          // and may not accurately infer type of the receiver if it is a
+          // generic type.
+          // TODO(dartbug.com/30480): improve type inference for generic types
+          // and simplify this code to
+          // ASSERT(left_value->Type()->IsNullableDouble()).
+          Value* left_operand = NULL;
+          if (left_value->Type()->IsNullableDouble()) {
+            left_operand = left_value->CopyWithType(Z);
+          } else {
+            left_operand = new (Z) Value(left_value->definition());
+            left_operand->SetReachingType(
+                new (Z) CompileType(CompileType::Double()));
+          }
           // Only need to check right value, as left value should be checked
           // when instance call is converted to static.
           AddCheckNull(right_value, call->deopt_id(), call->env(), call);
-          replacement = new (Z)
-              BinaryDoubleOpInstr(op_kind, left_value->CopyWithType(Z),
-                                  right_value->CopyWithType(Z),
-                                  Thread::kNoDeoptId, call->token_pos());
+          replacement = new (Z) BinaryDoubleOpInstr(
+              op_kind, left_operand, right_value->CopyWithType(Z),
+              Thread::kNoDeoptId, call->token_pos());
         }
       }
     }

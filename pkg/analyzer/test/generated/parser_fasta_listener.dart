@@ -7,7 +7,6 @@ import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
 import 'package:front_end/src/fasta/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
-import 'package:front_end/src/fasta/util/link.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
 
@@ -574,10 +573,10 @@ class ForwardingTestListener implements fasta.Listener {
 
   @override
   void endAssert(Token assertKeyword, fasta.Assert kind, Token leftParenthesis,
-      Token commaToken, Token rightParenthesis, Token semicolonToken) {
+      Token commaToken, Token semicolonToken) {
     end('Assert');
-    listener.endAssert(assertKeyword, kind, leftParenthesis, commaToken,
-        rightParenthesis, semicolonToken);
+    listener.endAssert(
+        assertKeyword, kind, leftParenthesis, commaToken, semicolonToken);
   }
 
   @override
@@ -651,10 +650,9 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endConditionalUri(
-      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     end('ConditionalUri');
-    listener.endConditionalUri(ifKeyword, leftParen, equalSign, rightParen);
+    listener.endConditionalUri(ifKeyword, leftParen, equalSign);
   }
 
   @override
@@ -746,11 +744,10 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+  void endForIn(Token awaitToken, Token forToken, Token leftParen,
+      Token inKeyword, Token endToken) {
     end('ForStatement');
-    listener.endForIn(awaitToken, forToken, leftParenthesis, inKeyword,
-        rightParenthesis, endToken);
+    listener.endForIn(awaitToken, forToken, leftParen, inKeyword, endToken);
   }
 
   @override
@@ -1217,6 +1214,13 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    expectIn('CompilationUnit');
+    listener.handleRecoverImport(deferredKeyword, asKeyword, semicolon);
+  }
+
+  @override
   void handleIndexedExpression(
       Token openSquareBracket, Token closeSquareBracket) {
     listener.handleIndexedExpression(openSquareBracket, closeSquareBracket);
@@ -1295,12 +1299,6 @@ class ForwardingTestListener implements fasta.Listener {
   void handleLiteralNull(Token token) {
     listener.handleLiteralNull(token);
     // TODO(danrubel): implement handleLiteralNull
-  }
-
-  @override
-  Link<Token> handleMemberName(Link<Token> identifiers) {
-    return listener.handleMemberName(identifiers);
-    // TODO(danrubel): implement handleMemberName
   }
 
   @override

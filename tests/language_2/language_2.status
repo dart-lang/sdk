@@ -37,9 +37,23 @@ deferred_load_constants_test: Crash # Requires deferred libraries
 deferred_load_inval_code_test: Crash # Requires deferred libraries
 deferred_load_library_wrong_args_test: Crash # Requires deferred libraries
 deferred_mixin_test: Crash # Requires deferred libraries
+deferred_no_such_method_test: Crash # Requires deferred libraries
+deferred_not_loaded_check_test: Crash # Requires deferred libraries
+deferred_only_constant_test: Crash # Requires deferred libraries
+deferred_optimized_test: Crash # Requires deferred libraries
+deferred_redirecting_factory_test: Crash # Requires deferred libraries
+deferred_regression_22995_test: Crash # Requires deferred libraries
+deferred_regression_28678_test: Crash # Requires deferred libraries
+deferred_shadow_load_library_test: Crash # Requires deferred libraries
+deferred_shared_and_unshared_classes_test: Crash # Requires deferred libraries
+deferred_static_seperate_test: Crash # Requires deferred libraries
+deferred_super_dependency_test: Pass, Crash # Requires deferred libraries
+deferred_type_dependency_test: Crash # Requires deferred libraries
 issue21159_test: Pass, Crash # Issue 29094
 issue_22780_test/01: Pass, Crash # Issue 29094
 issue_1751477_test: Crash # Requires deferred libraries
+vm/regress_27201_test: Pass, Crash # Requires deferred libraries
+vm/optimized_stacktrace_test: Pass, Slow
 
 [ ! $checked && ! $strong ]
 closure_type_test: RuntimeError
@@ -54,7 +68,26 @@ closure_internals_test/03: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/01: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/02: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/03: MissingCompileTimeError # Requires strong mode
+compile_time_constant_static_test: Skip # Requires strong mode
+compile_time_constant_static2_test: Skip # Requires strong mode
+compile_time_constant_static3_test: Skip # Requires strong mode
+compile_time_constant_static4_test: Skip # Requires strong mode
+compile_time_constant_static5_test: Skip # Requires strong mode
+compile_time_constant_static_test: Skip # Requires strong mode
+compile_time_constant_static2_test: Skip # Requires strong mode
+compile_time_constant_static3_test: Skip # Requires strong mode
+compile_time_constant_static4_test: Skip # Requires strong mode
+compile_time_constant_static5_test: Skip # Requires strong mode
 crash_6725_test/01: MissingCompileTimeError # Requires strong mode
+deferred_super_dependency_test/01: MissingCompileTimeError # Requires strong mode
+double_to_string_as_exponential2_test/none: Pass
+double_to_string_as_exponential2_test/*: MissingCompileTimeError
+double_to_string_as_fixed2_test/none: Pass
+double_to_string_as_fixed2_test/*: MissingCompileTimeError
+double_to_string_as_precision2_test/none: Pass
+double_to_string_as_precision2_test/*: MissingCompileTimeError
+initializing_formal_type_annotation_test/01: MissingCompileTimeError # Requires strong mode
+initializing_formal_type_annotation_test/02: MissingCompileTimeError # Requires strong mode
 is_malformed_type_test/94: MissingCompileTimeError # Requires strong mode
 is_malformed_type_test/95: MissingCompileTimeError # Requires strong mode
 is_malformed_type_test/96: MissingCompileTimeError # Requires strong mode
@@ -65,22 +98,44 @@ is_not_class2_test/none: Skip # No interesting functionality in this configurati
 is_not_class2_test/01: MissingCompileTimeError # Requires strong mode
 isnot_malformed_type_test/01: MissingCompileTimeError
 issue11724_test/01: MissingCompileTimeError
-void_block_return_test/00: MissingCompileTimeError # Requires strong mode
-void_type_callbacks_test: Skip # Requires strong mode
-void_type_function_types_test: Skip # Requires strong mode
-void_type_override_test: Skip # Requires strong mode
-void_type_usage_test: Skip # Requires strong mode
-compile_time_constant_static_test: Skip # Requires strong mode
-compile_time_constant_static2_test: Skip # Requires strong mode
-compile_time_constant_static3_test: Skip # Requires strong mode
-compile_time_constant_static4_test: Skip # Requires strong mode
-compile_time_constant_static5_test: Skip # Requires strong mode
-wrong_number_type_arguments_test/none: Pass
-wrong_number_type_arguments_test/*: MissingCompileTimeError # Requires strong mode
 issue1363_test/01: MissingCompileTimeError # Requires strong mode
 issue15606_test/01: MissingCompileTimeError # Requires strong mode
 issue18628_1_test/01: MissingCompileTimeError # Requires strong mode
 issue18628_2_test/01: MissingCompileTimeError # Requires strong mode
+number_identifier_test/05: MissingCompileTimeError
+number_identifier_test/08: MissingCompileTimeError
+number_identifier_test/09: MissingCompileTimeError
+on_catch_malformed_type_test: MissingCompileTimeError
+operator5_test: MissingCompileTimeError
+operator_equals_test: MissingCompileTimeError
+optimized_constant_array_string_access_test: MissingCompileTimeError
+void_block_return_test/00: MissingCompileTimeError # Requires strong mode
+vm/type_vm_test/01: MissingCompileTimeError
+vm/type_vm_test/02: MissingCompileTimeError
+vm/type_vm_test/03: MissingCompileTimeError
+vm/type_vm_test/04: MissingCompileTimeError
+vm/type_vm_test/05: MissingCompileTimeError
+vm/type_vm_test/06: MissingCompileTimeError
+vm/type_vm_test/08: MissingCompileTimeError
+vm/type_vm_test/09: MissingCompileTimeError
+vm/type_vm_test/10: MissingCompileTimeError
+vm/type_vm_test/11: MissingCompileTimeError
+vm/type_vm_test/12: MissingCompileTimeError
+vm/type_vm_test/13: MissingCompileTimeError
+vm/type_vm_test/14: MissingCompileTimeError
+vm/type_vm_test/15: MissingCompileTimeError
+vm/type_vm_test/16: MissingCompileTimeError
+vm/type_vm_test/22: MissingCompileTimeError
+vm/type_vm_test/24: MissingCompileTimeError
+vm/type_vm_test/25: MissingCompileTimeError
+vm/type_vm_test/26: MissingCompileTimeError
+vm/type_vm_test/27: MissingCompileTimeError
+void_type_callbacks_test: Skip # Requires strong mode
+void_type_function_types_test: Skip # Requires strong mode
+void_type_override_test: Skip # Requires strong mode
+void_type_usage_test: Skip # Requires strong mode
+wrong_number_type_arguments_test/none: Pass
+wrong_number_type_arguments_test/*: MissingCompileTimeError # Requires strong mode
 
 [ $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546

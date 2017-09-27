@@ -24,5 +24,5 @@ List<int Function
 void main() {
   var list = bar<int>();
   print(list[0].runtimeType);
-  Expect.equals(123, list[1]<int>(100, 23));
+  Expect.equals(123, list[1](100, 23));
 }

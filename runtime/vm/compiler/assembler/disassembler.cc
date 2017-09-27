@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/assembler/disassembler.h"
 
 #include "vm/code_patcher.h"
@@ -195,6 +193,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   THR_Print("%s}\n", descriptors.ToCString());
 
   uword start = Instructions::Handle(zone, code.instructions()).PayloadStart();
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   const Array& deopt_table = Array::Handle(zone, code.deopt_info_array());
   intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
   if (deopt_table_length > 0) {
@@ -214,6 +214,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     }
     THR_Print("}\n");
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   THR_Print("StackMaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {
@@ -308,5 +309,3 @@ void Disassembler::DisassembleCode(const Function& function,
 #endif  // !PRODUCT
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

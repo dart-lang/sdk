@@ -18,6 +18,7 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/fasta/type_inference/dependency_collector.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
@@ -293,6 +294,13 @@ class ShadowCascadeExpression extends Let implements ShadowExpression {
     inferrer.listener.cascadeExpressionExit(this, lhsType);
     return lhsType;
   }
+}
+
+/// Shadow object representing a class in kernel form.
+class ShadowClass extends Class {
+  SourceClassBuilder builder;
+
+  ShadowClass({String name}) : super(name: name);
 }
 
 /// Abstract shadow object representing a complex assignment in kernel form.

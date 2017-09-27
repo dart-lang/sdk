@@ -6,7 +6,8 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
 
-import 'package:expect/minitest.dart';
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 
@@ -42,13 +43,13 @@ main() {
 
   test('cannot create upgrader for interfaces', () {
     expect(() {
-      document.createElementUpgrader(HtmlElementInterface);
+      document.createElementUpgrader(HtmlElementInterface); /*@compile-error=unspecified*/
     }, throws);
   });
 
   test('cannot upgrade interfaces', () {
     expect(() {
-      upgrader.upgrade(new HtmlElementInterface()); /*@compile-error=unspecified*/
+      upgrader.upgrade(new HtmlElementInterface());
     }, throws);
   });
 }

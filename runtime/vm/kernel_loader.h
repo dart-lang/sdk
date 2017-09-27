@@ -66,7 +66,7 @@ class KernelLoader {
                              BitVector* modified_libs,
                              bool force_reload);
 
-  void LoadLibrary(intptr_t kernel_offset);
+  void LoadLibrary(intptr_t index);
 
   const String& DartSymbol(StringIndex index) {
     return translation_helper_.DartSymbol(index);
@@ -81,17 +81,15 @@ class KernelLoader {
   intptr_t library_offset(intptr_t index) {
     kernel::Reader reader(program_->kernel_data(),
                           program_->kernel_data_size());
-    reader.set_offset(reader.size() - (4 * LibraryCountFieldCountFromEnd) -
-                      (4 * (program_->library_count() - index)));
-    return reader.ReadUInt32();
+    return reader.ReadFromIndexNoReset(reader.size(),
+                                       LibraryCountFieldCountFromEnd + 1,
+                                       program_->library_count() + 1, index);
   }
 
   NameIndex library_canonical_name(intptr_t index) {
     kernel::Reader reader(program_->kernel_data(),
                           program_->kernel_data_size());
-    reader.set_offset(reader.size() - (4 * LibraryCountFieldCountFromEnd) -
-                      (4 * (program_->library_count() - index)));
-    reader.set_offset(reader.ReadUInt32());
+    reader.set_offset(library_offset(index));
 
     // Start reading library.
     reader.ReadFlags();
@@ -106,8 +104,13 @@ class KernelLoader {
   void LoadPreliminaryClass(Class* klass,
                             ClassHelper* class_helper,
                             intptr_t type_parameter_count);
-  Class& LoadClass(const Library& library, const Class& toplevel_class);
-  void LoadProcedure(const Library& library, const Class& owner, bool in_class);
+  Class& LoadClass(const Library& library,
+                   const Class& toplevel_class,
+                   intptr_t class_end);
+  void LoadProcedure(const Library& library,
+                     const Class& owner,
+                     bool in_class,
+                     intptr_t procedure_end);
 
   void LoadAndSetupTypeParameters(const Object& set_on,
                                   intptr_t type_parameter_count,

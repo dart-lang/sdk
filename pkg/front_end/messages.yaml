@@ -134,7 +134,7 @@ ExpectedClassBodyToSkip: ExpectedClassBody
 
 ExpectedDeclaration:
   template: "Expected a declaration, but got '#lexeme'."
-  analyzerCode: UNEXPECTED_TOKEN
+  analyzerCode: EXPECTED_EXECUTABLE
   dart2jsCode: "*fatal*"
 
 ExpectedExpression:
@@ -156,8 +156,7 @@ ExpectedHexDigit:
     }
 
 ExpectedIdentifier:
-  template: "'#lexeme' is a reserved word and can't be used here."
-  tip: "Try using a different name."
+  template: "Expected an identifier, but got '#lexeme'."
   dart2jsCode: EXPECTED_IDENTIFIER
   script: "do() {} main() {}"
 
@@ -319,7 +318,10 @@ UnexpectedDollarInString:
 
 UnexpectedToken:
   template: "Unexpected token '#lexeme'."
+  analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: "*fatal*"
+  script:
+    - "import 'b.dart' d as b;"
 
 UnmatchedToken:
   template: "Can't find '#string' to match '#lexeme'."
@@ -482,6 +484,7 @@ NoFormals:
 GetterWithFormals:
   template: "A getter can't have formal parameters."
   tip: "Try removing '(...)'."
+  analyzerCode: GETTER_WITH_PARAMETERS
   dart2jsCode: "*ignored*"
 
 CatchSyntax:
@@ -540,6 +543,10 @@ ListLiteralTooManyTypeArguments:
 
 ListLiteralTypeArgumentMismatch:
   template: "Map literal requires two type arguments."
+
+TypeArgumentMismatch:
+  # TODO(sigmund): #string should be a number instead.
+  template: "'#name' expects #string type arguments."
 
 NotAType:
   template: "'#name' isn't a type."
@@ -688,6 +695,24 @@ ExportHidesExport:
 ImportHidesImport:
   template: "Import of '#name' (from '#uri') hides import from '#uri2'."
 
+MissingPrefixInDeferredImport:
+  template: "Deferred imports should have a prefix."
+  tip: "Try adding a prefix to the import."
+  analyzerCode: MISSING_PREFIX_IN_DEFERRED_IMPORT
+  dart2jsCode: "*fatal*"
+
+DuplicatePrefix:
+  template: "An import directive can only have one prefix ('as' clause)."
+  tip: "Try removing all but one prefix."
+  analyzerCode: DUPLICATE_PREFIX
+  dart2jsCode: "*fatal*"
+
+PrefixAfterCombinator:
+  template: "The 'as prefix' should come before any show/hide combinators."
+  tip: "Try moving the prefix before the combinators."
+  analyzerCode: PREFIX_AFTER_COMBINATOR
+  dart2jsCode: "*fatal*"
+
 DuplicatedExport:
   template: "'#name' is exported from both '#uri' and '#uri2'."
 
@@ -770,6 +795,22 @@ TypeVariableSameNameAsEnclosing:
 EnumDeclartionEmpty:
   template: "An enum declaration can't be empty."
 
+ExternalClass:
+  template: "Classes can't be declared to be 'external'."
+  tip: "Try removing the keyword 'external'."
+  analyzerCode: EXTERNAL_CLASS
+  dart2jsCode: "*ignored*"
+  script:
+    - "external class C {}"
+
+ExternalEnum:
+  template: "Enums can't be declared to be 'external'."
+  tip: "Try removing the keyword 'external'."
+  analyzerCode: EXTERNAL_ENUM
+  dart2jsCode: "*ignored*"
+  script:
+    - "external enum E {ONE}"
+
 ExternalMethodWithBody:
   # TODO(danrubel): remove reference to `native` once support has been removed
   template: "An external or native method can't have a body."
@@ -780,6 +821,14 @@ ExternalMethodWithBody:
     - "class C {foo() native {}}"
     - "class C {foo() native 'bar' {}}"
 
+ExternalTypedef:
+  template: "Typedefs can't be declared to be 'external'."
+  tip: "Try removing the keyword 'external'."
+  analyzerCode: EXTERNAL_TYPEDEF
+  dart2jsCode: "*ignored*"
+  script:
+    - "external typedef F();"
+
 OperatorWithOptionalFormals:
   template: "An operator can't have optional parameters."
 
@@ -788,6 +837,57 @@ PlatformPrivateLibraryAccess:
 
 TypedefNotFunction:
   template: "Can't create typedef from non-function type."
+
+LibraryDirectiveNotFirst:
+  template: "The library directive must appear before all other directives."
+  tip: "Try moving the library directive before any other directives."
+  analyzerCode: LIBRARY_DIRECTIVE_NOT_FIRST
+  dart2jsCode: "*ignored*"
+  script:
+    - "class Foo{} library l;"
+    - "import 'x.dart'; library l;"
+    - "part 'a.dart'; library l;"
+
+ImportAfterPart:
+  template: "Import directives must preceed part directives."
+  tip: "Try moving the import directives before the part directives."
+  analyzerCode: IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  dart2jsCode: "*ignored*"
+  script:
+    - "part 'foo.dart'; import 'bar.dart';"
+
+ExportAfterPart:
+  template: "Export directives must preceed part directives."
+  tip: "Try moving the export directives before the part directives."
+  analyzerCode: EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  dart2jsCode: "*ignored*"
+  script:
+    - "part 'foo.dart'; export 'bar.dart';"
+
+DirectiveAfterDeclaration:
+  template: "Directives must appear before any declarations."
+  tip: "Try moving the directive before any declarations."
+  analyzerCode: DIRECTIVE_AFTER_DECLARATION
+  dart2jsCode: "*ignored*"
+  script:
+    - "class foo { } import 'bar.dart';"
+    - "class foo { } export 'bar.dart';"
+
+NonPartOfDirectiveInPart:
+  template: "The part-of directive must be the only directive in a part."
+  tip: "Try removing the other directives, or moving them to the library for which this is a part."
+  analyzerCode: NON_PART_OF_DIRECTIVE_IN_PART
+  dart2jsCode: "*ignored*"
+  script:
+    - "part of l; part 'f.dart';"
+
+PartOfTwice:
+  template: "Only one part-of directive may be declared in a file."
+  tip: "Try removing all but one of the part-of directives."
+  analyzerCode: MULTIPLE_PART_OF_DIRECTIVES
+  dart2jsCode: "*ignored*"
+  script:
+    - "part of l; part of m;"
 
 PartTwice:
   template: "Can't use '#uri' as a part more than once."
@@ -818,6 +918,9 @@ DuplicatedParameterName:
 
 DuplicatedParameterNameCause:
   template: "Other parameter named '#name'."
+
+MemberWithSameNameAsClass:
+  template: "A class member can't have the same name as the enclosing class."
 
 EnumConstantSameNameAsEnclosing:
   template: "Name of enum constant '#name' can't be the same as the enum's own name."
@@ -949,9 +1052,22 @@ PackageNotFound:
   template: "Could not resolve the package '#name' in '#uri'."
 
 InvalidPackageUri:
-  template: "Invalid package Uri '#uri':\n  #string."
+  template: "Invalid package URI '#uri':\n  #string."
+
+CouldNotParseUri:
+  template: "Couldn't parse URI '#string':\n  #string2."
 
 IntegerLiteralIsOutOfRange:
   template: "The integer literal #lexeme can't be represented in 64 bits."
   tip: "Try using BigInt (from 'dart:typed_data' library) if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808."
 
+MissingIdentifier:
+  template: "Expected an identifier."
+  analyzerCode: MISSING_IDENTIFIER
+  dart2jsCode: "*fatal*"
+
+ColonInPlaceOfIn:
+  template: "For-in loops use 'in' rather than a colon."
+  tip: "Try replacing the colon with the keyword 'in'."
+  analyzerCode: COLON_IN_PLACE_OF_IN
+  dart2jsCode: "*fatal*"

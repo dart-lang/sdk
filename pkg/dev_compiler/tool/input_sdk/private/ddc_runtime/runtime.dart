@@ -109,7 +109,12 @@ final global_ = JS(
     // Find global object.
     var globalState = (typeof window != "undefined") ? window
       : (typeof global != "undefined") ? global
-      : (typeof self != "undefined") ? self : {};
+      : (typeof self != "undefined") ? self : null;
+    if (!globalState) {
+      // Some platforms (e.g., d8) do not define any of the above.  The
+      // following is a non-CSP safe way to access the global object:
+      globalState = new Function('return this;')();
+    }
 
     $polyfill(globalState);
 

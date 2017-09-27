@@ -1,0 +1,29 @@
+{
+  'variables': {
+    'files': [
+              'out/ReleaseIA32/dart',
+              'out/ReleaseX64/dart',
+              'xcodebuild/ReleaseIA32/dart',
+              'xcodebuild/ReleaseX64/dart',
+              'samples/',
+              'samples-dev/',
+              'tools/',
+              'third_party/pkg/',
+              'third_party/pkg_tested/',
+              'third_party/d8/',
+              'tests/',
+              'pkg/async_helper/',
+              'pkg/compiler/',
+              'pkg/expect/',
+              'pkg/front_end/',
+              'pkg/js/',
+              'pkg/js_ast/',
+              'pkg/kernel/',
+              'pkg/meta/',
+              'pkg/pkg.status',
+              'pkg/status_file/',
+              'runtime/tests/',
+              'sdk/',
+              '.packages']
+  }
+}

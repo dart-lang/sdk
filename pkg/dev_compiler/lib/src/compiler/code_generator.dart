@@ -2622,7 +2622,12 @@ class CodeGenerator extends Object
 
     var element = resolutionMap.elementDeclaredByFunctionDeclaration(node);
     var nameExpr = _emitTopLevelName(element);
-    body.add(annotate(js.statement('# = #', [nameExpr, fn]), node, element));
+    body.add(annotate(
+        js.statement('# = #', [nameExpr, fn]),
+        // Don't annotate as code coverage will consider single line functions
+        // as covered
+        null,
+        element));
     if (!isSdkInternalRuntime(element.library)) {
       body.add(_emitFunctionTagged(nameExpr, element.type, topLevel: true)
           .toStatement());

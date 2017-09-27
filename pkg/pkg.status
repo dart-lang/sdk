@@ -15,10 +15,16 @@ analysis_server/tool/spec/check_all_test: Skip  # Issue 29133
 analyzer_plugin/tool/spec/check_all_test: Skip  # Issue 29133
 
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
+analyzer/test/generated/compile_time_error_code_kernel_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
+analyzer/test/generated/non_error_resolver_kernel_test: Slow, Pass
+analyzer/test/generated/static_type_warning_code_kernel_test: Slow, Pass
 analyzer/test/generated/static_warning_code_driver_test: Slow, Pass
+analyzer/test/generated/static_warning_code_kernel_test: Slow, Pass
+analyzer/test/generated/strong_mode_kernel_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
+analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
@@ -88,6 +94,9 @@ analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 [ $runtime == vm && $checked && $system == windows ]
 front_end/tool/perf_test: Slow, Pass
 
+[ $runtime == vm && $builder_tag == swarming ]
+front_end/test/src/incremental/hot_reload_e2e_test: Pass, RuntimeError # Please triage this failure
+
 [ $runtime == vm && $use_sdk ]
 front_end/test/fasta/*: Skip # Issue 28629
 compiler/tool/generate_kernel_test*: Skip # Issue 28629
@@ -109,9 +118,7 @@ front_end/test/mixin_export_test: SkipByDesign # depends on patched_sdk which is
 analysis_server/*: Skip # Issue 27557
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
-analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
-analyzer/test/generated/source_factory_test: RuntimeError # Issue 26828
 kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28243
 kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
 analyzer/tool/task_dependency_graph/check_test: Slow, Pass
@@ -228,8 +235,6 @@ kernel/test/closures_test: Fail
 
 [ $runtime == vm ]
 analyzer_cli/test/driver_test: Pass, Slow, Timeout
-
-compiler/tool/perf_test: Fail # Unimplemented Typedef handling in kernel transformation.
 
 [ $runtime == vm && $system == windows ]
 analyzer/test/src/task/strong/checker_test: Pass, Slow

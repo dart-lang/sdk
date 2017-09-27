@@ -4,6 +4,9 @@
 
 library fasta.kernel_enum_builder;
 
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
+    show ShadowClass;
+
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -79,7 +82,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       String name,
       Scope scope,
       Scope constructors,
-      Class cls,
+      ShadowClass cls,
       this.constantNamesAndOffsetsAndDocs,
       this.toStringMap,
       this.intType,
@@ -108,7 +111,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         new KernelNamedTypeBuilder("String", null, charOffset, parent.fileUri);
     KernelNamedTypeBuilder objectType =
         new KernelNamedTypeBuilder("Object", null, charOffset, parent.fileUri);
-    Class cls = new Class(name: name);
+    ShadowClass cls = new ShadowClass(name: name);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     KernelNamedTypeBuilder selfType =
@@ -142,7 +145,6 @@ class KernelEnumBuilder extends SourceClassBuilder
         parent,
         charOffset,
         charOffset,
-        charOffset,
         charEndOffset);
     constructors[""] = constructorBuilder;
     int index = 0;
@@ -168,7 +170,6 @@ class KernelEnumBuilder extends SourceClassBuilder
         null,
         ProcedureKind.Method,
         parent,
-        charOffset,
         charOffset,
         charOffset,
         charEndOffset);
@@ -234,6 +235,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     members.forEach(setParent);
     constructors.forEach(setParent);
     selfType.bind(enumBuilder);
+    cls.builder = enumBuilder;
     return enumBuilder;
   }
 

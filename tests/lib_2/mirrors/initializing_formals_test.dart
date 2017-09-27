@@ -9,21 +9,21 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class Class<T> {
-  int intField;
+  num numField;
   bool boolField;
   String stringField;
   T tField;
   dynamic _privateField;
 
-  Class.nongeneric(this.intField);
+  Class.nongeneric(this.numField);
   Class.named({this.boolField});
   Class.optPos([this.stringField = 'default']);
   Class.generic(this.tField);
   Class.private(this._privateField);
 
-  Class.explicitType(num this.intField);
-  Class.withVar(var this.intField);
-  Class.withDynamic(dynamic this.intField);
+  Class.explicitType(num this.numField);
+  Class.withVar(var this.numField);
+  Class.withSubtype(int this.numField);
 }
 
 class Constant {
@@ -38,8 +38,8 @@ main() {
 
   mm = reflectClass(Class).declarations[#Class.nongeneric];
   pm = mm.parameters.single;
-  Expect.equals(#intField, pm.simpleName);
-  Expect.equals(reflectClass(int), pm.type);
+  Expect.equals(#numField, pm.simpleName);
+  Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed); // //# 01: ok
   Expect.isFalse(pm.isFinal); // //# 01: ok
   Expect.isFalse(pm.isOptional); // //# 01: ok
@@ -99,7 +99,7 @@ main() {
 
   mm = reflectClass(Class).declarations[#Class.explicitType];
   pm = mm.parameters.single;
-  Expect.equals(#intField, pm.simpleName);
+  Expect.equals(#numField, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed); // //# 01: ok
   Expect.isFalse(pm.isFinal); // //# 01: ok
@@ -111,8 +111,8 @@ main() {
 
   mm = reflectClass(Class).declarations[#Class.withVar];
   pm = mm.parameters.single;
-  Expect.equals(#intField, pm.simpleName);
-  Expect.equals(reflectClass(int), pm.type);
+  Expect.equals(#numField, pm.simpleName);
+  Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed); // //# 01: ok
   Expect.isFalse(pm.isFinal); // //# 01: ok
   Expect.isFalse(pm.isOptional); // //# 01: ok
@@ -121,10 +121,10 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Class).declarations[#Class.withDynamic];
+  mm = reflectClass(Class).declarations[#Class.withSubtype];
   pm = mm.parameters.single;
-  Expect.equals(#intField, pm.simpleName);
-  Expect.equals(currentMirrorSystem().dynamicType, pm.type); // N.B.
+  Expect.equals(#numField, pm.simpleName);
+  Expect.equals(reflectClass(int), pm.type);
   Expect.isFalse(pm.isNamed); // //# 01: ok
   Expect.isFalse(pm.isFinal); // //# 01: ok
   Expect.isFalse(pm.isOptional); // //# 01: ok

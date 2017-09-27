@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
+
 inference/async_closure_return_type_flatten: Fail
 inference/async_closure_return_type_future: Fail
 inference/async_closure_return_type_future_or: Fail
@@ -274,6 +276,4 @@ rasta/issue_000047: Fail
 rasta/native_is_illegal: Pass # Issue 29763
 rasta/type_with_parse_error: Fail
 
-regress/issue_29977: Crash # Issue 29977.
 regress/issue_29985: Crash # Issue 29985.
-regress/issue_29987: Crash # Issue 29987.

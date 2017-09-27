@@ -2,343 +2,107 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:archive/archive.dart';
 import 'try.dart';
+import 'logger.dart';
 import 'cache_new.dart';
+import 'luci_api.dart';
+import 'util.dart';
 
-const String LUCI_HOST = "luci-milo.appspot.com";
-const String CBE_HOST = "chrome-build-extract.appspot.com";
+const UNINTERESTING_BUILDER_SUFFIXES = const [
+  "-dev",
+  "-stable",
+  "-integration"
+];
 
-typedef void ModifyRequestFunction(HttpClientRequest request);
+const String DART_CLIENT = 'client.dart';
 
-/// Base class for communicating with [Luci]
-/// Some information is found through the api
-/// <https://luci-milo.appspot.com/rpcexplorer/services/milo.Buildbot/>,
-/// some information is found via Cbe
-/// <https://chrome-build-extract.appspot.com/get_master/<client>> and
-/// and some raw log files is found via [Luci]/log/raw.
-class Luci {
-  final HttpClient _client = new HttpClient();
+/// Fetches all builds for a given [commit]-hash, by searching the latest
+/// [amount] builds.
+Future<Try<List<BuildDetail>>> fetchBuildsForCommmit(
+    LuciApi luciApi,
+    Logger logger,
+    String client,
+    String commit,
+    CreateCacheFunction createCache,
+    [int amount = 1]) async {
+  logger.info(
+      "Sorry - this is going to take some time, since we have to look into all "
+      "$amount latest builds for all bots for client ${client}.\n"
+      "Subsequent queries run faster if caching is not turned off...");
 
-  Luci();
+  logger.debug("Finding primary bots for client $client");
+  var buildBots = await getPrimaryBuilders(
+      luciApi, client, createCache(duration: new Duration(minutes: 30)));
 
-  /// [getJsonFromChromeBuildExtract] gets json from Cbe, with information
-  /// about all bots and current builds.
-  Future<Try<dynamic>> getJsonFromChromeBuildExtract(
-      String client, WithCacheFunction withCache) async {
-    var result = await tryStartAsync(() => withCache(
-        () => _makeGetRequest(new Uri(
-            scheme: 'https', host: CBE_HOST, path: "/get_master/${client}")),
-        "cbe"));
-    return result.bind((str) => JSON.decode(str));
-  }
+  var cache = createCache(duration: new Duration(minutes: 30));
 
-  Future<Try<String>> getRawLogFromLogName(
-      String name, WithCacheFunction withCache) async {
-    return await tryStartAsync(() {
-      return withCache(
-          () => _makeGetRequest(new Uri(
-              scheme: 'https', host: LUCI_HOST, path: "/log/raw/${name}")),
-          name).then((output) {
-        if (output == null || output.contains("Encountered error:")) {
-          throw new Exception("Problem getting log: ${output}");
-        }
-        return output;
-      });
-    });
-  }
-
-  /// [getMaster] fetches master information for all bots.
-  Future<Try<Object>> getMaster(
-      String client, WithCacheFunction withCache) async {
-    var uri = new Uri(
-        scheme: "https",
-        host: LUCI_HOST,
-        path: "prpc/milo.Buildbot/GetCompressedMasterJSON");
-    var body = {"name": client};
-    var result = await tryStartAsync(() => withCache(
-        () => _makePostRequest(uri, JSON.encode(body), {
-              HttpHeaders.CONTENT_TYPE: "application/json",
-              HttpHeaders.ACCEPT: "application/json"
-            }),
-        '${uri.path}'));
-    return result.bind((str) => JSON.decode(str)).bind((json) {
-      var data = JSON.decode(UTF8
-          .decode(new GZipDecoder().decodeBytes(BASE64.decode(json["data"]))));
-      return data;
-    });
-  }
-
-  /// Calling the Milo Api to get latest builds for this bot,
-  /// where the field [amount] is the number of recent builds to fetch.
-  Future<Try<List<BuildDetail>>> getBuildBotDetails(
-      String client, String botName, WithCacheFunction withCache,
-      [int amount = 20]) async {
-    var uri = new Uri(
-        scheme: "https",
-        host: LUCI_HOST,
-        path: "prpc/milo.Buildbot/GetBuildbotBuildsJSON");
-    var body = {
-      "master": client,
-      "builder": botName,
-      "limit": amount,
-      "includeCurrent": true
-    };
-    var result = await tryStartAsync(() => withCache(
-        () => _makePostRequest(uri, JSON.encode(body), {
-              HttpHeaders.CONTENT_TYPE: "application/json",
-              HttpHeaders.ACCEPT: "application/json"
-            }),
-        '${uri.path}_${botName}_$amount'));
-    return result.bind((str) => JSON.decode(str)).bind((json) {
-      return json["builds"].map((b) {
-        var build = JSON.decode(UTF8.decode(BASE64.decode(b["data"])));
-        return getBuildDetailFromJson(client, botName, build);
-      }).toList();
-    });
-  }
-
-  /// Calling the Milo Api to get information about a specific build
-  /// where the field [buildNumber] is the build number to fetch.
-  Future<Try<BuildDetail>> getBuildBotBuildDetails(String client,
-      String botName, int buildNumber, WithCacheFunction withCache) async {
-    var uri = new Uri(
-        scheme: "https",
-        host: LUCI_HOST,
-        path: "prpc/milo.Buildbot/GetBuildbotBuildJSON");
-    var body = {"master": client, "builder": botName, "buildNum": buildNumber};
-    var result = await tryStartAsync(() => withCache(
-        () => _makePostRequest(uri, JSON.encode(body), {
-              HttpHeaders.CONTENT_TYPE: "application/json",
-              HttpHeaders.ACCEPT: "application/json"
-            }),
-        '${uri.path}_${botName}_$buildNumber'));
-    return result.bind((str) => JSON.decode(str)).bind((json) {
-      var build = JSON.decode(UTF8.decode(BASE64.decode(json["data"])));
-      return getBuildDetailFromJson(client, botName, build);
-    });
-  }
-
-  /// [_makeGetRequest] performs a get request to [uri].
-  Future<String> _makeGetRequest(Uri uri) async {
-    var request = await _client.getUrl(uri);
-    var response = await request.close();
-    if (response.statusCode != 200) {
-      response.drain();
-      throw new HttpException(response.reasonPhrase, uri: uri);
+  return (await buildBots.bindAsync((buildBots) async {
+    var buildBotBuilds = new List<List<BuildDetail>>();
+    for (var buildBot in buildBots) {
+      (await luciApi.getBuildBotDetails(client, buildBot, cache, amount)).fold(
+          (ex, st) {
+        logger.error("Problem getting results", ex, st);
+      }, buildBotBuilds.add);
     }
-    return response.transform(UTF8.decoder).join();
-  }
-
-  /// [_makeGetRequest] performs a post request to [uri], where the posted
-  /// body is the string representation of [body]. For adding custom headers
-  /// use the map [headers].
-  Future<String> _makePostRequest(
-      Uri uri, Object body, Map<String, String> headers) async {
-    var response = await http.post(uri, body: body, headers: headers);
-    if (response.statusCode != 200) {
-      throw new HttpException(response.reasonPhrase, uri: uri);
-    }
-    // Prpc outputs a prefix to combat vulnerability.
-    if (response.body.startsWith(")]}'")) {
-      return response.body.substring(4);
-    }
-    return response.body;
-  }
-
-  /// Closes the Http client connection
-  void close() {
-    _client.close();
-  }
+    logger.debug("All latest $amount builds found for client $client. "
+        "Processing results...");
+    return buildBotBuilds.expand((id) => id).toList();
+  })).bind((buildDetails) {
+    return buildDetails.where((BuildDetail buildDetail) {
+      return buildDetail.allChanges
+          .any((change) => change.revision.startsWith(commit));
+    }).toList();
+  });
 }
 
-/// [getBuildDetailFromJson] parses json [build] to a class [BuildDetail]
-BuildDetail getBuildDetailFromJson(
-    String client, String botName, dynamic build) {
-  List<GitCommit> changes = build["sourceStamp"]["changes"].map((change) {
-    return new GitCommit(
-        change["revision"],
-        change["revLink"],
-        change["who"],
-        change["comments"],
-        change["files"].map((file) => file["name"]).toList());
-  }).toList();
-
-  List<BuildProperty> properties = build["properties"].map((prop) {
-    return new BuildProperty(prop[0], prop[1].toString(), prop[2]);
-  }).toList();
-
-  DateTime parseDateTime(num value) {
-    if (value == null) return null;
-    return new DateTime.fromMillisecondsSinceEpoch((value * 1000).round());
-  }
-
-  List<BuildStep> steps = build["steps"].map((Map step) {
-    DateTime start = parseDateTime(step["times"][0]);
-    DateTime end = parseDateTime(step["times"][1]);
-    return new BuildStep(
-        step["name"],
-        step["text"].join(', '),
-        step["results"].toString(),
-        start,
-        end,
-        step["step_number"],
-        step["isStarted"],
-        step["isFinished"],
-        step["logs"].map((log) => new BuildLog(log[0], log[1])).toList());
-  }).toList();
-
-  Timing timing = new Timing(
-      parseDateTime(build["times"][0]), parseDateTime(build["times"][1]));
-
-  return new BuildDetail(
-      client,
-      botName,
-      build["number"],
-      build["text"].join(' '),
-      build["finished"],
-      steps,
-      properties,
-      build["blame"],
-      timing,
-      changes);
+/// [getBuilderGroups] fetches all builder groups not in -dev, -stable and
+/// -integration from CBE.
+Future<Try<List<String>>> getBuilderGroups(
+    LuciApi luciApi, String client, WithCacheFunction withCache) async {
+  var result = await luciApi.getJsonFromChromeBuildExtract(client, withCache);
+  return result.bind((json) {
+    var builders = json["builders"];
+    return builders.keys.fold<Map<String, Object>>({},
+        (Map<String, Object> map, builderKey) {
+      if (UNINTERESTING_BUILDER_SUFFIXES.any((x) => builderKey.contains(x))) {
+        return map;
+      }
+      map[sanitizeCategory(builders[builderKey]["category"])] = true;
+      return map;
+    }).keys;
+  });
 }
 
-/// [BuildDetail] holds data detailing a specific build
-class BuildDetail {
-  final String client;
-  final String botName;
-  final int buildNumber;
-  final String results;
-  final bool finished;
-  final List<BuildStep> steps;
-  final List<BuildProperty> buildProperties;
-  final List<String> blameList;
-  final Timing timing;
-  final List<GitCommit> allChanges;
-
-  BuildDetail(
-      this.client,
-      this.botName,
-      this.buildNumber,
-      this.results,
-      this.finished,
-      this.steps,
-      this.buildProperties,
-      this.blameList,
-      this.timing,
-      this.allChanges);
-
-  @override
-  String toString() {
-    StringBuffer buffer = new StringBuffer();
-    buffer.writeln("--------------------------------------");
-    buffer.writeln(results);
-    buffer.writeln(timing);
-    buffer.writeln("----------------STEPS-----------------");
-    if (steps != null) steps.forEach(buffer.writeln);
-    buffer.writeln("----------BUILD PROPERTIES------------");
-    if (buildProperties != null) buildProperties.forEach(buffer.writeln);
-    buffer.writeln("-------------BLAME LIST---------------");
-    if (blameList != null) blameList.forEach(buffer.writeln);
-    buffer.writeln("------------ALL CHANGES---------------");
-    if (allChanges != null) allChanges.forEach(buffer.writeln);
-    return buffer.toString();
-  }
+/// [getAllBuilders] fetches all builders from CBE.
+Future<Try<List<String>>> getAllBuilders(
+    LuciApi luciApi, String client, WithCacheFunction withCache) async {
+  var result = await luciApi.getJsonFromChromeBuildExtract(client, withCache);
+  return result.bind((json) {
+    return json["builders"].keys;
+  });
 }
 
-/// [BuildStep] holds data detailing a specific build
-class BuildStep {
-  final String name;
-  final String description;
-  final String result;
-  final DateTime start;
-  final DateTime end;
-  final int number;
-  final bool isStarted;
-  final bool isFinished;
-  final List<BuildLog> logs;
+/// [getPrimaryBuilders] fetches all primary builders from CBE.
+Future<Try<List<String>>> getPrimaryBuilders(
+    LuciApi luciApi, String client, WithCacheFunction withCache) async {
+  var result = await getAllBuilders(luciApi, client, withCache);
+  return result.bind((builders) {
+    return builders
+        .where((builderKey) =>
+            !UNINTERESTING_BUILDER_SUFFIXES.any((x) => builderKey.contains(x)))
+        .toList();
+  });
+}
 
-  BuildStep(this.name, this.description, this.result, this.start, this.end,
-      this.number, this.isStarted, this.isFinished, this.logs);
-
-  @override
-  String toString() {
-    StringBuffer buffer = new StringBuffer();
-    buffer.writeln("${result == '[0, []]' ? 'SUCCESS' : result}: "
-        "$name - $description ($start, $end)");
-    logs.forEach((subLink) {
-      buffer.writeln("\t${subLink}");
+/// [getPrimaryBuilders] gets all builders in builder group [builderGroup].
+Future<Try<List<String>>> getBuildersInBuilderGroup(LuciApi luciApi,
+    String client, WithCacheFunction withCache, String builderGroup) async {
+  var result = await luciApi.getJsonFromChromeBuildExtract(client, withCache);
+  return result.bind((json) {
+    var builders = json["builders"];
+    return builders.keys.where((builder) {
+      return sanitizeCategory(builders[builder]["category"]) == builderGroup;
     });
-    return buffer.toString();
-  }
-}
-
-/// [BuildLog] holds log-information for a specific build.
-class BuildLog {
-  final String name;
-  final String url;
-
-  BuildLog(this.name, this.url);
-
-  @override
-  String toString() {
-    return "$name | $url";
-  }
-}
-
-/// [BuildProperty] descibes build properties of a specific build.
-class BuildProperty {
-  final String name;
-  final String value;
-  final String source;
-
-  BuildProperty(this.name, this.value, this.source);
-
-  @override
-  String toString() {
-    return "$name\t$value\t$source";
-  }
-}
-
-/// [Timing] is a class to hold timing information for builds and steps.
-class Timing {
-  final DateTime start;
-  final DateTime end;
-
-  Timing(this.start, this.end);
-
-  @override
-  String toString() {
-    return "start: $start\tend: $end";
-  }
-}
-
-/// [GitCommit] holds data about a specific commit.
-class GitCommit {
-  final String revision;
-  final String commitUrl;
-  final String changedBy;
-  final String comments;
-  final List<String> changedFiles;
-
-  GitCommit(this.revision, this.commitUrl, this.changedBy, this.comments,
-      this.changedFiles);
-
-  @override
-  String toString() {
-    StringBuffer buffer = new StringBuffer();
-    buffer.writeln("revision: $revision");
-    buffer.writeln("commitUrl: $commitUrl");
-    buffer.writeln("changedBy: $changedBy");
-    buffer.write("\n");
-    buffer.writeln(comments);
-    buffer.write("\nfiles:\n");
-    changedFiles.forEach(buffer.writeln);
-    return buffer.toString();
-  }
+  });
 }

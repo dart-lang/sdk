@@ -710,19 +710,24 @@ class ConstructedConstantValue extends ObjectConstantValue {
 
   ConstantValueKind get kind => ConstantValueKind.CONSTRUCTED;
 
+  Iterable<FieldEntity> get _fieldsSortedByName {
+    return fields.keys.toList()..sort((a, b) => a.name.compareTo(b.name));
+  }
+
   String toDartText() {
     StringBuffer sb = new StringBuffer();
     sb.write(type.element.name);
     _unparseTypeArguments(sb);
     sb.write('(');
     int i = 0;
-    fields.forEach((FieldEntity field, ConstantValue value) {
+    for (FieldEntity field in _fieldsSortedByName) {
+      ConstantValue value = fields[field];
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');
       sb.write(value.toDartText());
       i++;
-    });
+    }
     sb.write(')');
     return sb.toString();
   }
@@ -733,13 +738,14 @@ class ConstructedConstantValue extends ObjectConstantValue {
     sb.write(type);
     sb.write('(');
     int i = 0;
-    fields.forEach((FieldEntity field, ConstantValue value) {
+    for (FieldEntity field in _fieldsSortedByName) {
+      ConstantValue value = fields[field];
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');
       sb.write(value.toStructuredText());
       i++;
-    });
+    }
     sb.write('))');
     return sb.toString();
   }

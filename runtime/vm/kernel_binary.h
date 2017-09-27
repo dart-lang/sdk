@@ -133,8 +133,8 @@ enum Tag {
 };
 
 static const int SpecializedIntLiteralBias = 3;
-static const int LibraryCountFieldCountFromEnd = 2;
-static const int SourceTableFieldCountFromFirstLibraryOffset = 4;
+static const int LibraryCountFieldCountFromEnd = 1;
+static const int SourceTableFieldCountFromFirstLibraryOffset = 3;
 
 class Reader {
  public:
@@ -146,6 +146,25 @@ class Reader {
         typed_data_(&typed_data),
         size_(typed_data.IsNull() ? 0 : typed_data.Length()),
         offset_(0) {}
+
+  uint32_t ReadFromIndex(intptr_t end_offset,
+                         intptr_t fields_before,
+                         intptr_t list_size,
+                         intptr_t list_index) {
+    intptr_t org_offset = offset();
+    uint32_t result =
+        ReadFromIndexNoReset(end_offset, fields_before, list_size, list_index);
+    set_offset(org_offset);
+    return result;
+  }
+
+  uint32_t ReadFromIndexNoReset(intptr_t end_offset,
+                                intptr_t fields_before,
+                                intptr_t list_size,
+                                intptr_t list_index) {
+    set_offset(end_offset - (fields_before + list_size - list_index) * 4);
+    return ReadUInt32();
+  }
 
   uint32_t ReadUInt32() {
     ASSERT(offset_ + 4 <= size_);

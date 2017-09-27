@@ -644,6 +644,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         func->ptr()->deoptimization_counter_ = 0;
         func->ptr()->optimized_instruction_count_ = 0;
         func->ptr()->optimized_call_site_count_ = 0;
+        func->ptr()->inlining_depth_ = 0;
 #endif
       }
     }
@@ -670,10 +671,10 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         code ^= func.CurrentCode();
         if (func.HasCode() && !code.IsDisabled()) {
           func.SetInstructions(code);
-          func.set_was_compiled(true);
+          func.SetWasCompiled(true);
         } else {
           func.ClearCode();
-          func.set_was_compiled(false);
+          func.SetWasCompiled(false);
         }
       }
     } else {
@@ -682,7 +683,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         func ^= refs.At(i);
         func.ClearICDataArray();
         func.ClearCode();
-        func.set_was_compiled(false);
+        func.SetWasCompiled(false);
       }
     }
   }
@@ -1023,6 +1024,7 @@ class FieldSerializationCluster : public SerializationCluster {
 
       if (kind != Snapshot::kFullAOT) {
         s->WriteTokenPosition(field->ptr()->token_pos_);
+        s->WriteTokenPosition(field->ptr()->end_token_pos_);
         s->WriteCid(field->ptr()->guarded_cid_);
         s->WriteCid(field->ptr()->is_nullable_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1073,6 +1075,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
 
       if (kind != Snapshot::kFullAOT) {
         field->ptr()->token_pos_ = d->ReadTokenPosition();
+        field->ptr()->end_token_pos_ = d->ReadTokenPosition();
         field->ptr()->guarded_cid_ = d->ReadCid();
         field->ptr()->is_nullable_ = d->ReadCid();
 #if !defined(DART_PRECOMPILED_RUNTIME)

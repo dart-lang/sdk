@@ -1,0 +1,301 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This file specifies the status of tests for runs with spec_parser.dart.
+# Note that there are overlaps between groups, because a single test may
+# be skipped for more than one reason. As features are added, groups are
+# expected to be eliminated entirely, and this would not work if all
+# duplicates were removed.
+
+[ $compiler == parser ]
+
+# Files causing near-stuck parsing (due to exponential complexity)
+issue_1751477_test: Skip # Slow.
+
+# Negative tests which contain syntax errors.
+field3_negative_test: Skip # Test has syntax error.
+getter_declaration_negative_test: Skip # Test has syntax error.
+interface_injection1_negative_test: Skip # Test has syntax error.
+interface_injection2_negative_test: Skip # Test has syntax error.
+is_not_class1_negative_test: Skip # Test has syntax error.
+is_not_class4_negative_test: Skip # Test has syntax error.
+issue1578_negative_test: Skip # Test has syntax error.
+label8_negative_test: Skip # Test has syntax error.
+list_literal_negative_test: Skip # Test has syntax error.
+map_literal_negative_test: Skip # Test has syntax error.
+new_expression1_negative_test: Skip # Test has syntax error.
+new_expression2_negative_test: Skip # Test has syntax error.
+new_expression3_negative_test: Skip # Test has syntax error.
+prefix18_negative_test: Skip # Test has syntax error.
+string_escape4_negative_test: Skip # Test has syntax error.
+string_interpolate1_negative_test: Skip # Test has syntax error.
+string_interpolate2_negative_test: Skip # Test has syntax error.
+string_interpolation1_negative_test: Skip # Test has syntax error.
+string_interpolation2_negative_test: Skip # Test has syntax error.
+string_interpolation3_negative_test: Skip # Test has syntax error.
+string_interpolation4_negative_test: Skip # Test has syntax error.
+string_interpolation5_negative_test: Skip # Test has syntax error.
+string_interpolation6_negative_test: Skip # Test has syntax error.
+switch1_negative_test: Skip # Test has syntax error.
+test_negative_test: Skip # Test has syntax error.
+unary_plus_negative_test: Skip # Test has syntax error.
+unhandled_exception_negative_test: Skip # Test has syntax error.
+
+# Multi-tests containing compile-time errors.
+abstract_syntax_test: Skip # Not yet supported.
+arg_param_trailing_comma_test: Skip # Not yet supported.
+argument_definition_test: Skip # Not yet supported.
+assert_initializer_test: Skip # Not yet supported.
+assert_trailing_comma_test: Skip # Not yet supported.
+assign_static_type_test: Skip # Not yet supported.
+assignable_expression_test: Skip # Not yet supported.
+async_await_syntax_test: Skip # Not yet supported.
+async_return_types_test: Skip # Not yet supported.
+async_test: Skip # Not yet supported.
+await_backwards_compatibility_test: Skip # Not yet supported.
+bad_constructor_test: Skip # Not yet supported.
+bad_override_test: Skip # Not yet supported.
+bad_raw_string_test: Skip # Not yet supported.
+bad_typedef_test: Skip # Not yet supported.
+black_listed_test: Skip # Not yet supported.
+built_in_identifier_illegal_test: Skip # Not yet supported.
+canonical_const2_test: Skip # Not yet supported.
+canonical_const_test: Skip # Not yet supported.
+cascade_test: Skip # Not yet supported.
+check_member_static_test: Skip # Not yet supported.
+class_cycle2_test: Skip # Not yet supported.
+class_cycle_test: Skip # Not yet supported.
+class_keyword_test: Skip # Not yet supported.
+class_syntax_test: Skip # Not yet supported.
+compile_time_constant10_test: Skip # Not yet supported.
+compile_time_constant11_test: Skip # Not yet supported.
+compile_time_constant13_test: Skip # Not yet supported.
+compile_time_constant_arguments_test: Skip # Not yet supported.
+compile_time_constant_c_test: Skip # Not yet supported.
+compile_time_constant_checked2_test: Skip # Not yet supported.
+compile_time_constant_checked3_test: Skip # Not yet supported.
+compile_time_constant_checked4_test: Skip # Not yet supported.
+compile_time_constant_checked5_test: Skip # Not yet supported.
+compile_time_constant_checked_test: Skip # Not yet supported.
+compile_time_constant_o_test: Skip # Not yet supported.
+compile_time_constant_p_test: Skip # Not yet supported.
+compile_time_constant_r_test: Skip # Not yet supported.
+compile_time_constant_test: Skip # Not yet supported.
+conditional_method_invocation_test: Skip # Not yet supported.
+conditional_property_access_test: Skip # Not yet supported.
+conditional_property_assignment_test: Skip # Not yet supported.
+const_conditional_test: Skip # Not yet supported.
+const_constructor2_test: Skip # Not yet supported.
+const_constructor3_test: Skip # Not yet supported.
+const_constructor_mixin2_test: Skip # Not yet supported.
+const_constructor_mixin3_test: Skip # Not yet supported.
+const_constructor_mixin_test: Skip # Not yet supported.
+const_constructor_nonconst_field_test: Skip # Not yet supported.
+const_constructor_super_test: Skip # Not yet supported.
+const_constructor_syntax_test: Skip # Not yet supported.
+const_constructor_test: Skip # Not yet supported.
+const_error_multiply_initialized_test: Skip # Not yet supported.
+const_evaluation_test: Skip # Not yet supported.
+const_factory_redirection_test: Skip # Not yet supported.
+const_factory_with_body_test: Skip # Not yet supported.
+const_for_in_variable_test: Skip # Not yet supported.
+const_getter_test: Skip # Not yet supported.
+const_init2_test: Skip # Not yet supported.
+const_init_test: Skip # Not yet supported.
+const_instance_field_test: Skip # Not yet supported.
+const_locals_test: Skip # Not yet supported.
+const_map2_test: Skip # Not yet supported.
+const_map3_test: Skip # Not yet supported.
+const_native_factory_test: Skip # Not yet supported.
+const_nested_test: Skip # Not yet supported.
+const_qq_test: Skip # Not yet supported.
+const_string_test: Skip # Not yet supported.
+const_switch2_test: Skip # Not yet supported.
+const_syntax_test: Skip # Not yet supported.
+const_types_test: Skip # Not yet supported.
+constant_locals_test: Skip # Not yet supported.
+constant_type_literal_test: Skip # Not yet supported.
+constants_test: Skip # Not yet supported.
+constructor10_test: Skip # Not yet supported.
+constructor_duplicate_final_test: Skip # Not yet supported.
+constructor_duplicate_initializers_test: Skip # Not yet supported.
+constructor_initializer_test: Skip # Not yet supported.
+constructor_name_test: Skip # Not yet supported.
+constructor_redirect2_test: Skip # Not yet supported.
+constructor_redirect_test: Skip # Not yet supported.
+constructor_return_test: Skip # Not yet supported.
+covariant_test: Skip # Not yet supported.
+ct_const2_test: Skip # Not yet supported.
+ct_const4_test: Skip # Not yet supported.
+ct_const_test: Skip # Not yet supported.
+cyclic_class_member_test: Skip # Not yet supported.
+cyclic_constructor_test: Skip # Not yet supported.
+cyclic_typedef_test: Skip # Not yet supported.
+deferred_constraints_constants_test: Skip # Not yet supported.
+deferred_duplicate_prefix1_test: Skip # Not yet supported.
+deferred_duplicate_prefix2_test: Skip # Not yet supported.
+deferred_duplicate_prefix3_test: Skip # Not yet supported.
+deferred_inheritance_constraints_test: Skip # Not yet supported.
+deferred_load_constants_test: Skip # Not yet supported.
+deferred_no_prefix_test: Skip # Not yet supported.
+deferred_type_dependency_test: Skip # Not yet supported.
+duplicate_constructor_test: Skip # Not yet supported.
+duplicate_export_test: Skip # Not yet supported.
+duplicate_implements_test: Skip # Not yet supported.
+duplicate_interface_negative_test: Skip # Not yet supported.
+dynamic2_test: Skip # Not yet supported.
+enum_is_keyword_test: Skip # Not yet supported.
+enum_syntax_test: Skip # Not yet supported.
+export_private_test: Skip # Not yet supported.
+external_test: Skip # Not yet supported.
+factory2_negative_test: Skip # Not yet supported.
+factory3_negative_test: Skip # Not yet supported.
+factory_implementation_test: Skip # Not yet supported.
+factory_negative_test: Skip # Not yet supported.
+factory_redirection2_test: Skip # Not yet supported.
+factory_redirection3_cyclic_test: Skip # Not yet supported.
+factory_redirection_test: Skip # Not yet supported.
+fauxverride_test: Skip # Not yet supported.
+field_decl_missing_var_type_test: Skip # Not yet supported.
+field_override3_test: Skip # Not yet supported.
+field_override4_test: Skip # Not yet supported.
+final_initializer_instance_reference_test: Skip # Not yet supported.
+final_is_not_const_test: Skip # Not yet supported.
+final_syntax_test: Skip # Not yet supported.
+function_syntax_test: Skip # Not yet supported.
+function_type_alias5_test: Skip # Not yet supported.
+function_type_alias6_test: Skip # Not yet supported.
+function_type_alias7_test: Skip # Not yet supported.
+function_type_alias9_test: Skip # Not yet supported.
+function_type_parameter2_negative_test: Skip # Not yet supported.
+function_type_parameter_negative_test: Skip # Not yet supported.
+function_type_test: Skip # Not yet supported.
+generic_function_typedef2_test: Skip # Not yet supported.
+generic_function_typedef_test: Skip # Not yet supported.
+generic_metadata_test: Skip # Not yet supported.
+get_set_syntax_test: Skip # Not yet supported.
+getter_no_setter2_test: Skip # Not yet supported.
+getter_no_setter_test: Skip # Not yet supported.
+getter_override2_test: Skip # Not yet supported.
+getter_override_test: Skip # Not yet supported.
+getter_parameters_test: Skip # Not yet supported.
+identical_const_test: Skip # Not yet supported.
+if_null_assignment_behavior_test: Skip # Not yet supported.
+illegal_declaration_test: Skip # Not yet supported.
+illegal_initializer_test: Skip # Not yet supported.
+illegal_invocation_test: Skip # Not yet supported.
+import_private_test: Skip # Not yet supported.
+interface_cycle_test: Skip # Not yet supported.
+internal_library_test: Skip # Not yet supported.
+keyword_type_expression_test: Skip # Not yet supported.
+library_ambiguous_test: Skip # Not yet supported.
+list_literal1_test: Skip # Not yet supported.
+list_literal_syntax_test: Skip # Not yet supported.
+literal_unary_plus_test: Skip # Not yet supported.
+malformed2_test: Skip # Not yet supported.
+malformed_inheritance_test: Skip # Not yet supported.
+malformed_test: Skip # Not yet supported.
+map_literal1_test: Skip # Not yet supported.
+missing_const_constructor_test: Skip # Not yet supported.
+missing_part_of_tag_test: Skip # Not yet supported.
+mixin_black_listed_test: Skip # Not yet supported.
+mixin_cyclic_test: Skip # Not yet supported.
+mixin_forwarding_constructor4_test: Skip # Not yet supported.
+mixin_illegal_constructor_test: Skip # Not yet supported.
+mixin_illegal_cycles_test: Skip # Not yet supported.
+mixin_illegal_object_test: Skip # Not yet supported.
+mixin_illegal_super_use_test: Skip # Not yet supported.
+mixin_illegal_superclass_test: Skip # Not yet supported.
+mixin_illegal_syntax_test: Skip # Not yet supported.
+mixin_invalid_inheritance1_test: Skip # Not yet supported.
+mixin_invalid_inheritance2_test: Skip # Not yet supported.
+mixin_super_constructor_named_test: Skip # Not yet supported.
+mixin_super_constructor_positionals_test: Skip # Not yet supported.
+multiline_newline_test: Skip # Not yet supported.
+named_constructor_test: Skip # Not yet supported.
+named_parameters_aggregated_test: Skip # Not yet supported.
+named_parameters_default_eq_test: Skip # Not yet supported.
+override_field_test: Skip # Not yet supported.
+override_inheritance_mixed_test: Skip # Not yet supported.
+override_method_with_field_test: Skip # Not yet supported.
+parameter_default_test: Skip # Not yet supported.
+parameter_initializer6_negative_test: Skip # Not yet supported.
+parser_quirks_test: Skip # Not yet supported.
+prefix_assignment_test: Skip # Not yet supported.
+prefix_identifier_reference_test: Skip # Not yet supported.
+prefix_unqualified_invocation_test: Skip # Not yet supported.
+private_super_constructor_test: Skip # Not yet supported.
+redirecting_factory_default_values_test: Skip # Not yet supported.
+redirecting_factory_infinite_steps_test: Skip # Not yet supported.
+ref_before_declaration_test: Skip # Not yet supported.
+regress_20394_test: Skip # Not yet supported.
+regress_23038_test: Skip # Not yet supported.
+regress_23051_test: Skip # Not yet supported.
+regress_26855_test: Skip # Not yet supported.
+regress_27164_test: Skip # Not yet supported.
+regress_27617_test: Skip # Not yet supported.
+regress_28217_test: Skip # Not yet supported.
+reify_typevar_static_test: Skip # Not yet supported.
+scope_variable_test: Skip # Not yet supported.
+setter_override2_test: Skip # Not yet supported.
+setter_override_test: Skip # Not yet supported.
+static_final_field2_test: Skip # Not yet supported.
+static_parameter_test: Skip # Not yet supported.
+static_top_level_test: Skip # Not yet supported.
+string_interpolation1_test: Skip # Not yet supported.
+string_interpolation2_test: Skip # Not yet supported.
+string_interpolation3_test: Skip # Not yet supported.
+string_interpolation4_test: Skip # Not yet supported.
+string_interpolation5_test: Skip # Not yet supported.
+string_interpolation6_test: Skip # Not yet supported.
+string_interpolation9_test: Skip # Not yet supported.
+super_call3_test: Skip # Not yet supported.
+super_conditional_operator_test: Skip # Not yet supported.
+switch8_test: Skip # Not yet supported.
+switch_bad_case_test: Skip # Not yet supported.
+switch_case_test: Skip # Not yet supported.
+sync_generator2_test: Skip # Not yet supported.
+syntax_test: Skip # Not yet supported.
+this_conditional_operator_test: Skip # Not yet supported.
+this_test: Skip # Not yet supported.
+toplevel_collision1_test: Skip # Not yet supported.
+toplevel_collision2_test: Skip # Not yet supported.
+try_catch_on_syntax_test: Skip # Not yet supported.
+try_catch_syntax_test: Skip # Not yet supported.
+try_catch_test: Skip # Not yet supported.
+type_check_const_function_typedef2_test: Skip # Not yet supported.
+type_parameter_test: Skip # Not yet supported.
+type_variable_conflict2_test: Skip # Not yet supported.
+type_variable_conflict_test: Skip # Not yet supported.
+type_variable_scope3_test: Skip # Not yet supported.
+unbalanced_brace_test: Skip # Not yet supported.
+unsigned_right_shift_test: Skip # Not yet supported.
+unsupported_operators_test: Skip # Not yet supported.
+variable_declaration_metadata_test: Skip # Not yet supported.
+
+# Syntax errors caused by tests being multi-tests.
+main_test: Skip # Not yet supported.
+mixin_supertype_subclass2_test: Skip # Not yet supported.
+mixin_supertype_subclass4_test: Skip # Not yet supported.
+mixin_supertype_subclass_test: Skip # Not yet supported.
+override_inheritance_generic_test: Skip # Not yet supported.
+type_variable_bounds2_test: Skip # Not yet supported.
+
+# Tests containing conditional imports.
+conditional_import_string_test: Skip # Not yet supported.
+conditional_import_test: Skip # Not yet supported.
+config_import_corelib_test: Skip # Not yet supported.
+config_import_test: Skip # Not yet supported.
+
+# Tests using assert in initializer list.
+assertion_initializer_test: Skip # Not yet supported.
+assertion_initializer_const_error_test: Skip # Not yet supported.
+assertion_initializer_const_error2_test: Skip # Not yet supported.
+assertion_initializer_const_function_test: Skip # Not yet supported.
+assertion_initializer_const_function_error_test: Skip # Not yet supported.
+
+# Not working for miscellaneous other reasons.
+deep_nesting1_negative_test: Skip # Stack overflow, not important here.
+deep_nesting2_negative_test: Skip # Stack overflow, not important here.
+issue_1751477_test: Skip # Slow: 9 levels, exponential blowup => 430 secs.

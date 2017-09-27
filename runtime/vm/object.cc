@@ -3200,9 +3200,9 @@ void Class::InjectCIDFields() const {
 
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New(thread, "cid" #clazz);                             \
-  field =                                                                      \
-      Field::New(field_name, true, false, true, false, *this,                  \
-                 Type::Handle(Type::IntType()), TokenPosition::kMinSource);    \
+  field = Field::New(field_name, true, false, true, false, *this,              \
+                     Type::Handle(Type::IntType()), TokenPosition::kMinSource, \
+                     TokenPosition::kMinSource);                               \
   value = Smi::New(k##clazz##Cid);                                             \
   field.SetStaticValue(value, true);                                           \
   AddField(field);
@@ -3562,6 +3562,11 @@ TokenPosition Class::ComputeEndTokenPos() const {
   }
   UNREACHABLE();
   return TokenPosition::kNoSource;
+}
+
+int32_t Class::SourceFingerprint() const {
+  return Script::Handle(script()).SourceFingerprint(token_pos(),
+                                                    ComputeEndTokenPos());
 }
 
 void Class::set_is_implemented() const {
@@ -6631,7 +6636,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
-  NOT_IN_PRECOMPILED(result.set_was_compiled(false));
+  NOT_IN_PRECOMPILED(result.SetWasCompiled(false));
   result.set_owner(owner);
   NOT_IN_PRECOMPILED(result.set_token_pos(token_pos));
   NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));
@@ -6641,7 +6646,8 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
   NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
-  result.set_kernel_offset(0);
+  NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
+  NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
@@ -6681,6 +6687,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
+  clone.set_inlining_depth(0);
   clone.set_optimized_call_site_count(0);
   clone.set_kernel_offset(kernel_offset());
   clone.set_kernel_data(TypedData::Handle(zone, kernel_data()));
@@ -7844,7 +7851,8 @@ void Field::InitializeNew(const Field& result,
                           bool is_const,
                           bool is_reflectable,
                           const Object& owner,
-                          TokenPosition token_pos) {
+                          TokenPosition token_pos,
+                          TokenPosition end_token_pos) {
   result.set_name(name);
   result.set_is_static(is_static);
   if (!is_static) {
@@ -7856,8 +7864,10 @@ void Field::InitializeNew(const Field& result,
   result.set_is_double_initialized(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
+  result.set_end_token_pos(end_token_pos);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(true);
+  result.set_initializer_changed_after_initialization(false);
   result.set_kernel_offset(0);
   Isolate* isolate = Isolate::Current();
 
@@ -7890,11 +7900,12 @@ RawField* Field::New(const String& name,
                      bool is_reflectable,
                      const Object& owner,
                      const AbstractType& type,
-                     TokenPosition token_pos) {
+                     TokenPosition token_pos,
+                     TokenPosition end_token_pos) {
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   InitializeNew(result, name, is_static, is_final, is_const, is_reflectable,
-                owner, token_pos);
+                owner, token_pos, end_token_pos);
   result.SetFieldType(type);
   return result.raw();
 }
@@ -7903,12 +7914,13 @@ RawField* Field::NewTopLevel(const String& name,
                              bool is_final,
                              bool is_const,
                              const Object& owner,
-                             TokenPosition token_pos) {
+                             TokenPosition token_pos,
+                             TokenPosition end_token_pos) {
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   InitializeNew(result, name, true,       /* is_static */
                 is_final, is_const, true, /* is_reflectable */
-                owner, token_pos);
+                owner, token_pos, end_token_pos);
   return result.raw();
 }
 
@@ -7941,6 +7953,11 @@ RawField* Field::Clone(const Field& original) const {
   clone.SetOriginal(original);
   clone.set_kernel_offset(original.kernel_offset());
   return clone.raw();
+}
+
+int32_t Field::SourceFingerprint() const {
+  return Script::Handle(Script()).SourceFingerprint(token_pos(),
+                                                    end_token_pos());
 }
 
 RawString* Field::InitializingExpression() const {
@@ -8061,13 +8078,13 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
   // the result here, since Object::Clone() is a private method.
   result = Object::Clone(result, Heap::kOld);
 
-  closure_field =
-      Field::New(closure_name,
-                 true,   // is_static
-                 true,   // is_final
-                 true,   // is_const
-                 false,  // is_reflectable
-                 field_owner, Object::dynamic_type(), this->token_pos());
+  closure_field = Field::New(closure_name,
+                             true,   // is_static
+                             true,   // is_final
+                             true,   // is_const
+                             false,  // is_reflectable
+                             field_owner, Object::dynamic_type(),
+                             this->token_pos(), this->end_token_pos());
   closure_field.SetStaticValue(Instance::Cast(result), true);
   field_owner.AddField(closure_field);
 
@@ -9562,6 +9579,10 @@ int32_t Script::SourceFingerprint() const {
 
 int32_t Script::SourceFingerprint(TokenPosition start,
                                   TokenPosition end) const {
+  if (kind() == RawScript::kKernelTag) {
+    // TODO(30756): Implemented.
+    return 0;
+  }
   uint32_t result = 0;
   Zone* zone = Thread::Current()->zone();
   TokenStream::Iterator tokens_iterator(
@@ -10031,7 +10052,7 @@ void Library::AddMetadata(const Object& owner,
       Field::Handle(zone, Field::NewTopLevel(metaname,
                                              false,  // is_final
                                              false,  // is_const
-                                             owner, token_pos));
+                                             owner, token_pos, token_pos));
   field.SetFieldType(Object::dynamic_type());
   field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
@@ -11612,7 +11633,7 @@ void Namespace::AddMetadata(const Object& owner, TokenPosition token_pos) {
   Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
                                                   false,  // is_final
                                                   false,  // is_const
-                                                  owner, token_pos));
+                                                  owner, token_pos, token_pos));
   field.set_is_reflectable(false);
   field.SetFieldType(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
@@ -14010,7 +14031,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 }
 
 void Code::Disassemble(DisassemblyFormatter* formatter) const {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
   if (!FLAG_support_disassembler) {
     return;
   }
@@ -20342,6 +20363,7 @@ char* String::ToMallocCString() const {
         result[i] = original_str[i];
       } else {
         len = -1;
+        free(result);
         break;
       }
     }

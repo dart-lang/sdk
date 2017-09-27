@@ -74,7 +74,7 @@ DEFINE_FLAG(
     "await and yield are treated as proper keywords in synchronous code.");
 DEFINE_FLAG(bool,
             assert_initializer,
-            false,
+            true,
             "Allow asserts in initializer lists.");
 
 DECLARE_FLAG(bool, profile_vm);
@@ -4343,12 +4343,14 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       }
     }
 
+    TokenPosition end_token_pos = TokenPos();
+
     // Create the field object.
     const bool is_reflectable =
         !(library_.is_dart_scheme() && library_.IsPrivate(*field->name));
     class_field = Field::New(*field->name, field->has_static, field->has_final,
                              field->has_const, is_reflectable, current_class(),
-                             *field->type, field->name_pos);
+                             *field->type, field->name_pos, end_token_pos);
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
     field->field_ = &class_field;
@@ -5023,7 +5025,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                            true,   // Field is final.
                            false,  // Not const.
                            true,   // Is reflectable.
-                           cls, int_type, cls.token_pos());
+                           cls, int_type, cls.token_pos(), cls.token_pos());
   enum_members.AddField(index_field);
 
   // Add implicit getter for index field.
@@ -5085,12 +5087,13 @@ void Parser::ParseEnumDefinition(const Class& cls) {
     // Note that we do not set the field type to E, because we temporarily store
     // a Smi in the field. The class finalizer would detect the bad type and
     // reset the value to sentinel.
-    enum_value = Field::New(*enum_ident,
-                            /* is_static = */ true,
-                            /* is_final = */ true,
-                            /* is_const = */ true,
-                            /* is_reflectable = */ true, cls,
-                            Object::dynamic_type(), cls.token_pos());
+    enum_value =
+        Field::New(*enum_ident,
+                   /* is_static = */ true,
+                   /* is_final = */ true,
+                   /* is_const = */ true,
+                   /* is_reflectable = */ true, cls, Object::dynamic_type(),
+                   cls.token_pos(), cls.token_pos());
     enum_value.set_has_initializer(false);
     enum_members.AddField(enum_value);
     // Initialize the field with the ordinal value. It will be patched
@@ -5123,18 +5126,19 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                             /* is_final = */ true,
                             /* is_const = */ true,
                             /* is_reflectable = */ true, cls, values_type,
-                            cls.token_pos());
+                            cls.token_pos(), cls.token_pos());
   enum_members.AddField(values_field);
 
   // Add static field 'const _deleted_enum_sentinel'.
   // This field does not need to be of type E.
   Field& deleted_enum_sentinel = Field::ZoneHandle(Z);
-  deleted_enum_sentinel = Field::New(Symbols::_DeletedEnumSentinel(),
-                                     /* is_static = */ true,
-                                     /* is_final = */ true,
-                                     /* is_const = */ true,
-                                     /* is_reflectable = */ false, cls,
-                                     Object::dynamic_type(), cls.token_pos());
+  deleted_enum_sentinel =
+      Field::New(Symbols::_DeletedEnumSentinel(),
+                 /* is_static = */ true,
+                 /* is_final = */ true,
+                 /* is_const = */ true,
+                 /* is_reflectable = */ false, cls, Object::dynamic_type(),
+                 cls.token_pos(), cls.token_pos());
   enum_members.AddField(deleted_enum_sentinel);
 
   // Allocate the immutable array containing the enumeration values.
@@ -5817,29 +5821,37 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
                   var_name.ToCString());
     }
 
+    bool has_initializer = CurrentToken() == Token::kASSIGN;
+    bool has_simple_literal = false;
+    Instance& field_value = Instance::Handle(Z, Object::sentinel().raw());
+    if (has_initializer) {
+      ConsumeToken();
+      if (LookaheadToken(1) == Token::kSEMICOLON) {
+        has_simple_literal = IsSimpleLiteral(type, &field_value);
+      }
+      SkipExpr();
+    } else if (is_final) {
+      ReportError(name_pos, "missing initializer for final or const variable");
+    }
+
+    TokenPosition end_token_pos = TokenPos();
+
+    // Create the field object.
     const bool is_reflectable =
         !(library_.is_dart_scheme() && library_.IsPrivate(var_name));
-
-    field = Field::NewTopLevel(var_name, is_final, is_const, owner, name_pos);
+    field = Field::NewTopLevel(var_name, is_final, is_const, owner, name_pos,
+                               end_token_pos);
     field.SetFieldType(type);
+    field.set_has_initializer(has_initializer);
     field.set_is_reflectable(is_reflectable);
-    field.SetStaticValue(Object::null_instance(), true);
     top_level->AddField(field);
     library_.AddObject(field, var_name);
     if (metadata_pos.IsReal()) {
       library_.AddFieldMetadata(field, metadata_pos);
     }
-    if (CurrentToken() == Token::kASSIGN) {
-      ConsumeToken();
-      Instance& field_value = Instance::Handle(Z, Object::sentinel().raw());
-      bool has_simple_literal = false;
-      if (LookaheadToken(1) == Token::kSEMICOLON) {
-        has_simple_literal = IsSimpleLiteral(type, &field_value);
-      }
-      SkipExpr();
-      field.SetStaticValue(field_value, true);
-      field.set_has_initializer(true);
 
+    if (has_initializer) {
+      field.SetStaticValue(field_value, true);
       if (!has_simple_literal) {
         // Create a static final getter.
         String& getter_name = String::Handle(Z, Field::GetterSymbol(var_name));
@@ -5854,8 +5866,6 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
         getter.set_is_reflectable(is_reflectable);
         top_level->AddFunction(getter);
       }
-    } else if (is_final) {
-      ReportError(name_pos, "missing initializer for final or const variable");
     }
 
     if (CurrentToken() == Token::kCOMMA) {

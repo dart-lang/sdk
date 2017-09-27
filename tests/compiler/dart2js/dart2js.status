@@ -10,11 +10,11 @@ analyze_dart_test: Slow, Pass
 
 compile_with_empty_libraries_test: Fail # Issue 24223
 
+inference/inference_test: Slow, Pass
+
 kernel/*: Slow, Pass
 
 boolified_operator_test: Fail # Issue 8001
-
-kernel/closed_world2_test: Fail # Issue 30826
 
 # Skip most serialization tests. These are very slow and are no longer a 
 # priority.

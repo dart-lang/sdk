@@ -27,7 +27,7 @@
 namespace dart {
 
 static const intptr_t kSampleSize = 8;
-static const intptr_t kMaxSamplesPerTick = 4;
+static const intptr_t kMaxSamplesPerTick = 16;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
@@ -765,6 +765,15 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 
       if (!ValidFramePointer(fp)) {
         // Frame pointer is outside of isolate stack boundary.
+        return;
+      }
+
+      if ((pc + 1) < pc) {
+        // It is not uncommon to encounter an invalid pc as we
+        // traverse a stack frame.  Most of these we can tolerate.  If
+        // the pc is so large that adding one to it will cause an
+        // overflow it is invalid and it will cause headaches later
+        // while we are building the profile.  Discard it.
         return;
       }
 

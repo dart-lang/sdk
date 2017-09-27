@@ -542,7 +542,7 @@ final bool typeAssertionsEnabled = (() {
   try {
     dynamic i = 42;
     String s = i;
-  } on TypeError catch (e) {
+  } on TypeError {
     return true;
   }
   return false;
@@ -552,7 +552,7 @@ final bool typeAssertionsEnabled = (() {
 final bool assertStatementsEnabled = (() {
   try {
     assert(false);
-  } on AssertionError catch (e) {
+  } on AssertionError {
     return true;
   }
   return false;

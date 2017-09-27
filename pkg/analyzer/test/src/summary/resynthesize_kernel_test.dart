@@ -37,13 +37,19 @@ main() {
   });
 }
 
-/// Tests marked with this annotation fail because of a Fasta problem.
-const fastaProblem = const Object();
-
 /// Tests marked with this annotation fail because they test features that
 /// were implemented in Analyzer, but are intentionally not included into
 /// the Dart 2.0 plan, so will not be implemented by Fasta.
 const notForDart2 = const Object();
+
+/// Tests marked with this annotations fail because we either have not triaged
+/// them, or know that this is an analyzer problem.
+const potentialAnalyzerProblem = const Object();
+
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
+}
 
 @reflectiveTest
 class ResynthesizeKernelStrongTest extends ResynthesizeTest {
@@ -123,185 +129,57 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       super.createOptions()..strongMode = true;
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_class_constructor_field_formal_multiple_matching_fields() async {
-    // Fasta does not generate the class.
-    // main() with a fatal error is generated instead.
     await super.test_class_constructor_field_formal_multiple_matching_fields();
   }
 
   @failingTest
-  @fastaProblem
+  @potentialAnalyzerProblem
   test_class_type_parameters_bound() async {
     // Fasta does not provide a flag for explicit vs. implicit Object bound.
     await super.test_class_type_parameters_bound();
   }
 
   @failingTest
-  @fastaProblem
-  test_const_invalid_field_const() async {
-    // Fasta generates additional `#errors` top-level variable.
-    await super.test_const_invalid_field_const();
-  }
-
-  @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30266')
   test_const_invalid_intLiteral() async {
-    // https://github.com/dart-lang/sdk/issues/30266
     await super.test_const_invalid_intLiteral();
   }
 
   @failingTest
-  @fastaProblem
-  test_const_invalid_topLevel() async {
-    // Fasta generates additional `#errors` top-level variable.
-    await super.test_const_invalid_topLevel();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_invokeConstructor_named_unresolved() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_invokeConstructor_named_unresolved();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_invokeConstructor_named_unresolved2() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_invokeConstructor_named_unresolved2();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_invokeConstructor_named_unresolved3() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_invokeConstructor_named_unresolved3();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_invokeConstructor_named_unresolved4() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_invokeConstructor_named_unresolved4();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_invokeConstructor_named_unresolved5() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_invokeConstructor_named_unresolved5();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_invokeConstructor_named_unresolved6() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_invokeConstructor_named_unresolved6();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_invokeConstructor_unnamed_unresolved() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_invokeConstructor_unnamed_unresolved();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_invokeConstructor_unnamed_unresolved2() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_invokeConstructor_unnamed_unresolved2();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_invokeConstructor_unnamed_unresolved3() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_invokeConstructor_unnamed_unresolved3();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_reference_unresolved_prefix0() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_reference_unresolved_prefix0();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_reference_unresolved_prefix1() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_reference_unresolved_prefix1();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_reference_unresolved_prefix2() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_reference_unresolved_prefix2();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_topLevel_super() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_topLevel_super();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_const_topLevel_this() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_const_topLevel_this();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_constructor_initializers_field_notConst() async {
-    // Fasta generates additional `#errors` top-level variable.
-    await super.test_constructor_initializers_field_notConst();
-  }
-
-  @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_generic() async {
-    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_named_generic();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_imported_generic() async {
-    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_named_imported_generic();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_prefixed_generic() async {
-    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_named_prefixed_generic();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_unnamed_generic() async {
-    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_unnamed_generic();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_unnamed_imported_generic() async {
-    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_unnamed_imported_generic();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_unnamed_prefixed_generic() async {
-    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_unnamed_prefixed_generic();
   }
 
@@ -390,8 +268,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @potentialAnalyzerProblem
   test_genericFunction_asGenericFunctionReturnType() async {
-    // TODO(scheglov): triage
     await super.test_genericFunction_asGenericFunctionReturnType();
   }
 
@@ -408,361 +286,225 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
   test_import_invalidUri_metadata() async {
-    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_import_invalidUri_metadata();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
-    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_boundRefersToEarlierTypeArgument();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_boundRefersToItself() async {
-    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_boundRefersToItself();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
-    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_functionTypeAlias_simple() async {
-    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_functionTypeAlias_simple();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_simple() async {
-    // https://github.com/dart-lang/sdk/issues/30724
     await super.test_instantiateToBounds_simple();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_invalid_annotation_prefixed_constructor() async {
-    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_annotation_prefixed_constructor();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_invalid_annotation_unprefixed_constructor() async {
-    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_annotation_unprefixed_constructor();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_invalid_nameConflict_imported() async {
-    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_nameConflict_imported();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_invalid_nameConflict_imported_exported() async {
-    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_nameConflict_imported_exported();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_invalid_nameConflict_local() async {
-    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_nameConflict_local();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_invalid_setterParameter_fieldFormalParameter() async {
-    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_setterParameter_fieldFormalParameter();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
   test_invalidUri_part_emptyUri() async {
-    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_invalidUri_part_emptyUri();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
   test_invalidUris() async {
-    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_invalidUris();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
   test_metadata_exportDirective() async {
-    // https://github.com/dart-lang/sdk/issues/30284
     await super.test_metadata_exportDirective();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_fieldFormalParameter() async {
-    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_fieldFormalParameter();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_fieldFormalParameter_withDefault() async {
-    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_fieldFormalParameter_withDefault();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_functionTypedFormalParameter() async {
-    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_functionTypedFormalParameter();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_functionTypedFormalParameter_withDefault() async {
-    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_functionTypedFormalParameter_withDefault();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
   test_metadata_importDirective() async {
-    // https://github.com/dart-lang/sdk/issues/30284
     await super.test_metadata_importDirective();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_metadata_invalid_classDeclaration() async {
-    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_metadata_invalid_classDeclaration();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
   test_metadata_libraryDirective() async {
-    // https://github.com/dart-lang/sdk/issues/30284
     await super.test_metadata_libraryDirective();
   }
 
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
   test_metadata_partDirective() async {
-    // https://github.com/dart-lang/sdk/issues/30284
     await super.test_metadata_partDirective();
   }
 
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_simpleFormalParameter() async {
-    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_simpleFormalParameter();
   }
 
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_simpleFormalParameter_withDefault() async {
-    // https://github.com/dart-lang/sdk/issues/30035
     await super.test_metadata_simpleFormalParameter_withDefault();
   }
 
   @failingTest
+  @potentialAnalyzerProblem
   test_parameter_checked() async {
-    // TODO(scheglov): triage
     await super.test_parameter_checked();
   }
 
   @failingTest
+  @potentialAnalyzerProblem
   test_parameter_checked_inherited() async {
-    // TODO(scheglov): triage
     await super.test_parameter_checked_inherited();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
   test_parts_invalidUri() async {
-    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_parts_invalidUri();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
   test_parts_invalidUri_nullStringValue() async {
-    // https://github.com/dart-lang/sdk/issues/30725
     await super.test_parts_invalidUri_nullStringValue();
   }
 
   @failingTest
-  test_syntheticFunctionType_genericClosure() async {
-    // TODO(scheglov): this does not work even in Analyzer
-    await super.test_syntheticFunctionType_genericClosure();
-  }
-
-  @failingTest
-  test_syntheticFunctionType_inGenericClass() async {
-    // TODO(scheglov): this does not work even in Analyzer
-    await super.test_syntheticFunctionType_inGenericClass();
-  }
-
-  @failingTest
-  test_syntheticFunctionType_noArguments() async {
-    // TODO(scheglov): this does not work even in Analyzer
-    await super.test_syntheticFunctionType_noArguments();
-  }
-
-  @failingTest
-  test_syntheticFunctionType_withArguments() async {
-    // TODO(scheglov): this does not work even in Analyzer
-    await super.test_syntheticFunctionType_withArguments();
-  }
-
-  @failingTest
+  @potentialAnalyzerProblem
   test_type_reference_to_typedef_with_type_arguments() async {
     // TODO(scheglov): triage
     await super.test_type_reference_to_typedef_with_type_arguments();
   }
 
   @failingTest
+  @potentialAnalyzerProblem
   test_type_reference_to_typedef_with_type_arguments_implicit() async {
     // TODO(scheglov): triage
     await super.test_type_reference_to_typedef_with_type_arguments_implicit();
   }
 
   @failingTest
+  @potentialAnalyzerProblem
   test_typedef_documented() async {
     // TODO(scheglov): implement
     await super.test_typedef_documented();
   }
 
   @failingTest
+  @potentialAnalyzerProblem
   test_typedef_generic() async {
     // TODO(scheglov): triage
     await super.test_typedef_generic();
   }
 
   @failingTest
+  @potentialAnalyzerProblem
   test_typedef_generic_asFieldType() async {
     // TODO(scheglov): triage
     await super.test_typedef_generic_asFieldType();
   }
 
   @failingTest
+  @potentialAnalyzerProblem
   test_typedef_type_parameters_bound() async {
     // TODO(scheglov): triage
     await super.test_typedef_type_parameters_bound();
   }
 
   @failingTest
-  @fastaProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_unresolved_annotation_instanceCreation_argument_super() async {
-    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_unresolved_annotation_instanceCreation_argument_super();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_instanceCreation_argument_this() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_unresolved_annotation_instanceCreation_argument_this();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_namedConstructorCall_noClass() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_unresolved_annotation_namedConstructorCall_noClass();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_namedConstructorCall_noConstructor() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_unresolved_annotation_namedConstructorCall_noConstructor();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_prefixedIdentifier_badPrefix() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_unresolved_annotation_prefixedIdentifier_badPrefix();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_unresolved_annotation_prefixedIdentifier_noDeclaration();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super
-        .test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_prefixedNamedConstructorCall_noClass() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super
-        .test_unresolved_annotation_prefixedNamedConstructorCall_noClass();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() async {
-    await super
-        .test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super
-        .test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super
-        .test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_simpleIdentifier() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_unresolved_annotation_simpleIdentifier();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_unresolved_annotation_unnamedConstructorCall_noClass() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_unresolved_annotation_unnamedConstructorCall_noClass();
-  }
-
-  @failingTest
-  test_unresolved_import() async {
-    await super.test_unresolved_import();
   }
 
   String _getLibraryText(kernel.Library library) {

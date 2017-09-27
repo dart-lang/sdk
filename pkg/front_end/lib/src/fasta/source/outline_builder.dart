@@ -15,12 +15,12 @@ import '../combinator.dart' show Combinator;
 import '../fasta_codes.dart'
     show
         Message,
-        codeExpectedBlockToSkip,
         messageExpectedBlockToSkip,
         messageOperatorWithOptionalFormals,
         messageTypedefNotFunction,
         templateDuplicatedParameterName,
         templateDuplicatedParameterNameCause,
+        templateCouldNotParseUri,
         templateOperatorMinusParameterMismatch,
         templateOperatorParameterMismatch0,
         templateOperatorParameterMismatch1,
@@ -35,17 +35,12 @@ import '../operator.dart'
         operatorToString,
         operatorRequiredArgumentCount;
 
-import '../parser/native_support.dart'
-    show extractNativeMethodName, removeNativeClause, skipNativeClause;
-
 import '../parser.dart'
     show FormalParameterKind, IdentifierContext, MemberKind, optional;
 
 import '../problems.dart' show unhandled, unimplemented;
 
 import '../quote.dart' show unescapeString;
-
-import '../util/link.dart' show Link;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -168,19 +163,38 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
       Token semicolon) {
-    debugEvent("endImport");
+    debugEvent("EndImport");
     List<Combinator> combinators = pop();
     int prefixOffset = popIfNotNull(asKeyword) ?? -1;
     String prefix = popIfNotNull(asKeyword);
     Unhandled conditionalUris = pop();
-    popCharOffset();
+    int uriOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
     if (uri != null) {
-      library.addImport(metadata, uri, conditionalUris, prefix, combinators,
-          deferredKeyword != null, importKeyword.charOffset, prefixOffset);
+      try {
+        library.addImport(metadata, uri, conditionalUris, prefix, combinators,
+            deferredKeyword != null, importKeyword.charOffset, prefixOffset);
+      } on FormatException catch (e) {
+        // Point to position in string indicated by the exception,
+        // or to the initial quote if no position is given.
+        // (Assumes the import is using a single-line string.)
+        addCompileTimeError(
+            templateCouldNotParseUri.withArguments(uri, e.message),
+            uriOffset + 1 + (e.offset ?? -1));
+      }
     }
     checkEmpty(importKeyword.charOffset);
+  }
+
+  @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    debugEvent("RecoverImport");
+    pop(); // combinators
+    popIfNotNull(asKeyword); // prefixOffset
+    popIfNotNull(asKeyword); // prefix
+    pop(); // conditionalUris
   }
 
   @override
@@ -959,27 +973,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, Message message) {
-    if (enableNative && message.code == codeExpectedBlockToSkip) {
-      Token recover = skipNativeClause(token, stringExpectedAfterNative);
-      if (recover != null) {
-        nativeMethodName =
-            stringExpectedAfterNative ? extractNativeMethodName(token) : "";
-        return recover;
-      }
-    }
-    return super.handleUnrecoverableError(token, message);
-  }
-
-  @override
   void addCompileTimeError(Message message, int charOffset) {
     library.addCompileTimeError(message, charOffset, uri);
-  }
-
-  @override
-  Link<Token> handleMemberName(Link<Token> identifiers) {
-    if (!enableNative || identifiers.isEmpty) return identifiers;
-    return removeNativeClause(identifiers, stringExpectedAfterNative);
   }
 
   /// Return the documentation comment for the entity that starts at the

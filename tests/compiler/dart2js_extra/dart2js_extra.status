@@ -170,16 +170,7 @@ closure_capture2_test: RuntimeError
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
-compile_time_constant4_test/01: MissingCompileTimeError
-compile_time_constant4_test/02: MissingCompileTimeError
-compile_time_constant4_test/03: MissingCompileTimeError
-compile_time_constant4_test/04: MissingCompileTimeError
-compile_time_constant4_test/05: MissingCompileTimeError
-compile_time_constant4_test/06: Crash # 'file:*/pkg/compiler/lib/src/constants/expressions.dart': Failed assertion: line 891 pos 12: 'PRECEDENCE_MAP[operator.kind] != null': is not true.
-consistent_add_error_test: RuntimeError
-consistent_subtract_error_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-constant_javascript_semantics_test/02: MissingCompileTimeError
 deferred/deferred_class_test: CompileTimeError
 deferred/deferred_constant2_test: CompileTimeError
 deferred/deferred_constant3_test: CompileTimeError
@@ -202,7 +193,7 @@ label_test/06: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
 mirror_invalid_field_access3_test: RuntimeError
 mirror_invalid_field_access4_test: RuntimeError
-mirror_invalid_field_access_test: RuntimeError 
+mirror_invalid_field_access_test: RuntimeError
 mirror_invalid_invoke2_test: RuntimeError
 mirror_invalid_invoke3_test: RuntimeError
 mirror_invalid_invoke_test: RuntimeError
@@ -239,16 +230,7 @@ useful_error_message_1_test: RuntimeError
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
-compile_time_constant4_test/01: MissingCompileTimeError
-compile_time_constant4_test/02: MissingCompileTimeError
-compile_time_constant4_test/03: MissingCompileTimeError
-compile_time_constant4_test/04: MissingCompileTimeError
-compile_time_constant4_test/05: MissingCompileTimeError
-compile_time_constant4_test/06: Crash # NoSuchMethodError: The method 'fold' was called on null.
-consistent_add_error_test: RuntimeError
-consistent_subtract_error_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-constant_javascript_semantics_test/02: MissingCompileTimeError
 deferred/deferred_class_test: CompileTimeError
 deferred/deferred_constant2_test: CompileTimeError
 deferred/deferred_constant3_test: CompileTimeError
@@ -269,7 +251,7 @@ inference_super_set_call_test: RuntimeError
 invalid_annotation2_test/none: RuntimeError
 label_test/06: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
-mirror_invalid_field_access3_test: RuntimeError 
+mirror_invalid_field_access3_test: RuntimeError
 mirror_invalid_field_access4_test: RuntimeError
 mirror_invalid_field_access_test: RuntimeError
 mirror_invalid_invoke2_test: RuntimeError
@@ -287,7 +269,7 @@ mirrors_used_metatargets_test: RuntimeError
 mirrors_used_native_test: RuntimeError
 mirrors_used_warning2_test: RuntimeError
 mirrors_used_warning_test/minif: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-mirrors_used_warning_test/none: Crash # Issue 30826
+mirrors_used_warning_test/none: RuntimeError
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -300,5 +282,4 @@ regress/4562_test/none: CompileTimeError
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
-unconditional_dartio_import_test: CompileTimeError
-
+unconditional_dartio_import_test: RuntimeError # Issue 30902

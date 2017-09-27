@@ -685,8 +685,10 @@ class FieldDataImpl extends MemberDataImpl implements FieldData {
     ConstantValue value = getFieldConstantValue(elementMap);
     assert(
         value != null,
-        failedAt(definition.member,
-            "Field ${definition.member} doesn't have a constant initial value."));
+        failedAt(
+            definition.member,
+            "Field ${definition.member} doesn't have a "
+            "constant initial value."));
     return value;
   }
 

@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:gardening/src/results/configurations.dart';
 import 'package:gardening/src/results/result_models.dart' as models;
 import 'package:gardening/src/results/testpy_wrapper.dart';
 
-void addStandardArguments(argParser) {
+/// Helper function to add all standard arguments to the [argParser].
+void addStandardArguments(ArgParser argParser) {
   argParser.addOption("arch", allowed: Architecture.names);
   argParser.addOption("builder-tag", defaultsTo: '');
   argParser.addFlag("checked", negatable: false);
@@ -27,8 +29,38 @@ void addStandardArguments(argParser) {
   argParser.addFlag("strong", negatable: false);
   argParser.addOption("system", allowed: System.names);
   argParser.addFlag("use-sdk", negatable: false);
+  argParser.addFlag("preview-dart-2", negatable: false);
 }
 
+/// Helper function to get a configuration from [argResults].
+models.Configuration getConfigurationFromArguments(ArgResults argResults) {
+  return new models.Configuration(
+      argResults["mode"],
+      argResults["arch"],
+      argResults["compiler"],
+      argResults["runtime"],
+      argResults["checked"],
+      argResults["strong"],
+      argResults["host-checked"],
+      argResults["minified"],
+      argResults["csp"],
+      argResults["system"],
+      [],
+      argResults["use-sdk"],
+      argResults["builder-tag"],
+      argResults["fast-startup"],
+      0,
+      argResults["dart2js-with-kernel"],
+      argResults["dart2js-with-kernel-in-ssa"],
+      argResults["enable-asserts"],
+      argResults["hot-reload"],
+      argResults["hot-reload-rollback"],
+      argResults["preview-dart-2"],
+      argResults.rest);
+}
+
+/// [ListCommand] handles listing of information about test suites when given a
+/// command 'list' and expect a sub-command.
 class ListCommand extends Command {
   @override
   String get description => "Lists information about test suites and "
@@ -43,6 +75,8 @@ class ListCommand extends Command {
   }
 }
 
+/// [ListTestsWithExpectationsForConfiguration] calls test.py with the arguments
+/// passed directly.
 class ListTestsWithExpectationsForConfiguration extends Command {
   @override
   String get description => "Get all tests with the expectation for a "
@@ -56,32 +90,13 @@ class ListTestsWithExpectationsForConfiguration extends Command {
   }
 
   Future run() async {
-    var conf = new models.Configuration(
-        argResults["mode"],
-        argResults["arch"],
-        argResults["compiler"],
-        argResults["runtime"],
-        argResults["checked"],
-        argResults["strong"],
-        argResults["host-checked"],
-        argResults["minified"],
-        argResults["csp"],
-        argResults["system"],
-        [],
-        argResults["use-sdk"],
-        argResults["builder-tag"],
-        argResults["fast-startup"],
-        0,
-        argResults["dart2js-with-kernel"],
-        argResults["dart2js-with-kernel-in-ssa"],
-        argResults["enable-asserts"],
-        argResults["hot-reload"],
-        argResults["hot-reload-rollback"]);
-    var result = await testLister(conf, argResults.rest);
+    var result = await testLister(getConfigurationFromArguments(argResults));
     result.forEach(print);
   }
 }
 
+/// [ListStatusFilesForConfiguration] handles the sub-command 'status-files' and
+/// returns a list of status files that are found for the configuration passed.
 class ListStatusFilesForConfiguration extends Command {
   @override
   String get description => "Get all status files for the desired "
@@ -95,28 +110,8 @@ class ListStatusFilesForConfiguration extends Command {
   }
 
   Future run() async {
-    var conf = new models.Configuration(
-        argResults["mode"],
-        argResults["arch"],
-        argResults["compiler"],
-        argResults["runtime"],
-        argResults["checked"],
-        argResults["strong"],
-        argResults["host-checked"],
-        argResults["minified"],
-        argResults["csp"],
-        argResults["system"],
-        [],
-        argResults["use-sdk"],
-        argResults["builder-tag"],
-        argResults["fast-startup"],
-        0,
-        argResults["dart2js-with-kernel"],
-        argResults["dart2js-with-kernel-in-ssa"],
-        argResults["enable-asserts"],
-        argResults["hot-reload"],
-        argResults["hot-reload-rollback"]);
-    var result = await statusFileLister(conf, argResults.rest);
+    var result =
+        await statusFileLister(getConfigurationFromArguments(argResults));
     result.forEach(print);
   }
 }

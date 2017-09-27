@@ -20,16 +20,9 @@ import '../deprecated_problems.dart'
     show Crash, deprecated_InputError, deprecated_inputError;
 
 import '../fasta_codes.dart'
-    show
-        Message,
-        codeExpectedBlockToSkip,
-        messageExpectedBlockToSkip,
-        templateInternalProblemNotFound;
+    show Message, messageExpectedBlockToSkip, templateInternalProblemNotFound;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-
-import '../parser/native_support.dart'
-    show removeNativeClause, skipNativeClause;
 
 import '../parser.dart' show MemberKind, Parser, closeBraceTokenFor, optional;
 
@@ -39,8 +32,6 @@ import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
 import '../type_inference/type_inference_listener.dart'
     show TypeInferenceListener;
-
-import '../util/link.dart' show Link;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -314,8 +305,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endConditionalUri(
-      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     debugEvent("ConditionalUri");
   }
 
@@ -357,6 +347,12 @@ class DietListener extends StackListener {
     debugEvent("Import");
     popIfNotNull(asKeyword);
     discard(1); // Metadata.
+  }
+
+  @override
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    popIfNotNull(asKeyword);
   }
 
   @override
@@ -571,21 +567,6 @@ class DietListener extends StackListener {
     checkEmpty(beginToken.charOffset);
   }
 
-  @override
-  Token handleUnrecoverableError(Token token, Message message) {
-    if (enableNative && message.code == codeExpectedBlockToSkip) {
-      Token recover = skipNativeClause(token, stringExpectedAfterNative);
-      if (recover != null) return recover;
-    }
-    return super.handleUnrecoverableError(token, message);
-  }
-
-  @override
-  Link<Token> handleMemberName(Link<Token> identifiers) {
-    if (!enableNative || identifiers.isEmpty) return identifiers;
-    return removeNativeClause(identifiers, stringExpectedAfterNative);
-  }
-
   AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();
 
   /// Invokes the listener's [finishFunction] method.
@@ -666,9 +647,6 @@ class DietListener extends StackListener {
       if (getOrSet != null && optional("set", getOrSet)) {
         builder = currentClass.scope.setters[name];
       } else {
-        builder = currentClass.scope.local[name];
-      }
-      if (builder == null) {
         if (name == currentClass.name) {
           name = "";
         } else {
@@ -676,6 +654,9 @@ class DietListener extends StackListener {
           name = name.substring(index + 1);
         }
         builder = currentClass.constructors.local[name];
+        if (builder == null) {
+          builder = currentClass.scope.local[name];
+        }
       }
     } else if (getOrSet != null && optional("set", getOrSet)) {
       builder = library.scope.setters[name];

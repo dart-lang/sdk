@@ -895,11 +895,11 @@ abstract class Compiler {
   ///
   /// If [assumeInUserCode] is `true`, [element] is assumed to be in user code
   /// if no entrypoints have been set.
-  bool inUserCode(Element element, {bool assumeInUserCode: false}) {
-    if (element == null) return false;
+  bool inUserCode(Entity element, {bool assumeInUserCode: false}) {
+    Uri libraryUri = _uriFromElement(element);
+    if (libraryUri == null) return false;
     Iterable<CodeLocation> userCodeLocations =
         computeUserCodeLocations(assumeInUserCode: assumeInUserCode);
-    Uri libraryUri = element.library.canonicalUri;
     return userCodeLocations.any(
         (CodeLocation codeLocation) => codeLocation.inSameLocation(libraryUri));
   }
@@ -926,9 +926,9 @@ abstract class Compiler {
   /// For a package library with canonical URI 'package:foo/bar/baz.dart' the
   /// return URI is 'package:foo'. For non-package libraries the returned URI is
   /// the canonical URI of the library itself.
-  Uri getCanonicalUri(Element element) {
-    if (element == null) return null;
-    Uri libraryUri = element.library.canonicalUri;
+  Uri getCanonicalUri(Entity element) {
+    Uri libraryUri = _uriFromElement(element);
+    if (libraryUri == null) return null;
     if (libraryUri.scheme == 'package') {
       int slashPos = libraryUri.path.indexOf('/');
       if (slashPos != -1) {
@@ -937,6 +937,19 @@ abstract class Compiler {
       }
     }
     return libraryUri;
+  }
+
+  Uri _uriFromElement(Entity element) {
+    if (element is LibraryEntity) {
+      return element.canonicalUri;
+    } else if (element is ClassEntity) {
+      return element.library.canonicalUri;
+    } else if (element is MemberEntity) {
+      return element.library.canonicalUri;
+    } else if (element is Element) {
+      return element.library.canonicalUri;
+    }
+    return null;
   }
 
   /// Returns [true] if a compile-time error has been reported for element.
@@ -1046,7 +1059,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
       switch (kind) {
         case api.Diagnostic.WARNING:
         case api.Diagnostic.HINT:
-          Element element = elementFromSpannable(message.spannable);
+          Entity element = elementFromSpannable(message.spannable);
           if (!compiler.inUserCode(element, assumeInUserCode: true)) {
             Uri uri = compiler.getCanonicalUri(element);
             if (options.showPackageWarningsFor(uri)) {
@@ -1213,9 +1226,9 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 
   /// Finds the approximate [Element] for [node]. [currentElement] is used as
   /// the default value.
-  Element elementFromSpannable(Spannable node) {
-    Element element;
-    if (node is Element) {
+  Entity elementFromSpannable(Spannable node) {
+    Entity element;
+    if (node is Entity) {
       element = node;
     } else if (node is HInstruction) {
       element = _elementFromHInstruction(node);

@@ -143,6 +143,9 @@ class CompileType : public ZoneAllocated {
   // Create non-nullable Smi type.
   static CompileType Smi();
 
+  // Create non-nullable Double type.
+  static CompileType Double();
+
   // Create non-nullable String type.
   static CompileType String();
 

@@ -369,7 +369,7 @@ class SuperPropertyAccessor extends Accessor {
 
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     if (getter == null) {
-      helper.warnUnresolvedSuperGet(name, offsetForToken(token));
+      helper.warnUnresolvedGet(name, offsetForToken(token), isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertyGet] when possible.
     var read = new ShadowSuperPropertyGet(name, getter)
@@ -381,7 +381,7 @@ class SuperPropertyAccessor extends Accessor {
   Expression _makeWrite(Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
     if (setter == null) {
-      helper.warnUnresolvedSuperSet(name, offsetForToken(token));
+      helper.warnUnresolvedSet(name, offsetForToken(token), isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertySet] when possible.
     var write = new SuperPropertySet(name, value, setter)
@@ -585,7 +585,8 @@ class SuperIndexAccessor extends Accessor {
 
   Expression _makeSimpleRead() {
     if (getter == null) {
-      helper.warnUnresolvedSuperMethod(indexGetName, offsetForToken(token));
+      helper.warnUnresolvedMethod(indexGetName, offsetForToken(token),
+          isSuper: true);
     }
     // TODO(ahe): Use [DirectMethodInvocation] when possible.
     return new ShadowSuperMethodInvocation(
@@ -597,7 +598,8 @@ class SuperIndexAccessor extends Accessor {
       ShadowComplexAssignment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
     if (setter == null) {
-      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+      helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
+          isSuper: true);
     }
     var write = new SuperMethodInvocation(
         indexSetName, new ShadowArguments(<Expression>[index, value]), setter)
@@ -608,7 +610,8 @@ class SuperIndexAccessor extends Accessor {
 
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     if (getter == null) {
-      helper.warnUnresolvedSuperMethod(indexGetName, offsetForToken(token));
+      helper.warnUnresolvedMethod(indexGetName, offsetForToken(token),
+          isSuper: true);
     }
     var read = new SuperMethodInvocation(
         indexGetName, new ShadowArguments(<Expression>[indexAccess()]), getter)
@@ -621,7 +624,8 @@ class SuperIndexAccessor extends Accessor {
       ShadowComplexAssignment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
     if (setter == null) {
-      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+      helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
+          isSuper: true);
     }
     var write = new SuperMethodInvocation(indexSetName,
         new ShadowArguments(<Expression>[indexAccess(), value]), setter)
@@ -634,7 +638,8 @@ class SuperIndexAccessor extends Accessor {
       Expression value, ShadowComplexAssignment complexAssignment) {
     var valueVariable = new VariableDeclaration.forValue(value);
     if (setter == null) {
-      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+      helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
+          isSuper: true);
     }
     var write = new SuperMethodInvocation(
         indexSetName,

@@ -1159,12 +1159,23 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   }
 
   bool getMightBePassedToApply(FunctionEntity element) {
+    // We assume all functions reach Function.apply if no functions are
+    // registered so.  We get an empty set in two circumstances (1) a trivial
+    // program and (2) when compiling without type inference
+    // (i.e. --disable-type-inference). Returning `true` has consequences (extra
+    // metadata for Function.apply) only when Function.apply is also part of the
+    // program. It is an unusual trivial program that includes Function.apply
+    // but does not call it on a function.
+    //
+    // TODO(sra): We should reverse the sense of this set and register functions
+    // that we have proven do not reach Function.apply.
+    if (_functionsThatMightBePassedToApply.isEmpty) return true;
     return _functionsThatMightBePassedToApply.contains(element);
   }
 
   @override
   bool getCurrentlyKnownMightBePassedToApply(FunctionEntity element) {
-    return getMightBePassedToApply(element);
+    return _functionsThatMightBePassedToApply.contains(element);
   }
 
   @override

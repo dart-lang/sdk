@@ -624,6 +624,10 @@ CompileType CompileType::Smi() {
   return Create(kSmiCid, Type::ZoneHandle(Type::SmiType()));
 }
 
+CompileType CompileType::Double() {
+  return Create(kDoubleCid, Type::ZoneHandle(Type::Double()));
+}
+
 CompileType CompileType::String() {
   return FromAbstractType(Type::ZoneHandle(Type::StringType()), kNonNullable);
 }

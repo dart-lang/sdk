@@ -46,6 +46,12 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
     ast.Node body;
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
       body = resolvedAst.body;
+      if (member.isField &&
+          member.isInstanceMember &&
+          !member.isFinal &&
+          body is ast.LiteralNull) {
+        return null;
+      }
     }
     return body;
   }

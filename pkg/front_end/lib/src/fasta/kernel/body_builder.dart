@@ -24,8 +24,6 @@ import '../messages.dart' as messages show getLocationFromUri;
 
 import '../modifier.dart' show Modifier, constMask, finalMask;
 
-import '../parser/native_support.dart' show skipNativeClause;
-
 import '../parser.dart'
     show
         Assert,
@@ -915,9 +913,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   void doDotOrCascadeExpression(Token token) {
     // TODO(ahe): Handle null-aware.
-    IncompleteSend send = pop();
-    Object receiver = optional(".", token) ? pop() : popForValue();
-    push(send.withReceiver(receiver, token.charOffset));
+    var send = pop();
+    if (send is IncompleteSend) {
+      Object receiver = optional(".", token) ? pop() : popForValue();
+      push(send.withReceiver(receiver, token.charOffset));
+    } else {
+      pop();
+      Message message =
+          fasta.templateExpectedIdentifier.withArguments(token.next);
+      push(buildCompileTimeError(message, token.next.charOffset));
+    }
   }
 
   @override
@@ -925,7 +930,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Member target = lookupSuperMember(node.name);
     if (target == null || (target is Procedure && !target.isAccessor)) {
       if (target == null) {
-        warnUnresolvedSuperMethod(node.name, node.fileOffset);
+        warnUnresolvedMethod(node.name, node.fileOffset, isSuper: true);
       } else if (!areArgumentsCompatible(target.function, node.arguments)) {
         target = null;
         warning(
@@ -971,17 +976,20 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       bool isGetter: false,
       bool isSetter: false,
       bool isStatic: false}) {
-    String errorName = isSuper ? "super.$name" : name;
     Message message;
+    Name kernelName = new Name(name, library.library);
     if (isGetter) {
-      message = fasta.templateGetterNotFound.withArguments(errorName);
+      message = warnUnresolvedGet(kernelName, charOffset,
+          isSuper: isSuper, reportWarning: !constantExpressionRequired);
     } else if (isSetter) {
-      message = fasta.templateSetterNotFound.withArguments(errorName);
+      message = warnUnresolvedSet(kernelName, charOffset,
+          isSuper: isSuper, reportWarning: !constantExpressionRequired);
     } else {
-      message = fasta.templateMethodNotFound.withArguments(errorName);
+      message = warnUnresolvedMethod(kernelName, charOffset,
+          isSuper: isSuper, reportWarning: !constantExpressionRequired);
     }
     if (constantExpressionRequired) {
-      // TODO(ahe): Use error below instead of building a compile-time error,
+      // TODO(ahe): Use [error] below instead of building a compile-time error,
       // should be:
       //    return library.loader.throwCompileConstantError(error, charOffset);
       return buildCompileTimeError(message, charOffset);
@@ -993,26 +1001,50 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           isSetter: isSetter,
           isStatic: isStatic,
           isTopLevel: !isStatic && !isSuper);
-      warning(message, charOffset);
       return new ShadowSyntheticExpression(new Throw(error));
     }
   }
 
   @override
-  void warnUnresolvedSuperGet(Name name, int charOffset) {
-    warning(fasta.templateSuperclassHasNoGetter.withArguments(name.name),
-        charOffset);
+  Message warnUnresolvedGet(Name name, int charOffset,
+      {bool isSuper: false, bool reportWarning: true}) {
+    Message message = isSuper
+        ? fasta.templateSuperclassHasNoGetter.withArguments(name.name)
+        : fasta.templateGetterNotFound.withArguments(name.name);
+    if (reportWarning) {
+      warning(message, charOffset);
+    }
+    return message;
   }
 
   @override
-  void warnUnresolvedSuperSet(Name name, int charOffset) {
-    warning(fasta.templateSuperclassHasNoSetter.withArguments(name.name),
-        charOffset);
+  Message warnUnresolvedSet(Name name, int charOffset,
+      {bool isSuper: false, bool reportWarning: true}) {
+    Message message = isSuper
+        ? fasta.templateSuperclassHasNoSetter.withArguments(name.name)
+        : fasta.templateSetterNotFound.withArguments(name.name);
+    if (reportWarning) {
+      warning(message, charOffset);
+    }
+    return message;
   }
 
   @override
-  void warnUnresolvedSuperMethod(Name name, int charOffset) {
-    warning(fasta.templateSuperclassHasNoMethod.withArguments(name.name),
+  Message warnUnresolvedMethod(Name name, int charOffset,
+      {bool isSuper: false, bool reportWarning: true}) {
+    Message message = isSuper
+        ? fasta.templateSuperclassHasNoMethod.withArguments(name.name)
+        : fasta.templateMethodNotFound.withArguments(name.name);
+    if (reportWarning) {
+      warning(message, charOffset);
+    }
+    return message;
+  }
+
+  @override
+  void warnTypeArgumentsMismatch(String name, int expected, int charOffset) {
+    warning(
+        fasta.templateTypeArgumentMismatch.withArguments(name, '${expected}'),
         charOffset);
   }
 
@@ -2576,7 +2608,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+      Token inKeyword, Token endToken) {
     debugEvent("ForIn");
     Statement body = popStatement();
     Expression expression = popForValue();
@@ -2727,13 +2759,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token commaToken, Token rightParenthesis, Token semicolonToken) {
+      Token commaToken, Token semicolonToken) {
     debugEvent("Assert");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
     AssertStatement statement = new ShadowAssertStatement(condition,
         conditionStartOffset: leftParenthesis.offset + 1,
-        conditionEndOffset: rightParenthesis.offset,
+        conditionEndOffset: leftParenthesis.endGroup.offset,
         message: message);
     switch (kind) {
       case Assert.Statement:
@@ -3071,10 +3103,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Token handleUnrecoverableError(Token token, Message message) {
-    if (enableNative && message.code == fasta.codeExpectedFunctionBody) {
-      Token recover = skipNativeClause(token, stringExpectedAfterNative);
-      if (recover != null) return recover;
-    } else if (message.code == fasta.codeExpectedButGot) {
+    if (message.code == fasta.codeExpectedButGot) {
       String expected = message.arguments["string"];
       const List<String> trailing = const <String>[")", "}", ";", ","];
       if (trailing.contains(token.stringValue) && trailing.contains(expected)) {

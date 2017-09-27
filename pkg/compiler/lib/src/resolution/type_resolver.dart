@@ -74,34 +74,24 @@ class TypeResolver {
     return element;
   }
 
-  ResolutionDartType resolveTypeAnnotation(
-      MappingVisitor visitor, TypeAnnotation node,
+  ResolutionDartType resolveTypeAnnotation(MappingVisitor visitor,
+      TypeAnnotation node, FunctionTypeParameterScope functionTypeParameters,
       {bool malformedIsError: false, bool deferredIsMalformed: true}) {
-    return _resolveTypeAnnotation(visitor, node, const [],
+    return _resolveTypeAnnotation(visitor, node, functionTypeParameters,
         malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
   }
 
-  // TODO(floitsch): the [visibleTypeParameterNames] is a hack to put
-  // type parameters in scope for the nested types.
-  //
-  // For example, in the following example, the generic type "A" would be stored
-  // in `visibleTypeParameterNames`.
-  // `typedef F = Function(List<A> Function<A>(A x))`.
-  //
-  // They are resolved to `dynamic` until dart2js supports generic methods.
   ResolutionDartType _resolveTypeAnnotation(MappingVisitor visitor,
-      TypeAnnotation node, List<List<String>> visibleTypeParameterNames,
+      TypeAnnotation node, FunctionTypeParameterScope functionTypeParameters,
       {bool malformedIsError: false, bool deferredIsMalformed: true}) {
     if (node.asNominalTypeAnnotation() != null) {
-      return resolveNominalTypeAnnotation(
-          visitor, node, visibleTypeParameterNames,
+      return resolveNominalTypeAnnotation(visitor, node, functionTypeParameters,
           malformedIsError: malformedIsError,
           deferredIsMalformed: deferredIsMalformed);
     }
     assert(node.asFunctionTypeAnnotation() != null);
-    return _resolveFunctionTypeAnnotation(
-        visitor, node, visibleTypeParameterNames,
+    return _resolveFunctionTypeAnnotation(visitor, node, functionTypeParameters,
         malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
   }
@@ -114,10 +104,9 @@ class TypeResolver {
   /// However, it does work with nested generalized function types:
   ///   `foo(int Function(String) x)`.
   _FormalsTypeResolutionResult _resolveFormalTypes(MappingVisitor visitor,
-      NodeList formals, List<List<String>> visibleTypeParameterNames) {
+      NodeList formals, FunctionTypeParameterScope functionTypeParameters) {
     ResolutionDartType resolvePositionalType(VariableDefinitions node) {
-      return _resolveTypeAnnotation(
-          visitor, node.type, visibleTypeParameterNames);
+      return _resolveTypeAnnotation(visitor, node.type, functionTypeParameters);
     }
 
     void fillNamedTypes(NodeList namedFormals, List<String> names,
@@ -141,7 +130,7 @@ class TypeResolver {
         ResolutionDartType type = node.type == null
             ? const ResolutionDynamicType()
             : _resolveTypeAnnotation(
-                visitor, node.type, visibleTypeParameterNames);
+                visitor, node.type, functionTypeParameters);
         names.add(name);
         types.add(type);
       }
@@ -186,26 +175,22 @@ class TypeResolver {
         requiredTypes, orderedTypes, names, namedTypes);
   }
 
-  ResolutionFunctionType _resolveFunctionTypeAnnotation(MappingVisitor visitor,
-      FunctionTypeAnnotation node, List<List<String>> visibleTypeParameterNames,
-      {bool malformedIsError: false, bool deferredIsMalformed: true}) {
-    assert(visibleTypeParameterNames != null);
+  ResolutionFunctionType _resolveFunctionTypeAnnotation(
+      MappingVisitor visitor,
+      FunctionTypeAnnotation node,
+      FunctionTypeParameterScope functionTypeParameters,
+      {bool malformedIsError: false,
+      bool deferredIsMalformed: true}) {
+    assert(functionTypeParameters != null);
 
-    if (node.typeParameters != null) {
-      List<String> newTypeNames = node.typeParameters.map((_node) {
-        TypeVariable node = _node;
-        return node.name.asIdentifier().source;
-      }).toList();
-      visibleTypeParameterNames = visibleTypeParameterNames.toList()
-        ..add(newTypeNames);
-    }
+    functionTypeParameters = functionTypeParameters.expand(node.typeParameters);
 
     ResolutionDartType returnType = node.returnType == null
         ? const ResolutionDynamicType()
         : _resolveTypeAnnotation(
-            visitor, node.returnType, visibleTypeParameterNames);
+            visitor, node.returnType, functionTypeParameters);
     var formalTypes =
-        _resolveFormalTypes(visitor, node.formals, visibleTypeParameterNames);
+        _resolveFormalTypes(visitor, node.formals, functionTypeParameters);
     var result = new ResolutionFunctionType.generalized(
         returnType,
         formalTypes.requiredTypes,
@@ -213,12 +198,18 @@ class TypeResolver {
         formalTypes.names,
         formalTypes.nameTypes);
     visitor.registry.useType(node, result);
+
+    functionTypeParameters = functionTypeParameters.parent;
+
     return result;
   }
 
-  ResolutionDartType resolveNominalTypeAnnotation(MappingVisitor visitor,
-      NominalTypeAnnotation node, List<List<String>> visibleTypeParameterNames,
-      {bool malformedIsError: false, bool deferredIsMalformed: true}) {
+  ResolutionDartType resolveNominalTypeAnnotation(
+      MappingVisitor visitor,
+      NominalTypeAnnotation node,
+      FunctionTypeParameterScope functionTypeParameters,
+      {bool malformedIsError: false,
+      bool deferredIsMalformed: true}) {
     ResolutionRegistry registry = visitor.registry;
 
     Identifier typeName;
@@ -227,7 +218,7 @@ class TypeResolver {
     ResolutionDartType checkNoTypeArguments(ResolutionDartType type) {
       List<ResolutionDartType> arguments = new List<ResolutionDartType>();
       bool hasTypeArgumentMismatch = resolveTypeArguments(visitor, node,
-          const <ResolutionDartType>[], arguments, visibleTypeParameterNames);
+          const <ResolutionDartType>[], arguments, functionTypeParameters);
       if (hasTypeArgumentMismatch) {
         return new MalformedType(
             new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
@@ -279,19 +270,16 @@ class TypeResolver {
       }
       List<ResolutionDartType> arguments = <ResolutionDartType>[];
       resolveTypeArguments(visitor, node, const <ResolutionDartType>[],
-          arguments, visibleTypeParameterNames);
+          arguments, functionTypeParameters);
       return new MalformedType(
           erroneousElement, userProvidedBadType, arguments);
     }
 
     Element element;
-    // Resolve references to type names as dynamic.
-    // TODO(floitsch): this hackishly resolves generic function type arguments
-    // to dynamic.
-    if (prefixName == null &&
-        visibleTypeParameterNames.any((n) => n.contains(typeName.source))) {
-      type = const ResolutionDynamicType();
-    } else {
+    if (prefixName == null) {
+      type = functionTypeParameters.lookup(typeName.source);
+    }
+    if (type == null) {
       element = resolveTypeName(prefixName, typeName, visitor.scope,
           deferredIsMalformed: deferredIsMalformed);
     }
@@ -340,7 +328,7 @@ class TypeResolver {
         cls.computeType(resolution);
         List<ResolutionDartType> arguments = <ResolutionDartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(visitor, node,
-            cls.typeVariables, arguments, visibleTypeParameterNames);
+            cls.typeVariables, arguments, functionTypeParameters);
         if (hasTypeArgumentMismatch) {
           type = new BadInterfaceType(
               cls.declaration,
@@ -363,7 +351,7 @@ class TypeResolver {
         typdef.computeType(resolution);
         List<ResolutionDartType> arguments = <ResolutionDartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(visitor, node,
-            typdef.typeVariables, arguments, visibleTypeParameterNames);
+            typdef.typeVariables, arguments, functionTypeParameters);
         if (hasTypeArgumentMismatch) {
           type = new BadTypedefType(
               typdef,
@@ -441,7 +429,7 @@ class TypeResolver {
       NominalTypeAnnotation node,
       List<ResolutionDartType> typeVariables,
       List<ResolutionDartType> arguments,
-      List<List<String>> visibleTypeParameterNames) {
+      FunctionTypeParameterScope functionTypeParameters) {
     if (node.typeArguments == null) {
       return false;
     }
@@ -457,7 +445,7 @@ class TypeResolver {
         typeArgumentCountMismatch = true;
       }
       ResolutionDartType argType = _resolveTypeAnnotation(
-          visitor, typeArguments.head, visibleTypeParameterNames);
+          visitor, typeArguments.head, functionTypeParameters);
       // TODO(karlklose): rewrite to not modify [arguments].
       arguments.add(argType);
     }
@@ -467,5 +455,42 @@ class TypeResolver {
       typeArgumentCountMismatch = true;
     }
     return typeArgumentCountMismatch;
+  }
+}
+
+/// [FunctionTypeParameterScope] put type parameters in scope for the nested
+/// types.
+///
+/// For example, in the following examples, the generic types `A` would be stored
+/// in a [FunctionTypeParameterScope].
+///
+///     typedef F = List<A> Function<A>(A x)
+///     typedef F = Function(List<A> Function<A>(A x))
+///
+/// They are resolved to `dynamic` until dart2js supports generic methods.
+class FunctionTypeParameterScope {
+  final FunctionTypeParameterScope parent;
+  final Map<String, ResolutionDartType> _map;
+
+  const FunctionTypeParameterScope()
+      : parent = null,
+        _map = const {};
+
+  FunctionTypeParameterScope._(this.parent, this._map);
+
+  FunctionTypeParameterScope expand(NodeList typeParameters) {
+    if (typeParameters == null)
+      return new FunctionTypeParameterScope._(this, const {});
+    Map<String, ResolutionDartType> map = <String, ResolutionDartType>{};
+    for (TypeVariable node in typeParameters) {
+      /// TODO(johnniwinther): Create a special [FunctionTypeVariableType]
+      /// instead of [ResolutionDynamicType].
+      map[node.name.source] = const ResolutionDynamicType();
+    }
+    return new FunctionTypeParameterScope._(this, map);
+  }
+
+  ResolutionDartType lookup(String name) {
+    return _map[name] ?? parent?.lookup(name);
   }
 }

@@ -58,7 +58,7 @@ abstract class _HashVMBase {
 // normal and VM-internalized classes, respectiveley), which provide the
 // actual fields/accessors that this mixin assumes.
 // TODO(koda): Consider moving field comments to _HashFieldBase.
-abstract class _HashBase {
+abstract class _HashBase implements _HashVMBase {
   // The number of bits used for each component is determined by table size.
   // The length of _index is twice the number of entries in _data, and both
   // are doubled when _data is full. Thus, _index will have a max load factor
@@ -137,7 +137,12 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
   }
 }
 
-class _LinkedHashMapMixin<K, V> {
+abstract class _LinkedHashMapMixin<K, V> implements _HashVMBase {
+  int _hashCode(e);
+  bool _equals(e1, e2);
+  int get _checkSum;
+  bool _isModifiedSince(List oldData, int oldCheckSum);
+
   int get length => (_usedData >> 1) - _deletedKeys;
   bool get isEmpty => length == 0;
   bool get isNotEmpty => !isEmpty;

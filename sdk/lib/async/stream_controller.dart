@@ -911,7 +911,8 @@ class _AddStreamState<T> {
   // Subscription on stream argument to addStream.
   final StreamSubscription addSubscription;
 
-  _AddStreamState(_EventSink<T> controller, Stream source, bool cancelOnError)
+  _AddStreamState(
+      _EventSink<T> controller, Stream<T> source, bool cancelOnError)
       : addStreamFuture = new _Future(),
         addSubscription = source.listen(controller._add,
             onError: cancelOnError

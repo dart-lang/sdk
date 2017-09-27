@@ -5,26 +5,11 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_PRINTER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_PRINTER_H_
 
+#include "platform/text_buffer.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 
 namespace dart {
-
-class BufferFormatter : public ValueObject {
- public:
-  BufferFormatter(char* buffer, intptr_t size)
-      : position_(0), buffer_(buffer), size_(size) {}
-
-  void VPrint(const char* format, va_list args);
-  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-
- private:
-  intptr_t position_;
-  char* buffer_;
-  const intptr_t size_;
-
-  DISALLOW_COPY_AND_ASSIGN(BufferFormatter);
-};
 
 class ParsedFunction;
 

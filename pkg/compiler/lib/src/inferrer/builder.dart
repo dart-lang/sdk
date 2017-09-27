@@ -1036,12 +1036,14 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       }
       if (!isConstructorRedirect) {
         // Iterate over all instance fields, and give a null type to
-        // fields that we haven'TypeInformation initialized for sure.
+        // fields that we haven't initialized for sure.
         cls.forEachInstanceField((_, FieldElement field) {
           if (field.isFinal) return;
           TypeInformation type = locals.fieldScope.readField(field);
           ResolvedAst resolvedAst = field.resolvedAst;
-          if (type == null && resolvedAst.body == null) {
+          if (type == null &&
+              (resolvedAst.body == null ||
+                  resolvedAst.body is ast.LiteralNull)) {
             inferrer.recordTypeOfField(field, types.nullType);
           }
         });
@@ -1072,7 +1074,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
                 ? types.nonNullEmpty() // Body always throws.
                 : types.nullType;
           } else if (!locals.seenReturnOrThrow) {
-            // We haven'TypeInformation seen returns on all branches. So the method may
+            // We haven't seen returns on all branches. So the method may
             // also return null.
             recordReturnType(types.nullType);
           }
@@ -1108,7 +1110,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // TODO(herhut): Analyze whether closure exposes this.
     isThisExposed = true;
     LocalFunctionElement element = elements.getFunctionDefinition(node);
-    // We don'TypeInformation put the closure in the work queue of the
+    // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
     LocalsHandler closureLocals =
@@ -1167,7 +1169,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralList(ast.LiteralList node) {
-    // We only set the type once. We don'TypeInformation need to re-visit the children
+    // We only set the type once. We don't need to re-visit the children
     // when re-analyzing the node.
     return inferrer.concreteTypes.putIfAbsent(node, () {
       TypeInformation elementType;
@@ -2351,7 +2353,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     TypeMask mask = memberData.typeOfSend(node);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
-    // TODO(polux): return nonNullEmpty and check it doesn'TypeInformation break anything
+    // TODO(polux): return nonNullEmpty and check it doesn't break anything
     if (target.isMalformed ||
         !callStructure.signatureApplies(target.parameterStructure)) {
       return types.dynamicType;
@@ -2894,7 +2896,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     if (Elements.isMalformed(element)) {
       recordReturnType(types.dynamicType);
     } else {
-      // We don'TypeInformation create a selector for redirecting factories, and
+      // We don't create a selector for redirecting factories, and
       // the send is just a property access. Therefore we must
       // manually create the [ArgumentsTypes] of the call, and
       // manually register [analyzedElement] as a caller of [element].

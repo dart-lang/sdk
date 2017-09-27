@@ -376,15 +376,15 @@ class CodegenImpactTransformer {
       // calls to [enqueue] with the resolution enqueuer serve as assertions
       // that the helper was in fact added.
       // TODO(13155): Find a way to enqueue helpers lazily.
-      CheckedModeHelper helper =
-          _checkedModeHelpers.getCheckedModeHelper(type, typeCast: false);
+      CheckedModeHelper helper = _checkedModeHelpers
+          .getCheckedModeHelper(type, _commonElements, typeCast: false);
       if (helper != null) {
         StaticUse staticUse = helper.getStaticUse(_commonElements);
         transformed.registerStaticUse(staticUse);
       }
       // We also need the native variant of the check (for DOM types).
-      helper =
-          _checkedModeHelpers.getNativeCheckedModeHelper(type, typeCast: false);
+      helper = _checkedModeHelpers
+          .getNativeCheckedModeHelper(type, _commonElements, typeCast: false);
       if (helper != null) {
         StaticUse staticUse = helper.getStaticUse(_commonElements);
         transformed.registerStaticUse(staticUse);

@@ -474,15 +474,23 @@ class MapConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    Map<ConstantValue, ConstantValue> valueMap =
-        <ConstantValue, ConstantValue>{};
-    for (int index = 0; index < keys.length; index++) {
-      ConstantValue key = keys[index].evaluate(environment, constantSystem);
-      ConstantValue value = values[index].evaluate(environment, constantSystem);
-      valueMap[key] = value;
+    Map<ConstantValue, ConstantValue> map = <ConstantValue, ConstantValue>{};
+    for (int i = 0; i < keys.length; i++) {
+      ConstantValue key = keys[i].evaluate(environment, constantSystem);
+      if (!key.isConstant) {
+        return new NonConstantValue();
+      }
+      ConstantValue value = values[i].evaluate(environment, constantSystem);
+      if (!value.isConstant) {
+        return new NonConstantValue();
+      }
+      if (map.containsKey(key)) {
+        environment.reportWarning(keys[i], MessageKind.EQUAL_MAP_ENTRY_KEY, {});
+      }
+      map[key] = value;
     }
     return constantSystem.createMap(environment.commonElements, type,
-        valueMap.keys.toList(), valueMap.values.toList());
+        map.keys.toList(), map.values.toList());
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -580,14 +588,35 @@ class ConstructedConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    Map<FieldEntity, ConstantValue> fieldValues =
-        <FieldEntity, ConstantValue>{};
-    computeInstanceFields(environment)
-        .forEach((FieldEntity field, ConstantExpression constant) {
-      fieldValues[field] = constant.evaluate(environment, constantSystem);
+    return environment.evaluateConstructor(target, () {
+      Map<FieldEntity, ConstantExpression> fieldMap =
+          computeInstanceFields(environment);
+      if (fieldMap == null) {
+        // An erroneous constant constructor was encountered in the super-chain.
+        return new NonConstantValue();
+      }
+      bool isValidAsConstant = true;
+      Map<FieldEntity, ConstantValue> fieldValues =
+          <FieldEntity, ConstantValue>{};
+      fieldMap.forEach((FieldEntity field, ConstantExpression constant) {
+        ConstantValue value = constant.evaluate(environment, constantSystem);
+        assert(
+            value != null,
+            failedAt(CURRENT_ELEMENT_SPANNABLE,
+                "No value computed for ${constant.toStructuredText()}."));
+        if (value.isConstant) {
+          fieldValues[field] = value;
+        } else {
+          isValidAsConstant = false;
+        }
+      });
+      if (isValidAsConstant) {
+        return new ConstructedConstantValue(
+            computeInstanceType(environment), fieldValues);
+      } else {
+        return new NonConstantValue();
+      }
     });
-    return new ConstructedConstantValue(
-        computeInstanceType(environment), fieldValues);
   }
 
   @override
@@ -652,19 +681,35 @@ class ConcatenateConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    bool isValid = true;
     StringBuffer sb = new StringBuffer();
     for (ConstantExpression expression in expressions) {
       ConstantValue value = expression.evaluate(environment, constantSystem);
+      if (!value.isConstant) {
+        isValid = false;
+        // Use `continue` instead of `return` here to report all errors in the
+        // expression and not just the first.
+        continue;
+      }
       if (value.isPrimitive) {
         PrimitiveConstantValue primitive = value;
         sb.write(primitive.primitiveValue);
       } else {
-        // TODO(johnniwinther): Specialize message to indicated that the problem
-        // is not constness but the types of the const expressions.
-        return new NonConstantValue();
+        environment.reportError(
+            expression, MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE, {
+          'constant': expression,
+          'type': value.getType(environment.commonElements)
+        });
+        isValid = false;
+        // Use `continue` instead of `return` here to report all errors in the
+        // expression and not just the first.
+        continue;
       }
     }
-    return constantSystem.createString(sb.toString());
+    if (isValid) {
+      return constantSystem.createString(sb.toString());
+    }
+    return new NonConstantValue();
   }
 
   @override
@@ -798,8 +843,10 @@ class FieldConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    ConstantExpression constant = environment.getFieldConstant(element);
-    return constant.evaluate(environment, constantSystem);
+    return environment.evaluateField(element, () {
+      ConstantExpression constant = environment.getFieldConstant(element);
+      return constant.evaluate(environment, constantSystem);
+    });
   }
 
   @override
@@ -888,7 +935,8 @@ class BinaryConstantExpression extends ConstantExpression {
   final ConstantExpression right;
 
   BinaryConstantExpression(this.left, this.operator, this.right) {
-    assert(PRECEDENCE_MAP[operator.kind] != null);
+    assert(PRECEDENCE_MAP[operator.kind] != null,
+        "Missing precendence for binary operator: '$operator'.");
   }
 
   static bool potentialOperator(BinaryOperator operator) =>
@@ -914,16 +962,195 @@ class BinaryConstantExpression extends ConstantExpression {
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantValue leftValue = left.evaluate(environment, constantSystem);
     ConstantValue rightValue = right.evaluate(environment, constantSystem);
-    switch (operator.kind) {
-      case BinaryOperatorKind.NOT_EQ:
-        BoolConstantValue equals =
-            constantSystem.equal.fold(leftValue, rightValue);
-        return equals.negate();
-      default:
-        return constantSystem
-            .lookupBinary(operator)
-            .fold(leftValue, rightValue);
+    if (!leftValue.isConstant || !rightValue.isConstant) {
+      return new NonConstantValue();
     }
+    bool isValid = true;
+    switch (operator.kind) {
+      case BinaryOperatorKind.EQ:
+      case BinaryOperatorKind.NOT_EQ:
+        if (!leftValue.isPrimitive) {
+          environment.reportError(
+              left, MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE, {
+            'constant': left,
+            'type': leftValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        if (!rightValue.isPrimitive) {
+          environment.reportError(
+              right, MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE, {
+            'constant': right,
+            'type': rightValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        break;
+      case BinaryOperatorKind.ADD:
+        if (leftValue.isString) {
+          if (!rightValue.isString) {
+            environment.reportError(
+                right, MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE, {
+              'constant': right,
+              'type': rightValue.getType(environment.commonElements)
+            });
+            isValid = false;
+          }
+        } else if (leftValue.isNum) {
+          if (!rightValue.isNum) {
+            environment.reportError(
+                right, MessageKind.INVALID_CONSTANT_NUM_ADD_TYPE, {
+              'constant': right,
+              'type': rightValue.getType(environment.commonElements)
+            });
+            isValid = false;
+          }
+        } else if (rightValue.isString) {
+          if (!leftValue.isString) {
+            environment.reportError(
+                left, MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE, {
+              'constant': left,
+              'type': leftValue.getType(environment.commonElements)
+            });
+            isValid = false;
+          }
+        } else if (rightValue.isNum) {
+          if (!leftValue.isNum) {
+            environment.reportError(
+                left, MessageKind.INVALID_CONSTANT_NUM_ADD_TYPE, {
+              'constant': left,
+              'type': leftValue.getType(environment.commonElements)
+            });
+            isValid = false;
+          }
+        } else {
+          environment
+              .reportError(this, MessageKind.INVALID_CONSTANT_ADD_TYPES, {
+            'leftConstant': left,
+            'leftType': leftValue.getType(environment.commonElements),
+            'rightConstant': right,
+            'rightType': rightValue.getType(environment.commonElements)
+          });
+          isValid = false;
+        }
+        break;
+      case BinaryOperatorKind.SUB:
+      case BinaryOperatorKind.MUL:
+      case BinaryOperatorKind.DIV:
+      case BinaryOperatorKind.IDIV:
+      case BinaryOperatorKind.MOD:
+      case BinaryOperatorKind.GTEQ:
+      case BinaryOperatorKind.GT:
+      case BinaryOperatorKind.LTEQ:
+      case BinaryOperatorKind.LT:
+        if (!leftValue.isNum) {
+          environment
+              .reportError(left, MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE, {
+            'constant': left,
+            'type': leftValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        if (!rightValue.isNum) {
+          environment.reportError(
+              right, MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE, {
+            'constant': right,
+            'type': rightValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        break;
+      case BinaryOperatorKind.SHL:
+      case BinaryOperatorKind.SHR:
+      case BinaryOperatorKind.AND:
+      case BinaryOperatorKind.OR:
+      case BinaryOperatorKind.XOR:
+        if (!leftValue.isInt) {
+          environment
+              .reportError(left, MessageKind.INVALID_CONSTANT_BINARY_INT_TYPE, {
+            'constant': left,
+            'type': leftValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        if (!rightValue.isInt) {
+          environment.reportError(
+              right, MessageKind.INVALID_CONSTANT_BINARY_INT_TYPE, {
+            'constant': right,
+            'type': rightValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        break;
+      case BinaryOperatorKind.LOGICAL_AND:
+        if (!leftValue.isBool) {
+          environment
+              .reportError(left, MessageKind.INVALID_LOGICAL_AND_OPERAND_TYPE, {
+            'constant': left,
+            'type': leftValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        if (!rightValue.isBool) {
+          environment.reportError(
+              right, MessageKind.INVALID_LOGICAL_AND_OPERAND_TYPE, {
+            'constant': right,
+            'type': rightValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        break;
+      case BinaryOperatorKind.LOGICAL_OR:
+        if (!leftValue.isBool) {
+          environment
+              .reportError(left, MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE, {
+            'constant': left,
+            'type': leftValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        if (!rightValue.isBool) {
+          environment
+              .reportError(right, MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE, {
+            'constant': right,
+            'type': rightValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        break;
+      case BinaryOperatorKind.INDEX:
+        environment.reportError(this, MessageKind.INVALID_CONSTANT_INDEX, {});
+        isValid = false;
+        break;
+      case BinaryOperatorKind.IF_NULL:
+        // Valid since [leftValue] and [rightValue] are constants.
+        break;
+    }
+    if (isValid) {
+      switch (operator.kind) {
+        case BinaryOperatorKind.NOT_EQ:
+          BoolConstantValue equals =
+              constantSystem.equal.fold(leftValue, rightValue);
+          return equals.negate();
+        default:
+          ConstantValue value =
+              constantSystem.lookupBinary(operator).fold(leftValue, rightValue);
+          if (value != null) {
+            return value;
+          }
+      }
+    }
+    return new NonConstantValue();
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -1023,6 +1250,7 @@ class BinaryConstantExpression extends ConstantExpression {
     BinaryOperatorKind.LTEQ: 7,
     BinaryOperatorKind.MOD: 13,
     BinaryOperatorKind.IF_NULL: 3,
+    BinaryOperatorKind.INDEX: 3,
   };
 }
 
@@ -1051,9 +1279,12 @@ class IdenticalConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return constantSystem.identity.fold(
-        left.evaluate(environment, constantSystem),
-        right.evaluate(environment, constantSystem));
+    ConstantValue leftValue = left.evaluate(environment, constantSystem);
+    ConstantValue rightValue = right.evaluate(environment, constantSystem);
+    if (leftValue.isConstant && rightValue.isConstant) {
+      return constantSystem.identity.fold(leftValue, rightValue);
+    }
+    return new NonConstantValue();
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -1108,9 +1339,52 @@ class UnaryConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return constantSystem
-        .lookupUnary(operator)
-        .fold(expression.evaluate(environment, constantSystem));
+    ConstantValue expressionValue =
+        expression.evaluate(environment, constantSystem);
+    bool isValid = true;
+    switch (operator.kind) {
+      case UnaryOperatorKind.NOT:
+        if (!expressionValue.isBool) {
+          environment
+              .reportError(expression, MessageKind.INVALID_CONSTANT_NOT_TYPE, {
+            'constant': expression,
+            'type': expressionValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        break;
+      case UnaryOperatorKind.NEGATE:
+        if (!expressionValue.isNum) {
+          environment.reportError(
+              expression, MessageKind.INVALID_CONSTANT_NEGATE_TYPE, {
+            'constant': expression,
+            'type': expressionValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        break;
+      case UnaryOperatorKind.COMPLEMENT:
+        if (!expressionValue.isInt) {
+          environment.reportError(
+              expression, MessageKind.INVALID_CONSTANT_COMPLEMENT_TYPE, {
+            'constant': expression,
+            'type': expressionValue.getType(environment.commonElements),
+            'operator': operator
+          });
+          isValid = false;
+        }
+        break;
+    }
+    if (isValid) {
+      ConstantValue value =
+          constantSystem.lookupUnary(operator).fold(expressionValue);
+      if (value != null) {
+        return value;
+      }
+    }
+    return new NonConstantValue();
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -1169,11 +1443,17 @@ class StringLengthConstantExpression extends ConstantExpression {
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantValue value = expression.evaluate(environment, constantSystem);
-    if (value.isString) {
+    if (!value.isString) {
+      environment.reportError(
+          expression, MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE, {
+        'constant': expression,
+        'type': value.getType(environment.commonElements)
+      });
+      return new NonConstantValue();
+    } else {
       StringConstantValue stringValue = value;
       return constantSystem.createInt(stringValue.primitiveValue.length);
     }
-    return new NonConstantValue();
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -1255,13 +1535,23 @@ class ConditionalConstantExpression extends ConstantExpression {
         condition.evaluate(environment, constantSystem);
     ConstantValue trueValue = trueExp.evaluate(environment, constantSystem);
     ConstantValue falseValue = falseExp.evaluate(environment, constantSystem);
-    if (conditionValue.isTrue) {
-      return trueValue;
-    } else if (conditionValue.isFalse) {
-      return falseValue;
-    } else {
-      return new NonConstantValue();
+    bool isValid = true;
+    if (!conditionValue.isBool) {
+      environment.reportError(
+          condition, MessageKind.INVALID_CONSTANT_CONDITIONAL_TYPE, {
+        'constant': condition,
+        'type': conditionValue.getType(environment.commonElements)
+      });
+      isValid = false;
     }
+    if (isValid) {
+      if (conditionValue.isTrue) {
+        return trueValue;
+      } else if (conditionValue.isFalse) {
+        return falseValue;
+      }
+    }
+    return new NonConstantValue();
   }
 
   @override
@@ -1364,6 +1654,19 @@ abstract class FromEnvironmentConstantExpression extends ConstantExpression {
 
   FromEnvironmentConstantExpression(this.name, this.defaultValue);
 
+  bool _checkNameFromEnvironment(EvaluationEnvironment environment,
+      ConstantExpression name, ConstantValue nameValue) {
+    if (!nameValue.isString) {
+      environment.reportError(
+          name, MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE, {
+        'constant': name,
+        'type': nameValue.getType(environment.commonElements)
+      });
+      return false;
+    }
+    return true;
+  }
+
   @override
   int _computeHashCode() {
     return 13 * name.hashCode + 17 * defaultValue.hashCode;
@@ -1425,19 +1728,34 @@ class BoolFromEnvironmentConstantExpression
     } else {
       defaultConstantValue = constantSystem.createBool(false);
     }
-    if (!nameConstantValue.isString) {
+    if (!nameConstantValue.isConstant || !defaultConstantValue.isConstant) {
       return new NonConstantValue();
     }
-    StringConstantValue nameStringConstantValue = nameConstantValue;
-    String text =
-        environment.readFromEnvironment(nameStringConstantValue.primitiveValue);
-    if (text == 'true') {
-      return constantSystem.createBool(true);
-    } else if (text == 'false') {
-      return constantSystem.createBool(false);
-    } else {
-      return defaultConstantValue;
+    bool isValid =
+        _checkNameFromEnvironment(environment, name, nameConstantValue);
+    if (defaultValue != null) {
+      if (!defaultConstantValue.isBool && !defaultConstantValue.isNull) {
+        environment.reportError(defaultValue,
+            MessageKind.INVALID_BOOL_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE, {
+          'constant': defaultValue,
+          'type': defaultConstantValue.getType(environment.commonElements)
+        });
+        isValid = false;
+      }
     }
+    if (isValid) {
+      StringConstantValue nameStringConstantValue = nameConstantValue;
+      String text = environment
+          .readFromEnvironment(nameStringConstantValue.primitiveValue);
+      if (text == 'true') {
+        return constantSystem.createBool(true);
+      } else if (text == 'false') {
+        return constantSystem.createBool(false);
+      } else {
+        return defaultConstantValue;
+      }
+    }
+    return new NonConstantValue();
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -1489,21 +1807,36 @@ class IntFromEnvironmentConstantExpression
     } else {
       defaultConstantValue = constantSystem.createNull();
     }
-    if (!nameConstantValue.isString) {
+    if (!nameConstantValue.isConstant || !defaultConstantValue.isConstant) {
       return new NonConstantValue();
     }
-    StringConstantValue nameStringConstantValue = nameConstantValue;
-    String text =
-        environment.readFromEnvironment(nameStringConstantValue.primitiveValue);
-    int value;
-    if (text != null) {
-      value = int.parse(text, onError: (_) => null);
+    bool isValid =
+        _checkNameFromEnvironment(environment, name, nameConstantValue);
+    if (defaultValue != null) {
+      if (!defaultConstantValue.isInt && !defaultConstantValue.isNull) {
+        environment.reportError(defaultValue,
+            MessageKind.INVALID_INT_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE, {
+          'constant': defaultValue,
+          'type': defaultConstantValue.getType(environment.commonElements)
+        });
+        isValid = false;
+      }
     }
-    if (value == null) {
-      return defaultConstantValue;
-    } else {
-      return constantSystem.createInt(value);
+    if (isValid) {
+      StringConstantValue nameStringConstantValue = nameConstantValue;
+      String text = environment
+          .readFromEnvironment(nameStringConstantValue.primitiveValue);
+      int value;
+      if (text != null) {
+        value = int.parse(text, onError: (_) => null);
+      }
+      if (value == null) {
+        return defaultConstantValue;
+      } else {
+        return constantSystem.createInt(value);
+      }
     }
+    return new NonConstantValue();
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -1555,17 +1888,32 @@ class StringFromEnvironmentConstantExpression
     } else {
       defaultConstantValue = constantSystem.createNull();
     }
-    if (!nameConstantValue.isString) {
+    if (!nameConstantValue.isConstant || !defaultConstantValue.isConstant) {
       return new NonConstantValue();
     }
-    StringConstantValue nameStringConstantValue = nameConstantValue;
-    String text =
-        environment.readFromEnvironment(nameStringConstantValue.primitiveValue);
-    if (text == null) {
-      return defaultConstantValue;
-    } else {
-      return constantSystem.createString(text);
+    bool isValid =
+        _checkNameFromEnvironment(environment, name, nameConstantValue);
+    if (defaultValue != null) {
+      if (!defaultConstantValue.isString && !defaultConstantValue.isNull) {
+        environment.reportError(defaultValue,
+            MessageKind.INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE, {
+          'constant': defaultValue,
+          'type': defaultConstantValue.getType(environment.commonElements)
+        });
+        isValid = false;
+      }
     }
+    if (isValid) {
+      StringConstantValue nameStringConstantValue = nameConstantValue;
+      String text = environment
+          .readFromEnvironment(nameStringConstantValue.primitiveValue);
+      if (text == null) {
+        return defaultConstantValue;
+      } else {
+        return constantSystem.createString(text);
+      }
+    }
+    return new NonConstantValue();
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {

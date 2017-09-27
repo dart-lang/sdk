@@ -966,6 +966,8 @@ class Class : public Object {
 
   TokenPosition ComputeEndTokenPos() const;
 
+  int32_t SourceFingerprint() const;
+
   // This class represents a typedef if the signature function is not null.
   RawFunction* signature_function() const {
     return raw_ptr()->signature_function_;
@@ -2362,101 +2364,39 @@ class Function : public Object {
 
   intptr_t NumImplicitParameters() const;
 
-  static intptr_t usage_counter_offset() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-    return 0;
+#define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
+  static intptr_t name##_offset() {                                            \
+    UNREACHABLE();                                                             \
+    return 0;                                                                  \
+  }                                                                            \
+  return_type name() const { return 0; }                                       \
+                                                                               \
+  void set_##name(type value) const { UNREACHABLE(); }
 #else
-    return OFFSET_OF(RawFunction, usage_counter_);
-#endif
+#define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
+  static intptr_t name##_offset() { return OFFSET_OF(RawFunction, name##_); }  \
+  return_type name() const { return raw_ptr()->name##_; }                      \
+                                                                               \
+  void set_##name(type value) const {                                          \
+    StoreNonPointer(&raw_ptr()->name##_, value);                               \
   }
-  intptr_t usage_counter() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->usage_counter_;
 #endif
-  }
-  void set_usage_counter(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    // TODO(Srdjan): Assert that this is thread-safe, i.e., only
-    // set from mutator-thread or while at a safepoint (e.g., during marking).
-    StoreNonPointer(&raw_ptr()->usage_counter_, value);
-#endif
-  }
 
-  int8_t deoptimization_counter() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->deoptimization_counter_;
-#endif
-  }
-  void set_deoptimization_counter(int8_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    ASSERT(value >= 0);
-    StoreNonPointer(&raw_ptr()->deoptimization_counter_, value);
-#endif
-  }
+  JIT_FUNCTION_COUNTERS(DEFINE_GETTERS_AND_SETTERS)
+
+#undef DEFINE_GETTERS_AND_SETTERS
 
   static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
-  intptr_t optimized_instruction_count() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-    return 0;
-#else
-    return raw_ptr()->optimized_instruction_count_;
-#endif
-  }
-  void set_optimized_instruction_count(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    ASSERT(value >= 0);
-    if (value > kMaxInstructionCount) {
-      value = kMaxInstructionCount;
-    }
-    StoreNonPointer(&raw_ptr()->optimized_instruction_count_,
-                    static_cast<uint16_t>(value));
-#endif
+
+  void SetOptimizedInstructionCountClamped(uintptr_t value) const {
+    if (value > kMaxInstructionCount) value = kMaxInstructionCount;
+    set_optimized_instruction_count(value);
   }
 
-  intptr_t optimized_call_site_count() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->optimized_call_site_count_;
-#endif
-  }
-  void set_optimized_call_site_count(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    ASSERT(value >= 0);
-    if (value > kMaxInstructionCount) {
-      value = kMaxInstructionCount;
-    }
-    StoreNonPointer(&raw_ptr()->optimized_call_site_count_,
-                    static_cast<uint16_t>(value));
-#endif
-  }
-
-  intptr_t kernel_offset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->kernel_offset_;
-#endif
-  }
-
-  void set_kernel_offset(intptr_t kernel_offset) const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    StoreNonPointer(&raw_ptr()->kernel_offset_, kernel_offset);
-#endif
+  void SetOptimizedCallSiteCountClamped(uintptr_t value) const {
+    if (value > kMaxInstructionCount) value = kMaxInstructionCount;
+    set_optimized_call_site_count(value);
   }
 
   RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
@@ -2743,48 +2683,38 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
-  // 'was_compiled' is true if the function was compiled once in this
+  // 'WasCompiled' is true if the function was compiled once in this
   // VM instantiation. It is independent from presence of type feedback
   // (ic_data_array) and code, which may be loaded from a snapshot.
-  void set_was_compiled(bool value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    StoreNonPointer(&raw_ptr()->was_compiled_, value ? 1 : 0);
-#endif
-  }
-  bool was_compiled() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-    return true;
-#else
-    return raw_ptr()->was_compiled_ == 1;
-#endif
+  void SetWasCompiled(bool value) const {
+    set_was_compiled_numeric(value ? 1 : 0);
   }
 
-// static: Considered during class-side or top-level resolution rather than
-//         instance-side resolution.
-// const: Valid target of a const constructor call.
-// abstract: Skipped during instance-side resolution.
-// reflectable: Enumerated by mirrors, invocable by mirrors. False for private
-//              functions of dart: libraries.
-// debuggable: Valid location of a breakpoint. Synthetic code is not
-//             debuggable.
-// visible: Frame is included in stack traces. Synthetic code such as
-//          dispatchers is not visible. Synthetic code that can trigger
-//          exceptions such as the outer async functions that create Futures
-//          is visible.
-// optimizable: Candidate for going through the optimizing compiler. False for
-//              some functions known to be execute infrequently and functions
-//              which have been de-optimized too many times.
-// instrinsic: Has a hand-written assembly prologue.
-// inlinable: Candidate for inlining. False for functions with features we
-//            don't support during inlining (e.g., optional parameters),
-//            functions which are too big, etc.
-// native: Bridge to C/C++ code.
-// redirecting: Redirecting generative or factory constructor.
-// external: Just a declaration that expects to be defined in another patch
-//           file.
+  bool WasCompiled() const { return was_compiled_numeric() != 0; }
+
+  // static: Considered during class-side or top-level resolution rather than
+  //         instance-side resolution.
+  // const: Valid target of a const constructor call.
+  // abstract: Skipped during instance-side resolution.
+  // reflectable: Enumerated by mirrors, invocable by mirrors. False for private
+  //              functions of dart: libraries.
+  // debuggable: Valid location of a breakpoint. Synthetic code is not
+  //             debuggable.
+  // visible: Frame is included in stack traces. Synthetic code such as
+  //          dispatchers is not visible. Synthetic code that can trigger
+  //          exceptions such as the outer async functions that create Futures
+  //          is visible.
+  // optimizable: Candidate for going through the optimizing compiler. False for
+  //              some functions known to be execute infrequently and functions
+  //              which have been de-optimized too many times.
+  // instrinsic: Has a hand-written assembly prologue.
+  // inlinable: Candidate for inlining. False for functions with features we
+  //            don't support during inlining (e.g., optional parameters),
+  //            functions which are too big, etc.
+  // native: Bridge to C/C++ code.
+  // redirecting: Redirecting generative or factory constructor.
+  // external: Just a declaration that expects to be defined in another patch
+  //           file.
 
 #define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
   V(Static, is_static)                                                         \
@@ -3027,6 +2957,15 @@ class Field : public Object {
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
+  bool initializer_changed_after_initialization() const {
+    return InitializerChangedAfterInitializatonBit::decode(
+        raw_ptr()->kind_bits_);
+  }
+  void set_initializer_changed_after_initialization(bool value) const {
+    set_kind_bits(InitializerChangedAfterInitializatonBit::update(
+        value, raw_ptr()->kind_bits_));
+  }
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return NULL;
@@ -3072,13 +3011,15 @@ class Field : public Object {
                        bool is_reflectable,
                        const Object& owner,
                        const AbstractType& type,
-                       TokenPosition token_pos);
+                       TokenPosition token_pos,
+                       TokenPosition end_token_pos);
 
   static RawField* NewTopLevel(const String& name,
                                bool is_final,
                                bool is_const,
                                const Object& owner,
-                               TokenPosition token_pos);
+                               TokenPosition token_pos,
+                               TokenPosition end_token_pos);
 
   // Allocate new field object, clone values from this field. The
   // owner of the clone is new_owner.
@@ -3097,6 +3038,9 @@ class Field : public Object {
   static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  TokenPosition end_token_pos() const { return raw_ptr()->end_token_pos_; }
+
+  int32_t SourceFingerprint() const;
 
   RawString* InitializingExpression() const;
 
@@ -3252,7 +3196,8 @@ class Field : public Object {
                             bool is_const,
                             bool is_reflectable,
                             const Object& owner,
-                            TokenPosition token_pos);
+                            TokenPosition token_pos,
+                            TokenPosition end_token_pos);
   friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
 
   enum {
@@ -3263,6 +3208,7 @@ class Field : public Object {
     kUnboxingCandidateBit,
     kReflectableBit,
     kDoubleInitializedBit,
+    kInitializerChangedAfterInitializatonBit,
   };
   class ConstBit : public BitField<uint8_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint8_t, bool, kStaticBit, 1> {};
@@ -3274,6 +3220,11 @@ class Field : public Object {
   class ReflectableBit : public BitField<uint8_t, bool, kReflectableBit, 1> {};
   class DoubleInitializedBit
       : public BitField<uint8_t, bool, kDoubleInitializedBit, 1> {};
+  class InitializerChangedAfterInitializatonBit
+      : public BitField<uint8_t,
+                        bool,
+                        kInitializerChangedAfterInitializatonBit,
+                        1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -3297,6 +3248,9 @@ class Field : public Object {
   }
   void set_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
+  }
+  void set_end_token_pos(TokenPosition token_pos) const {
+    StoreNonPointer(&raw_ptr()->end_token_pos_, token_pos);
   }
   void set_kind_bits(uint8_t value) const {
     StoreNonPointer(&raw_ptr()->kind_bits_, value);
@@ -7606,6 +7560,8 @@ class Array : public Instance {
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxNewSpaceElements =
+      (Heap::kNewAllocatableSize - sizeof(RawArray)) / kBytesPerElement;
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawArray, type_arguments_);
@@ -8008,6 +7964,12 @@ class TypedData : public Instance {
   static intptr_t MaxElements(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataClassId(class_id));
     return (kSmiMax / ElementSizeInBytes(class_id));
+  }
+
+  static intptr_t MaxNewSpaceElements(intptr_t class_id) {
+    ASSERT(RawObject::IsTypedDataClassId(class_id));
+    return (Heap::kNewAllocatableSize - sizeof(RawTypedData)) /
+           ElementSizeInBytes(class_id);
   }
 
   static RawTypedData* New(intptr_t class_id,

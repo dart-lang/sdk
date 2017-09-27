@@ -61,6 +61,7 @@ import 'resolution_result.dart';
 import 'signatures.dart';
 import 'tree_elements.dart';
 import 'typedefs.dart';
+import 'type_resolver.dart' show FunctionTypeParameterScope;
 
 class ResolverTask extends CompilerTask {
   final ConstantCompiler constantCompiler;
@@ -1042,6 +1043,7 @@ class ResolverTask extends CompilerTask {
       return measure(() => SignatureResolver.analyze(
           resolution,
           element.enclosingElement.buildScope(),
+          const FunctionTypeParameterScope(),
           node.typeVariables,
           node.parameters,
           node.returnType,

@@ -45,8 +45,6 @@ Language/Classes/declarations_t27: MissingCompileTimeError
 Language/Classes/declarations_t28: MissingCompileTimeError
 Language/Classes/declarations_t33: MissingCompileTimeError
 Language/Classes/definition_t23: CompileTimeError
-Language/Classes/same_name_member_and_class_t01: MissingCompileTimeError # class A { var A; }
-Language/Classes/same_name_member_and_class_t03: MissingCompileTimeError # class A { static int A; }
 Language/Expressions/Constants/bitwise_operators_t02: Crash
 Language/Expressions/Constants/bitwise_operators_t03: Crash
 Language/Expressions/Constants/bitwise_operators_t04: Crash
@@ -93,24 +91,6 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeErro
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
-Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/compilation_t11: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/syntax_t01: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t05: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t06: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t07: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t08: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t10: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/syntax_t14: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t05: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t06: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t07: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t08: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t09: MissingCompileTimeError
-Language/Libraries_and_Scripts/definition_syntax_t10: MissingCompileTimeError
 Language/Metadata/before_export_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_import_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_library_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
@@ -214,6 +194,12 @@ Language/Statements/For/Asynchronous_For_in/execution_t04: Crash
 Language/Classes/Constructors/Factories/arguments_type_t01: RuntimeError
 Language/Classes/Constructors/Factories/function_type_t02: Fail # dartbug.com/30527
 Language/Expressions/Constants/exception_t04: Pass
+Language/Expressions/Function_Expressions/static_type_dynamic_asyncs_t03: RuntimeError # dartbgug.com/30667
+Language/Expressions/Function_Expressions/static_type_dynamic_async_t03: RuntimeError # dartbgug.com/30667
+Language/Expressions/Function_Expressions/static_type_dynamic_syncs_t03: RuntimeError # dartbug.com/30667
+Language/Expressions/Function_Expressions/static_type_form_3_asyncs_t03: RuntimeError # dartbgug.com/30667
+Language/Expressions/Function_Expressions/static_type_form_3_async_t03:  RuntimeError # dartbgug.com/30667
+Language/Expressions/Function_Expressions/static_type_form_3_syncs_t03: RuntimeError # dartbgug.com/30667
 Language/Generics/malformed_t02: RuntimeError
 Language/Statements/Return/runtime_type_t04: RuntimeError
 Language/Statements/Switch/execution_t01: RuntimeError

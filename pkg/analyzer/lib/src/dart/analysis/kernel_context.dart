@@ -17,7 +17,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
@@ -27,10 +26,10 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/ast.dart' as kernel;
-import 'package:path/path.dart' as pathos;
 import 'package:kernel/target/targets.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
+import 'package:path/path.dart' as pathos;
 
 /**
  * Support for resynthesizing element model from Kernel.
@@ -120,11 +119,11 @@ class KernelContext {
       var uriTranslator = new UriTranslatorImpl(
           new TargetLibrariesSpecification('none', dartLibraries), packages);
       var options = new ProcessedOptions(new CompilerOptions()
-        ..target = new NoneTarget(
+        ..target = new _AnalysisTarget(
             new TargetFlags(strongMode: analysisOptions.strongMode))
         ..reportMessages = false
         ..logger = logger
-        ..fileSystem = new _FileSystemAdaptor(fsState)
+        ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
         ..byteStore = byteStore);
       var driver = new KernelDriver(options, uriTranslator);
 
@@ -152,31 +151,35 @@ class KernelContext {
       var resynthesizer = new KernelResynthesizer(
           analysisContext, kernelResult.types, libraryMap);
 
-      analysisContext.typeProvider = _buildTypeProvider(resynthesizer);
       return new KernelContext._(analysisContext, resynthesizer);
     });
   }
+}
 
-  static SummaryTypeProvider _buildTypeProvider(
-      KernelResynthesizer resynthesizer) {
-    var coreLibrary = resynthesizer.getLibrary('dart:core');
-    var asyncLibrary = resynthesizer.getLibrary('dart:async');
-    SummaryTypeProvider summaryTypeProvider = new SummaryTypeProvider();
-    summaryTypeProvider.initializeCore(coreLibrary);
-    summaryTypeProvider.initializeAsync(asyncLibrary);
-    return summaryTypeProvider;
-  }
+/**
+ * [Target] for static analysis, with all features enabled.
+ */
+class _AnalysisTarget extends NoneTarget {
+  _AnalysisTarget(TargetFlags flags) : super(flags);
+
+  @override
+  List<String> get extraRequiredLibraries => const <String>['dart:_internal'];
+
+  @override
+  bool enableNative(Uri uri) => true;
 }
 
 class _FileSystemAdaptor implements FileSystem {
   final FileSystemState fsState;
+  final pathos.Context pathContext;
 
-  _FileSystemAdaptor(this.fsState);
+  _FileSystemAdaptor(this.fsState, this.pathContext);
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
     if (uri.isScheme('file')) {
-      var file = fsState.getFileForPath(uri.path);
+      var path = pathContext.fromUri(uri);
+      var file = fsState.getFileForPath(path);
       return new _FileSystemEntityAdaptor(uri, file);
     } else {
       throw new ArgumentError(

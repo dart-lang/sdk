@@ -102,6 +102,7 @@ def _CheckNewTests(input_api, output_api):
       #    Dart 1 tests                DDC tests
       # =================       ==========================
       ("tests/language/",       "tests/language_2/"),
+      ("tests/corelib/",        "tests/corelib_2/"),
       ("tests/lib/",            "tests/lib_2/"),
       ("tests/html/",           "tests/lib_2/html/"),
   ]

@@ -273,7 +273,8 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   const String& field_name = String::Handle(Symbols::New(thread, "the_field"));
   const Field& field = Field::Handle(
       Field::New(field_name, false, false, false, true, one_field_class,
-                 Object::dynamic_type(), TokenPosition::kMinSource));
+                 Object::dynamic_type(), TokenPosition::kMinSource,
+                 TokenPosition::kMinSource));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -2933,9 +2934,9 @@ static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
   const String& field_name =
       String::Handle(Symbols::New(Thread::Current(), name));
-  const Field& field = Field::Handle(
-      Field::New(field_name, true, false, false, true, cls,
-                 Object::dynamic_type(), TokenPosition::kMinSource));
+  const Field& field = Field::Handle(Field::New(
+      field_name, true, false, false, true, cls, Object::dynamic_type(),
+      TokenPosition::kMinSource, TokenPosition::kMinSource));
   return field.raw();
 }
 

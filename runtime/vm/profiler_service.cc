@@ -284,7 +284,9 @@ ProfileCode::ProfileCode(Kind kind,
       compile_timestamp_(0),
       function_(NULL),
       code_table_index_(-1),
-      address_ticks_(0) {}
+      address_ticks_(0) {
+  ASSERT(start_ < end_);
+}
 
 void ProfileCode::TruncateLower(uword start) {
   if (start > start_) {

@@ -427,6 +427,10 @@ class RawObject {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
+  intptr_t GetClassIdMayBeSmi() const {
+    return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
+  }
+
   intptr_t Size() const {
     uint32_t tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
@@ -882,16 +886,26 @@ class RawFunction : public RawObject {
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
-  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
-  NOT_IN_PRECOMPILED(int32_t usage_counter_);  // Accessed from generated code
-                                               // (JIT only).
   uint32_t kind_tag_;                          // See Function::KindTagBits.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
-  NOT_IN_PRECOMPILED(uint16_t optimized_instruction_count_);
-  NOT_IN_PRECOMPILED(uint16_t optimized_call_site_count_);
-  NOT_IN_PRECOMPILED(int8_t deoptimization_counter_);
-  NOT_IN_PRECOMPILED(int8_t was_compiled_);
+
+#define JIT_FUNCTION_COUNTERS(F)                                               \
+  F(intptr_t, intptr_t, kernel_offset)                                         \
+  F(intptr_t, int32_t, usage_counter)                                          \
+  F(intptr_t, uint16_t, optimized_instruction_count)                           \
+  F(intptr_t, uint16_t, optimized_call_site_count)                             \
+  F(int8_t, int8_t, deoptimization_counter)                                    \
+  F(intptr_t, int8_t, was_compiled_numeric)                                    \
+  F(int, int8_t, inlining_depth)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#define DECLARE(return_type, type, name) type name##_;
+
+  JIT_FUNCTION_COUNTERS(DECLARE)
+
+#undef DECLARE
+#endif
 };
 
 class RawClosureData : public RawObject {
@@ -986,6 +1000,7 @@ class RawField : public RawObject {
   }
 
   TokenPosition token_pos_;
+  TokenPosition end_token_pos_;
   classid_t guarded_cid_;
   classid_t is_nullable_;  // kNullCid if field can contain null value and
                            // any other value otherwise.

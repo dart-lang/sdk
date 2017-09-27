@@ -733,7 +733,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     func.set_deoptimization_counter(reader->Read<int8_t>());
     func.set_optimized_instruction_count(reader->Read<uint16_t>());
     func.set_optimized_call_site_count(reader->Read<uint16_t>());
-    func.set_was_compiled(false);
+    func.SetWasCompiled(false);
 
     // Set all the object fields.
     READ_OBJECT_FIELDS(func, func.raw()->from(), func.raw()->to_snapshot(kind),
@@ -834,6 +834,8 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   field.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
+  field.set_end_token_pos(
+      TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   field.set_guarded_cid(reader->Read<int32_t>());
   field.set_is_nullable(reader->Read<int32_t>());
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -874,6 +876,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object fields.
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
+  writer->Write<int32_t>(ptr()->end_token_pos_.SnapshotEncode());
   writer->Write<int32_t>(ptr()->guarded_cid_);
   writer->Write<int32_t>(ptr()->is_nullable_);
 #if !defined(DART_PRECOMPILED_RUNTIME)

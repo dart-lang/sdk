@@ -46,6 +46,22 @@ class TextBuffer : ValueObject {
   intptr_t msg_len_;
 };
 
+class BufferFormatter : public ValueObject {
+ public:
+  BufferFormatter(char* buffer, intptr_t size)
+      : position_(0), buffer_(buffer), size_(size) {}
+
+  void VPrint(const char* format, va_list args);
+  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+
+ private:
+  intptr_t position_;
+  char* buffer_;
+  const intptr_t size_;
+
+  DISALLOW_COPY_AND_ASSIGN(BufferFormatter);
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_TEXT_BUFFER_H_

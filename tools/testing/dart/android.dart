@@ -353,6 +353,19 @@ class AdbDevice {
         }
       } else {
         // In case of timeouts, for example, we won't get the exitcode marker.
+        // TODO(mkroghj): Some times tests fail with the assert below. To better
+        // investigate, write out debug info.
+        DebugLogger.info("======= THIS IS DEBUG INFORMATION =======");
+        DebugLogger.info("arguments: $args");
+        DebugLogger.info("exitCode: ${result.exitCode}");
+        DebugLogger.info("timedOut: ${result.timedOut}");
+        DebugLogger.info("---- std out ----");
+        DebugLogger.info(result.stdout);
+        DebugLogger.info("---- std out end ----");
+        DebugLogger.info("---- std error  ----");
+        DebugLogger.info(result.stderr);
+        DebugLogger.info("---- std error end ----");
+        DebugLogger.info("======= THIS IS NO LONGER DEBUG INFORMATION =======");
         assert(result.exitCode != 0);
       }
     }

@@ -114,6 +114,7 @@ cyclic_type_variable_test/04: MissingCompileTimeError
 cyclic_typedef_test/13: MissingCompileTimeError
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
+deferred_constraints_constants_test: SkipByDesign
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
@@ -209,10 +210,45 @@ initializing_formal_type_test: MissingCompileTimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
+interface_test/00: MissingCompileTimeError
+invocation_mirror2_test: SkipByDesign
+invocation_mirror_invoke_on2_test: SkipByDesign
+invocation_mirror_invoke_on_test: SkipByDesign
+issue21079_test: SkipByDesign
+flatten_test/05: MissingRuntimeError
+flatten_test/08: MissingRuntimeError
+flatten_test/09: MissingRuntimeError
+flatten_test/12: MissingRuntimeError
+for_in3_test: MissingCompileTimeError
+for_in_side_effects_test/01: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
+method_override2_test/none: Pass
+method_override2_test/*: MissingCompileTimeError
+method_override3_test/none: Pass
+method_override3_test/*: MissingCompileTimeError
+method_override4_test/none: Pass
+method_override4_test/*: MissingCompileTimeError
+method_override5_test/none: Pass
+method_override5_test/*: MissingCompileTimeError
+method_override6_test/none: Pass
+method_override6_test/*: MissingCompileTimeError
+method_override6_test/none: Pass
+method_override7_test/03: MissingCompileTimeError
+method_override8_test/03: MissingCompileTimeError
+mixin_supertype_subclass_test/02: MissingCompileTimeError
+mixin_supertype_subclass_test/05: MissingCompileTimeError
+mixin_type_parameters_errors_test/01: MissingCompileTimeError
+mixin_type_parameters_errors_test/02: MissingCompileTimeError
+mixin_type_parameters_errors_test/03: MissingCompileTimeError
+mixin_type_parameters_errors_test/04: MissingCompileTimeError
+mixin_type_parameters_errors_test/05: MissingCompileTimeError
+mixin_type_parameters_mixin_extends_test: RuntimeError
+mixin_type_parameters_mixin_test: RuntimeError
+mixin_type_parameters_super_extends_test: RuntimeError
+mixin_type_parameters_super_test: RuntimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mixin_type_parameters_super_test: RuntimeError
-mock_writable_final_field_test: RuntimeError
+mock_writable_final_private_field_test: RuntimeError
 named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/03: MissingCompileTimeError
 named_parameters2_test: MissingCompileTimeError
@@ -232,6 +268,61 @@ named_parameters_test/10: MissingCompileTimeError
 named_parameters_type_test/01: MissingCompileTimeError
 named_parameters_type_test/02: MissingCompileTimeError
 named_parameters_type_test/03: MissingCompileTimeError
+not_enough_positional_arguments_test/00: MissingCompileTimeError
+not_enough_positional_arguments_test/03: MissingCompileTimeError
+not_enough_positional_arguments_test/06: MissingCompileTimeError
+not_enough_positional_arguments_test/07: MissingCompileTimeError
+null_test/mirrors: Skip # Uses mirrors.
+null_test/none: SkipByDesign
+optional_named_parameters_test/01: MissingCompileTimeError
+optional_named_parameters_test/02: MissingCompileTimeError
+optional_named_parameters_test/03: MissingCompileTimeError
+optional_named_parameters_test/04: MissingCompileTimeError
+optional_named_parameters_test/05: MissingCompileTimeError
+optional_named_parameters_test/06: MissingCompileTimeError
+optional_named_parameters_test/07: MissingCompileTimeError
+optional_named_parameters_test/08: MissingCompileTimeError
+optional_named_parameters_test/09: MissingCompileTimeError
+override_field_test/02: MissingCompileTimeError
+override_field_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/02: MissingCompileTimeError
+override_inheritance_abstract_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/08: MissingCompileTimeError
+override_inheritance_abstract_test/09: MissingCompileTimeError
+override_inheritance_abstract_test/10: MissingCompileTimeError
+override_inheritance_abstract_test/11: MissingCompileTimeError
+override_inheritance_abstract_test/12: MissingCompileTimeError
+override_inheritance_abstract_test/13: MissingCompileTimeError
+override_inheritance_abstract_test/14: MissingCompileTimeError
+override_inheritance_abstract_test/17: MissingCompileTimeError
+override_inheritance_abstract_test/19: MissingCompileTimeError
+override_inheritance_abstract_test/20: MissingCompileTimeError
+override_inheritance_abstract_test/21: MissingCompileTimeError
+override_inheritance_abstract_test/22: MissingCompileTimeError
+override_inheritance_abstract_test/23: MissingCompileTimeError
+override_inheritance_abstract_test/24: MissingCompileTimeError
+override_inheritance_abstract_test/25: MissingCompileTimeError
+override_inheritance_abstract_test/26: MissingCompileTimeError
+override_inheritance_abstract_test/28: MissingCompileTimeError
+override_inheritance_field_test/05: MissingCompileTimeError
+override_inheritance_field_test/07: MissingCompileTimeError
+override_inheritance_field_test/08: MissingCompileTimeError
+override_inheritance_field_test/09: MissingCompileTimeError
+override_inheritance_field_test/10: MissingCompileTimeError
+override_inheritance_field_test/11: MissingCompileTimeError
+override_inheritance_field_test/28: MissingCompileTimeError
+override_inheritance_field_test/30: MissingCompileTimeError
+override_inheritance_field_test/31: MissingCompileTimeError
+override_inheritance_field_test/32: MissingCompileTimeError
+override_inheritance_field_test/33: MissingCompileTimeError
+override_inheritance_field_test/33a: MissingCompileTimeError
+override_inheritance_field_test/34: MissingCompileTimeError
+override_inheritance_field_test/44: MissingCompileTimeError
+override_inheritance_field_test/47: MissingCompileTimeError
+override_inheritance_field_test/48: MissingCompileTimeError
+override_inheritance_field_test/53: MissingCompileTimeError
+override_inheritance_field_test/54: MissingCompileTimeError
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
 string_no_operator_test/02: MissingCompileTimeError
@@ -283,10 +374,12 @@ unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 instance_creation_in_function_annotation_test: SkipByDesign
-wrong_number_type_arguments_test/*: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
-deferred_constraints_constants_test: SkipByDesign
-issue21079_test: SkipByDesign
+vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers
+vm/reflect_core_vm_test: SkipByDesign
+wrong_number_type_arguments_test/*: MissingCompileTimeError
+overridden_no_such_method_test: SkipByDesign
+overridden_no_such_method_test: SkipByDesign
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
@@ -322,6 +415,31 @@ generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
+function_subtype_bound_closure3_test: RuntimeError
+function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure7_test: RuntimeError
+function_subtype_call1_test: RuntimeError
+function_subtype_call2_test: RuntimeError
+function_subtype_cast1_test: RuntimeError
+function_subtype_checked0_test: RuntimeError
+function_subtype_closure0_test: RuntimeError
+function_subtype_closure1_test: RuntimeError
+function_subtype_factory1_test: RuntimeError
+function_subtype_inline1_test: RuntimeError
+function_subtype_named1_test: RuntimeError
+function_subtype_named2_test: RuntimeError
+function_subtype_not1_test: RuntimeError
+function_subtype_optional1_test: RuntimeError
+function_subtype_optional2_test: RuntimeError
+function_subtype_regression_ddc_588_test: RuntimeError
+function_subtype_setter0_test: RuntimeError
+function_subtype_typearg2_test: RuntimeError
+function_subtype_typearg3_test: RuntimeError
+function_subtype_typearg5_test: RuntimeError
+function_type2_test: RuntimeError
+function_type_alias2_test: RuntimeError
+vm/regress_27671_test: Skip # Unsupported
+vm/optimized_stacktrace_test: Skip # Issue 30198
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $checked ]
 assertion_initializer_const_error2_test/cc01: Pass
@@ -335,6 +453,14 @@ assertion_initializer_const_error2_test/cc09: Pass
 assertion_initializer_const_error2_test/cc10: Pass
 assertion_initializer_const_error2_test/cc11: Pass
 assertion_initializer_const_error2_test/none: CompileTimeError
+function_subtype_checked0_test: Pass
+function_subtype_closure0_test: Pass
+function_subtype_closure1_test: Pass
+function_subtype_factory1_test: Pass
+function_subtype_inline1_test: Pass
+function_subtype_inline2_test: Pass
+function_subtype_regression_ddc_588_test: Pass
+function_subtype_setter0_test: Pass
 
 [ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error2_test/cc01: Pass, OK
@@ -356,6 +482,7 @@ generic_field_mixin6_test/none: RuntimeError
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 async_star_regression_2238_test: CompileTimeError, RuntimeError
 multiline_strings_test: Fail # Issue 23020
+deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 
 # These test entries will be valid for vm (with and without kernel).
 [ $runtime == dart_precompiled ]
@@ -379,30 +506,45 @@ generic_local_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
 [ $runtime == dart_precompiled || $compiler == app_jit ]
-hello_dart_test: Skip # Incompatible flag: --compile_all
 ct_const2_test: Skip # Incompatible flag: --compile_all
+hello_dart_test: Skip # Incompatible flag: --compile_all
+vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 
 [ $compiler == precompiler ]
 deferred_global_test: Fail
+deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
+vm/regress_27201_test: Fail
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 deferred_load_constants_test/02: Fail
-deferred_load_constants_test/02: Fail
-deferred_load_constants_test/03: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
-deferred_load_constants_test/05: Fail
+deferred_not_loaded_check_test: RuntimeError
 
 [ $runtime == dart_precompiled && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
 
 [ $runtime == dart_precompiled && $minified ]
 cyclic_type_test/*: Skip
+full_stacktrace1_test: Skip
+full_stacktrace2_test: Skip
 
 [ $runtime == dart_precompiled || $mode == product ]
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/causal_async_exception_stack2_test: SkipByDesign
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled)) && $arch == ia32 ]
+vm/regress_24517_test: Pass, Fail # Issue 24517.
+
+[ $mode == product || $compiler == app_jit || $compiler == precompiler ]
+vm/regress_27201_test: Fail
+
+[ $runtime == dart_precompiled && $minified ]
+vm/no_such_args_error_message_vm_test: Skip
+vm/no_such_method_error_message_callable_vm_test: Skip
+vm/no_such_method_error_message_vm_test: Skip
+vm/regress_28325_test:Skip

@@ -1025,14 +1025,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   getOption(SocketOption option) {
-    if (option is! SocketOption) throw new ArgumentError(options);
+    if (option is! SocketOption) throw new ArgumentError(option);
     var result = nativeGetOption(option._value, address.type._value);
     if (result is OSError) throw result;
     return result;
   }
 
   bool setOption(SocketOption option, value) {
-    if (option is! SocketOption) throw new ArgumentError(options);
+    if (option is! SocketOption) throw new ArgumentError(option);
     var result = nativeSetOption(option._value, address.type._value, value);
     if (result is OSError) throw result;
   }

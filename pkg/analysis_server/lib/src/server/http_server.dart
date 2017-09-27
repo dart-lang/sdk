@@ -81,7 +81,7 @@ class HttpAnalysisServer {
   Future<int> get boundPort async => (await _serverFuture)?.port;
 
   void close() {
-    _serverFuture.then((HttpServer server) {
+    _serverFuture?.then((HttpServer server) {
       server.close();
     });
   }

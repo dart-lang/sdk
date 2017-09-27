@@ -11,16 +11,16 @@ cc/IsolateReload_PendingStaticCall_DefinedToNSM: SkipSlow
 cc/IsolateReload_PendingStaticCall_NSMToDefined: SkipSlow
 
 # These tests are expected to crash on all platforms.
-cc/ArrayNew_Overflow_Crash: SkipSlow
-cc/AllocGeneric_Overflow: SkipSlow
+cc/ArrayNew_Overflow_Crash: Crash, Fail
+cc/AllocGeneric_Overflow: Crash, Fail
+cc/CodeImmutability: Crash, Fail
+cc/SNPrint_BadArgs: Crash, Fail
 cc/Fail0: Fail
 cc/Fail1: Fail
 cc/Fail2: Fail
 
 cc/Dart2JSCompileAll: Fail, Crash # Issue 27369
 cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
-
-cc/SNPrint_BadArgs: Skip
 
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 
@@ -39,15 +39,8 @@ cc/VerifyExplicit_Crash: Crash
 # It can take some time for all the isolates to shutdown in a Debug build.
 dart/spawn_shutdown_test: Pass, Slow  # VM Shutdown test
 
-# CodeImmutability test ocassionally times out on Windows. Issue #30202.
-[ $system != windows ]
-cc/CodeImmutability: Crash
-
 [ $system == windows ]
-cc/CodeImmutability: Crash, Timeout
-cc/Dart2JSCompileAll: Skip
 cc/Service_Profile: Skip
-cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip
 
 [ $system == fuchsia ]
@@ -295,7 +288,7 @@ cc/DebuggerAPI_ScriptGetTokenInfo_MultiLineInterpolation: Fail
 cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
-cc/FunctionSourceFingerprint: Crash
+cc/FunctionSourceFingerprint: Fail
 cc/IsolateReload_BadClass: Fail
 cc/IsolateReload_ClassFieldAdded: Crash
 cc/IsolateReload_ClassFieldAdded2: Crash

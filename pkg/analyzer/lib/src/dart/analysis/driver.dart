@@ -93,7 +93,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 43;
+  static const int DATA_VERSION = 44;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -489,6 +489,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   @override
   void addFile(String path) {
+    _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
       return;
     }
@@ -523,6 +524,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * [changeFile] invocation.
    */
   void changeFile(String path) {
+    _throwIfNotAbsolutePath(path);
     _throwIfChangesAreNotAllowed();
     _changeFile(path);
   }
@@ -562,6 +564,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The [path] can be any file - explicitly or implicitly analyzed, or neither.
    */
   AnalysisResult getCachedResult(String path) {
+    _throwIfNotAbsolutePath(path);
     AnalysisResult result = _priorityResults[path];
     if (disableChangesAndCacheAllResults) {
       result ??= _allCachedResults[path];
@@ -580,6 +583,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * interactive analysis, such as Analysis Server or its plugins.
    */
   Future<ErrorsResult> getErrors(String path) async {
+    _throwIfNotAbsolutePath(path);
+
     // Ask the analysis result without unit, so return cached errors.
     // If no cached analysis result, it will be computed.
     AnalysisResult analysisResult = await _computeAnalysisResult(path);
@@ -629,6 +634,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * analyzed.
    */
   Future<AnalysisDriverUnitIndex> getIndex(String path) {
+    _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
@@ -656,6 +662,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   ApiSignature getResolvedUnitKeyByPath(String path) {
+    _throwIfNotAbsolutePath(path);
     ApiSignature signature = getUnitKeyByPath(path);
     var file = fsState.getFileForPath(path);
     signature.addString(file.contentHash);
@@ -700,6 +707,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   Future<AnalysisResult> getResult(String path,
       {bool sendCachedToStream: false}) {
+    _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
@@ -732,6 +740,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The [path] must be absolute and normalized.
    */
   Future<SourceKind> getSourceKind(String path) async {
+    _throwIfNotAbsolutePath(path);
     if (AnalysisEngine.isDartFileName(path)) {
       FileState file = _fsState.getFileForPath(path);
       return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
@@ -756,6 +765,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * file with the given [path], or with `null` if the file cannot be analyzed.
    */
   Future<UnitElementResult> getUnitElement(String path) {
+    _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
@@ -777,6 +787,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * imported and exported by the library.
    */
   Future<String> getUnitElementSignature(String path) {
+    _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
@@ -789,6 +800,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   ApiSignature getUnitKeyByPath(String path) {
+    _throwIfNotAbsolutePath(path);
     var file = fsState.getFileForPath(path);
     ApiSignature signature = new ApiSignature();
     signature.addUint32List(_salt);
@@ -809,6 +821,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * resolved unit).
    */
   Future<ParseResult> parseFile(String path) async {
+    _throwIfNotAbsolutePath(path);
     FileState file = _fileTracker.verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
@@ -1016,6 +1029,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * but does not guarantee this.
    */
   void removeFile(String path) {
+    _throwIfNotAbsolutePath(path);
     _throwIfChangesAreNotAllowed();
     _fileTracker.removeFile(path);
     _priorityResults.clear();
@@ -1443,6 +1457,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void _throwIfChangesAreNotAllowed() {
     if (disableChangesAndCacheAllResults) {
       throw new StateError('Changing files is not allowed for this driver.');
+    }
+  }
+
+  /**
+   * The driver supports only absolute paths, this method is used to validate
+   * any input paths to prevent errors later.
+   */
+  void _throwIfNotAbsolutePath(String path) {
+    if (!_resourceProvider.pathContext.isAbsolute(path)) {
+      throw new ArgumentError('Only absolute paths are supported: $path');
     }
   }
 

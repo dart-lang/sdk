@@ -27,15 +27,6 @@ Variable CE : class_env.
 (** The "global" environment of function nodes for the program. *)
 Variable FE : func_env.
 
-(** Placeholder for one of the well-formedness properties of the program.  At
-  some point a property like this one (or another property that will allow this
-  property to be established) should be defined in the syntax module. *)
-Hypothesis program_wf:
-  forall class_id intf proc_desc,
-  NatMap.MapsTo class_id intf CE ->
-  List.In proc_desc (procedures intf) ->
-  NatMap.In (pr_ref proc_desc) FE.
-
 
 (** [runtime_value] represents the runtime values used in the abstract machine
   during program execution.  The values are typed and have some relation to
@@ -77,16 +68,19 @@ Inductive value_of_type :
   | RFS_Function_Type :
     forall (val : runtime_value) (intf : interface) (type : dart_type)
       (par_type ret_type : dart_type)
-      (proc : procedure_desc) (proc_rest : list procedure_desc),
+      (proc : procedure_desc),
     type = DT_Function_Type (Function_Type par_type ret_type) ->
-    List.length (procedures intf) = 1%nat ->
-    (procedures intf) = List.cons proc proc_rest ->
+    (procedures intf) = proc :: nil ->
     ((pr_name proc) = "call")%string ->
     (pr_type proc) = Function_Type par_type ret_type ->
     NatMap.In (pr_ref proc) FE ->
     (syntactic_type val) = Some type ->
     value_of_type val intf (Some type)
 
+  (** Null values are currently represented as runtime values that have [None]
+    in place of their syntactic type.  In future, for example when the bottom
+    type or explicit null type are added to the syntax of dart types, the
+    representation may change. *)
   | RFS_Null_Type :
     forall (val : runtime_value) (intf : interface),
     (procedures intf) = nil ->
@@ -110,6 +104,13 @@ Definition env_get : nat -> environment -> option environment_entry :=
 
 Definition env_extend : nat -> runtime_value -> environment -> environment :=
   fun var_id val env => (mk_environment_entry var_id val) :: env.
+
+Definition env_in : nat -> environment -> Prop :=
+  fun var_id env =>
+    match List.find (fun entry => Nat.eqb var_id (variable_id entry)) env with
+    | None => False
+    | Some _ => True
+    end.
 
 Definition empty_env : environment := nil.
 
@@ -164,6 +165,17 @@ Inductive expression_continuation : Set :=
   | Property_Get_Ek :
     string
     -> expression_continuation
+    -> expression_continuation
+
+  (** The constructor receives the following parameters:
+
+    - a [nat]
+    - an [environment]
+    - a [statement_continuation] *)
+  | Var_Declaration_Ek :
+    nat
+    -> environment
+    -> statement_continuation
     -> expression_continuation
 
 (** TODO(dmitryas): Write descriptive comments. *)
@@ -351,16 +363,16 @@ Inductive step : configuration -> configuration -> Prop :=
         ρ0 -- empty environment *)
   | Pass_Invocation_Ek :
     forall rcvr_val name env ret_cont arg_val body env' next_cont
-      intf type proc_desc proc var_id var_type var_init ret_type null_val,
+      intf type proc_desc func_node var_id var_type var_init ret_type null_val,
     (* TODO(dmitryas): Add the mapping: this -> rcvr_val to env'. *)
     value_of_type rcvr_val intf type ->
     List.In proc_desc (procedures intf) ->
-    NatMap.MapsTo (pr_ref proc_desc) proc FE ->
-    proc = Function_Node (Variable_Declaration var_id var_type var_init)
+    NatMap.MapsTo (pr_ref proc_desc) func_node FE ->
+    func_node = Function_Node (Variable_Declaration var_id var_type var_init)
       ret_type body ->
     env' = env_extend var_id arg_val empty_env ->
     next_cont = Exit_Sk ret_cont null_val ->
-    value_of_type null_val (mk_interface nil) None ->
+    value_of_type null_val (mk_interface nil nil) None ->
     step (Value_Passing_Configuration
             (Invocation_Ek rcvr_val name env ret_cont) arg_val)
          (Exec_Configuration body env' ret_cont next_cont)
@@ -376,14 +388,20 @@ Inductive step : configuration -> configuration -> Prop :=
   (** <PropertyGetEK(name, κE), rcvrVal)pass ==> <κE, f>pass,
       where f = methods(class(rcvrVal))(name) *)
   | Pass_Property_Get_Ek :
-    forall name cont rcvr_val rcvr_intf rcvr_type func_val proc_desc,
+    forall name cont rcvr_val rcvr_intf rcvr_type rcvr_proc_desc
+      func_val func_proc_desc,
     value_of_type rcvr_val rcvr_intf rcvr_type ->
-    List.In proc_desc (procedures rcvr_intf) ->
-    (pr_name proc_desc) = name ->
+    List.In rcvr_proc_desc (procedures rcvr_intf) ->
+    (pr_name rcvr_proc_desc) = name ->
+    (pr_type func_proc_desc) = (pr_type rcvr_proc_desc) ->
+    (pr_ref func_proc_desc) = (pr_ref rcvr_proc_desc) ->
+    ((pr_name func_proc_desc) = "call")%string ->
     value_of_type
       func_val
-      (mk_interface (proc_desc :: nil))
-      (Some (DT_Function_Type (pr_type proc_desc))) ->
+      (mk_interface (func_proc_desc :: nil)
+                    ((mk_getter_desc (pr_name func_proc_desc) (pr_ref func_proc_desc)
+                                     (DT_Function_Type (pr_type func_proc_desc))) :: nil))
+      (Some (DT_Function_Type (pr_type func_proc_desc))) ->
     step (Value_Passing_Configuration (Property_Get_Ek name cont) rcvr_val)
          (Value_Passing_Configuration cont func_val)
 
@@ -396,14 +414,137 @@ Inductive step : configuration -> configuration -> Prop :=
   (** <ConstructorInvocation(cls), ρ, κE>eval ==> <κE, newVal>pass,
       where newVal = new runtime value of syntactic type cls *)
   | Eval_Constructor_Invocation :
-    forall env cont new_val intf type proc_desc,
+    forall env cont new_val intf type class_id,
+    NatMap.MapsTo class_id intf CE ->
     value_of_type new_val intf type ->
-    List.In proc_desc (procedures intf) ->
     step (Eval_Configuration
             (E_Invocation_Expression (IE_Constructor_Invocation
-              (Constructor_Invocation (pr_ref proc_desc))))
+              (Constructor_Invocation class_id)))
             env cont)
-         (Value_Passing_Configuration cont new_val).
+         (Value_Passing_Configuration cont new_val)
+
+  (** <VariableDeclaration(var, type, NONE), ρ, κE, κS>exec ==>
+        <κS, ρ'>forward,
+      where ρ' = ρ#[#var = nullVal#]# *)
+  | Exec_Variable_Declaration_Non_Init :
+    forall var_id type env ret_cont next_cont null_val env',
+    value_of_type null_val (mk_interface nil nil) None ->
+    env' = env_extend var_id null_val env ->
+    step (Exec_Configuration
+            (S_Variable_Declaration (Variable_Declaration var_id type None))
+            env ret_cont next_cont)
+         (Forward_Configuration next_cont env')
+
+  (** <VariableDeclaration(var, type, expr), ρ, κE, κS>exec ==>
+        <expr, ρ, VarDeclarationEK(var, ρ, κS)>eval *)
+  | Exec_Variable_Declaration_Init :
+    forall var_id type expr env ret_cont next_cont,
+    step (Exec_Configuration
+            (S_Variable_Declaration
+              (Variable_Declaration var_id type (Some expr)))
+            env ret_cont next_cont)
+         (Eval_Configuration expr env
+            (Var_Declaration_Ek var_id env next_cont))
+
+  (** <VarDeclarationEK(var, ρ, κS), val>pass ==> <κS, ρ'>forward,
+      where ρ' = ρ#[#var = val#]# *)
+  | Pass_Var_Declaration_Ek :
+    forall var_id env cont val env',
+    env' = env_extend var_id val env ->
+    step (Value_Passing_Configuration (Var_Declaration_Ek var_id env cont) val)
+         (Forward_Configuration cont env').
+
+
+(** Well-formedness property over configurations is understood as the property
+  of being a valid l.h.s. to the [step] relation.  The abstract machine may or
+  may not end up in a well-formed configuration several steps after its
+  configuration was well-formed. *)
+Inductive configuration_wf : configuration -> Prop :=
+
+  (** Well-formed variable-gets should have the variable in the environment. *)
+  | Eval_Variable_Get_Configuration_Wf :
+    forall var_id env cont,
+    env_in var_id env ->
+    configuration_wf (Eval_Configuration
+      (E_Variable_Get (Variable_Get var_id))
+      env cont)
+
+  (** Configurations that are the beginning of a method-invocation evaluation
+    are always well-formed, because the machine always proceed to evaluation of
+    the receiver. *)
+  | Eval_Method_Invocation_Configuration_Wf :
+    forall rcvr name arg ref env cont,
+    configuration_wf (Eval_Configuration
+      (E_Invocation_Expression (IE_Method_Invocation
+        (Method_Invocation rcvr (Name name) (Arguments arg) ref)))
+      env cont)
+
+  (** Configurations that are the beginning of a property-get evaluation are
+    always well-formed, because the machine always proceed to evaluation of the
+    receiver. *)
+  | Eval_Property_Get_Configuration_Wf :
+    forall rcvr name env cont,
+    configuration_wf (Eval_Configuration
+      (E_Property_Get (Property_Get rcvr (Name name)))
+      env cont)
+
+  (** A constructor invocation is well-formed if the referred class exists in
+    the class environment. *)
+  | Eval_Constructor_Invocation_Configuration_Wf :
+    forall class_id env cont,
+    NatMap.In class_id CE ->
+    configuration_wf (Eval_Configuration
+      (E_Invocation_Expression (IE_Constructor_Invocation
+        (Constructor_Invocation class_id)))
+      env cont)
+
+  (** In the current subset of Kernel all exec configurations are
+    well-formed.  The machine either procedes to evaluation of an expression
+    that is a part of the statement or procedes to the next continuation. *)
+  | Exec_Configuration_Wf :
+    forall stmt env ret_cont next_cont,
+    configuration_wf (Exec_Configuration stmt env ret_cont next_cont)
+
+  (** These configurations pass the receiver to the continuation that is the
+    the rest of the method invocation.  These configurations are always
+    well-formed, because the machine always procedes to the evaluation of the
+    argument. *)
+  | Pass_Method_Invocation_Ek_Configuration_Wf :
+    forall name arg env cont val,
+    configuration_wf (Value_Passing_Configuration
+      (Method_Invocation_Ek name arg env cont)
+      val)
+
+  (** These configurations pass the evaluated argument to the rest of the
+    method invocation.  The execution of the method begins, and many conditions
+    should be met. *)
+  | Pass_Invocation_Ek_Configuration_Wf :
+    forall rcvr_val intf type proc_desc name env ret_cont arg_val,
+    value_of_type rcvr_val intf type ->
+    List.In proc_desc (procedures intf) ->
+    (pr_name proc_desc) = name ->
+    configuration_wf (Value_Passing_Configuration
+      (Invocation_Ek rcvr_val name env ret_cont)
+      arg_val)
+
+  (** These configurations pass the evaluated receiver to the rest of the
+    property get.  The preconditions state that the property with such name
+    should exist. *)
+  | Pass_Property_Get_Ek_Configuration_Wf :
+    forall name cont rcvr_val intf type proc_desc,
+    value_of_type rcvr_val intf type ->
+    List.In proc_desc (procedures intf) ->
+    (pr_name proc_desc) = name ->
+    configuration_wf (Value_Passing_Configuration
+      (Property_Get_Ek name cont)
+      rcvr_val)
+
+  (** In the currently formalized subset of Kernel all forward configurations
+    are well-formed.  The machine either proceeds to the execution of a
+    a statement or proceeds to the next continuation. *)
+  | Forward_Configuration_Wf :
+    forall cont env,
+    configuration_wf (Forward_Configuration cont env).
 
 
 End OperationalSemantics.

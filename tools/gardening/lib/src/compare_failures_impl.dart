@@ -14,8 +14,8 @@ import 'buildbot_structures.dart';
 import 'buildbot_data.dart';
 import 'cache_new.dart';
 import 'logger.dart';
-import 'luci.dart' hide Timing;
-import 'luci_services.dart';
+import 'luci_api.dart' hide Timing;
+import 'luci.dart';
 import 'try.dart';
 import 'util.dart';
 
@@ -47,7 +47,7 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
   List<BuildUri> buildUriList = <BuildUri>[];
   List<BuildDetail> buildDetails;
   if (commit != null) {
-    Luci luci = new Luci();
+    LuciApi luci = new LuciApi();
     Logger logger = createLogger(verbose: verbose);
     CreateCacheFunction createCache =
         createCacheFunction(logger, disableCache: noCache);

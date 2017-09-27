@@ -21,6 +21,8 @@ import '../elements/elements.dart'
         MethodElement,
         MetadataAnnotation,
         ParameterElement;
+import '../elements/entities.dart' show FunctionEntity;
+
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart' show ResolutionTypedefType;
 import '../elements/types.dart';
@@ -32,6 +34,7 @@ import '../js_backend/runtime_types.dart' show RuntimeTypesEncoder;
 import '../js_backend/type_variable_handler.dart'
     show TypeVariableCodegenAnalysis;
 import '../options.dart';
+import '../universe/world_builder.dart' show CodegenWorldBuilder;
 
 import 'code_emitter_task.dart' show Emitter;
 
@@ -146,6 +149,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
   final MirrorsData _mirrorsData;
   final RuntimeTypesEncoder _rtiEncoder;
+  final CodegenWorldBuilder _codegenWorldBuilder;
 
   /// A token for a list of expressions that represent metadata, parameter names
   /// and type variable types.
@@ -177,7 +181,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       this._constants,
       this._typeVariableCodegenAnalysis,
       this._mirrorsData,
-      this._rtiEncoder) {
+      this._rtiEncoder,
+      this._codegenWorldBuilder) {
     _globalMetadataMap = new Map<String, _BoundMetadataEntry>();
   }
 
@@ -239,7 +244,21 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
   }
 
-  List<jsAst.DeferredNumber> reifyDefaultArguments(MethodElement function) {
+  List<jsAst.DeferredNumber> reifyDefaultArguments(FunctionEntity function) {
+    // TODO(sra): These are stored on the InstanceMethod or StaticDartMethod.
+    if (function is MethodElement) return reifyDefaultArgumentsAst(function);
+
+    List<jsAst.DeferredNumber> defaultValues = <jsAst.DeferredNumber>[];
+    _codegenWorldBuilder.forEachParameter(function,
+        (_, String name, ConstantValue constant) {
+      if (constant == null) return;
+      jsAst.Expression expression = _emitter.constantReference(constant);
+      defaultValues.add(_addGlobalMetadata(expression));
+    });
+    return defaultValues;
+  }
+
+  List<jsAst.DeferredNumber> reifyDefaultArgumentsAst(MethodElement function) {
     function = function.implementation;
     FunctionSignature signature = function.functionSignature;
     if (signature.optionalParameterCount == 0) return const [];

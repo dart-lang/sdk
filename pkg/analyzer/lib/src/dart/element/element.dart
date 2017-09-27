@@ -574,24 +574,15 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _computeMixinAppConstructors();
     }
     if (_kernel != null && _constructors == null) {
-      var constructorsAndProcedures = <kernel.Member>[];
-      constructorsAndProcedures.addAll(_kernel.constructors);
-      for (var procedure in _kernel.procedures) {
-        if (procedure.isFactory) {
-          constructorsAndProcedures.add(procedure);
-        }
-      }
-      constructorsAndProcedures.sort((a, b) => a.fileOffset - b.fileOffset);
-      _constructors = <ConstructorElement>[];
-      for (var constructorKernel in constructorsAndProcedures) {
-        if (constructorKernel is kernel.Constructor) {
-          _constructors.add(new ConstructorElementImpl.forKernel(
-              this, constructorKernel, null));
-        } else if (constructorKernel is kernel.Procedure) {
-          _constructors.add(new ConstructorElementImpl.forKernel(
-              this, null, constructorKernel));
-        }
-      }
+      var constructors = _kernel.constructors
+          .map((k) => new ConstructorElementImpl.forKernel(this, k, null));
+      var factories = _kernel.procedures
+          .where((k) => k.isFactory)
+          .map((k) => new ConstructorElementImpl.forKernel(this, null, k));
+      _constructors = <ConstructorElement>[]
+        ..addAll(constructors)
+        ..addAll(factories);
+      _constructors.sort((a, b) => a.nameOffset - b.nameOffset);
     }
     if (_unlinkedClass != null && _constructors == null) {
       _constructors = _unlinkedClass.executables
@@ -2405,17 +2396,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  int get nameOffset {
-    if (_kernelConstructor != null) {
-      return _kernelConstructor.nameOffset;
-    }
-    if (_kernelFactory != null) {
-      return _kernelFactory.nameOffset;
-    }
-    return super.nameOffset;
-  }
-
-  @override
   int get periodOffset {
     if (serializedExecutable != null) {
       if (serializedExecutable.name.isNotEmpty) {
@@ -4223,6 +4203,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   int get nameOffset {
     int offset = super.nameOffset;
+    if (_kernel != null) {
+      return _kernel.fileOffset;
+    }
     if (offset == 0 && serializedExecutable != null) {
       return serializedExecutable.nameOffset;
     }
@@ -6206,9 +6189,25 @@ abstract class KernelLibraryResynthesizerContext {
   kernel.Library get coreLibrary;
 
   /**
+   * Return `true` if the library has an import directive whose URI uses the
+   * "dart-ext" scheme.
+   */
+  bool get hasExtUri;
+
+  /**
    * The Kernel library being resynthesized.
    */
   kernel.Library get library;
+
+  /**
+   * Return the export namespace of the library.
+   */
+  Namespace buildExportNamespace();
+
+  /**
+   * Return the public namespace of the library.
+   */
+  Namespace buildPublicNamespace();
 
   /**
    * Return the [LibraryElement] for the given absolute [uriStr].
@@ -6571,6 +6570,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   Namespace get exportNamespace {
+    if (_kernelContext != null) {
+      _exportNamespace ??= _kernelContext.buildExportNamespace();
+    }
     if (resynthesizerContext != null) {
       _exportNamespace ??= resynthesizerContext.buildExportNamespace();
     }
@@ -6633,6 +6635,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   bool get hasExtUri {
+    if (_kernelContext != null) {
+      return _kernelContext.hasExtUri;
+    }
     if (_unlinkedDefiningUnit != null) {
       List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
       for (UnlinkedImport import in unlinkedImports) {
@@ -6937,6 +6942,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   Namespace get publicNamespace {
+    if (_kernelContext != null) {
+      _publicNamespace ??= _kernelContext.buildPublicNamespace();
+    }
     if (resynthesizerContext != null) {
       _publicNamespace ??= resynthesizerContext.buildPublicNamespace();
     }

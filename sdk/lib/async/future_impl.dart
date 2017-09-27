@@ -136,11 +136,10 @@ class _FutureListener<S, T> {
 
   FutureOr<T> handleError(AsyncError asyncError) {
     assert(handlesError && hasErrorCallback);
-    if (errorCallback is ZoneBinaryCallback<dynamic, Null, Null>) {
-      var typedErrorCallback = errorCallback as Object
-          /*=ZoneBinaryCallback<FutureOr<T>, Object, StackTrace>*/;
+    var errorCallback = this.errorCallback; // To enable promotion.
+    if (errorCallback is ZoneBinaryCallback<FutureOr<T>, Object, StackTrace>) {
       return _zone.runBinary(
-          typedErrorCallback, asyncError.error, asyncError.stackTrace);
+          errorCallback, asyncError.error, asyncError.stackTrace);
     } else {
       return _zone.runUnary<FutureOr<T>, Object>(
           errorCallback, asyncError.error);

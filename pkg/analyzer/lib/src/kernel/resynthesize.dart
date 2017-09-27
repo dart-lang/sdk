@@ -7,12 +7,16 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:front_end/src/base/source.dart';
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart' as kernel;
 import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
@@ -21,7 +25,7 @@ import 'package:kernel/type_environment.dart' as kernel;
  * Object that can resynthesize analyzer [LibraryElement] from Kernel.
  */
 class KernelResynthesizer implements ElementResynthesizer {
-  final AnalysisContext _analysisContext;
+  final AnalysisContextImpl _analysisContext;
   final kernel.TypeEnvironment _types;
   final Map<String, kernel.Library> _kernelMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
@@ -31,7 +35,13 @@ class KernelResynthesizer implements ElementResynthesizer {
    */
   final Map<String, Source> _sources = <String, Source>{};
 
-  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap);
+  /// The type provider for this resynthesizer.
+  SummaryTypeProvider _typeProvider;
+
+  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap) {
+    _buildTypeProvider();
+    _analysisContext.typeProvider = _typeProvider;
+  }
 
   @override
   AnalysisContext get context => _analysisContext;
@@ -66,7 +76,10 @@ class KernelResynthesizer implements ElementResynthesizer {
 
       var libraryContext =
           new _KernelLibraryResynthesizerContextImpl(this, kernel);
+
+      // Build the library.
       LibraryElementImpl libraryElement = libraryContext._buildLibrary(uriStr);
+      if (libraryElement == null) return null;
 
       // Build the defining unit.
       var definingUnit = libraryContext._buildUnit(null).unit;
@@ -81,8 +94,24 @@ class KernelResynthesizer implements ElementResynthesizer {
       }
       libraryElement.parts = parts;
 
+      // Create the required `loadLibrary` function.
+      if (uriStr != 'dart:core' && uriStr != 'dart:async') {
+        libraryElement.createLoadLibraryFunction(_typeProvider);
+      }
+
       return libraryElement;
     });
+  }
+
+  void _buildTypeProvider() {
+    var coreLibrary = getLibrary('dart:core');
+    var asyncLibrary = getLibrary('dart:async');
+    _typeProvider = new SummaryTypeProvider();
+    _typeProvider.initializeCore(coreLibrary);
+    _typeProvider.initializeAsync(asyncLibrary);
+    // Now, when TypeProvider is ready, we can finalize core/async.
+    coreLibrary.createLoadLibraryFunction(_typeProvider);
+    asyncLibrary.createLoadLibraryFunction(_typeProvider);
   }
 
   /**
@@ -142,6 +171,9 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
     if (classElement == null) return null;
 
+    // If no more component, the class is the element.
+    if (componentPtr == 0) return classElement;
+
     String kind = components[--componentPtr];
     String elementName = takeElementName();
     if (kind == '@methods') {
@@ -172,6 +204,14 @@ class KernelResynthesizer implements ElementResynthesizer {
 }
 
 /**
+ * This exception is thrown when we detect that the Kernel has a compilation
+ * error, so we cannot resynthesize the constant expression.
+ */
+class _CompilationErrorFound {
+  const _CompilationErrorFound();
+}
+
+/**
  * Builder of [Expression]s from [kernel.Expression]s.
  */
 class _ExprBuilder {
@@ -181,189 +221,16 @@ class _ExprBuilder {
   _ExprBuilder(this._context, this._contextElement);
 
   Expression build(kernel.Expression expr) {
-    if (expr is kernel.NullLiteral) {
-      return AstTestFactory.nullLiteral();
+    try {
+      return _build(expr);
+    } on _CompilationErrorFound {
+      return AstTestFactory.identifier3('#invalidConst');
     }
-    if (expr is kernel.BoolLiteral) {
-      return AstTestFactory.booleanLiteral(expr.value);
-    }
-    if (expr is kernel.IntLiteral) {
-      return AstTestFactory.integer(expr.value);
-    }
-    if (expr is kernel.DoubleLiteral) {
-      return AstTestFactory.doubleLiteral(expr.value);
-    }
-    if (expr is kernel.StringLiteral) {
-      return AstTestFactory.string2(expr.value);
-    }
-    if (expr is kernel.StringConcatenation) {
-      List<InterpolationElement> elements = expr.expressions
-          .map(build)
-          .map(_newInterpolationElement)
-          .toList(growable: false);
-      return AstTestFactory.string(elements);
-    }
-    if (expr is kernel.SymbolLiteral) {
-      List<String> components = expr.value.split('.').toList();
-      return AstTestFactory.symbolLiteral(components);
-    }
-
-    if (expr is kernel.ListLiteral) {
-      Keyword keyword = expr.isConst ? Keyword.CONST : null;
-      var typeArguments = _buildTypeArgumentList([expr.typeArgument]);
-      var elements = expr.expressions.map(build).toList();
-      return AstTestFactory.listLiteral2(keyword, typeArguments, elements);
-    }
-
-    if (expr is kernel.MapLiteral) {
-      Keyword keyword = expr.isConst ? Keyword.CONST : null;
-      var typeArguments =
-          _buildTypeArgumentList([expr.keyType, expr.valueType]);
-
-      int numberOfEntries = expr.entries.length;
-      var entries = new List<MapLiteralEntry>(numberOfEntries);
-      for (int i = 0; i < numberOfEntries; i++) {
-        var entry = expr.entries[i];
-        Expression key = build(entry.key);
-        Expression value = build(entry.value);
-        entries[i] = AstTestFactory.mapLiteralEntry2(key, value);
-      }
-
-      return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
-    }
-
-    if (expr is kernel.StaticGet) {
-      return _buildIdentifier(expr.targetReference, isGet: true);
-    }
-
-    if (expr is kernel.PropertyGet) {
-      Expression target = build(expr.receiver);
-      kernel.Reference reference = expr.interfaceTargetReference;
-      SimpleIdentifier identifier = _buildSimpleIdentifier(reference);
-      return AstTestFactory.propertyAccess(target, identifier);
-    }
-
-    if (expr is kernel.VariableGet) {
-      String name = expr.variable.name;
-      Element contextConstructor = _contextElement;
-      if (contextConstructor is ConstructorElement) {
-        SimpleIdentifier identifier = AstTestFactory.identifier3(name);
-        ParameterElement parameter = contextConstructor.parameters.firstWhere(
-            (parameter) => parameter.name == name,
-            orElse: () => null);
-        identifier.staticElement = parameter;
-        return identifier;
-      }
-    }
-
-    if (expr is kernel.ConditionalExpression) {
-      var condition = build(expr.condition);
-      var then = build(expr.then);
-      var otherwise = build(expr.otherwise);
-      return AstTestFactory.conditionalExpression(condition, then, otherwise);
-    }
-
-    if (expr is kernel.Not) {
-      kernel.Expression kernelOperand = expr.operand;
-      var operand = build(kernelOperand);
-      return AstTestFactory.prefixExpression(TokenType.BANG, operand);
-    }
-
-    if (expr is kernel.LogicalExpression) {
-      var operator = _toBinaryOperatorTokenType(expr.operator);
-      var left = build(expr.left);
-      var right = build(expr.right);
-      return AstTestFactory.binaryExpression(left, operator, right);
-    }
-
-    if (expr is kernel.Let) {
-      var body = expr.body;
-      if (body is kernel.ConditionalExpression) {
-        var condition = body.condition;
-        var otherwiseExpr = body.otherwise;
-        if (condition is kernel.MethodInvocation) {
-          var equalsReceiver = condition.receiver;
-          if (equalsReceiver is kernel.VariableGet &&
-              condition.name.name == '==' &&
-              condition.arguments.positional.length == 1 &&
-              condition.arguments.positional[0] is kernel.NullLiteral &&
-              otherwiseExpr is kernel.VariableGet &&
-              otherwiseExpr.variable == equalsReceiver.variable) {
-            var left = build(expr.variable.initializer);
-            var right = build(body.then);
-            return AstTestFactory.binaryExpression(
-                left, TokenType.QUESTION_QUESTION, right);
-          }
-        }
-      }
-    }
-
-    if (expr is kernel.MethodInvocation) {
-      kernel.Member member = expr.interfaceTarget;
-      if (member is kernel.Procedure) {
-        if (member.kind == kernel.ProcedureKind.Operator) {
-          var left = build(expr.receiver);
-          String operatorName = expr.name.name;
-          List<kernel.Expression> args = expr.arguments.positional;
-          if (args.isEmpty) {
-            if (operatorName == 'unary-') {
-              return AstTestFactory.prefixExpression(TokenType.MINUS, left);
-            }
-            if (operatorName == '~') {
-              return AstTestFactory.prefixExpression(TokenType.TILDE, left);
-            }
-          } else if (args.length == 1) {
-            var operator = _toBinaryOperatorTokenType(operatorName);
-            var right = build(args.single);
-            return AstTestFactory.binaryExpression(left, operator, right);
-          }
-        }
-      }
-    }
-
-    if (expr is kernel.StaticInvocation) {
-      kernel.Procedure target = expr.target;
-      String name = target.name.name;
-      List<Expression> arguments = _toArguments(expr.arguments);
-      MethodInvocation invocation =
-          AstTestFactory.methodInvocation3(null, name, null, arguments);
-      invocation.methodName.staticElement = _getElement(target.reference);
-      return invocation;
-    }
-
-    if (expr is kernel.ConstructorInvocation) {
-      var element = _getElement(expr.targetReference);
-
-      var kernelType =
-          expr.getStaticType(_context.libraryContext.resynthesizer._types);
-      var type = _context.getType(_contextElement, kernelType);
-      TypeName typeName = _buildType(type);
-
-      var constructorName = AstTestFactory.constructorName(
-          typeName, element.name.isNotEmpty ? element.name : null);
-      constructorName?.name?.staticElement = element;
-
-      var keyword = expr.isConst ? Keyword.CONST : Keyword.NEW;
-      var arguments = _toArguments(expr.arguments);
-      return AstTestFactory.instanceCreationExpression(
-          keyword, constructorName, arguments);
-    }
-
-    if (expr is kernel.TypeLiteral) {
-      var type = _context.getType(_contextElement, expr.type);
-      var identifier = AstTestFactory.identifier3(type.element.name);
-      identifier.staticElement = type.element;
-      identifier.staticType = _context.libraryContext.resynthesizer.typeType;
-      return identifier;
-    }
-
-    // TODO(scheglov): complete getExpression
-    throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
   }
 
   ConstructorInitializer buildInitializer(kernel.Initializer k) {
     if (k is kernel.FieldInitializer) {
-      Expression value = build(k.value);
+      Expression value = _build(k.value);
       ConstructorFieldInitializer initializer = AstTestFactory
           .constructorFieldInitializer(false, k.field.name.name, value);
       initializer.fieldName.staticElement = _getElement(k.fieldReference);
@@ -378,8 +245,8 @@ class _ExprBuilder {
             invocation.name.name == 'call') {
           var body = receiver.function.body;
           if (body is kernel.AssertStatement) {
-            var condition = build(body.condition);
-            var message = body.message != null ? build(body.message) : null;
+            var condition = _build(body.condition);
+            var message = body.message != null ? _build(body.message) : null;
             return AstTestFactory.assertInitializer(condition, message);
           }
         }
@@ -425,7 +292,209 @@ class _ExprBuilder {
     throw new UnimplementedError('For ${k.runtimeType}');
   }
 
-  Expression _buildIdentifier(kernel.Reference reference, {bool isGet: false}) {
+  Expression _build(kernel.Expression expr) {
+    if (expr is kernel.NullLiteral) {
+      return AstTestFactory.nullLiteral();
+    }
+    if (expr is kernel.BoolLiteral) {
+      return AstTestFactory.booleanLiteral(expr.value);
+    }
+    if (expr is kernel.IntLiteral) {
+      return AstTestFactory.integer(expr.value);
+    }
+    if (expr is kernel.DoubleLiteral) {
+      return AstTestFactory.doubleLiteral(expr.value);
+    }
+    if (expr is kernel.StringLiteral) {
+      return AstTestFactory.string2(expr.value);
+    }
+    if (expr is kernel.StringConcatenation) {
+      List<InterpolationElement> elements = expr.expressions
+          .map(_build)
+          .map(_newInterpolationElement)
+          .toList(growable: false);
+      return AstTestFactory.string(elements);
+    }
+    if (expr is kernel.SymbolLiteral) {
+      List<String> components = expr.value.split('.').toList();
+      return AstTestFactory.symbolLiteral(components);
+    }
+
+    if (expr is kernel.ListLiteral) {
+      Keyword keyword = expr.isConst ? Keyword.CONST : null;
+      var typeArguments = _buildTypeArgumentList([expr.typeArgument]);
+      var elements = expr.expressions.map(_build).toList();
+      return AstTestFactory.listLiteral2(keyword, typeArguments, elements);
+    }
+
+    if (expr is kernel.MapLiteral) {
+      Keyword keyword = expr.isConst ? Keyword.CONST : null;
+      var typeArguments =
+          _buildTypeArgumentList([expr.keyType, expr.valueType]);
+
+      int numberOfEntries = expr.entries.length;
+      var entries = new List<MapLiteralEntry>(numberOfEntries);
+      for (int i = 0; i < numberOfEntries; i++) {
+        var entry = expr.entries[i];
+        Expression key = _build(entry.key);
+        Expression value = _build(entry.value);
+        entries[i] = AstTestFactory.mapLiteralEntry2(key, value);
+      }
+
+      return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
+    }
+
+    if (expr is kernel.StaticGet) {
+      return _buildIdentifier(expr.targetReference, isGet: true);
+    }
+
+    if (expr is kernel.PropertyGet) {
+      Expression target = _build(expr.receiver);
+      kernel.Reference reference = expr.interfaceTargetReference;
+      SimpleIdentifier identifier = _buildSimpleIdentifier(reference);
+      return AstTestFactory.propertyAccess(target, identifier);
+    }
+
+    if (expr is kernel.VariableGet) {
+      String name = expr.variable.name;
+      Element contextConstructor = _contextElement;
+      if (contextConstructor is ConstructorElement) {
+        SimpleIdentifier identifier = AstTestFactory.identifier3(name);
+        ParameterElement parameter = contextConstructor.parameters.firstWhere(
+            (parameter) => parameter.name == name,
+            orElse: () => null);
+        identifier.staticElement = parameter;
+        return identifier;
+      }
+    }
+
+    if (expr is kernel.ConditionalExpression) {
+      var condition = _build(expr.condition);
+      var then = _build(expr.then);
+      var otherwise = _build(expr.otherwise);
+      return AstTestFactory.conditionalExpression(condition, then, otherwise);
+    }
+
+    if (expr is kernel.Not) {
+      kernel.Expression kernelOperand = expr.operand;
+      var operand = _build(kernelOperand);
+      return AstTestFactory.prefixExpression(TokenType.BANG, operand);
+    }
+
+    if (expr is kernel.LogicalExpression) {
+      var operator = _toBinaryOperatorTokenType(expr.operator);
+      var left = _build(expr.left);
+      var right = _build(expr.right);
+      return AstTestFactory.binaryExpression(left, operator, right);
+    }
+
+    if (expr is kernel.Let) {
+      var body = expr.body;
+      if (body is kernel.ConditionalExpression) {
+        var condition = body.condition;
+        var otherwiseExpr = body.otherwise;
+        if (condition is kernel.MethodInvocation) {
+          var equalsReceiver = condition.receiver;
+          if (equalsReceiver is kernel.VariableGet &&
+              condition.name.name == '==' &&
+              condition.arguments.positional.length == 1 &&
+              condition.arguments.positional[0] is kernel.NullLiteral &&
+              otherwiseExpr is kernel.VariableGet &&
+              otherwiseExpr.variable == equalsReceiver.variable) {
+            var left = _build(expr.variable.initializer);
+            var right = _build(body.then);
+            return AstTestFactory.binaryExpression(
+                left, TokenType.QUESTION_QUESTION, right);
+          }
+        }
+      }
+    }
+
+    if (expr is kernel.MethodInvocation) {
+      kernel.Member member = expr.interfaceTarget;
+      if (member is kernel.Procedure) {
+        if (member.kind == kernel.ProcedureKind.Operator) {
+          var left = _build(expr.receiver);
+          String operatorName = expr.name.name;
+          List<kernel.Expression> args = expr.arguments.positional;
+          if (args.isEmpty) {
+            if (operatorName == 'unary-') {
+              return AstTestFactory.prefixExpression(TokenType.MINUS, left);
+            }
+            if (operatorName == '~') {
+              return AstTestFactory.prefixExpression(TokenType.TILDE, left);
+            }
+          } else if (args.length == 1) {
+            var operator = _toBinaryOperatorTokenType(operatorName);
+            var right = _build(args.single);
+            return AstTestFactory.binaryExpression(left, operator, right);
+          }
+        }
+      }
+    }
+
+    if (expr is kernel.StaticInvocation) {
+      kernel.Procedure target = expr.target;
+      String name = target.name.name;
+      List<Expression> arguments = _toArguments(expr.arguments);
+      MethodInvocation invocation =
+          AstTestFactory.methodInvocation3(null, name, null, arguments);
+      invocation.methodName.staticElement = _getElement(target.reference);
+      return invocation;
+    }
+
+    if (expr is kernel.ConstructorInvocation) {
+      var element = _getElement(expr.targetReference);
+
+      var kernelType =
+          expr.getStaticType(_context.libraryContext.resynthesizer._types);
+      var type = _context.getType(_contextElement, kernelType);
+      TypeName typeName = _buildType(type);
+
+      var constructorName = AstTestFactory.constructorName(
+          typeName, element.name.isNotEmpty ? element.name : null);
+      constructorName?.name?.staticElement = element;
+
+      var keyword = expr.isConst ? Keyword.CONST : Keyword.NEW;
+      var arguments = _toArguments(expr.arguments);
+      return AstTestFactory.instanceCreationExpression(
+          keyword, constructorName, arguments);
+    }
+
+    if (expr is kernel.TypeLiteral) {
+      var type = _context.getType(_contextElement, expr.type);
+      var identifier = AstTestFactory.identifier3(type.element.name);
+      identifier.staticElement = type.element;
+      identifier.staticType = _context.libraryContext.resynthesizer.typeType;
+      return identifier;
+    }
+
+    // Invalid annotations are represented as Let.
+    if (expr is kernel.Let &&
+        expr.variable.initializer is kernel.ShadowSyntheticExpression) {
+      expr = (expr as kernel.Let).variable.initializer;
+    }
+
+    // Synthetic expression representing a constant error.
+    if (expr is kernel.ShadowSyntheticExpression) {
+      var desugared = expr.desugared;
+      if (desugared is kernel.MethodInvocation) {
+        if (desugared.name.name == '_throw') {
+          var receiver = desugared.receiver;
+          if (receiver is kernel.ConstructorInvocation &&
+              receiver.target.enclosingClass.name ==
+                  '_ConstantExpressionError') {
+            throw const _CompilationErrorFound();
+          }
+        }
+      }
+    }
+
+    // TODO(scheglov): complete getExpression
+    throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
+  }
+
+  Identifier _buildIdentifier(kernel.Reference reference, {bool isGet: false}) {
     Element element = _getElement(reference);
     if (isGet && element is PropertyInducingElement) {
       element = (element as PropertyInducingElement).getter;
@@ -437,7 +506,7 @@ class _ExprBuilder {
       SimpleIdentifier classRef = AstTestFactory
           .identifier3(enclosingElement.name)
             ..staticElement = enclosingElement;
-      return AstTestFactory.propertyAccess(classRef, property);
+      return AstTestFactory.identifier(classRef, property);
     } else {
       return property;
     }
@@ -506,11 +575,11 @@ class _ExprBuilder {
 
     int i = 0;
     for (kernel.Expression k in kernelArguments.positional) {
-      arguments[i++] = build(k);
+      arguments[i++] = _build(k);
     }
 
     for (kernel.NamedExpression k in kernelArguments.named) {
-      var value = build(k.value);
+      var value = _build(k.value);
       arguments[i++] = AstTestFactory.namedExpression2(k.name, value);
     }
 
@@ -561,12 +630,48 @@ class _KernelLibraryResynthesizerContextImpl
   kernel.Library get coreLibrary => resynthesizer._kernelMap['dart:core'];
 
   @override
+  bool get hasExtUri {
+    for (var dependency in library.dependencies) {
+      if (dependency.isImport &&
+          dependency.targetLibrary.importUri.isScheme('dart-ext')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  Namespace buildExportNamespace() {
+    Namespace publicNamespace = buildPublicNamespace();
+    if (library.additionalExports.isEmpty) {
+      return publicNamespace;
+    }
+
+    Map<String, Element> definedNames = publicNamespace.definedNames;
+    for (kernel.Reference additionalExport in library.additionalExports) {
+      var element = resynthesizer._getElement(additionalExport.canonicalName);
+      if (element != null) {
+        definedNames[element.name] = element;
+      }
+    }
+
+    return new Namespace(definedNames);
+  }
+
+  @override
+  Namespace buildPublicNamespace() {
+    return new NamespaceBuilder()
+        .createPublicNamespaceForLibrary(libraryElement);
+  }
+
+  @override
   LibraryElementImpl getLibrary(String uriStr) {
     return resynthesizer.getLibrary(uriStr);
   }
 
   LibraryElementImpl _buildLibrary(String uriStr) {
     librarySource = resynthesizer._getSource(uriStr);
+    if (librarySource == null) return null;
     return libraryElement =
         new LibraryElementImpl.forKernel(resynthesizer._analysisContext, this);
   }
@@ -628,6 +733,8 @@ class _KernelUnitImpl implements KernelUnit {
  */
 class _KernelUnitResynthesizerContextImpl
     implements KernelUnitResynthesizerContext {
+  static final Uri dartInternalUri = Uri.parse('dart:_internal');
+
   final _KernelLibraryResynthesizerContextImpl libraryContext;
   final String fileUri;
 
@@ -643,9 +750,11 @@ class _KernelUnitResynthesizerContextImpl
       List<kernel.Expression> expressions) {
     int length = expressions.length;
     if (length != 0) {
-      var annotations = new List<ElementAnnotation>(length);
-      for (int i = 0; i < length; i++) {
-        annotations[i] = _buildAnnotation(unit, expressions[i]);
+      var annotations = <ElementAnnotation>[];
+      for (var expression in expressions) {
+        if (_isSyntheticExternalNameAnnotation(expression)) continue;
+        var annotation = _buildAnnotation(unit, expression);
+        annotations.add(annotation);
       }
       return annotations;
     } else {
@@ -808,6 +917,7 @@ class _KernelUnitResynthesizerContextImpl
   DartType getType(ElementImpl context, kernel.DartType kernelType) {
     if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
     if (kernelType is kernel.InvalidType) return DynamicTypeImpl.instance;
+    if (kernelType is kernel.BottomType) return BottomTypeImpl.instance;
     if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
 
     if (kernelType is kernel.InterfaceType) {
@@ -916,5 +1026,18 @@ class _KernelUnitResynthesizerContextImpl
       }
     }
     throw new StateError('Not found $kernelTypeParameter in $context');
+  }
+
+  /// Fasta converts `native 'name'` clauses to `@ExternalName('name')`
+  /// annotations. But we don't actually have these annotations in code. So,
+  /// we need to skip them to avoid mismatch with AST.
+  static bool _isSyntheticExternalNameAnnotation(kernel.Expression expr) {
+    if (expr is kernel.ConstructorInvocation) {
+      kernel.Constructor target = expr.target;
+      return target != null &&
+          target.enclosingClass.name == 'ExternalName' &&
+          target.enclosingLibrary.importUri == dartInternalUri;
+    }
+    return false;
   }
 }

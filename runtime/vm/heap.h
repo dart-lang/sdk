@@ -80,10 +80,10 @@ class Heap {
   }
 
   // Track external data.
-  void AllocateExternal(intptr_t size, Space space);
+  void AllocateExternal(intptr_t cid, intptr_t size, Space space);
   void FreeExternal(intptr_t size, Space space);
   // Move external size from new to old space. Does not by itself trigger GC.
-  void PromoteExternal(intptr_t size);
+  void PromoteExternal(intptr_t cid, intptr_t size);
 
   // Heap contains the specified address.
   bool Contains(uword addr) const;
@@ -252,6 +252,8 @@ class Heap {
     old_space_.SetupImagePage(pointer, size, is_executable);
   }
 
+  static const intptr_t kNewAllocatableSize = 256 * KB;
+
  private:
   class GCStats : public ValueObject {
    public:
@@ -282,8 +284,6 @@ class Heap {
    private:
     DISALLOW_COPY_AND_ASSIGN(GCStats);
   };
-
-  static const intptr_t kNewAllocatableSize = 256 * KB;
 
   Heap(Isolate* isolate,
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.

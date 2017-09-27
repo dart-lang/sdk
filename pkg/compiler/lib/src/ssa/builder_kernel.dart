@@ -1511,7 +1511,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     if (asExpression.type is ir.InvalidType) {
       generateTypeError(asExpression, 'invalid type');
-      stack.add(expressionInstruction);
       return;
     }
 

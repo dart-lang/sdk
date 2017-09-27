@@ -135,7 +135,6 @@ native_wrapping_function3_frog_test: Crash # Issue 27394
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 bound_closure_super_test: RuntimeError
 compute_this_script_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/types.dart': Failed assertion: line 63 pos 12: '!result.isEmpty': is not true.
-core_type_check_native_test: RuntimeError
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
 native_exceptions1_frog_test: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
@@ -155,7 +154,6 @@ subclassing_super_field_2_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 bound_closure_super_test: RuntimeError
-core_type_check_native_test: RuntimeError
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
 native_library_same_name_used_frog_test: CompileTimeError

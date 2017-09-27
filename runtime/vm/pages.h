@@ -129,6 +129,9 @@ class PageSpaceController {
   // (e.g., promotion), as it does not change the state of the controller.
   bool NeedsGarbageCollection(SpaceUsage after) const;
 
+  // Returns whether an idle GC is worthwhile.
+  bool NeedsIdleGarbageCollection(SpaceUsage current) const;
+
   // Should be called after each collection to update the controller state.
   void EvaluateGarbageCollection(SpaceUsage before,
                                  SpaceUsage after,
@@ -175,6 +178,9 @@ class PageSpaceController {
   // The time in microseconds of the last time we tried to collect unused
   // code.
   int64_t last_code_collection_in_us_;
+
+  // We start considering idle mark-sweeps when old space crosses this size.
+  intptr_t idle_gc_threshold_in_words_;
 
   PageSpaceGarbageCollectionHistory history_;
 
@@ -279,6 +285,8 @@ class PageSpace {
   void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only);
 
+  bool ShouldPerformIdleMarkSweep(int64_t deadline);
+
   void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }
 
   int64_t gc_time_micros() const { return gc_time_micros_; }
@@ -292,7 +300,7 @@ class PageSpace {
   void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const;
 #endif  // PRODUCT
 
-  void AllocateExternal(intptr_t size);
+  void AllocateExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
   // Bulk data allocation.
@@ -428,6 +436,7 @@ class PageSpace {
 
   int64_t gc_time_micros_;
   intptr_t collections_;
+  intptr_t mark_sweep_words_per_micro_;
 
   friend class ExclusivePageIterator;
   friend class ExclusiveCodePageIterator;

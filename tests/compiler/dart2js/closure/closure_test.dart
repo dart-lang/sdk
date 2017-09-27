@@ -22,9 +22,7 @@ import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'package:kernel/ast.dart' as ir;
 
-const List<String> skipForKernel = const <String>[
-  'type_variables.dart',
-];
+const List<String> skipForKernel = const <String>[];
 
 main(List<String> args) {
   asyncTest(() async {

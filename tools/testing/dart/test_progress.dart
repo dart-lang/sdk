@@ -693,12 +693,34 @@ class ResultLogWriter extends EventListener {
         'duration': output.time.inMilliseconds
       };
     }).toList();
+
+    // Compute inlined expectations.
+    var inlineExpectations = <String>[];
+    if (test.hasStaticWarning) {
+      inlineExpectations.add("static-type-warning");
+    }
+    if (test.hasRuntimeError) {
+      inlineExpectations.add("runtime-error");
+    }
+    if (test.hasCompileError) {
+      inlineExpectations.add("compile-time-error");
+    }
+    if (test.hasCompileErrorIfChecked) {
+      inlineExpectations.add("checked-compile-time-error");
+    }
+    if (test.isNegativeIfChecked) {
+      inlineExpectations.add("dynamic-type-error");
+    }
     _results.add({
       'configuration': key,
       'name': test.displayName,
       'result': test.lastCommandOutput.result(test).toString(),
+      'test_expectation': inlineExpectations,
+      'flaky': test.isFlaky,
+      'negative': test.isNegative,
       'commands': commands
     });
+
     _outputDirectory ??= test.configuration.outputDirectory;
   }
 

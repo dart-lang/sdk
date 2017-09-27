@@ -9,8 +9,6 @@ import '../../scanner/token.dart' show Token, TokenType;
 import '../fasta_codes.dart'
     show Message, messageNativeClauseShouldBeAnnotation;
 
-import '../util/link.dart' show Link;
-
 import 'assert.dart' show Assert;
 
 import 'formal_parameter_kind.dart' show FormalParameterKind;
@@ -251,7 +249,7 @@ class Listener {
 
   // One of the two possible corresponding end events for [beginForStatement].
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+      Token inKeyword, Token endToken) {
     logEvent("ForIn");
   }
 
@@ -449,6 +447,18 @@ class Listener {
     logEvent("Import");
   }
 
+  /// Handle recovery associated with an import directive.
+  /// This may be called multiple times after [endImport]
+  /// to recover information about the previous import directive.
+  /// The substructures are a subset of and in the same order as [endImport]:
+  /// - conditional uris
+  /// - prefix identifier (only if asKeyword != null)
+  /// - combinators
+  void handleRecoverImport(
+      Token deferredKeyword, Token asKeyword, Token semicolon) {
+    logEvent("ImportRecovery");
+  }
+
   void beginConditionalUris(Token token) {}
 
   void endConditionalUris(int count) {
@@ -461,8 +471,7 @@ class Listener {
   /// - Dotted name
   /// - Condition (literal string; only if [equalSign] != null)
   /// - URI (literal string)
-  void endConditionalUri(
-      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     logEvent("ConditionalUri");
   }
 
@@ -583,11 +592,6 @@ class Listener {
   void endMember() {
     logEvent("Member");
   }
-
-  /// This event can be used to support non-compliant (with respect to Dart
-  /// Language Specification) Dart VM native clauses. See
-  /// [native_support.dart].
-  Link<Token> handleMemberName(Link<Token> identifiers) => identifiers;
 
   void beginMethod(Token token, Token name) {}
 
@@ -959,7 +963,7 @@ class Listener {
   void beginAssert(Token assertKeyword, Assert kind) {}
 
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token commaToken, Token rightParenthesis, Token semicolonToken) {
+      Token commaToken, Token semicolonToken) {
     logEvent("Assert");
   }
 

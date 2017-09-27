@@ -272,6 +272,58 @@ class C {
     }
   }
 
+  test_compile_redirectingConstructor() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    writeFile(aPath, r'''
+class A {
+  factory A() = B;
+}
+
+class B implements A {
+  B();
+}
+''');
+    Uri bUri = writeFile(bPath, r'''
+import 'a.dart';
+var a = new A();
+''');
+
+    // Initially "new A()" is resolved to "new B()".
+    {
+      KernelResult result = await driver.getKernel(bUri);
+      Library library = _getLibrary(result, bUri);
+      expect(_getLibraryText(library), r'''
+library;
+import self as self;
+import "./a.dart" as a;
+
+static field a::A a = new a::B::•();
+''');
+    }
+
+    // Update b.dart and recompile.
+    // We should not lose information about redirecting constructors.
+    // Som "new A()" should still be resolved to "new B()".
+    writeFile(bPath, r'''
+import 'a.dart';
+var a2 = new A();
+''');
+    driver.invalidate(bUri);
+    {
+      KernelResult result = await driver.getKernel(bUri);
+      Library library = _getLibrary(result, bUri);
+      expect(_getLibraryText(library), r'''
+library;
+import self as self;
+import "./a.dart" as a;
+
+static field a::A a2 = new a::B::•();
+''');
+    }
+  }
+
   test_compile_typedef() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';

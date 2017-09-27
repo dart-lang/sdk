@@ -16,6 +16,7 @@ library dart2js.messages;
 
 import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
 import 'generated/shared_messages.dart' as shared_messages;
+import '../constants/expressions.dart' show ConstantExpression;
 import 'invariant.dart' show failedAt;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 
@@ -201,13 +202,31 @@ enum MessageKind {
   INVALID_AWAIT,
   INVALID_AWAIT_FOR,
   INVALID_AWAIT_FOR_IN,
+  INVALID_BOOL_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
   INVALID_BREAK,
   INVALID_CASE_DEFAULT,
+  INVALID_CONSTANT_ADD_TYPES,
+  INVALID_CONSTANT_BINARY_INT_TYPE,
+  INVALID_CONSTANT_BINARY_NUM_TYPE,
+  INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE,
+  INVALID_CONSTANT_COMPLEMENT_TYPE,
+  INVALID_CONSTANT_CONDITIONAL_TYPE,
+  INVALID_CONSTANT_INDEX,
+  INVALID_CONSTANT_INTERPOLATION_TYPE,
+  INVALID_CONSTANT_NEGATE_TYPE,
+  INVALID_CONSTANT_NOT_TYPE,
+  INVALID_CONSTANT_NUM_ADD_TYPE,
+  INVALID_CONSTANT_STRING_ADD_TYPE,
+  INVALID_CONSTANT_STRING_LENGTH_TYPE,
   INVALID_CONSTRUCTOR_ARGUMENTS,
   INVALID_CONSTRUCTOR_NAME,
   INVALID_CONTINUE,
   INVALID_FOR_IN,
+  INVALID_FROM_ENVIRONMENT_NAME_TYPE,
   INVALID_INITIALIZER,
+  INVALID_INT_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
+  INVALID_LOGICAL_AND_OPERAND_TYPE,
+  INVALID_LOGICAL_OR_OPERAND_TYPE,
   INVALID_METADATA,
   INVALID_METADATA_GENERIC,
   INVALID_OVERRIDDEN_FIELD,
@@ -227,6 +246,7 @@ enum MessageKind {
   INVALID_PARAMETER,
   INVALID_RECEIVER_IN_INITIALIZER,
   INVALID_SOURCE_FILE_LOCATION,
+  INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
   INVALID_SYMBOL,
   INVALID_INLINE_FUNCTION_TYPE,
   INVALID_SYNC_MODIFIER,
@@ -3505,6 +3525,116 @@ part of test.main;
 """,
             }
           ]),
+      MessageKind.INVALID_CONSTANT_CONDITIONAL_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_CONDITIONAL_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid constant condition. "
+          "Must be a value of type 'bool'."),
+
+      MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE,
+          "`#{constant}` of type '#{type}' is not valid in constant string "
+          "interpolation. Must be a value of type 'bool', 'int', 'double', "
+          "or 'String'."),
+
+      MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid operand of a "
+          "constant binary #{operator} expression. Must be a value of type "
+          "'bool', 'int', 'double', 'String', or 'Null'."),
+
+      MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid operand of a "
+          "constant binary + expression on 'String'. Must be a value of type "
+          "'String'."),
+
+      MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid operand for a "
+          ".length expression. Must be a value of type 'String'."),
+
+      MessageKind.INVALID_CONSTANT_NUM_ADD_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_NUM_ADD_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid operand of a "
+          "constant binary + expression on 'num'. Must be a value of type "
+          "'int' or 'double'."),
+
+      MessageKind.INVALID_CONSTANT_ADD_TYPES: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_ADD_TYPES,
+          "`#{leftConstant}` of type '#{leftType}' and "
+          "`#{rightConstant}` of type '#{rightType}' are not valid operands "
+          "of a constant binary + expression. Must both be either of "
+          "type 'String', or of types 'int' or 'double'."),
+
+      MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid operand of a "
+          "constant binary #{operator} expression. Must be a value of type "
+          "'int' or 'double'."),
+
+      MessageKind.INVALID_CONSTANT_BINARY_INT_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_BINARY_INT_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid operand of a "
+          "constant binary #{operator} expression. Must be a value of type "
+          "'int'."),
+
+      MessageKind.INVALID_CONSTANT_NOT_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_NOT_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid operand of a "
+          "constant unary #{operator} expression. Must be a value of type "
+          "'bool'."),
+
+      MessageKind.INVALID_CONSTANT_NEGATE_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_NEGATE_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid operand of a "
+          "constant unary #{operator} expression. Must be a value of type "
+          "'int' or 'double'."),
+
+      MessageKind.INVALID_CONSTANT_COMPLEMENT_TYPE: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_COMPLEMENT_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid operand of a "
+          "constant unary #{operator} expression. Must be a value of type "
+          "'int'."),
+
+      MessageKind.INVALID_CONSTANT_INDEX: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_INDEX,
+          "Index expressions are not allowed in constant expressions."),
+
+      MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE: const MessageTemplate(
+          MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid environment name "
+          "constant. Must be a value of type 'String'."),
+
+      MessageKind.INVALID_BOOL_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE:
+          const MessageTemplate(
+              MessageKind.INVALID_BOOL_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
+              "`#{constant}` of type '#{type}' is not a valid "
+              "`bool.fromEnvironment` default value constant. "
+              "Must be a value of type 'bool' or `null`."),
+
+      MessageKind.INVALID_INT_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE:
+          const MessageTemplate(
+              MessageKind.INVALID_INT_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
+              "`#{constant}` of type '#{type}' is not a valid "
+              "`int.fromEnvironment` default value constant. "
+              "Must be a value of type 'int' or `null`."),
+
+      MessageKind.INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE:
+          const MessageTemplate(
+              MessageKind.INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
+              "`#{constant}` of type '#{type}' is not a valid "
+              "`String.fromEnvironment` default value constant. "
+              "Must be a value of type 'String' or `null`."),
+
+      MessageKind.INVALID_LOGICAL_AND_OPERAND_TYPE: const MessageTemplate(
+          MessageKind.INVALID_LOGICAL_AND_OPERAND_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid logical and operand. "
+          "Must be a value of type 'bool'."),
+
+      MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE: const MessageTemplate(
+          MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE,
+          "`#{constant}` of type '#{type}' is not a valid logical and operand. "
+          "Must be a value of type 'bool'."),
 
       //////////////////////////////////////////////////////////////////////////////
       // Patch errors start.
@@ -3795,6 +3925,8 @@ class Message {
       return value.assertionMessage;
     } else if (value is Token) {
       value = value.lexeme;
+    } else if (value is ConstantExpression) {
+      value = value.toDartText();
     }
     return '$value';
   }

@@ -198,9 +198,6 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
     case kPosition:
       position_ = builder_->ReadPosition(false);  // read position.
       if (++next_read_ == field) return;
-    case kNameOffset:
-      builder_->ReadPosition(false);  // read name offset.
-      if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition(false);  // read end position.
       if (++next_read_ == field) return;
@@ -254,9 +251,6 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition();  // read position.
-      if (++next_read_ == field) return;
-    case kNameOffset:
-      builder_->ReadPosition();  // read name offset.
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition();  // read end position.
@@ -396,15 +390,22 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
     case kProcedures: {
-      intptr_t list_length =
-          builder_->ReadListLength();  // read procedures list length.
-      for (intptr_t i = 0; i < list_length; i++) {
+      procedure_count_ = builder_->ReadListLength();  // read procedures #.
+      for (intptr_t i = 0; i < procedure_count_; i++) {
         ProcedureHelper procedure_helper(builder_);
         procedure_helper.ReadUntilExcluding(
             ProcedureHelper::kEnd);  // read procedure.
       }
       if (++next_read_ == field) return;
     }
+    case kClassIndex:
+      // Read class index.
+      for (intptr_t i = 0; i < procedure_count_; ++i) {
+        builder_->reader_->ReadUInt32();
+      }
+      builder_->reader_->ReadUInt32();
+      builder_->reader_->ReadUInt32();
+      if (++next_read_ == field) return;
     case kEnd:
       return;
   }
@@ -465,8 +466,8 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
     case kClasses: {
-      int class_count = builder_->ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < class_count; ++i) {
+      class_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < class_count_; ++i) {
         ClassHelper class_helper(builder_);
         class_helper.ReadUntilExcluding(ClassHelper::kEnd);
       }
@@ -481,14 +482,26 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
     case kToplevelProcedures: {
-      intptr_t procedure_count =
-          builder_->ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < procedure_count; ++i) {
+      procedure_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < procedure_count_; ++i) {
         ProcedureHelper procedure_helper(builder_);
         procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
       }
       if (++next_read_ == field) return;
     }
+    case kLibraryIndex:
+      // Read library index.
+      for (intptr_t i = 0; i < class_count_; ++i) {
+        builder_->reader_->ReadUInt32();
+      }
+      builder_->reader_->ReadUInt32();
+      builder_->reader_->ReadUInt32();
+      for (intptr_t i = 0; i < procedure_count_; ++i) {
+        builder_->reader_->ReadUInt32();
+      }
+      builder_->reader_->ReadUInt32();
+      builder_->reader_->ReadUInt32();
+      if (++next_read_ == field) return;
     case kEnd:
       return;
   }
@@ -499,6 +512,10 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
 
   // Ordered with fall-through.
   switch (next_read_) {
+    case kFileOffset: {
+      builder_->ReadPosition();
+      if (++next_read_ == field) return;
+    }
     case kFlags: {
       flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
@@ -2283,11 +2300,17 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kPropertyGet:
         EvaluatePropertyGet();
         break;
+      case kDirectPropertyGet:
+        EvaluateDirectPropertyGet();
+        break;
       case kStaticGet:
         EvaluateStaticGet();
         break;
       case kMethodInvocation:
         EvaluateMethodInvocation();
+        break;
+      case kDirectMethodInvocation:
+        EvaluateDirectMethodInvocation();
         break;
       case kStaticInvocation:
       case kConstStaticInvocation:
@@ -2453,6 +2476,19 @@ void StreamingConstantEvaluator::EvaluateVariableGet(uint8_t payload) {
   result_ = variable->ConstValue()->raw();
 }
 
+void StreamingConstantEvaluator::EvaluateGetStringLength(
+    intptr_t expression_offset) {
+  EvaluateExpression(expression_offset);
+  if (result_.IsString()) {
+    const String& str = String::Handle(Z, String::RawCast(result_.raw()));
+    result_ = Integer::New(str.Length());
+  } else {
+    H.ReportError(
+        "Constant expressions can only call "
+        "'length' on string constants.");
+  }
+}
+
 void StreamingConstantEvaluator::EvaluatePropertyGet() {
   builder_->ReadPosition();  // read position.
   builder_->ReadFlags();     // read flags.
@@ -2462,15 +2498,24 @@ void StreamingConstantEvaluator::EvaluatePropertyGet() {
   builder_->SkipCanonicalNameReference();  // read interface_target_reference.
 
   if (H.StringEquals(name, "length")) {
-    EvaluateExpression(expression_offset);
-    if (result_.IsString()) {
-      const String& str = String::Handle(Z, String::RawCast(result_.raw()));
-      result_ = Integer::New(str.Length());
-    } else {
-      H.ReportError(
-          "Constant expressions can only call "
-          "'length' on string constants.");
-    }
+    EvaluateGetStringLength(expression_offset);
+  } else {
+    UNREACHABLE();
+  }
+}
+
+void StreamingConstantEvaluator::EvaluateDirectPropertyGet() {
+  builder_->ReadPosition();  // read position.
+  builder_->ReadFlags();     // read flags.
+  intptr_t expression_offset = builder_->ReaderOffset();
+  builder_->SkipExpression();  // read receiver.
+  NameIndex kernel_name =
+      builder_->ReadCanonicalNameReference();  // read target_reference.
+
+  // TODO(vegorov): add check based on the complete canonical name.
+  if (H.IsGetter(kernel_name) &&
+      H.StringEquals(H.CanonicalNameString(kernel_name), "length")) {
+    EvaluateGetStringLength(expression_offset);
   } else {
     UNREACHABLE();
   }
@@ -2532,27 +2577,40 @@ void StreamingConstantEvaluator::EvaluateMethodInvocation() {
   // expressions are always valid.
   ASSERT(!function.IsNull());
 
-  // Read first parts of arguments: count and list of types.
-  intptr_t argument_count = builder_->PeekArgumentsCount();
-  // Dart does not support generic methods yet.
-  ASSERT(builder_->PeekArgumentsTypeCount() == 0);
-  builder_->SkipArgumentsBeforeActualArguments();
-
-  // Run the method and canonicalize the result.
-  const Object& result = RunFunction(function, argument_count, &receiver, NULL);
+  // Read arguments, run the method and canonicalize the result.
+  const Object& result = RunMethodCall(function, &receiver);
   result_ ^= result.raw();
   result_ = H.Canonicalize(result_);
 
   builder_->SkipCanonicalNameReference();  // read interface_target_reference.
 }
 
+void StreamingConstantEvaluator::EvaluateDirectMethodInvocation() {
+  builder_->ReadFlags();  // read flags.
+
+  const Instance& receiver =
+      EvaluateExpression(builder_->ReaderOffset(), false);  // read receiver.
+
+  NameIndex kernel_name =
+      builder_->ReadCanonicalNameReference();  // read target_reference.
+
+  const Function& function = Function::ZoneHandle(
+      Z, builder_->LookupMethodByMember(kernel_name,
+                                        H.DartProcedureName(kernel_name)));
+
+  // Read arguments, run the method and canonicalize the result.
+  const Object& result = RunMethodCall(function, &receiver);
+  result_ ^= result.raw();
+  result_ = H.Canonicalize(result_);
+}
+
 void StreamingConstantEvaluator::EvaluateStaticInvocation() {
   builder_->ReadPosition();  // read position.
-  NameIndex procedue_reference =
+  NameIndex procedure_reference =
       builder_->ReadCanonicalNameReference();  // read procedure reference.
 
   const Function& function = Function::ZoneHandle(
-      Z, H.LookupStaticMethodByKernelProcedure(procedue_reference));
+      Z, H.LookupStaticMethodByKernelProcedure(procedure_reference));
   Class& klass = Class::Handle(Z, function.Owner());
 
   intptr_t argument_count =
@@ -2890,6 +2948,19 @@ const Object& StreamingConstantEvaluator::RunFunction(const Function& function,
     H.ReportError(Error::Cast(result), "error evaluating constant constructor");
   }
   return result;
+}
+
+const Object& StreamingConstantEvaluator::RunMethodCall(
+    const Function& function,
+    const Instance* receiver) {
+  intptr_t argument_count = builder_->ReadUInt();  // read arguments count.
+
+  // TODO(28109) Support generic methods in the VM or reify them away.
+  ASSERT(builder_->PeekListLength() == 0);
+  builder_->SkipListOfDartTypes();  // read list of types.
+
+  // Run the method.
+  return RunFunction(function, argument_count, receiver, NULL);
 }
 
 RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
@@ -4075,6 +4146,10 @@ uint32_t StreamingFlowGraphBuilder::ReadUInt() {
   return reader_->ReadUInt();
 }
 
+uint32_t StreamingFlowGraphBuilder::ReadUInt32() {
+  return reader_->ReadUInt32();
+}
+
 uint32_t StreamingFlowGraphBuilder::PeekUInt() {
   AlternativeReadingScope alt(reader_);
   return reader_->ReadUInt();
@@ -4082,7 +4157,7 @@ uint32_t StreamingFlowGraphBuilder::PeekUInt() {
 
 uint32_t StreamingFlowGraphBuilder::PeekListLength() {
   AlternativeReadingScope alt(reader_);
-  return reader_->ReadUInt();
+  return reader_->ReadListLength();
 }
 
 intptr_t StreamingFlowGraphBuilder::ReadListLength() {
@@ -4684,6 +4759,7 @@ void StreamingFlowGraphBuilder::SkipLibraryCombinator() {
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryDependency() {
+  ReadPosition();  // read file offset.
   ReadFlags();
   SkipListOfExpressions();  // Annotations.
   ReadCanonicalNameReference();
@@ -4868,17 +4944,6 @@ const TypeArguments& StreamingFlowGraphBuilder::PeekArgumentsInstantiatedType(
 
 intptr_t StreamingFlowGraphBuilder::PeekArgumentsCount() {
   return PeekUInt();
-}
-
-intptr_t StreamingFlowGraphBuilder::PeekArgumentsTypeCount() {
-  AlternativeReadingScope alt(reader_);
-  ReadUInt();               // read arguments count.
-  return ReadListLength();  // read length of types list.
-}
-
-void StreamingFlowGraphBuilder::SkipArgumentsBeforeActualArguments() {
-  ReadUInt();             // read arguments count.
-  SkipListOfDartTypes();  // read list of types.
 }
 
 LocalVariable* StreamingFlowGraphBuilder::LookupVariable(
@@ -7757,29 +7822,31 @@ void StreamingFlowGraphBuilder::CollectTokenPositionsFor(
 
 intptr_t StreamingFlowGraphBuilder::SourceTableSize() {
   AlternativeReadingScope alt(reader_);
-  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd));
-  intptr_t library_count = reader_->ReadUInt32();
-  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd) -
-            (4 * library_count) -
-            (4 * SourceTableFieldCountFromFirstLibraryOffset));
-  SetOffset(reader_->ReadUInt32());  // read source table offset.
+  intptr_t library_count = reader_->ReadFromIndexNoReset(
+      reader_->size(), LibraryCountFieldCountFromEnd, 1, 0);
+  intptr_t source_table_offset = reader_->ReadFromIndexNoReset(
+      reader_->size(),
+      LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
+          SourceTableFieldCountFromFirstLibraryOffset,
+      1, 0);
+  SetOffset(source_table_offset);    // read source table offset.
   return reader_->ReadUInt32();      // read source table size.
 }
 
 intptr_t StreamingFlowGraphBuilder::GetOffsetForSourceInfo(intptr_t index) {
   AlternativeReadingScope alt(reader_);
-  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd));
-  intptr_t library_count = reader_->ReadUInt32();
-  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd) -
-            (4 * library_count) -
-            (4 * SourceTableFieldCountFromFirstLibraryOffset));
-  intptr_t source_table_offest =
-      reader_->ReadUInt32();  // read source table offset.
+  intptr_t library_count = reader_->ReadFromIndexNoReset(
+      reader_->size(), LibraryCountFieldCountFromEnd, 1, 0);
+  intptr_t source_table_offset = reader_->ReadFromIndexNoReset(
+      reader_->size(),
+      LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
+          SourceTableFieldCountFromFirstLibraryOffset,
+      1, 0);
   intptr_t next_field_offset = reader_->ReadUInt32();
-  SetOffset(source_table_offest);
+  SetOffset(source_table_offset);
   intptr_t size = reader_->ReadUInt32();  // read source table size.
-  SetOffset(next_field_offset - (4 * (size - index)));
-  return reader_->ReadUInt32();
+
+  return reader_->ReadFromIndexNoReset(next_field_offset, 0, size, index);
 }
 
 String& StreamingFlowGraphBuilder::SourceTableUriFor(intptr_t index) {
