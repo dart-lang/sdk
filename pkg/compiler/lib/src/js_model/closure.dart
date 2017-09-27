@@ -596,7 +596,7 @@ class ClosureFunctionData extends ClosureMemberData implements FunctionData {
 
     for (int i = 0; i < functionNode.positionalParameters.length; i++) {
       handleParameter(functionNode.positionalParameters[i],
-          isOptional: i < functionNode.requiredParameterCount);
+          isOptional: i >= functionNode.requiredParameterCount);
     }
     functionNode.namedParameters.toList()
       ..sort(namedOrdering)

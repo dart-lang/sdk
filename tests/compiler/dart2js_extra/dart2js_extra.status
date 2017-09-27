@@ -165,9 +165,7 @@ js_dispatch_property_test: Crash # Issue 27394
 regress/4562_test/01: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-19191_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
 21666_test: RuntimeError
-22917_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
 closure_capture2_test: RuntimeError
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
@@ -228,9 +226,7 @@ unconditional_dartio_import_test: RuntimeError
 useful_error_message_1_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-19191_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 21666_test: RuntimeError
-22917_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError

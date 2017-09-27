@@ -284,11 +284,7 @@ string_from_environment_test: Fail # Flutter Issue 9111
 string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-apply2_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
-apply3_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
-apply4_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
-apply5_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
-apply_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
+apply3_test: RuntimeError
 big_integer_arith_vm_test/add: RuntimeError
 big_integer_arith_vm_test/div: RuntimeError
 big_integer_arith_vm_test/gcd: RuntimeError
@@ -317,7 +313,6 @@ int_parse_radix_test/01: RuntimeError
 int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test: RuntimeError
 integer_to_string_test/01: RuntimeError
-iterable_empty_test: RuntimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
@@ -327,7 +322,6 @@ queue_test: RuntimeError
 regexp/regexp_kde_test: RuntimeError
 regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
-string_fromcharcodes_test: RuntimeError
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/06: RuntimeError # Issue 27394
@@ -341,11 +335,7 @@ symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-apply2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-apply3_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-apply4_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-apply5_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-apply_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+apply3_test: RuntimeError
 big_integer_arith_vm_test/add: RuntimeError
 big_integer_arith_vm_test/div: RuntimeError
 big_integer_arith_vm_test/gcd: RuntimeError
@@ -374,7 +364,6 @@ int_parse_radix_test/01: RuntimeError
 int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test: RuntimeError
 integer_to_string_test/01: RuntimeError
-iterable_empty_test: RuntimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
@@ -384,7 +373,6 @@ queue_test: RuntimeError
 regexp/regexp_kde_test: RuntimeError
 regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
-string_fromcharcodes_test: RuntimeError
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError

@@ -148,21 +148,27 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (canBeReflected || canBeApplied) {
       expressions.addAll(task.metadataCollector.reifyDefaultArguments(member));
 
-      // TODO(redemption): Support entities.
-      MethodElement method = member;
-      method.functionSignature.forEachParameter((Element parameter) {
-        expressions.add(task.metadataCollector.reifyName(parameter.name));
-        if (backend.mirrorsData.mustRetainMetadata) {
-          Iterable<jsAst.Expression> metadataIndices =
-              parameter.metadata.map((MetadataAnnotation annotation) {
-            ConstantValue constant =
-                backend.constants.getConstantValueForMetadata(annotation);
-            codegenWorldBuilder.addCompileTimeConstantForEmission(constant);
-            return task.metadataCollector.reifyMetadata(annotation);
-          });
-          expressions.add(new jsAst.ArrayInitializer(metadataIndices.toList()));
-        }
-      });
+      if (member is MethodElement) {
+        member.functionSignature.forEachParameter((Element parameter) {
+          expressions.add(task.metadataCollector.reifyName(parameter.name));
+          if (backend.mirrorsData.mustRetainMetadata) {
+            Iterable<jsAst.Expression> metadataIndices =
+                parameter.metadata.map((MetadataAnnotation annotation) {
+              ConstantValue constant =
+                  backend.constants.getConstantValueForMetadata(annotation);
+              codegenWorldBuilder.addCompileTimeConstantForEmission(constant);
+              return task.metadataCollector.reifyMetadata(annotation);
+            });
+            expressions
+                .add(new jsAst.ArrayInitializer(metadataIndices.toList()));
+          }
+        });
+      } else {
+        codegenWorldBuilder.forEachParameter(member, (_, String name, _2) {
+          expressions.add(task.metadataCollector.reifyName(name));
+        });
+        // TODO(redemption): Support retaining mirrors metadata.
+      }
     }
     Name memberName = member.memberName;
     if (canBeReflected) {

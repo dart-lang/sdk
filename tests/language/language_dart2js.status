@@ -470,7 +470,6 @@ named_parameters_test/09: Crash # Issue 27394
 async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 async_star_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 await_exceptions_test: RuntimeError
-await_for_test: Crash # Unsupported operation: Unsupported type parameter type node R.
 await_for_test: RuntimeError
 await_for_use_local_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError
@@ -483,10 +482,8 @@ config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib1::f() (ShadowStaticInvocation)
 const_error_multiply_initialized_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C:: (Constructor)
-const_error_multiply_initialized_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/03: Crash # Unsupported operation: Unexpected initializer #lib2::C:: (Constructor)
-const_error_multiply_initialized_test/04: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_factory_with_body_test/01: MissingCompileTimeError
@@ -508,7 +505,6 @@ constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 cyclic_constructor_test/01: Crash # Issue 30856
-cyclic_default_values_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
@@ -585,14 +581,11 @@ field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-final_attempt_reinitialization_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 final_attempt_reinitialization_test/01: MissingCompileTimeError
-final_attempt_reinitialization_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 548 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 final_field_initialization_order_test: RuntimeError
 final_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib1::C1:: (Constructor)
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-function_test: RuntimeError
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
@@ -614,7 +607,6 @@ list_literal4_test: RuntimeError
 local_function3_test: RuntimeError
 local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
-many_named_arguments_test: Crash # type 'JMethod' is not a subtype of type 'MethodElement' of 'function' where
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
@@ -754,13 +746,12 @@ named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
-named_parameters_with_conversions_test: RuntimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
-null_test/02: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
-null_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
-null_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart': Failed assertion: line 877 pos 18: 'defaultValue != null': is not true.
+null_test/02: MissingCompileTimeError
+null_test/03: MissingCompileTimeError
+null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 override_field_method1_negative_test: Fail
@@ -826,7 +817,7 @@ syntax_test/30: Crash # type 'KernelConstructorBuilder' is not a subtype of type
 syntax_test/31: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
 syntax_test/32: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
 syntax_test/33: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/none: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/none: CompileTimeError
 top_level_getter_no_setter1_test/01: RuntimeError
 top_level_getter_no_setter2_test/01: RuntimeError
 truncdiv_test: RuntimeError
@@ -839,7 +830,6 @@ type_parameter_test/04: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.da
 type_parameter_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 type_parameter_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 type_parameter_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-syntax_test/none: CompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 async_await_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -880,7 +870,6 @@ constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 cyclic_constructor_test/01: Crash # Issue 30856
-cyclic_default_values_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 cyclic_type2_test: RuntimeError
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/01: RuntimeError
@@ -973,7 +962,6 @@ full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-function_test: RuntimeError
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
@@ -995,7 +983,6 @@ list_literal4_test: RuntimeError
 local_function3_test: RuntimeError
 local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
-many_named_arguments_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
@@ -1136,13 +1123,12 @@ named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
-named_parameters_with_conversions_test: RuntimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
-null_test/02: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-null_test/03: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-null_test/none: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+null_test/02: MissingCompileTimeError
+null_test/03: MissingCompileTimeError
+null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 override_field_method1_negative_test: Fail
