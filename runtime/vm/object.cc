@@ -1463,25 +1463,26 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
                          core_lib);
     pending_classes.Add(library_prefix_cls);
 
-    RegisterPrivateClass(type_cls, Symbols::Type(), core_lib);
+    RegisterPrivateClass(type_cls, Symbols::_Type(), core_lib);
     pending_classes.Add(type_cls);
 
-    RegisterPrivateClass(type_ref_cls, Symbols::TypeRef(), core_lib);
+    RegisterPrivateClass(type_ref_cls, Symbols::_TypeRef(), core_lib);
     pending_classes.Add(type_ref_cls);
 
-    RegisterPrivateClass(type_parameter_cls, Symbols::TypeParameter(),
+    RegisterPrivateClass(type_parameter_cls, Symbols::_TypeParameter(),
                          core_lib);
     pending_classes.Add(type_parameter_cls);
 
-    RegisterPrivateClass(bounded_type_cls, Symbols::BoundedType(), core_lib);
+    RegisterPrivateClass(bounded_type_cls, Symbols::_BoundedType(), core_lib);
     pending_classes.Add(bounded_type_cls);
 
-    RegisterPrivateClass(mixin_app_type_cls, Symbols::MixinAppType(), core_lib);
+    RegisterPrivateClass(mixin_app_type_cls, Symbols::_MixinAppType(),
+                         core_lib);
     pending_classes.Add(mixin_app_type_cls);
 
     cls = Class::New<Integer>();
     object_store->set_integer_implementation_class(cls);
-    RegisterPrivateClass(cls, Symbols::IntegerImplementation(), core_lib);
+    RegisterPrivateClass(cls, Symbols::_IntegerImplementation(), core_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<Smi>();
@@ -1655,6 +1656,17 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     // 'toString' method is implemented.
     type = object_store->object_type();
     stacktrace_cls.set_super_type(type);
+
+    // Abstract class that represents the Dart class Type.
+    // Note that this class is implemented by Dart class _AbstractType.
+    cls = Class::New<Instance>(kIllegalCid);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    RegisterClass(cls, Symbols::Type(), core_lib);
+    pending_classes.Add(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_type_type(type);
 
     // Abstract class that represents the Dart class Function.
     cls = Class::New<Instance>(kIllegalCid);
@@ -7053,16 +7065,6 @@ void Function::DropUncompiledConvertedClosureFunction() const {
       set_converted_closure_function(Function::Handle());
     }
   }
-}
-
-RawString* Function::UserVisibleFormalParameters() const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  // Typically 3, 5,.. elements in 'pieces', e.g.:
-  // '_LoadRequest', CommaSpace, '_LoadError'.
-  GrowableHandlePtrArray<const String> pieces(zone, 5);
-  BuildSignatureParameters(thread, zone, kUserVisibleName, &pieces);
-  return Symbols::FromConcatAll(thread, pieces);
 }
 
 void Function::BuildSignatureParameters(
@@ -16408,6 +16410,10 @@ RawType* Type::ArrayType() {
 
 RawType* Type::DartFunctionType() {
   return Isolate::Current()->object_store()->function_type();
+}
+
+RawType* Type::DartTypeType() {
+  return Isolate::Current()->object_store()->type_type();
 }
 
 RawType* Type::NewNonParameterizedType(const Class& type_class) {

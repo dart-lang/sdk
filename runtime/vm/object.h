@@ -2046,10 +2046,6 @@ class Function : public Object {
                                 intptr_t num_free_fun_type_params = kMaxInt32,
                                 TrailPtr trail = NULL) const;
 
-  // Build a string of the form 'T, {B b, C c}' representing the user
-  // visible formal parameters of the function.
-  RawString* UserVisibleFormalParameters() const;
-
   // Reloading support:
   void Reparent(const Class& new_cls) const;
   void ZeroEdgeCounters() const;
@@ -6025,6 +6021,9 @@ class Type : public AbstractType {
 
   // The 'Function' type.
   static RawType* DartFunctionType();
+
+  // The 'Type' type.
+  static RawType* DartTypeType();
 
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);

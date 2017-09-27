@@ -19,7 +19,6 @@ namespace dart {
   V(Object_getHash, 1)                                                         \
   V(Object_setHash, 2)                                                         \
   V(Object_toString, 1)                                                        \
-  V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
   V(Object_haveSameRuntimeType, 2)                                             \
   V(Object_instanceOf, 4)                                                      \
@@ -316,6 +315,7 @@ namespace dart {
   V(Internal_inquireIs64Bit, 0)                                                \
   V(Internal_prependTypeArguments, 3)                                          \
   V(InvocationMirror_unpackTypeArguments, 1)                                   \
+  V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(LinkedHashMap_getIndex, 1)                                                 \
   V(LinkedHashMap_setIndex, 2)                                                 \
   V(LinkedHashMap_getData, 1)                                                  \
