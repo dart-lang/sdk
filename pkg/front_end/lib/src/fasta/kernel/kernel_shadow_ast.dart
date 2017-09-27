@@ -327,6 +327,10 @@ class ShadowClass extends Class {
             procedures: procedures,
             fields: fields);
 
+  static void clearClassInferenceInfo(ShadowClass class_) {
+    class_._inferenceInfo = null;
+  }
+
   static ClassInferenceInfo getClassInferenceInfo(ShadowClass class_) =>
       class_._inferenceInfo;
 }

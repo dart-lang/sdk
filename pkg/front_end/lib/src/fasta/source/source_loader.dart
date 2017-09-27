@@ -502,8 +502,11 @@ class SourceLoader<L> extends Loader<L> {
   /// Performs the second phase of top level initializer inference, which is to
   /// visit fields and top level variables in topologically-sorted order and
   /// assign their types.
-  void performTopLevelInference() {
+  void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     typeInferenceEngine.finishTopLevel();
+    for (var builder in sourceClasses) {
+      ShadowClass.clearClassInferenceInfo(builder.target);
+    }
     ticker.logMs("Performed top level inference");
   }
 
