@@ -95,7 +95,7 @@ function setFunctionNamesIfNecessary(holders) {
 // proto-property of the classes 'prototype' field.
 // Older IEs use `Object.create` and copy over the properties.
 function inherit(cls, sup) {
-  // Note that RTI needs cls.name, but we don't need to set it anymore.
+  cls.#typeNameProperty = cls.name;  // Needed for RTI.
   cls.prototype.constructor = cls;
   cls.prototype[#operatorIsPrefix + cls.name] = cls;
 
@@ -505,6 +505,7 @@ class FragmentEmitter {
 
     js.Statement mainCode = js.js.statement(mainBoilerplate, {
       'directAccessTestExpression': js.js(directAccessTestExpression),
+      'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
       'cyclicThrow': backend.emitter
           .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
       'operatorIsPrefix': js.string(namer.operatorIsPrefix),
