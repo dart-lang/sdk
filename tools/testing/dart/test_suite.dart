@@ -1233,6 +1233,7 @@ class StandardTestSuite extends TestSuite {
     }
 
     args.addAll(configuration.standardOptions);
+    args.addAll(configuration.dart2jsOptions);
 
     var packages = packagesArgument(optionsFromFile['packageRoot'] as String,
         optionsFromFile['packages'] as String);
