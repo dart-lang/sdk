@@ -20344,6 +20344,7 @@ char* String::ToMallocCString() const {
         result[i] = original_str[i];
       } else {
         len = -1;
+        free(result);
         break;
       }
     }
