@@ -309,6 +309,24 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitMapLiteral(ir.MapLiteral node) {
+    return _inferrer.concreteTypes.putIfAbsent(node, () {
+      List keyTypes = [];
+      List valueTypes = [];
+
+      for (ir.MapEntry entry in node.entries) {
+        keyTypes.add(visit(entry.key));
+        valueTypes.add(visit(entry.value));
+      }
+
+      TypeInformation type =
+          node.isConst ? _types.constMapType : _types.mapType;
+      return _types.allocateMap(
+          type, node, _analyzedMember, keyTypes, valueTypes);
+    });
+  }
+
+  @override
   TypeInformation visitReturnStatement(ir.ReturnStatement node) {
     ir.Node expression = node.expression;
     recordReturnType(
@@ -339,6 +357,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // runtime.
     return _types.getConcreteTypeFor(
         computeTypeMask(_closedWorld, constantSystem.createDouble(node.value)));
+  }
+
+  @override
+  TypeInformation visitStringLiteral(ir.StringLiteral node) {
+    return _types.stringLiteralType(node.value);
+  }
+
+  @override
+  TypeInformation visitStringConcatenation(ir.StringConcatenation node) {
+    node.visitChildren(this);
+    return _types.stringType;
   }
 
   @override

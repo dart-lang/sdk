@@ -28,13 +28,13 @@ class ContainerTypeMask<T> extends ForwardingTypeMask {
   TypeMask nullable() {
     return isNullable
         ? this
-        : new ContainerTypeMask(forwardTo.nullable(), allocationNode,
+        : new ContainerTypeMask<T>(forwardTo.nullable(), allocationNode,
             allocationElement, elementType, length);
   }
 
   TypeMask nonNullable() {
     return isNullable
-        ? new ContainerTypeMask(forwardTo.nonNullable(), allocationNode,
+        ? new ContainerTypeMask<T>(forwardTo.nonNullable(), allocationNode,
             allocationElement, elementType, length)
         : this;
   }
@@ -70,7 +70,7 @@ class ContainerTypeMask<T> extends ForwardingTypeMask {
           elementType.union(other.elementType, closedWorld);
       int newLength = (length == other.length) ? length : null;
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, closedWorld);
-      return new ContainerTypeMask(
+      return new ContainerTypeMask<T>(
           newForwardTo,
           allocationNode == other.allocationNode ? allocationNode : null,
           allocationElement == other.allocationElement
