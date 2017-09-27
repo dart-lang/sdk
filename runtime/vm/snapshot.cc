@@ -960,12 +960,7 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_.Print(".cfi_escape 0x10, 13, 2, 0x23, 8\n");
 
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-  COMPILE_ASSERT(FP == R7);
-  assembly_stream_.Print(".fnstart\n");
-  assembly_stream_.Print(".save {r7, lr}\n");
-  assembly_stream_.Print(".setfp r7, sp, #0\n");
-#else
+#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R11);
   assembly_stream_.Print(".fnstart\n");
   assembly_stream_.Print(".save {r11, lr}\n");
@@ -977,7 +972,9 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 
 void AssemblyImageWriter::FrameUnwindEpilogue() {
 #if defined(TARGET_ARCH_ARM)
+#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
   assembly_stream_.Print(".fnend\n");
+#endif
 #endif
   assembly_stream_.Print(".cfi_endproc\n");
 }
