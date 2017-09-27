@@ -99,12 +99,18 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
         // For now, assume the library is a js-interop library.
         isJsLibrary = true;
 
-        ClassEntity superclass = elementEnvironment.getSuperClass(cls);
-        if (superclass != commonElements.jsJavaScriptObjectClass) {
+        bool implementsJsJavaScriptObjectClass = false;
+        elementEnvironment.forEachSupertype(cls, (InterfaceType supertype) {
+          if (supertype.element == commonElements.jsJavaScriptObjectClass) {
+            implementsJsJavaScriptObjectClass = true;
+          }
+        });
+        if (!implementsJsJavaScriptObjectClass) {
           reporter.reportErrorMessage(
-              cls,
-              MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
-              {'cls': cls.name, 'superclass': superclass.name});
+              cls, MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS, {
+            'cls': cls.name,
+            'superclass': elementEnvironment.getSuperClass(cls).name
+          });
         }
 
         elementEnvironment.forEachClassMember(cls,
@@ -140,12 +146,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
                 constructor, memberName);
           }
 
-          if (!constructor.isExternal) {
-            reporter.reportErrorMessage(
-                constructor,
-                MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-                {'cls': cls.name, 'member': constructor.name});
-          }
           if (constructor.isFactoryConstructor && isAnonymous) {
             if (constructor.parameterStructure.requiredParameters > 0) {
               reporter.reportErrorMessage(
