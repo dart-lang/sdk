@@ -171,6 +171,7 @@ Module Subtyping.
   Lemma subtype_trans : forall t s r, s ◁ t /\ t ◁ r -> s ◁ r.
     apply (dart_type_induction trans_at); crush.
   Qed.
+  Hint Resolve subtype_trans.
 
 End Subtyping.
 Import Subtyping.
@@ -240,7 +241,7 @@ Fixpoint expression_type
         [pr_type proc_desc]
       end;
     let (param_type, ret_type) := fun_type in
-    if subtype (param_type, arg_type) then [ret_type] else None
+    if subtype (arg_type, param_type) then [ret_type] else None
   end
 .
 
@@ -300,8 +301,8 @@ Section Typing_Equivalence_Homomorphism.
 
   Definition subtype_at (e : expression) :=
     forall CE TE v s t es,
-                 expression_type CE (NatMap.add v s TE) e = [es] /\ s ◁ t ->
-      exists et, expression_type CE (NatMap.add v t TE) e = [et] /\ es ◁ et.
+                 expression_type CE (NatMap.add v s TE) e = [es] /\ t ◁ s ->
+      exists et, expression_type CE (NatMap.add v t TE) e = [et] /\ et ◁ es.
 
   Hint Resolve NatMap.add_1.
   Hint Resolve NatMap.add_2.
@@ -359,10 +360,13 @@ Section Typing_Equivalence_Homomorphism.
     pose proof (H CE TE v s t (DT_Interface_Type (Interface_Type n)) (conj H0 H2)).
     destruct H4 as [new_rec_type].
     destruct H4.
-    destruct new_rec_type; [idtac|crush].
+    destruct new_rec_type.
     destruct i0.
     unfold_subtype H5.
     exists es.
+    crush.
+    unfold_subtype H5.
+    destruct f.
     crush.
 
     (* Case 2: receiver has function type. *)
@@ -377,7 +381,11 @@ Section Typing_Equivalence_Homomorphism.
     fold expression_type.
     rewrite H3.
     simpl.
-    destruct new_rec_type; crush.
+    destruct new_rec_type.
+    destruct i.
+    unfold_subtype H5.
+    crush.
+    crush.
   Qed.
   Hint Immediate subtype_at_property_get.
 
@@ -420,6 +428,8 @@ Section Typing_Equivalence_Homomorphism.
     destruct i0.
     unfold_subtype H10.
     crush.
+    unfold_subtype H10.
+    destruct f.
     crush.
     (* The function called must have the same type. *)
     unfold expression_type.
@@ -433,8 +443,8 @@ Section Typing_Equivalence_Homomorphism.
     simpl.
     intuition; crush.
     rewrite H6.
-    assert (d0 ◁ x).
-    pose proof (subtype_trans d d0 x (conj H7 H11)); crush.
+    assert (x ◁ d0).
+    pose proof (subtype_trans d x d0 (conj H11 H7)); crush.
     rewrite H1; crush.
 
     (* Case 2: The receiver has function type. *)
@@ -447,7 +457,10 @@ Section Typing_Equivalence_Homomorphism.
     pose proof (H CE TE v s t (DT_Function_Type f) (conj H4 H2)).
     destruct H3.
     destruct H3.
-    destruct x; [crush|idtac].
+    destruct x.
+    unfold_subtype H9.
+    destruct i.
+    crush.
     destruct f; destruct f0.
     simplify_subtypes.
     rewrite Bool.andb_true_iff in H9; destruct H9.
@@ -466,21 +479,130 @@ Section Typing_Equivalence_Homomorphism.
     rewrite H7.
     rewrite bind_some.
     assert (d2 = d0) by crush.
-    rewrite (eq_sym H14) in H8.
-    pose proof (subtype_trans d d2 x (conj H8 H13)).
-    assert (d4 ◁ x).
-    apply (subtype_trans d2); crush.
-    rewrite H16.
+    rewrite H11 in *; clear H11.
+    rewrite H14 in *; clear H14.
+    assert (x ◁ d0).
+    refine (subtype_trans d x d0 _); auto.
+    assert (x ◁ d4).
+    refine (subtype_trans d0 x d4 _); auto.
+    rewrite H14.
     crush.
   Qed.
   Hint Immediate subtype_at_meth_invo.
 
-  Theorem subtype_homo : forall e, subtype_at e.
+  Theorem subtype_homo_expr : forall e, subtype_at e.
     Hint Extern 1 =>
       match goal with
         [ x : arguments |- _ ] => destruct x
       end.
     apply (expr_induction subtype_at); crush.
+  Qed.
+
+  Local Definition type_env_subtype (TE': type_env) (TE: type_env) :=
+    forall v s, NatMap.MapsTo v s TE -> exists t, NatMap.MapsTo v t TE' /\ t ◁ s.
+
+  Notation "X ◂ Y" := (type_env_subtype X Y) (at level 71, no associativity).
+
+  Local Lemma type_env_subtype_refl : forall TE, TE ◂ TE.
+    unfold type_env_subtype.
+    intros.
+    exists s.
+    crush.
+  Qed.
+  Hint Immediate type_env_subtype_refl.
+
+  Local Lemma type_env_subtype_1 :
+    forall v d d' TE TE', TE ◂ TE' -> d ◁ d' -> NatMap.add v d TE ◂ NatMap.add v d' TE'.
+    intros.
+    unfold type_env_subtype in *.
+    intros.
+    destruct (N.eq_dec v0 v).
+    rewrite e in *; clear e.
+    exists d.
+    crush.
+    assert (s = d') by
+        (rewrite NatMapFacts.add_mapsto_iff in H1; crush).
+    crush.
+
+    rewrite NatMapFacts.add_mapsto_iff in H1.
+    destruct H1; [crush|idtac].
+    destruct H1.
+    destruct (H v0 s H2).
+    exists x.
+    crush.
+  Qed.
+  Hint Resolve type_env_subtype_1.
+
+  Local Definition option_subtype X Y :=
+    match (X, Y) with
+    | (Some x, Some y) => x ◁ y
+    | _ => True
+    end
+  .
+
+  Definition subtype_at_stmt (st: statement) :=
+    forall CE TE TE' v s t es,
+                      statement_type CE (NatMap.add v s TE) st = [(TE', es)] /\ t ◁ s ->
+      exists TE'' et, statement_type CE (NatMap.add v t TE) st = [(TE'', et)] /\ option_subtype et es /\ TE'' ◂ TE'.
+
+  Local Lemma subtype_at_return : forall r, subtype_at_stmt (S_Return_Statement r).
+  Proof.
+    unfold subtype_at_stmt.
+    intros.
+    destruct r.
+    unfold statement_type in *.
+    intuition.
+    force_options.
+    inversion H0.
+    clear H0.
+    rewrite H4 in *.
+    destruct es.
+    pose proof (subtype_homo_expr e _ _ _ _ _ _ (conj H2 H1)).
+    destruct H.
+    exists (NatMap.add v t TE).
+    exists (Some x).
+    crush.
+    crush.
+  Qed.
+
+  Local Lemma subtype_at_vardecl : forall vd, subtype_at_stmt (S_Variable_Declaration vd).
+  Proof.
+    unfold subtype_at_stmt.
+    intros.
+    unfold statement_type in *.
+    destruct vd.
+    destruct o; [idtac|crush].
+    intuition.
+    force_options.
+    inversion H0.
+    clear H0.
+    clear H5.
+    pose proof (subtype_homo_expr e _ _ _ _ _ _ (conj H2 H1)).
+    destruct H.
+    intuition.
+    rewrite H0.
+    simpl.
+    assert (x ◁ d) by
+        (refine (subtype_trans d0 x d _); crush).
+    rewrite H.
+    exists (NatMap.add n d (NatMap.add v t TE)).
+    exists None.
+    crush.
+  Qed.
+
+  Local Lemma subtype_at_exprstmt : forall es, subtype_at_stmt (S_Expression_Statement es).
+  Proof.
+    unfold subtype_at_stmt.
+    unfold statement_type in *.
+    intros.
+    destruct es.
+    intuition; force_options.
+    inversion H0; clear H0.
+    clear H4; clear es0.
+    exists (NatMap.add v t TE).
+    exists None.
+    pose proof (subtype_homo_expr e _ _ _ _ _ _ (conj H2 H1)).
+    crush.
   Qed.
 
 End Typing_Equivalence_Homomorphism.

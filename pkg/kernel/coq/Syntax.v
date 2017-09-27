@@ -12,6 +12,13 @@ Scheme expression_ind_mutual := Induction for expression Sort Prop
   with constructor_invocation_ind_mutual := Induction for constructor_invocation Sort Prop
   with arguments_ind_mutual := Induction for arguments Sort Prop.
 
+Scheme statement_ind_mutual := Induction for statement Sort Prop
+  with expression_statement_ind_mutual := Induction for expression_statement Sort Prop
+  with block_ind_mutual := Induction for block Sort Prop
+  with return_ind_mutual := Induction for return_statement Sort Prop
+  with variable_declaration_ind_mutual := Induction for variable_declaration Sort Prop
+.
+
 Definition dart_type_induction prop :=
   dart_type_ind_mutual
     prop
