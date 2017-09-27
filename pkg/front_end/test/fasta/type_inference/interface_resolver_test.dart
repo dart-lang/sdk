@@ -105,6 +105,8 @@ class InterfaceResolverTest {
       var expression = body.expression;
       if (expression is SuperMethodInvocation) {
         return expression.interfaceTarget;
+      } else if (expression is SuperPropertySet) {
+        return expression.interfaceTarget;
       } else {
         throw fail('Unexpected expression type: ${expression.runtimeType}');
       }
@@ -149,15 +151,21 @@ class InterfaceResolverTest {
     return new Procedure(new Name(name), ProcedureKind.Method, function);
   }
 
-  Field makeField({String name: 'foo'}) {
-    return new Field(new Name(name));
+  Field makeField({String name: 'foo', DartType type: const DynamicType()}) {
+    return new Field(new Name(name), type: type);
   }
 
-  ForwardingStub makeForwardingStub(Procedure method) {
+  ForwardingStub makeForwardingStub(Procedure method, bool setter) {
     var class_ = makeClass(procedures: [method]);
-    var node = getForwardingNode(class_, false);
+    var node = getForwardingNode(class_, setter);
     return ForwardingNode.createForwardingStubForTesting(
         node, Substitution.empty, method);
+  }
+
+  Procedure makeGetter(
+      {String name: 'foo', DartType getterType: const DynamicType()}) {
+    var function = new FunctionNode(null, returnType: getterType);
+    return new Procedure(new Name(name), ProcedureKind.Getter, function);
   }
 
   Procedure makeSetter(
@@ -272,10 +280,43 @@ class InterfaceResolverTest {
     checkCandidateOrder(c, methodA);
   }
 
+  void test_createForwardingStub_getter() {
+    var getter = makeGetter(getterType: numType);
+    var stub = makeForwardingStub(getter, false);
+    expect(stub.name, getter.name);
+    expect(stub.kind, ProcedureKind.Getter);
+    expect(stub.function.positionalParameters, isEmpty);
+    expect(stub.function.namedParameters, isEmpty);
+    expect(stub.function.typeParameters, isEmpty);
+    expect(stub.function.requiredParameterCount, 0);
+    expect(stub.function.returnType, numType);
+    var body = stub.function.body as ReturnStatement;
+    var expression = body.expression as SuperPropertyGet;
+    expect(expression.name, getter.name);
+    expect(expression.interfaceTarget, same(getter));
+  }
+
+  void test_createForwardingStub_getter_for_field() {
+    var field = makeField(type: numType);
+    var stub = makeForwardingStub(
+        InterfaceResolver.makeCandidate(field, false), false);
+    expect(stub.name, field.name);
+    expect(stub.kind, ProcedureKind.Getter);
+    expect(stub.function.positionalParameters, isEmpty);
+    expect(stub.function.namedParameters, isEmpty);
+    expect(stub.function.typeParameters, isEmpty);
+    expect(stub.function.requiredParameterCount, 0);
+    expect(stub.function.returnType, numType);
+    var body = stub.function.body as ReturnStatement;
+    var expression = body.expression as SuperPropertyGet;
+    expect(expression.name, field.name);
+    expect(expression.interfaceTarget, same(field));
+  }
+
   void test_createForwardingStub_optionalNamedParameter() {
     var parameter = new VariableDeclaration('x', type: intType);
     var method = makeEmptyMethod(namedParameters: [parameter]);
-    var stub = makeForwardingStub(method);
+    var stub = makeForwardingStub(method, false);
     expect(stub.function.namedParameters, hasLength(1));
     expect(stub.function.namedParameters[0].name, 'x');
     expect(stub.function.namedParameters[0].type, intType);
@@ -293,7 +334,7 @@ class InterfaceResolverTest {
     var parameter = new VariableDeclaration('x', type: intType);
     var method = makeEmptyMethod(
         positionalParameters: [parameter], requiredParameterCount: 0);
-    var stub = makeForwardingStub(method);
+    var stub = makeForwardingStub(method, false);
     expect(stub.function.positionalParameters, hasLength(1));
     expect(stub.function.positionalParameters[0].name, 'x');
     expect(stub.function.positionalParameters[0].type, intType);
@@ -309,7 +350,7 @@ class InterfaceResolverTest {
   void test_createForwardingStub_requiredParameter() {
     var parameter = new VariableDeclaration('x', type: intType);
     var method = makeEmptyMethod(positionalParameters: [parameter]);
-    var stub = makeForwardingStub(method);
+    var stub = makeForwardingStub(method, false);
     expect(stub.function.positionalParameters, hasLength(1));
     expect(stub.function.positionalParameters[0].name, 'x');
     expect(stub.function.positionalParameters[0].type, intType);
@@ -322,9 +363,51 @@ class InterfaceResolverTest {
         same(stub.function.positionalParameters[0]));
   }
 
+  void test_createForwardingStub_setter() {
+    var setter = makeSetter(setterType: numType);
+    var stub = makeForwardingStub(setter, true);
+    expect(stub.name, setter.name);
+    expect(stub.kind, ProcedureKind.Setter);
+    expect(stub.function.positionalParameters, hasLength(1));
+    expect(stub.function.positionalParameters[0].name,
+        setter.function.positionalParameters[0].name);
+    expect(stub.function.positionalParameters[0].type, numType);
+    expect(stub.function.namedParameters, isEmpty);
+    expect(stub.function.typeParameters, isEmpty);
+    expect(stub.function.requiredParameterCount, 1);
+    expect(stub.function.returnType, const VoidType());
+    var body = stub.function.body as ReturnStatement;
+    var expression = body.expression as SuperPropertySet;
+    expect(expression.name, setter.name);
+    expect(expression.interfaceTarget, same(setter));
+    expect((expression.value as VariableGet).variable,
+        same(stub.function.positionalParameters[0]));
+  }
+
+  void test_createForwardingStub_setter_for_field() {
+    var field = makeField(type: numType);
+    var stub =
+        makeForwardingStub(InterfaceResolver.makeCandidate(field, true), true);
+    expect(stub.name, field.name);
+    expect(stub.kind, ProcedureKind.Setter);
+    expect(stub.function.positionalParameters, hasLength(1));
+    expect(stub.function.positionalParameters[0].name, '_');
+    expect(stub.function.positionalParameters[0].type, numType);
+    expect(stub.function.namedParameters, isEmpty);
+    expect(stub.function.typeParameters, isEmpty);
+    expect(stub.function.requiredParameterCount, 1);
+    expect(stub.function.returnType, const VoidType());
+    var body = stub.function.body as ReturnStatement;
+    var expression = body.expression as SuperPropertySet;
+    expect(expression.name, field.name);
+    expect(expression.interfaceTarget, same(field));
+    expect((expression.value as VariableGet).variable,
+        same(stub.function.positionalParameters[0]));
+  }
+
   void test_createForwardingStub_simple() {
     var method = makeEmptyMethod();
-    var stub = makeForwardingStub(method);
+    var stub = makeForwardingStub(method, false);
     expect(stub.name, method.name);
     expect(stub.kind, ProcedureKind.Method);
     expect(stub.function.positionalParameters, isEmpty);
@@ -344,7 +427,7 @@ class InterfaceResolverTest {
   void test_createForwardingStub_typeParameter() {
     var typeParameter = new TypeParameter('T', numType);
     var method = makeEmptyMethod(typeParameters: [typeParameter]);
-    var stub = makeForwardingStub(method);
+    var stub = makeForwardingStub(method, false);
     expect(stub.function.typeParameters, hasLength(1));
     expect(stub.function.typeParameters[0].name, 'T');
     expect(stub.function.typeParameters[0].bound, numType);

@@ -217,11 +217,21 @@ class ForwardingNode extends Procedure {
     var arguments = new Arguments(positionalArguments,
         types: typeArguments, named: namedArguments);
     Expression superCall;
-    if (target is SyntheticAccessor) {
-      // TODO(paulberry): handle this case
-      unhandled('SyntheticAccessor', '_createForwardingStub', -1, null);
-    } else {
-      superCall = new SuperMethodInvocation(name, arguments, target);
+    switch (target.kind) {
+      case ProcedureKind.Method:
+        superCall = new SuperMethodInvocation(name, arguments, target);
+        break;
+      case ProcedureKind.Getter:
+        superCall = new SuperPropertyGet(
+            name, target is SyntheticAccessor ? target._field : target);
+        break;
+      case ProcedureKind.Setter:
+        superCall = new SuperPropertySet(name, positionalArguments[0],
+            target is SyntheticAccessor ? target._field : target);
+        break;
+      default:
+        unhandled('${target.kind}', '_createForwardingStub', -1, null);
+        break;
     }
     var function = new FunctionNode(new ReturnStatement(superCall),
         positionalParameters: positionalParameters,
@@ -358,7 +368,7 @@ class InterfaceResolver {
     // declared directly in the class.
     List<Procedure> candidates = _typeEnvironment.hierarchy
         .getDeclaredMembers(class_, setters: setters)
-        .map((member) => _makeCandidate(member, setters))
+        .map((member) => makeCandidate(member, setters))
         .toList();
     // Merge in candidates from superclasses.
     if (class_.superclass != null) {
@@ -395,32 +405,6 @@ class InterfaceResolver {
         .getInterfaceMembers(class_, setters: setters);
   }
 
-  /// Transforms [member] into a candidate for interface inheritance.
-  ///
-  /// Fields are transformed into getters and setters; methods are passed
-  /// through unchanged.
-  Procedure _makeCandidate(Member member, bool setter) {
-    if (member is Procedure) return member;
-    if (member is Field) {
-      // TODO(paulberry): ensure that the field type is propagated to the
-      // getter/setter during type inference.
-      if (setter) {
-        var valueParam = new VariableDeclaration('_');
-        var function = new FunctionNode(null,
-            positionalParameters: [valueParam], returnType: const VoidType());
-        return new SyntheticAccessor(
-            member.name, ProcedureKind.Setter, function, member)
-          ..parent = member.enclosingClass;
-      } else {
-        var function = new FunctionNode(null);
-        return new SyntheticAccessor(
-            member.name, ProcedureKind.Getter, function, member)
-          ..parent = member.enclosingClass;
-      }
-    }
-    return unhandled('${member.runtimeType}', '_makeCandidate', -1, null);
-  }
-
   /// Merges together the list of interface inheritance candidates in
   /// [candidates] with interface inheritance candidates from superclass
   /// [class_].
@@ -431,7 +415,7 @@ class InterfaceResolver {
       List<Procedure> candidates, Class class_, bool setters) {
     List<Member> members = _getInterfaceMembers(class_, setters);
     if (candidates.isEmpty) {
-      return members.map((member) => _makeCandidate(member, setters)).toList();
+      return members.map((member) => makeCandidate(member, setters)).toList();
     }
     if (members.isEmpty) return candidates;
     List<Procedure> result = <Procedure>[]..length =
@@ -448,7 +432,7 @@ class InterfaceResolver {
         // If the same member occurs in both lists, skip the duplicate.
         if (identical(candidate, member)) ++j;
       } else {
-        result[storeIndex++] = _makeCandidate(member, setters);
+        result[storeIndex++] = makeCandidate(member, setters);
         ++j;
       }
     }
@@ -456,10 +440,38 @@ class InterfaceResolver {
       result[storeIndex++] = candidates[i++];
     }
     while (j < members.length) {
-      result[storeIndex++] = _makeCandidate(members[j++], setters);
+      result[storeIndex++] = makeCandidate(members[j++], setters);
     }
     result.length = storeIndex;
     return result;
+  }
+
+  /// Transforms [member] into a candidate for interface inheritance.
+  ///
+  /// Fields are transformed into getters and setters; methods are passed
+  /// through unchanged.
+  static Procedure makeCandidate(Member member, bool setter) {
+    if (member is Procedure) return member;
+    if (member is Field) {
+      // TODO(paulberry): don't set the type here, since it might not have been
+      // inferred yet.  Instead, ensure that the field type is propagated to the
+      // getter/setter during type inference.
+      var type = member.type;
+      if (setter) {
+        var valueParam = new VariableDeclaration('_', type: type);
+        var function = new FunctionNode(null,
+            positionalParameters: [valueParam], returnType: const VoidType());
+        return new SyntheticAccessor(
+            member.name, ProcedureKind.Setter, function, member)
+          ..parent = member.enclosingClass;
+      } else {
+        var function = new FunctionNode(null, returnType: type);
+        return new SyntheticAccessor(
+            member.name, ProcedureKind.Getter, function, member)
+          ..parent = member.enclosingClass;
+      }
+    }
+    return unhandled('${member.runtimeType}', 'makeCandidate', -1, null);
   }
 }
 
