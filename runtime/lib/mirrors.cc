@@ -45,21 +45,29 @@ static RawInstance* CreateMirror(const String& mirror_class_name,
 //   receiver.
 static void ThrowNoSuchMethod(const Instance& receiver,
                               const String& function_name,
+                              const Function& function,
                               const Array& arguments,
                               const Array& argument_names,
-                              const InvocationMirror::Level level,
-                              const InvocationMirror::Kind kind) {
+                              const InvocationMirror::Call call,
+                              const InvocationMirror::Type type) {
   const Smi& invocation_type =
-      Smi::Handle(Smi::New(InvocationMirror::EncodeType(level, kind)));
+      Smi::Handle(Smi::New(InvocationMirror::EncodeType(call, type)));
 
   const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, receiver);
   args.SetAt(1, function_name);
   args.SetAt(2, invocation_type);
-  // TODO(regis): Support invocation of generic functions with type arguments.
-  args.SetAt(3, Object::null_type_arguments());
-  args.SetAt(4, arguments);
-  args.SetAt(5, argument_names);
+  args.SetAt(3, arguments);
+  if (!argument_names.IsNull() && (argument_names.Length() > 0)) {
+    // Empty and null are treated differently for some reason. Don't pass empty
+    // to match the non-reflective error.
+    args.SetAt(4, argument_names);
+  }
+  if (!function.IsNull()) {
+    const Array& array = Array::Handle(Array::New(1));
+    array.SetAt(0, String::Handle(function.UserVisibleFormalParameters()));
+    args.SetAt(5, array);
+  }
 
   const Library& libcore = Library::Handle(Library::CoreLibrary());
   const Class& NoSuchMethodError =
@@ -647,9 +655,8 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
   }
 
   if (throw_nsm_if_absent) {
-    ThrowNoSuchMethod(AbstractType::Handle(
-                          Class::Handle(library.toplevel_class()).RareType()),
-                      getter_name, Object::null_array(), Object::null_array(),
+    ThrowNoSuchMethod(Instance::null_instance(), getter_name, getter,
+                      Object::null_array(), Object::null_array(),
                       InvocationMirror::kTopLevel, InvocationMirror::kGetter);
     UNREACHABLE();
   }
@@ -683,7 +690,7 @@ static RawInstance* InvokeClassGetter(const Class& klass,
       }
       if (throw_nsm_if_absent) {
         ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()), getter_name,
-                          Object::null_array(), Object::null_array(),
+                          getter, Object::null_array(), Object::null_array(),
                           InvocationMirror::kStatic, InvocationMirror::kGetter);
         UNREACHABLE();
       }
@@ -1489,7 +1496,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       !function.is_reflectable()) {
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()), function_name,
-                      args, arg_names, InvocationMirror::kStatic,
+                      function, args, arg_names, InvocationMirror::kStatic,
                       InvocationMirror::kMethod);
     UNREACHABLE();
   }
@@ -1548,8 +1555,9 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
 
     if (setter.IsNull() || !setter.is_reflectable()) {
       ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                        internal_setter_name, args, Object::null_array(),
-                        InvocationMirror::kStatic, InvocationMirror::kSetter);
+                        internal_setter_name, setter, args,
+                        Object::null_array(), InvocationMirror::kStatic,
+                        InvocationMirror::kSetter);
       UNREACHABLE();
     }
 
@@ -1568,7 +1576,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
     args.SetAt(0, value);
 
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                      internal_setter_name, args, Object::null_array(),
+                      internal_setter_name, setter, args, Object::null_array(),
                       InvocationMirror::kStatic, InvocationMirror::kSetter);
     UNREACHABLE();
   }
@@ -1613,8 +1621,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
       (lookup_constructor.kind() != RawFunction::kConstructor) ||
       !lookup_constructor.is_reflectable()) {
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                      external_constructor_name, explicit_args, arg_names,
-                      InvocationMirror::kConstructor,
+                      external_constructor_name, lookup_constructor,
+                      explicit_args, arg_names, InvocationMirror::kConstructor,
                       InvocationMirror::kMethod);
     UNREACHABLE();
   }
@@ -1687,8 +1695,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   if (!redirected_constructor.AreValidArguments(args_descriptor, NULL)) {
     external_constructor_name = redirected_constructor.name();
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                      external_constructor_name, explicit_args, arg_names,
-                      InvocationMirror::kConstructor,
+                      external_constructor_name, redirected_constructor,
+                      explicit_args, arg_names, InvocationMirror::kConstructor,
                       InvocationMirror::kMethod);
     UNREACHABLE();
   }
@@ -1779,10 +1787,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
 
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       !function.is_reflectable()) {
-    ThrowNoSuchMethod(AbstractType::Handle(
-                          Class::Handle(library.toplevel_class()).RareType()),
-                      function_name, args, arg_names,
-                      InvocationMirror::kTopLevel, InvocationMirror::kMethod);
+    ThrowNoSuchMethod(Instance::null_instance(), function_name, function, args,
+                      arg_names, InvocationMirror::kTopLevel,
+                      InvocationMirror::kMethod);
     UNREACHABLE();
   }
 
@@ -1830,10 +1837,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
     args.SetAt(0, value);
 
     if (setter.IsNull() || !setter.is_reflectable()) {
-      ThrowNoSuchMethod(AbstractType::Handle(
-                            Class::Handle(library.toplevel_class()).RareType()),
-                        internal_setter_name, args, Object::null_array(),
-                        InvocationMirror::kTopLevel, InvocationMirror::kSetter);
+      ThrowNoSuchMethod(Instance::null_instance(), internal_setter_name, setter,
+                        args, Object::null_array(), InvocationMirror::kTopLevel,
+                        InvocationMirror::kSetter);
       UNREACHABLE();
     }
 
@@ -1852,10 +1858,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
     const Array& args = Array::Handle(Array::New(kNumArgs));
     args.SetAt(0, value);
 
-    ThrowNoSuchMethod(AbstractType::Handle(
-                          Class::Handle(library.toplevel_class()).RareType()),
-                      internal_setter_name, args, Object::null_array(),
-                      InvocationMirror::kTopLevel, InvocationMirror::kSetter);
+    ThrowNoSuchMethod(Instance::null_instance(), internal_setter_name, setter,
+                      args, Object::null_array(), InvocationMirror::kTopLevel,
+                      InvocationMirror::kSetter);
     UNREACHABLE();
   }
 

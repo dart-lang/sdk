@@ -69,9 +69,6 @@ class ObjectStore {
   RawType* function_type() const { return function_type_; }
   void set_function_type(const Type& value) { function_type_ = value.raw(); }
 
-  RawType* type_type() const { return type_type_; }
-  void set_type_type(const Type& value) { type_type_ = value.raw(); }
-
   RawClass* closure_class() const { return closure_class_; }
   void set_closure_class(const Class& value) { closure_class_ = value.raw(); }
 
@@ -514,7 +511,6 @@ class ObjectStore {
   V(RawClass*, null_class_)                                                    \
   V(RawType*, null_type_)                                                      \
   V(RawType*, function_type_)                                                  \
-  V(RawType*, type_type_)                                                      \
   V(RawClass*, closure_class_)                                                 \
   V(RawType*, number_type_)                                                    \
   V(RawType*, int_type_)                                                       \

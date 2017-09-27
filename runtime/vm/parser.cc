@@ -1657,16 +1657,16 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
     // deopt because the generated AST will change.
     func.SetIsOptimizable(false);
 
-    InvocationMirror::Kind im_kind;
+    InvocationMirror::Type im_type;
     if (parent.IsImplicitGetterFunction()) {
-      im_kind = InvocationMirror::kGetter;
+      im_type = InvocationMirror::kGetter;
     } else if (parent.IsImplicitSetterFunction()) {
-      im_kind = InvocationMirror::kSetter;
+      im_type = InvocationMirror::kSetter;
     } else {
-      im_kind = InvocationMirror::kMethod;
+      im_type = InvocationMirror::kMethod;
     }
     call = ThrowNoSuchMethodError(TokenPos(), owner, func_name, func_args,
-                                  InvocationMirror::kStatic, im_kind,
+                                  InvocationMirror::kStatic, im_type,
                                   NULL);  // No existing function.
   }
 
@@ -2981,9 +2981,9 @@ AstNode* Parser::CheckDuplicateFieldInit(
       //     Object receiver,
       //     String memberName,
       //     int invocation_type,
-      //     Object typeArguments,
       //     List arguments,
-      //     List argumentNames);
+      //     List argumentNames,
+      //     List existingArgumentNames);
 
       ArgumentListNode* nsm_args = new (Z) ArgumentListNode(init_pos);
       // Object receiver.
@@ -3000,10 +3000,6 @@ AstNode* Parser::CheckDuplicateFieldInit(
       nsm_args->Add(new (Z) LiteralNode(
           init_pos, Smi::ZoneHandle(Z, Smi::New(invocation_type))));
 
-      // Object typeArguments.
-      nsm_args->Add(new (Z)
-                        LiteralNode(init_pos, Object::null_type_arguments()));
-
       // List arguments.
       GrowableArray<AstNode*> setter_args;
       setter_args.Add(init_value);
@@ -3013,6 +3009,11 @@ AstNode* Parser::CheckDuplicateFieldInit(
 
       // List argumentNames.
       // The missing implicit setter of the field has no argument names.
+      nsm_args->Add(new (Z) LiteralNode(init_pos, Object::null_array()));
+
+      // List existingArgumentNames.
+      // There is no setter for the final field, thus there are
+      // no existing names.
       nsm_args->Add(new (Z) LiteralNode(init_pos, Object::null_array()));
 
       AstNode* nsm_call = MakeStaticCall(
@@ -10855,6 +10856,7 @@ SequenceNode* Parser::NodeAsSequenceNode(TokenPosition sequence_pos,
   return node->AsSequenceNode();
 }
 
+// Call _throwNewIfNotLoaded if prefix is not NULL, otherwise call _throwNew.
 AstNode* Parser::ThrowTypeError(TokenPosition type_pos,
                                 const AbstractType& type,
                                 LibraryPrefix* prefix) {
@@ -10888,8 +10890,8 @@ AstNode* Parser::ThrowNoSuchMethodError(TokenPosition call_pos,
                                         const Class& cls,
                                         const String& function_name,
                                         ArgumentListNode* function_arguments,
-                                        InvocationMirror::Level im_level,
-                                        InvocationMirror::Kind im_kind,
+                                        InvocationMirror::Call im_call,
+                                        InvocationMirror::Type im_type,
                                         const Function* func,
                                         const LibraryPrefix* prefix) {
   ArgumentListNode* arguments = new (Z) ArgumentListNode(call_pos);
@@ -10919,18 +10921,13 @@ AstNode* Parser::ThrowNoSuchMethodError(TokenPosition call_pos,
       call_pos, String::ZoneHandle(Z, Symbols::New(T, function_name))));
   // Smi invocation_type.
   if (cls.IsTopLevel()) {
-    ASSERT(im_level == InvocationMirror::kStatic ||
-           im_level == InvocationMirror::kTopLevel);
-    im_level = InvocationMirror::kTopLevel;
+    ASSERT(im_call == InvocationMirror::kStatic ||
+           im_call == InvocationMirror::kTopLevel);
+    im_call = InvocationMirror::kTopLevel;
   }
   arguments->Add(new (Z) LiteralNode(
       call_pos, Smi::ZoneHandle(Z, Smi::New(InvocationMirror::EncodeType(
-                                       im_level, im_kind)))));
-  // Type arguments.
-  arguments->Add(new (Z) LiteralNode(
-      call_pos, function_arguments == NULL
-                    ? TypeArguments::ZoneHandle(Z, TypeArguments::null())
-                    : function_arguments->type_arguments()));
+                                       im_call, im_type)))));
   // List arguments.
   if (function_arguments == NULL) {
     arguments->Add(new (Z) LiteralNode(call_pos, Object::null_array()));
@@ -10946,6 +10943,38 @@ AstNode* Parser::ThrowNoSuchMethodError(TokenPosition call_pos,
   } else {
     arguments->Add(new (Z) LiteralNode(call_pos, function_arguments->names()));
   }
+
+  // List existingArgumentNames.
+  // Check if there exists a function with the same name unless caller
+  // has done the lookup already. If there is a function with the same
+  // name but incompatible parameters, inform the NoSuchMethodError what the
+  // expected parameters are.
+  Function& function = Function::Handle(Z);
+  if (func != NULL) {
+    function = func->raw();
+  } else {
+    function = cls.LookupStaticFunction(function_name);
+  }
+  Array& array = Array::ZoneHandle(Z);
+  // An unpatched external function is treated as an unresolved function.
+  if (!function.IsNull() && !function.is_external()) {
+    // The constructor for NoSuchMethodError takes a list of existing
+    // parameter names to produce a descriptive error message explaining
+    // the parameter mismatch. The problem is that the array of names
+    // does not describe which parameters are optional positional or
+    // named, which can lead to confusing error messages.
+    // Since the NoSuchMethodError class only uses the list to produce
+    // a string describing the expected parameters, we construct a more
+    // descriptive string here and pass it as the only element of the
+    // "existingArgumentNames" array of the NoSuchMethodError constructor.
+    // TODO(13471): Separate the implementations of NoSuchMethodError
+    // between dart2js and VM. Update the constructor to accept a string
+    // describing the formal parameters of an incompatible call target.
+    array = Array::New(1, Heap::kOld);
+    array.SetAt(0, String::Handle(Z, function.UserVisibleFormalParameters()));
+  }
+  arguments->Add(new (Z) LiteralNode(call_pos, array));
+
   return MakeStaticCall(Symbols::NoSuchMethodError(), method_name, arguments);
 }
 
@@ -14489,7 +14518,7 @@ AstNode* Parser::ParsePrimary() {
         pieces.Add(ident);
         const String& qualified_name =
             String::ZoneHandle(Z, Symbols::FromConcatAll(T, pieces));
-        InvocationMirror::Kind call_kind = CurrentToken() == Token::kLPAREN
+        InvocationMirror::Type call_type = CurrentToken() == Token::kLPAREN
                                                ? InvocationMirror::kMethod
                                                : InvocationMirror::kGetter;
         // Note: Adding a statement to current block is a hack, parsing an
@@ -14497,7 +14526,7 @@ AstNode* Parser::ParsePrimary() {
         current_block_->statements->Add(ThrowNoSuchMethodError(
             qual_ident_pos, current_class(), qualified_name,
             NULL,  // No arguments.
-            InvocationMirror::kTopLevel, call_kind,
+            InvocationMirror::kTopLevel, call_type,
             NULL,  // No existing function.
             &prefix));
       }

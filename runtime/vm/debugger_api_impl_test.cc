@@ -1701,77 +1701,93 @@ TEST_CASE(DebuggerAPI_StackTraceDump1) {
 static void StackTraceDump2ExceptionHandler(Dart_IsolateId isolate_id,
                                             Dart_Handle exception_object,
                                             Dart_StackTrace trace) {
-  const int kStackTraceLen = 4;
+  const int kStackTraceLen = 5;
   static const char* expected_trace[kStackTraceLen] = {
-      "Object.noSuchMethod", "Test.local1_to_func1", "Test.func1", "main"};
+      "Object._noSuchMethod", "Object.noSuchMethod", "Test.local1_to_func1",
+      "Test.func1", "main"};
 
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
   EXPECT_VALID(res);
   EXPECT_EQ(kStackTraceLen, trace_len);
 
-  // Frame 0 corresponding to "Object.noSuchMethod".
-  Dart_Handle frame0_locals = Dart_NewList(4);
+  // Frame 0 corresponding to "Object._noSuchMethod".
+  Dart_Handle frame0_locals = Dart_NewList(12);
   Dart_ListSetAt(frame0_locals, 0, NewString("this"));
   Dart_ListSetAt(frame0_locals, 1, Dart_Null());
-  Dart_ListSetAt(frame0_locals, 2, NewString("invocation"));
+  Dart_ListSetAt(frame0_locals, 2, NewString("isMethod"));
   Dart_ListSetAt(frame0_locals, 3, Dart_Null());
+  Dart_ListSetAt(frame0_locals, 4, NewString("memberName"));
+  Dart_ListSetAt(frame0_locals, 5, Dart_Null());
+  Dart_ListSetAt(frame0_locals, 6, NewString("type"));
+  Dart_ListSetAt(frame0_locals, 7, Dart_Null());
+  Dart_ListSetAt(frame0_locals, 8, NewString("arguments"));
+  Dart_ListSetAt(frame0_locals, 9, Dart_Null());
+  Dart_ListSetAt(frame0_locals, 10, NewString("namedArguments"));
+  Dart_ListSetAt(frame0_locals, 11, Dart_Null());
 
-  // Frame 1 corresponding to "Test.local1_to_func1".
-  Dart_Handle frame1_locals = Dart_NewList(14);
-  Dart_ListSetAt(frame1_locals, 0, NewString("i"));
-  Dart_ListSetAt(frame1_locals, 1, Dart_NewInteger(11));
-  Dart_ListSetAt(frame1_locals, 2, NewString("j"));
-  Dart_ListSetAt(frame1_locals, 3, Dart_NewInteger(22));
-  Dart_ListSetAt(frame1_locals, 4, NewString("k"));
-  Dart_ListSetAt(frame1_locals, 5, Dart_NewInteger(33));
-  Dart_ListSetAt(frame1_locals, 6, NewString("l"));
-  Dart_ListSetAt(frame1_locals, 7, Dart_NewInteger(44));
-  Dart_ListSetAt(frame1_locals, 8, NewString("m"));
-  Dart_ListSetAt(frame1_locals, 9, Dart_NewInteger(55));
-  Dart_ListSetAt(frame1_locals, 10, NewString("this"));
-  Dart_ListSetAt(frame1_locals, 11, Dart_Null());
-  Dart_ListSetAt(frame1_locals, 12, NewString("func"));
-  Dart_ListSetAt(frame1_locals, 13, Dart_Null());
+  // Frame 1 corresponding to "Object.noSuchMethod".
+  Dart_Handle frame1_locals = Dart_NewList(4);
+  Dart_ListSetAt(frame1_locals, 0, NewString("this"));
+  Dart_ListSetAt(frame1_locals, 1, Dart_Null());
+  Dart_ListSetAt(frame1_locals, 2, NewString("invocation"));
+  Dart_ListSetAt(frame1_locals, 3, Dart_Null());
 
-  // Frame 2 corresponding to "Test.func1".
-  Dart_Handle frame2_locals = Dart_NewList(18);
-  Dart_ListSetAt(frame2_locals, 0, NewString("this"));
-  Dart_ListSetAt(frame2_locals, 1, Dart_Null());
-  Dart_ListSetAt(frame2_locals, 2, NewString("func"));
-  Dart_ListSetAt(frame2_locals, 3, Dart_Null());
-  Dart_ListSetAt(frame2_locals, 4, NewString("i"));
-  Dart_ListSetAt(frame2_locals, 5, Dart_NewInteger(11));
-  Dart_ListSetAt(frame2_locals, 6, NewString("j"));
-  Dart_ListSetAt(frame2_locals, 7, Dart_NewInteger(22));
-  Dart_ListSetAt(frame2_locals, 8, NewString("k"));
-  Dart_ListSetAt(frame2_locals, 9, Dart_NewInteger(33));
-  Dart_ListSetAt(frame2_locals, 10, NewString("l"));
-  Dart_ListSetAt(frame2_locals, 11, Dart_NewInteger(44));
-  Dart_ListSetAt(frame2_locals, 12, NewString("m"));
-  Dart_ListSetAt(frame2_locals, 13, Dart_NewInteger(55));
-  Dart_ListSetAt(frame2_locals, 14, NewString("local1_to_func1"));
-  Dart_ListSetAt(frame2_locals, 15, Dart_Null());
-  Dart_ListSetAt(frame2_locals, 16, NewString("sum"));
-  Dart_ListSetAt(frame2_locals, 17, Dart_NewInteger(0));
+  // Frame 2 corresponding to "Test.local1_to_func1".
+  Dart_Handle frame2_locals = Dart_NewList(14);
+  Dart_ListSetAt(frame2_locals, 0, NewString("i"));
+  Dart_ListSetAt(frame2_locals, 1, Dart_NewInteger(11));
+  Dart_ListSetAt(frame2_locals, 2, NewString("j"));
+  Dart_ListSetAt(frame2_locals, 3, Dart_NewInteger(22));
+  Dart_ListSetAt(frame2_locals, 4, NewString("k"));
+  Dart_ListSetAt(frame2_locals, 5, Dart_NewInteger(33));
+  Dart_ListSetAt(frame2_locals, 6, NewString("l"));
+  Dart_ListSetAt(frame2_locals, 7, Dart_NewInteger(44));
+  Dart_ListSetAt(frame2_locals, 8, NewString("m"));
+  Dart_ListSetAt(frame2_locals, 9, Dart_NewInteger(55));
+  Dart_ListSetAt(frame2_locals, 10, NewString("this"));
+  Dart_ListSetAt(frame2_locals, 11, Dart_Null());
+  Dart_ListSetAt(frame2_locals, 12, NewString("func"));
+  Dart_ListSetAt(frame2_locals, 13, Dart_Null());
 
-  // Frame 3 corresponding to "main".
-  Dart_Handle frame3_locals = Dart_NewList(12);
-  Dart_ListSetAt(frame3_locals, 0, NewString("i"));
-  Dart_ListSetAt(frame3_locals, 1, Dart_NewInteger(10));
-  Dart_ListSetAt(frame3_locals, 2, NewString("j"));
-  Dart_ListSetAt(frame3_locals, 3, Dart_NewInteger(20));
-  Dart_ListSetAt(frame3_locals, 4, NewString("local_to_main"));
-  Dart_ListSetAt(frame3_locals, 5, Dart_Null());
-  Dart_ListSetAt(frame3_locals, 6, NewString("sum"));
-  Dart_ListSetAt(frame3_locals, 7, Dart_NewInteger(0));
-  Dart_ListSetAt(frame3_locals, 8, NewString("value"));
-  Dart_ListSetAt(frame3_locals, 9, Dart_Null());
-  Dart_ListSetAt(frame3_locals, 10, NewString("func1"));
-  Dart_ListSetAt(frame3_locals, 11, Dart_Null());
+  // Frame 3 corresponding to "Test.func1".
+  Dart_Handle frame3_locals = Dart_NewList(18);
+  Dart_ListSetAt(frame3_locals, 0, NewString("this"));
+  Dart_ListSetAt(frame3_locals, 1, Dart_Null());
+  Dart_ListSetAt(frame3_locals, 2, NewString("func"));
+  Dart_ListSetAt(frame3_locals, 3, Dart_Null());
+  Dart_ListSetAt(frame3_locals, 4, NewString("i"));
+  Dart_ListSetAt(frame3_locals, 5, Dart_NewInteger(11));
+  Dart_ListSetAt(frame3_locals, 6, NewString("j"));
+  Dart_ListSetAt(frame3_locals, 7, Dart_NewInteger(22));
+  Dart_ListSetAt(frame3_locals, 8, NewString("k"));
+  Dart_ListSetAt(frame3_locals, 9, Dart_NewInteger(33));
+  Dart_ListSetAt(frame3_locals, 10, NewString("l"));
+  Dart_ListSetAt(frame3_locals, 11, Dart_NewInteger(44));
+  Dart_ListSetAt(frame3_locals, 12, NewString("m"));
+  Dart_ListSetAt(frame3_locals, 13, Dart_NewInteger(55));
+  Dart_ListSetAt(frame3_locals, 14, NewString("local1_to_func1"));
+  Dart_ListSetAt(frame3_locals, 15, Dart_Null());
+  Dart_ListSetAt(frame3_locals, 16, NewString("sum"));
+  Dart_ListSetAt(frame3_locals, 17, Dart_NewInteger(0));
+
+  // Frame 4 corresponding to "main".
+  Dart_Handle frame4_locals = Dart_NewList(12);
+  Dart_ListSetAt(frame4_locals, 0, NewString("i"));
+  Dart_ListSetAt(frame4_locals, 1, Dart_NewInteger(10));
+  Dart_ListSetAt(frame4_locals, 2, NewString("j"));
+  Dart_ListSetAt(frame4_locals, 3, Dart_NewInteger(20));
+  Dart_ListSetAt(frame4_locals, 4, NewString("local_to_main"));
+  Dart_ListSetAt(frame4_locals, 5, Dart_Null());
+  Dart_ListSetAt(frame4_locals, 6, NewString("sum"));
+  Dart_ListSetAt(frame4_locals, 7, Dart_NewInteger(0));
+  Dart_ListSetAt(frame4_locals, 8, NewString("value"));
+  Dart_ListSetAt(frame4_locals, 9, Dart_Null());
+  Dart_ListSetAt(frame4_locals, 10, NewString("func1"));
+  Dart_ListSetAt(frame4_locals, 11, Dart_Null());
 
   Dart_Handle expected_locals[] = {frame0_locals, frame1_locals, frame2_locals,
-                                   frame3_locals};
+                                   frame3_locals, frame4_locals};
   breakpoint_hit_counter++;
   VerifyStackTrace(trace, expected_trace, expected_locals, kStackTraceLen,
                    true);

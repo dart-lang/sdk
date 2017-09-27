@@ -170,25 +170,21 @@ class VmTarget extends Target {
         isConstructor: isConstructor,
         isTopLevel: isTopLevel);
     return new ConstructorInvocation(
-        coreTypes.noSuchMethodErrorDefaultConstructor,
+        coreTypes.noSuchMethodErrorImplementationConstructor,
         new Arguments(<Expression>[
           receiver,
-          new ConstructorInvocation(
-              coreTypes.invocationMirrorWithTypeConstructor,
-              new Arguments(<Expression>[
-                new SymbolLiteral(name)..fileOffset = offset,
-                new IntLiteral(type)..fileOffset = offset,
-                new NullLiteral(), // TODO(regis): Type arguments of generic function.
-                _fixedLengthList(arguments.positional, arguments.fileOffset),
-                new MapLiteral(new List<MapEntry>.from(
-                    arguments.named.map((NamedExpression arg) {
-                  return new MapEntry(
-                      new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
-                      arg.value)
-                    ..fileOffset = arg.fileOffset;
-                })))
-                  ..fileOffset = arguments.fileOffset
-              ]))
+          new SymbolLiteral(name)..fileOffset = offset,
+          new IntLiteral(type)..fileOffset = offset,
+          _fixedLengthList(arguments.positional, arguments.fileOffset),
+          new MapLiteral(new List<MapEntry>.from(
+              arguments.named.map((NamedExpression arg) {
+            return new MapEntry(
+                new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
+                arg.value)
+              ..fileOffset = arg.fileOffset;
+          })))
+            ..fileOffset = arguments.fileOffset,
+          new NullLiteral()
         ]));
   }
 
@@ -214,10 +210,10 @@ class VmTarget extends Target {
     const int _FIELD = 3;
     const int _LOCAL_VAR = 4;
     // ignore: UNUSED_LOCAL_VARIABLE
-    const int _KIND_SHIFT = 0;
-    const int _KIND_BITS = 3;
+    const int _TYPE_SHIFT = 0;
+    const int _TYPE_BITS = 3;
     // ignore: UNUSED_LOCAL_VARIABLE
-    const int _KIND_MASK = (1 << _KIND_BITS) - 1;
+    const int _TYPE_MASK = (1 << _TYPE_BITS) - 1;
 
     // These values, except _DYNAMIC and _SUPER, are only used when throwing
     // NoSuchMethodError for compile-time resolution failures.
@@ -226,10 +222,10 @@ class VmTarget extends Target {
     const int _STATIC = 2;
     const int _CONSTRUCTOR = 3;
     const int _TOP_LEVEL = 4;
-    const int _LEVEL_SHIFT = _KIND_BITS;
-    const int _LEVEL_BITS = 3;
+    const int _CALL_SHIFT = _TYPE_BITS;
+    const int _CALL_BITS = 3;
     // ignore: UNUSED_LOCAL_VARIABLE
-    const int _LEVEL_MASK = (1 << _LEVEL_BITS) - 1;
+    const int _CALL_MASK = (1 << _CALL_BITS) - 1;
 
     int type = -1;
     // For convenience, [isGetter] and [isSetter] takes precedence over
@@ -247,15 +243,15 @@ class VmTarget extends Target {
     }
 
     if (isDynamic) {
-      type |= (_DYNAMIC << _LEVEL_SHIFT);
+      type |= (_DYNAMIC << _CALL_SHIFT);
     } else if (isSuper) {
-      type |= (_SUPER << _LEVEL_SHIFT);
+      type |= (_SUPER << _CALL_SHIFT);
     } else if (isStatic) {
-      type |= (_STATIC << _LEVEL_SHIFT);
+      type |= (_STATIC << _CALL_SHIFT);
     } else if (isConstructor) {
-      type |= (_CONSTRUCTOR << _LEVEL_SHIFT);
+      type |= (_CONSTRUCTOR << _CALL_SHIFT);
     } else if (isTopLevel) {
-      type |= (_TOP_LEVEL << _LEVEL_SHIFT);
+      type |= (_TOP_LEVEL << _CALL_SHIFT);
     }
 
     return type;

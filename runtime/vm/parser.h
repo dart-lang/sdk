@@ -920,8 +920,8 @@ class Parser : public ValueObject {
                                   const Class& cls,
                                   const String& function_name,
                                   ArgumentListNode* function_arguments,
-                                  InvocationMirror::Level level,
-                                  InvocationMirror::Kind kind,
+                                  InvocationMirror::Call call,
+                                  InvocationMirror::Type type,
                                   const Function* func,
                                   const LibraryPrefix* prefix = NULL);
 

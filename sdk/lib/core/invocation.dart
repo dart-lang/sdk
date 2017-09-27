@@ -16,25 +16,17 @@ abstract class Invocation {
   Symbol get memberName;
 
   /**
-   * An unmodifiable view of the type arguments of the call.
-   *
-   * If the call is not generic, the type arguments list is empty.
-   */
-  List<Type> get typeArguments;
-
-  /**
    * An unmodifiable view of the positional arguments of the call.
    *
-   * If the member is a getter, the positional arguments list is
-   * empty.
+   * If the member is a getter, the positional arguments is empty.
    */
   List get positionalArguments;
 
   /**
    * An unmodifiable view of the named arguments of the call.
    *
-   * If the member is a getter, setter or operator, the named
-   * arguments map is empty.
+   * If the member is a getter, setter or operator, the named arguments
+   * is empty.
    */
   Map<Symbol, dynamic> get namedArguments;
 
@@ -43,16 +35,15 @@ abstract class Invocation {
 
   /**
    * Whether the invocation was a getter call.
-   * If so, all three types of arguments lists are empty.
+   * If so, both types of arguments is empty.
    */
   bool get isGetter;
 
   /**
    * Whether the invocation was a setter call.
    *
-   * If so, [positionalArguments] has exactly one positional
-   * argument, [namedArguments] is empty, and typeArguments is
-   * empty.
+   * If so, [positionalArguments] has exactly one positional argument,
+   * and [namedArguments] is empty.
    */
   bool get isSetter;
 
