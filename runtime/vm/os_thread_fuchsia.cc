@@ -93,6 +93,10 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
+  // Set the thread name.
+  zx_handle_t thread_handle = thrd_get_zx_handle(thrd_current());
+  zx_object_set_property(thread_handle, ZX_PROP_NAME, name, strlen(name) + 1);
+
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
