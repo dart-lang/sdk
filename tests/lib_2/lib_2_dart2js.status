@@ -70,6 +70,8 @@ mirrors/reflected_type_generics_test/03: Fail # Issues in reflecting generic typ
 mirrors/reflected_type_generics_test/04: Fail # Issues in reflecting bounded type variables.
 mirrors/reflected_type_generics_test/05: Fail # Issues in reflecting generic typedefs.
 mirrors/reflected_type_generics_test/06: Fail # Issues in reflecting bounded type variables.
+html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
+html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 
 [ $compiler == dart2js ]
 async/future_or_strong_test: RuntimeError
@@ -117,6 +119,7 @@ math/math2_test: RuntimeError
 
 [ $compiler == dart2js && ($runtime != jsshell && $runtime != d8) ]
 js/null_test: RuntimeError # Issue 30652
+html/js_typed_interop_lazy_test/01: RuntimeError
 
 [ $compiler == dart2js && $csp && $browser ]
 html/custom/element_upgrade_test: Fail # Issue 17298
@@ -130,3 +133,39 @@ html/custom/js_custom_test: Fail # mirrors not supported
 html/custom/mirrors_test: Fail # mirrors not supported
 html/custom/mirrors_2_test: Fail # mirrors not supported
 mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wrong reason
+
+[ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
+html/js_typed_interop_bind_this_test: SkipByDesign
+html/js_typed_interop_callable_object_test: SkipByDesign
+html/js_typed_interop_test: SkipByDesign
+html/js_typed_interop_default_arg_test: SkipByDesign
+
+[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+html/js_typed_interop_anonymous2_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_typed_interop_anonymous2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_typed_interop_anonymous_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_typed_interop_anonymous_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_typed_interop_anonymous_unreachable_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_typed_interop_anonymous_unreachable_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_typed_interop_bind_this_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_typed_interop_callable_object_test: CompileTimeError
+html/js_typed_interop_default_arg_test/explicit_argument: CompileTimeError
+html/js_typed_interop_default_arg_test/none: CompileTimeError
+html/js_typed_interop_side_cast_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_typed_interop_side_cast_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_typed_interop_test: CompileTimeError
+
+[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_anonymous2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_anonymous_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_anonymous_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_anonymous_unreachable_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_anonymous_unreachable_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_bind_this_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_callable_object_test: CompileTimeError
+html/js_typed_interop_default_arg_test/explicit_argument: CompileTimeError
+html/js_typed_interop_default_arg_test/none: CompileTimeError
+html/js_typed_interop_side_cast_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_side_cast_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_test: CompileTimeError

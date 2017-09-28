@@ -211,6 +211,17 @@ mirrors/redirecting_factory_different_type_test/none: Crash
 mirrors/reflected_type_function_type_test: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
+html/js_typed_interop_anonymous2_exp_test: DartkCompileTimeError
+html/js_typed_interop_anonymous2_test: DartkCompileTimeError
+html/js_typed_interop_anonymous_exp_test: DartkCompileTimeError
+html/js_typed_interop_anonymous_test: DartkCompileTimeError
+html/js_typed_interop_anonymous_unreachable_exp_test: DartkCompileTimeError
+html/js_typed_interop_anonymous_unreachable_test: DartkCompileTimeError
+html/js_typed_interop_default_arg_test/explicit_argument: DartkCompileTimeError
+html/js_typed_interop_default_arg_test/none: DartkCompileTimeError
+html/js_typed_interop_lazy_test: DartkCompileTimeError
+html/js_typed_interop_rename_static_test: DartkCompileTimeError
+html/js_typed_interop_test: DartkCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash

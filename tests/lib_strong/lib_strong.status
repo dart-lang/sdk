@@ -33,8 +33,6 @@ html/fileapi_test: Skip
 html/filereader_test: Skip
 html/fontface_loaded_test: Skip
 html/js_function_getter_trust_types_test: Skip
-html/js_typed_interop_side_cast_exp_test: Skip
-html/js_typed_interop_side_cast_test: Skip
 html/keyboard_event_test: Skip
 html/mutationobserver_test: Skip
 html/postmessage_structured_test: Skip
@@ -62,7 +60,6 @@ mirrors/lazy_static_test: Skip
 mirrors/mirrors_test: Skip
 html/custom/created_callback_test: CompileTimeError # Issue 28969
 html/custom/document_register_basic_test: CompileTimeError # Issue 28969
-html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
 
 [ $compiler == dart2analyzer && $strong ]
 html/debugger_test: CompileTimeError # Issue 28969
@@ -91,7 +88,6 @@ html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode 
 html/input_element_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 html/isolates_test: RuntimeError # Issue 29922
-html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
 html/js_util_test: RuntimeError # Issue 29922
 html/media_stream_test: RuntimeError # Issue 29922
 html/mediasource_test: RuntimeError # Issue 29922

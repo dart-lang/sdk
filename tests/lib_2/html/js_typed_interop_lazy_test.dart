@@ -99,7 +99,7 @@ baz.LazyClass = function LazyClass(a) {
       expect((l as AnonClass) == l, isTrue);
       expect((l as AnonClass2) == l, isTrue);
       var anon = new AnonClass(a: 42);
-      expect(anon is! LazyClass, isTrue);
+      expect(anon is! LazyClass, isTrue); //# 01: ok
       expect(anon is AnonClass, isTrue);
       expect(anon is AnonClass2, isTrue);
 
@@ -112,31 +112,31 @@ baz.LazyClass = function LazyClass(a) {
       // TODO(jacobr): why doesn't this test pass?
       // expect(<AnonClass>[] is List<AnonClass2>, isTrue);
       expect(<int>[] is! List<AnonClass>, isTrue);
-      expect(<AnonClass>[] is! List<LazyClass>, isTrue);
+      expect(<AnonClass>[] is! List<LazyClass>, isTrue); //# 01: ok
       expect(<int>[] is! List<LazyClass>, isTrue);
       expect(<LazyClass>[] is List<LazyClass>, isTrue);
 
       var listLazyClass = <LazyClass>[];
       Object instanceLazyObject = l;
-      expect(() => listLazyClass.add(42 as dynamic), throws);
+      expect(() => listLazyClass.add(42 as dynamic), throws); //# 01: ok
       // Regression test for bug where this call failed.
       listLazyClass.add(instanceLazyObject);
       listLazyClass.add(null);
 
       dynamic listLazyClassDynamic = listLazyClass;
-      expect(() => listLazyClassDynamic.add(42), throws);
+      expect(() => listLazyClassDynamic.add(42), throws); //# 01: ok
       // Regression test for bug where this call failed.
       listLazyClassDynamic.add(instanceLazyObject);
       listLazyClassDynamic.add(null);
 
       var genericClass = new ExampleGenericClass<LazyClass>();
       genericClass.add(instanceLazyObject);
-      expect(() => genericClass.add(42 as dynamic), throws);
+      expect(() => genericClass.add(42 as dynamic), throws); //# 01: ok
       genericClass.add(null);
 
       dynamic genericClassDynamic = genericClass;
       genericClassDynamic.add(instanceLazyObject);
-      expect(() => genericClassDynamic.add(42), throws);
+      expect(() => genericClassDynamic.add(42), throws); //# 01: ok
       genericClassDynamic.add(null);
     });
   });

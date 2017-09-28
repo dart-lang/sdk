@@ -5,12 +5,8 @@
 @JS()
 library js_typed_interop_anonymous2_test;
 
-import 'dart:html';
-import 'dart:js' as js;
-
 import 'package:js/js.dart';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:expect/minitest.dart';
 
 @JS()
 @anonymous
@@ -34,18 +30,16 @@ class B {
 }
 
 main() {
-  useHtmlConfiguration();
-
   test('side-casts work for reachable types', () {
     new C(x: 3); // make C reachable
-    var a = new A(x: 3);
+    dynamic a = new A(x: 3);
     expect(a is C, isTrue);
     C c = a;
     expect(c.x, equals(3));
   });
 
   test('side-casts work for otherwise unreachable types', () {
-    var a = new A(x: 3);
+    dynamic a = new A(x: 3);
     expect(a is B, isTrue);
   });
 }
