@@ -84,7 +84,6 @@ abstract class KernelFunctionBuilder
   Statement actualBody;
 
   KernelFunctionBuilder(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -94,8 +93,8 @@ abstract class KernelFunctionBuilder
       KernelLibraryBuilder compilationUnit,
       int charOffset,
       this.nativeMethodName)
-      : super(documentationComment, metadata, modifiers, returnType, name,
-            typeVariables, formals, compilationUnit, charOffset);
+      : super(metadata, modifiers, returnType, name, typeVariables, formals,
+            compilationUnit, charOffset);
 
   void set body(Statement newBody) {
     if (newBody != null) {
@@ -228,18 +227,10 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       : procedure = new ShadowProcedure(null, kind, null, returnType == null,
             fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset,
-        super(
-            documentationComment,
-            metadata,
-            modifiers,
-            returnType,
-            name,
-            typeVariables,
-            formals,
-            compilationUnit,
-            charOffset,
-            nativeMethodName);
+          ..fileEndOffset = charEndOffset
+          ..documentationComment = documentationComment,
+        super(metadata, modifiers, returnType, name, typeVariables, formals,
+            compilationUnit, charOffset, nativeMethodName);
 
   ProcedureKind get kind => procedure.kind;
 
@@ -290,7 +281,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isExternal = isExternal;
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
-      procedure.documentationComment = documentationComment;
     }
     if (isEligibleForTopLevelInference) {
       library.loader.typeInferenceEngine.recordMember(procedure);
@@ -339,18 +329,10 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       [String nativeMethodName])
       : constructor = new Constructor(null)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset,
-        super(
-            documentationComment,
-            metadata,
-            modifiers,
-            returnType,
-            name,
-            typeVariables,
-            formals,
-            compilationUnit,
-            charOffset,
-            nativeMethodName);
+          ..fileEndOffset = charEndOffset
+          ..documentationComment = documentationComment,
+        super(metadata, modifiers, returnType, name, typeVariables, formals,
+            compilationUnit, charOffset, nativeMethodName);
 
   bool get isInstanceMember => false;
 
@@ -373,7 +355,6 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       constructor.isConst = isConst;
       constructor.isExternal = isExternal;
       constructor.name = new Name(name, library.target);
-      constructor.documentationComment = documentationComment;
     }
     return constructor;
   }

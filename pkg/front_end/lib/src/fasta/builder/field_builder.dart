@@ -13,9 +13,9 @@ abstract class FieldBuilder<T> extends MemberBuilder {
 
   final int modifiers;
 
-  FieldBuilder(String documentationComment, this.name, this.modifiers,
-      LibraryBuilder compilationUnit, int charOffset)
-      : super(compilationUnit, charOffset, documentationComment);
+  FieldBuilder(
+      this.name, this.modifiers, LibraryBuilder compilationUnit, int charOffset)
+      : super(compilationUnit, charOffset);
 
   String get debugName => "FieldBuilder";
 
