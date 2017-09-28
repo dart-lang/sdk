@@ -570,10 +570,12 @@ class NoSuchMethodError {
         _existingArgumentNames = existingArgumentNames;
 
   @patch
-  NoSuchMethodError.withInvocation(Object receiver, Invocation invocation) {
-    throw new UnsupportedError(
-        "'NoSuchMethodError.withInvocation' is not supported");
-  }
+  NoSuchMethodError.withInvocation(Object receiver, Invocation invocation)
+      : _receiver = receiver,
+        _memberName = invocation.memberName,
+        _arguments = invocation.positionalArguments,
+        _namedArguments = invocation.namedArguments,
+        _existingArgumentNames = null;
 
   @patch
   String toString() {
