@@ -315,6 +315,10 @@ class B extends A {
  const boolean = const bool.fromEnvironment("baz", defaultValue: false);
  const not_string =
     const bool.fromEnvironment("not_string", defaultValue: false) ? '' : 0;
+ class Class1 {
+    final field;
+    const Class1() : field = not_string.length;
+ }
  ''', const [
     const ConstantData(
         r'"$integer $string $boolean"', 'StringConstant("5 baz false")'),
@@ -427,7 +431,9 @@ class B extends A {
     const ConstantData(
         '-(string)', 'NonConstant', MessageKind.INVALID_CONSTANT_NEGATE_TYPE),
     const ConstantData('not_string.length', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE)
+        MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
+    const ConstantData('const Class1()', 'NonConstant',
+        MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
   ]),
 ];
 

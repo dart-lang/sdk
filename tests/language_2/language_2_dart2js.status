@@ -725,9 +725,7 @@ function_subtype_typearg5_test: RuntimeError
 function_type_alias2_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib2::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
 assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
 async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
@@ -770,7 +768,7 @@ closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib1::C1:: (Constructor)
+assertion_initializer_test: CompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor_duplicate_final_test/01: MissingCompileTimeError
@@ -979,9 +977,7 @@ wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel
 vm/async_await_catch_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib5::C::bc02 (Constructor)
 assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
 async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
@@ -1023,7 +1019,7 @@ closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib1::C1:: (Constructor)
+assertion_initializer_test: CompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor_duplicate_final_test/01: MissingCompileTimeError

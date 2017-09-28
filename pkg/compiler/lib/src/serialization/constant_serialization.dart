@@ -356,6 +356,12 @@ class ConstantConstructorSerializer
     });
     encoder.setConstant(Key.CONSTRUCTOR, constructor.thisConstructorInvocation);
   }
+
+  @override
+  void visitErroneous(
+      ErroneousConstantConstructor constructor, ObjectEncoder arg) {
+    throw new UnsupportedError("ConstantConstructorSerializer.visitErroneous");
+  }
 }
 
 /// Utility class for deserializing [ConstantConstructor]s.
@@ -424,6 +430,9 @@ class ConstantConstructorDeserializer {
       case ConstantConstructorKind.REDIRECTING_FACTORY:
         return new RedirectingFactoryConstantConstructor(
             readConstructorInvocation());
+      case ConstantConstructorKind.ERRONEOUS:
+        throw new UnsupportedError(
+            'Unsupported constant constructor kind: $kind');
     }
   }
 }
