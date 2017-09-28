@@ -554,7 +554,7 @@ class ProgramBuilder {
             FunctionType functionType = null;
 
             if (member.isFunction) {
-              MethodElement fn = member;
+              FunctionEntity fn = member;
               functionType = _elementEnvironment.getFunctionType(fn);
             } else if (member.isGetter) {
               if (_options.trustTypeAnnotations) {
@@ -874,7 +874,6 @@ class ProgramBuilder {
       _worldBuilder.forEachParameter(method,
           (DartType type, String name, ConstantValue defaultValue) {
         if (index >= parameterStructure.requiredParameters) {
-          assert(defaultValue != null);
           optionalParameterDefaultValues.add(defaultValue);
         }
         index++;
