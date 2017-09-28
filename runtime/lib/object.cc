@@ -62,57 +62,11 @@ DEFINE_NATIVE_ENTRY(Object_toString, 1) {
   if (instance.IsString()) {
     return instance.raw();
   }
+  if (instance.IsAbstractType()) {
+    return AbstractType::Cast(instance).UserVisibleName();
+  }
   const char* c_str = instance.ToCString();
   return String::New(c_str);
-}
-
-DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, is_method, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, member_name, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, invocation_type, arguments->NativeArgAt(3));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, func_args, arguments->NativeArgAt(4));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, func_named_args,
-                               arguments->NativeArgAt(5));
-  const Array& dart_arguments = Array::Handle(Array::New(6));
-  dart_arguments.SetAt(0, instance);
-  dart_arguments.SetAt(1, member_name);
-  dart_arguments.SetAt(2, invocation_type);
-  dart_arguments.SetAt(3, func_args);
-  dart_arguments.SetAt(4, func_named_args);
-
-  if (is_method.value()) {
-    // Report if a function with same name (but different arguments) has been
-    // found.
-    Function& function = Function::Handle();
-    if (instance.IsClosure()) {
-      function = Closure::Cast(instance).function();
-    } else {
-      Class& instance_class = Class::Handle(instance.clazz());
-      const bool is_super_call =
-          ((invocation_type.Value() >> InvocationMirror::kCallShift) &
-           InvocationMirror::kCallMask) == InvocationMirror::kSuper;
-      if (!is_super_call) {
-        function = instance_class.LookupDynamicFunction(member_name);
-      }
-      while (function.IsNull()) {
-        instance_class = instance_class.SuperClass();
-        if (instance_class.IsNull()) break;
-        function = instance_class.LookupDynamicFunction(member_name);
-      }
-    }
-    if (!function.IsNull()) {
-      const intptr_t total_num_parameters = function.NumParameters();
-      const Array& array = Array::Handle(Array::New(total_num_parameters - 1));
-      // Skip receiver.
-      for (int i = 1; i < total_num_parameters; i++) {
-        array.SetAt(i - 1, String::Handle(function.ParameterNameAt(i)));
-      }
-      dart_arguments.SetAt(5, array);
-    }
-  }
-  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
-  return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
@@ -385,6 +339,11 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 1) {
   const intptr_t len = type_arguments.Length();
   ASSERT(len > 0);
   const Array& type_list = Array::Handle(zone, Array::New(len));
+  TypeArguments& type_list_type_args =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  type_list_type_args.SetTypeAt(0, Type::Handle(zone, Type::DartTypeType()));
+  type_list_type_args = type_list_type_args.Canonicalize();
+  type_list.SetTypeArguments(type_list_type_args);
   AbstractType& type = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < len; i++) {
     type = type_arguments.TypeAt(i);
@@ -392,6 +351,44 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 1) {
   }
   type_list.MakeImmutable();
   return type_list.raw();
+}
+
+DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 3) {
+  const Instance& receiver = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, method_name, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, invocation_type, arguments->NativeArgAt(2));
+  InvocationMirror::Level level;
+  InvocationMirror::Kind kind;
+  InvocationMirror::DecodeType(invocation_type.Value(), &level, &kind);
+
+  Function& function = Function::Handle();
+  if (receiver.IsType()) {
+    Class& cls = Class::Handle(Type::Cast(receiver).type_class());
+    if (level == InvocationMirror::kConstructor) {
+      function = cls.LookupConstructor(method_name);
+      if (function.IsNull()) {
+        function = cls.LookupFactory(method_name);
+      }
+    } else {
+      function = cls.LookupStaticFunction(method_name);
+    }
+  } else if (receiver.IsClosure()) {
+    function = Closure::Cast(receiver).function();
+  } else {
+    Class& cls = Class::Handle(receiver.clazz());
+    if (level != InvocationMirror::kSuper) {
+      function = cls.LookupDynamicFunction(method_name);
+    }
+    while (function.IsNull()) {
+      cls = cls.SuperClass();
+      if (cls.IsNull()) break;
+      function = cls.LookupDynamicFunction(method_name);
+    }
+  }
+  if (!function.IsNull()) {
+    return function.UserVisibleSignature();
+  }
+  return String::null();
 }
 
 }  // namespace dart

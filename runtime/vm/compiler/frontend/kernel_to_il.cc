@@ -1482,13 +1482,13 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
   instructions += PushArgument();  // invocation_type
 
   instructions += NullConstant();
+  instructions += PushArgument();  // type arguments
+
+  instructions += NullConstant();
   instructions += PushArgument();  // arguments
 
   instructions += NullConstant();
   instructions += PushArgument();  // argumentNames
-
-  instructions += NullConstant();
-  instructions += PushArgument();  // existingArgumentNames
 
   instructions += StaticCall(TokenPosition::kNoSource, throw_function, 6);
   // Leave "result" on the stack since callers expect it to be there (even

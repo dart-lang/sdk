@@ -4228,6 +4228,12 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   Value* invocation_type_value = Bind(
       new (Z) ConstantInstr(Smi::ZoneHandle(Z, Smi::New(invocation_type))));
   arguments->Add(PushArgument(invocation_type_value));
+  // Object typeArguments.
+  Value* type_arguments_value = Bind(new (Z) ConstantInstr(
+      function_arguments == NULL
+          ? TypeArguments::ZoneHandle(Z, TypeArguments::null())
+          : function_arguments->type_arguments()));
+  arguments->Add(PushArgument(type_arguments_value));
   // List arguments.
   if (function_arguments == NULL) {
     Value* arguments_value =
@@ -4249,10 +4255,6 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   Value* argument_names_value = Bind(cinstr);
   arguments->Add(PushArgument(argument_names_value));
 
-  // List existingArgumentNames.
-  Value* existing_argument_names_value =
-      Bind(new (Z) ConstantInstr(Array::ZoneHandle(Z, Array::null())));
-  arguments->Add(PushArgument(existing_argument_names_value));
   // Resolve and call NoSuchMethodError._throwNew.
   const Library& core_lib = Library::Handle(Z, Library::CoreLibrary());
   const Class& cls =

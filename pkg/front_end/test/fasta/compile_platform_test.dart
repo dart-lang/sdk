@@ -43,7 +43,7 @@ main(List<String> arguments) async {
         ]);
       } on String catch (e) {
         Expect.isTrue(
-            e.startsWith("A member with disambiguated name '_withType' "));
+            e.startsWith("Class '_InvocationMirror' not found in library "));
         print("Failed as expected: $e");
         return;
       }

@@ -49,5 +49,5 @@ static method main() → dynamic {
   new self::C::•<self::C3>();
   new self::C::•<self::C3>();
   new self::C::•<self::C3>();
-  throw new core::NoSuchMethodError::_withType(null, #Missing, 32, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Missing, 32, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
 }

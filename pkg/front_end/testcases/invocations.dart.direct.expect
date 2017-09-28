@@ -4,9 +4,9 @@ import "dart:core" as core;
 
 static method main() → dynamic {
   core::print("Hello, World!");
-  throw new core::NoSuchMethodError::_withType(null, #z, 32, <dynamic>["Hello, World!"].toList(growable: false), <dynamic, dynamic>{}, null);
-  throw new core::NoSuchMethodError::_withType(null, #z, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
-  throw new core::NoSuchMethodError::_withType(null, #y, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
-  throw new core::NoSuchMethodError::_withType(null, #x, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
-  1.+(core::print("Hello, World!")).+(throw new core::NoSuchMethodError::_withType(null, #z, 32, <dynamic>["Hello, World!"].toList(growable: false), <dynamic, dynamic>{}, null)).+(throw new core::NoSuchMethodError::_withType(null, #z, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null)).+(throw new core::NoSuchMethodError::_withType(null, #y, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null)).+(throw new core::NoSuchMethodError::_withType(null, #x, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#z, 32, null, <dynamic>["Hello, World!"].toList(growable: false), <dynamic, dynamic>{}));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#z, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#y, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
+  1.+(core::print("Hello, World!")).+(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#z, 32, null, <dynamic>["Hello, World!"].toList(growable: false), <dynamic, dynamic>{}))).+(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#z, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}))).+(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#y, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}))).+(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{})));
 }

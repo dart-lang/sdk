@@ -16,7 +16,7 @@ class C extends core::Object {
     invalid-statement;
 }
 static method b(dynamic c) → invalid-type
-  return throw new core::NoSuchMethodError::_withType(null, #d, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+  return throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#d, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
 static method main() → dynamic {
   self::C c = null;
   core::print(const self::C::constant());

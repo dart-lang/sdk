@@ -544,6 +544,11 @@ class StringBuffer {
 @patch
 class NoSuchMethodError {
   @patch
+  NoSuchMethodError.withInvocation(Object receiver, Invocation invocation) {
+    // UNIMPLEMENTED
+  }
+
+  @patch
   NoSuchMethodError(Object receiver, Symbol memberName,
       List positionalArguments, Map<Symbol, dynamic> namedArguments,
       [List existingArgumentNames = null])

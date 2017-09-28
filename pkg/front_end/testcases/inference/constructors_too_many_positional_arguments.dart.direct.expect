@@ -8,5 +8,5 @@ class A<T extends core::Object> extends core::Object {
     ;
 }
 static method main() → dynamic {
-  dynamic a = throw new core::NoSuchMethodError::_withType(null, #, 32, <dynamic>[42].toList(growable: false), <dynamic, dynamic>{}, null);
+  dynamic a = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#, 32, null, <dynamic>[42].toList(growable: false), <dynamic, dynamic>{}));
 }

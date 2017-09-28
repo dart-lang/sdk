@@ -8,6 +8,6 @@ class Foo extends core::Object {
     ;
 }
 static method main() → dynamic {
-  throw new core::NoSuchMethodError::_withType(null, #, 32, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
-  throw new core::NoSuchMethodError::_withType(null, #Foo.notHere, 32, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#, 32, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Foo.notHere, 32, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
 }
