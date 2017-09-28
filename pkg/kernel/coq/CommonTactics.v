@@ -9,25 +9,33 @@ Import OptionMonad.
 
 Ltac extract E x y := set (x := E); assert (y : E = x); [auto|rewrite y in *].
 
-Ltac force_expr E :=
+Ltac force_expr E H :=
   let v1 := fresh in
   let v2 := fresh in
-  extract E v1 v2; destruct v1; [idtac|crush].
+  extract E v1 v2; destruct v1; [idtac|simpl in H; contradict H; congruence].
 
 Lemma bind_some : forall A B x f, @opt_bind A B (Some x) f = f x.
 Proof.
-  crush.
+  auto.
 Qed.
 
-Ltac force_options :=
-  repeat match goal with
-         | [ H : (opt_bind ?y (fun x => ?z)) = Some ?w |- _ ] =>
-           force_expr y; rewrite bind_some in H
-         | [ H : (if ?cond then ?x else None) = Some ?w |- _ ] =>
-           force_expr cond
-         | [ H : (match ?x with _ => _ end) = Some ?w |- _ ] =>
-           force_expr x
-         end.
+Lemma simpl_if : forall A (e1 e2 : A), (if true then e1 else e2) = e1.
+  auto.
+Qed.
+
+    (* remember (expression_type CE (NatMap.add v s TE) arg) as EXP. *)
+(* destruct EXP; [rewrite bind_some in H1|simpl in H1; contradict H1; congruence]. *)
+Ltac force_option :=
+  match goal with
+  | [ H : (opt_bind ?y (fun x => ?z)) = Some ?w |- _ ] =>
+    force_expr y H; rewrite bind_some in H
+  | [ H : (if ?cond then ?x else None) = Some ?w |- _ ] =>
+    force_expr cond H; rewrite simpl_if in H
+  | [ H : (match ?x with _ => _ end) = Some ?w |- _ ] =>
+    force_expr x H
+  end.
+
+Ltac force_options := repeat force_option.
 
 Inductive ltac_no_arg : Set :=
 | Ltac_No_Arg : ltac_no_arg.

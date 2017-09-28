@@ -217,10 +217,10 @@ Fixpoint expression_type
       if string_dec prop_name "call" then [rec_type] else None
     | DT_Interface_Type (Interface_Type class) =>
       interface <- NatMap.find class CE;
-      getter <- List.find (fun P =>
-        if string_dec (gt_name P) prop_name then true else false)
-        (getters interface);
-      [gt_type getter]
+      proc_desc <- List.find (fun P =>
+        if string_dec (pr_name P) prop_name then true else false)
+        (procedures interface);
+      [DT_Function_Type (pr_type proc_desc)]
     end
   | E_Invocation_Expression (IE_Constructor_Invocation (Constructor_Invocation class)) =>
     _ <- NatMap.find class CE;
@@ -395,7 +395,7 @@ Section Typing_Equivalence_Homomorphism.
     destruct H1.
     unfold expression_type in H1.
     fold expression_type in H1.
-    force_expr (expression_type CE (NatMap.add v s TE) rec).
+    force_expr (expression_type CE (NatMap.add v s TE) rec) H1.
     destruct d.
 
     (* Case 1: receiver has interface type. *)
@@ -737,7 +737,7 @@ Section Environments.
 
 (** Function environment maps defined functions to their procedure type. Used
     for direct method invocation, direct property get etc. *)
-Definition member_env : Type := NatMap.t (member_desc * member).
+Definition member_env : Type := NatMap.t member.
 
 Definition procedure_dissect (envs: class_env * member_env) (p : procedure) :=
   let (CE, ME)             := envs in
@@ -749,7 +749,7 @@ Definition procedure_dissect (envs: class_env * member_env) (p : procedure) :=
   let (param, ret_type, _) := fn in
   let (_, param_type, _)   := param in
   let proc := mk_procedure_desc name_str id (Function_Type param_type ret_type) in
-  (proc, (CE, NatMap.add id (MD_Method proc, M_Procedure p) ME)).
+  (proc, (CE, NatMap.add id (M_Procedure p) ME)).
 
 Definition procedure_to_env p envs := snd (procedure_dissect envs p).
 Definition procedure_to_desc envs p := fst (procedure_dissect envs p).
