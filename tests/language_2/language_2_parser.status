@@ -41,6 +41,10 @@ compile_time_constant10_test: Skip # Not yet supported.
 compile_time_constant11_test: Skip # Not yet supported.
 compile_time_constant13_test: Skip # Not yet supported.
 get_set_syntax_test: Skip # Not yet supported.
+mixin_super_constructor_named_test: Skip # Not yet supported.
+mixin_super_constructor_positionals_test: Skip # Not yet supported.
+mixin_super_constructor_named_test: Skip # Not yet supported.
+mixin_super_constructor_positionals_test: Skip # Not yet supported.
 
 # Tests using assert in initializer list.
 assertion_initializer_test: Skip # Not yet supported.

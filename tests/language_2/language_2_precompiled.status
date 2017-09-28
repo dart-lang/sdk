@@ -250,6 +250,16 @@ method_override6_test/*: MissingCompileTimeError
 method_override6_test/none: Pass
 method_override7_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
+mixin_of_mixin_test/01: MissingCompileTimeError
+mixin_of_mixin_test/02: MissingCompileTimeError
+mixin_of_mixin_test/03: MissingCompileTimeError
+mixin_of_mixin_test/04: MissingCompileTimeError
+mixin_of_mixin_test/05: MissingCompileTimeError
+mixin_of_mixin_test/06: MissingCompileTimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
+mixin_super_bound_test/01: MissingCompileTimeError
+mixin_super_bound_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameters_errors_test/01: MissingCompileTimeError
@@ -553,6 +563,13 @@ enum_private_test/*: Skip  # Uses Enum.toString()
 enum_test: Skip  # Uses Enum.toString()
 full_stacktrace1_test: Skip
 full_stacktrace2_test: Skip
+mixin_mixin2_test: Skip
+mixin_mixin3_test: Skip
+mixin_mixin5_test: Skip
+mixin_mixin6_test: Skip
+mixin_mixin_bound2_test: Skip
+mixin_mixin_type_arguments_test: Skip
+mixin_super_2_test: Skip
 
 [ $runtime == dart_precompiled || $mode == product ]
 vm/causal_async_exception_stack_test: SkipByDesign

@@ -176,6 +176,16 @@ method_override6_test/01: MissingCompileTimeError
 method_override6_test/02: MissingCompileTimeError
 method_override6_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
+mixin_of_mixin_test/01: MissingCompileTimeError
+mixin_of_mixin_test/02: MissingCompileTimeError
+mixin_of_mixin_test/03: MissingCompileTimeError
+mixin_of_mixin_test/04: MissingCompileTimeError
+mixin_of_mixin_test/05: MissingCompileTimeError
+mixin_of_mixin_test/06: MissingCompileTimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
+mixin_super_bound_test/01: MissingCompileTimeError
+mixin_super_bound_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameters_errors_test/01: MissingCompileTimeError
@@ -410,6 +420,16 @@ method_override5_test/*: MissingCompileTimeError
 method_override6_test/none: Pass
 method_override6_test/*: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
+mixin_of_mixin_test/01: MissingCompileTimeError
+mixin_of_mixin_test/02: MissingCompileTimeError
+mixin_of_mixin_test/03: MissingCompileTimeError
+mixin_of_mixin_test/04: MissingCompileTimeError
+mixin_of_mixin_test/05: MissingCompileTimeError
+mixin_of_mixin_test/06: MissingCompileTimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
+mixin_super_bound_test/01: MissingCompileTimeError
+mixin_super_bound_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameters_errors_test/01: MissingCompileTimeError
@@ -637,6 +657,8 @@ generic_test: CompileTimeError
 generics_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 interceptor6_test: CompileTimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 multiline_newline_test/01: CompileTimeError

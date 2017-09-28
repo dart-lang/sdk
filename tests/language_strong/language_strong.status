@@ -204,10 +204,6 @@ mixin_invalid_bound_test: Skip
 mixin_invalid_inheritance1_test: Skip
 mixin_invalid_inheritance2_test: Skip
 mixin_lib_extends_field_test: Skip
-mixin_lib_extends_method_test: Skip
-mixin_method_test: Skip
-mixin_super_bound2_test: Skip
-mixin_super_bound_test: Skip
 naming3_test: Skip
 naming_test: Skip
 new_expression1_negative_test: Skip

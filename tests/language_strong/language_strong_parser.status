@@ -210,8 +210,6 @@ mixin_illegal_superclass_test: Skip # Not yet supported.
 mixin_illegal_syntax_test: Skip # Not yet supported.
 mixin_invalid_inheritance1_test: Skip # Not yet supported.
 mixin_invalid_inheritance2_test: Skip # Not yet supported.
-mixin_super_constructor_named_test: Skip # Not yet supported.
-mixin_super_constructor_positionals_test: Skip # Not yet supported.
 multiline_newline_test: Skip # Not yet supported.
 named_constructor_test: Skip # Not yet supported.
 named_parameters_aggregated_test: Skip # Not yet supported.

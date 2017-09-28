@@ -164,6 +164,8 @@ method_override3_test/02: CompileTimeError
 method_override6_test: CompileTimeError
 method_override4_test: CompileTimeError
 method_override5_test: CompileTimeError
+mixin_super_bound2_test/01: CompileTimeError
+mixin_super_bound_test: CompileTimeError
 mixin_type_parameters_errors_test/02: CompileTimeError
 mixin_type_parameters_errors_test/05: CompileTimeError
 mixin_type_parameters_errors_test/01: CompileTimeError

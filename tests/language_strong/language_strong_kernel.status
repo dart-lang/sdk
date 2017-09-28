@@ -33,12 +33,6 @@ many_named_arguments_test: DartkCompileTimeError
 map_literal11_test: RuntimeError
 map_literal7_test: RuntimeError
 mixin_generic_test: RuntimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
-mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: RuntimeError
-mixin_mixin_bound2_test: RuntimeError
-mixin_mixin_bound_test: RuntimeError
 no_main_test/01: DartkCrash
 prefix10_negative_test: Fail
 prefix21_test: RuntimeError

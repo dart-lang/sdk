@@ -247,6 +247,16 @@ method_override7_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
+mixin_of_mixin_test/01: MissingCompileTimeError
+mixin_of_mixin_test/02: MissingCompileTimeError
+mixin_of_mixin_test/03: MissingCompileTimeError
+mixin_of_mixin_test/04: MissingCompileTimeError
+mixin_of_mixin_test/05: MissingCompileTimeError
+mixin_of_mixin_test/06: MissingCompileTimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
+mixin_super_bound_test/01: MissingCompileTimeError
+mixin_super_bound_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/01: MissingCompileTimeError
 mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError

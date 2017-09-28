@@ -230,6 +230,8 @@ method_override6_test/none: Pass
 method_override6_test/*: MissingCompileTimeError
 method_override7_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
+mixin_super_bound_test/01: MissingCompileTimeError
+mixin_super_bound_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/01: CompileTimeError
 mixin_supertype_subclass_test/03: CompileTimeError
 mixin_supertype_subclass_test/04: CompileTimeError
@@ -427,6 +429,17 @@ integer_division_by_zero_test: RuntimeError # Issue 8301
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
 method_name_test: Fail # issue 25574
 method_override5_test: RuntimeError # Issue 12809
+mixin_of_mixin_test/none: CompileTimeError
+mixin_super_2_test/none: CompileTimeError
+mixin_super_constructor_named_test/01: Fail # Issue 15101
+mixin_super_constructor_positionals_test/01: Fail # Issue 15101
+mixin_super_test: CompileTimeError # Issue 23773
+mixin_super_bound2_test: CompileTimeError # Issue 23773
+mixin_super_use_test: CompileTimeError # Issue 23773
+mixin_superclass_test: CompileTimeError # Issue 23773
+mixin_mixin_type_arguments_test: RuntimeError # Issue 29587
+mixin_mixin2_test: RuntimeError # Issue 13109.
+mixin_mixin3_test: RuntimeError # Issue 13109.
 mixin_super_constructor_named_test/01: Fail # Issue 15101
 mixin_super_constructor_positionals_test/01: Fail # Issue 15101
 mixin_super_test: CompileTimeError # Issue 23773
@@ -596,6 +609,15 @@ issue21079_test: Crash # Issue 27394
 issue9602_test: Crash # Issue 27394
 issue_25671a_test/01: Crash # Issue 27394
 issue_25671b_test/01: Crash # Issue 27394
+mixin_proto_test: Crash # Issue 27394
+mixin_regress_11398_test: Crash # Issue 27394
+mixin_super_constructor2_test: Crash # Issue 27394
+mixin_super_constructor_default_test: Crash # Issue 27394
+mixin_super_constructor_named_test/01: Crash # Issue 27394
+mixin_super_constructor_named_test/none: Crash # Issue 27394
+mixin_super_constructor_positionals_test/01: Crash # Issue 27394
+mixin_super_constructor_positionals_test/none: Crash # Issue 27394
+mixin_super_constructor_test: Crash # Issue 27394
 mixin_super_constructor2_test: Crash # Issue 27394
 mixin_super_constructor_default_test: Crash # Issue 27394
 mixin_super_constructor_named_test/01: Crash # Issue 27394
@@ -934,6 +956,46 @@ method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
+mixin_mixin2_test: RuntimeError
+mixin_mixin3_test: RuntimeError
+mixin_mixin4_test: RuntimeError
+mixin_mixin5_test: RuntimeError
+mixin_mixin6_test: RuntimeError
+mixin_mixin7_test: RuntimeError
+mixin_mixin_bound2_test: RuntimeError
+mixin_mixin_bound_test: RuntimeError
+mixin_mixin_test: RuntimeError
+mixin_mixin_type_arguments_test: RuntimeError
+mixin_of_mixin_test/07: CompileTimeError
+mixin_of_mixin_test/08: CompileTimeError
+mixin_of_mixin_test/09: CompileTimeError
+mixin_of_mixin_test/10: CompileTimeError
+mixin_of_mixin_test/11: CompileTimeError
+mixin_of_mixin_test/12: CompileTimeError
+mixin_of_mixin_test/13: CompileTimeError
+mixin_of_mixin_test/14: CompileTimeError
+mixin_of_mixin_test/15: CompileTimeError
+mixin_of_mixin_test/16: CompileTimeError
+mixin_of_mixin_test/17: CompileTimeError
+mixin_of_mixin_test/18: CompileTimeError
+mixin_of_mixin_test/19: CompileTimeError
+mixin_of_mixin_test/20: CompileTimeError
+mixin_of_mixin_test/21: CompileTimeError
+mixin_of_mixin_test/22: CompileTimeError
+mixin_of_mixin_test/none: CompileTimeError
+mixin_super_2_test: CompileTimeError
+mixin_super_bound2_test/01: CompileTimeError
+mixin_super_bound2_test/none: CompileTimeError
+mixin_super_constructor2_test: RuntimeError
+mixin_super_constructor_default_test: RuntimeError
+mixin_super_constructor_named_test/01: MissingCompileTimeError
+mixin_super_constructor_named_test/none: RuntimeError
+mixin_super_constructor_positionals_test/01: MissingCompileTimeError
+mixin_super_constructor_positionals_test/none: RuntimeError
+mixin_super_constructor_test: RuntimeError
+mixin_super_test: CompileTimeError
+mixin_super_use_test: CompileTimeError
+mixin_superclass_test: CompileTimeError
 mixin_super_constructor2_test: RuntimeError
 mixin_super_constructor_default_test: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
@@ -1413,3 +1475,12 @@ null_test/mirrors: Skip # Uses mirrors.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
+
+[ $compiler == dart2js && $minified && ! $dart2js_with_kernel ]
+mixin_mixin2_test: Fail # Issue 12605
+mixin_mixin3_test: Fail # Issue 12605
+mixin_mixin4_test: Fail # Issue 12605
+mixin_mixin5_test: Fail # Issue 12605
+mixin_mixin6_test: Fail # Issue 12605
+mixin_mixin_bound_test: RuntimeError # Issue 12605
+mixin_mixin_bound2_test: RuntimeError # Issue 12605
