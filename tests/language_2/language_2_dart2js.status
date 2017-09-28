@@ -461,7 +461,6 @@ generic_typedef_test: RuntimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
-invocation_mirror_test: RuntimeError
 many_generic_instanceof_test: RuntimeError
 vm/*: SkipByDesign # Tests for the VM.
 
