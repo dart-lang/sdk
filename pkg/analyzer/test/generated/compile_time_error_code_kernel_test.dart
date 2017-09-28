@@ -612,6 +612,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_typeAliasCannotReferenceItself_generic() async {
+    return super.test_typeAliasCannotReferenceItself_generic();
+  }
+
+  @override
+  @failingTest
   test_typeAliasCannotReferenceItself_parameterType_named() async {
     return super.test_typeAliasCannotReferenceItself_parameterType_named();
   }

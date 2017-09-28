@@ -846,6 +846,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitGenericTypeAlias(GenericTypeAlias node) {
+    GenericTypeAliasElement element = node.element;
+    if (_hasTypedefSelfReference(element.function)) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
+    }
+    return super.visitGenericTypeAlias(node);
+  }
+
+  @override
   Object visitIfStatement(IfStatement node) {
     _checkForNonBoolCondition(node.condition);
     return super.visitIfStatement(node);
@@ -6507,8 +6517,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Return `true` if the given [element] has direct or indirect reference to
    * itself from anywhere except a class element or type parameter bounds.
+   *
+   * [element] is either a [FunctionTypeAliasElement] or a
+   * [GenericFunctionTypeElement] declared by a [GenericTypeAliasElement].
    */
-  bool _hasTypedefSelfReference(Element element) {
+  bool _hasTypedefSelfReference(FunctionTypedElement element) {
+    if (element == null) {
+      return false;
+    }
     var visitor = new _HasTypedefSelfReferenceVisitor(element);
     element.accept(visitor);
     return visitor.hasSelfReference;
@@ -7038,7 +7054,11 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
 
 class _HasTypedefSelfReferenceVisitor
     extends GeneralizingElementVisitor<Object> {
-  final FunctionTypeAliasElement element;
+  /**
+   * Either a [FunctionTypeAliasElement] or a [GenericFunctionTypeElement]
+   * declared by a [GenericTypeAliasElement].
+   */
+  final FunctionTypedElement element;
   bool hasSelfReference = false;
 
   _HasTypedefSelfReferenceVisitor(this.element);

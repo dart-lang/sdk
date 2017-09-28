@@ -6164,6 +6164,22 @@ typedef D F();
     verify([source]);
   }
 
+  test_typeAliasCannotReferenceItself_generic() async {
+    Source source = addSource(r'''
+typedef F = void Function(List<G> l);
+typedef G = void Function(List<F> l);
+main() {
+  F foo(G g) => g;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+    ]);
+    verify([source]);
+  }
+
   test_typeAliasCannotReferenceItself_parameterType_named() async {
     Source source = addSource("typedef A({A a});");
     await computeAnalysisResult(source);
