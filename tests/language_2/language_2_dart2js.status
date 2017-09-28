@@ -661,6 +661,15 @@ constructor_duplicate_final_test/01: Pass
 constructor_duplicate_final_test/02: Pass
 
 [ $compiler == dart2js && $runtime == d8 && !$checked]
+mixin_mixin_test: RuntimeError
+mixin_mixin2_test: RuntimeError
+mixin_mixin3_test: RuntimeError
+mixin_mixin4_test: RuntimeError
+mixin_mixin5_test: RuntimeError
+mixin_mixin6_test: RuntimeError
+mixin_mixin7_test: RuntimeError
+mixin_mixin_bound2_test: RuntimeError
+mixin_mixin_type_arguments_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
