@@ -49,13 +49,16 @@ class InheritOneField extends OneField {
 
   InheritOneField.superWithInit() : super.init();
 
-  InheritOneField.initWithSuperInit()
+  InheritOneField.initWithSuperInit_correctOrder()
       : b = new Mark('bi'),
         super.init();
 
-  InheritOneField.initWithSuperInit2()
-      : super.init(),
-        b = new Mark('bi');
+  InheritOneField.initWithSuperInit_incorrectOrder()
+      :
+        super.init(), //# 01: compile-time error
+        b = new Mark('bi')
+        , super.init() //# none: ok
+  ;
 }
 
 String run(callback) {
@@ -77,7 +80,7 @@ main() {
   Expect.equals('b.bi.a.', run(() => new InheritOneField.init()));
   Expect.equals('b.a.ai.', run(() => new InheritOneField.superWithInit()));
   Expect.equals(
-      'b.bi.a.ai.', run(() => new InheritOneField.initWithSuperInit()));
+      'b.bi.a.ai.', run(() => new InheritOneField.initWithSuperInit_correctOrder()));
   Expect.equals(
-      'b.a.ai.bi.', run(() => new InheritOneField.initWithSuperInit2()));
+      'b.a.ai.bi.', run(() => new InheritOneField.initWithSuperInit_incorrectOrder()));
 }

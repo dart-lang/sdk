@@ -126,6 +126,9 @@ empty_block_case_test: MissingCompileTimeError
 enum_private_test/02: MissingCompileTimeError
 error_stacktrace_test/00: MissingCompileTimeError
 example_constructor_test: RuntimeError
+field3_test/01: MissingCompileTimeError
+field_initialization_order_test/none: RuntimeError
+field_method4_test: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
@@ -212,6 +215,8 @@ inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 interface_test/00: MissingCompileTimeError
+field_initialization_order_test/01: MissingCompileTimeError
+field_initialization_order_test/none: CompileTimeError
 method_name_test: Pass
 method_override2_test/none: Pass
 method_override2_test/*: MissingCompileTimeError
@@ -860,6 +865,17 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+enum_duplicate_test/01: RuntimeError
+enum_duplicate_test/02: RuntimeError
+enum_duplicate_test/none: RuntimeError
+enum_private_test/01: RuntimeError
+enum_private_test/none: RuntimeError
+enum_test: RuntimeError
+example_constructor_test: RuntimeError
+fauxverride_test/03: MissingCompileTimeError
+fauxverride_test/05: MissingCompileTimeError
+field_initialization_order_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
@@ -972,6 +988,13 @@ override_field_test/01: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+double_int_to_string_test: RuntimeError
+duplicate_export_negative_test: Fail
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
+duplicate_implements_test/03: MissingCompileTimeError
+duplicate_implements_test/04: MissingCompileTimeError
+yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
@@ -1092,6 +1115,7 @@ duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
 execute_finally7_test: RuntimeError
+efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 enum_mirror_test: RuntimeError
@@ -1119,6 +1143,17 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+enum_duplicate_test/01: RuntimeError
+enum_duplicate_test/02: RuntimeError
+enum_duplicate_test/none: RuntimeError
+enum_private_test/01: RuntimeError
+enum_private_test/02: RuntimeError
+enum_private_test/none: RuntimeError
+enum_test: RuntimeError
+example_constructor_test: RuntimeError
+fauxverride_test/03: MissingCompileTimeError
+fauxverride_test/05: MissingCompileTimeError
+field_initialization_order_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
@@ -1231,10 +1266,17 @@ override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
+full_stacktrace1_test: RuntimeError
+full_stacktrace2_test: RuntimeError
+unused_overridden_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+unused_overridden_async_test: RuntimeError
+vm/allocation_sinking_vm_test: RuntimeError
+vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+yieldstar_pause_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
-typedef_is_test: Crash
 inline_super_field_test: Crash
+typedef_is_test: Crash
 
 [ $compiler == dart2js && !$dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
@@ -1306,17 +1348,17 @@ function_type/function_type6_test: Crash # Issue 27394
 function_type/function_type7_test: Crash # Issue 27394
 function_type/function_type98_test: Crash # Issue 27394
 function_type/function_type99_test: Crash # Issue 27394
-generic_function_typedef_test: Crash # Issue 27394
 generic_function_typedef_test/none: Crash # Issue 27394
+generic_function_typedef_test: Crash # Issue 27394
 getter_setter_in_lib_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 call_through_getter_test: Fail, OK
 
 [ $compiler == dart2js && $minified && !$dart2js_with_kernel ]
-generic_closure_test: Fail # Issue 12605
-cyclic_type_test/0*: Fail # Issue 12605
 cyclic_type2_test: Fail # Issue 12605
+cyclic_type_test/0*: Fail # Issue 12605
+generic_closure_test: Fail # Issue 12605
 
 [ $compiler == dart2js && $fast_startup && !$dart2js_with_kernel ]
 instance_creation_in_function_annotation_test: Fail # mirrors not supported
@@ -1324,6 +1366,8 @@ deferred_constraints_constants_test/none: Fail # mirrors not supported
 deferred_constraints_constants_test/reference_after_load: Fail # mirrors not supported
 deferred_constraints_constants_test: Pass # mirrors not supported, passes for the wrong reason
 enum_mirror_test: Fail # mirrors not supported
+field_increment_bailout_test: Fail # mirrors not supported
+instance_creation_in_function_annotation_test: Fail # mirrors not supported
 invocation_mirror2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on_test: Fail # mirrors not supported

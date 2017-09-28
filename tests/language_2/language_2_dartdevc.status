@@ -21,6 +21,8 @@ black_listed_test/none: fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
+field_initialization_order_test/none: RuntimeError
+field3_test/01: MissingCompileTimeError
 generic_list_checked_test: CompileTimeError
 generic_local_functions_test: CompileTimeError
 generic_methods_closure_test: CompileTimeError # Issue 29920
@@ -169,6 +171,7 @@ call_closurization_test: RuntimeError # Issue 29920
 call_test: RuntimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.
+compile_time_constant10_test/none: RuntimeError
 compile_time_constant_a_test: RuntimeError # Issue 30526
 compile_time_constant_b_test: RuntimeError # Issue 29920
 compile_time_constant_d_test: RuntimeError # Issue 29920
@@ -203,6 +206,7 @@ enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
 example_constructor_test: RuntimeError
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?
+field_increment_bailout_test: RuntimeError # Issue 29920
 function_subtype_inline2_test: RuntimeError
 function_type/function_type50_test: RuntimeError # Issue 29920
 function_type/function_type58_test: RuntimeError # Issue 29920

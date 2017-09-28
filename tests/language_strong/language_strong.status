@@ -98,17 +98,6 @@ factory_redirection2_test: Skip
 factory_redirection3_cyclic_test: Skip
 factory_redirection_test: Skip
 factory_return_type_checked_test: Skip
-fauxverride_test: Skip
-field1_negative_test: Skip
-field2_negative_test: Skip
-field3_negative_test: Skip
-field4_negative_test: Skip
-field5_negative_test: Skip
-field6_negative_test: Skip
-field6a_negative_test: Skip
-field_decl_missing_var_type_test: Skip
-field_initialization_order_test: Skip
-field_method4_negative_test: Skip
 field_override2_test: Skip
 field_override3_test: Skip
 field_override4_test: Skip
@@ -390,12 +379,14 @@ type_variable_identifier_expression_test: Skip
 # async_star_test/04: CompileTimeError # Issue 28823
 # async_star_test/05: CompileTimeError # Issue 28823
 # async_star_test/none: CompileTimeError # Issue 28823
+# closure_side_effect_test: CompileTimeError # Issue 28823
 bit_operations_test/01: MissingStaticWarning # Issue 28823
 bit_operations_test/02: MissingStaticWarning # Issue 28823
 bit_operations_test/03: MissingStaticWarning # Issue 28823
 bit_operations_test/04: MissingStaticWarning # Issue 28823
-# closure_side_effect_test: CompileTimeError # Issue 28823
 field3a_negative_test: StaticWarning # Issue 28823
+interface_inherit_field_test: StaticWarning # Issue 28823
+internal_library_test/02: MissingStaticWarning # Issue 28823
 main_not_a_function_test/01: MissingStaticWarning # Issue 28823
 main_test/03: MissingStaticWarning # Issue 28823
 no_main_test/01: MissingStaticWarning # Issue 28823
@@ -434,7 +425,6 @@ double_int_to_string_test: RuntimeError # Issue 29920
 execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
-field_increment_bailout_test: RuntimeError # Issue 29920
 field_optimization3_test: RuntimeError # Issue 29920
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920

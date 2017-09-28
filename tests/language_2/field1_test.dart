@@ -6,11 +6,13 @@
 // in the class.
 
 class C {
-  get a {
+  var a;
+
+  get a {/*@compile-error=unspecified*/
     return 1;
   }
 
-  set a(int val) {
+  set a(int val) {/*@compile-error=unspecified*/
     var x = val;
   }
 
@@ -21,16 +23,14 @@ class C {
   set b(int val) {
     var x = val;
   }
-
-  var a;
 }
 
-class Field2NegativeTest {
+class Field1Test {
   static testMain() {
     var c = new C();
   }
 }
 
 main() {
-  Field2NegativeTest.testMain();
+  Field1Test.testMain();
 }

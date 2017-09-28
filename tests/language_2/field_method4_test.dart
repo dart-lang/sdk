@@ -9,7 +9,7 @@ class A {
     foo = () {};
   }
   void bar(var a) {
-    a.foo(); // Tries to invoke the non-existing method 'foo'.
+    a.foo();/*@compile-error=unspecified*/ // Tries to invoke the non-existing method 'foo'.
     /*
     'a.foo()' is a "Regular instance-method invocation". The guide says:
     "If no method is found, the result of the invocation expression is
@@ -21,13 +21,13 @@ class A {
   }
 }
 
-class FieldMethod4NegativeTest {
+class FieldMethod4Test {
   static testMain() {
     var a = new A();
-    a.bar();
+    a.bar();/*@compile-error=unspecified*/
   }
 }
 
 main() {
-  FieldMethod4NegativeTest.testMain();
+  FieldMethod4Test.testMain();
 }

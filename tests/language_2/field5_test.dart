@@ -2,35 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test to catch error reporting bugs in class fields declarations.
-// Should be an error because we have setter/getter functions and fields
-// in the class.
+// Should be an error because we have a function overriding a field name.
 
-class C {
+class A {
   var a;
-
-  get a {
+  int a() {/*@compile-error=unspecified*/
     return 1;
-  }
-
-  set a(int val) {
-    var x = val;
-  }
-
-  get b {
-    return 2;
-  }
-
-  set b(int val) {
-    var x = val;
   }
 }
 
-class Field1NegativeTest {
+class Field5Test {
   static testMain() {
-    var c = new C();
+    var a = new A();
   }
 }
 
 main() {
-  Field1NegativeTest.testMain();
+  Field5Test.testMain();
 }

@@ -142,6 +142,8 @@ dynamic_prefix_core_test/none: RuntimeError
 empty_block_case_test: MissingCompileTimeError
 enum_private_test/02: MissingCompileTimeError
 error_stacktrace_test/00: MissingCompileTimeError
+field3_test/01: MissingCompileTimeError
+field_method4_test: MissingCompileTimeError
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError

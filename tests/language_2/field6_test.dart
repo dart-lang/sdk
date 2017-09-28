@@ -5,21 +5,30 @@
 // Should be an error because we have a getter overriding a function name.
 
 class A {
-  int a() {
-    return 1;
-  }
+  int a() { // //# 00: ok
+    return 1;// //# 00: ok
+  }// //# 00: ok
 
-  int get a {
-    return 10;
-  }
+  int get a {// //# 00: compile-time error
+    return 10;// //# 00: ok
+  }// //# 00: ok
+
+  int get a {// //# 01: ok
+    return 10;// //# 01: ok
+  }// //# 01: ok
+
+  int a() {// //# 01: compile-time error
+    return 1;// //# 01: ok
+  }// //# 01: ok
+
 }
 
-class Field6NegativeTest {
+class Field6Test {
   static testMain() {
     var a = new A();
   }
 }
 
 main() {
-  Field6NegativeTest.testMain();
+  Field6Test.testMain();
 }
