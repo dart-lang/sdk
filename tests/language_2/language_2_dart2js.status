@@ -372,6 +372,11 @@ vm/*: SkipByDesign # Tests for the VM.
 minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
 
 [ $compiler == dart2js && $runtime != none ]
+not_enough_positional_arguments_test/00: MissingCompileTimeError
+not_enough_positional_arguments_test/03: MissingCompileTimeError
+not_enough_positional_arguments_test/06: MissingCompileTimeError
+not_enough_positional_arguments_test/07: MissingCompileTimeError
+null_test/mirrors: Skip # Uses mirrors.
 type_literal_test: RuntimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel ]
@@ -472,8 +477,13 @@ full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
+accessor_conflict_import2_test: RuntimeError # Issue 25626
+accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
+accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
+accessor_conflict_import_test: RuntimeError # Issue 25626
 assertion_test: RuntimeError # Issue 30326
 bit_operations_test: RuntimeError, OK # Issue 1533
+branch_canonicalization_test: RuntimeError # Issue 638.
 covariant_override/runtime_check_test: RuntimeError
 generic_closure_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
@@ -523,13 +533,6 @@ getters_setters2_test/none: RuntimeError
 if_null_precedence_test/none: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
-
-[ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
-accessor_conflict_import2_test: RuntimeError # Issue 25626
-accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
-accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
-accessor_conflict_import_test: RuntimeError # Issue 25626
-branch_canonicalization_test: RuntimeError # Issue 638.
 
 [ $compiler == dart2js && !$checked && !$enable_asserts && !$dart2js_with_kernel && $runtime != none ]
 assertion_test: RuntimeError # Issue 12748
@@ -682,6 +685,7 @@ regress_30339_test: RuntimeError # Issue 26429
 regress_30339_test: RuntimeError # Issue 30393
 
 [ $compiler == dart2js && $runtime != none && $checked ]
+assert_with_message_test: RuntimeError
 function_type/function_type0_test: RuntimeError # Issue 30476
 function_type/function_type10_test: RuntimeError # Issue 30476
 function_type/function_type12_test: RuntimeError # Issue 30476
@@ -766,10 +770,12 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type_alias2_test: RuntimeError
 
+[ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
+vm/async_await_catch_stacktrace_test: RuntimeError
+
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
-assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
 async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
 async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
@@ -777,7 +783,7 @@ async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type informatio
 async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
-async_star_cancel_while_paused_test: Fail
+async_star_cancel_while_paused_test: RuntimeError
 async_star_no_cancel2_test: RuntimeError
 async_star_no_cancel_test: RuntimeError
 async_star_pause_test: RuntimeError
@@ -817,11 +823,11 @@ constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
 constructor_named_arguments_test/none: RuntimeError
+constructor_redirect1_negative_test/01: Crash # Stack Overflow
 constructor_redirect1_negative_test/none: MissingCompileTimeError
-constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
-constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(A.named2#x), parameter(A.named2#y), parameter(A.named2#z)) for j:constructor(A.named2).
+constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
@@ -869,33 +875,16 @@ deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
 deferred_type_dependency_test/type_annotation: CompileTimeError
 double_int_to_string_test: RuntimeError
-double_int_to_string_test: RuntimeError
-duplicate_export_negative_test: Fail
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/03: MissingCompileTimeError
-duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
-duplicate_implements_test/04: MissingCompileTimeError
-dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-enum_duplicate_test/01: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
 enum_mirror_test: RuntimeError
-enum_private_test/01: RuntimeError
-enum_private_test/none: RuntimeError
-enum_test: RuntimeError
-example_constructor_test: RuntimeError
-example_constructor_test: RuntimeError
 execute_finally7_test: RuntimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
-field_initialization_order_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -932,13 +921,9 @@ generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_test: RuntimeError
-generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -959,73 +944,29 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError
-interface_test/00: Crash # 'package:front_end/src/fasta/kernel/body_builder.dart': Failed assertion: line 2160 pos 14: '!target.enclosingClass.isAbstract': is not true.
+interface_test/00: Crash # 'package:front_end/src/fasta/kernel/body_builder.dart': Failed assertion: line 2192 pos 14: '!target.enclosingClass.isAbstract': is not true.
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
 invocation_mirror2_test: RuntimeError
-is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
-is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
-is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
 issue21079_test: RuntimeError
-issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
-method_name_test: CompileTimeError
-method_override4_test: RuntimeError
-method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
-mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: RuntimeError
-mixin_mixin6_test: RuntimeError
-mixin_mixin7_test: RuntimeError
-mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
-mixin_mixin_test: RuntimeError
-mixin_mixin_type_arguments_test: RuntimeError
-mixin_of_mixin_test/07: CompileTimeError
-mixin_of_mixin_test/08: CompileTimeError
-mixin_of_mixin_test/09: CompileTimeError
-mixin_of_mixin_test/10: CompileTimeError
-mixin_of_mixin_test/11: CompileTimeError
-mixin_of_mixin_test/12: CompileTimeError
-mixin_of_mixin_test/13: CompileTimeError
-mixin_of_mixin_test/14: CompileTimeError
-mixin_of_mixin_test/15: CompileTimeError
-mixin_of_mixin_test/16: CompileTimeError
-mixin_of_mixin_test/17: CompileTimeError
-mixin_of_mixin_test/18: CompileTimeError
-mixin_of_mixin_test/19: CompileTimeError
-mixin_of_mixin_test/20: CompileTimeError
-mixin_of_mixin_test/21: CompileTimeError
-mixin_of_mixin_test/22: CompileTimeError
 mixin_of_mixin_test/none: CompileTimeError
-mixin_super_2_test: CompileTimeError
-mixin_super_bound2_test/01: CompileTimeError
-mixin_super_bound2_test/none: CompileTimeError
-mixin_super_constructor2_test: RuntimeError
+mixin_super_2_test/none: CompileTimeError
 mixin_super_constructor2_test: RuntimeError
 mixin_super_constructor_default_test: RuntimeError
-mixin_super_constructor_default_test: RuntimeError
-mixin_super_constructor_named_test/01: MissingCompileTimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
 mixin_super_constructor_named_test/none: RuntimeError
-mixin_super_constructor_named_test/none: RuntimeError
-mixin_super_constructor_positionals_test/01: MissingCompileTimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
 mixin_super_constructor_positionals_test/none: RuntimeError
-mixin_super_constructor_positionals_test/none: RuntimeError
-mixin_super_constructor_test: RuntimeError
 mixin_super_constructor_test: RuntimeError
 mixin_super_test: CompileTimeError
-mixin_super_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
-mixin_super_use_test: CompileTimeError
-mixin_superclass_test: CompileTimeError
 mixin_superclass_test: CompileTimeError
 mixin_supertype_subclass2_test/01: CompileTimeError
 mixin_supertype_subclass2_test/02: CompileTimeError
@@ -1045,7 +986,6 @@ mixin_supertype_subclass4_test/03: CompileTimeError
 mixin_supertype_subclass4_test/04: CompileTimeError
 mixin_supertype_subclass4_test/05: CompileTimeError
 mixin_supertype_subclass4_test/none: CompileTimeError
-mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -1053,7 +993,6 @@ multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
-named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
@@ -1068,25 +1007,22 @@ override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
-type_parameter_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-type_parameter_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-type_parameter_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-type_parameter_test/04: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-type_parameter_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-type_parameter_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-type_parameter_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/js_backend/constant_emitter.dart': Failed assertion: line 287 pos 14: 'type is DynamicType': is not true.
+type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/04: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/05: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/06: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/07: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/08: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
-wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-yieldstar_pause_test: RuntimeError
-
-[ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
-vm/async_await_catch_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
-assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
 async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
 async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
@@ -1094,7 +1030,7 @@ async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type informatio
 async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
-async_star_cancel_while_paused_test: Fail
+async_star_cancel_while_paused_test: RuntimeError
 async_star_no_cancel2_test: RuntimeError
 async_star_no_cancel_test: RuntimeError
 async_star_pause_test: RuntimeError
@@ -1133,11 +1069,11 @@ constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
 constructor_named_arguments_test/none: RuntimeError
+constructor_redirect1_negative_test/01: Crash # Stack Overflow
 constructor_redirect1_negative_test/none: MissingCompileTimeError
-constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
-constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(A.named2#x), parameter(A.named2#y), parameter(A.named2#z)) for j:constructor(A.named2).
+constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
@@ -1185,7 +1121,6 @@ deferred_regression_28678_test: CompileTimeError
 deferred_shadow_load_library_test: RuntimeError
 deferred_shared_and_unshared_classes_test: CompileTimeError
 deferred_static_seperate_test: CompileTimeError
-deferred_super_dependency_test/01: Pass
 deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
@@ -1196,26 +1131,12 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
-dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-enum_duplicate_test/01: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
 enum_mirror_test: RuntimeError
-enum_private_test/01: RuntimeError
-enum_private_test/02: RuntimeError
-enum_private_test/none: RuntimeError
-enum_test: RuntimeError
-example_constructor_test: RuntimeError
-example_constructor_test: RuntimeError
 execute_finally7_test: RuntimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
-field_initialization_order_test: RuntimeError
 full_stacktrace1_test: RuntimeError
-full_stacktrace1_test: RuntimeError
-full_stacktrace2_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
@@ -1253,13 +1174,9 @@ generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_test: RuntimeError
-generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -1283,21 +1200,17 @@ integer_division_by_zero_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 invocation_mirror2_test: RuntimeError
 invocation_mirror_test: RuntimeError
-is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
-is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
-is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
 issue21079_test: RuntimeError
-issue23244_test: Crash # UnimplementedError: ir.DirectPropertyGet
 issue_1751477_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
-method_name_test: CompileTimeError
-method_override4_test: RuntimeError
-method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
+mixin_mixin_bound_test: RuntimeError
+mixin_of_mixin_test/none: CompileTimeError
+mixin_super_2_test/none: CompileTimeError
 mixin_super_constructor2_test: RuntimeError
 mixin_super_constructor_default_test: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
@@ -1326,7 +1239,6 @@ mixin_supertype_subclass4_test/03: CompileTimeError
 mixin_supertype_subclass4_test/04: CompileTimeError
 mixin_supertype_subclass4_test/05: CompileTimeError
 mixin_supertype_subclass4_test/none: CompileTimeError
-mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 30847
 modulo_test: RuntimeError
@@ -1336,7 +1248,6 @@ multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
-named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
@@ -1351,19 +1262,17 @@ override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
-type_parameter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
-type_parameter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
-type_parameter_test/03: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
-type_parameter_test/04: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
-type_parameter_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
-type_parameter_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
-type_parameter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/04: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/05: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/06: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/07: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/08: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
-unused_overridden_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-unused_overridden_async_test: RuntimeError
-vm/allocation_sinking_vm_test: RuntimeError
-vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-yieldstar_pause_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
@@ -1382,9 +1291,6 @@ await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 default_factory2_test/01: Fail # Issue 14121
-
-[ $compiler == dart2js && $runtime != none && $checked ]
-assert_with_message_test: RuntimeError
 
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
 bool_check_test: RuntimeError # Issue 29647
@@ -1462,6 +1368,7 @@ instance_creation_in_function_annotation_test: Fail # mirrors not supported
 invocation_mirror2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on_test: Fail # mirrors not supported
+issue21079_test: Fail # mirrors not supported
 null_test/0*: Pass # mirrors not supported, fails for the wrong reason
 null_test/none: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
@@ -1473,15 +1380,6 @@ await_future_test: Pass, Timeout # Issue 26735
 string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && !$dart2js_with_kernel ]
-deferred_global_test: Crash # Issue 27394
-
-[ $compiler == dart2js && $fast_startup && !$dart2js_with_kernel ]
-issue21079_test: Fail # mirrors not supported
-
-[ $compiler == dart2js && $runtime != drt ]
-issue23244_test: RuntimeError # 23244
-
-[ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && !$dart2js_with_kernel ]
 const_types_test/23: Crash # Issue 27394
 const_types_test/24: Crash # Issue 27394
 const_types_test/25: Crash # Issue 27394
@@ -1491,16 +1389,13 @@ const_types_test/28: Crash # Issue 27394
 const_types_test/29: Crash # Issue 27394
 const_types_test/30: Crash # Issue 27394
 const_types_test/41: Crash # Issue 27394
+deferred_global_test: Crash # Issue 27394
+
+[ $compiler == dart2js && $runtime != drt ]
+issue23244_test: RuntimeError # 23244
 
 [ $compiler == dart2js && $runtime == chrome ]
 enum_mirror_test: pass
-
-[ $compiler == dart2js && $runtime != none ]
-not_enough_positional_arguments_test/00: MissingCompileTimeError
-not_enough_positional_arguments_test/03: MissingCompileTimeError
-not_enough_positional_arguments_test/06: MissingCompileTimeError
-not_enough_positional_arguments_test/07: MissingCompileTimeError
-null_test/mirrors: Skip # Uses mirrors.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
