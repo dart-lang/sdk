@@ -649,31 +649,31 @@ static_setter_get_test/01: Crash # Issue 27394
 static_top_level_test/00: Crash # Issue 27394
 static_top_level_test/04: Crash # Issue 27394
 
-[ $compiler == dart2js && !$checked ]
+[ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
-
-[ $compiler == dart2js && $runtime != none && !$checked ]
-type_parameter_test/05: MissingCompileTimeError
 
 [ $compiler == dart2js && !$checked && $minified && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == d8 ]
-constructor_call_as_function_test/01: MissingCompileTimeError
-constructor_duplicate_final_test/01: Pass
-constructor_duplicate_final_test/02: Pass
-
-[ $compiler == dart2js && $runtime == d8 && !$checked]
-mixin_mixin_test: RuntimeError
+[ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
-mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: RuntimeError
-mixin_mixin6_test: RuntimeError
-mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_type_arguments_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
+type_parameter_test/05: MissingCompileTimeError
+
+[ $compiler == dart2js && $minified && !$dart2js_with_kernel ]
+cyclic_type2_test: Fail # Issue 12605
+cyclic_type_test/0*: Fail # Issue 12605
+generic_closure_test: Fail # Issue 12605
+mixin_mixin2_test: Fail # Issue 12605
+mixin_mixin3_test: Fail # Issue 12605
+mixin_mixin4_test: Fail # Issue 12605
+mixin_mixin5_test: Fail # Issue 12605
+mixin_mixin6_test: Fail # Issue 12605
+mixin_mixin_bound2_test: RuntimeError # Issue 12605
+mixin_mixin_bound_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
@@ -896,6 +896,7 @@ function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubcla
 function_subtype_closure1_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
+function_subtype_inline2_test: RuntimeError
 function_subtype_named1_test: RuntimeError
 function_subtype_named2_test: RuntimeError
 function_subtype_not1_test: RuntimeError
@@ -955,7 +956,16 @@ method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
+mixin_mixin2_test: RuntimeError
+mixin_mixin3_test: RuntimeError
+mixin_mixin4_test: RuntimeError
+mixin_mixin5_test: RuntimeError
+mixin_mixin6_test: RuntimeError
+mixin_mixin7_test: RuntimeError
+mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
+mixin_mixin_test: RuntimeError
+mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
 mixin_super_constructor2_test: RuntimeError
@@ -986,6 +996,7 @@ mixin_supertype_subclass4_test/03: CompileTimeError
 mixin_supertype_subclass4_test/04: CompileTimeError
 mixin_supertype_subclass4_test/05: CompileTimeError
 mixin_supertype_subclass4_test/none: CompileTimeError
+mixin_type_parameters_super_test: RuntimeError
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -1149,6 +1160,7 @@ function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubcla
 function_subtype_closure1_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
+function_subtype_inline2_test: RuntimeError
 function_subtype_named1_test: RuntimeError
 function_subtype_named2_test: RuntimeError
 function_subtype_not1_test: RuntimeError
@@ -1208,7 +1220,16 @@ method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
+mixin_mixin2_test: RuntimeError
+mixin_mixin3_test: RuntimeError
+mixin_mixin4_test: RuntimeError
+mixin_mixin5_test: RuntimeError
+mixin_mixin6_test: RuntimeError
+mixin_mixin7_test: RuntimeError
+mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
+mixin_mixin_test: RuntimeError
+mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
 mixin_super_constructor2_test: RuntimeError
@@ -1239,6 +1260,7 @@ mixin_supertype_subclass4_test/03: CompileTimeError
 mixin_supertype_subclass4_test/04: CompileTimeError
 mixin_supertype_subclass4_test/05: CompileTimeError
 mixin_supertype_subclass4_test/none: CompileTimeError
+mixin_type_parameters_super_test: RuntimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 30847
 modulo_test: RuntimeError
@@ -1290,15 +1312,13 @@ await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 [ $compiler == dart2js && $checked && !$dart2js_with_kernel ]
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
+covariant_subtyping_test: CompileTimeError
 default_factory2_test/01: Fail # Issue 14121
 
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
 bool_check_test: RuntimeError # Issue 29647
 bool_condition_check_test: RuntimeError
 generic_test: RuntimeError, OK
-
-[ $compiler == dart2js && $checked ]
-covariant_subtyping_test: CompileTimeError
 
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 function_type/function_type14_test: Crash # Issue 27394
@@ -1349,13 +1369,8 @@ generic_function_typedef_test/none: Crash # Issue 27394
 generic_function_typedef_test: Crash # Issue 27394
 getter_setter_in_lib_test: Crash # Issue 27394
 
-[ $compiler == dart2js && $runtime == safarimobilesim ]
+[ $compiler == dart2js && $runtime == safarimobilesim && !$dart2js_with_kernel ]
 call_through_getter_test: Fail, OK
-
-[ $compiler == dart2js && $minified && !$dart2js_with_kernel ]
-cyclic_type2_test: Fail # Issue 12605
-cyclic_type_test/0*: Fail # Issue 12605
-generic_closure_test: Fail # Issue 12605
 
 [ $compiler == dart2js && $fast_startup && !$dart2js_with_kernel ]
 instance_creation_in_function_annotation_test: Fail # mirrors not supported
@@ -1373,10 +1388,10 @@ null_test/0*: Pass # mirrors not supported, fails for the wrong reason
 null_test/none: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
 
-[ $compiler == dart2js && $runtime == chrome && $system == macos ]
+[ $compiler == dart2js && $runtime == chrome && $system == macos && !$dart2js_with_kernel ]
 await_future_test: Pass, Timeout # Issue 26735
 
-[ $compiler == dart2js && $system == windows ]
+[ $compiler == dart2js && $system == windows && !$dart2js_with_kernel ]
 string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && !$dart2js_with_kernel ]
@@ -1394,17 +1409,8 @@ deferred_global_test: Crash # Issue 27394
 [ $compiler == dart2js && $runtime != drt ]
 issue23244_test: RuntimeError # 23244
 
-[ $compiler == dart2js && $runtime == chrome ]
+[ $compiler == dart2js && $runtime == chrome && !$dart2js_with_kernel ]
 enum_mirror_test: pass
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
-
-[ $compiler == dart2js && $minified && ! $dart2js_with_kernel ]
-mixin_mixin2_test: Fail # Issue 12605
-mixin_mixin3_test: Fail # Issue 12605
-mixin_mixin4_test: Fail # Issue 12605
-mixin_mixin5_test: Fail # Issue 12605
-mixin_mixin6_test: Fail # Issue 12605
-mixin_mixin_bound_test: RuntimeError # Issue 12605
-mixin_mixin_bound2_test: RuntimeError # Issue 12605
