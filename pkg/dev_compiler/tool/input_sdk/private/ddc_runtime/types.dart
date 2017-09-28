@@ -331,13 +331,13 @@ class FunctionType extends AbstractFunctionType {
     // identical function types that don't canonicalize
     // to the same object since we won't fall into this
     // fast path.
-    if (JS('bool', '# === void 0', extra) && JS('bool', '#.length < 3', args)) {
+    if (extra == null && JS('bool', '#.length < 3', args)) {
       return _createSmall(JS('', '#.length', args), definite, returnType, args);
     }
     args = _canonicalizeArray(definite, args, _fnTypeArrayArgMap);
     var keys;
     var create;
-    if (JS('bool', '# === void 0', extra)) {
+    if (extra == null) {
       keys = [returnType, args];
       create = () => new FunctionType(returnType, args, [], JS('', '{}'));
     } else if (JS('bool', '# instanceof Array', extra)) {
@@ -674,13 +674,13 @@ typedef(name, AbstractFunctionType Function() closure) =>
 /// Create a definite function type.
 ///
 /// No substitution of dynamic for bottom occurs.
-fnType(returnType, List args, extra) =>
+fnType(returnType, List args, [extra = undefined]) =>
     FunctionType.create(true, returnType, args, extra);
 
 /// Create a "fuzzy" function type.
 ///
 /// If any arguments are dynamic they will be replaced with bottom.
-fnTypeFuzzy(returnType, List args, extra) =>
+fnTypeFuzzy(returnType, List args, [extra = undefined]) =>
     FunctionType.create(false, returnType, args, extra);
 
 /// Creates a definite generic function type.

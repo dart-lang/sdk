@@ -92,7 +92,6 @@ accessor_conflict_import2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
-const_objects_are_immutable_test: RuntimeError # Issue 29897
 method_override_test: CompileTimeError # Negative test
 method_override7_test/03: MissingCompileTimeError # Issue 30514
 mixin_super_test: RuntimeError
@@ -172,12 +171,8 @@ branch_canonicalization_test: RuntimeError # Issue 29920
 call_closurization_test: RuntimeError # Issue 29920
 call_test: RuntimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
-canonical_const_test: RuntimeError # Ints and doubles are unified.
-compile_time_constant10_test/none: RuntimeError
-compile_time_constant_a_test: RuntimeError # Issue 30526
-compile_time_constant_b_test: RuntimeError # Issue 29920
 compile_time_constant_d_test: RuntimeError # Issue 29920
-compile_time_constant10_test/none: RuntimeError
+compile_time_constant_e_test: RuntimeError # Issue 30466
 const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
 constructor12_test: RuntimeError # Issue 29920

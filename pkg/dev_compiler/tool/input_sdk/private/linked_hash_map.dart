@@ -445,3 +445,24 @@ class LinkedHashMapKeyIterator<E> implements Iterator<E> {
     }
   }
 }
+
+class ImmutableMap<K, V> extends JsLinkedHashMap<K, V> {
+  ImmutableMap(JSArray elements) {
+    if (elements == null) return;
+    for (var i = 0, end = elements.length - 1; i < end; i += 2) {
+      super[JS('', '#[#]', elements, i)] = JS('', '#[#]', elements, i + 1);
+    }
+  }
+
+  void operator []=(Object key, Object value) {
+    throw _unsupported();
+  }
+
+  void addAll(Object other) => throw _unsupported();
+  void clear() => throw _unsupported();
+  V remove(Object key) => throw _unsupported();
+  V putIfAbsent(Object key, Object ifAbsent()) => throw _unsupported();
+
+  static Error _unsupported() =>
+      new UnsupportedError("Cannot modify unmodifiable map");
+}

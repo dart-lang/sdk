@@ -8,12 +8,12 @@ part of dart._runtime;
 // TODO(ochafik): Rewrite some of these in Dart when possible.
 
 /// The JavaScript undefined constant.
-/// 
+///
 /// This is initialized by DDC to JS void 0.
 const undefined = null;
 
-defineProperty(obj, name, desc) =>
-    JS('', 'Object.defineProperty(#, #, #)', obj, name, desc);
+final Function(Object, Object, Object) defineProperty =
+    JS('', 'Object.defineProperty');
 
 defineValue(obj, name, value) {
   defineProperty(obj, name,
@@ -25,22 +25,23 @@ void defineGetter(obj, name, getter) {
   defineProperty(obj, name, JS('', '{get: #}', getter));
 }
 
-void defineMemoizedGetter(obj, name, compute) {
+void defineLazyGetter(obj, name, compute) {
+  var x = null;
   defineProperty(
       obj,
       name,
-      JS('', '{get: () => #, configurable: true}',
-          defineValue(obj, name, JS('', '#()', compute))));
+      JS('', '{ get: () => # != null ? # : # = #(), configurable: true }', x, x,
+          x, compute));
 }
 
-getOwnPropertyDescriptor(obj, name) =>
-    JS('', 'Object.getOwnPropertyDescriptor(#, #)', obj, name);
+final Function(Object, Object) getOwnPropertyDescriptor =
+    JS('', 'Object.getOwnPropertyDescriptor');
 
-Iterable getOwnPropertyNames(obj) =>
-    JS('', 'Object.getOwnPropertyNames(#)', obj);
+final Function(Object) getOwnPropertyNames =
+    JS('', 'Object.getOwnPropertyNames');
 
-Iterable getOwnPropertySymbols(obj) =>
-    JS('', 'Object.getOwnPropertySymbols(#)', obj);
+final Function(Object) getOwnPropertySymbols =
+    JS('', 'Object.getOwnPropertySymbols');
 
 final hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
 
@@ -75,28 +76,28 @@ safeGetOwnProperty(obj, name) {
 defineLazyField(to, name, desc) => JS(
     '',
     '''(() => {
-    let init = $desc.get;
-    let value = null;
-    $desc.get = function() {
-      if (init == null) return value;
+  let init = $desc.get;
+  let value = null;
+  $desc.get = function() {
+    if (init == null) return value;
 
-      // Compute and store the value, guarding against reentry.
-      let f = init;
-      init = () => $throwCyclicInitializationError($name);
-      try {
-        return value = f();
-      } finally {
-        init = null;
-      }
-    };
-    $desc.configurable = true;
-    if ($desc.set != null) {
-      $desc.set = function(x) {
-        init = null;
-        value = x;
-      };
+    // Compute and store the value, guarding against reentry.
+    let f = init;
+    init = () => $throwCyclicInitializationError($name);
+    try {
+      return value = f();
+    } finally {
+      init = null;
     }
-    return $defineProperty($to, $name, $desc);
+  };
+  $desc.configurable = true;
+  if ($desc.set != null) {
+    $desc.set = function(x) {
+      init = null;
+      value = x;
+    };
+  }
+  return ${defineProperty(to, name, desc)};
 })()''');
 
 copyTheseProperties(to, from, names) {

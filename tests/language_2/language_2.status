@@ -172,9 +172,5 @@ issue_25671b_test/01: CompileTimeError
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
 
-[ $compiler == dartdevc ]
-compile_time_constant_e_test: RuntimeError # Issue 30466
-compile_time_constant_k_test/none: RuntimeError # Issue 30466
-
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash

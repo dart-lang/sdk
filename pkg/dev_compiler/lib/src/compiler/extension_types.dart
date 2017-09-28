@@ -150,29 +150,4 @@ class ExtensionTypeSet {
 
   bool hasNativeSubtype(DartType type) =>
       isNativeInterface(type.element) || isNativeClass(type.element);
-
-  /// Collects all supertypes that may themselves contain native subtypes,
-  /// excluding [Object], for example `List` is implemented by several native
-  /// types.
-  LinkedHashSet<ClassElement> collectNativeInterfaces(ClassElement element) {
-    var types = new LinkedHashSet<ClassElement>();
-    _collectNativeInterfaces(element.type, types);
-    return types;
-  }
-
-  void _collectNativeInterfaces(InterfaceType type, Set<ClassElement> types) {
-    if (type.isObject) {
-      types.add(type.element);
-      return;
-    }
-    var element = type.element;
-    if (hasNativeSubtype(type)) types.add(element);
-    for (var m in element.mixins.reversed) {
-      _collectNativeInterfaces(m, types);
-    }
-    for (var i in element.interfaces) {
-      _collectNativeInterfaces(i, types);
-    }
-    _collectNativeInterfaces(element.supertype, types);
-  }
 }
