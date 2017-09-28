@@ -1,3 +1,7 @@
+## 1.1.2
+
+* Rollback SDK constraint update for 2.0.0. No longer needed.
+
 ## 1.1.1
 * Update SDK constraint to be 2.0.0 dev friendly.
 
