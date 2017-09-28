@@ -201,7 +201,7 @@ class _SyncIterable extends col::IterableBase<dynamic> {
 class _InvocationMirror extends self::Object implements self::Invocation {
   constructor •(self::String _functionName, self::List<dynamic> _argumentsDescriptor, self::List<dynamic> _arguments, self::bool _isSuperInvocation) → void;
   get memberName() → self::Symbol;
-  get typeArguments() → self::List<dynamic>;
+  get typeArguments() → self::List<self::Type>;
   get positionalArguments() → self::List<dynamic>;
   get namedArguments() → self::Map<self::Symbol, dynamic>;
   get isMethod() → self::bool;
@@ -295,6 +295,7 @@ abstract class int extends self::num {
 }
 abstract class Invocation extends self::Object {
   abstract get memberName() → self::Symbol;
+  abstract get typeArguments() → self::List<self::Type>;
   abstract get positionalArguments() → self::List<dynamic>;
   abstract get namedArguments() → self::Map<self::Symbol, dynamic>;
   abstract get isMethod() → self::bool;
@@ -438,14 +439,12 @@ class Object {
   static method _objectHashCode(dynamic obj) → self::int;
   get _identityHashCode() → self::int;
   static method _toString(dynamic obj) → self::String;
-  method _noSuchMethod(self::bool isMethod, self::String memberName, self::int type, self::List<dynamic> arguments, self::Map<self::String, dynamic> namedArguments) → dynamic;
   static method _haveSameRuntimeType(dynamic a, dynamic b) → self::bool;
   method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → self::bool;
   method _simpleInstanceOf(dynamic type) → self::bool;
   method _simpleInstanceOfTrue(dynamic type) → self::bool;
   method _simpleInstanceOfFalse(dynamic type) → self::bool;
   method _as(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dynamic;
-  static method _symbolMapToStringMap(self::Map<self::Symbol, dynamic> map) → dynamic;
 }
 abstract class Pattern extends self::Object {
   abstract method allMatches(self::String string, [self::int start]) → self::Iterable<self::Match>;
