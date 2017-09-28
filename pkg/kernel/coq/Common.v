@@ -125,6 +125,19 @@ Module ListExtensions.
     induction l; crush.
   Qed.
 
+  Fixpoint list_all {A} (f : A -> Prop) (l : list A) :=
+    match l with
+    | nil => True
+    | (x::xs) => f x /\ list_all f xs
+    end.
+
+  Lemma forall_list_all : forall A P (l : list A), Forall P l <-> list_all P l.
+    intros.
+    apply conj.
+    intro f.
+    induction f; crush.
+    induction l; crush.
+  Qed.
 End ListExtensions.
 
 (* These could be generalized and factored into a functor, like FMapFacts, but
@@ -132,6 +145,7 @@ End ListExtensions.
 Module MoreNatMapFacts.
 
 Module N := Coq.Arith.PeanoNat.Nat.
+
 Lemma add_3 {A} : forall m x (y y' : A), NatMap.MapsTo x y m /\ NatMap.MapsTo x y' m -> y = y'.
   intuition.
   set (Fx := NatMap.find x m).
@@ -139,6 +153,22 @@ Lemma add_3 {A} : forall m x (y y' : A), NatMap.MapsTo x y m /\ NatMap.MapsTo x 
   pose proof (NatMap.find_1 H0).
   pose proof (NatMap.find_1 H1).
   crush.
+Qed.
+
+Lemma maps_in_mapsto :
+  forall A (m : NatMap.t A) key,
+  NatMap.In key m ->
+  exists el, NatMap.MapsTo key el m.
+Proof.
+  intros.
+  pose proof (NatMapFacts.find_mapsto_iff m key).
+  pose proof (NatMapFacts.in_find_iff m key).
+    unfold iff in H1. destruct H1 as [H1a H1b].
+  pose proof (H1a H).
+  destruct (NatMap.find key m) eqn:?.
+    exists a. pose proof (H0 a). unfold iff in H2. destruct H2 as [H2a H2b].
+      apply H2b. congruence.
+    contradiction.
 Qed.
 
 End MoreNatMapFacts.

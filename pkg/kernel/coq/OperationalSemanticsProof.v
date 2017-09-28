@@ -11,24 +11,7 @@ Require Import ObjectModel.
 Require Import OperationalSemantics.
 
 Import Common.NatMapFacts.
-
-
-Lemma maps_in_mapsto :
-  forall A (m : NatMap.t A) key,
-  NatMap.In key m ->
-  exists el, NatMap.MapsTo key el m.
-Proof.
-  intros.
-  pose proof (NatMapFacts.find_mapsto_iff m key).
-  pose proof (NatMapFacts.in_find_iff m key).
-    unfold iff in H1. destruct H1 as [H1a H1b].
-  pose proof (H1a H).
-  destruct (NatMap.find key m) eqn:?.
-    exists a. pose proof (H0 a). unfold iff in H2. destruct H2 as [H2a H2b].
-      apply H2b. congruence.
-    contradiction.
-Qed.
-
+Import Common.MoreNatMapFacts.
 
 Section OperationalSemanticsSpec.
 
