@@ -1239,7 +1239,8 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
     const Function& target = Function::ZoneHandle(
         Z, I->object_store()->async_clear_thread_stack_trace());
     ASSERT(!target.IsNull());
-    instructions += StaticCall(TokenPosition::kNoSource, target, 0);
+    instructions += StaticCall(TokenPosition::kNoSource, target,
+                               /* argument_count = */ 0, ICData::kStatic);
     instructions += Drop();
   }
 
@@ -1254,8 +1255,10 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
 
 Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Function& target,
-                                      intptr_t argument_count) {
-  return StaticCall(position, target, argument_count, Array::null_array());
+                                      intptr_t argument_count,
+                                      ICData::RebindRule rebind_rule) {
+  return StaticCall(position, target, argument_count, Array::null_array(),
+                    rebind_rule);
 }
 
 static intptr_t GetResultCidOfListFactory(Zone* zone,
@@ -1283,11 +1286,12 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Function& target,
                                       intptr_t argument_count,
                                       const Array& argument_names,
+                                      ICData::RebindRule rebind_rule,
                                       intptr_t type_args_count) {
   ArgumentArray arguments = GetArguments(argument_count);
-  StaticCallInstr* call =
-      new (Z) StaticCallInstr(position, target, type_args_count, argument_names,
-                              arguments, ic_data_array_, GetNextDeoptId());
+  StaticCallInstr* call = new (Z)
+      StaticCallInstr(position, target, type_args_count, argument_names,
+                      arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {
@@ -1412,7 +1416,8 @@ Fragment FlowGraphBuilder::StringInterpolateSingle(TokenPosition position) {
              kTypeArgsLen, kNumberOfArguments, kNoArgumentNames));
   Fragment instructions;
   instructions += PushArgument();
-  instructions += StaticCall(position, function, 1);
+  instructions +=
+      StaticCall(position, function, /* argument_count = */ 1, ICData::kStatic);
   return instructions;
 }
 
@@ -1451,7 +1456,8 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   instructions += Constant(H.DartSymbol("Malformed type."));
   instructions += PushArgument();  // message
 
-  instructions += StaticCall(TokenPosition::kNoSource, constructor, 5);
+  instructions += StaticCall(TokenPosition::kNoSource, constructor,
+                             /* argument_count = */ 5, ICData::kStatic);
   instructions += Drop();
 
   // Throw the exception
@@ -1490,7 +1496,8 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
   instructions += NullConstant();
   instructions += PushArgument();  // argumentNames
 
-  instructions += StaticCall(TokenPosition::kNoSource, throw_function, 6);
+  instructions += StaticCall(TokenPosition::kNoSource, throw_function,
+                             /* argument_count = */ 6, ICData::kStatic);
   // Leave "result" on the stack since callers expect it to be there (even
   // though the function will result in an exception).
 
@@ -1858,7 +1865,8 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
       Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
                                   H.DartSymbol("_evaluateAssertion")));
   ASSERT(!target.IsNull());
-  return StaticCall(TokenPosition::kNoSource, target, 1);
+  return StaticCall(TokenPosition::kNoSource, target, /* argument_count = */ 1,
+                    ICData::kStatic);
 }
 
 Fragment FlowGraphBuilder::CheckReturnTypeInCheckedMode() {
@@ -2037,7 +2045,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
       Z, mirror_class.LookupStaticFunction(
              Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
   ASSERT(!allocation_function.IsNull());
-  body += StaticCall(TokenPosition::kMinSource, allocation_function, 4);
+  body += StaticCall(TokenPosition::kMinSource, allocation_function,
+                     /* argument_count = */ 4, ICData::kStatic);
   body += PushArgument();  // For the call to noSuchMethod.
 
   const int kTypeArgsLen = 0;
@@ -2054,7 +2063,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
         Class::Handle(Z, I->object_store()->object_class()),
         Symbols::NoSuchMethod(), two_arguments);
   }
-  body += StaticCall(TokenPosition::kMinSource, no_such_method, 2);
+  body += StaticCall(TokenPosition::kMinSource, no_such_method,
+                     /* argument_count = */ 2, ICData::kNSMDispatch);
   body += Return(TokenPosition::kNoSource);
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, next_block_id_ - 1);

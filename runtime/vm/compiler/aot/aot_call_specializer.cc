@@ -206,10 +206,10 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
     args->Add(arg);
     const intptr_t kTypeArgsLen = 0;
     ASSERT(call->type_args_len() == kTypeArgsLen);
-    StaticCallInstr* static_call = new (Z)
-        StaticCallInstr(call->token_pos(), have_same_runtime_type, kTypeArgsLen,
-                        Object::null_array(),  // argument_names
-                        args, call->deopt_id(), call->CallCount());
+    StaticCallInstr* static_call = new (Z) StaticCallInstr(
+        call->token_pos(), have_same_runtime_type, kTypeArgsLen,
+        Object::null_array(),  // argument_names
+        args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
     static_call->set_result_cid(kBoolCid);
     ReplaceCall(call, static_call);
     return true;
@@ -678,7 +678,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           // the computed single_target.
           ic_data = ICData::New(function, instr->function_name(),
                                 args_desc_array, Thread::kNoDeoptId,
-                                /* args_tested = */ 1, false);
+                                /* args_tested = */ 1, ICData::kOptimized);
           for (intptr_t j = 0; j < i; j++) {
             ic_data.AddReceiverCheck(class_ids[j], single_target);
           }
@@ -699,7 +699,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           const ICData& ic_data = ICData::Handle(
               ICData::New(flow_graph()->function(), instr->function_name(),
                           args_desc_array, Thread::kNoDeoptId,
-                          /* args_tested = */ 1, false));
+                          /* args_tested = */ 1, ICData::kOptimized));
           cls = single_target.Owner();
           ic_data.AddReceiverCheck(cls.id(), single_target);
           instr->set_ic_data(&ic_data);
@@ -819,10 +819,10 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   ASSERT(target.IsRecognized() && target.always_inline());
 
   const intptr_t kTypeArgsLen = 0;
-  StaticCallInstr* new_call =
-      new (Z) StaticCallInstr(call->token_pos(), target, kTypeArgsLen,
-                              Object::null_array(),  // argument_names
-                              args, call->deopt_id(), call->CallCount());
+  StaticCallInstr* new_call = new (Z) StaticCallInstr(
+      call->token_pos(), target, kTypeArgsLen,
+      Object::null_array(),  // argument_names
+      args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
   Environment* copy =
       call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
   for (intptr_t i = 0; i < args->length(); ++i) {
@@ -896,10 +896,10 @@ bool AotCallSpecializer::TryReplaceTypeCastWithRangeCheck(
   ASSERT(target.always_inline());
 
   const intptr_t kTypeArgsLen = 0;
-  StaticCallInstr* new_call =
-      new (Z) StaticCallInstr(call->token_pos(), target, kTypeArgsLen,
-                              Object::null_array(),  // argument_names
-                              args, call->deopt_id(), call->CallCount());
+  StaticCallInstr* new_call = new (Z) StaticCallInstr(
+      call->token_pos(), target, kTypeArgsLen,
+      Object::null_array(),  // argument_names
+      args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
   Environment* copy =
       call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
   for (intptr_t i = 0; i < args->length(); ++i) {

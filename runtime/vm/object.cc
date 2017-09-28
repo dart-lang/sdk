@@ -12916,13 +12916,17 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
   }
 }
 
-void ICData::SetIsStaticCall(bool static_call) const {
+ICData::RebindRule ICData::rebind_rule() const {
+  return (ICData::RebindRule)RebindRuleBits::decode(raw_ptr()->state_bits_);
+}
+
+void ICData::set_rebind_rule(uint32_t rebind_rule) const {
   StoreNonPointer(&raw_ptr()->state_bits_,
-                  StaticCallBit::update(static_call, raw_ptr()->state_bits_));
+                  RebindRuleBits::update(rebind_rule, raw_ptr()->state_bits_));
 }
 
 bool ICData::is_static_call() const {
-  return StaticCallBit::decode(raw_ptr()->state_bits_);
+  return rebind_rule() != kInstance;
 }
 
 void ICData::set_state_bits(uint32_t bits) const {
@@ -13712,7 +13716,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
                                  const Array& arguments_descriptor,
                                  intptr_t deopt_id,
                                  intptr_t num_args_tested,
-                                 bool is_static_call) {
+                                 RebindRule rebind_rule) {
   ASSERT(!owner.IsNull());
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
@@ -13734,7 +13738,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
 #if defined(TAG_IC_DATA)
   result.set_tag(-1);
 #endif
-  result.SetIsStaticCall(is_static_call);
+  result.set_rebind_rule(rebind_rule);
   result.SetNumArgsTested(num_args_tested);
   return result.raw();
 }
@@ -13766,11 +13770,11 @@ RawICData* ICData::New(const Function& owner,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
                        intptr_t num_args_tested,
-                       bool is_static_call) {
+                       RebindRule rebind_rule) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(
       zone, NewDescriptor(zone, owner, target_name, arguments_descriptor,
-                          deopt_id, num_args_tested, is_static_call));
+                          deopt_id, num_args_tested, rebind_rule));
   result.set_ic_data_array(
       Array::Handle(zone, CachedEmptyICDataArray(num_args_tested)));
   return result.raw();
@@ -13780,7 +13784,7 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
   const ICData& result = ICData::Handle(ICData::New(
       Function::Handle(from.Owner()), String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()), from.deopt_id(),
-      num_args_tested, from.is_static_call()));
+      num_args_tested, from.rebind_rule()));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();
@@ -13792,7 +13796,7 @@ RawICData* ICData::Clone(const ICData& from) {
       zone, Function::Handle(zone, from.Owner()),
       String::Handle(zone, from.target_name()),
       Array::Handle(zone, from.arguments_descriptor()), from.deopt_id(),
-      from.NumArgsTested(), from.is_static_call()));
+      from.NumArgsTested(), from.rebind_rule()));
   // Clone entry array.
   const Array& from_array = Array::Handle(zone, from.ic_data());
   const intptr_t len = from_array.Length();

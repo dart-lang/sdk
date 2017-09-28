@@ -1117,7 +1117,8 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            const Function& function,
                                            ArgumentsInfo args_info,
                                            LocationSummary* locs,
-                                           const ICData& ic_data_in) {
+                                           const ICData& ic_data_in,
+                                           ICData::RebindRule rebind_rule) {
   const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   const Array& arguments_descriptor = Array::ZoneHandle(
       zone(), ic_data.IsNull() ? args_info.ToArgumentsDescriptor()
@@ -1134,7 +1135,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
       const intptr_t kNumArgsChecked = 0;
       call_ic_data =
           GetOrAddStaticCallICData(deopt_id, function, arguments_descriptor,
-                                   kNumArgsChecked)
+                                   kNumArgsChecked, rebind_rule)
               ->raw();
     }
     AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id, token_pos);
@@ -1551,10 +1552,10 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(!res->is_static_call());
     return res;
   }
-  const ICData& ic_data =
-      ICData::ZoneHandle(zone(), ICData::New(parsed_function().function(),
-                                             target_name, arguments_descriptor,
-                                             deopt_id, num_args_tested, false));
+  const ICData& ic_data = ICData::ZoneHandle(
+      zone(), ICData::New(parsed_function().function(), target_name,
+                          arguments_descriptor, deopt_id, num_args_tested,
+                          ICData::kInstance));
 #if defined(TAG_IC_DATA)
   ic_data.set_tag(Instruction::kInstanceCall);
 #endif
@@ -1569,7 +1570,8 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     intptr_t deopt_id,
     const Function& target,
     const Array& arguments_descriptor,
-    intptr_t num_args_tested) {
+    intptr_t num_args_tested,
+    ICData::RebindRule rebind_rule) {
   if ((deopt_id_to_ic_data_ != NULL) &&
       ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
     const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
@@ -1581,11 +1583,12 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     ASSERT(res->is_static_call());
     return res;
   }
+
   const ICData& ic_data = ICData::ZoneHandle(
       zone(),
       ICData::New(parsed_function().function(),
                   String::Handle(zone(), target.name()), arguments_descriptor,
-                  deopt_id, num_args_tested, true));
+                  deopt_id, num_args_tested, rebind_rule));
   ic_data.AddTarget(target);
 #if defined(TAG_IC_DATA)
   ic_data.set_tag(Instruction::kStaticCall);

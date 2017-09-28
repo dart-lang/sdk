@@ -3283,7 +3283,8 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array,
-                  intptr_t deopt_id)
+                  intptr_t deopt_id,
+                  ICData::RebindRule rebind_rule)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
@@ -3292,6 +3293,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         ic_data_(NULL),
         call_count_(0),
         function_(function),
+        rebind_rule_(rebind_rule),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
@@ -3306,7 +3308,8 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                   intptr_t deopt_id,
-                  intptr_t call_count)
+                  intptr_t call_count,
+                  ICData::RebindRule rebind_rule)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
@@ -3315,6 +3318,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         ic_data_(NULL),
         call_count_(call_count),
         function_(function),
+        rebind_rule_(rebind_rule),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
@@ -3333,9 +3337,10 @@ class StaticCallInstr : public TemplateDartCall<0> {
     for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
       args->Add(call->PushArgumentAt(i));
     }
-    return new (zone) StaticCallInstr(
-        call->token_pos(), target, call->type_args_len(),
-        call->argument_names(), args, call->deopt_id(), call->CallCount());
+    return new (zone)
+        StaticCallInstr(call->token_pos(), target, call->type_args_len(),
+                        call->argument_names(), args, call->deopt_id(),
+                        call->CallCount(), ICData::kStatic);
   }
 
   // ICData for static calls carries call count.
@@ -3383,6 +3388,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   const ICData* ic_data_;
   const intptr_t call_count_;
   const Function& function_;
+  const ICData::RebindRule rebind_rule_;
   intptr_t result_cid_;  // For some library functions we know the result.
 
   // 'True' for recognized list constructors.

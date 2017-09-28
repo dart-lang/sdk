@@ -1134,7 +1134,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
                                        Thread::kNoDeoptId, 1, /* args_tested */
-                                       false /* static_call */));
+                                       ICData::kInstance));
 
   // Maybe add the new target.
   Class& cls = Class::Handle(zone, receiver.clazz());
@@ -1210,7 +1210,7 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
                                        Thread::kNoDeoptId, 1, /* args_tested */
-                                       false /* static_call */));
+                                       ICData::kInstance));
 
   Class& cls = Class::Handle(zone, receiver.clazz());
   ArgumentsDescriptor args_desc(descriptor);
@@ -1290,7 +1290,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
                                        Thread::kNoDeoptId, 1, /* args_tested */
-                                       false /* static_call */));
+                                       ICData::kInstance));
 
   // Add the first target.
   ic_data.AddReceiverCheck(old_expected_cid.Value(), old_target);
