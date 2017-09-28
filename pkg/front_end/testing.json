@@ -191,6 +191,18 @@
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
         "-cdart2js -rd8 dart2js_extra dart2js_native"
       ]
+    },
+
+    {
+      "note": "Runs dart2js in a mode where it invokes Fasta.",
+      "name": "dart2js_with_kernel",
+      "kind": "test_dart",
+      "arch": "x64",
+      "mode": "release",
+      "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease --write-result-log",
+      "command-lines": [
+        "-cdart2js -rd8 --use-sdk --minified --dart2js-with-kernel language language_2 dart2js_extra dart2js_native corelib corelib_2"
+      ]
     }
   ],
 
