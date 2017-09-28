@@ -570,6 +570,12 @@ class NoSuchMethodError {
         _existingArgumentNames = existingArgumentNames;
 
   @patch
+  NoSuchMethodError.withInvocation(Object receiver, Invocation invocation) {
+    throw new UnsupportedError(
+        "'NoSuchMethodError.withInvocation' is not supported");
+  }
+
+  @patch
   String toString() {
     StringBuffer sb = new StringBuffer('');
     String comma = '';
