@@ -16,7 +16,7 @@ import 'package:kernel/type_environment.dart';
 /// This is necessary since we need to determine which covariance annotations
 /// need to be added before creating a forwarding stub, but the covariance
 /// annotations themselves need to be applied to the forwarding stub.
-typedef void _CovarianceFix(FunctionNode);
+typedef void _CovarianceFix(FunctionNode function);
 
 /// A [ForwardingNode] represents a method, getter, or setter within a class's
 /// interface that is either implemented in the class directly or inherited from
@@ -85,6 +85,13 @@ class ForwardingNode extends Procedure {
     var interfacePositionalParameters = interfaceFunction.positionalParameters;
     var interfaceNamedParameters = interfaceFunction.namedParameters;
     var interfaceTypeParameters = interfaceFunction.typeParameters;
+    bool isImplCreated = false;
+    void createImplIfNeeded() {
+      if (isImplCreated) return;
+      fixes.add(_createForwardingImplIfNeeded);
+      isImplCreated = true;
+    }
+
     if (class_.typeParameters.isNotEmpty) {
       IncludesTypeParametersCovariantly needsCheckVisitor =
           ShadowClass.getClassInferenceInfo(class_).needsCheckVisitor ??=
@@ -99,6 +106,7 @@ class ForwardingNode extends Procedure {
               .isGenericCovariantInterface = isCovariant);
         }
         if (isCovariant != parameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
           fixes.add((FunctionNode function) => function
               .positionalParameters[i].isGenericCovariantImpl = isCovariant);
         }
@@ -111,6 +119,7 @@ class ForwardingNode extends Procedure {
               .namedParameters[i].isGenericCovariantInterface = isCovariant);
         }
         if (isCovariant != parameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
           fixes.add((FunctionNode function) =>
               function.namedParameters[i].isGenericCovariantImpl = isCovariant);
         }
@@ -123,6 +132,7 @@ class ForwardingNode extends Procedure {
               .typeParameters[i].isGenericCovariantInterface = isCovariant);
         }
         if (isCovariant != typeParameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
           fixes.add((FunctionNode function) =>
               function.typeParameters[i].isGenericCovariantImpl = isCovariant);
         }
@@ -141,10 +151,12 @@ class ForwardingNode extends Procedure {
         var otherParameter = otherPositionalParameters[j];
         if (otherParameter.isGenericCovariantImpl &&
             !parameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
           fixes.add((FunctionNode function) =>
               function.positionalParameters[j].isGenericCovariantImpl = true);
         }
         if (otherParameter.isCovariant && !parameter.isCovariant) {
+          createImplIfNeeded();
           fixes.add((FunctionNode function) =>
               function.positionalParameters[j].isCovariant = true);
         }
@@ -155,10 +167,12 @@ class ForwardingNode extends Procedure {
         if (otherParameter != null) {
           if (otherParameter.isGenericCovariantImpl &&
               !parameter.isGenericCovariantImpl) {
+            createImplIfNeeded();
             fixes.add((FunctionNode function) =>
                 function.namedParameters[j].isGenericCovariantImpl = true);
           }
           if (otherParameter.isCovariant && !parameter.isCovariant) {
+            createImplIfNeeded();
             fixes.add((FunctionNode function) =>
                 function.namedParameters[j].isCovariant = true);
           }
@@ -172,11 +186,66 @@ class ForwardingNode extends Procedure {
         var otherTypeParameter = otherTypeParameters[j];
         if (otherTypeParameter.isGenericCovariantImpl &&
             !typeParameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
           fixes.add((FunctionNode function) =>
               function.typeParameters[j].isGenericCovariantImpl = true);
         }
       }
     }
+  }
+
+  void _createForwardingImplIfNeeded(FunctionNode function) {
+    if (function.body != null) {
+      // There is already an implementation; nothing further needs to be done.
+      return;
+    }
+    // Find the concrete implementation in the superclass; this is what we need
+    // to forward to.  If we can't find one, then the method is fully abstract
+    // and we don't need to do anything.
+    var superclass = enclosingClass.superclass;
+    if (superclass == null) return;
+    Procedure procedure = function.parent;
+    var superTarget = _interfaceResolver._typeEnvironment.hierarchy
+        .getDispatchTarget(superclass, procedure.name,
+            setter: kind == ProcedureKind.Setter);
+    if (superTarget == null) return;
+    var positionalArguments = function.positionalParameters
+        .map<Expression>((parameter) => new VariableGet(parameter))
+        .toList();
+    var namedArguments = function.namedParameters
+        .map((parameter) =>
+            new NamedExpression(parameter.name, new VariableGet(parameter)))
+        .toList();
+    var typeArguments = function.typeParameters
+        .map<DartType>((typeParameter) => new TypeParameterType(typeParameter))
+        .toList();
+    var arguments = new Arguments(positionalArguments,
+        types: typeArguments, named: namedArguments);
+    Expression superCall;
+    switch (kind) {
+      case ProcedureKind.Method:
+        superCall = new SuperMethodInvocation(name, arguments, superTarget);
+        break;
+      case ProcedureKind.Getter:
+        superCall = new SuperPropertyGet(
+            name,
+            superTarget is SyntheticAccessor
+                ? superTarget._field
+                : superTarget);
+        break;
+      case ProcedureKind.Setter:
+        superCall = new SuperPropertySet(
+            name,
+            positionalArguments[0],
+            superTarget is SyntheticAccessor
+                ? superTarget._field
+                : superTarget);
+        break;
+      default:
+        unhandled('$kind', '_createForwardingImplIfNeeded', -1, null);
+        break;
+    }
+    function.body = new ReturnStatement(superCall);
   }
 
   /// Creates a forwarding stub based on the given [target].
@@ -192,48 +261,13 @@ class ForwardingNode extends Procedure {
           typeParameter.name, substitution.substituteType(typeParameter.bound));
     }
 
-    var positionalParameters = <VariableDeclaration>[];
-    var positionalArguments = <Expression>[];
-    for (var parameter in target.function.positionalParameters) {
-      var copiedParameter = copyParameter(parameter);
-      positionalParameters.add(copiedParameter);
-      positionalArguments.add(new VariableGet(copiedParameter));
-    }
-    var namedParameters = <VariableDeclaration>[];
-    var namedArguments = <NamedExpression>[];
-    for (var parameter in target.function.namedParameters) {
-      var copiedParameter = copyParameter(parameter);
-      namedParameters.add(copiedParameter);
-      namedArguments.add(new NamedExpression(
-          parameter.name, new VariableGet(copiedParameter)));
-    }
-    var typeParameters = <TypeParameter>[];
-    var typeArguments = <DartType>[];
-    for (var typeParameter in target.function.typeParameters) {
-      var copiedTypeParameter = copyTypeParameter(typeParameter);
-      typeParameters.add(copiedTypeParameter);
-      typeArguments.add(new TypeParameterType(copiedTypeParameter));
-    }
-    var arguments = new Arguments(positionalArguments,
-        types: typeArguments, named: namedArguments);
-    Expression superCall;
-    switch (target.kind) {
-      case ProcedureKind.Method:
-        superCall = new SuperMethodInvocation(name, arguments, target);
-        break;
-      case ProcedureKind.Getter:
-        superCall = new SuperPropertyGet(
-            name, target is SyntheticAccessor ? target._field : target);
-        break;
-      case ProcedureKind.Setter:
-        superCall = new SuperPropertySet(name, positionalArguments[0],
-            target is SyntheticAccessor ? target._field : target);
-        break;
-      default:
-        unhandled('${target.kind}', '_createForwardingStub', -1, null);
-        break;
-    }
-    var function = new FunctionNode(new ReturnStatement(superCall),
+    var positionalParameters =
+        target.function.positionalParameters.map(copyParameter).toList();
+    var namedParameters =
+        target.function.namedParameters.map(copyParameter).toList();
+    var typeParameters =
+        target.function.typeParameters.map(copyTypeParameter).toList();
+    var function = new FunctionNode(null,
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
@@ -335,6 +369,11 @@ class ForwardingNode extends Procedure {
     return Substitution.fromInterfaceType(
         _interfaceResolver._typeEnvironment.hierarchy.getTypeAsInstanceOf(
             enclosingClass.thisType, candidate.enclosingClass));
+  }
+
+  static void createForwardingImplIfNeededForTesting(
+      ForwardingNode node, FunctionNode function) {
+    node._createForwardingImplIfNeeded(function);
   }
 
   /// Public method allowing tests to access [_createForwardingStub].

@@ -99,8 +99,9 @@ class InterfaceResolverTest {
     return forwardingNodes;
   }
 
-  Member getStubTarget(ForwardingStub stub) {
+  Member getStubTarget(Procedure stub) {
     var body = stub.function.body;
+    if (body == null) return null;
     if (body is ReturnStatement) {
       var expression = body.expression;
       if (expression is SuperMethodInvocation) {
@@ -141,8 +142,10 @@ class InterfaceResolverTest {
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
       int requiredParameterCount,
-      DartType returnType: const VoidType()}) {
-    var function = new FunctionNode(null,
+      DartType returnType: const VoidType(),
+      bool isAbstract: false}) {
+    var body = isAbstract ? null : new ReturnStatement(new NullLiteral());
+    var function = new FunctionNode(body,
         typeParameters: typeParameters,
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
@@ -156,22 +159,27 @@ class InterfaceResolverTest {
   }
 
   ForwardingStub makeForwardingStub(Procedure method, bool setter) {
-    var class_ = makeClass(procedures: [method]);
-    var node = getForwardingNode(class_, setter);
-    return ForwardingNode.createForwardingStubForTesting(
+    var a = makeClass(name: 'A', procedures: [method]);
+    var b = makeClass(name: 'B', supertype: a.asThisSupertype);
+    var node = getForwardingNode(b, setter);
+    var stub = ForwardingNode.createForwardingStubForTesting(
         node, Substitution.empty, method);
+    ForwardingNode.createForwardingImplIfNeededForTesting(node, stub.function);
+    return stub;
   }
 
   Procedure makeGetter(
       {String name: 'foo', DartType getterType: const DynamicType()}) {
-    var function = new FunctionNode(null, returnType: getterType);
+    var body = new ReturnStatement(new NullLiteral());
+    var function = new FunctionNode(body, returnType: getterType);
     return new Procedure(new Name(name), ProcedureKind.Getter, function);
   }
 
   Procedure makeSetter(
       {String name: 'foo', DartType setterType: const DynamicType()}) {
     var parameter = new VariableDeclaration('value', type: setterType);
-    var function = new FunctionNode(null,
+    var body = new Block([]);
+    var function = new FunctionNode(body,
         positionalParameters: [parameter], returnType: const VoidType());
     return new Procedure(new Name(name), ProcedureKind.Setter, function);
   }
@@ -583,6 +591,7 @@ class InterfaceResolverTest {
     expect(y.isGenericCovariantImpl, isFalse);
     expect(y.isGenericCovariantInterface, isFalse);
     expect(y.isCovariant, isTrue);
+    expect(getStubTarget(stub), same(methodA));
   }
 
   void test_forwardingStub_isGenericCovariantImpl_inherited() {
@@ -624,6 +633,7 @@ class InterfaceResolverTest {
     expect(y.isGenericCovariantImpl, isTrue);
     expect(y.isGenericCovariantInterface, isFalse);
     expect(y.isCovariant, isFalse);
+    expect(getStubTarget(stub), same(methodA));
   }
 
   void test_merge_candidates_including_mixin() {
@@ -716,7 +726,9 @@ class InterfaceResolverTest {
     var c = makeClass(
         name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    expect(getStubTarget(node.resolve()), same(methodB));
+    var stub = node.resolve();
+    expect(getStubTarget(stub), isNull);
+    expect(stub.function.returnType, intType);
   }
 
   void test_resolve_setters() {
@@ -732,7 +744,38 @@ class InterfaceResolverTest {
       c.asThisSupertype
     ]);
     var node = getForwardingNode(d, true);
-    expect(getStubTarget(node.resolve()), same(setterB));
+    var stub = node.resolve();
+    expect(getStubTarget(stub), isNull);
+    expect(stub.function.positionalParameters[0].type, objectType);
+  }
+
+  void test_resolve_with_added_implementation() {
+    var methodA = makeEmptyMethod(
+        positionalParameters: [new VariableDeclaration('x', type: numType)]);
+    var typeParamB = new TypeParameter('T', objectType);
+    var methodB = makeEmptyMethod(positionalParameters: [
+      new VariableDeclaration('x', type: new TypeParameterType(typeParamB))
+        ..isGenericCovariantInterface = true
+        ..isGenericCovariantImpl = true
+    ]);
+    var methodC = makeEmptyMethod(
+        positionalParameters: [new VariableDeclaration('x', type: numType)],
+        isAbstract: true);
+    var a = makeClass(name: 'A', procedures: [methodA]);
+    var b = makeClass(
+        name: 'B', typeParameters: [typeParamB], procedures: [methodB]);
+    var c =
+        makeClass(name: 'C', supertype: a.asThisSupertype, implementedTypes: [
+      new Supertype(b, [numType])
+    ], procedures: [
+      methodC
+    ]);
+    var node = getForwardingNode(c, false);
+    expect(methodC.function.body, isNull);
+    var resolvedMethod = node.resolve();
+    expect(resolvedMethod, same(methodC));
+    expect(methodC.function.body, isNotNull);
+    expect(getStubTarget(methodC), same(methodA));
   }
 
   void test_resolve_with_subsitutions() {
@@ -751,12 +794,16 @@ class InterfaceResolverTest {
         name: 'B', typeParameters: [typeParamB], procedures: [methodB]);
     var c = makeClass(
         name: 'C', typeParameters: [typeParamC], procedures: [methodC]);
-    var d = makeClass(name: 'D', implementedTypes: [
-      new Supertype(a, [objectType]),
-      new Supertype(b, [intType]),
-      new Supertype(c, [numType])
-    ]);
+    var d = makeClass(
+        name: 'D',
+        supertype: new Supertype(a, [objectType]),
+        implementedTypes: [
+          new Supertype(b, [intType]),
+          new Supertype(c, [numType])
+        ]);
     var node = getForwardingNode(d, false);
-    expect(getStubTarget(node.resolve()), same(methodB));
+    var stub = node.resolve();
+    expect(getStubTarget(stub), isNull);
+    expect(stub.function.returnType, intType);
   }
 }
