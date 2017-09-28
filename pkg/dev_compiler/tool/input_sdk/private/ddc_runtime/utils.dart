@@ -68,35 +68,34 @@ safeGetOwnProperty(obj, name) {
   if (desc != null) return JS('', '#.value', desc);
 }
 
-/// Defines a lazy property.
+/// Defines a lazy static field.
 /// After initial get or set, it will replace itself with a value property.
 // TODO(jmesserly): reusing descriptor objects has been shown to improve
 // performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
-defineLazyProperty(to, name, desc) => JS(
+defineLazyField(to, name, desc) => JS(
     '',
     '''(() => {
-  let init = $desc.get;
+    let init = $desc.get;
     let value = null;
-
-    function lazySetter(x) {
-      init = null;
-      value = x;
-    }
-    function circularInitError() {
-      $throwCyclicInitializationError($name);
-    }
-    function lazyGetter() {
+    $desc.get = function() {
       if (init == null) return value;
 
       // Compute and store the value, guarding against reentry.
       let f = init;
-      init = circularInitError;
-      lazySetter(f());
-      return value;
-    }
-    $desc.get = lazyGetter;
+      init = () => $throwCyclicInitializationError($name);
+      try {
+        return value = f();
+      } finally {
+        init = null;
+      }
+    };
     $desc.configurable = true;
-    if ($desc.set) $desc.set = lazySetter;
+    if ($desc.set != null) {
+      $desc.set = function(x) {
+        init = null;
+        value = x;
+      };
+    }
     return $defineProperty($to, $name, $desc);
 })()''');
 

@@ -852,6 +852,6 @@ Future loadLibrary() => new Future.value();
 /// Defines lazy statics.
 void defineLazy(to, from) {
   for (var name in getOwnNamesAndSymbols(from)) {
-    defineLazyProperty(to, name, getOwnPropertyDescriptor(from, name));
+    defineLazyField(to, name, getOwnPropertyDescriptor(from, name));
   }
 }
