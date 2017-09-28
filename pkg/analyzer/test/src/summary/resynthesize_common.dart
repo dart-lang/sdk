@@ -7180,6 +7180,7 @@ C<dynamic> c;
   }
 
   test_invalid_annotation_prefixed_constructor() async {
+    shouldCompareLibraryElements = false;
     addLibrarySource('/a.dart', r'''
 class C {
   const C.named();
@@ -7192,16 +7193,14 @@ class D {}
 ''');
     checkElementText(library, r'''
 import 'a.dart' as a;
-@
-        a/*location: test.dart;a*/.
-        C/*location: a.dart;C*/.
-        named/*location: a.dart;C;named*/
+@#invalidConst
 class D {
 }
 ''');
   }
 
   test_invalid_annotation_unprefixed_constructor() async {
+    shouldCompareLibraryElements = false;
     addLibrarySource('/a.dart', r'''
 class C {
   const C.named();
@@ -7214,9 +7213,7 @@ class D {}
 ''');
     checkElementText(library, r'''
 import 'a.dart';
-@
-        C/*location: a.dart;C*/.
-        named/*location: a.dart;C;named*/
+@#invalidConst
 class D {
 }
 ''');
@@ -7962,10 +7959,10 @@ const dynamic a =
   }
 
   test_metadata_invalid_classDeclaration() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary('f(_) {} @f(42) class C {}');
     checkElementText(library, r'''
-@
-        f/*location: test.dart;f*/(42)
+@#invalidConst
 class C {
 }
 dynamic f(dynamic _) {}

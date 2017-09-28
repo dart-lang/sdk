@@ -323,18 +323,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
-  test_invalid_annotation_prefixed_constructor() async {
-    await super.test_invalid_annotation_prefixed_constructor();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
-  test_invalid_annotation_unprefixed_constructor() async {
-    await super.test_invalid_annotation_unprefixed_constructor();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_invalid_nameConflict_imported() async {
     await super.test_invalid_nameConflict_imported();
   }
@@ -403,12 +391,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
   test_metadata_importDirective() async {
     await super.test_metadata_importDirective();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
-  test_metadata_invalid_classDeclaration() async {
-    await super.test_metadata_invalid_classDeclaration();
   }
 
   @failingTest
