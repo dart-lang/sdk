@@ -9,23 +9,16 @@ Require Import Syntax.
 Require Import ObjectModel.
 
 
-(** Placeholder for a mapping from function node ids to function nodes.  At
-  some point the mapping should be defined in the syntax module along with its
-  well-formedness definitions. *)
-Definition func_env : Type := NatMap.t function_node.
-
-
 Section OperationalSemantics.
 
 
-(** This instance of [class_env] is referred in many properties in the section
-  for the operational semantics.  One may think about [CE] as a "global" class
-  environment for the program. *)
+(** The well-formedness hypothesis is that the environments are built via
+  [lib_to_env] function from the object model module.  [program_wf] theorem
+  defined there provides the rest of the well-formedness properties.  In
+  [OperationalSemantics] sections we don't need the hypothesis itself, just the
+  environments. *)
 Variable CE : class_env.
-
-
-(** The "global" environment of function nodes for the program. *)
-Variable FE : func_env.
+Variable ME : member_env.
 
 
 (** [runtime_value] represents the runtime values used in the abstract machine
@@ -66,16 +59,15 @@ Inductive value_of_type :
     corresponding interface may or may not be in the global class environment,
     but should have a particular shape. *)
   | RFS_Function_Type :
-    forall (val : runtime_value) (intf : interface) (type : dart_type)
-      (par_type ret_type : dart_type)
-      (proc : procedure_desc),
-    type = DT_Function_Type (Function_Type par_type ret_type) ->
-    (procedures intf) = proc :: nil ->
-    ((pr_name proc) = "call")%string ->
-    (pr_type proc) = Function_Type par_type ret_type ->
-    NatMap.In (pr_ref proc) FE ->
-    (syntactic_type val) = Some type ->
-    value_of_type val intf (Some type)
+    forall (val : runtime_value) (intf : interface) (ftype : function_type)
+        (memb_id : nat) (proc_desc : procedure_desc) (proc : procedure),
+    (procedures intf) =
+      (mk_procedure_desc "call" memb_id ftype) :: nil ->
+    (getters intf) =
+      (mk_getter_desc "call" memb_id (DT_Function_Type ftype)) :: nil ->
+    NatMap.MapsTo memb_id (MD_Method proc_desc, M_Procedure proc) ME ->
+    (syntactic_type val) = Some (DT_Function_Type ftype) ->
+    value_of_type val intf (Some (DT_Function_Type ftype))
 
   (** Null values are currently represented as runtime values that have [None]
     in place of their syntactic type.  In future, for example when the bottom
@@ -84,6 +76,7 @@ Inductive value_of_type :
   | RFS_Null_Type :
     forall (val : runtime_value) (intf : interface),
     (procedures intf) = nil ->
+    (getters intf) = nil ->
     (syntactic_type val) = None ->
     value_of_type val intf None.
 
@@ -362,14 +355,22 @@ Inductive step : configuration -> configuration -> Prop :=
         f = methods(class(rcvrVal))(name),
         ρ0 -- empty environment *)
   | Pass_Invocation_Ek :
-    forall rcvr_val name env ret_cont arg_val body env' next_cont
-      intf type proc_desc func_node var_id var_type var_init ret_type null_val,
+    forall rcvr_val rcvr_intf rcvr_type_opt
+      proc_desc memb_desc memb_data named_data func_node
+      var_id var_type var_init ret_type body
+      name arg_val env env' ret_cont next_cont null_val,
     (* TODO(dmitryas): Add the mapping: this -> rcvr_val to env'. *)
-    value_of_type rcvr_val intf type ->
-    List.In proc_desc (procedures intf) ->
-    NatMap.MapsTo (pr_ref proc_desc) func_node FE ->
-    func_node = Function_Node (Variable_Declaration var_id var_type var_init)
-      ret_type body ->
+    value_of_type rcvr_val rcvr_intf rcvr_type_opt ->
+    List.In proc_desc (procedures rcvr_intf) ->
+    NatMap.MapsTo
+      (pr_ref proc_desc)
+      (memb_desc, M_Procedure (Procedure memb_data named_data func_node))
+      ME ->
+    func_node =
+      Function_Node
+        (Variable_Declaration var_id var_type var_init)
+        ret_type
+        body ->
     env' = env_extend var_id arg_val empty_env ->
     next_cont = Exit_Sk ret_cont null_val ->
     value_of_type null_val (mk_interface nil nil) None ->
@@ -388,22 +389,15 @@ Inductive step : configuration -> configuration -> Prop :=
   (** <PropertyGetEK(name, κE), rcvrVal)pass ==> <κE, f>pass,
       where f = methods(class(rcvrVal))(name) *)
   | Pass_Property_Get_Ek :
-    forall name cont rcvr_val rcvr_intf rcvr_type rcvr_proc_desc
-      func_val func_proc_desc,
-    value_of_type rcvr_val rcvr_intf rcvr_type ->
-    List.In rcvr_proc_desc (procedures rcvr_intf) ->
-    (pr_name rcvr_proc_desc) = name ->
-    (pr_type func_proc_desc) = (pr_type rcvr_proc_desc) ->
-    (pr_ref func_proc_desc) = (pr_ref rcvr_proc_desc) ->
-    ((pr_name func_proc_desc) = "call")%string ->
-    value_of_type
-      func_val
-      (mk_interface (func_proc_desc :: nil)
-                    ((mk_getter_desc (pr_name func_proc_desc) (pr_ref func_proc_desc)
-                                     (DT_Function_Type (pr_type func_proc_desc))) :: nil))
-      (Some (DT_Function_Type (pr_type func_proc_desc))) ->
+    forall rcvr_val rcvr_intf rcvr_type_opt
+        name memb_id ret_type
+        ret_val ret_intf
+        cont,
+    value_of_type rcvr_val rcvr_intf rcvr_type_opt ->
+    List.In (mk_getter_desc name memb_id ret_type) (getters rcvr_intf) ->
+    value_of_type ret_val ret_intf (Some ret_type) ->
     step (Value_Passing_Configuration (Property_Get_Ek name cont) rcvr_val)
-         (Value_Passing_Configuration cont func_val)
+         (Value_Passing_Configuration cont ret_val)
 
   (** <ExitSK(κE, val), ρ>forward ==> <κE, val>pass *)
   | Forward_Exit_Sk :
@@ -414,9 +408,9 @@ Inductive step : configuration -> configuration -> Prop :=
   (** <ConstructorInvocation(cls), ρ, κE>eval ==> <κE, newVal>pass,
       where newVal = new runtime value of syntactic type cls *)
   | Eval_Constructor_Invocation :
-    forall env cont new_val intf type class_id,
+    forall env cont new_val intf type_opt class_id,
     NatMap.MapsTo class_id intf CE ->
-    value_of_type new_val intf type ->
+    value_of_type new_val intf type_opt ->
     step (Eval_Configuration
             (E_Invocation_Expression (IE_Constructor_Invocation
               (Constructor_Invocation class_id)))
@@ -519,9 +513,11 @@ Inductive configuration_wf : configuration -> Prop :=
     method invocation.  The execution of the method begins, and many conditions
     should be met. *)
   | Pass_Invocation_Ek_Configuration_Wf :
-    forall rcvr_val intf type proc_desc name env ret_cont arg_val,
-    value_of_type rcvr_val intf type ->
-    List.In proc_desc (procedures intf) ->
+    forall rcvr_val rcvr_intf rcvr_type_opt
+        proc_desc name
+        ret_cont arg_val env,
+    value_of_type rcvr_val rcvr_intf rcvr_type_opt ->
+    List.In proc_desc (procedures rcvr_intf) ->
     (pr_name proc_desc) = name ->
     configuration_wf (Value_Passing_Configuration
       (Invocation_Ek rcvr_val name env ret_cont)
@@ -531,10 +527,10 @@ Inductive configuration_wf : configuration -> Prop :=
     property get.  The preconditions state that the property with such name
     should exist. *)
   | Pass_Property_Get_Ek_Configuration_Wf :
-    forall name cont rcvr_val intf type proc_desc,
-    value_of_type rcvr_val intf type ->
-    List.In proc_desc (procedures intf) ->
-    (pr_name proc_desc) = name ->
+    forall name cont rcvr_val rcvr_intf rcvr_type_opt get_desc,
+    value_of_type rcvr_val rcvr_intf rcvr_type_opt ->
+    List.In get_desc (getters rcvr_intf) ->
+    (gt_name get_desc) = name ->
     configuration_wf (Value_Passing_Configuration
       (Property_Get_Ek name cont)
       rcvr_val)
