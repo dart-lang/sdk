@@ -464,6 +464,53 @@ class InterfaceResolverTest {
     expect(y.isCovariant, isFalse);
   }
 
+  void test_direct_isGenericCovariant_field() {
+    var typeParameter = new TypeParameter('T', objectType);
+    var field = makeField(type: new TypeParameterType(typeParameter));
+    var class_ = makeClass(typeParameters: [typeParameter], fields: [field]);
+    var node = getForwardingNode(class_, true);
+    var resolvedField = node.resolve();
+    expect(resolvedField, same(field));
+    expect(field.isGenericCovariantImpl, isTrue);
+    expect(field.isGenericCovariantInterface, isTrue);
+    expect(field.isCovariant, isFalse);
+  }
+
+  void test_field_isCovariant_inherited() {
+    var fieldA = makeField(type: numType)..isCovariant = true;
+    var fieldB = makeField(type: numType);
+    var a = makeClass(name: 'A', fields: [fieldA]);
+    var b = makeClass(
+        name: 'B', implementedTypes: [a.asThisSupertype], fields: [fieldB]);
+    var node = getForwardingNode(b, true);
+    var resolvedField = node.resolve();
+    expect(resolvedField, same(fieldB));
+    expect(fieldB.isGenericCovariantImpl, isFalse);
+    expect(fieldB.isGenericCovariantInterface, isFalse);
+    expect(fieldB.isCovariant, isTrue);
+  }
+
+  void test_field_isGenericCovariantImpl_inherited() {
+    var typeParameter = new TypeParameter('T', objectType);
+    var fieldA = makeField(type: new TypeParameterType(typeParameter))
+      ..isGenericCovariantInterface = true
+      ..isGenericCovariantImpl = true;
+    var fieldB = makeField(type: numType);
+    var a =
+        makeClass(name: 'A', typeParameters: [typeParameter], fields: [fieldA]);
+    var b = makeClass(name: 'B', implementedTypes: [
+      new Supertype(a, [numType])
+    ], fields: [
+      fieldB
+    ]);
+    var node = getForwardingNode(b, true);
+    var resolvedField = node.resolve();
+    expect(resolvedField, same(fieldB));
+    expect(fieldB.isGenericCovariantImpl, isTrue);
+    expect(fieldB.isGenericCovariantInterface, isFalse);
+    expect(fieldB.isCovariant, isFalse);
+  }
+
   void test_forwardingNodes_multiple() {
     var methodAf = makeEmptyMethod(name: 'f');
     var methodBf = makeEmptyMethod(name: 'f');

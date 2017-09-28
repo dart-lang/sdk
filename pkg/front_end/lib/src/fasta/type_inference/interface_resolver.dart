@@ -307,15 +307,25 @@ class ForwardingNode extends Procedure {
         fix(function);
       }
       return stub;
-    } else if (inheritedMember is SyntheticAccessor) {
-      // TODO(paulberry): propagate covariance fixes to the field.
-      return inheritedMember._field;
     } else {
       var function = inheritedMember.function;
       for (var fix in covarianceFixes) {
         fix(function);
       }
-      return inheritedMember;
+      if (inheritedMember is SyntheticAccessor) {
+        var field = inheritedMember._field;
+        if (inheritedMember.kind == ProcedureKind.Setter) {
+          // Propagate covariance fixes to the field.
+          var setterParameter = function.positionalParameters[0];
+          field.isCovariant = setterParameter.isCovariant;
+          field.isGenericCovariantInterface =
+              setterParameter.isGenericCovariantInterface;
+          field.isGenericCovariantImpl = setterParameter.isGenericCovariantImpl;
+        }
+        return field;
+      } else {
+        return inheritedMember;
+      }
     }
   }
 
@@ -459,12 +469,18 @@ class InterfaceResolver {
   static Procedure makeCandidate(Member member, bool setter) {
     if (member is Procedure) return member;
     if (member is Field) {
-      // TODO(paulberry): don't set the type here, since it might not have been
-      // inferred yet.  Instead, ensure that the field type is propagated to the
-      // getter/setter during type inference.
+      // TODO(paulberry): don't set the type or covariance annotations here,
+      // since they might not have been inferred yet.  Instead, ensure that this
+      // information is propagated to the getter/setter during type inference.
       var type = member.type;
+      var isGenericCovariantImpl = member.isGenericCovariantImpl;
+      var isGenericCovariantInterface = member.isGenericCovariantInterface;
+      var isCovariant = member.isCovariant;
       if (setter) {
-        var valueParam = new VariableDeclaration('_', type: type);
+        var valueParam = new VariableDeclaration('_', type: type)
+          ..isGenericCovariantImpl = isGenericCovariantImpl
+          ..isGenericCovariantInterface = isGenericCovariantInterface
+          ..isCovariant = isCovariant;
         var function = new FunctionNode(null,
             positionalParameters: [valueParam], returnType: const VoidType());
         return new SyntheticAccessor(
