@@ -47,5 +47,3 @@ setter_no_getter_test/01: Crash # VM does not support BottomType
 switch_try_catch_test: RuntimeError
 sync_generator3_test/test2: RuntimeError
 type_error_test: RuntimeError # Throws CastError instead of TypeError
-type_literal_test: RuntimeError
-type_parameter_literal_test: RuntimeError

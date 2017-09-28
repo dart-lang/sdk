@@ -17,41 +17,51 @@ class A<T> {
   }
 
   static
-  T //# 01: static type warning, dynamic type error
+  T //# 01: compile-time error
       staticMethod(
-  T //# 02: static type warning, dynamic type error
+  T //# 02: compile-time error
           a) {
     final
-    T //# 03: static type warning, dynamic type error
+    T //# 03: compile-time error
         a = "not_null";
     print(a);
     return a;
   }
 
   static final
-  T //# 04: static type warning, dynamic type error
+  T //# 04: compile-time error
       staticFinalField = "not_null";
 
   static const
-  T //# 05: static type warning, checked mode compile-time error
+  T //# 05: compile-time error
       staticConstField = "not_null";
 
   static not_null() => "not_null";
   static final
-  T //# 06: static type warning, dynamic type error
+  T //# 06: compile-time error
       staticFinalField2 = not_null();
 
-  // Assigning null to a malformed type is not a dynamic error.
-  static T staticMethod2(T a) {
-    final T a = null;
+  // Type parameters are not in scope inside static methods.
+  static
+      T //# 07: compile-time error
+      staticMethod2(
+      T //# 07: compile-time error
+      a) {
+    final
+      T //# 07: compile-time error
+      a = null;
     print(a);
     return a;
   }
 
-  static final T staticFinalField3 = null;
+  static final
+  T //# 08: compile-time error
+    staticFinalField3 = null;
 
   static null_() => null;
-  static final T staticFinalField4 = null_();
+  static final
+  T //# 09: compile-time error
+    staticFinalField4 = null_();
 }
 
 main() {

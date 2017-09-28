@@ -346,15 +346,6 @@ try_catch_test: Skip
 type_argument_in_super_type_test: Skip
 type_check_const_function_typedef2_test: Skip
 type_checks_in_factory_method_test: Skip
-type_literal_prefix_call_test: Skip
-type_parameter_test: Skip
-type_promotion_assign_test: Skip
-type_promotion_closure_test: Skip
-type_promotion_functions_test: Skip
-type_promotion_local_test: Skip
-type_promotion_logical_and_test: Skip
-type_promotion_more_specific_test: Skip
-type_promotion_multiple_test: Skip
 type_promotion_parameter_test: Skip
 type_variable_bounds2_test: Skip
 type_variable_bounds3_test: Skip

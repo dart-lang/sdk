@@ -31,14 +31,14 @@ void main() {
   A a = new E();
   var b;
   if (a is D && ((a = new D()) != null)) {
-    b = a.d; //# 01: static type warning
+    b = a.d; //# 01: compile-time error
   }
   if (a is D && (b = a.d)) {
-    b = a.d; //# 02: static type warning
+    b = a.d; //# 02: compile-time error
     a = null;
   }
   if ((((a) is D) && (b = (a).d))) {
-    b = a.d; //# 03: static type warning
+    b = a.d; //# 03: compile-time error
     a = null;
   }
   if (f(a = null) && a is D) {

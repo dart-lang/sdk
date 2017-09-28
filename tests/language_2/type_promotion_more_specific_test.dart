@@ -46,7 +46,7 @@ void testInterface() {
   }
   if (a is C) {
     // No promotion C !<< A.
-    x = a.c; //# 02: static type warning
+    x = a.c; //# 02: compile-time error
   }
   B b = new B();
   if (b is A) {
@@ -54,7 +54,7 @@ void testInterface() {
     x = b.b; //# 03: ok
   }
   if (x is A) {
-    // No promotion A !<< dynamic.
+    // No promotion: x has type dynamic.
     y = x.b; //# 04: ok
   }
 }
@@ -70,17 +70,15 @@ testGeneric() {
   }
   if (d1 is E<A>) {
     // Promotion: E<A> << D.
-    int a = d1.d; //# 06: static type warning
-    String b = d1.d; //# 07: static type warning
+    int a = d1.d; //# 06: compile-time error
+    String b = d1.d; //# 07: compile-time error
     x = d1.e; //# 08: ok
   }
 
   D<A> d2 = new E<B>(null);
   if (d2 is E) {
     // No promotion: E !<< D<A>
-    x = d2.e; //# 09: static type warning
-    int a = d2.e; //# 10: static type warning
-    String b = d2.e; //# 11: static type warning
+    x = d2.e; //# 09: compile-time error
   }
 
   D<A> d3 = new E<B>(new B());

@@ -371,6 +371,9 @@ vm/*: SkipByDesign # Tests for the VM.
 [ $compiler != dart2js ]
 minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
 
+[ $compiler == dart2js && $runtime != none ]
+type_literal_test: RuntimeError
+
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
@@ -646,6 +649,9 @@ static_top_level_test/04: Crash # Issue 27394
 [ $compiler == dart2js && !$checked ]
 function_subtype_inline2_test: RuntimeError
 
+[ $compiler == dart2js && $runtime != none && !$checked ]
+type_parameter_test/05: MissingCompileTimeError
+
 [ $compiler == dart2js && !$checked && $minified && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
 
@@ -753,6 +759,7 @@ function_type_alias2_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_test: CompileTimeError
 assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
 async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
@@ -795,7 +802,6 @@ closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-assertion_initializer_test: CompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor_duplicate_final_test/01: MissingCompileTimeError
@@ -854,16 +860,33 @@ deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
 deferred_type_dependency_test/type_annotation: CompileTimeError
 double_int_to_string_test: RuntimeError
+double_int_to_string_test: RuntimeError
+duplicate_export_negative_test: Fail
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/03: MissingCompileTimeError
+duplicate_implements_test/03: MissingCompileTimeError
+duplicate_implements_test/04: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
+efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+enum_duplicate_test/01: RuntimeError
+enum_duplicate_test/02: RuntimeError
+enum_duplicate_test/none: RuntimeError
 enum_mirror_test: RuntimeError
+enum_private_test/01: RuntimeError
+enum_private_test/none: RuntimeError
+enum_test: RuntimeError
+example_constructor_test: RuntimeError
 example_constructor_test: RuntimeError
 execute_finally7_test: RuntimeError
+fauxverride_test/03: MissingCompileTimeError
+fauxverride_test/05: MissingCompileTimeError
+field_initialization_order_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -887,17 +910,6 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
-efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-enum_duplicate_test/01: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
-enum_private_test/01: RuntimeError
-enum_private_test/none: RuntimeError
-enum_test: RuntimeError
-example_constructor_test: RuntimeError
-fauxverride_test/03: MissingCompileTimeError
-fauxverride_test/05: MissingCompileTimeError
-field_initialization_order_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
@@ -987,24 +999,24 @@ mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
 mixin_super_constructor2_test: RuntimeError
-mixin_super_constructor_default_test: RuntimeError
-mixin_super_constructor_named_test/01: MissingCompileTimeError
-mixin_super_constructor_named_test/none: RuntimeError
-mixin_super_constructor_positionals_test/01: MissingCompileTimeError
-mixin_super_constructor_positionals_test/none: RuntimeError
-mixin_super_constructor_test: RuntimeError
-mixin_super_test: CompileTimeError
-mixin_super_use_test: CompileTimeError
-mixin_superclass_test: CompileTimeError
 mixin_super_constructor2_test: RuntimeError
 mixin_super_constructor_default_test: RuntimeError
+mixin_super_constructor_default_test: RuntimeError
+mixin_super_constructor_named_test/01: MissingCompileTimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
 mixin_super_constructor_named_test/none: RuntimeError
+mixin_super_constructor_named_test/none: RuntimeError
+mixin_super_constructor_positionals_test/01: MissingCompileTimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
 mixin_super_constructor_positionals_test/none: RuntimeError
+mixin_super_constructor_positionals_test/none: RuntimeError
+mixin_super_constructor_test: RuntimeError
 mixin_super_constructor_test: RuntimeError
 mixin_super_test: CompileTimeError
+mixin_super_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
+mixin_super_use_test: CompileTimeError
+mixin_superclass_test: CompileTimeError
 mixin_superclass_test: CompileTimeError
 mixin_supertype_subclass2_test/01: CompileTimeError
 mixin_supertype_subclass2_test/02: CompileTimeError
@@ -1047,15 +1059,16 @@ override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
+type_parameter_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/04: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+type_parameter_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 typevariable_substitution2_test/02: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-double_int_to_string_test: RuntimeError
-duplicate_export_negative_test: Fail
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
-duplicate_implements_test/03: MissingCompileTimeError
-duplicate_implements_test/04: MissingCompileTimeError
 yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
@@ -1063,6 +1076,7 @@ vm/async_await_catch_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_test: CompileTimeError
 assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
 async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
@@ -1104,7 +1118,6 @@ closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-assertion_initializer_test: CompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor_duplicate_final_test/01: MissingCompileTimeError
@@ -1176,12 +1189,25 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-execute_finally7_test: RuntimeError
 efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+enum_duplicate_test/01: RuntimeError
+enum_duplicate_test/02: RuntimeError
+enum_duplicate_test/none: RuntimeError
+enum_mirror_test: RuntimeError
+enum_private_test/01: RuntimeError
+enum_private_test/02: RuntimeError
+enum_private_test/none: RuntimeError
+enum_test: RuntimeError
+example_constructor_test: RuntimeError
+example_constructor_test: RuntimeError
+execute_finally7_test: RuntimeError
+fauxverride_test/03: MissingCompileTimeError
+fauxverride_test/05: MissingCompileTimeError
+field_initialization_order_test: RuntimeError
+full_stacktrace1_test: RuntimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
-enum_mirror_test: RuntimeError
-example_constructor_test: RuntimeError
+full_stacktrace2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -1205,17 +1231,6 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
-enum_duplicate_test/01: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
-enum_private_test/01: RuntimeError
-enum_private_test/02: RuntimeError
-enum_private_test/none: RuntimeError
-enum_test: RuntimeError
-example_constructor_test: RuntimeError
-fauxverride_test/03: MissingCompileTimeError
-fauxverride_test/05: MissingCompileTimeError
-field_initialization_order_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
@@ -1327,9 +1342,14 @@ override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
+type_parameter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/03: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/04: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
+type_parameter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.bar#)) for j:closure_call(A$bar_A$bar_closure.call).
 typevariable_substitution2_test/02: RuntimeError
-full_stacktrace1_test: RuntimeError
-full_stacktrace2_test: RuntimeError
 unused_overridden_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_LinkedCustomHashSet.E) in j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 unused_overridden_async_test: RuntimeError
 vm/allocation_sinking_vm_test: RuntimeError
