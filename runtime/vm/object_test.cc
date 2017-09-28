@@ -2988,7 +2988,7 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
       ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
   ICData& o1 = ICData::Handle();
   o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested,
-                   ICData::kInstance);
+                   false);
   EXPECT_EQ(1, o1.NumArgsTested());
   EXPECT_EQ(id, o1.deopt_id());
   EXPECT_EQ(function.raw(), o1.Owner());
@@ -3027,8 +3027,7 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
   EXPECT_EQ(2, o1.NumberOfUsedChecks());
 
   ICData& o2 = ICData::Handle();
-  o2 = ICData::New(function, target_name, args_descriptor, 57, 2,
-                   ICData::kInstance);
+  o2 = ICData::New(function, target_name, args_descriptor, 57, 2, false);
   EXPECT_EQ(2, o2.NumArgsTested());
   EXPECT_EQ(57, o2.deopt_id());
   EXPECT_EQ(function.raw(), o2.Owner());
@@ -3046,9 +3045,8 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
 
   // Check ICData for unoptimized static calls.
   const intptr_t kNumArgsChecked = 0;
-  const ICData& scall_icdata =
-      ICData::Handle(ICData::New(function, target_name, args_descriptor, 57,
-                                 kNumArgsChecked, ICData::kInstance));
+  const ICData& scall_icdata = ICData::Handle(ICData::New(
+      function, target_name, args_descriptor, 57, kNumArgsChecked, false));
   scall_icdata.AddTarget(target1);
   EXPECT_EQ(target1.raw(), scall_icdata.GetTargetAt(0));
 }

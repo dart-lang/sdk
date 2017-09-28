@@ -37,8 +37,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const intptr_t kNumArgs = 1;
   const Array& args_descriptor = Array::Handle(
       ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
-  const ICData& ic_data = ICData::ZoneHandle(ICData::New(
-      function, target_name, args_descriptor, 15, 1, ICData::kInstance));
+  const ICData& ic_data = ICData::ZoneHandle(
+      ICData::New(function, target_name, args_descriptor, 15, 1, false));
 
   __ LoadObject(ECX, ic_data);
   __ Call(*StubCode::OneArgCheckInlineCache_entry());

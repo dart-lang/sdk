@@ -560,13 +560,11 @@ class FlowGraphBuilder {
   Fragment Return(TokenPosition position);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
-                      intptr_t argument_count,
-                      ICData::RebindRule rebind_rule);
+                      intptr_t argument_count);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
                       const Array& argument_names,
-                      ICData::RebindRule rebind_rule,
                       intptr_t type_args_len = 0);
   Fragment StoreIndexed(intptr_t class_id);
   Fragment StoreInstanceFieldGuarded(const Field& field,

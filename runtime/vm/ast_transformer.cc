@@ -178,9 +178,8 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   async_await_helper_args->Add(
       new (Z) LoadLocalNode(token_pos, async_catch_error_callback));
   async_await_helper_args->Add(new (Z) LoadLocalNode(token_pos, async_op));
-  StaticCallNode* await_helper_call =
-      new (Z) StaticCallNode(node->token_pos(), async_await_helper,
-                             async_await_helper_args, StaticCallNode::kStatic);
+  StaticCallNode* await_helper_call = new (Z) StaticCallNode(
+      node->token_pos(), async_await_helper, async_await_helper_args);
 
   preamble_->Add(
       new (Z) StoreLocalNode(token_pos, result_param, await_helper_call));
@@ -363,8 +362,8 @@ void AwaitTransformer::VisitInstanceCallNode(InstanceCallNode* node) {
 void AwaitTransformer::VisitStaticCallNode(StaticCallNode* node) {
   ArgumentListNode* new_args =
       Transform(node->arguments())->AsArgumentListNode();
-  result_ = MakeName(new (Z) StaticCallNode(node->token_pos(), node->function(),
-                                            new_args, node->rebind_rule()));
+  result_ = MakeName(
+      new (Z) StaticCallNode(node->token_pos(), node->function(), new_args));
 }
 
 void AwaitTransformer::VisitConstructorCallNode(ConstructorCallNode* node) {
@@ -398,9 +397,8 @@ void AwaitTransformer::VisitStaticGetterNode(StaticGetterNode* node) {
   if (new_receiver != NULL) {
     new_receiver = Transform(new_receiver);
   }
-  StaticGetterNode* new_getter =
-      new (Z) StaticGetterNode(node->token_pos(), new_receiver, node->cls(),
-                               node->field_name(), node->rebind_rule());
+  StaticGetterNode* new_getter = new (Z) StaticGetterNode(
+      node->token_pos(), new_receiver, node->cls(), node->field_name());
   new_getter->set_owner(node->owner());
   result_ = MakeName(new_getter);
 }
@@ -414,11 +412,10 @@ void AwaitTransformer::VisitStaticSetterNode(StaticSetterNode* node) {
   StaticSetterNode* new_setter =
       node->function().IsNull()
           ? new (Z) StaticSetterNode(node->token_pos(), new_receiver,
-                                     node->cls(), node->field_name(), new_value,
-                                     node->rebind_rule())
+                                     node->cls(), node->field_name(), new_value)
           : new (Z) StaticSetterNode(node->token_pos(), new_receiver,
                                      node->field_name(), node->function(),
-                                     new_value, node->rebind_rule());
+                                     new_value);
 
   result_ = MakeName(new_setter);
 }

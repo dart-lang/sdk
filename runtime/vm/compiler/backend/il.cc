@@ -3463,8 +3463,7 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
     }
     call_ic_data = compiler->GetOrAddStaticCallICData(
-        deopt_id(), function(), arguments_descriptor, num_args_checked,
-        rebind_rule_);
+        deopt_id(), function(), arguments_descriptor, num_args_checked);
   } else {
     call_ic_data = &ICData::ZoneHandle(ic_data()->raw());
   }
@@ -3472,7 +3471,7 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if !defined(TARGET_ARCH_DBC)
   ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
   compiler->GenerateStaticCall(deopt_id(), token_pos(), function(), args_info,
-                               locs(), *call_ic_data, rebind_rule_);
+                               locs(), *call_ic_data);
 #else
   const Array& arguments_descriptor = Array::Handle(
       zone, (ic_data() == NULL) ? GetArgumentsDescriptor()

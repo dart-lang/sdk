@@ -243,18 +243,15 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
       const InstanceCallDescriptor& desc,
       ZoneGrowableArray<PushArgumentInstr*>* arguments) const;
 
+  StaticCallInstr* StaticCall(const Function& function) const;
   StaticCallInstr* StaticCall(const Function& function,
-                              ICData::RebindRule rebind_rule) const;
-  StaticCallInstr* StaticCall(const Function& function,
-                              PushArgumentInstr* arg1,
-                              ICData::RebindRule rebind_rule) const;
+                              PushArgumentInstr* arg1) const;
   StaticCallInstr* StaticCall(const Function& function,
                               PushArgumentInstr* arg1,
-                              PushArgumentInstr* arg2,
-                              ICData::RebindRule rebind_rule) const;
-  StaticCallInstr* StaticCall(const Function& function,
-                              ZoneGrowableArray<PushArgumentInstr*>* arguments,
-                              ICData::RebindRule rebind_rule) const;
+                              PushArgumentInstr* arg2) const;
+  StaticCallInstr* StaticCall(
+      const Function& function,
+      ZoneGrowableArray<PushArgumentInstr*>* arguments) const;
 
   // Creates a new block consisting simply of a goto to dst.
   TargetEntryInstr* TargetWithJoinGoto(JoinEntryInstr* dst);

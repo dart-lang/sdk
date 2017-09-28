@@ -3427,9 +3427,8 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
           const Function& target = Function::ZoneHandle(
               Z, H.LookupConstructorByKernelConstructor(canonical_target));
-          instructions +=
-              StaticCall(TokenPosition::kNoSource, target, argument_count,
-                         argument_names, ICData::kStatic);
+          instructions += StaticCall(TokenPosition::kNoSource, target,
+                                     argument_count, argument_names);
           instructions += Drop();
           break;
         }
@@ -3449,9 +3448,8 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
           const Function& target = Function::ZoneHandle(
               Z, H.LookupConstructorByKernelConstructor(canonical_target));
-          instructions +=
-              StaticCall(TokenPosition::kNoSource, target, argument_count,
-                         argument_names, ICData::kStatic);
+          instructions += StaticCall(TokenPosition::kNoSource, target,
+                                     argument_count, argument_names);
           instructions += Drop();
           break;
         }
@@ -3559,7 +3557,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   intptr_t argument_count = positional_argument_count + named_argument_count;
   if (!target.is_static()) ++argument_count;
   body += StaticCall(TokenPosition::kNoSource, target, argument_count,
-                     argument_names, ICData::kNoRebind);
+                     argument_names);
 
   // Return the result.
   body += Return(function_node_helper.end_position_);
@@ -3850,8 +3848,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     instructions += PushArgument();
 
     // Call _asyncSetThreadStackTrace
-    instructions += StaticCall(TokenPosition::kNoSource, target,
-                               /* argument_count = */ 1, ICData::kStatic);
+    instructions += StaticCall(TokenPosition::kNoSource, target, 1);
     instructions += Drop();
 
     // TODO(29737): This sequence should be generated in order.
@@ -5021,21 +5018,17 @@ Fragment StreamingFlowGraphBuilder::LoadStaticField() {
 
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
-                                               intptr_t argument_count,
-                                               ICData::RebindRule rebind_rule) {
-  return flow_graph_builder_->StaticCall(position, target, argument_count,
-                                         rebind_rule);
+                                               intptr_t argument_count) {
+  return flow_graph_builder_->StaticCall(position, target, argument_count);
 }
 
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
                                                intptr_t argument_count,
                                                const Array& argument_names,
-                                               ICData::RebindRule rebind_rule,
                                                intptr_t type_args_count) {
   return flow_graph_builder_->StaticCall(position, target, argument_count,
-                                         argument_names, rebind_rule,
-                                         type_args_count);
+                                         argument_names, type_args_count);
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(
@@ -5493,12 +5486,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   }
 
   instructions += PushArgument();
-  // Static calls are marked as "no-rebind", which is currently safe because
-  // DirectPropertyGet are only used in enums (index in toString) and enums
-  // can't change their structure during hot reload.
-  // If there are other sources of DirectPropertyGet in the future, this code
-  // have to be adjusted.
-  return instructions + StaticCall(position, target, 1, ICData::kNoRebind);
+  return instructions + StaticCall(position, target, 1);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
@@ -5522,12 +5510,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
   instructions += StoreLocal(TokenPosition::kNoSource, value);
   instructions += PushArgument();
 
-  // Static calls are marked as "no-rebind", which is currently safe because
-  // DirectPropertyGet are only used in enums (index in toString) and enums
-  // can't change their structure during hot reload.
-  // If there are other sources of DirectPropertyGet in the future, this code
-  // have to be adjusted.
-  instructions += StaticCall(position, target, 2, ICData::kNoRebind);
+  instructions += StaticCall(position, target, 2);
 
   return instructions + Drop();
 }
@@ -5554,7 +5537,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
         Fragment instructions = Constant(field);
         return instructions + LoadStaticField();
       } else {
-        return StaticCall(position, getter, 0, ICData::kStatic);
+        return StaticCall(position, getter, 0);
       }
     }
   } else {
@@ -5562,7 +5545,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
         Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
 
     if (H.IsGetter(target)) {
-      return StaticCall(position, function, 0, ICData::kStatic);
+      return StaticCall(position, function, 0);
     } else if (H.IsMethod(target)) {
       return Constant(constant_evaluator_.EvaluateExpression(offset));
     } else {
@@ -5606,7 +5589,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
     // Invoke the setter function.
     const Function& function =
         Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
-    instructions += StaticCall(position, function, 1, ICData::kStatic);
+    instructions += StaticCall(position, function, 1);
 
     // Drop the unused result & leave the stored value on the stack.
     return instructions + Drop();
@@ -5761,8 +5744,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
       BuildArguments(&argument_names, &argument_count);  // read arguments.
   ++argument_count;
   return instructions + StaticCall(TokenPosition::kNoSource, target,
-                                   argument_count, argument_names,
-                                   ICData::kNoRebind);
+                                   argument_count, argument_names);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
@@ -5840,8 +5822,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ASSERT(argument_count == 2);
     instructions += StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
   } else {
-    instructions += StaticCall(position, target, argument_count, argument_names,
-                               ICData::kStatic);
+    instructions +=
+        StaticCall(position, target, argument_count, argument_names);
     if (target.IsGenerativeConstructor()) {
       // Drop the result of the constructor call and leave [instance_variable]
       // on top-of-stack.
@@ -5938,8 +5920,7 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
   const Function& target = Function::ZoneHandle(
       Z, H.LookupConstructorByKernelConstructor(klass, kernel_name));
   ++argument_count;
-  instructions += StaticCall(position, target, argument_count, argument_names,
-                             ICData::kStatic);
+  instructions += StaticCall(position, target, argument_count, argument_names);
   return instructions + Drop();
 }
 
@@ -6303,8 +6284,7 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(bool is_const,
       Z, factory_class.LookupFactory(
              Library::PrivateCoreLibName(Symbols::ListLiteralFactory())));
 
-  return instructions +
-         StaticCall(position, factory_method, 2, ICData::kStatic);
+  return instructions + StaticCall(position, factory_method, 2);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildMapLiteral(bool is_const,
@@ -6364,8 +6344,7 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(bool is_const,
       Z, map_class.LookupFactory(
              Library::PrivateCoreLibName(Symbols::MapLiteralFactory())));
 
-  return instructions +
-         StaticCall(position, factory_method, 2, ICData::kStatic);
+  return instructions + StaticCall(position, factory_method, 2);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
@@ -6637,8 +6616,7 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   }
   otherwise_fragment += PushArgument();  // message
 
-  otherwise_fragment +=
-      StaticCall(TokenPosition::kNoSource, target, 3, ICData::kStatic);
+  otherwise_fragment += StaticCall(TokenPosition::kNoSource, target, 3);
   otherwise_fragment += Drop();
 
   return Fragment(instructions.entry, then);
@@ -6945,8 +6923,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
       body_fragment += NullConstant();
       body_fragment += PushArgument();  // line
 
-      body_fragment +=
-          StaticCall(TokenPosition::kNoSource, constructor, 3, ICData::kStatic);
+      body_fragment += StaticCall(TokenPosition::kNoSource, constructor, 3);
       body_fragment += Drop();
 
       // Throw the exception
