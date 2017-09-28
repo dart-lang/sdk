@@ -1518,18 +1518,26 @@ class InitStaticFieldNode : public AstNode {
   DISALLOW_COPY_AND_ASSIGN(InitStaticFieldNode);
 };
 
+class StaticGetterSetter {
+ public:
+  // The rule below is mapped to ICData::RebindRule (runtime/vm/object.h).
+  enum RebindRule { kNoRebind, kStatic, kSuper };
+};
+
 class StaticGetterNode : public AstNode {
  public:
   StaticGetterNode(TokenPosition token_pos,
                    AstNode* receiver,
                    const Class& cls,
-                   const String& field_name)
+                   const String& field_name,
+                   StaticGetterSetter::RebindRule rebind_rule)
       : AstNode(token_pos),
         receiver_(receiver),
         owner_(Object::ZoneHandle(cls.raw())),
         cls_(cls),
         field_name_(field_name),
-        is_deferred_reference_(false) {
+        is_deferred_reference_(false),
+        rebind_rule_(rebind_rule) {
     ASSERT(cls_.IsZoneHandle());
     ASSERT(field_name_.IsZoneHandle());
     ASSERT(field_name_.IsSymbol());
@@ -1554,6 +1562,11 @@ class StaticGetterNode : public AstNode {
   bool is_super_getter() const { return receiver_ != NULL; }
   void set_is_deferred(bool value) { is_deferred_reference_ = value; }
 
+  StaticGetterSetter::RebindRule rebind_rule() const { return rebind_rule_; }
+  void set_rebind_rule(StaticGetterSetter::RebindRule rule) {
+    rebind_rule_ = rule;
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const {}
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
@@ -1569,6 +1582,7 @@ class StaticGetterNode : public AstNode {
   const Class& cls_;
   const String& field_name_;
   bool is_deferred_reference_;
+  StaticGetterSetter::RebindRule rebind_rule_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticGetterNode);
 };
@@ -1580,13 +1594,15 @@ class StaticSetterNode : public AstNode {
                    AstNode* receiver,
                    const String& field_name,
                    const Function& function,
-                   AstNode* value)
+                   AstNode* value,
+                   StaticGetterSetter::RebindRule rebind_rule)
       : AstNode(token_pos),
         receiver_(receiver),
         cls_(Class::ZoneHandle(function.Owner())),
         field_name_(field_name),
         function_(function),
-        value_(value) {
+        value_(value),
+        rebind_rule_(rebind_rule) {
     ASSERT(function_.IsZoneHandle());
     ASSERT(function.is_static() || receiver != NULL);
     ASSERT(field_name_.IsZoneHandle());
@@ -1598,13 +1614,15 @@ class StaticSetterNode : public AstNode {
                    AstNode* receiver,
                    const Class& cls,
                    const String& field_name,
-                   AstNode* value)
+                   AstNode* value,
+                   StaticGetterSetter::RebindRule rebind_rule)
       : AstNode(token_pos),
         receiver_(receiver),
         cls_(cls),
         field_name_(field_name),
         function_(Function::ZoneHandle()),
-        value_(value) {
+        value_(value),
+        rebind_rule_(rebind_rule) {
     ASSERT(cls_.IsZoneHandle());
     ASSERT(field_name_.IsZoneHandle());
     ASSERT(value_ != NULL);
@@ -1619,6 +1637,11 @@ class StaticSetterNode : public AstNode {
   const Function& function() const { return function_; }
   AstNode* value() const { return value_; }
 
+  StaticGetterSetter::RebindRule rebind_rule() const { return rebind_rule_; }
+  void set_rebind_rule(StaticGetterSetter::RebindRule rule) {
+    rebind_rule_ = rule;
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     value()->Visit(visitor);
   }
@@ -1631,22 +1654,33 @@ class StaticSetterNode : public AstNode {
   const String& field_name_;
   const Function& function_;
   AstNode* value_;
+  StaticGetterSetter::RebindRule rebind_rule_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticSetterNode);
 };
 
 class StaticCallNode : public AstNode {
  public:
+  // The rule below is mapped to ICData::RebindRule (runtime/vm/object.h).
+  enum RebindRule { kNoRebind, kNSMDispatch, kStatic, kSuper };
+
   StaticCallNode(TokenPosition token_pos,
                  const Function& function,
-                 ArgumentListNode* arguments)
-      : AstNode(token_pos), function_(function), arguments_(arguments) {
+                 ArgumentListNode* arguments,
+                 RebindRule rebind_rule)
+      : AstNode(token_pos),
+        function_(function),
+        arguments_(arguments),
+        rebind_rule_(rebind_rule) {
     ASSERT(function_.IsZoneHandle());
     ASSERT(arguments_ != NULL);
   }
 
   const Function& function() const { return function_; }
   ArgumentListNode* arguments() const { return arguments_; }
+
+  RebindRule rebind_rule() const { return rebind_rule_; }
+  void set_rebind_rule(RebindRule rule) { rebind_rule_ = rule; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     arguments()->Visit(visitor);
@@ -1659,6 +1693,7 @@ class StaticCallNode : public AstNode {
  private:
   const Function& function_;
   ArgumentListNode* arguments_;
+  RebindRule rebind_rule_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCallNode);
 };

@@ -774,7 +774,8 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Object::null_array();
   ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
-                               args_info, locs(), ICData::Handle());
+                               args_info, locs(), ICData::Handle(),
+                               ICData::kStatic);
   ASSERT(locs()->out(0).reg() == R0);
 }
 
@@ -4798,7 +4799,8 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Object::null_array();
   ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
-                               args_info, locs(), ICData::Handle());
+                               args_info, locs(), ICData::Handle(),
+                               ICData::kStatic);
   __ Bind(&done);
 }
 

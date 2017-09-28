@@ -1611,6 +1611,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   const String& func_name = String::ZoneHandle(parent.name());
   const Class& owner = Class::Handle(parent.Owner());
   Function& target = Function::ZoneHandle(owner.LookupFunction(func_name));
+
   if (target.raw() != parent.raw()) {
     NOT_IN_PRODUCT(ASSERT(Isolate::Current()->HasAttemptedReload()));
     if (target.IsNull() || (target.is_static() != parent.is_static()) ||
@@ -1626,7 +1627,8 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   // receiver.
   if (!target.IsNull() &&
       (parent.num_fixed_parameters() == target.num_fixed_parameters())) {
-    call = new StaticCallNode(token_pos, target, func_args);
+    call = new StaticCallNode(token_pos, target, func_args,
+                              StaticCallNode::kNoRebind);
   } else if (!parent.is_static()) {
     NOT_IN_PRODUCT(ASSERT(Isolate::Current()->HasAttemptedReload()));
     // If a subsequent reload reintroduces the target in the middle of the
@@ -1649,7 +1651,8 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
           Class::Handle(Z, I->object_store()->object_class()),
           Symbols::NoSuchMethod(), args_desc);
     }
-    call = new StaticCallNode(token_pos, no_such_method, arguments);
+    call = new StaticCallNode(token_pos, no_such_method, arguments,
+                              StaticCallNode::kStatic);
   } else {
     NOT_IN_PRODUCT(ASSERT(Isolate::Current()->HasAttemptedReload()));
     // If a subsequent reload reintroduces the target in the middle of the
@@ -1804,8 +1807,8 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
         Class::Handle(Z, I->object_store()->object_class()),
         Symbols::NoSuchMethod(), args_desc);
   }
-  StaticCallNode* call =
-      new StaticCallNode(token_pos, no_such_method, arguments);
+  StaticCallNode* call = new StaticCallNode(
+      token_pos, no_such_method, arguments, StaticCallNode::kNSMDispatch);
 
   ReturnNode* return_node = new ReturnNode(token_pos, call);
   current_block_->statements->Add(return_node);
@@ -2452,7 +2455,8 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
       Function::ZoneHandle(mirror_class.LookupStaticFunction(
           Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
   ASSERT(!allocation_function.IsNull());
-  return new StaticCallNode(call_pos, allocation_function, arguments);
+  return new StaticCallNode(call_pos, allocation_function, arguments,
+                            StaticCallNode::kStatic);
 }
 
 ArgumentListNode* Parser::BuildNoSuchMethodArguments(
@@ -2495,7 +2499,8 @@ AstNode* Parser::ParseSuperCall(const String& function_name,
     const Class& super_class =
         Class::ZoneHandle(Z, current_class().SuperClass());
     AstNode* closure = new StaticGetterNode(
-        supercall_pos, LoadReceiver(supercall_pos), super_class, function_name);
+        supercall_pos, LoadReceiver(supercall_pos), super_class, function_name,
+        StaticGetterSetter::kSuper);
     // 'this' is not passed as parameter to the closure.
     ArgumentListNode* closure_arguments =
         new ArgumentListNode(supercall_pos, func_type_args);
@@ -2508,7 +2513,8 @@ AstNode* Parser::ParseSuperCall(const String& function_name,
     arguments = BuildNoSuchMethodArguments(supercall_pos, function_name,
                                            *arguments, NULL, true);
   }
-  return new StaticCallNode(supercall_pos, super_function, arguments);
+  return new StaticCallNode(supercall_pos, super_function, arguments,
+                            StaticCallNode::kSuper);
 }
 
 // Simple test if a node is side effect free.
@@ -2535,7 +2541,8 @@ AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
       op_arguments = BuildNoSuchMethodArguments(
           super_pos, operator_function_name, *op_arguments, NULL, true);
     }
-    super_op = new StaticCallNode(super_pos, super_operator, op_arguments);
+    super_op = new StaticCallNode(super_pos, super_operator, op_arguments,
+                                  StaticCallNode::kSuper);
   } else {
     ReportError(super_pos, "illegal super operator call");
   }
@@ -2588,7 +2595,8 @@ AstNode* Parser::ParseSuperOperator() {
       op_arguments = BuildNoSuchMethodArguments(
           operator_pos, operator_function_name, *op_arguments, NULL, true);
     }
-    super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
+    super_op = new StaticCallNode(operator_pos, super_operator, op_arguments,
+                                  StaticCallNode::kSuper);
     if (negate_result) {
       super_op = new UnaryOpNode(operator_pos, Token::kNOT, super_op);
     }
@@ -2645,8 +2653,8 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
       // Emit a StaticGetterNode anyway, so that noSuchMethod gets called.
     }
   }
-  return new (Z)
-      StaticGetterNode(field_pos, implicit_argument, super_class, field_name);
+  return new (Z) StaticGetterNode(field_pos, implicit_argument, super_class,
+                                  field_name, StaticGetterSetter::kSuper);
 }
 
 StaticCallNode* Parser::GenerateSuperConstructorCall(
@@ -2715,7 +2723,8 @@ StaticCallNode* Parser::GenerateSuperConstructorCall(
                 String::Handle(Z, super_class.Name()).ToCString(),
                 error_message.ToCString());
   }
-  return new StaticCallNode(supercall_pos, super_ctor, arguments);
+  return new StaticCallNode(supercall_pos, super_ctor, arguments,
+                            StaticCallNode::kSuper);
 }
 
 StaticCallNode* Parser::ParseSuperInitializer(const Class& cls,
@@ -2769,7 +2778,8 @@ StaticCallNode* Parser::ParseSuperInitializer(const Class& cls,
                 "invalid arguments passed to super class constructor '%s': %s",
                 ctor_name.ToCString(), error_message.ToCString());
   }
-  return new StaticCallNode(supercall_pos, super_ctor, arguments);
+  return new StaticCallNode(supercall_pos, super_ctor, arguments,
+                            StaticCallNode::kSuper);
 }
 
 AstNode* Parser::ParseInitializer(const Class& cls,
@@ -3162,8 +3172,8 @@ void Parser::ParseConstructorRedirection(const Class& cls,
                 String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString(),
                 error_message.ToCString());
   }
-  current_block_->statements->Add(
-      new StaticCallNode(call_pos, redirect_ctor, arguments));
+  current_block_->statements->Add(new StaticCallNode(
+      call_pos, redirect_ctor, arguments, StaticCallNode::kStatic));
 }
 
 SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
@@ -7380,8 +7390,9 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
         new (Z) ArgumentListNode(TokenPosition::kNoSource);
     async_stack_trace_helper_args->Add(
         new (Z) LoadLocalNode(TokenPosition::kNoSource, async_op_var));
-    StaticCallNode* async_stack_trace_helper_call = new (Z) StaticCallNode(
-        token_pos, async_stack_trace_helper, async_stack_trace_helper_args);
+    StaticCallNode* async_stack_trace_helper_call = new (Z)
+        StaticCallNode(token_pos, async_stack_trace_helper,
+                       async_stack_trace_helper_args, StaticCallNode::kStatic);
     LocalVariable* async_stack_trace_var =
         current_block_->scope->LookupVariable(Symbols::AsyncStackTraceVar(),
                                               false);
@@ -7401,7 +7412,7 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
       new (Z) LoadLocalNode(TokenPosition::kNoSource, async_op_var));
   StaticCallNode* then_wrapper_call = new (Z)
       StaticCallNode(TokenPosition::kNoSource, async_then_wrapper_helper,
-                     async_then_wrapper_helper_args);
+                     async_then_wrapper_helper_args, StaticCallNode::kStatic);
   LocalVariable* async_then_callback_var =
       current_block_->scope->LookupVariable(Symbols::AsyncThenCallback(),
                                             false);
@@ -7422,7 +7433,7 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
       new (Z) LoadLocalNode(TokenPosition::kNoSource, async_op_var));
   StaticCallNode* error_wrapper_call = new (Z)
       StaticCallNode(TokenPosition::kNoSource, async_error_wrapper_helper,
-                     async_error_wrapper_helper_args);
+                     async_error_wrapper_helper_args, StaticCallNode::kStatic);
   LocalVariable* async_catch_error_callback_var =
       current_block_->scope->LookupVariable(Symbols::AsyncCatchErrorCallback(),
                                             false);
@@ -7599,8 +7610,9 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
         new (Z) ArgumentListNode(token_pos);
     async_stack_trace_helper_args->Add(
         new (Z) LoadLocalNode(token_pos, async_op_var));
-    StaticCallNode* async_stack_trace_helper_call = new (Z) StaticCallNode(
-        token_pos, async_stack_trace_helper, async_stack_trace_helper_args);
+    StaticCallNode* async_stack_trace_helper_call = new (Z)
+        StaticCallNode(token_pos, async_stack_trace_helper,
+                       async_stack_trace_helper_args, StaticCallNode::kStatic);
     LocalVariable* async_stack_trace_var =
         current_block_->scope->LookupVariable(Symbols::AsyncStackTraceVar(),
                                               false);
@@ -7618,8 +7630,9 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       new (Z) ArgumentListNode(token_pos);
   async_then_wrapper_helper_args->Add(
       new (Z) LoadLocalNode(token_pos, async_op_var));
-  StaticCallNode* then_wrapper_call = new (Z) StaticCallNode(
-      token_pos, async_then_wrapper_helper, async_then_wrapper_helper_args);
+  StaticCallNode* then_wrapper_call = new (Z)
+      StaticCallNode(token_pos, async_then_wrapper_helper,
+                     async_then_wrapper_helper_args, StaticCallNode::kStatic);
   LocalVariable* async_then_callback_var =
       current_block_->scope->LookupVariable(Symbols::AsyncThenCallback(),
                                             false);
@@ -7638,8 +7651,9 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       new (Z) ArgumentListNode(token_pos);
   async_error_wrapper_helper_args->Add(
       new (Z) LoadLocalNode(token_pos, async_op_var));
-  StaticCallNode* error_wrapper_call = new (Z) StaticCallNode(
-      token_pos, async_error_wrapper_helper, async_error_wrapper_helper_args);
+  StaticCallNode* error_wrapper_call = new (Z)
+      StaticCallNode(token_pos, async_error_wrapper_helper,
+                     async_error_wrapper_helper_args, StaticCallNode::kStatic);
   LocalVariable* async_catch_error_callback_var =
       current_block_->scope->LookupVariable(Symbols::AsyncCatchErrorCallback(),
                                             false);
@@ -9126,8 +9140,8 @@ AstNode* Parser::DartPrint(const char* str) {
       new (Z) ArgumentListNode(TokenPosition::kNoSource);
   String& msg = String::ZoneHandle(Symbols::NewFormatted(T, "%s", str));
   one_arg->Add(new (Z) LiteralNode(TokenPosition::kNoSource, msg));
-  AstNode* print_call =
-      new (Z) StaticCallNode(TokenPosition::kNoSource, print_fn, one_arg);
+  AstNode* print_call = new (Z) StaticCallNode(
+      TokenPosition::kNoSource, print_fn, one_arg, StaticCallNode::kStatic);
   return print_call;
 }
 
@@ -9209,8 +9223,9 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       new (Z) LoadLocalNode(stream_expr_pos, stream_var));
   async_star_listen_helper_args->Add(
       new (Z) LoadLocalNode(stream_expr_pos, async_op_var));
-  StaticCallNode* async_star_listen_helper_call = new (Z) StaticCallNode(
-      stream_expr_pos, async_star_listen_helper, async_star_listen_helper_args);
+  StaticCallNode* async_star_listen_helper_call = new (Z)
+      StaticCallNode(stream_expr_pos, async_star_listen_helper,
+                     async_star_listen_helper_args, StaticCallNode::kStatic);
 
   current_block_->statements->Add(async_star_listen_helper_call);
 
@@ -9280,9 +9295,9 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       new (Z) ArgumentListNode(stream_expr_pos);
   async_star_move_next_helper_args->Add(
       new (Z) LoadLocalNode(stream_expr_pos, stream_var));
-  StaticCallNode* async_star_move_next_helper_call =
-      new (Z) StaticCallNode(stream_expr_pos, async_star_move_next_helper,
-                             async_star_move_next_helper_args);
+  StaticCallNode* async_star_move_next_helper_call = new (Z)
+      StaticCallNode(stream_expr_pos, async_star_move_next_helper,
+                     async_star_move_next_helper_args, StaticCallNode::kStatic);
   current_block_->statements->Add(async_star_move_next_helper_call);
 #endif
   AstNode* await_moveNext = new (Z) AwaitNode(
@@ -9642,7 +9657,8 @@ AstNode* Parser::MakeStaticCall(const String& cls_name,
       Z, Resolver::ResolveStatic(cls, func_name, kTypeArgsLen,
                                  arguments->length(), arguments->names()));
   ASSERT(!func.IsNull());
-  return new (Z) StaticCallNode(arguments->token_pos(), func, arguments);
+  return new (Z) StaticCallNode(arguments->token_pos(), func, arguments,
+                                StaticCallNode::kStatic);
 }
 
 AstNode* Parser::ParseAssertStatement(bool is_const) {
@@ -11626,8 +11642,9 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                        kNumArguments, Object::empty_array());
         if (!func.IsNull()) {
           ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
-          closure = new (Z) StaticGetterNode(
-              call_pos, NULL, Class::ZoneHandle(Z, cls.raw()), func_name);
+          closure = new (Z)
+              StaticGetterNode(call_pos, NULL, Class::ZoneHandle(Z, cls.raw()),
+                               func_name, StaticGetterSetter::kStatic);
           return BuildClosureCall(call_pos, closure, arguments);
         }
       }
@@ -11670,7 +11687,8 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
     return new (Z) ComparisonNode(ident_pos, Token::kEQ_STRICT,
                                   arguments->NodeAt(0), arguments->NodeAt(1));
   }
-  return new (Z) StaticCallNode(ident_pos, func, arguments);
+  return new (Z)
+      StaticCallNode(ident_pos, func, arguments, StaticCallNode::kStatic);
 }
 
 AstNode* Parser::ParseInstanceCall(AstNode* receiver,
@@ -11720,9 +11738,10 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
         LoadStaticFieldNode(ident_pos, Field::ZoneHandle(Z, field.raw()));
   } else {
     ASSERT(getter.kind() == RawFunction::kImplicitStaticFinalGetter);
-    return new (Z) StaticGetterNode(ident_pos,
-                                    NULL,  // Receiver.
-                                    field_owner, field_name);
+    return new (Z)
+        StaticGetterNode(ident_pos,
+                         NULL,  // Receiver.
+                         field_owner, field_name, StaticGetterSetter::kStatic);
   }
 }
 
@@ -11748,13 +11767,15 @@ AstNode* Parser::GenerateStaticFieldAccess(const Class& cls,
         // Create a getter call, which may later be turned into
         // a setter call, or else the backend will generate
         // a throw NoSuchMethodError().
-        access = new (Z) StaticGetterNode(
-            ident_pos, NULL, Class::ZoneHandle(Z, cls.raw()), field_name);
+        access = new (Z)
+            StaticGetterNode(ident_pos, NULL, Class::ZoneHandle(Z, cls.raw()),
+                             field_name, StaticGetterSetter::kStatic);
       }
     } else {
       ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
-      access = new (Z) StaticGetterNode(
-          ident_pos, NULL, Class::ZoneHandle(Z, cls.raw()), field_name);
+      access = new (Z)
+          StaticGetterNode(ident_pos, NULL, Class::ZoneHandle(Z, cls.raw()),
+                           field_name, StaticGetterSetter::kStatic);
     }
   } else {
     access = GenerateStaticFieldLookup(field, ident_pos);
@@ -11778,18 +11799,20 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     const String& name =
         String::Cast(Object::ZoneHandle(primary->primary().raw()));
     if (primary->is_deferred_reference()) {
-      StaticGetterNode* getter = new (Z) StaticGetterNode(
-          primary->token_pos(),
-          NULL,  // No receiver.
-          Class::ZoneHandle(Z, library_.toplevel_class()), name);
+      StaticGetterNode* getter = new (Z)
+          StaticGetterNode(primary->token_pos(),
+                           NULL,  // No receiver.
+                           Class::ZoneHandle(Z, library_.toplevel_class()),
+                           name, StaticGetterSetter::kStatic);
       getter->set_is_deferred(primary->is_deferred_reference());
       return getter;
     } else if (current_function().is_static() ||
                current_function().IsInFactoryScope()) {
-      StaticGetterNode* getter = new (Z)
-          StaticGetterNode(primary->token_pos(),
-                           NULL,  // No receiver.
-                           Class::ZoneHandle(Z, current_class().raw()), name);
+      StaticGetterNode* getter =
+          new (Z) StaticGetterNode(primary->token_pos(),
+                                   NULL,  // No receiver.
+                                   Class::ZoneHandle(Z, current_class().raw()),
+                                   name, StaticGetterSetter::kStatic);
       getter->set_is_deferred(primary->is_deferred_reference());
       return getter;
     } else {
@@ -12593,8 +12616,8 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(
                   field_name.ToCString());
     } else {
       // The implicit static getter will throw the exception if necessary.
-      return new (Z)
-          StaticGetterNode(field_ref_pos, NULL, field_owner, field_name);
+      return new (Z) StaticGetterNode(field_ref_pos, NULL, field_owner,
+                                      field_name, StaticGetterSetter::kStatic);
     }
   } else if (value.raw() == Object::sentinel().raw()) {
     // This field has not been referenced yet and thus the value has
@@ -12639,8 +12662,8 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(
       field.SetStaticValue(instance);
       return NULL;  // Constant
     } else {
-      return new (Z)
-          StaticGetterNode(field_ref_pos, NULL, field_owner, field_name);
+      return new (Z) StaticGetterNode(field_ref_pos, NULL, field_owner,
+                                      field_name, StaticGetterSetter::kStatic);
     }
   }
   if (getter.IsNull() ||
@@ -12648,7 +12671,8 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(
     return NULL;
   }
   ASSERT(getter.kind() == RawFunction::kImplicitGetter);
-  return new (Z) StaticGetterNode(field_ref_pos, NULL, field_owner, field_name);
+  return new (Z) StaticGetterNode(field_ref_pos, NULL, field_owner, field_name,
+                                  StaticGetterSetter::kStatic);
 }
 
 RawObject* Parser::EvaluateConstConstructorCall(
@@ -12812,8 +12836,9 @@ bool Parser::ResolveIdentInLocalScope(TokenPosition ident_pos,
       return true;
     } else if (func.IsStaticFunction()) {
       if (node != NULL) {
-        *node = new (Z) StaticGetterNode(
-            ident_pos, NULL, Class::ZoneHandle(Z, cls.raw()), ident);
+        *node = new (Z)
+            StaticGetterNode(ident_pos, NULL, Class::ZoneHandle(Z, cls.raw()),
+                             ident, StaticGetterSetter::kStatic);
       }
       return true;
     }
@@ -12851,7 +12876,8 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(TokenPosition ident_pos,
     if (func.IsGetterFunction() || func.IsSetterFunction()) {
       StaticGetterNode* getter = new (Z) StaticGetterNode(
           ident_pos,
-          /* receiver */ NULL, Class::ZoneHandle(Z, func.Owner()), ident);
+          /* receiver */ NULL, Class::ZoneHandle(Z, func.Owner()), ident,
+          StaticGetterSetter::kStatic);
       getter->set_owner(library_);
       return getter;
     } else {
@@ -12929,7 +12955,8 @@ AstNode* Parser::ResolveIdentInPrefixScope(TokenPosition ident_pos,
     if (func.IsGetterFunction() || func.IsSetterFunction()) {
       StaticGetterNode* getter = new (Z) StaticGetterNode(
           ident_pos,
-          /* receiver */ NULL, Class::ZoneHandle(Z, func.Owner()), ident);
+          /* receiver */ NULL, Class::ZoneHandle(Z, func.Owner()), ident,
+          StaticGetterSetter::kStatic);
       getter->set_is_deferred(is_deferred);
       getter->set_owner(prefix);
       return getter;

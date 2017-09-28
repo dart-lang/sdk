@@ -385,7 +385,8 @@ class FlowGraphCompiler : public ValueObject {
                           const Function& function,
                           ArgumentsInfo args_info,
                           LocationSummary* locs,
-                          const ICData& ic_data);
+                          const ICData& ic_data_in,
+                          ICData::RebindRule rebind_rule);
 
   void GenerateNumberTypeCheck(Register kClassIdReg,
                                const AbstractType& type,
@@ -570,7 +571,8 @@ class FlowGraphCompiler : public ValueObject {
   const ICData* GetOrAddStaticCallICData(intptr_t deopt_id,
                                          const Function& target,
                                          const Array& arguments_descriptor,
-                                         intptr_t num_args_tested);
+                                         intptr_t num_args_tested,
+                                         ICData::RebindRule rebind_rule);
 
   static const CallTargets* ResolveCallTargetsForReceiverCid(
       intptr_t cid,
