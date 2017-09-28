@@ -541,7 +541,6 @@ deferred_load_inval_code_test: CompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
-deferred_no_prefix_test/01: MissingCompileTimeError
 deferred_no_such_method_test: CompileTimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_only_constant_test: CompileTimeError

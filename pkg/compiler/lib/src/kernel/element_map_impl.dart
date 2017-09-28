@@ -2431,35 +2431,40 @@ class JsKernelToElementMap extends KernelToElementMapBase
   // Returns a non-unique name for the given closure element.
   String _computeClosureName(ir.TreeNode treeNode) {
     var parts = <String>[];
-    if (treeNode is ir.Field && treeNode.name.name != "") {
-      parts.add(treeNode.name.name);
-    } else {
-      parts.add('closure');
-    }
-    ir.TreeNode node = treeNode.parent;
-    while (node != null) {
-      // TODO(johnniwinther): Simplify computed names.
-      if (node is ir.Constructor ||
-          node.parent is ir.Constructor ||
-          (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory)) {
-        FunctionEntity entity;
-        if (node.parent is ir.Constructor) {
-          entity = getConstructorBody(node.parent);
+    // First anonymous is called 'closure', outer ones called '' to give a
+    // compound name where increasing nesting level corresponds to extra
+    // underscores.
+    var anonymous = 'closure';
+    ir.TreeNode current = treeNode;
+    // TODO(johnniwinther): Simplify computed names.
+    while (current != null) {
+      var node = current;
+      if (node is ir.FunctionExpression) {
+        parts.add(anonymous);
+        anonymous = '';
+      } else if (node is ir.FunctionDeclaration) {
+        String name = node.variable.name;
+        if (name != null && name != "") {
+          parts.add(Elements.operatorNameToIdentifier(name));
         } else {
-          entity = getMember(node);
+          parts.add(anonymous);
+          anonymous = '';
         }
-        parts.add(utils.reconstructConstructorName(entity));
-      } else {
-        if (node is ir.Class) {
-          parts.add(Elements.operatorNameToIdentifier(node.name));
-        } else if (node is ir.Procedure) {
+      } else if (node is ir.Class) {
+        // TODO(sra): Do something with abstracted mixin type names like '^#U0'.
+        parts.add(node.name);
+        break;
+      } else if (node is ir.Procedure) {
+        if (node.kind == ir.ProcedureKind.Factory) {
+          parts.add(utils.reconstructConstructorName(getMember(node)));
+        } else {
           parts.add(Elements.operatorNameToIdentifier(node.name.name));
         }
+      } else if (node is ir.Constructor) {
+        parts.add(utils.reconstructConstructorName(getMember(node)));
+        break;
       }
-      // A generative constructors's parent is the class; the class name is
-      // already part of the generative constructor's name.
-      if (node is ir.Constructor) break;
-      node = node.parent;
+      current = current.parent;
     }
     return parts.reversed.join('_');
   }

@@ -814,7 +814,6 @@ deferred_load_inval_code_test: CompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
-deferred_no_prefix_test/01: MissingCompileTimeError
 deferred_no_such_method_test: CompileTimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_only_constant_test: CompileTimeError
@@ -830,6 +829,12 @@ deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
 deferred_type_dependency_test/type_annotation: CompileTimeError
+double_int_to_string_test: RuntimeError
+duplicate_export_negative_test: Fail
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
+duplicate_implements_test/03: MissingCompileTimeError
+duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
 enum_mirror_test: RuntimeError
@@ -901,7 +906,6 @@ integer_division_by_zero_test: RuntimeError
 interface_test/00: Crash # 'package:front_end/src/fasta/kernel/body_builder.dart': Failed assertion: line 2160 pos 14: '!target.enclosingClass.isAbstract': is not true.
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
 invocation_mirror2_test: RuntimeError
-invocation_mirror_test: RuntimeError
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
@@ -971,12 +975,6 @@ override_field_test/01: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-double_int_to_string_test: RuntimeError
-duplicate_export_negative_test: Fail
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
-duplicate_implements_test/03: MissingCompileTimeError
-duplicate_implements_test/04: MissingCompileTimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
