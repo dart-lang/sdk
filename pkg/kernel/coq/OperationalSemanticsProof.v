@@ -107,7 +107,7 @@ Proof.
   pose proof (List.in_inv H0).
   destruct H4.
     rewrite <- H4. simpl. apply maps_in_mapsto.
-      apply maps_mapsto_in. exists (MD_Method proc_desc0, M_Procedure proc).
+      apply maps_mapsto_in. exists (M_Procedure proc).
       auto.
     pose proof (List.in_nil H4). contradiction.
 
@@ -206,7 +206,7 @@ Proof.
       rcvr_val rcvr_intf rcvr_type_opt proc_desc H).
   pose proof (H2 H0).
   apply maps_in_mapsto in H3. destruct H3 as (el & H4).
-  destruct el eqn:?. destruct m0. destruct p. destruct f eqn:?.
+  destruct el eqn:?. destruct p. destruct f eqn:?.
   destruct v eqn:?.
   set (env' := env_extend n0 arg_val empty_env).
   set (null_val := mk_runtime_value None).
@@ -214,8 +214,8 @@ Proof.
   exists (Exec_Configuration s env' ret_cont next_cont).
   constructor 10 with (rcvr_intf := rcvr_intf) (rcvr_type_opt := rcvr_type_opt)
       (proc_desc := proc_desc) (func_node := f) (var_id := n0) (var_type := d0)
-      (var_init := o) (ret_type := d) (null_val := null_val) (memb_desc := m)
-      (memb_data := m0) (named_data := n).
+      (var_init := o) (ret_type := d) (null_val := null_val)
+      (memb_data := m) (named_data := n).
     auto.
     auto.
     rewrite Heqf0; auto.
@@ -280,7 +280,18 @@ Proof.
       congruence.
     rewrite <- H2.
     auto.
-    admit.
+    assert (NatMap.In (gt_ref get_desc) ME).
+      apply program_getters_wf with (class_id := class_id) (intf := intf).
+      apply NatMapFacts.find_mapsto_iff. auto. auto.
+    assert (exists mbr, NatMap.MapsTo (gt_ref get_desc) mbr ME).
+      apply MoreNatMapFacts.maps_in_mapsto. auto.
+    destruct H3 as (mbr & H4).
+    destruct mbr.
+    constructor 2 with (memb_id := gt_ref get_desc) (proc := p).
+    simpl. congruence.
+    simpl. congruence.
+    auto.
+    simpl. subst ret_type. congruence.
 
     (* Case 8.3. Getting a Value from a Value of Function Type. *)
     exists (Value_Passing_Configuration cont val).
@@ -320,7 +331,7 @@ Proof.
       (* Case 9.2.2. Block is Non-Empty. *)
       exists (Exec_Configuration s env e0 (Block_Sk l e e0 cont)).
       constructor.
-Admitted.
+Qed.
 
 
 End OperationalSemanticsSpec.

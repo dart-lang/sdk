@@ -60,12 +60,12 @@ Inductive value_of_type :
     but should have a particular shape. *)
   | RFS_Function_Type :
     forall (val : runtime_value) (intf : interface) (ftype : function_type)
-        (memb_id : nat) (proc_desc : procedure_desc) (proc : procedure),
+        (memb_id : nat) (proc : procedure),
     (procedures intf) =
       (mk_procedure_desc "call" memb_id ftype) :: nil ->
     (getters intf) =
       (mk_getter_desc "call" memb_id (DT_Function_Type ftype)) :: nil ->
-    NatMap.MapsTo memb_id (MD_Method proc_desc, M_Procedure proc) ME ->
+    NatMap.MapsTo memb_id (M_Procedure proc) ME ->
     (syntactic_type val) = Some (DT_Function_Type ftype) ->
     value_of_type val intf (Some (DT_Function_Type ftype))
 
@@ -356,7 +356,7 @@ Inductive step : configuration -> configuration -> Prop :=
         ρ0 -- empty environment *)
   | Pass_Invocation_Ek :
     forall rcvr_val rcvr_intf rcvr_type_opt
-      proc_desc memb_desc memb_data named_data func_node
+      proc_desc memb_data named_data func_node
       var_id var_type var_init ret_type body
       name arg_val env env' ret_cont next_cont null_val,
     (* TODO(dmitryas): Add the mapping: this -> rcvr_val to env'. *)
@@ -364,7 +364,7 @@ Inductive step : configuration -> configuration -> Prop :=
     List.In proc_desc (procedures rcvr_intf) ->
     NatMap.MapsTo
       (pr_ref proc_desc)
-      (memb_desc, M_Procedure (Procedure memb_data named_data func_node))
+      (M_Procedure (Procedure memb_data named_data func_node))
       ME ->
     func_node =
       Function_Node
