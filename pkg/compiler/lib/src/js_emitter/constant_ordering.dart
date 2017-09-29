@@ -9,7 +9,11 @@ import '../elements/elements.dart' show Elements;
 import '../elements/entities.dart'
     show Entity, ClassEntity, FieldEntity, MemberEntity, TypedefEntity;
 import '../elements/resolution_types.dart'
-    show GenericType, ResolutionDartType, ResolutionTypeKind;
+    show
+        GenericType,
+        ResolutionDartType,
+        ResolutionFunctionType,
+        ResolutionTypeKind;
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import 'sorter.dart' show Sorter;
@@ -95,6 +99,22 @@ class _ConstantOrdering
           bGeneric.typeArguments);
       if (r != 0) return r;
     }
+    if (a is ResolutionFunctionType && b is ResolutionFunctionType) {
+      int r = compareLists(
+          _compareResolutionDartTypes, a.parameterTypes, b.parameterTypes);
+      if (r != 0) return r;
+      r = compareLists(_compareResolutionDartTypes, a.optionalParameterTypes,
+          b.optionalParameterTypes);
+      if (r != 0) return r;
+      r = _ConstantOrdering.compareLists((String a, String b) => a.compareTo(b),
+          a.namedParameters, b.namedParameters);
+      if (r != 0) return r;
+      r = compareLists(_compareResolutionDartTypes, a.namedParameterTypes,
+          b.namedParameterTypes);
+      if (r != 0) return r;
+      return _compareResolutionDartTypes(a.returnType, b.returnType);
+    }
+
     throw 'unexpected compareDartTypes  $a  $b';
   }
 
@@ -314,9 +334,20 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
         "Type variables are not expected in constants: '$type' in '$_root'");
   }
 
-  int visitFunctionType(covariant FunctionType type, DartType _other) {
-    throw new UnimplementedError(
-        "Unimplemented FuntionType '$type' in '$_root'");
+  int visitFunctionType(
+      covariant FunctionType type, covariant FunctionType other) {
+    int r = _compareTypeArguments(type.parameterTypes, other.parameterTypes);
+    if (r != 0) return r;
+    r = _compareTypeArguments(
+        type.optionalParameterTypes, other.optionalParameterTypes);
+    if (r != 0) return r;
+    r = _ConstantOrdering.compareLists((String a, String b) => a.compareTo(b),
+        type.namedParameters, other.namedParameters);
+    if (r != 0) return r;
+    r = _compareTypeArguments(
+        type.namedParameterTypes, other.namedParameterTypes);
+    if (r != 0) return r;
+    return compare(type.returnType, other.returnType);
   }
 
   int visitInterfaceType(
