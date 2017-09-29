@@ -159,7 +159,7 @@
   assuming the declaration `int x;`, it is now type correct to have
   `void f() => ++x;`.
 
-* A new function-type syntax has been added to the language.
+* (**warning: not stable in Analyzer**) A new function-type syntax has been added to the language.
   Intuitively, the type of a function can be constructed by textually replacing
   the function's name with `Function` in its declaration. For instance, the
   type of `void foo() {}` would be `void Function()`. The new syntax may be used
