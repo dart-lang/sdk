@@ -957,8 +957,18 @@ class CorrectionUtils {
     if (!_isTypeVisible(type)) {
       return 'dynamic';
     }
+
+    Element element = type.element;
+
+    // Typedef(s) are represented as GenericFunctionTypeElement(s).
+    if (element is GenericFunctionTypeElement &&
+        element.typeParameters.isEmpty &&
+        element.enclosingElement is GenericTypeAliasElement) {
+      element = element.enclosingElement;
+    }
+
     // just a Function, not FunctionTypeAliasElement
-    if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
+    if (type is FunctionType && element is! FunctionTypeAliasElement) {
       if (parametersBuffer == null) {
         return "Function";
       }
@@ -980,7 +990,6 @@ class CorrectionUtils {
       return 'dynamic';
     }
     // prepare element
-    Element element = type.element;
     if (element == null) {
       String source = type.toString();
       source = source.replaceAll('<dynamic>', '');

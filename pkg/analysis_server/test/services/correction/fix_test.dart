@@ -2415,7 +2415,6 @@ class A {
 ''');
   }
 
-  @failingTest
   test_createLocalVariable_functionType_named() async {
     await resolveTestUnit('''
 typedef MY_FUNCTION(int p);
@@ -2429,6 +2428,24 @@ typedef MY_FUNCTION(int p);
 foo(MY_FUNCTION f) {}
 main() {
   MY_FUNCTION bar;
+  foo(bar);
+}
+''');
+  }
+
+  test_createLocalVariable_functionType_named_generic() async {
+    await resolveTestUnit('''
+typedef MY_FUNCTION<T>(T p);
+foo(MY_FUNCTION<int> f) {}
+main() {
+  foo(bar);
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_LOCAL_VARIABLE, '''
+typedef MY_FUNCTION<T>(T p);
+foo(MY_FUNCTION<int> f) {}
+main() {
+  MY_FUNCTION<int> bar;
   foo(bar);
 }
 ''');
@@ -2622,7 +2639,6 @@ class B implements A {
 ''');
   }
 
-  @failingTest
   test_createMissingOverrides_functionTypeAlias() async {
     await resolveTestUnit('''
 typedef int Binary(int left, int right);
