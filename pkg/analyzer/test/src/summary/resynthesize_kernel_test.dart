@@ -137,6 +137,7 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   @potentialAnalyzerProblem
   test_class_type_parameters_bound() async {
+    // https://github.com/dart-lang/sdk/issues/29561
     // Fasta does not provide a flag for explicit vs. implicit Object bound.
     await super.test_class_type_parameters_bound();
   }
@@ -352,14 +353,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
+  @notForDart2
   test_parameter_checked() async {
+    // @checked is deprecated, use `covariant` instead.
     await super.test_parameter_checked();
   }
 
   @failingTest
-  @potentialAnalyzerProblem
+  @notForDart2
   test_parameter_checked_inherited() async {
+    // @checked is deprecated, use `covariant` instead.
     await super.test_parameter_checked_inherited();
   }
 
@@ -383,16 +386,15 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
   test_typedef_generic_asFieldType() async {
-    // TODO(scheglov): triage
     await super.test_typedef_generic_asFieldType();
   }
 
   @failingTest
   @potentialAnalyzerProblem
   test_typedef_type_parameters_bound() async {
-    // TODO(scheglov): triage
+    // https://github.com/dart-lang/sdk/issues/29561
     await super.test_typedef_type_parameters_bound();
   }
 
