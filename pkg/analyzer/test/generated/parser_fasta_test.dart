@@ -1657,14 +1657,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingCatchOrFinally() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_CATCH_OR_FINALLY, found 0
-    super.test_missingCatchOrFinally();
-  }
-
-  @override
-  @failingTest
   void test_missingClassBody() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_CLASS_BODY, found 0
@@ -1713,22 +1705,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //
     //   test/generated/parser_test.dart 3492:59                            FastaParserTestCase&ErrorParserTestMixin.test_missingExpressionInThrow_withCascade
     super.test_missingExpressionInThrow();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionBody_emptyNotAllowed() {
-    // TODO(brianwilkerson) Does not recover.
-    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
-    //   dart:core                                                          _AssertionError._throwNew
-    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
-    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
-    //   package:analyzer/src/fasta/ast_builder.dart 269:5                  AstBuilder.handleEmptyFunctionBody
-    //   test/generated/parser_fasta_listener.dart 1171:14                  ForwardingTestListener.handleEmptyFunctionBody
-    //   package:front_end/src/fasta/parser/parser.dart 2614:16             Parser.parseFunctionBody
-    //   test/generated/parser_fasta_test.dart 3439:20                      ParserProxy.parseFunctionBody.<fn>.<fn>
-    //   test/generated/parser_fasta_test.dart 3503:39                      ParserProxy._run
-    super.test_missingFunctionBody_emptyNotAllowed();
   }
 
   @override
@@ -2778,35 +2754,15 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
-  void test_varAndType_field() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.VAR_AND_TYPE, found 0
-    super.test_varAndType_field();
-  }
-
-  @override
-  @failingTest
   void test_varAndType_local() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.VAR_AND_TYPE, found 0
-    super.test_varAndType_local();
-  }
-
-  @override
-  @failingTest
-  void test_varAndType_parameter() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.VAR_AND_TYPE, found 0
+    // The inherited test is marked as failing.
     super.test_varAndType_parameter();
   }
 
   @override
-  @failingTest
-  void test_varAndType_topLevelVariable() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.VAR_AND_TYPE, found 0
-    super.test_varAndType_topLevelVariable();
+  void test_varAndType_parameter() {
+    // The inherited test is marked as failing.
+    super.test_varAndType_parameter();
   }
 
   @override
@@ -2923,14 +2879,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.WITH_WITHOUT_EXTENDS, found 0
     super.test_withWithoutExtends();
-  }
-
-  @override
-  @failingTest
-  void test_wrongSeparatorForPositionalParameter() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, found 0
-    super.test_wrongSeparatorForPositionalParameter();
   }
 
   @override
@@ -4203,21 +4151,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_incomplete_returnType() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_returnType();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_topLevelFunction() {
-    // TODO(brianwilkerson) exception:
-    //   NoSuchMethodError: Class '_KernelLibraryBuilder' has no instance method 'addCompileTimeError'.
-    //   Receiver: Instance of '_KernelLibraryBuilder'
-    //   Tried calling: addCompileTimeError(Instance of 'MessageCode', 6, Instance of '_Uri')
-    //   dart:core                                                          Object.noSuchMethod
-    //   package:analyzer/src/generated/parser_fasta.dart 20:60             _KernelLibraryBuilder.noSuchMethod
-    //   package:analyzer/src/fasta/ast_builder.dart 1956:13                AstBuilder.addCompileTimeError
-    //   package:front_end/src/fasta/source/stack_listener.dart 271:5       StackListener.handleRecoverableError
-    //   package:front_end/src/fasta/parser/parser.dart 4078:16             Parser.reportRecoverableError
-    super.test_incomplete_topLevelFunction();
   }
 
   @override

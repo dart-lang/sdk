@@ -104,6 +104,7 @@ ExpectedBlockToSkip:
   template: "Expected a function body or '=>'."
   # TODO(ahe): In some scenarios, we can suggest removing the 'static' keyword.
   tip: "Try adding {}."
+  analyzerCode: MISSING_FUNCTION_BODY
   dart2jsCode: NATIVE_OR_BODY_EXPECTED
   script: "main();"
 
@@ -111,6 +112,7 @@ ExpectedBody:
   template: "Expected a function body or '=>'."
   # TODO(ahe): In some scenarios, we can suggest removing the 'static' keyword.
   tip: "Try adding {}."
+  analyzerCode: MISSING_FUNCTION_BODY
   dart2jsCode: BODY_EXPECTED
   script: "main();"
 
@@ -128,6 +130,7 @@ ExpectedButGot:
 
 ExpectedClassBody:
   template: "Expected a class body, but got '#lexeme'."
+  analyzerCode: MISSING_CLASS_BODY
   dart2jsCode: "*fatal*"
 
 ExpectedClassBodyToSkip: ExpectedClassBody
@@ -143,6 +146,7 @@ ExpectedExpression:
 
 ExpectedFunctionBody:
   template: "Expected a function body, but got '#lexeme'."
+  analyzerCode: MISSING_FUNCTION_BODY
   dart2jsCode: NATIVE_OR_FATAL
 
 ExpectedHexDigit:
@@ -267,6 +271,7 @@ MissingExponent:
 PositionalParameterWithEquals:
   template: "Positional optional parameters can't use ':' to specify a default value."
   tip: "Try replacing ':' with '='."
+  analyzerCode: WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER
   dart2jsCode: POSITIONAL_PARAMETER_WITH_EQUALS
   script: >
     main() {
@@ -400,6 +405,7 @@ AsyncAsIdentifier:
 
 AwaitAsIdentifier:
   template: "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+  analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
   dart2jsCode: "*ignored*"
 
 AwaitNotAsync:
@@ -439,6 +445,7 @@ SetterNotSync:
 
 YieldAsIdentifier:
   template: "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+  analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
   dart2jsCode: "*ignored*"
 
 YieldNotGenerator:
@@ -448,17 +455,21 @@ YieldNotGenerator:
 OnlyTry:
   template: "Try block should be followed by 'on', 'catch', or 'finally' block."
   tip: "Did you forget to add a 'finally' block?"
-  statement: "try {}"
+  analyzerCode: MISSING_CATCH_OR_FINALLY
   dart2jsCode: "*ignored*"
+  statement: "try {}"
 
 TypeAfterVar:
   template: "Can't have both a type and 'var'."
   tip: "Try removing 'var.'"
+  analyzerCode: VAR_AND_TYPE
   dart2jsCode: EXTRANEOUS_MODIFIER
 
 TypeRequired:
   template: "A type or modifier is required here."
   tip: "Try adding a type, 'var', 'const', or 'final'."
+  analyzerCode: MISSING_CONST_FINAL_VAR_OR_TYPE
+  dart2jsCode: GENERIC
 
 AssertExtraneousArgument:
   template: "`assert` can't have more than two arguments."

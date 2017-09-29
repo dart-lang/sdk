@@ -130,6 +130,7 @@ const Code<Null> codeAwaitAsIdentifier = messageAwaitAsIdentifier;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitAsIdentifier = const MessageCode(
     "AwaitAsIdentifier",
+    analyzerCode: "ASYNC_KEYWORD_USED_AS_IDENTIFIER",
     dart2jsCode: "*ignored*",
     message:
         r"""'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""");
@@ -844,6 +845,7 @@ const Code<Null> codeExpectedBlockToSkip = messageExpectedBlockToSkip;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedBlockToSkip = const MessageCode(
     "ExpectedBlockToSkip",
+    analyzerCode: "MISSING_FUNCTION_BODY",
     dart2jsCode: "NATIVE_OR_BODY_EXPECTED",
     message: r"""Expected a function body or '=>'.""",
     tip: r"""Try adding {}.""");
@@ -853,6 +855,7 @@ const Code<Null> codeExpectedBody = messageExpectedBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedBody = const MessageCode("ExpectedBody",
+    analyzerCode: "MISSING_FUNCTION_BODY",
     dart2jsCode: "BODY_EXPECTED",
     message: r"""Expected a function body or '=>'.""",
     tip: r"""Try adding {}.""");
@@ -889,7 +892,7 @@ const Template<Message Function(Token token)> templateExpectedClassBody =
 const Code<Message Function(Token token)> codeExpectedClassBody =
     const Code<Message Function(Token token)>(
         "ExpectedClassBody", templateExpectedClassBody,
-        dart2jsCode: "*fatal*");
+        analyzerCode: "MISSING_CLASS_BODY", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedClassBody(Token token) {
@@ -909,7 +912,7 @@ const Template<Message Function(Token token)> templateExpectedClassBodyToSkip =
 const Code<Message Function(Token token)> codeExpectedClassBodyToSkip =
     const Code<Message Function(Token token)>(
         "ExpectedClassBodyToSkip", templateExpectedClassBodyToSkip,
-        dart2jsCode: "*fatal*");
+        analyzerCode: "MISSING_CLASS_BODY", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedClassBodyToSkip(Token token) {
@@ -969,7 +972,7 @@ const Template<Message Function(Token token)> templateExpectedFunctionBody =
 const Code<Message Function(Token token)> codeExpectedFunctionBody =
     const Code<Message Function(Token token)>(
         "ExpectedFunctionBody", templateExpectedFunctionBody,
-        dart2jsCode: "NATIVE_OR_FATAL");
+        analyzerCode: "MISSING_FUNCTION_BODY", dart2jsCode: "NATIVE_OR_FATAL");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedFunctionBody(Token token) {
@@ -2313,6 +2316,7 @@ const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
+    analyzerCode: "MISSING_CATCH_OR_FINALLY",
     dart2jsCode: "*ignored*",
     message:
         r"""Try block should be followed by 'on', 'catch', or 'finally' block.""",
@@ -2727,6 +2731,7 @@ const Code<Null> codePositionalParameterWithEquals =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePositionalParameterWithEquals = const MessageCode(
     "PositionalParameterWithEquals",
+    analyzerCode: "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER",
     dart2jsCode: "POSITIONAL_PARAMETER_WITH_EQUALS",
     message:
         r"""Positional optional parameters can't use ':' to specify a default value.""",
@@ -3140,6 +3145,7 @@ const Code<Null> codeTypeAfterVar = messageTypeAfterVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeAfterVar = const MessageCode("TypeAfterVar",
+    analyzerCode: "VAR_AND_TYPE",
     dart2jsCode: "EXTRANEOUS_MODIFIER",
     message: r"""Can't have both a type and 'var'.""",
     tip: r"""Try removing 'var.'""");
@@ -3212,6 +3218,8 @@ const Code<Null> codeTypeRequired = messageTypeRequired;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeRequired = const MessageCode("TypeRequired",
+    analyzerCode: "MISSING_CONST_FINAL_VAR_OR_TYPE",
+    dart2jsCode: "GENERIC",
     message: r"""A type or modifier is required here.""",
     tip: r"""Try adding a type, 'var', 'const', or 'final'.""");
 
@@ -3396,6 +3404,7 @@ const Code<Null> codeYieldAsIdentifier = messageYieldAsIdentifier;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageYieldAsIdentifier = const MessageCode(
     "YieldAsIdentifier",
+    analyzerCode: "ASYNC_KEYWORD_USED_AS_IDENTIFIER",
     dart2jsCode: "*ignored*",
     message:
         r"""'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""");

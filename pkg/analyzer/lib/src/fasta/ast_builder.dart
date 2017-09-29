@@ -1999,7 +1999,11 @@ class AstBuilder extends ScopeListener {
     switch (code.analyzerCode) {
       case "ABSTRACT_CLASS_MEMBER":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ABSTRACT_CLASS_MEMBER, charOffset, 1);
+            ParserErrorCode.ABSTRACT_CLASS_MEMBER, charOffset, 8);
+        return;
+      case "ASYNC_KEYWORD_USED_AS_IDENTIFIER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, charOffset, 5);
         return;
       case "COLON_IN_PLACE_OF_IN":
         errorReporter?.reportErrorForOffset(
@@ -2007,13 +2011,14 @@ class AstBuilder extends ScopeListener {
         return;
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_CLASS, charOffset, 1);
+            ParserErrorCode.CONST_CLASS, charOffset, 5);
         return;
       case "DEFERRED_AFTER_PREFIX":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DEFERRED_AFTER_PREFIX, charOffset, 1);
         return;
       case "DIRECTIVE_AFTER_DECLARATION":
+        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
         return;
@@ -2023,21 +2028,25 @@ class AstBuilder extends ScopeListener {
         return;
       case "DUPLICATE_PREFIX":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATE_PREFIX, charOffset, 1);
+            ParserErrorCode.DUPLICATE_PREFIX, charOffset, 2);
         return;
       case "EXPECTED_EXECUTABLE":
+        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_EXECUTABLE, charOffset, 1);
         return;
       case "EXPECTED_STRING_LITERAL":
+        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_STRING_LITERAL, charOffset, 1);
         return;
       case "EXPECTED_TYPE_NAME":
+        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
         return;
       case "EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
+        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
             charOffset,
@@ -2045,19 +2054,20 @@ class AstBuilder extends ScopeListener {
         return;
       case "EXTERNAL_CLASS":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_CLASS, charOffset, 1);
+            ParserErrorCode.EXTERNAL_CLASS, charOffset, 8);
         return;
       case "EXTERNAL_ENUM":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_ENUM, charOffset, 1);
+            ParserErrorCode.EXTERNAL_ENUM, charOffset, 8);
         return;
       case "EXTERNAL_METHOD_WITH_BODY":
+        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, charOffset, 1);
         return;
       case "EXTERNAL_TYPEDEF":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_TYPEDEF, charOffset, 1);
+            ParserErrorCode.EXTERNAL_TYPEDEF, charOffset, 8);
         return;
       case "EXTRANEOUS_MODIFIER":
         String text = stringOrTokenLexeme();
@@ -2065,39 +2075,74 @@ class AstBuilder extends ScopeListener {
             charOffset, text.length, [text]);
         return;
       case "GETTER_WITH_PARAMETERS":
-        // TODO(brianwilkerson) This should highlight either the parameter list
-        // or the name of the getter, but I don't know how to compute the length
-        // of the region.
+        // TODO(brianwilkerson): This has the wrong length. It should highlight
+        // either the parameter list or the name of the getter.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.GETTER_WITH_PARAMETERS, charOffset, 1);
+        return;
+      case "ILLEGAL_CHARACTER":
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.ILLEGAL_CHARACTER, charOffset, 1);
         return;
       case "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
             charOffset,
-            1);
+            6);
         return;
       case "LIBRARY_DIRECTIVE_NOT_FIRST":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, charOffset, 1);
+            ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, charOffset, 7);
+        return;
+      case "MISSING_CATCH_OR_FINALLY":
+        // TODO(brianwilkerson): This has the wrong length.
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_CATCH_OR_FINALLY, charOffset, 1);
+        return;
+      case "MISSING_CLASS_BODY":
+        // TODO(brianwilkerson): This has the wrong length.
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_CLASS_BODY, charOffset, 1);
+        return;
+      case "MISSING_CONST_FINAL_VAR_OR_TYPE":
+        // TODO(brianwilkerson): This has the wrong length.
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, charOffset, 1);
+        return;
+      case "MISSING_DIGIT":
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.MISSING_DIGIT, charOffset, 1);
+        return;
+      case "MISSING_HEX_DIGIT":
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.MISSING_HEX_DIGIT, charOffset, 1);
+        return;
+      case "MISSING_FUNCTION_BODY":
+        // TODO(brianwilkerson): This has the wrong length.
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_FUNCTION_BODY, charOffset, 1);
         return;
       case "MISSING_IDENTIFIER":
+        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_IDENTIFIER, charOffset, 1);
         return;
       case "MISSING_PREFIX_IN_DEFERRED_IMPORT":
+        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, charOffset, 1);
         return;
       case "MULTIPLE_PART_OF_DIRECTIVES":
+        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, charOffset, 1);
         return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, charOffset, 1);
+            ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, charOffset, 6);
         return;
       case "NON_PART_OF_DIRECTIVE_IN_PART":
+        // TODO(brianwilkerson): This has the wrong length.
         if (directives.isEmpty) {
           errorReporter?.reportErrorForOffset(
               ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
@@ -2106,13 +2151,9 @@ class AstBuilder extends ScopeListener {
               ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, charOffset, 1);
         }
         return;
-      case "PART_OUT_OF_ORDER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
-        return;
       case "PREFIX_AFTER_COMBINATOR":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.PREFIX_AFTER_COMBINATOR, charOffset, 1);
+            ParserErrorCode.PREFIX_AFTER_COMBINATOR, charOffset, 2);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();
@@ -2123,6 +2164,26 @@ class AstBuilder extends ScopeListener {
           errorReporter?.reportErrorForOffset(ParserErrorCode.UNEXPECTED_TOKEN,
               charOffset, text.length, [text]);
         }
+        return;
+      case "UNTERMINATED_MULTI_LINE_COMMENT":
+        // TODO(brianwilkerson): This has the wrong length.
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, charOffset, 1);
+        return;
+      case "UNTERMINATED_STRING_LITERAL":
+        // TODO(brianwilkerson): This has the wrong length.
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.UNTERMINATED_STRING_LITERAL, charOffset, 1);
+        return;
+      case "VAR_AND_TYPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.VAR_AND_TYPE, charOffset, 3);
+        return;
+      case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
+            charOffset,
+            1);
         return;
       default:
       // fall through
