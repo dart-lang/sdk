@@ -1375,21 +1375,22 @@ getter_setter_in_lib_test: Crash # Issue 27394
 call_through_getter_test: Fail, OK
 
 [ $compiler == dart2js && $fast_startup && !$dart2js_with_kernel ]
-instance_creation_in_function_annotation_test: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported
 deferred_constraints_constants_test/reference_after_load: Fail # mirrors not supported
 deferred_constraints_constants_test: Pass # mirrors not supported, passes for the wrong reason
 enum_mirror_test: Fail # mirrors not supported
 field_increment_bailout_test: Fail # mirrors not supported
 instance_creation_in_function_annotation_test: Fail # mirrors not supported
+instance_creation_in_function_annotation_test: Fail # mirrors not supported
 invocation_mirror2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on_test: Fail # mirrors not supported
 issue21079_test: Fail # mirrors not supported
+many_overridden_no_such_method_test: Fail # mirrors not supported
 null_test/0*: Pass # mirrors not supported, fails for the wrong reason
 null_test/none: Fail # mirrors not supported
+overridden_no_such_method_test: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
-many_overridden_no_such_method_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos && !$dart2js_with_kernel ]
 await_future_test: Pass, Timeout # Issue 26735
