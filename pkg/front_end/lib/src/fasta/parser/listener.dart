@@ -90,7 +90,19 @@ class Listener {
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   void beginClassDeclaration(Token beginToken, Token name) {}
 
-  /// Handle the end of a class declaration.  Substructures:
+  /// Handle an extends clause in a class declaration. Substructures:
+  /// - supertype (may be a mixin application)
+  void handleClassExtends(Token extendsKeyword) {
+    logEvent("ClassExtends");
+  }
+
+  /// Handle an implements clause in a class declaration. Substructures:
+  /// - implemented types
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    logEvent("ClassImplements");
+  }
+
+  /// Handle the header of a class declaration.  Substructures:
   /// - metadata
   /// - modifiers
   /// - class name
@@ -98,15 +110,14 @@ class Listener {
   /// - supertype (may be a mixin application)
   /// - implemented types
   /// - native clause
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    logEvent("ClassHeader");
+  }
+
+  /// Handle the end of a class declaration.  Substructures:
+  /// - class header
   /// - class body
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void endClassDeclaration(Token beginToken, Token endToken) {
     logEvent("ClassDeclaration");
   }
 

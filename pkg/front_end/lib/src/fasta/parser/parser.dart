@@ -1066,17 +1066,35 @@ class Parser {
   }
 
   Token parseClass(Token token, Token begin, Token classKeyword) {
-    Token extendsKeyword;
+    token = parseClassExtendsOpt(token);
+    token = parseClassImplementsOpt(token);
+    Token nativeToken;
+    if (optional('native', token)) {
+      nativeToken = token;
+      token = parseNativeClause(nativeToken);
+    }
+    listener.handleClassHeader(begin, classKeyword, nativeToken);
+    token = parseClassBody(token);
+    listener.endClassDeclaration(begin, token);
+    return token.next;
+  }
+
+  Token parseClassExtendsOpt(Token token) {
     if (optional('extends', token)) {
-      extendsKeyword = token;
+      Token extendsKeyword = token;
       token = parseType(token.next);
       if (optional('with', token)) {
         token = parseMixinApplicationRest(token);
       }
+      listener.handleClassExtends(extendsKeyword);
     } else {
-      extendsKeyword = null;
       listener.handleNoType(token);
+      listener.handleClassExtends(null);
     }
+    return token;
+  }
+
+  Token parseClassImplementsOpt(Token token) {
     Token implementsKeyword;
     int interfacesCount = 0;
     if (optional('implements', token)) {
@@ -1086,15 +1104,8 @@ class Parser {
         ++interfacesCount;
       } while (optional(',', token));
     }
-    Token nativeToken;
-    if (optional('native', token)) {
-      nativeToken = token;
-      token = parseNativeClause(nativeToken);
-    }
-    token = parseClassBody(token);
-    listener.endClassDeclaration(interfacesCount, begin, classKeyword,
-        extendsKeyword, implementsKeyword, nativeToken, token);
-    return token.next;
+    listener.handleClassImplements(implementsKeyword, interfacesCount);
+    return token;
   }
 
   Token parseStringPart(Token token) {

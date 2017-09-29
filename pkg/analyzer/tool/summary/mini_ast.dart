@@ -187,14 +187,7 @@ class MiniAstBuilder extends StackListener {
     push(popList(memberCount));
   }
 
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
     List<ClassMember> members = pop();
     TypeName superclass = pop();

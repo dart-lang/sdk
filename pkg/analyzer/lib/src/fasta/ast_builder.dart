@@ -8,6 +8,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/src/dart/ast/ast.dart' show NodeListImpl;
 import 'package:front_end/src/fasta/parser.dart'
     show
         Assert,
@@ -1351,8 +1352,12 @@ class AstBuilder extends ScopeListener {
   @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassBody");
-    push(new _ClassBody(
-        beginToken, popList(memberCount) ?? <ClassMember>[], endToken));
+    ClassDeclaration classDeclaration = declarations.last;
+    classDeclaration.leftBracket = beginToken;
+    NodeListImpl<ClassMember> members = classDeclaration.members;
+    members.setLength(memberCount);
+    popList(memberCount, members);
+    classDeclaration.rightBracket = endToken;
   }
 
   @override
@@ -1362,25 +1367,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
-    debugEvent("ClassDeclaration");
-    _ClassBody body = pop();
-    NativeClause nativeClause;
-    if (nativeToken != null) {
-      nativeClause = ast.nativeClause(nativeToken, nativeName);
-    }
-    ImplementsClause implementsClause;
-    if (implementsKeyword != null) {
-      List<TypeName> interfaces = popList(interfacesCount);
-      implementsClause = ast.implementsClause(implementsKeyword, interfaces);
-    }
+  void handleClassExtends(Token extendsKeyword) {
     ExtendsClause extendsClause;
     WithClause withClause;
     var supertype = pop();
@@ -1395,29 +1382,59 @@ class AstBuilder extends ScopeListener {
       unhandled("${supertype.runtimeType}", "supertype",
           extendsKeyword.charOffset, uri);
     }
+    push(extendsClause ?? NullValue.ExtendsClause);
+    push(withClause ?? NullValue.WithClause);
+  }
+
+  @override
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    if (implementsKeyword != null) {
+      List<TypeName> interfaces = popList(interfacesCount);
+      push(ast.implementsClause(implementsKeyword, interfaces));
+    } else {
+      push(NullValue.IdentifierList);
+    }
+  }
+
+  @override
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    NativeClause nativeClause;
+    if (nativeToken != null) {
+      nativeClause = ast.nativeClause(nativeToken, nativeName);
+    }
+    ImplementsClause implementsClause = pop(NullValue.IdentifierList);
+    WithClause withClause = pop(NullValue.WithClause);
+    ExtendsClause extendsClause = pop(NullValue.ExtendsClause);
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
     assert(className == name.name);
-    className = null;
     _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
     Comment comment = pop();
+    // leftBracket, members, and rightBracket are set in [endClassBody].
     ClassDeclaration classDeclaration = ast.classDeclaration(
-        comment,
-        metadata,
-        abstractKeyword,
-        classKeyword,
-        name,
-        typeParameters,
-        extendsClause,
-        withClause,
-        implementsClause,
-        body.beginToken,
-        body.members,
-        body.endToken);
+      comment,
+      metadata,
+      abstractKeyword,
+      classKeyword,
+      name,
+      typeParameters,
+      extendsClause,
+      withClause,
+      implementsClause,
+      null, // leftBracket
+      <ClassMember>[],
+      null, // rightBracket
+    );
     classDeclaration.nativeClause = nativeClause;
     declarations.add(classDeclaration);
+  }
+
+  @override
+  void endClassDeclaration(Token beginToken, Token endToken) {
+    debugEvent("ClassDeclaration");
+    className = null;
   }
 
   @override
@@ -2183,21 +2200,6 @@ class AstBuilder extends ScopeListener {
     // TODO(brianwilkerson) Eliminate the need for this method.
     return token.type == tokenType ? token : null;
   }
-}
-
-/// Data structure placed on the stack to represent a class body.
-///
-/// This is needed because analyzer has no separate AST representation of a
-/// class body; it simply stores all of the relevant data in the
-/// [ClassDeclaration] object.
-class _ClassBody {
-  final Token beginToken;
-
-  final List<ClassMember> members;
-
-  final Token endToken;
-
-  _ClassBody(this.beginToken, this.members, this.endToken);
 }
 
 /// Data structure placed on the stack to represent a mixin application (a

@@ -622,18 +622,10 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void endClassDeclaration(Token beginToken, Token endToken) {
     end('ClassDeclaration');
     end('ClassOrNamedMixinApplication');
-    listener.endClassDeclaration(interfacesCount, beginToken, classKeyword,
-        extendsKeyword, implementsKeyword, nativeToken, endToken);
+    listener.endClassDeclaration(beginToken, endToken);
   }
 
   @override
@@ -1152,6 +1144,24 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void handleClassExtends(Token extendsKeyword) {
+    expectIn('ClassDeclaration');
+    listener.handleClassExtends(extendsKeyword);
+  }
+
+  @override
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    expectIn('ClassDeclaration');
+    listener.handleClassHeader(begin, classKeyword, nativeToken);
+  }
+
+  @override
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    expectIn('ClassDeclaration');
+    listener.handleClassImplements(implementsKeyword, interfacesCount);
+  }
+
+  @override
   void handleConditionalExpression(Token question, Token colon) {
     listener.handleConditionalExpression(question, colon);
     // TODO(danrubel): implement handleConditionalExpression
@@ -1392,7 +1402,6 @@ class ForwardingTestListener implements fasta.Listener {
   @override
   void handleNoType(Token token) {
     listener.handleNoType(token);
-    // TODO(danrubel): implement handleNoType
   }
 
   @override

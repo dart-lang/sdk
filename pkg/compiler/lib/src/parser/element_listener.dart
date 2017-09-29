@@ -301,15 +301,12 @@ class ElementListener extends Listener {
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {}
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
     makeNodeList(interfacesCount, implementsKeyword, null, ","); // interfaces
+  }
+
+  @override
+  void endClassDeclaration(Token beginToken, Token endToken) {
     popNode(); // superType
     popNode(); // typeParameters
     Identifier name = popNode();

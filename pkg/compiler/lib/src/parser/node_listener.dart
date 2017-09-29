@@ -104,23 +104,27 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void handleClassExtends(Token extendsKeyword) {
+    pushNode(new TokenNode(extendsKeyword));
+  }
+
+  @override
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    pushNode(makeNodeList(interfacesCount, implementsKeyword, null, ","));
+  }
+
+  @override
+  void endClassDeclaration(Token beginToken, Token endToken) {
     NodeList body = popNode();
-    NodeList interfaces =
-        makeNodeList(interfacesCount, implementsKeyword, null, ",");
+    NodeList interfaces = popNode();
+    TokenNode extendsNode = popNode();
     Node supertype = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     Modifiers modifiers = popNode();
+    // TODO(danrubel): can we remove the extends keyword from ClassNode ?
     pushNode(new ClassNode(modifiers, name, typeParameters, supertype,
-        interfaces, beginToken, extendsKeyword, body, endToken));
+        interfaces, beginToken, extendsNode.token, body, endToken));
   }
 
   @override

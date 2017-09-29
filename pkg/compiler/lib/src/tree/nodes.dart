@@ -474,6 +474,43 @@ class Flag extends Node {
   }
 }
 
+// Used for caching tokens on the stack
+class TokenNode extends Node {
+  final Token token;
+
+  TokenNode(this.token);
+
+  @override
+  accept(Visitor visitor) {
+    throw 'not implemented';
+  }
+
+  @override
+  accept1(Visitor1 visitor, arg) {
+    throw 'not implemented';
+  }
+
+  @override
+  Token getBeginToken() {
+    throw 'not implemented';
+  }
+
+  @override
+  Token getEndToken() {
+    throw 'not implemented';
+  }
+
+  @override
+  visitChildren(Visitor visitor) {
+    throw 'not implemented';
+  }
+
+  @override
+  visitChildren1(Visitor1 visitor, arg) {
+    throw 'not implemented';
+  }
+}
+
 class ClassNode extends Node {
   final Modifiers modifiers;
   final Identifier name;

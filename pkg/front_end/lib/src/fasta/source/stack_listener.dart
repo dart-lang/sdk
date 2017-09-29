@@ -43,6 +43,7 @@ enum NullValue {
   Deferred,
   DocumentationComment,
   Expression,
+  ExtendsClause,
   FieldInitializer,
   FormalParameters,
   FunctionBody,
@@ -59,9 +60,11 @@ enum NullValue {
   SwitchScope,
   Type,
   TypeArguments,
+  TypeBuilderList,
   TypeList,
   TypeVariable,
   TypeVariables,
+  WithClause,
 }
 
 abstract class StackListener extends Listener {
@@ -182,6 +185,21 @@ abstract class StackListener extends Listener {
   void endCompilationUnit(int count, Token token) {
     debugEvent("CompilationUnit");
     checkEmpty(token.charOffset);
+  }
+
+  @override
+  void handleClassExtends(Token extendsKeyword) {
+    debugEvent("ClassExtends");
+  }
+
+  @override
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    debugEvent("ClassHeader");
+  }
+
+  @override
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    debugEvent("ClassImplements");
   }
 
   @override

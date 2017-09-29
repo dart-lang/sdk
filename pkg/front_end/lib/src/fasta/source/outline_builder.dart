@@ -334,17 +334,15 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    push(popList(interfacesCount) ?? NullValue.TypeBuilderList);
+  }
+
+  @override
+  void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("endClassDeclaration");
     String documentationComment = _getDocumentationComment(beginToken);
-    List<TypeBuilder> interfaces = popList(interfacesCount);
+    List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
     TypeBuilder supertype = pop();
     List<TypeVariableBuilder> typeVariables = pop();
     int charOffset = pop();

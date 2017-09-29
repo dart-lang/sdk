@@ -529,14 +529,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
     checkEmpty(beginToken.charOffset);
   }
