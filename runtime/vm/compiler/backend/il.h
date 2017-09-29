@@ -4925,6 +4925,8 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   bool CanConvertSmi() const;
   void EmitLoadFromBox(FlowGraphCompiler* compiler);
   void EmitSmiConversion(FlowGraphCompiler* compiler);
+  void EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler);
+  void EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler);
 
   intptr_t BoxCid() const { return Boxing::BoxCid(representation_); }
 

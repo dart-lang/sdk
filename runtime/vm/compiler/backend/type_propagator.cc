@@ -1047,11 +1047,20 @@ CompileType InstanceCallInstr::ComputeType() const {
   if (FLAG_experimental_strong_mode) {
     const Function& target = interface_target();
     if (!target.IsNull()) {
-      // TODO(dartbug.com/30480): instantiate generic result_type
       const AbstractType& result_type =
           AbstractType::ZoneHandle(target.result_type());
-      TraceStrongModeType(this, result_type);
-      return CompileType::FromAbstractType(result_type);
+      // Currently VM doesn't have enough information to instantiate generic
+      // result types of interface targets:
+      // 1. receiver type inferred by the front-end is not passed to VM.
+      // 2. VM collects type arguments through the chain of superclasses but
+      // not through implemented interfaces.
+      // So treat non-instantiated generic types as dynamic to avoid pretending
+      // the type is known.
+      // TODO(dartbug.com/30480): instantiate generic result_type
+      if (result_type.IsInstantiated()) {
+        TraceStrongModeType(this, result_type);
+        return CompileType::FromAbstractType(result_type);
+      }
     }
   }
 

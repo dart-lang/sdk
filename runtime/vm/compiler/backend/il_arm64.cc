@@ -3359,49 +3359,8 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   }
 }
 
-void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const intptr_t box_cid = BoxCid();
-
-  if (value_cid == box_cid) {
-    EmitLoadFromBox(compiler);
-  } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
-    EmitSmiConversion(compiler);
-  } else if (FLAG_experimental_strong_mode &&
-             (representation() == kUnboxedDouble) &&
-             value()->Type()->IsNullableDouble()) {
-    EmitLoadFromBox(compiler);
-  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-             (representation() == kUnboxedInt64) &&
-             value()->Type()->IsNullableInt()) {
-    UNIMPLEMENTED();
-  } else {
-    const Register box = locs()->in(0).reg();
-    Label* deopt =
-        compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
-    Label is_smi;
-
-    if ((value()->Type()->ToNullableCid() == box_cid) &&
-        value()->Type()->is_nullable()) {
-      __ CompareObject(box, Object::null_object());
-      __ b(deopt, EQ);
-    } else {
-      __ tsti(box, Immediate(kSmiTagMask));
-      __ b(CanConvertSmi() ? &is_smi : deopt, EQ);
-      __ CompareClassId(box, box_cid);
-      __ b(deopt, NE);
-    }
-
-    EmitLoadFromBox(compiler);
-
-    if (is_smi.IsLinked()) {
-      Label done;
-      __ b(&done);
-      __ Bind(&is_smi);
-      EmitSmiConversion(compiler);
-      __ Bind(&done);
-    }
-  }
+void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
 }
 
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,

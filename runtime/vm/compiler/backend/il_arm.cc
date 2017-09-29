@@ -3889,58 +3889,16 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   }
 }
 
-void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const intptr_t box_cid = BoxCid();
-
-  if (value_cid == box_cid) {
-    EmitLoadFromBox(compiler);
-  } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
-    EmitSmiConversion(compiler);
-  } else if (FLAG_experimental_strong_mode &&
-             (representation() == kUnboxedDouble) &&
-             value()->Type()->IsNullableDouble()) {
-    EmitLoadFromBox(compiler);
-  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-             (representation() == kUnboxedInt64) &&
-             value()->Type()->IsNullableInt()) {
-    const Register box = locs()->in(0).reg();
-    PairLocation* result = locs()->out(0).AsPairLocation();
-    ASSERT(result->At(0).reg() != box);
-    ASSERT(result->At(1).reg() != box);
-    Label done;
-    __ SignFill(result->At(1).reg(), box);
-    __ SmiUntag(result->At(0).reg(), box, &done);
-    EmitLoadFromBox(compiler);
-    __ Bind(&done);
-  } else {
-    const Register box = locs()->in(0).reg();
-    const Register temp = locs()->temp(0).reg();
-    Label* deopt =
-        compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
-    Label is_smi;
-
-    if ((value()->Type()->ToNullableCid() == box_cid) &&
-        value()->Type()->is_nullable()) {
-      __ CompareObject(box, Object::null_object());
-      __ b(deopt, EQ);
-    } else {
-      __ tst(box, Operand(kSmiTagMask));
-      __ b(CanConvertSmi() ? &is_smi : deopt, EQ);
-      __ CompareClassId(box, box_cid, temp);
-      __ b(deopt, NE);
-    }
-
-    EmitLoadFromBox(compiler);
-
-    if (is_smi.IsLinked()) {
-      Label done;
-      __ b(&done);
-      __ Bind(&is_smi);
-      EmitSmiConversion(compiler);
-      __ Bind(&done);
-    }
-  }
+void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
+  const Register box = locs()->in(0).reg();
+  PairLocation* result = locs()->out(0).AsPairLocation();
+  ASSERT(result->At(0).reg() != box);
+  ASSERT(result->At(1).reg() != box);
+  Label done;
+  __ SignFill(result->At(1).reg(), box);
+  __ SmiUntag(result->At(0).reg(), box, &done);
+  EmitLoadFromBox(compiler);
+  __ Bind(&done);
 }
 
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,

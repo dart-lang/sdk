@@ -3590,9 +3590,11 @@ class ThrowErrorSlowPathCode : public SlowPathCode {
         num_args_(num_args),
         try_index_(try_index) {}
 
+  virtual const char* name() = 0;
+
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (Assembler::EmittingComments()) {
-      __ Comment("slow path check bound operation");
+      __ Comment("slow path %s operation", name());
     }
     __ Bind(entry_label());
     LocationSummary* locs = instruction_->locs();
@@ -3627,6 +3629,8 @@ class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
                                kRangeErrorRuntimeEntry,
                                kNumberOfArguments,
                                try_index) {}
+
+  virtual const char* name() { return "check bound"; }
 };
 
 void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -3665,6 +3669,8 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
                                kNullErrorRuntimeEntry,
                                kNumberOfArguments,
                                try_index) {}
+
+  virtual const char* name() { return "check null"; }
 };
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -3677,6 +3683,57 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // in order to be able to allocate it on register.
   __ CompareObject(value_reg, Object::null_object());
   __ BranchIf(EQUAL, slow_path->entry_label());
+}
+
+void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
+  const intptr_t box_cid = BoxCid();
+  const Register box = locs()->in(0).reg();
+  const Register temp =
+      (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
+  Label* deopt = compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
+  Label is_smi;
+
+  if ((value()->Type()->ToNullableCid() == box_cid) &&
+      value()->Type()->is_nullable()) {
+    __ CompareObject(box, Object::null_object());
+    __ BranchIf(EQUAL, deopt);
+  } else {
+    __ BranchIfSmi(box, CanConvertSmi() ? &is_smi : deopt);
+    __ CompareClassId(box, box_cid, temp);
+    __ BranchIf(NOT_EQUAL, deopt);
+  }
+
+  EmitLoadFromBox(compiler);
+
+  if (is_smi.IsLinked()) {
+    Label done;
+    __ Jump(&done);
+    __ Bind(&is_smi);
+    EmitSmiConversion(compiler);
+    __ Bind(&done);
+  }
+}
+
+void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t box_cid = BoxCid();
+
+  if (value_cid == box_cid) {
+    EmitLoadFromBox(compiler);
+  } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
+    EmitSmiConversion(compiler);
+  } else if (FLAG_experimental_strong_mode &&
+             (representation() == kUnboxedDouble) &&
+             value()->Type()->IsNullableDouble()) {
+    EmitLoadFromBox(compiler);
+  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+             (representation() == kUnboxedInt64) &&
+             value()->Type()->IsNullableInt()) {
+    EmitLoadInt64FromBoxOrSmi(compiler);
+  } else {
+    ASSERT(CanDeoptimize());
+    EmitLoadFromBoxWithDeopt(compiler);
+  }
 }
 
 #endif  // !defined(TARGET_ARCH_DBC)
