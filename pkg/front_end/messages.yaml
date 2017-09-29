@@ -535,6 +535,12 @@ SetterNotFound:
 MethodNotFound:
   template: "Method not found: '#name'."
 
+CandidateFound:
+  template: "Found this candidate, but the arguments don't match."
+
+CandidateFoundIsDefaultConstructor:
+  template: "The class '#name' has a constructor that takes no arguments."
+
 AbstractClassInstantiation:
   template: "The class '#name' is abstract and can't be instantiated."
 

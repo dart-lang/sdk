@@ -99,13 +99,18 @@ abstract class BuilderHelper {
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]);
 
-  Expression buildStaticInvocation(Procedure target, Arguments arguments);
+  Expression buildStaticInvocation(Procedure target, Arguments arguments,
+      {bool isConst, int charOffset, Member initialTarget});
 
   Expression buildProblemExpression(ProblemBuilder builder, int offset);
 
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isSuper, bool isGetter, bool isSetter, bool isStatic});
+      {Member candidate,
+      bool isSuper,
+      bool isGetter,
+      bool isSetter,
+      bool isStatic});
 
   bool checkArguments(FunctionNode function, Arguments arguments,
       List<TypeParameter> typeParameters);
@@ -755,8 +760,8 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
           isConstantExpression: true,
           isImplicitCall: true);
     } else {
-      return helper.buildStaticInvocation(readTarget, arguments)
-        ..fileOffset = offset;
+      return helper.buildStaticInvocation(readTarget, arguments,
+          charOffset: offset);
     }
   }
 

@@ -194,6 +194,37 @@ Message _withArgumentsBuiltInIdentifierInDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCandidateFound = messageCandidateFound;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCandidateFound = const MessageCode("CandidateFound",
+    message: r"""Found this candidate, but the arguments don't match.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateCandidateFoundIsDefaultConstructor =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""The class '#name' has a constructor that takes no arguments.""",
+        withArguments: _withArgumentsCandidateFoundIsDefaultConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeCandidateFoundIsDefaultConstructor =
+    const Code<Message Function(String name)>(
+  "CandidateFoundIsDefaultConstructor",
+  templateCandidateFoundIsDefaultConstructor,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCandidateFoundIsDefaultConstructor(String name) {
+  return new Message(codeCandidateFoundIsDefaultConstructor,
+      message:
+          """The class '$name' has a constructor that takes no arguments.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateCannotReadPackagesFile =
     const Template<Message Function(String string)>(
         messageTemplate: r"""Unable to read '.packages' file:

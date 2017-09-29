@@ -103,7 +103,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
             typeInferenceEngine.coreTypes,
             currentClass,
             isInstanceMember,
-            fileUri,
+            library.fileUri,
             typeInferrer);
         Parser parser = new Parser(bodyBuilder);
         Token token = parser.parseExpression(initializerTokenForInference);

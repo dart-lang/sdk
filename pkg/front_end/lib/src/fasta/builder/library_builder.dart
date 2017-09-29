@@ -14,12 +14,16 @@ import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
+        LocatedMessage,
         Message,
         nit,
+        report,
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess,
         warning;
+
+import '../severity.dart' show Severity;
 
 import '../util/relativize.dart' show relativizeUri;
 
@@ -84,16 +88,19 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   ///
   /// If [fileUri] is null, it defaults to `this.fileUri`.
   void addCompileTimeError(Message message, int charOffset, Uri uri,
-      {bool silent: false, bool wasHandled: false}) {
+      {bool silent: false, bool wasHandled: false, LocatedMessage context}) {
     hasCompileTimeErrors = true;
     loader.addCompileTimeError(message, charOffset, uri,
-        silent: silent, wasHandled: wasHandled);
+        silent: silent, wasHandled: wasHandled, context: context);
   }
 
   void addWarning(Message message, int charOffset, Uri uri,
-      {bool silent: false}) {
+      {bool silent: false, LocatedMessage context}) {
     if (!silent) {
       warning(message, charOffset, uri);
+      if (context != null) {
+        report(context, Severity.warning);
+      }
     }
   }
 

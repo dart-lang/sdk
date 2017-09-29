@@ -972,27 +972,54 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int charOffset,
-      {bool isSuper: false,
+      {Member candidate,
+      bool isSuper: false,
       bool isGetter: false,
       bool isSetter: false,
       bool isStatic: false}) {
     Message message;
     Name kernelName = new Name(name, library.library);
+    LocatedMessage context;
+    if (candidate != null) {
+      // TODO(ahe): Not sure `candidate.location.file` is guaranteed to be
+      // relative to Uri.base.
+      Uri uri = Uri.base.resolve(candidate.location.file);
+      int offset = candidate.fileOffset;
+      Message message;
+      if (offset == -1 && candidate is Constructor) {
+        offset = candidate.enclosingClass.fileOffset;
+        message = fasta.templateCandidateFoundIsDefaultConstructor
+            .withArguments(candidate.enclosingClass.name);
+      } else {
+        message = fasta.messageCandidateFound;
+      }
+      context = message.withLocation(uri, offset);
+    }
+
     if (isGetter) {
       message = warnUnresolvedGet(kernelName, charOffset,
-          isSuper: isSuper, reportWarning: !constantExpressionRequired);
+          isSuper: isSuper,
+          reportWarning: !constantExpressionRequired,
+          context: context);
     } else if (isSetter) {
       message = warnUnresolvedSet(kernelName, charOffset,
-          isSuper: isSuper, reportWarning: !constantExpressionRequired);
+          isSuper: isSuper,
+          reportWarning: !constantExpressionRequired,
+          context: context);
     } else {
+      // TODO(ahe): This might be a constructor, and we need to provide a
+      // better error message in that case. Currently we say "method", not
+      // "constructor" and the unnamed constructor is simply referred to as ''.
       message = warnUnresolvedMethod(kernelName, charOffset,
-          isSuper: isSuper, reportWarning: !constantExpressionRequired);
+          isSuper: isSuper,
+          reportWarning: !constantExpressionRequired,
+          context: context);
     }
     if (constantExpressionRequired) {
       // TODO(ahe): Use [error] below instead of building a compile-time error,
       // should be:
       //    return library.loader.throwCompileConstantError(error, charOffset);
-      return buildCompileTimeError(message, charOffset);
+      return buildCompileTimeError(message, charOffset, context: context);
     } else {
       Expression error = library.loader.instantiateNoSuchMethodError(
           receiver, name, arguments, charOffset,
@@ -1007,36 +1034,36 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Message warnUnresolvedGet(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true}) {
+      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoGetter.withArguments(name.name)
         : fasta.templateGetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset);
+      warning(message, charOffset, context: context);
     }
     return message;
   }
 
   @override
   Message warnUnresolvedSet(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true}) {
+      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoSetter.withArguments(name.name)
         : fasta.templateSetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset);
+      warning(message, charOffset, context: context);
     }
     return message;
   }
 
   @override
   Message warnUnresolvedMethod(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true}) {
+      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoMethod.withArguments(name.name)
         : fasta.templateMethodNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset);
+      warning(message, charOffset, context: context);
     }
     return message;
   }
@@ -2194,7 +2221,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     if (!checkArguments(target.function, arguments, typeParameters)) {
       return throwNoSuchMethodError(new NullLiteral()..fileOffset = charOffset,
-          target.name.name, arguments, charOffset);
+          target.name.name, arguments, charOffset,
+          candidate: target);
     }
     if (target is Constructor) {
       if (isConst && !target.isConst) {
@@ -3122,12 +3150,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Expression buildCompileTimeError(Message message, int charOffset) {
+  Expression buildCompileTimeError(Message message, int charOffset,
+      {LocatedMessage context}) {
     // TODO(ahe): This method should be passed the erroneous expression, wrap
     // it in a class (TBD) from which the erroneous expression can be easily
     // extracted. Similar for statements and initializers. See also [issue
     // 29717](https://github.com/dart-lang/sdk/issues/29717)
-    library.addCompileTimeError(message, charOffset, uri, wasHandled: true);
+    library.addCompileTimeError(message, charOffset, uri,
+        wasHandled: true, context: context);
     return new ShadowSyntheticExpression(library.loader
         .throwCompileConstantError(
             library.loader.buildCompileTimeError(message, charOffset, uri)));
@@ -3297,7 +3327,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void warningNotError(Message message, int charOffset) {
-    super.warning(message, charOffset);
+    library.addWarning(message, charOffset, uri);
+  }
+
+  @override
+  void warning(Message message, int charOffset, {LocatedMessage context}) {
+    if (constantExpressionRequired) {
+      addCompileTimeError(message, charOffset);
+    } else {
+      library.addWarning(message, charOffset, uri, context: context);
+    }
+  }
+
+  @override
+  void nit(Message message, int charOffset) {
+    library.addNit(message, charOffset, uri);
   }
 
   @override

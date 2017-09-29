@@ -13,7 +13,8 @@ import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/parser.dart' show CommentAndMetadata;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart' show Message;
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show LocatedMessage, Message;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
 import 'package:front_end/src/fasta/parser.dart' show IdentifierContext;
@@ -3584,7 +3585,7 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
 
   @override
   void addCompileTimeError(Message message, int charOffset, Uri uri,
-      {bool silent: false, bool wasHandled: false}) {
+      {bool silent: false, bool wasHandled: false, LocatedMessage context}) {
     fail('${message.message}');
   }
 
