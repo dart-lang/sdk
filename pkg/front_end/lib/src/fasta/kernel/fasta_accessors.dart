@@ -73,7 +73,7 @@ abstract class BuilderHelper {
 
   Expression toValue(node);
 
-  Member lookupSuperMember(Name name, {bool isSetter});
+  Member lookupInstanceMember(Name name, {bool isSetter, bool isSuper});
 
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix});
@@ -370,8 +370,9 @@ class ThisAccessor extends FastaAccessor {
           new ShadowThisExpression(), name, arguments, offset,
           isSuper: isSuper);
     } else if (isSuper) {
-      Member getter = helper.lookupSuperMember(name);
-      Member setter = helper.lookupSuperMember(name, isSetter: true);
+      Member getter = helper.lookupInstanceMember(name, isSuper: true);
+      Member setter =
+          helper.lookupInstanceMember(name, isSuper: true, isSetter: true);
       return new SuperPropertyAccessor(
           helper, send.token, name, getter, setter);
     } else {

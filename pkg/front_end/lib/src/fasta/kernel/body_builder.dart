@@ -1038,11 +1038,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Member lookupSuperMember(Name name, {bool isSetter: false}) {
-    Class superclass = classBuilder.cls.superclass;
-    return superclass == null
-        ? null
-        : hierarchy.getDispatchTarget(superclass, name, setter: isSetter);
+  Member lookupInstanceMember(Name name,
+      {bool isSetter: false, bool isSuper: false}) {
+    Class cls = classBuilder.cls;
+    if (isSuper) {
+      cls = cls.superclass;
+      if (cls == null) return null;
+    }
+    return isSuper
+        ? hierarchy.getDispatchTarget(cls, name, setter: isSetter)
+        : hierarchy.getInterfaceMember(cls, name, setter: isSetter);
   }
 
   @override
@@ -2032,8 +2037,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression index = popForValue();
     var receiver = pop();
     if (receiver is ThisAccessor && receiver.isSuper) {
-      push(new SuperIndexAccessor(this, openSquareBracket, index,
-          lookupSuperMember(indexGetName), lookupSuperMember(indexSetName)));
+      push(new SuperIndexAccessor(
+          this,
+          openSquareBracket,
+          index,
+          lookupInstanceMember(indexGetName, isSuper: true),
+          lookupInstanceMember(indexSetName, isSuper: true)));
     } else {
       push(IndexAccessor.make(
           this, openSquareBracket, toValue(receiver), index, null, null));
@@ -3360,7 +3369,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (isSuper) {
       // We can ignore [isNullAware] on super sends.
       assert(receiver is ThisExpression);
-      Member target = lookupSuperMember(name);
+      Member target = lookupInstanceMember(name, isSuper: true);
 
       if (target == null || (target is Procedure && !target.isAccessor)) {
         if (target == null) {
