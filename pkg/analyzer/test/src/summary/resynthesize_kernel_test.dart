@@ -206,60 +206,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @notForDart2
-  test_defaultValue_refersToGenericClass_constructor() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_constructor();
-  }
-
-  @failingTest
-  @notForDart2
-  test_defaultValue_refersToGenericClass_constructor2() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_constructor2();
-  }
-
-  @failingTest
-  @notForDart2
-  test_defaultValue_refersToGenericClass_functionG() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_functionG();
-  }
-
-  @failingTest
-  @notForDart2
-  test_defaultValue_refersToGenericClass_methodG() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_methodG();
-  }
-
-  @failingTest
-  @notForDart2
-  test_defaultValue_refersToGenericClass_methodG_classG() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_methodG_classG();
-  }
-
-  @failingTest
-  @notForDart2
-  test_defaultValue_refersToGenericClass_methodNG() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_methodNG();
-  }
-
-  @failingTest
-  @notForDart2
   test_export_configurations_useDefault() async {
     await super.test_export_configurations_useDefault();
   }

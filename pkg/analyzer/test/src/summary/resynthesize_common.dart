@@ -5105,6 +5105,7 @@ class C<T> {
 }
 ''');
     if (isSharedFrontEnd) {
+      // The constant can not depend on a (non-constant) type parameter.
       checkElementText(library, r'''
 class B<T> {
   const B();
@@ -5112,7 +5113,7 @@ class B<T> {
 class C<T> {
   const C([B<T> b = const
         B/*location: test.dart;B*/<
-        T/*location: test.dart;C;T*/>()]);
+        Null/*location: dart:core;Null*/>()]);
 }
 ''');
     } else {
@@ -5139,6 +5140,7 @@ class C<T> implements A<Iterable<T>> {
 }
 ''');
     if (isSharedFrontEnd) {
+      // The constant can not depend on a (non-constant) type parameter.
       checkElementText(library, r'''
 abstract class A<T> {
 }
@@ -5148,7 +5150,7 @@ class B<T> implements A<T> {
 class C<T> implements A<Iterable<T>> {
   const C([A<T> a = const
         B/*location: test.dart;B*/<
-        T/*location: test.dart;C;T*/>()]);
+        Null/*location: dart:core;Null*/>()]);
 }
 ''');
     } else {
@@ -5174,13 +5176,14 @@ class B<T> {
 void foo<T>([B<T> b = const B()]) {}
 ''');
     if (isSharedFrontEnd) {
+      // The constant can not depend on a (non-constant) type parameter.
       checkElementText(library, r'''
 class B<T> {
   const B();
 }
 void foo<T>([B<T> b = const
         B/*location: test.dart;B*/<
-        T/*location: test.dart;foo;T*/>()]) {}
+        Null/*location: dart:core;Null*/>()]) {}
 ''');
     } else {
       checkElementText(library, r'''
@@ -5203,6 +5206,7 @@ class C {
 }
 ''');
     if (isSharedFrontEnd) {
+      // The constant can not depend on a (non-constant) type parameter.
       checkElementText(library, r'''
 class B<T> {
   const B();
@@ -5210,7 +5214,7 @@ class B<T> {
 class C {
   void foo<T>([B<T> b = const
         B/*location: test.dart;B*/<
-        T/*location: test.dart;C;foo;T*/>()]) {}
+        Null/*location: dart:core;Null*/>()]) {}
 }
 ''');
     } else {
@@ -5236,6 +5240,7 @@ class C<E1> {
 }
 ''');
     if (isSharedFrontEnd) {
+      // The constant can not depend on a (non-constant) type parameter.
       checkElementText(library, r'''
 class B<T1, T2> {
   const B();
@@ -5243,8 +5248,8 @@ class B<T1, T2> {
 class C<E1> {
   void foo<E2>([B<E1, E2> b = const
         B/*location: test.dart;B*/<
-        E1/*location: test.dart;C;E1*/,
-        E2/*location: test.dart;C;foo;E2*/>()]) {}
+        Null/*location: dart:core;Null*/,
+        Null/*location: dart:core;Null*/>()]) {}
 }
 ''');
     } else {
@@ -5270,6 +5275,7 @@ class C<T> {
 }
 ''');
     if (isSharedFrontEnd) {
+      // The constant can not depend on a (non-constant) type parameter.
       checkElementText(library, r'''
 class B<T> {
   const B();
@@ -5277,7 +5283,7 @@ class B<T> {
 class C<T> {
   void foo([B<T> b = const
         B/*location: test.dart;B*/<
-        T/*location: test.dart;C;T*/>()]) {}
+        Null/*location: dart:core;Null*/>()]) {}
 }
 ''');
     } else {
