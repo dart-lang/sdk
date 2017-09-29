@@ -2415,6 +2415,7 @@ class A {
 ''');
   }
 
+  @failingTest
   test_createLocalVariable_functionType_named() async {
     await resolveTestUnit('''
 typedef MY_FUNCTION(int p);
@@ -2621,6 +2622,7 @@ class B implements A {
 ''');
   }
 
+  @failingTest
   test_createMissingOverrides_functionTypeAlias() async {
     await resolveTestUnit('''
 typedef int Binary(int left, int right);

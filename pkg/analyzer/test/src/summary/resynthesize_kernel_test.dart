@@ -148,6 +148,27 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @potentialAnalyzerProblem
+  test_const_reference_type() async {
+    // TODO(scheglov): triage
+    await super.test_const_reference_type();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  test_const_reference_type_imported() async {
+    // TODO(scheglov): triage
+    await super.test_const_reference_type_imported();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  test_const_reference_type_imported_withPrefix() async {
+    // TODO(scheglov): triage
+    await super.test_const_reference_type_imported_withPrefix();
+  }
+
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_generic() async {
     await super.test_constructor_redirected_factory_named_generic();
@@ -268,12 +289,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunction_asGenericFunctionReturnType() async {
-    await super.test_genericFunction_asGenericFunctionReturnType();
-  }
-
-  @failingTest
   @notForDart2
   test_import_configurations_useDefault() async {
     await super.test_import_configurations_useDefault();
@@ -307,12 +322,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
     await super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_functionTypeAlias_simple() async {
-    await super.test_instantiateToBounds_functionTypeAlias_simple();
   }
 
   @failingTest
@@ -373,6 +382,13 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_fieldFormalParameter_withDefault() async {
     await super.test_metadata_fieldFormalParameter_withDefault();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  test_metadata_functionTypeAlias() async {
+    // TODO(scheglov): triage
+    await super.test_metadata_functionTypeAlias();
   }
 
   @failingTest
@@ -443,30 +459,9 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @potentialAnalyzerProblem
-  test_type_reference_to_typedef_with_type_arguments() async {
-    // TODO(scheglov): triage
-    await super.test_type_reference_to_typedef_with_type_arguments();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_typedef_with_type_arguments_implicit() async {
-    // TODO(scheglov): triage
-    await super.test_type_reference_to_typedef_with_type_arguments_implicit();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
   test_typedef_documented() async {
     // TODO(scheglov): implement
     await super.test_typedef_documented();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typedef_generic() async {
-    // TODO(scheglov): triage
-    await super.test_typedef_generic();
   }
 
   @failingTest
@@ -478,9 +473,30 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @potentialAnalyzerProblem
+  test_typedef_parameters_named() async {
+    // TODO(scheglov): triage
+    await super.test_typedef_parameters_named();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
   test_typedef_type_parameters_bound() async {
     // TODO(scheglov): triage
     await super.test_typedef_type_parameters_bound();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  test_typedef_type_parameters_bound_recursive() async {
+    // TODO(scheglov): triage
+    await super.test_typedef_type_parameters_bound_recursive();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  test_typedef_type_parameters_bound_recursive2() async {
+    // TODO(scheglov): triage
+    await super.test_typedef_type_parameters_bound_recursive2();
   }
 
   @failingTest

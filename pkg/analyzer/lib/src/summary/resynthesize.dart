@@ -1899,10 +1899,6 @@ class _UnitResynthesizer {
                 summaryResynthesizer, location);
             break;
           case ReferenceKind.typedef:
-            element = new FunctionTypeAliasElementHandle(
-                summaryResynthesizer, location);
-            isDeclarableType = true;
-            break;
           case ReferenceKind.genericFunctionTypedef:
             element = new GenericTypeAliasElementHandle(
                 summaryResynthesizer, location);

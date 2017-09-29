@@ -2484,7 +2484,7 @@ class A {
     ElementHolder holder = buildElementsForAst(typeAlias);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
     expect(aliases, hasLength(1));
-    FunctionTypeAliasElement alias = aliases[0];
+    GenericTypeAliasElementImpl alias = aliases[0];
     expect(alias, isNotNull);
     assertHasCodeRange(alias, 50, 31);
     expect(alias.name, aliasName);
@@ -2512,7 +2512,7 @@ class A {
     ElementHolder holder = buildElementsForAst(typeAlias);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
     expect(aliases, hasLength(1));
-    FunctionTypeAliasElement alias = aliases[0];
+    GenericTypeAliasElementImpl alias = aliases[0];
     expect(alias, isNotNull);
     expect(alias.name, aliasName);
     expect(alias.type, isNotNull);

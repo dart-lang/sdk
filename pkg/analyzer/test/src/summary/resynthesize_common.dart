@@ -797,16 +797,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareElements(resynthesized, original, desc);
     ElementImpl rImpl = getActualElement(resynthesized, desc);
     ElementImpl oImpl = getActualElement(original, desc);
-    if (rImpl is FunctionTypeAliasElementImpl) {
-      if (oImpl is FunctionTypeAliasElementImpl) {
-        compareParameterElementLists(
-            rImpl.parameters, oImpl.parameters, '$desc.parameters');
-        compareTypes(rImpl.returnType, oImpl.returnType, '$desc.returnType');
-      } else {
-        fail(
-            'Resynthesized a FunctionTypeAliasElementImpl, but expected a ${oImpl.runtimeType}');
-      }
-    } else if (rImpl is GenericTypeAliasElementImpl) {
+    if (rImpl is GenericTypeAliasElementImpl) {
       if (oImpl is GenericTypeAliasElementImpl) {
         compareGenericFunctionTypeElements(
             rImpl.function, oImpl.function, '$desc.function');
@@ -1083,12 +1074,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       compareTypeImpls(resynthesized, original, desc);
       expect(resynthesized.isInstantiated, original.isInstantiated,
           reason: desc);
-      if (original.element.isSynthetic &&
-          original.element is FunctionTypeAliasElementImpl &&
-          resynthesized.element is FunctionTypeAliasElementImpl) {
-        compareFunctionTypeAliasElements(
-            resynthesized.element, original.element, desc);
-      }
       if (original.element.enclosingElement == null &&
           original.element is FunctionElement) {
         expect(resynthesized.element, new isInstanceOf<FunctionElement>());
@@ -3715,7 +3700,7 @@ const vFunctionTypeAlias = F;
 ''');
     if (isStrongMode) {
       checkElementText(library, r'''
-typedef dynamic F(int a, String b);
+typedef F = dynamic Function(int a, String b);
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
@@ -3744,7 +3729,7 @@ const Type vFunctionTypeAlias =
 ''');
     } else {
       checkElementText(library, r'''
-typedef dynamic F(int a, String b);
+typedef F = dynamic Function(int a, String b);
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
@@ -3783,14 +3768,14 @@ class C {
 ''');
     if (isStrongMode) {
       checkElementText(library, r'''
-typedef dynamic F();
+typedef F = dynamic Function();
 class C {
-  final List<F> f;
+  final List<() → dynamic> f;
 }
 ''');
     } else {
       checkElementText(library, r'''
-typedef dynamic F();
+typedef F = dynamic Function();
 class C {
   final dynamic f;
 }
@@ -5431,8 +5416,8 @@ typedef F(int p);
 main(F f) {}
 ''');
     checkElementText(library, r'''
-typedef dynamic F(int p);
-dynamic main(F f) {}
+typedef F = dynamic Function(int p);
+dynamic main((int) → dynamic f) {}
 ''');
   }
 
@@ -6666,22 +6651,22 @@ dynamic f<T>() {}
         ' abstract class D { F get v; }');
     if (isStrongMode) {
       checkElementText(library, r'''
-typedef int F(String s);
+typedef F = int Function(String s);
 class C extends D {
-  F v;
+  (String) → int v;
 }
 abstract class D {
-  F get v;
+  (String) → int get v;
 }
 ''');
     } else {
       checkElementText(library, r'''
-typedef int F(String s);
+typedef F = int Function(String s);
 class C extends D {
   dynamic v;
 }
 abstract class D {
-  F get v;
+  (String) → int get v;
 }
 ''');
     }
@@ -6724,9 +6709,9 @@ h(F f) => null;
 var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
 ''');
     checkElementText(library, r'''
-typedef void F((String) → int g);
+typedef F = void Function((String) → int g);
 dynamic v;
-dynamic h(F f) {}
+dynamic h(((String) → int) → void f) {}
 ''');
   }
 
@@ -7148,13 +7133,13 @@ F f;
 ''');
     if (isStrongMode) {
       checkElementText(library, r'''
-typedef dynamic F<T extends num>(T p);
-F<num> f;
+typedef F<T extends num> = dynamic Function(T p);
+(dynamic) → dynamic f;
 ''');
     } else {
       checkElementText(library, r'''
-typedef dynamic F<T extends num>(T p);
-F f;
+typedef F<T extends num> = dynamic Function(T p);
+(dynamic) → dynamic f;
 ''');
     }
   }
@@ -7597,7 +7582,7 @@ export 'a.dart';
   test_main_typedef() async {
     var library = await checkLibrary('typedef main();');
     checkElementText(library, r'''
-typedef dynamic main();
+typedef main = dynamic Function();
 ''');
   }
 
@@ -7923,7 +7908,7 @@ dynamic set f(dynamic value) {}
     checkElementText(library, r'''
 @
         a/*location: test.dart;a?*/
-typedef dynamic F();
+typedef F = dynamic Function();
 const dynamic a = null;
 ''');
   }
@@ -8152,7 +8137,7 @@ dynamic f<T>() {}
   test_metadata_typeParameter_ofTypedef() async {
     var library = await checkLibrary('const a = null; typedef F<@a T>();');
     checkElementText(library, r'''
-typedef dynamic F<T>();
+typedef F<T> = dynamic Function();
 const dynamic a = null;
 ''');
   }
@@ -9012,7 +8997,7 @@ V V2 = null;
 int V = 0;
 ''', allowErrors: true);
     checkElementText(library, r'''
-typedef dynamic F(dynamic p);
+typedef F = dynamic Function(dynamic p);
 class C<T extends dynamic> {
 }
 dynamic V2;
@@ -9054,7 +9039,7 @@ C c;
 E e;
 F f;''');
     checkElementText(library, r'''
-typedef dynamic F();
+typedef F = dynamic Function();
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
@@ -9064,7 +9049,7 @@ class C {
 }
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9077,11 +9062,11 @@ library l;
 part 'a.dart';
 C c;
 E e;
-F f;
+() → dynamic f;
 --------------------
 unit: a.dart
 
-typedef dynamic F();
+typedef F = dynamic Function();
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
@@ -9099,7 +9084,7 @@ class C {
     checkElementText(library, r'''
 library l;
 part 'a.dart';
-typedef dynamic F();
+typedef F = dynamic Function();
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
@@ -9112,7 +9097,7 @@ unit: a.dart
 
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9128,7 +9113,7 @@ part 'b.dart';
 --------------------
 unit: a.dart
 
-typedef dynamic F();
+typedef F = dynamic Function();
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
@@ -9141,7 +9126,7 @@ unit: b.dart
 
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9155,7 +9140,7 @@ part 'a.dart';
 --------------------
 unit: a.dart
 
-typedef dynamic F();
+typedef F = dynamic Function();
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
@@ -9165,7 +9150,7 @@ class C {
 }
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9215,7 +9200,7 @@ E e;
 import 'a.dart';
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9227,7 +9212,7 @@ F f;
 import 'a.dart';
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9240,7 +9225,7 @@ F f;
 import 'a.dart';
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9253,7 +9238,7 @@ F f;
 import 'a.dart';
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9265,7 +9250,7 @@ F f;
 import 'a.dart';
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9277,7 +9262,7 @@ F f;
 import 'a.dart';
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9301,7 +9286,7 @@ C2 c2;
 import 'b.dart';
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
@@ -9312,15 +9297,15 @@ F f;
 import 'a.dart';
 C c;
 E e;
-F f;
+() → dynamic f;
 ''');
   }
 
   test_type_reference_to_typedef() async {
     var library = await checkLibrary('typedef F(); F f;');
     checkElementText(library, r'''
-typedef dynamic F();
-F f;
+typedef F = dynamic Function();
+() → dynamic f;
 ''');
   }
 
@@ -9328,16 +9313,16 @@ F f;
     var library =
         await checkLibrary('typedef U F<T, U>(T t); F<int, String> f;');
     checkElementText(library, r'''
-typedef U F<T, U>(T t);
-F<int, String> f;
+typedef F<T, U> = U Function(T t);
+(int) → String f;
 ''');
   }
 
   test_type_reference_to_typedef_with_type_arguments_implicit() async {
     var library = await checkLibrary('typedef U F<T, U>(T t); F f;');
     checkElementText(library, r'''
-typedef U F<T, U>(T t);
-F f;
+typedef F<T, U> = U Function(T t);
+(dynamic) → dynamic f;
 ''');
   }
 
@@ -9368,7 +9353,7 @@ typedef F();''');
 /**
  * Docs
  */
-typedef dynamic F();
+typedef F = dynamic Function();
 ''');
   }
 
@@ -9399,42 +9384,42 @@ class A {
   test_typedef_parameter_parameters() async {
     var library = await checkLibrary('typedef F(g(x, y));');
     checkElementText(library, r'''
-typedef dynamic F((dynamic, dynamic) → dynamic g);
+typedef F = dynamic Function((dynamic, dynamic) → dynamic g);
 ''');
   }
 
   test_typedef_parameter_parameters_in_generic_class() async {
     var library = await checkLibrary('typedef F<A, B>(A g(B x));');
     checkElementText(library, r'''
-typedef dynamic F<A, B>((B) → A g);
+typedef F<A, B> = dynamic Function((B) → A g);
 ''');
   }
 
   test_typedef_parameter_return_type() async {
     var library = await checkLibrary('typedef F(int g());');
     checkElementText(library, r'''
-typedef dynamic F(() → int g);
+typedef F = dynamic Function(() → int g);
 ''');
   }
 
   test_typedef_parameter_type() async {
     var library = await checkLibrary('typedef F(int i);');
     checkElementText(library, r'''
-typedef dynamic F(int i);
+typedef F = dynamic Function(int i);
 ''');
   }
 
   test_typedef_parameter_type_generic() async {
     var library = await checkLibrary('typedef F<T>(T t);');
     checkElementText(library, r'''
-typedef dynamic F<T>(T t);
+typedef F<T> = dynamic Function(T t);
 ''');
   }
 
   test_typedef_parameters() async {
     var library = await checkLibrary('typedef F(x, y);');
     checkElementText(library, r'''
-typedef dynamic F(dynamic x, dynamic y);
+typedef F = dynamic Function(dynamic x, dynamic y);
 ''');
   }
 
@@ -9446,7 +9431,7 @@ typedef dynamic F({dynamic x}, {dynamic y}, {dynamic z});
 ''');
     } else {
       checkElementText(library, r'''
-typedef dynamic F({dynamic y}, {dynamic z}, {dynamic x});
+typedef F = dynamic Function({dynamic y}, {dynamic z}, {dynamic x});
 ''');
     }
   }
@@ -9454,35 +9439,35 @@ typedef dynamic F({dynamic y}, {dynamic z}, {dynamic x});
   test_typedef_return_type() async {
     var library = await checkLibrary('typedef int F();');
     checkElementText(library, r'''
-typedef int F();
+typedef F = int Function();
 ''');
   }
 
   test_typedef_return_type_generic() async {
     var library = await checkLibrary('typedef T F<T>();');
     checkElementText(library, r'''
-typedef T F<T>();
+typedef F<T> = T Function();
 ''');
   }
 
   test_typedef_return_type_implicit() async {
     var library = await checkLibrary('typedef F();');
     checkElementText(library, r'''
-typedef dynamic F();
+typedef F = dynamic Function();
 ''');
   }
 
   test_typedef_return_type_void() async {
     var library = await checkLibrary('typedef void F();');
     checkElementText(library, r'''
-typedef void F();
+typedef F = void Function();
 ''');
   }
 
   test_typedef_type_parameters() async {
     var library = await checkLibrary('typedef U F<T, U>(T t);');
     checkElementText(library, r'''
-typedef U F<T, U>(T t);
+typedef F<T, U> = U Function(T t);
 ''');
   }
 
@@ -9490,7 +9475,7 @@ typedef U F<T, U>(T t);
     var library = await checkLibrary(
         'typedef U F<T extends Object, U extends D>(T t); class D {}');
     checkElementText(library, r'''
-typedef U F<T extends Object, U extends D>(T t);
+typedef F<T extends Object, U extends D> = U Function(T t);
 class D {
 }
 ''');
@@ -9506,7 +9491,7 @@ typedef void F<T extends dynamic>();
 ''');
     } else {
       checkElementText(library, r'''
-typedef void F<T extends F>();
+typedef F<T extends () → void> = void Function();
 ''');
     }
   }
@@ -9521,7 +9506,7 @@ typedef void F<T extends List<dynamic>>();
 ''');
     } else {
       checkElementText(library, r'''
-typedef void F<T extends List<F>>();
+typedef F<T extends List<() → void>> = void Function();
 ''');
     }
   }
@@ -9529,14 +9514,14 @@ typedef void F<T extends List<F>>();
   test_typedef_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
-typedef U F<T extends List<U>, U>(T t);
+typedef F<T extends List<U>, U> = U Function(T t);
 ''');
   }
 
   test_typedef_type_parameters_f_bound_simple() async {
     var library = await checkLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
-typedef U F<T extends U, U>(T t);
+typedef F<T extends U, U> = U Function(T t);
 ''');
   }
 

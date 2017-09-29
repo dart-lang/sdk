@@ -1452,6 +1452,7 @@ class A {
 ''');
   }
 
+  @failingTest
   test_singleExpression_parameter_functionTypeAlias() async {
     await indexTestUnit('''
 typedef R Foo<S, R>(S s);

@@ -375,12 +375,14 @@ class ElementFactory {
     return functionElement;
   }
 
-  static FunctionTypeAliasElementImpl functionTypeAliasElement(String name) {
-    FunctionTypeAliasElementImpl functionTypeAliasElement =
-        new FunctionTypeAliasElementImpl(name, -1);
-    functionTypeAliasElement.type =
-        new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
-    return functionTypeAliasElement;
+  static GenericTypeAliasElementImpl genericTypeAliasElement(String name,
+      {List<ParameterElement> parameters: const [], DartType returnType}) {
+    var element = new GenericTypeAliasElementImpl(name, -1);
+    element.function = new GenericFunctionTypeElementImpl.forOffset(-1)
+      ..parameters = parameters
+      ..returnType = returnType ?? DynamicTypeImpl.instance;
+    element.type = new FunctionTypeImpl.forTypedef(element);
+    return element;
   }
 
   static PropertyAccessorElementImpl getterElement(

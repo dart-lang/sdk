@@ -396,12 +396,13 @@ class ApiElementBuilder extends _BaseElementBuilder {
     SimpleIdentifier aliasName = node.name;
     List<ParameterElement> parameters = holder.parameters;
     List<TypeParameterElement> typeParameters = holder.typeParameters;
-    FunctionTypeAliasElementImpl element =
-        new FunctionTypeAliasElementImpl.forNode(aliasName);
+    GenericTypeAliasElementImpl element =
+        new GenericTypeAliasElementImpl.forNode(aliasName);
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(element, node);
-    element.parameters = parameters;
+    element.function = new GenericFunctionTypeElementImpl.forOffset(-1)
+      ..parameters = parameters;
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
     element.type = new FunctionTypeImpl.forTypedef(element);

@@ -47,7 +47,7 @@ main() {
 
   // TODO(rnystrom): This should print "GenericFunc<int>", but that isn't
   // implemented yet.
-  testType(new Box<GenericFunc<int>>().typeArg, "GenericFunc((int) -> int)");
+  testType(new Box<GenericFunc<int>>().typeArg, "(int) -> int");
 
   // Literals are canonicalized.
   Expect.identical(Foo, Foo);

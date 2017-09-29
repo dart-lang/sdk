@@ -936,35 +936,9 @@ class _KernelUnitResynthesizerContextImpl
     }
 
     if (kernelType is kernel.FunctionType) {
-      if (kernelType.typedef != null) {
-        FunctionTypeAliasElementImpl element = libraryContext.resynthesizer
-            ._getElement(kernelType.typedef.canonicalName);
-        return element.type;
-      }
-
-      if (context is ParameterElementImpl) {
-        var typeElement =
-            new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
-        return typeElement.type;
-      } else {
-        var functionElement = new FunctionElementImpl.synthetic([], null);
-        functionElement.enclosingElement = context;
-
-        functionElement.typeParameters = kernelType.typeParameters.map((k) {
-          return new TypeParameterElementImpl.forKernel(functionElement, k);
-        }).toList(growable: false);
-
-        var parameters = getFunctionTypeParameters(kernelType);
-        functionElement.parameters = ParameterElementImpl.forKernelParameters(
-            functionElement,
-            kernelType.requiredParameterCount,
-            parameters[0],
-            parameters[1]);
-
-        functionElement.returnType =
-            getType(functionElement, kernelType.returnType);
-        return functionElement.type;
-      }
+      var typeElement =
+          new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
+      return typeElement.type;
     }
 
     // TODO(scheglov) Support other kernel types.

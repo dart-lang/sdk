@@ -171,20 +171,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_noTypeParameters() async {
-    return super.test_genericTypeAlias_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_typeParameters() async {
-    return super.test_genericTypeAlias_typeParameters();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_implicitThisReferenceInInitializer_constructorName() async {
     return super.test_implicitThisReferenceInInitializer_constructorName();

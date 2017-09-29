@@ -1711,16 +1711,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<FunctionTypeAliasElement> get functionTypeAliases {
     if (_kernelContext != null) {
       _typeAliases ??= _kernelContext.kernelUnit.typedefs
-          .map((k) => new FunctionTypeAliasElementImpl.forKernel(this, k))
+          .map((k) => new GenericTypeAliasElementImpl.forKernel(this, k))
           .toList(growable: false);
     }
     if (_unlinkedUnit != null) {
       _typeAliases ??= _unlinkedUnit.typedefs.map((t) {
-        if (t.style == TypedefStyle.functionType) {
-          return new FunctionTypeAliasElementImpl.forSerialized(t, this);
-        } else if (t.style == TypedefStyle.genericFunctionType) {
-          return new GenericTypeAliasElementImpl.forSerialized(t, this);
-        }
+        return new GenericTypeAliasElementImpl.forSerialized(t, this);
       }).toList(growable: false);
     }
     return _typeAliases ?? const <FunctionTypeAliasElement>[];
@@ -1908,10 +1904,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         return functionImpl;
       }
     }
-    for (FunctionTypeAliasElement typeAlias in functionTypeAliases) {
-      FunctionTypeAliasElementImpl typeAliasImpl = typeAlias;
-      if (typeAliasImpl.identifier == identifier) {
-        return typeAliasImpl;
+    for (GenericTypeAliasElementImpl typeAlias in functionTypeAliases) {
+      if (typeAlias.identifier == identifier) {
+        return typeAlias;
       }
     }
     for (ClassElement type in types) {
@@ -3494,7 +3489,8 @@ abstract class ElementImpl implements Element {
    */
   void _safelyVisitPossibleChild(DartType type, ElementVisitor visitor) {
     Element element = type?.element;
-    if (element is GenericFunctionTypeElementImpl) {
+    if (element is GenericFunctionTypeElementImpl &&
+        element.enclosingElement is! GenericTypeAliasElement) {
       element.accept(visitor);
     }
   }
@@ -5029,306 +5025,6 @@ class FunctionElementImpl_forLUB extends FunctionElementImpl {
 }
 
 /**
- * A concrete implementation of a [FunctionTypeAliasElement].
- */
-class FunctionTypeAliasElementImpl extends ElementImpl
-    with TypeParameterizedElementMixin
-    implements FunctionTypeAliasElement {
-  /**
-   * The unlinked representation of the type in the summary.
-   */
-  final UnlinkedTypedef _unlinkedTypedef;
-
-  /**
-   * The kernel of the element.
-   */
-  final kernel.Typedef _kernel;
-
-  /**
-   * A list containing all of the parameters defined by this type alias.
-   */
-  List<ParameterElement> _parameters;
-
-  /**
-   * The return type defined by this type alias.
-   */
-  DartType _returnType;
-
-  /**
-   * The type of function defined by this type alias.
-   */
-  FunctionType _type;
-
-  /**
-   * Initialize a newly created type alias element to have the given name.
-   *
-   * [name] the name of this element
-   * [nameOffset] the offset of the name of this element in the file that
-   *    contains the declaration of this element
-   */
-  FunctionTypeAliasElementImpl(String name, int nameOffset)
-      : _unlinkedTypedef = null,
-        _kernel = null,
-        super(name, nameOffset);
-
-  /**
-   * Initialize using the given kernel.
-   */
-  FunctionTypeAliasElementImpl.forKernel(
-      CompilationUnitElementImpl enclosingUnit, this._kernel)
-      : _unlinkedTypedef = null,
-        super.forKernel(enclosingUnit);
-
-  /**
-   * Initialize a newly created type alias element to have the given [name].
-   */
-  FunctionTypeAliasElementImpl.forNode(Identifier name)
-      : _unlinkedTypedef = null,
-        _kernel = null,
-        super.forNode(name);
-
-  /**
-   * Initialize using the given serialized information.
-   */
-  FunctionTypeAliasElementImpl.forSerialized(
-      this._unlinkedTypedef, CompilationUnitElementImpl enclosingUnit)
-      : _kernel = null,
-        super.forSerialized(enclosingUnit);
-
-  @override
-  int get codeLength {
-    if (_unlinkedTypedef != null) {
-      return _unlinkedTypedef.codeRange?.length;
-    }
-    return super.codeLength;
-  }
-
-  @override
-  int get codeOffset {
-    if (_unlinkedTypedef != null) {
-      return _unlinkedTypedef.codeRange?.offset;
-    }
-    return super.codeOffset;
-  }
-
-  @override
-  String get displayName => name;
-
-  @override
-  String get documentationComment {
-    if (_unlinkedTypedef != null) {
-      return _unlinkedTypedef.documentationComment?.text;
-    }
-    return super.documentationComment;
-  }
-
-  @override
-  CompilationUnitElement get enclosingElement =>
-      super.enclosingElement as CompilationUnitElement;
-
-  @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
-
-  @override
-  CompilationUnitElementImpl get enclosingUnit =>
-      _enclosingElement as CompilationUnitElementImpl;
-
-  @override
-  List<kernel.TypeParameter> get kernelTypeParams => _kernel?.typeParameters;
-
-  @override
-  ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
-
-  @override
-  List<ElementAnnotation> get metadata {
-    if (_kernel != null) {
-      _metadata ??=
-          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
-    }
-    if (_unlinkedTypedef != null) {
-      return _metadata ??=
-          _buildAnnotations(enclosingUnit, _unlinkedTypedef.annotations);
-    }
-    return super.metadata;
-  }
-
-  @override
-  String get name {
-    if (_kernel != null) {
-      return _kernel.name;
-    }
-    if (_unlinkedTypedef != null) {
-      return _unlinkedTypedef.name;
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    int offset = super.nameOffset;
-    if (offset == 0 && _unlinkedTypedef != null) {
-      return _unlinkedTypedef.nameOffset;
-    }
-    return offset;
-  }
-
-  @override
-  List<ParameterElement> get parameters {
-    if (_parameters == null) {
-      if (_kernel != null) {
-        var type = _kernel.type as kernel.FunctionType;
-
-        var parameters =
-            enclosingUnit._kernelContext.getFunctionTypeParameters(type);
-        var positionalParameters = parameters[0];
-        var namedParameters = parameters[1];
-        _parameters = ParameterElementImpl.forKernelParameters(this,
-            type.requiredParameterCount, positionalParameters, namedParameters);
-      }
-      if (_unlinkedTypedef != null) {
-        _parameters = ParameterElementImpl.resynthesizeList(
-            _unlinkedTypedef.parameters, this);
-      }
-    }
-    return _parameters ?? const <ParameterElement>[];
-  }
-
-  /**
-   * Set the parameters defined by this type alias to the given [parameters].
-   */
-  void set parameters(List<ParameterElement> parameters) {
-    _assertNotResynthesized(_unlinkedTypedef);
-    if (parameters != null) {
-      for (ParameterElement parameter in parameters) {
-        (parameter as ParameterElementImpl).enclosingElement = this;
-      }
-    }
-    this._parameters = parameters;
-  }
-
-  @override
-  DartType get returnType {
-    if (_returnType == null) {
-      if (_kernel != null) {
-        var type = _kernel.type as kernel.FunctionType;
-        _returnType =
-            enclosingUnit._kernelContext.getType(this, type.returnType);
-      }
-      if (_unlinkedTypedef != null) {
-        _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-            this, _unlinkedTypedef.returnType,
-            declaredType: true);
-      }
-    }
-    return _returnType;
-  }
-
-  void set returnType(DartType returnType) {
-    _assertNotResynthesized(_unlinkedTypedef);
-    _returnType = _checkElementOfType(returnType);
-  }
-
-  @override
-  FunctionType get type {
-    if (_type == null) {
-      if (_kernel != null || _unlinkedTypedef != null) {
-        _type = new FunctionTypeImpl.forTypedef(this);
-      }
-    }
-    return _type;
-  }
-
-  void set type(FunctionType type) {
-    _assertNotResynthesized(_unlinkedTypedef);
-    _type = type;
-  }
-
-  /**
-   * Set the type parameters defined for this type to the given
-   * [typeParameters].
-   */
-  void set typeParameters(List<TypeParameterElement> typeParameters) {
-    _assertNotResynthesized(_unlinkedTypedef);
-    for (TypeParameterElement typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    this._typeParameterElements = typeParameters;
-  }
-
-  @override
-  List<UnlinkedTypeParam> get unlinkedTypeParams =>
-      _unlinkedTypedef?.typeParameters;
-
-  @override
-  T accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitFunctionTypeAliasElement(this);
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write("typedef ");
-    buffer.write(displayName);
-    List<TypeParameterElement> typeParameters = this.typeParameters;
-    int typeParameterCount = typeParameters.length;
-    if (typeParameterCount > 0) {
-      buffer.write("<");
-      for (int i = 0; i < typeParameterCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
-      }
-      buffer.write(">");
-    }
-    buffer.write("(");
-    List<ParameterElement> parameterList = parameters;
-    int parameterCount = parameterList.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        buffer.write(", ");
-      }
-      (parameterList[i] as ParameterElementImpl).appendTo(buffer);
-    }
-    buffer.write(")");
-    if (type != null) {
-      buffer.write(ElementImpl.RIGHT_ARROW);
-      buffer.write(type.returnType);
-    } else if (returnType != null) {
-      buffer.write(ElementImpl.RIGHT_ARROW);
-      buffer.write(returnType);
-    }
-  }
-
-  @override
-  FunctionTypeAlias computeNode() =>
-      getNodeMatching((node) => node is FunctionTypeAlias);
-
-  @override
-  ElementImpl getChild(String identifier) {
-    for (ParameterElement parameter in parameters) {
-      ParameterElementImpl parameterImpl = parameter;
-      if (parameterImpl.identifier == identifier) {
-        return parameterImpl;
-      }
-    }
-    for (TypeParameterElement typeParameter in typeParameters) {
-      TypeParameterElementImpl typeParameterImpl = typeParameter;
-      if (typeParameterImpl.identifier == identifier) {
-        return typeParameterImpl;
-      }
-    }
-    return null;
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    _safelyVisitPossibleChild(returnType, visitor);
-    safelyVisitChildren(parameters, visitor);
-    safelyVisitChildren(typeParameters, visitor);
-  }
-}
-
-/**
  * The element used for a generic function type.
  *
  * Clients may not extend, implement or mix-in this class.
@@ -5459,10 +5155,8 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
-    if (_kernel != null || _entityRef != null) {
-      _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
-          this, null, allEnclosingTypeParameterTypes, false);
-    }
+    _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
+        this, null, allEnclosingTypeParameterTypes, false);
     return _type;
   }
 
@@ -5551,9 +5245,14 @@ class GenericTypeAliasElementImpl extends ElementImpl
   final UnlinkedTypedef _unlinkedTypedef;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.Typedef _kernel;
+
+  /**
    * The element representing the generic function type.
    */
-  GenericFunctionTypeElement _function;
+  GenericFunctionTypeElementImpl _function;
 
   /**
    * The type of function defined by this type alias.
@@ -5563,8 +5262,25 @@ class GenericTypeAliasElementImpl extends ElementImpl
   /**
    * Initialize a newly created type alias element to have the given [name].
    */
+  GenericTypeAliasElementImpl(String name, int offset)
+      : _unlinkedTypedef = null,
+        _kernel = null,
+        super(name, offset);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  GenericTypeAliasElementImpl.forKernel(
+      CompilationUnitElementImpl enclosingUnit, this._kernel)
+      : _unlinkedTypedef = null,
+        super.forSerialized(enclosingUnit);
+
+  /**
+   * Initialize a newly created type alias element to have the given [name].
+   */
   GenericTypeAliasElementImpl.forNode(Identifier name)
       : _unlinkedTypedef = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -5572,7 +5288,8 @@ class GenericTypeAliasElementImpl extends ElementImpl
    */
   GenericTypeAliasElementImpl.forSerialized(
       this._unlinkedTypedef, CompilationUnitElementImpl enclosingUnit)
-      : super.forSerialized(enclosingUnit);
+      : _kernel = null,
+        super.forSerialized(enclosingUnit);
 
   @override
   int get codeLength {
@@ -5613,16 +5330,34 @@ class GenericTypeAliasElementImpl extends ElementImpl
       _enclosingElement as CompilationUnitElementImpl;
 
   @override
-  GenericFunctionTypeElement get function {
-    if (_function == null && _unlinkedTypedef != null) {
-      DartType type = enclosingUnit.resynthesizerContext.resolveTypeRef(
-          this, _unlinkedTypedef.returnType,
-          declaredType: true);
-      if (type is FunctionType) {
-        Element element = type.element;
-        if (element is GenericFunctionTypeElement) {
-          (element as GenericFunctionTypeElementImpl).enclosingElement = this;
-          _function = element;
+  GenericFunctionTypeElementImpl get function {
+    if (_function == null) {
+      if (_kernel != null) {
+        var context = enclosingUnit._kernelContext;
+        var type = context.getType(this, _kernel.type);
+        _function = (type as FunctionType).element;
+      }
+      if (_unlinkedTypedef != null) {
+        if (_unlinkedTypedef.style == TypedefStyle.genericFunctionType) {
+          DartType type = enclosingUnit.resynthesizerContext.resolveTypeRef(
+              this, _unlinkedTypedef.returnType,
+              declaredType: true);
+          if (type is FunctionType) {
+            Element element = type.element;
+            if (element is GenericFunctionTypeElement) {
+              (element as GenericFunctionTypeElementImpl).enclosingElement =
+                  this;
+              _function = element;
+            }
+          }
+        } else {
+          _function = new GenericFunctionTypeElementImpl.forOffset(-1);
+          _function.enclosingElement = this;
+          _function.returnType = enclosingUnit.resynthesizerContext
+              .resolveTypeRef(_function, _unlinkedTypedef.returnType,
+                  declaredType: true);
+          _function.parameters = ParameterElementImpl.resynthesizeList(
+              _unlinkedTypedef.parameters, _function);
         }
       }
     }
@@ -5633,16 +5368,16 @@ class GenericTypeAliasElementImpl extends ElementImpl
    * Set the function element representing the generic function type on the
    * right side of the equals to the given [function].
    */
-  void set function(GenericFunctionTypeElement function) {
+  void set function(GenericFunctionTypeElementImpl function) {
     _assertNotResynthesized(_unlinkedTypedef);
     if (function != null) {
-      (function as GenericFunctionTypeElementImpl).enclosingElement = this;
+      function.enclosingElement = this;
     }
     _function = function;
   }
 
   @override
-  List<kernel.TypeParameter> get kernelTypeParams => null;
+  List<kernel.TypeParameter> get kernelTypeParams => _kernel?.typeParameters;
 
   @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
@@ -5658,6 +5393,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name;
+    }
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef.name;
     }
@@ -5682,9 +5420,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
-    if (_unlinkedTypedef != null && _type == null) {
-      _type = new FunctionTypeImpl.forTypedef(this);
-    }
+    _type ??= new FunctionTypeImpl.forTypedef(this);
     return _type;
   }
 
@@ -5731,7 +5467,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
     }
     buffer.write(" = ");
     if (function != null) {
-      (function as ElementImpl).appendTo(buffer);
+      function.appendTo(buffer);
     }
   }
 

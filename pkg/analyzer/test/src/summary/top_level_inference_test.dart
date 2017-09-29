@@ -1982,14 +1982,14 @@ class B extends A<int> {
 }
 ''');
     checkElementText(library, r'''
-typedef dynamic F<T>();
+typedef F<T> = dynamic Function();
 class A<T> {
-  F<T> get x {}
-  List<F<T>> get y {}
+  () → dynamic get x {}
+  List<() → dynamic> get y {}
 }
 class B extends A<int> {
-  F<int> get x {}
-  List<F<int>> get y {}
+  () → dynamic get x {}
+  List<() → dynamic> get y {}
 }
 ''');
   }

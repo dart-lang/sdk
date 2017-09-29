@@ -1254,18 +1254,14 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_equality_recursive() {
-    FunctionTypeAliasElementImpl s =
-        ElementFactory.functionTypeAliasElement('s');
-    FunctionTypeAliasElementImpl t =
-        ElementFactory.functionTypeAliasElement('t');
-    FunctionTypeAliasElementImpl u =
-        ElementFactory.functionTypeAliasElement('u');
-    FunctionTypeAliasElementImpl v =
-        ElementFactory.functionTypeAliasElement('v');
-    s.returnType = t.type;
-    t.returnType = s.type;
-    u.returnType = v.type;
-    v.returnType = u.type;
+    var s = ElementFactory.genericTypeAliasElement('s');
+    var t = ElementFactory.genericTypeAliasElement('t');
+    var u = ElementFactory.genericTypeAliasElement('u');
+    var v = ElementFactory.genericTypeAliasElement('v');
+    s.function.returnType = t.type;
+    t.function.returnType = s.type;
+    u.function.returnType = v.type;
+    v.function.returnType = u.type;
     // We don't care whether the types compare equal or not.  We just need the
     // computation to terminate.
     expect(s.type == u.type, new isInstanceOf<bool>());
@@ -1411,12 +1407,10 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_hashCode_recursive() {
-    FunctionTypeAliasElementImpl s =
-        ElementFactory.functionTypeAliasElement('s');
-    FunctionTypeAliasElementImpl t =
-        ElementFactory.functionTypeAliasElement('t');
-    s.returnType = t.type;
-    t.returnType = s.type;
+    var s = ElementFactory.genericTypeAliasElement('s');
+    var t = ElementFactory.genericTypeAliasElement('t');
+    s.function.returnType = t.type;
+    t.function.returnType = s.type;
     // We don't care what the hash code is.  We just need its computation to
     // terminate.
     expect(t.type.hashCode, new isInstanceOf<int>());
@@ -1815,31 +1809,26 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_namedParameterTypes_pruned_no_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
-    f.parameters = [ElementFactory.namedParameter2('x', g.type)];
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
+    f.function.parameters = [ElementFactory.namedParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.namedParameterTypes['x'];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_namedParameterTypes_pruned_with_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
     f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.parameters = [ElementFactory.namedParameter2('x', g.type)];
+    f.function.parameters = [ElementFactory.namedParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.namedParameterTypes['x'];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_newPrune_no_previous_prune() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
+    var f = ElementFactory.genericTypeAliasElement('f');
     FunctionTypeImpl type = f.type;
     List<FunctionTypeAliasElement> pruneList = type.newPrune;
     expect(pruneList, hasLength(1));
@@ -1860,18 +1849,15 @@ class FunctionTypeImplTest extends EngineTestCase {
     // synthetic typedefs because those types are only created for
     // function-typed formal parameters, which can't be directly referred to by
     // the user (and hence can't participate in circularities).
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
+    var f = ElementFactory.genericTypeAliasElement('f');
     f.isSynthetic = true;
     FunctionTypeImpl type = f.type;
     expect(type.newPrune, isNull);
   }
 
   void test_newPrune_with_previous_prune() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
     FunctionTypeImpl type = f.type;
     FunctionTypeImpl prunedType = type.pruned([g]);
     List<FunctionTypeAliasElement> pruneList = prunedType.newPrune;
@@ -1881,46 +1867,38 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_normalParameterTypes_pruned_no_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
-    f.parameters = [ElementFactory.requiredParameter2('x', g.type)];
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
+    f.function.parameters = [ElementFactory.requiredParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.normalParameterTypes[0];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_normalParameterTypes_pruned_with_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
     f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.parameters = [ElementFactory.requiredParameter2('x', g.type)];
+    f.function.parameters = [ElementFactory.requiredParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.normalParameterTypes[0];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_optionalParameterTypes_pruned_no_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
-    f.parameters = [ElementFactory.positionalParameter2('x', g.type)];
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
+    f.function.parameters = [ElementFactory.positionalParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.optionalParameterTypes[0];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_optionalParameterTypes_pruned_with_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
     f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.parameters = [ElementFactory.positionalParameter2('x', g.type)];
+    f.function.parameters = [ElementFactory.positionalParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.optionalParameterTypes[0];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
@@ -1935,23 +1913,19 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_returnType_pruned_no_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
-    f.returnType = g.type;
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
+    f.function.returnType = g.type;
     FunctionTypeImpl paramType = f.type.returnType;
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_returnType_pruned_with_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
     f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.returnType = g.type;
+    f.function.returnType = g.type;
     FunctionTypeImpl paramType = f.type.returnType;
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
@@ -2025,20 +1999,17 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_toString_recursive() {
-    FunctionTypeAliasElementImpl t =
-        ElementFactory.functionTypeAliasElement("t");
-    FunctionTypeAliasElementImpl s =
-        ElementFactory.functionTypeAliasElement("s");
-    t.returnType = s.type;
-    s.returnType = t.type;
+    var t = ElementFactory.genericTypeAliasElement("t");
+    var s = ElementFactory.genericTypeAliasElement("s");
+    t.function.returnType = s.type;
+    s.function.returnType = t.type;
     expect(t.type.toString(), '() \u2192 () \u2192 ...');
   }
 
   void test_toString_recursive_via_interface_type() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
+    var f = ElementFactory.genericTypeAliasElement('f');
     ClassElementImpl c = ElementFactory.classElement2('C', ['T']);
-    f.returnType = c.type.instantiate([f.type]);
+    f.function.returnType = c.type.instantiate([f.type]);
     expect(f.type.toString(), '() \u2192 C<...>');
   }
 

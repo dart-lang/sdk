@@ -122,12 +122,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   test_instantiateToBounds_class_ok_referenceOther_multi() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_multi();
   }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_functionType() async {
-    return super.test_notInstantiatedBound_functionType();
-  }
 }
 
 @reflectiveTest
