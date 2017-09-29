@@ -46,7 +46,9 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     ClassDeclaration astBuilder = unit.declarations[0];
     expect(astBuilder, isNotNull);
     MethodDeclaration method = astBuilder.members.firstWhere(
-        (x) => x is MethodDeclaration && x.name.name == 'addCompileTimeError',
+        (x) =>
+            x is MethodDeclaration &&
+            x.name.name == 'addCompileTimeErrorWithLength',
         orElse: () => null);
     expect(method, isNotNull);
     SwitchStatement statement = (method.body as BlockFunctionBody)
