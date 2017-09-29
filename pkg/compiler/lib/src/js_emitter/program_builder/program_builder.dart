@@ -515,9 +515,8 @@ class ProgramBuilder {
         .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
       for (ClassEntity cls in classElements) {
         if (_nativeData.isJsInteropClass(cls)) {
-          _elementEnvironment.forEachClassMember(cls,
-              (ClassEntity declarer, MemberEntity member) {
-            if (declarer != cls) return;
+          _elementEnvironment.forEachLocalClassMember(cls,
+              (MemberEntity member) {
             var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {

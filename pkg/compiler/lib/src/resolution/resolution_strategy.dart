@@ -506,6 +506,19 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  void forEachLocalClassMember(
+      covariant ClassElement cls, void f(MemberElement member)) {
+    cls.ensureResolved(_resolution);
+    cls.forEachLocalMember((_member) {
+      MemberElement member = _member;
+      if (member.isSynthesized) return;
+      if (member.isMalformed) return;
+      if (member.isConstructor) return;
+      f(member);
+    });
+  }
+
+  @override
   void forEachClassMember(covariant ClassElement cls,
       void f(ClassElement declarer, MemberElement member)) {
     cls.ensureResolved(_resolution);
@@ -923,16 +936,15 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
             }
 
             if (fn.isFactoryConstructor && isAnonymous) {
-              fn.functionSignature.orderedForEachParameter((_parameter) {
-                ParameterElement parameter = _parameter;
-                if (!parameter.isNamed) {
-                  _compiler.reporter.reportErrorMessage(
-                      parameter,
-                      MessageKind
-                          .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-                      {'cls': classElement.name});
-                }
-              });
+              if (fn.functionSignature.requiredParameterCount > 0 ||
+                  fn.functionSignature.hasOptionalParameters &&
+                      !fn.functionSignature.optionalParametersAreNamed) {
+                _compiler.reporter.reportErrorMessage(
+                    fn,
+                    MessageKind
+                        .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+                    {'cls': classElement.name});
+              }
             } else {
               checkFunctionParameters(fn);
             }

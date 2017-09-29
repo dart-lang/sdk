@@ -88,6 +88,7 @@ duplicate_library_test: Pass, Slow
 exit_code_test: Pass, Slow
 import_mirrors_test: Slow, Pass
 interop_anonymous_unreachable_test: Pass, Slow
+jsinterop/declaration_test: Slow, Pass
 mirror_final_field_inferrer2_test: Pass, Slow
 source_map_pub_build_validity_test: Pass, Slow
 serialization*: Slow, Pass

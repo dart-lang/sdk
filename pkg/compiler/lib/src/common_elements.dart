@@ -1244,6 +1244,9 @@ abstract class ElementEnvironment {
   ConstructorEntity lookupConstructor(ClassEntity cls, String name,
       {bool required: false});
 
+  /// Calls [f] for each class member declared in [cls].
+  void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member));
+
   /// Calls [f] for each class member declared or inherited in [cls] together
   /// with the class that declared the member.
   ///

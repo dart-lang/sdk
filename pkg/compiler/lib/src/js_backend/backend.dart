@@ -603,7 +603,6 @@ class JavaScriptBackend {
     ClassEntity objectClass = frontendStrategy.commonElements.objectClass;
     frontendStrategy.elementEnvironment.forEachClassMember(objectClass,
         (_, MemberEntity member) {
-      if (member.isConstructor) return;
       MemberEntity interceptorMember = frontendStrategy.elementEnvironment
           .lookupClassMember(interceptorClass, member.name);
       // Interceptors must override all Object methods due to calling convention

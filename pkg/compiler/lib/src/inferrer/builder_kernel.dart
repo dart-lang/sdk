@@ -164,9 +164,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         node.initializers.first is ir.RedirectingInitializer)) {
       // Iterate over all instance fields, and give a null type to
       // fields that we haven't initialized for sure.
-      _elementMap.elementEnvironment.forEachClassMember(cls,
-          (ClassEntity declarer, MemberEntity member) {
-        if (declarer != cls) return;
+      _elementMap.elementEnvironment.forEachLocalClassMember(cls,
+          (MemberEntity member) {
         if (member.isField && member.isInstanceMember && member.isAssignable) {
           TypeInformation type = _locals.fieldScope.readField(member);
           MemberDefinition definition = _elementMap.getMemberDefinition(member);

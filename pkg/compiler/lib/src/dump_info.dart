@@ -173,10 +173,7 @@ class ElementInfoCollector {
     _entityToInfo[clazz] = classInfo;
 
     int size = compiler.dumpInfoTask.sizeOf(clazz);
-    environment.forEachClassMember(clazz, (declarer, member) {
-      // We only care about local members.
-      if (declarer != clazz) return;
-
+    environment.forEachLocalClassMember(clazz, (member) {
       if (member.isFunction || member.isGetter || member.isSetter) {
         FunctionInfo functionInfo = visitFunction(member);
         if (functionInfo != null) {

@@ -200,6 +200,9 @@ CompilerImpl compilerFor(
       }
     });
 
+    dynamic frontendStrategy = compiler.frontendStrategy;
+    frontendStrategy.nativeBasicDataBuilder.reopenForTesting();
+
     // One potential problem that can occur when reusing elements is that there
     // is a stale reference to an old compiler object.  By nulling out the old
     // compiler's fields, such stale references are easier to identify.

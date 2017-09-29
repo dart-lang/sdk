@@ -669,6 +669,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         'KernelToElementMapBase._forEachConstructorBody');
   }
 
+  void _forEachLocalClassMember(IndexedClass cls, void f(MemberEntity member)) {
+    assert(checkFamily(cls));
+    ClassEnv env = _classes.getEnv(cls);
+    env.forEachMember(this, (MemberEntity member) {
+      f(member);
+    });
+  }
+
   void _forEachClassMember(
       IndexedClass cls, void f(ClassEntity cls, MemberEntity member)) {
     assert(checkFamily(cls));
@@ -1344,6 +1352,11 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   void forEachMixin(ClassEntity cls, void f(ClassEntity mixin)) {
     elementMap._forEachMixin(cls, f);
+  }
+
+  @override
+  void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member)) {
+    elementMap._forEachLocalClassMember(cls, f);
   }
 
   @override
