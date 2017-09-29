@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'message_coverage_test.dart' as message_coverage;
 import 'recovery/test_all.dart' as recovery;
 
 main() {
   defineReflectiveSuite(() {
+    message_coverage.main();
     recovery.main();
   }, name: 'fasta');
 }
