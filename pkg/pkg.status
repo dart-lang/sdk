@@ -21,7 +21,7 @@ analyzer/test/generated/non_error_resolver_kernel_test: Slow, Pass
 analyzer/test/generated/static_type_warning_code_kernel_test: Slow, Pass
 analyzer/test/generated/static_warning_code_driver_test: Slow, Pass
 analyzer/test/generated/static_warning_code_kernel_test: Slow, Pass
-analyzer/test/generated/strong_mode_kernel_test: Slow, Pass
+analyzer/test/generated/strong_mode_kernel_test: Pass, Slow, RuntimeError # Issue 30917
 analyzer/test/generated/compile_time_error_code_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
