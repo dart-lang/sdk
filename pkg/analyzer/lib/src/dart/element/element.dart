@@ -5384,6 +5384,10 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??=
+          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
+    }
     if (_unlinkedTypedef != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, _unlinkedTypedef.annotations);

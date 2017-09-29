@@ -9433,7 +9433,7 @@ typedef F = dynamic Function(dynamic x, dynamic y);
     var library = await checkLibrary('typedef F({y, z, x});');
     if (isSharedFrontEnd) {
       checkElementText(library, r'''
-typedef dynamic F({dynamic x}, {dynamic y}, {dynamic z});
+typedef F = dynamic Function({dynamic x}, {dynamic y}, {dynamic z});
 ''');
     } else {
       checkElementText(library, r'''
@@ -9493,7 +9493,7 @@ class D {
     if (isSharedFrontEnd) {
       // Typedefs cannot reference themselves.
       checkElementText(library, r'''
-typedef void F<T extends dynamic>();
+typedef F<T extends dynamic> = void Function();
 ''');
     } else {
       checkElementText(library, r'''
@@ -9508,7 +9508,7 @@ typedef F<T extends () → void> = void Function();
     if (isSharedFrontEnd) {
       // Typedefs cannot reference themselves.
       checkElementText(library, r'''
-typedef void F<T extends List<dynamic>>();
+typedef F<T extends List<dynamic>> = void Function();
 ''');
     } else {
       checkElementText(library, r'''

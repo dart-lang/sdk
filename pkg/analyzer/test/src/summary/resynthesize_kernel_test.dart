@@ -331,13 +331,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
-  test_metadata_functionTypeAlias() async {
-    // TODO(scheglov): triage
-    await super.test_metadata_functionTypeAlias();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_functionTypedFormalParameter() async {
     await super.test_metadata_functionTypedFormalParameter();
@@ -419,30 +412,9 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @potentialAnalyzerProblem
-  test_typedef_parameters_named() async {
-    // TODO(scheglov): triage
-    await super.test_typedef_parameters_named();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
   test_typedef_type_parameters_bound() async {
     // TODO(scheglov): triage
     await super.test_typedef_type_parameters_bound();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typedef_type_parameters_bound_recursive() async {
-    // TODO(scheglov): triage
-    await super.test_typedef_type_parameters_bound_recursive();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typedef_type_parameters_bound_recursive2() async {
-    // TODO(scheglov): triage
-    await super.test_typedef_type_parameters_bound_recursive2();
   }
 
   @failingTest
