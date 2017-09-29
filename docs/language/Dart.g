@@ -2,22 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// *** This grammar is under development and it contains known bugs. ***
+//
 // CHANGES:
 //
-// v1.0 First version available in the SDK github repository. Covers the
+// v0.2 Changed top level variable declarations to avoid redundant and
+// misleading occurrence of (FINAL|CONST).
+//
+// v0.1 First version available in the SDK github repository. Covers the
 // Dart language as specified in the language specification based on the
 // many grammar rule snippets. That grammar was then adjusted to remove
 // known issues (e.g., misplaced metadata) and to resolve ambiguities.
-// HERE!
 
 grammar Dart;
-
-/*
-options {
-  backtrack=true;
-  memoize=true;
-}
-*/
 
 @parser::header{
 import java.util.Stack;
@@ -174,9 +171,12 @@ topLevelDefinition
     |    (type? SET identifier '(') => setterSignature functionBody
     |    (type? identifierNotFunction typeParameters? '(') =>
          functionSignature functionBody
-    |    ((FINAL | CONST) type? identifier '=') =>
-         (FINAL | CONST) type? staticFinalDeclarationList ';'
-    |    initializedVariableDeclaration ';'
+    |    (FINAL | CONST) type? staticFinalDeclarationList ';'
+    |    topLevelVariableDeclaration ';'
+    ;
+
+topLevelVariableDeclaration
+    :    varOrType identifier ('=' expression)? (',' initializedIdentifier)*
     ;
 
 declaredIdentifier
@@ -192,10 +192,6 @@ finalConstVarOrType
 varOrType
     :    VAR
     |    type
-    ;
-
-initializedVariableDeclaration
-    :    declaredIdentifier ('=' expression)? (',' initializedIdentifier)*
     ;
 
 initializedIdentifier
@@ -934,6 +930,10 @@ localVariableDeclaration
     :    initializedVariableDeclaration ';'
     ;
 
+initializedVariableDeclaration
+    :    declaredIdentifier ('=' expression)? (',' initializedIdentifier)*
+    ;
+
 localFunctionDeclaration
     :    functionSignature functionBody
     ;
@@ -1179,7 +1179,12 @@ optionalPositionalParameterTypes
     ;
 
 namedParameterTypes
-    :    '{' typedIdentifier (',' typedIdentifier)* ','? '}'
+    :    LBRACE namedParameterType (',' namedParameterType)* ','? RBRACE
+    ;
+
+namedParameterType
+    :    typedIdentifier
+    |    identifier
     ;
 
 typedIdentifier
