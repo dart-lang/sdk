@@ -1488,7 +1488,7 @@ class AstBuilder extends ScopeListener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    addCompileTimeError(message, token.offset);
+    addCompileTimeErrorWithLength(message, token.offset, token.length);
   }
 
   @override
@@ -1982,6 +1982,10 @@ class AstBuilder extends ScopeListener {
 
   @override
   void addCompileTimeError(Message message, int charOffset) {
+    addCompileTimeErrorWithLength(message, charOffset, 1);
+  }
+
+  void addCompileTimeErrorWithLength(Message message, int offset, int length) {
     Code code = message.code;
     Map<String, dynamic> arguments = message.arguments;
 
@@ -1999,191 +2003,173 @@ class AstBuilder extends ScopeListener {
     switch (code.analyzerCode) {
       case "ABSTRACT_CLASS_MEMBER":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ABSTRACT_CLASS_MEMBER, charOffset, 8);
+            ParserErrorCode.ABSTRACT_CLASS_MEMBER, offset, length);
         return;
       case "ASYNC_KEYWORD_USED_AS_IDENTIFIER":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, charOffset, 5);
+            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, offset, length);
         return;
       case "COLON_IN_PLACE_OF_IN":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COLON_IN_PLACE_OF_IN, charOffset, 1);
+            ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
         return;
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_CLASS, charOffset, 5);
+            ParserErrorCode.CONST_CLASS, offset, length);
         return;
       case "DEFERRED_AFTER_PREFIX":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DEFERRED_AFTER_PREFIX, charOffset, 1);
+            ParserErrorCode.DEFERRED_AFTER_PREFIX, offset, length);
         return;
       case "DIRECTIVE_AFTER_DECLARATION":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, offset, length);
         return;
       case "DUPLICATE_DEFERRED":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATE_DEFERRED, charOffset, 1);
+            ParserErrorCode.DUPLICATE_DEFERRED, offset, length);
         return;
       case "DUPLICATE_PREFIX":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATE_PREFIX, charOffset, 2);
+            ParserErrorCode.DUPLICATE_PREFIX, offset, length);
         return;
       case "EXPECTED_EXECUTABLE":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_EXECUTABLE, charOffset, 1);
+            ParserErrorCode.EXPECTED_EXECUTABLE, offset, length);
         return;
       case "EXPECTED_STRING_LITERAL":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_STRING_LITERAL, charOffset, 1);
+            ParserErrorCode.EXPECTED_STRING_LITERAL, offset, length);
         return;
       case "EXPECTED_TYPE_NAME":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
+            ParserErrorCode.EXPECTED_TYPE_NAME, offset, length);
         return;
       case "EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-            charOffset,
-            1);
+            offset,
+            length);
         return;
       case "EXTERNAL_CLASS":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_CLASS, charOffset, 8);
+            ParserErrorCode.EXTERNAL_CLASS, offset, length);
         return;
       case "EXTERNAL_ENUM":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_ENUM, charOffset, 8);
+            ParserErrorCode.EXTERNAL_ENUM, offset, length);
         return;
       case "EXTERNAL_METHOD_WITH_BODY":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, charOffset, 1);
+            ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, offset, length);
         return;
       case "EXTERNAL_TYPEDEF":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_TYPEDEF, charOffset, 8);
+            ParserErrorCode.EXTERNAL_TYPEDEF, offset, length);
         return;
       case "EXTRANEOUS_MODIFIER":
         String text = stringOrTokenLexeme();
-        errorReporter?.reportErrorForOffset(ParserErrorCode.EXTRANEOUS_MODIFIER,
-            charOffset, text.length, [text]);
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTRANEOUS_MODIFIER, offset, length, [text]);
         return;
       case "GETTER_WITH_PARAMETERS":
-        // TODO(brianwilkerson): This has the wrong length. It should highlight
-        // either the parameter list or the name of the getter.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.GETTER_WITH_PARAMETERS, charOffset, 1);
+            ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);
         return;
       case "ILLEGAL_CHARACTER":
         errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.ILLEGAL_CHARACTER, charOffset, 1);
+            ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
         return;
       case "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-            charOffset,
-            6);
+            offset,
+            length);
         return;
       case "LIBRARY_DIRECTIVE_NOT_FIRST":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, charOffset, 7);
+            ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, offset, length);
         return;
       case "MISSING_CATCH_OR_FINALLY":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_CATCH_OR_FINALLY, charOffset, 1);
+            ParserErrorCode.MISSING_CATCH_OR_FINALLY, offset, length);
         return;
       case "MISSING_CLASS_BODY":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_CLASS_BODY, charOffset, 1);
+            ParserErrorCode.MISSING_CLASS_BODY, offset, length);
         return;
       case "MISSING_CONST_FINAL_VAR_OR_TYPE":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, charOffset, 1);
+            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, offset, length);
         return;
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.MISSING_DIGIT, charOffset, 1);
+            ScannerErrorCode.MISSING_DIGIT, offset, length);
         return;
       case "MISSING_HEX_DIGIT":
         errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.MISSING_HEX_DIGIT, charOffset, 1);
+            ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
         return;
       case "MISSING_FUNCTION_BODY":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_FUNCTION_BODY, charOffset, 1);
+            ParserErrorCode.MISSING_FUNCTION_BODY, offset, length);
         return;
       case "MISSING_IDENTIFIER":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_IDENTIFIER, charOffset, 1);
+            ParserErrorCode.MISSING_IDENTIFIER, offset, length);
         return;
       case "MISSING_PREFIX_IN_DEFERRED_IMPORT":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, charOffset, 1);
+            ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, offset, length);
         return;
       case "MULTIPLE_PART_OF_DIRECTIVES":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, charOffset, 1);
+            ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, offset, length);
         return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, charOffset, 6);
+            ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, offset, length);
         return;
       case "NON_PART_OF_DIRECTIVE_IN_PART":
-        // TODO(brianwilkerson): This has the wrong length.
         if (directives.isEmpty) {
           errorReporter?.reportErrorForOffset(
-              ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+              ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, offset, length);
         } else {
           errorReporter?.reportErrorForOffset(
-              ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, charOffset, 1);
+              ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, offset, length);
         }
         return;
       case "PREFIX_AFTER_COMBINATOR":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.PREFIX_AFTER_COMBINATOR, charOffset, 2);
+            ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();
         if (text == ';') {
           errorReporter?.reportErrorForOffset(
-              ParserErrorCode.EXPECTED_TOKEN, charOffset, text.length, [text]);
+              ParserErrorCode.EXPECTED_TOKEN, offset, length, [text]);
         } else {
-          errorReporter?.reportErrorForOffset(ParserErrorCode.UNEXPECTED_TOKEN,
-              charOffset, text.length, [text]);
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.UNEXPECTED_TOKEN, offset, length, [text]);
         }
         return;
       case "UNTERMINATED_MULTI_LINE_COMMENT":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, charOffset, 1);
+            ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, offset, length);
         return;
       case "UNTERMINATED_STRING_LITERAL":
-        // TODO(brianwilkerson): This has the wrong length.
         errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.UNTERMINATED_STRING_LITERAL, charOffset, 1);
+            ScannerErrorCode.UNTERMINATED_STRING_LITERAL, offset, length);
         return;
       case "VAR_AND_TYPE":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.VAR_AND_TYPE, charOffset, 3);
+            ParserErrorCode.VAR_AND_TYPE, offset, length);
         return;
       case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
-            charOffset,
-            1);
+            offset,
+            length);
         return;
       default:
       // fall through
