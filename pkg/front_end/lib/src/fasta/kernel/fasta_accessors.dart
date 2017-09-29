@@ -71,8 +71,6 @@ abstract class BuilderHelper {
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 
-  Expression toSuperMethodInvocation(MethodInvocation node);
-
   Expression toValue(node);
 
   Member lookupSuperMember(Name name, {bool isSetter});
@@ -124,7 +122,10 @@ abstract class BuilderHelper {
 
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {bool isConstantExpression, bool isNullAware, bool isImplicitCall});
+      {bool isConstantExpression,
+      bool isNullAware,
+      bool isImplicitCall,
+      bool isSuper});
 
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
@@ -352,33 +353,29 @@ class ThisAccessor extends FastaAccessor {
 
   buildPropertyAccess(
       IncompleteSend send, int operatorOffset, bool isNullAware) {
+    Name name = send.name;
+    Arguments arguments = send.arguments;
+    int offset = offsetForToken(send.token);
     if (isInitializer && send is SendAccessor) {
       if (isNullAware) {
         helper.deprecated_addCompileTimeError(
             operatorOffset, "Expected '.'\nTry removing '?'.");
       }
-      return buildConstructorInitializer(
-          offsetForToken(send.token), send.name, send.arguments);
+      return buildConstructorInitializer(offset, name, arguments);
     }
     if (send is SendAccessor) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
-      MethodInvocation result = helper.buildMethodInvocation(
-          new ShadowThisExpression(),
-          send.name,
-          send.arguments,
-          offsetForToken(send.token));
-      return isSuper ? helper.toSuperMethodInvocation(result) : result;
+      return helper.buildMethodInvocation(
+          new ShadowThisExpression(), name, arguments, offset,
+          isSuper: isSuper);
+    } else if (isSuper) {
+      Member getter = helper.lookupSuperMember(name);
+      Member setter = helper.lookupSuperMember(name, isSetter: true);
+      return new SuperPropertyAccessor(
+          helper, send.token, name, getter, setter);
     } else {
-      if (isSuper) {
-        Member getter = helper.lookupSuperMember(send.name);
-        Member setter = helper.lookupSuperMember(send.name, isSetter: true);
-        return new SuperPropertyAccessor(
-            helper, send.token, send.name, getter, setter);
-      } else {
-        return new ThisPropertyAccessor(
-            helper, send.token, send.name, null, null);
-      }
+      return new ThisPropertyAccessor(helper, send.token, name, null, null);
     }
   }
 
