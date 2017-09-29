@@ -2756,7 +2756,7 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @override
   void test_varAndType_local() {
     // The inherited test is marked as failing.
-    super.test_varAndType_parameter();
+    super.test_varAndType_local();
   }
 
   @override
