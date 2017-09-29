@@ -3,25 +3,18 @@ Dart - Fixed-Size Integers
 2017-09-26
 floitsch@google.com
 
-This document discusses Dart's plan to switch the `int` type so that it represents 64-bit integers instead of bignums. It is part of our continued effort of changing the integer type to fixed size ([issue]).
+This document discusses Dart's plan to switch the `int` type so that it represents 64-bit integers instead of bigints. It is part of our continued effort of changing the integer type to fixed size ([issue]).
 
 [issue]: https://github.com/dart-lang/sdk/issues/30343
 
 We propose to set the size of integers to 64 bits. Among all the investigated options, 64-bit integers have the smallest migration cost, and provide the most consistent and future-proof API capabilities.
 
 ## Motivation
-Dart​ ​1​ ​has​ ​infinite-precision​ ​integers​ ​(aka​ ​bignums).​ ​On​ ​the​ ​VM,​ ​almost​ ​every
-number-operation​ ​must​ ​check​ ​if​ ​the​ ​result​ ​overflowed,​ ​and​ ​if​ ​yes,​ ​allocate​ ​a
-next-bigger​ ​number​ ​type.​ ​In​ ​practice​ ​this​ ​means​ ​that​ ​most​ ​numbers​ ​are​ ​represented​ ​as
-SMIs​ ​(Small​ ​Integers),​ ​a​ ​tagged​ ​number​ ​type,​ ​that​ ​overflow​ ​into​ ​MINTs​ ​(Medium
-Integers),​ ​and​ ​finally​ ​overflow​ ​into​ ​arbitrary-size ​big-ints.
+Dart 1 has infinite-precision integers (aka bigints). On the VM, almost every number-operation must check if the result overflowed, and if yes, allocate a next-bigger number type. In practice this means that most numbers are represented as SMIs (Small Integers), a tagged number type, that overflow into "mint"s (*m*edium *int*egers), and finally overflow into arbitrary-size big-ints.
 
-In​ ​a​ ​jitted​ ​environment,​ ​the​ ​code​ ​for​ ​mints​ ​and​ ​bigints​ ​can​ ​be​ ​generated​ ​lazily
-during​ ​a​ ​bailout​ ​that​ ​is​ ​invoked​ ​when​ ​the​ ​overflow​ ​is​ ​detected.​ ​This​ ​means​ ​that
-almost​ ​all​ ​compiled​ ​code​ simply ​has​ ​the​ ​SMI​ ​assembly,​ ​and​ ​just​ ​checks​ ​for​ ​overflows.​ ​In the​ ​rare​ ​case​ ​where​ ​more​ ​than​ ​31/63​ ​bits​ ​(the​ ​SMI​ ​size​ ​on​ ​32bit​ ​and​ ​64bit
-architectures)​ ​are​ ​needed,​ ​does​ ​the​ ​JIT​ ​generate​ ​the​ ​code​ ​for​ ​more​ ​number​ ​types.
+In a jitted environment, the code for mints and bigints can be generated lazily during a bailout that is invoked when the overflow is detected. This means that almost all compiled code simply has the SMI assembly, and just checks for overflows. In the rare case where more than 31/63 bits (the SMI size on 32bit and 64bit architectures) are needed, does the JIT generate the code for more number types.
 
-For​ ​precompilation​ ​it's​ ​not​ ​possible​ ​to​ ​generate​ ​the​ ​mint/bigint​ ​code​ ​lazily.​ Typically, the generated code only contains inlined SMI instructions and falls back to calls when the type is not a SMI. Before being able to use the SMI code, instructions have to be checked for their type (`null`, or `Mint`/`BigInt`) and after most operations they need to be checked for overflows. This blows​ ​up​ ​the​ ​executable​ ​and​ ​generally​ ​slows​ ​down​ ​the​ ​code.​ ​As​ ​a​ ​consequence,​ ​Dart 2.0 ​switches​ ​to​ ​fixed-size​ ​integers. Without knowing if a number variable is non-nullable, most of the checks cannot be removed, but there are two ways to get this information:
+For precompilation it's not possible to generate the mint/bigint code lazily. Typically, the generated code only contains inlined SMI instructions and falls back to calls when the type is not a SMI. Before being able to use the SMI code, instructions have to be checked for their type (`null`, or `Mint`/`BigInt`) and after most operations they need to be checked for overflows. This blows up the executable and generally slows down the code. As a consequence, Dart 2.0 switches to fixed-size integers. Without knowing if a number variable is non-nullable, most of the checks cannot be removed, but there are two ways to get this information:
 1. a global type-inference can sometimes know that specific variables can never be `null`, and
 2. Dart intends to add non-nullable types.
 
@@ -160,7 +153,7 @@ The `BigInt` class would also behave correctly in JavaScript.
 
 The migration to the new system is straightforward. Dart2js could maybe change their `is int` check, but is otherwise unaffected. Users would not see any change.
 
-For the VM, shrinking `int`s to 64 bit is a breaking change. Users need to update their programs. Fortunately, these uses are generally known by the authors. Since we provide the bignum type, migrating to the new system is often as simple as changing a few type annotations and int literals (which now need to be written as `BigInt` allocations).
+For the VM, shrinking `int`s to 64 bit is a breaking change. Users need to update their programs. Fortunately, these uses are generally known by the authors. Since we provide the bigint type, migrating to the new system is often as simple as changing a few type annotations and int literals (which now need to be written as `BigInt` allocations).
 
 ## Extensions
 The most common concern about 64-bit integers is related to its memory use. Compared to other languages Dart would use up to two times the amount of space for integers.
