@@ -342,17 +342,21 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token DeferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    debugEvent("ImportPrefix");
+    pushIfNull(asKeyword, NullValue.Prefix);
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
     debugEvent("Import");
-    popIfNotNull(asKeyword);
+    pop(NullValue.Prefix);
     discard(1); // Metadata.
   }
 
   @override
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
-    popIfNotNull(asKeyword);
+  void handleRecoverImport(Token semicolon) {
+    pop(NullValue.Prefix);
   }
 
   @override

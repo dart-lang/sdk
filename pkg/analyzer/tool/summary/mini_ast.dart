@@ -279,20 +279,24 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    debugEvent("ImportPrefix");
+    pushIfNull(asKeyword, NullValue.Prefix);
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
     debugEvent("Import");
-    popIfNotNull(asKeyword); // Prefix identifier
+    pop(NullValue.Prefix); // Prefix identifier
     pop(); // URI
     pop(); // Metadata
     pop(); // Comment
   }
 
   @override
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
+  void handleRecoverImport(Token semicolon) {
     debugEvent("RecoverImport");
-    popIfNotNull(asKeyword); // Prefix identifier
+    pop(NullValue.Prefix); // Prefix identifier
   }
 
   @override

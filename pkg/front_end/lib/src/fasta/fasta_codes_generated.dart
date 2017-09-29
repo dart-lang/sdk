@@ -551,6 +551,18 @@ Message _withArgumentsCyclicTypedef(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDeferredAfterPrefix = messageDeferredAfterPrefix;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDeferredAfterPrefix = const MessageCode(
+    "DeferredAfterPrefix",
+    analyzerCode: "DEFERRED_AFTER_PREFIX",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""The deferred keyword should come immediately before the prefix ('as' clause).""",
+    tip: r"""Try moving the deferred keyword before the prefix.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -608,13 +620,24 @@ const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
     tip: r"""Try moving the directive before any declarations.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDuplicateDeferred = messageDuplicateDeferred;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDuplicateDeferred = const MessageCode(
+    "DuplicateDeferred",
+    analyzerCode: "DUPLICATE_DEFERRED",
+    dart2jsCode: "*fatal*",
+    message: r"""An import directive can only have one 'deferred' keyword.""",
+    tip: r"""Try removing all but one 'deferred' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDuplicatePrefix = messageDuplicatePrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDuplicatePrefix = const MessageCode("DuplicatePrefix",
     analyzerCode: "DUPLICATE_PREFIX",
     dart2jsCode: "*fatal*",
-    message: r"""There can only be one prefix in an import directive.""",
+    message: r"""An import directive can only have one prefix ('as' clause).""",
     tip: r"""Try removing all but one prefix.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2125,7 +2148,7 @@ const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
     "MissingPrefixInDeferredImport",
     analyzerCode: "MISSING_PREFIX_IN_DEFERRED_IMPORT",
     dart2jsCode: "*fatal*",
-    message: r"""Deferred imports must have a prefix.""",
+    message: r"""Deferred imports should have a prefix.""",
     tip: r"""Try adding a prefix to the import.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2717,7 +2740,8 @@ const MessageCode messagePrefixAfterCombinator = const MessageCode(
     "PrefixAfterCombinator",
     analyzerCode: "PREFIX_AFTER_COMBINATOR",
     dart2jsCode: "*fatal*",
-    message: r"""The 'as prefix' must come before any show/hide combinators.""",
+    message:
+        r"""The 'as prefix' should come before any show/hide combinators.""",
     tip: r"""Try moving the prefix before the combinators.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

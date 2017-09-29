@@ -707,6 +707,18 @@ MissingPrefixInDeferredImport:
   analyzerCode: MISSING_PREFIX_IN_DEFERRED_IMPORT
   dart2jsCode: "*fatal*"
 
+DeferredAfterPrefix:
+  template: "The deferred keyword should come immediately before the prefix ('as' clause)."
+  tip: "Try moving the deferred keyword before the prefix."
+  analyzerCode: DEFERRED_AFTER_PREFIX
+  dart2jsCode: "*fatal*"
+
+DuplicateDeferred:
+  template: "An import directive can only have one 'deferred' keyword."
+  tip: "Try removing all but one 'deferred' keyword."
+  analyzerCode: DUPLICATE_DEFERRED
+  dart2jsCode: "*fatal*"
+
 DuplicatePrefix:
   template: "An import directive can only have one prefix ('as' clause)."
   tip: "Try removing all but one prefix."
@@ -714,7 +726,7 @@ DuplicatePrefix:
   dart2jsCode: "*fatal*"
 
 PrefixAfterCombinator:
-  template: "The 'as prefix' should come before any show/hide combinators."
+  template: "The prefix ('as' clause) should come before any show/hide combinators."
   tip: "Try moving the prefix before the combinators."
   analyzerCode: PREFIX_AFTER_COMBINATOR
   dart2jsCode: "*fatal*"

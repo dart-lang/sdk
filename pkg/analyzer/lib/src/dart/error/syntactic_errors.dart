@@ -173,6 +173,12 @@ class ParserErrorCode extends ErrorCode {
       "A constructor can't be declared to be 'covariant'.",
       "Try removing the keyword 'covariant'.");
 
+  static const ParserErrorCode DEFERRED_AFTER_PREFIX = const ParserErrorCode(
+      'DEFERRED_AFTER_PREFIX',
+      "The deferred keyword should come"
+      " immediately before the prefix ('as' clause).",
+      "Try moving the deferred keyword before the prefix.");
+
   static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE =
       const ParserErrorCode(
           'DEFAULT_VALUE_IN_FUNCTION_TYPE',
@@ -195,6 +201,11 @@ class ParserErrorCode extends ErrorCode {
           "The label '{0}' was already used in this switch statement.",
           "Try choosing a different name for this label.");
 
+  static const ParserErrorCode DUPLICATE_DEFERRED = const ParserErrorCode(
+      'DUPLICATE_DEFERRED',
+      "An import directive can only have one 'deferred' keyword.",
+      "Try removing all but one 'deferred' keyword.");
+
   /**
    * Parameters:
    * 0: the modifier that was duplicated
@@ -203,6 +214,11 @@ class ParserErrorCode extends ErrorCode {
       'DUPLICATED_MODIFIER',
       "The modifier '{0}' was already specified.",
       "Try removing all but one occurance of the modifier.");
+
+  static const ParserErrorCode DUPLICATE_PREFIX = const ParserErrorCode(
+      'DUPLICATE_PREFIX',
+      "An import directive can only have one prefix ('as' clause).",
+      "Try removing all but one prefix.");
 
   static const ParserErrorCode EMPTY_ENUM_BODY = const ParserErrorCode(
       'EMPTY_ENUM_BODY',
@@ -827,15 +843,10 @@ class ParserErrorCode extends ErrorCode {
           "Positional parameters must be enclosed in square brackets ('[' and ']').",
           "Try surrounding the positional parameters in square brackets.");
 
-  static const PREFIX_AFTER_COMBINATOR = const ParserErrorCode(
+  static const ParserErrorCode PREFIX_AFTER_COMBINATOR = const ParserErrorCode(
       'PREFIX_AFTER_COMBINATOR',
-      "The 'as prefix' should come before any show/hide combinators.",
+      "The prefix ('as' clause) should come before any show/hide combinators.",
       "Try moving the prefix before the combinators.");
-
-  static const DUPLICATE_PREFIX = const ParserErrorCode(
-      'DUPLICATE_PREFIX',
-      "An import directive can only have one prefix ('as' clause).",
-      "Try removing all but one prefix.");
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =
       const ParserErrorCode(

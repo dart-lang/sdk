@@ -217,9 +217,7 @@ class DirectiveListener extends Listener {
   }
 
   void endExport(Token exportKeyword, Token semicolon) => exitDirective();
-  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
-          Token semicolon) =>
-      exitDirective();
+  void endImport(Token importKeyword, Token semicolon) => exitDirective();
   void endPart(Token partKeyword, Token semicolon) => exitDirective();
 }
 

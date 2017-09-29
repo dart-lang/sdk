@@ -161,12 +161,24 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    debugEvent("ImportPrefix");
+    if (asKeyword == null) {
+      // If asKeyword is null, then no prefix has been pushed on the stack.
+      // Push a placeholder indicating that there is no prefix.
+      push(NullValue.Prefix);
+      push(-1);
+    }
+    push(deferredKeyword != null);
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
     debugEvent("EndImport");
     List<Combinator> combinators = pop();
-    int prefixOffset = popIfNotNull(asKeyword) ?? -1;
-    String prefix = popIfNotNull(asKeyword);
+    bool isDeferred = pop();
+    int prefixOffset = pop();
+    String prefix = pop(NullValue.Prefix);
     Unhandled conditionalUris = pop();
     int uriOffset = popCharOffset();
     String uri = pop();
@@ -174,7 +186,7 @@ class OutlineBuilder extends UnhandledListener {
     if (uri != null) {
       try {
         library.addImport(metadata, uri, conditionalUris, prefix, combinators,
-            deferredKeyword != null, importKeyword.charOffset, prefixOffset);
+            isDeferred, importKeyword.charOffset, prefixOffset);
       } on FormatException catch (e) {
         // Point to position in string indicated by the exception,
         // or to the initial quote if no position is given.
@@ -188,12 +200,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
+  void handleRecoverImport(Token semicolon) {
     debugEvent("RecoverImport");
     pop(); // combinators
-    popIfNotNull(asKeyword); // prefixOffset
-    popIfNotNull(asKeyword); // prefix
+    pop(NullValue.Deferred); // deferredKeyword
+    pop(); // prefixOffset
+    pop(NullValue.Prefix); // prefix
     pop(); // conditionalUris
   }
 

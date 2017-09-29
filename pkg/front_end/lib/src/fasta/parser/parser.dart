@@ -385,6 +385,29 @@ class Parser {
     return token;
   }
 
+  Token parseImportPrefixOpt(Token token, bool isRecovery) {
+    Token deferredToken;
+    // When parsing an import directive the first time, isRecovery = false.
+    // In this situation, if `deferred` is not followed by `as`,
+    // then the token does not advance.
+    // This causes the rest of the tests in [parseImport] to fail
+    // and we fall through to recovery mode in [parseImportRecovery].
+    if (optional('deferred', token) &&
+        (optional('as', token.next) || isRecovery)) {
+      deferredToken = token;
+      token = token.next;
+    }
+    if (optional('as', token)) {
+      Token asKeyword = token;
+      token = parseIdentifier(
+          token.next, IdentifierContext.importPrefixDeclaration);
+      listener.handleImportPrefix(deferredToken, asKeyword);
+    } else {
+      listener.handleImportPrefix(deferredToken, null);
+    }
+    return token;
+  }
+
   /// import uri (if (test) uri)* (as identifier)? combinator* ';'
   Token parseImport(Token token) {
     Token importKeyword = token;
@@ -392,99 +415,108 @@ class Parser {
     assert(optional('import', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
     token = parseConditionalUris(token);
-    Token deferredKeyword;
-    if (optional('deferred', token) && optional('as', token.next)) {
-      deferredKeyword = token;
-      token = token.next;
-    }
-    Token asKeyword;
-    if (optional('as', token)) {
-      asKeyword = token;
-      token = parseIdentifier(
-          token.next, IdentifierContext.importPrefixDeclaration);
-    }
+    token = parseImportPrefixOpt(token, false);
     token = parseCombinators(token);
     if (optional(';', token)) {
-      listener.endImport(importKeyword, deferredKeyword, asKeyword, token);
+      listener.endImport(importKeyword, token);
       return token.next;
     } else {
       // Recovery
-      listener.endImport(importKeyword, deferredKeyword, asKeyword, null);
-      return parseImportRecovery(
-          importKeyword, asKeyword, deferredKeyword, token);
+      listener.endImport(importKeyword, null);
+      return parseImportRecovery(importKeyword, token);
     }
   }
 
-  Token parseImportRecovery(Token importKeyword, Token firstAsKeyword,
-      Token firstDeferredKeyword, Token token) {
-    Token firstCombinator =
-        firstAsKeyword ?? firstDeferredKeyword ?? importKeyword;
-    while (!optional('show', firstCombinator) &&
-        !optional('hide', firstCombinator)) {
-      if (firstCombinator == token) {
-        firstCombinator = null;
-        break;
+  Token parseImportRecovery(Token importKeyword, Token recoveryStart) {
+    Token firstDeferredKeyword;
+    bool hasPrefix = false;
+    bool hasCombinator = false;
+    Token token = importKeyword;
+
+    // Determine which clauses have already been parsed.
+    while (token != recoveryStart) {
+      final String value = token.stringValue;
+      if (identical(value, 'deferred')) {
+        firstDeferredKeyword ??= token;
       }
-      firstCombinator = firstCombinator.next;
+      if (identical(value, 'as')) {
+        hasPrefix = true;
+      }
+      if (identical(value, 'show') || identical(value, 'hide')) {
+        hasCombinator = true;
+        if (hasPrefix) {
+          token = recoveryStart;
+          break;
+        }
+      }
+      token = token.next;
     }
+
+    // Parse additional out-of-order clauses.
     Token semicolon;
     do {
       Token start = token;
-      Token deferredKeyword;
-      Token asKeyword;
 
       // Check for extraneous token in the middle of an import statement.
       if (token.keyword == null) {
-        Token next = token.next;
-        if (optional('if', next) ||
-            optional('deferred', next) ||
-            optional('as', next) ||
-            optional('hide', next) ||
-            optional('show', next)) {
+        final String nextValue = token.next.stringValue;
+        if (identical(nextValue, 'if') ||
+            identical(nextValue, 'deferred') ||
+            identical(nextValue, 'as') ||
+            identical(nextValue, 'hide') ||
+            identical(nextValue, 'show') ||
+            identical(nextValue, ';')) {
           reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
           token = token.next;
         }
       }
 
       // During recovery, clauses are parsed in the same order
-      // and generate the same events as in the section above.
+      // and generate the same events as in the parseImport method above.
+      Token previous = token;
       token = parseConditionalUris(token);
-      if (optional('deferred', token)) {
+      if (previous != token) {
         if (firstDeferredKeyword != null) {
-          // TODO(danrubel): report duplicate deferred keyword error
-        } else {
-          if (firstAsKeyword != null) {
-            // TODO(danrubel): report deferred after as keyword error
-            // instead of the error below
-            reportRecoverableError(
-                token, fasta.messageMissingPrefixInDeferredImport);
-          }
-          firstDeferredKeyword = token;
+          // TODO(danrubel): report error indicating conditional should
+          // be moved before deferred keyword
+        } else if (hasPrefix) {
+          // TODO(danrubel): report error indicating conditional should
+          // be moved before prefix clause
+        } else if (hasCombinator) {
+          // TODO(danrubel): report error indicating conditional should
+          // be moved before combinators
         }
-        deferredKeyword = token;
-        token = token.next;
       }
-      if (optional('as', token)) {
-        asKeyword = token;
-        token = parseIdentifier(
-            token.next, IdentifierContext.importPrefixDeclaration);
-      }
-      Token startCombinators = token;
-      token = parseCombinators(token);
 
-      // TODO(danrubel): report conditional out of order
-      if (asKeyword != null) {
-        if (firstAsKeyword != null) {
+      previous = token;
+      token = parseImportPrefixOpt(token, true);
+      if (previous != token && optional('deferred', previous)) {
+        if (firstDeferredKeyword != null) {
+          reportRecoverableError(
+              firstDeferredKeyword, fasta.messageDuplicateDeferred);
+        } else {
+          if (hasPrefix) {
+            reportRecoverableError(token, fasta.messageDeferredAfterPrefix);
+          }
+          firstDeferredKeyword = previous;
+        }
+        previous = previous.next;
+      }
+      if (previous != token) {
+        if (hasPrefix) {
           reportRecoverableError(token, fasta.messageDuplicatePrefix);
         } else {
-          if (firstCombinator != null) {
+          if (hasCombinator) {
             reportRecoverableError(token, fasta.messagePrefixAfterCombinator);
           }
-          firstAsKeyword = asKeyword;
+          hasPrefix = true;
         }
       }
-      if (firstCombinator == null && startCombinators != token) {
-        firstCombinator = startCombinators;
+
+      previous = token;
+      token = parseCombinators(token);
+      if (previous != token) {
+        hasCombinator = true;
       }
 
       if (optional(';', token)) {
@@ -493,10 +525,10 @@ class Parser {
         // If no forward progress was made, insert ';' so that we exit loop.
         semicolon = ensureSemicolon(token);
       }
-      listener.handleRecoverImport(deferredKeyword, asKeyword, semicolon);
+      listener.handleRecoverImport(semicolon);
     } while (semicolon == null);
 
-    if (firstDeferredKeyword != null && firstAsKeyword == null) {
+    if (firstDeferredKeyword != null && !hasPrefix) {
       reportRecoverableError(
           firstDeferredKeyword, fasta.messageMissingPrefixInDeferredImport);
     }

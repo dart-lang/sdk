@@ -82,7 +82,7 @@ class DirectiveListener extends Listener {
   }
 
   @override
-  endImport(Token import, Token deferred, Token asKeyword, Token semicolon) {
+  endImport(Token import, Token semicolon) {
     imports.add(new NamespaceDirective.import(_uri, _combinators));
     _uri = null;
     _combinators = null;

@@ -846,10 +846,9 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token DeferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void endImport(Token importKeyword, Token semicolon) {
     end('Import');
-    listener.endImport(importKeyword, DeferredKeyword, asKeyword, semicolon);
+    listener.endImport(importKeyword, semicolon);
   }
 
   @override
@@ -1214,10 +1213,9 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
+  void handleRecoverImport(Token semicolon) {
     expectIn('CompilationUnit');
-    listener.handleRecoverImport(deferredKeyword, asKeyword, semicolon);
+    listener.handleRecoverImport(semicolon);
   }
 
   @override
@@ -1434,6 +1432,12 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    expectIn('Import');
+    listener.handleImportPrefix(deferredKeyword, asKeyword);
+  }
+
+  @override
   void handleQualified(Token period) {
     listener.handleQualified(period);
     // TODO(danrubel): implement handleQualified
@@ -1453,8 +1457,8 @@ class ForwardingTestListener implements fasta.Listener {
 
   @override
   void handleScript(Token token) {
+    expectIn('CompilationUnit');
     listener.handleScript(token);
-    // TODO(danrubel): implement handleScript
   }
 
   @override

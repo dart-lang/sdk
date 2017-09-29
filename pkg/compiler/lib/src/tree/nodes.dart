@@ -434,6 +434,46 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   bool get isErroneous => false;
 }
 
+// Used for caching boolean values on the stack
+class Flag extends Node {
+  static final TRUE = new Flag._(true);
+  static final FALSE = new Flag._(false);
+
+  final bool value;
+
+  Flag._(this.value);
+
+  @override
+  accept(Visitor visitor) {
+    throw 'not implemented';
+  }
+
+  @override
+  accept1(Visitor1 visitor, arg) {
+    throw 'not implemented';
+  }
+
+  @override
+  Token getBeginToken() {
+    return null;
+  }
+
+  @override
+  Token getEndToken() {
+    throw 'not implemented';
+  }
+
+  @override
+  visitChildren(Visitor visitor) {
+    throw 'not implemented';
+  }
+
+  @override
+  visitChildren1(Visitor1 visitor, arg) {
+    throw 'not implemented';
+  }
+}
+
 class ClassNode extends Node {
   final Modifiers modifiers;
   final Identifier name;

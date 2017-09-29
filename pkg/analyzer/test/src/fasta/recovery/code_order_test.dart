@@ -224,7 +224,7 @@ import 'bar.dart' deferred as p show A;
     // indicating that `deferred` should be moved before `as`.
     testRecovery('''
 import 'bar.dart' as p deferred;
-''', [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT], '''
+''', [ParserErrorCode.DEFERRED_AFTER_PREFIX], '''
 import 'bar.dart' deferred as p;
 ''');
   }
@@ -233,6 +233,14 @@ import 'bar.dart' deferred as p;
     testRecovery('''
 import 'bar.dart' as p as q;
 ''', [ParserErrorCode.DUPLICATE_PREFIX], '''
+import 'bar.dart' as p;
+''');
+  }
+
+  void test_unknownTokenAtEnd() {
+    testRecovery('''
+import 'bar.dart' as p sh;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
 import 'bar.dart' as p;
 ''');
   }

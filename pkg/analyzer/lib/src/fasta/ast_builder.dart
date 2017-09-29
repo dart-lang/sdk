@@ -1207,11 +1207,26 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    debugEvent("ImportPrefix");
+    if (asKeyword == null) {
+      // If asKeyword is null, then no prefix has been pushed on the stack.
+      // Push a placeholder indicating that there is no prefix.
+      push(NullValue.Prefix);
+      push(NullValue.As);
+    } else {
+      push(asKeyword);
+    }
+    push(deferredKeyword ?? NullValue.Deferred);
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
     debugEvent("Import");
     List<Combinator> combinators = pop();
-    SimpleIdentifier prefix = popIfNotNull(asKeyword);
+    Token deferredKeyword = pop(NullValue.Deferred);
+    Token asKeyword = pop(NullValue.As);
+    SimpleIdentifier prefix = pop(NullValue.Prefix);
     List<Configuration> configurations = pop();
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
@@ -1232,11 +1247,12 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
+  void handleRecoverImport(Token semicolon) {
     debugEvent("RecoverImport");
     List<Combinator> combinators = pop();
-    SimpleIdentifier prefix = popIfNotNull(asKeyword);
+    Token deferredKeyword = pop(NullValue.Deferred);
+    Token asKeyword = pop(NullValue.As);
+    SimpleIdentifier prefix = pop(NullValue.Prefix);
     List<Configuration> configurations = pop();
 
     ImportDirective directive = directives.last;
@@ -1993,9 +2009,17 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, charOffset, 1);
         return;
+      case "DEFERRED_AFTER_PREFIX":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DEFERRED_AFTER_PREFIX, charOffset, 1);
+        return;
       case "DIRECTIVE_AFTER_DECLARATION":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+        return;
+      case "DUPLICATE_DEFERRED":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DUPLICATE_DEFERRED, charOffset, 1);
         return;
       case "DUPLICATE_PREFIX":
         errorReporter?.reportErrorForOffset(

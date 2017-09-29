@@ -436,14 +436,21 @@ class Listener {
 
   void beginImport(Token importKeyword) {}
 
+  /// Signals that the current import is deferred and/or has a prefix
+  /// depending upon whether [deferredKeyword] and [asKeyword]
+  /// are not `null` respectively. Substructures:
+  /// - prefix identifier (only if asKeyword != null)
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    logEvent("ImportPrefix");
+  }
+
   /// Handle the end of an import directive.  Substructures:
   /// - metadata
   /// - uri
   /// - conditional uris
-  /// - prefix identifier (only if asKeyword != null)
+  /// - prefix identifier
   /// - combinators
-  void endImport(Token importKeyword, Token DeferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void endImport(Token importKeyword, Token semicolon) {
     logEvent("Import");
   }
 
@@ -452,10 +459,9 @@ class Listener {
   /// to recover information about the previous import directive.
   /// The substructures are a subset of and in the same order as [endImport]:
   /// - conditional uris
-  /// - prefix identifier (only if asKeyword != null)
+  /// - prefix identifier
   /// - combinators
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
+  void handleRecoverImport(Token semicolon) {
     logEvent("ImportRecovery");
   }
 

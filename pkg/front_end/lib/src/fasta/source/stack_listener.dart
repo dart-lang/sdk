@@ -29,6 +29,7 @@ import '../scanner.dart' show Token;
 
 enum NullValue {
   Arguments,
+  As,
   Block,
   BreakTarget,
   CascadeReceiver,
@@ -39,6 +40,7 @@ enum NullValue {
   ConstructorInitializers,
   ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,
+  Deferred,
   DocumentationComment,
   Expression,
   FieldInitializer,
@@ -52,6 +54,7 @@ enum NullValue {
   Metadata,
   Modifiers,
   ParameterDefaultValue,
+  Prefix,
   StringLiteral,
   SwitchScope,
   Type,
@@ -95,9 +98,15 @@ abstract class StackListener extends Listener {
     stack.push(node);
   }
 
+  void pushIfNull(Token tokenOrNull, NullValue nullValue) {
+    if (tokenOrNull == null) stack.push(nullValue);
+  }
+
   Object peek() => stack.last;
 
-  Object pop() => stack.pop();
+  Object pop([NullValue nullValue]) {
+    return stack.pop(nullValue);
+  }
 
   Object popIfNotNull(Object value) {
     return value == null ? null : pop();
@@ -340,11 +349,17 @@ class Stack {
     }
   }
 
-  Object pop() {
+  Object pop([NullValue nullValue]) {
     assert(arrayLength > 0);
     final Object value = array[--arrayLength];
     array[arrayLength] = null;
-    return value is NullValue ? null : value;
+    if (value is! NullValue) {
+      return value;
+    } else if (nullValue == null || value == nullValue) {
+      return null;
+    } else {
+      return value;
+    }
   }
 
   List popList(int count, List list) {
