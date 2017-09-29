@@ -2746,7 +2746,7 @@ const MessageCode messagePrefixAfterCombinator = const MessageCode(
     analyzerCode: "PREFIX_AFTER_COMBINATOR",
     dart2jsCode: "*fatal*",
     message:
-        r"""The 'as prefix' should come before any show/hide combinators.""",
+        r"""The prefix ('as' clause) should come before any show/hide combinators.""",
     tip: r"""Try moving the prefix before the combinators.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3212,16 +3212,6 @@ Message _withArgumentsTypeNotFound(String name) {
   return new Message(codeTypeNotFound,
       message: """Type '$name' not found.""", arguments: {'name': name});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeTypeRequired = messageTypeRequired;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypeRequired = const MessageCode("TypeRequired",
-    analyzerCode: "MISSING_CONST_FINAL_VAR_OR_TYPE",
-    dart2jsCode: "GENERIC",
-    message: r"""A type or modifier is required here.""",
-    tip: r"""Try adding a type, 'var', 'const', or 'final'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTypeVariableDuplicatedName =

@@ -465,12 +465,6 @@ TypeAfterVar:
   analyzerCode: VAR_AND_TYPE
   dart2jsCode: EXTRANEOUS_MODIFIER
 
-TypeRequired:
-  template: "A type or modifier is required here."
-  tip: "Try adding a type, 'var', 'const', or 'final'."
-  analyzerCode: MISSING_CONST_FINAL_VAR_OR_TYPE
-  dart2jsCode: GENERIC
-
 AssertExtraneousArgument:
   template: "`assert` can't have more than two arguments."
   dart2jsCode: "*fatal*"
