@@ -137,7 +137,8 @@ class InterfaceResolverTest {
   }
 
   Procedure makeEmptyMethod(
-      {String name: 'foo',
+      {ProcedureKind kind: ProcedureKind.Method,
+      String name: 'foo',
       List<TypeParameter> typeParameters,
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
@@ -151,7 +152,7 @@ class InterfaceResolverTest {
         namedParameters: namedParameters,
         requiredParameterCount: requiredParameterCount,
         returnType: returnType);
-    return new Procedure(new Name(name), ProcedureKind.Method, function);
+    return new Procedure(new Name(name), kind, function);
   }
 
   Field makeField({String name: 'foo', DartType type: const DynamicType()}) {
@@ -319,6 +320,40 @@ class InterfaceResolverTest {
     var expression = body.expression as SuperPropertyGet;
     expect(expression.name, field.name);
     expect(expression.interfaceTarget, same(field));
+  }
+
+  void test_createForwardingStub_operator() {
+    var operator = makeEmptyMethod(
+        kind: ProcedureKind.Operator,
+        name: '[]=',
+        positionalParameters: [
+          new VariableDeclaration('index', type: intType),
+          new VariableDeclaration('value', type: numType)
+        ]);
+    var stub = makeForwardingStub(operator, false);
+    expect(stub.name, operator.name);
+    expect(stub.kind, ProcedureKind.Operator);
+    expect(stub.function.positionalParameters, hasLength(2));
+    expect(stub.function.positionalParameters[0].name,
+        operator.function.positionalParameters[0].name);
+    expect(stub.function.positionalParameters[0].type, intType);
+    expect(stub.function.positionalParameters[1].name,
+        operator.function.positionalParameters[1].name);
+    expect(stub.function.positionalParameters[1].type, numType);
+    expect(stub.function.namedParameters, isEmpty);
+    expect(stub.function.typeParameters, isEmpty);
+    expect(stub.function.requiredParameterCount, 2);
+    expect(stub.function.returnType, const VoidType());
+    var body = stub.function.body as ReturnStatement;
+    var expression = body.expression as SuperMethodInvocation;
+    expect(expression.name, operator.name);
+    expect(expression.interfaceTarget, same(operator));
+    var arguments = expression.arguments;
+    expect(arguments.positional, hasLength(2));
+    expect((arguments.positional[0] as VariableGet).variable,
+        same(stub.function.positionalParameters[0]));
+    expect((arguments.positional[1] as VariableGet).variable,
+        same(stub.function.positionalParameters[1]));
   }
 
   void test_createForwardingStub_optionalNamedParameter() {

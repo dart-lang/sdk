@@ -224,6 +224,7 @@ class ForwardingNode extends Procedure {
     Expression superCall;
     switch (kind) {
       case ProcedureKind.Method:
+      case ProcedureKind.Operator:
         superCall = new SuperMethodInvocation(name, arguments, superTarget);
         break;
       case ProcedureKind.Getter:
