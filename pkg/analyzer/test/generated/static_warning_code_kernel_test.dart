@@ -19,12 +19,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_ambiguousImport_inPart() async {
-    return super.test_ambiguousImport_inPart();
-  }
-
-  @override
-  @failingTest
   test_argumentTypeNotAssignable_annotation_namedConstructor() async {
     return super.test_argumentTypeNotAssignable_annotation_namedConstructor();
   }

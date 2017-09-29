@@ -40,12 +40,6 @@ class StrongModeLocalInferenceTest_Kernel
 
   @override
   @failingTest
-  test_factoryConstructor_propagation() async {
-    return super.test_factoryConstructor_propagation();
-  }
-
-  @override
-  @failingTest
   test_generic_partial() async {
     return super.test_generic_partial();
   }

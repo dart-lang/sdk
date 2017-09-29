@@ -226,6 +226,15 @@ class KernelDriver {
         libraryUriToFile[uri] = library;
       }
 
+      // Prepare file URIs for the cycle.
+      var cycleFileUris = new Set<String>();
+      for (FileState library in cycle.libraries) {
+        cycleFileUris.add(library.fileUriStr);
+        for (var partFile in library.partFiles) {
+          cycleFileUris.add(partFile.fileUriStr);
+        }
+      }
+
       Future<Null> appendNewDillLibraries(Program program) async {
         dillTarget.loader.appendLibraries(program, libraryUris.contains);
         await dillTarget.buildOutlines();
@@ -267,8 +276,18 @@ class KernelDriver {
           .where((library) => libraryUris.contains(library.importUri))
           .toList();
 
+      // Remove source for libraries outside of the cycle.
+      {
+        var urisToRemoveSources = <String>[];
+        for (var uri in program.uriToSource.keys) {
+          if (!cycleFileUris.contains(uri)) {
+            urisToRemoveSources.add(uri);
+          }
+        }
+        urisToRemoveSources.forEach(program.uriToSource.remove);
+      }
+
       _logger.run('Serialize ${kernelLibraries.length} libraries', () {
-        program.uriToSource.clear();
         List<int> bytes =
             serializeProgram(program, filter: kernelLibraries.contains);
         _byteStore.put(kernelKey, bytes);
