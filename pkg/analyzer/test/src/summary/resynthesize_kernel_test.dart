@@ -148,27 +148,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
-  test_const_reference_type() async {
-    // TODO(scheglov): triage
-    await super.test_const_reference_type();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_reference_type_imported() async {
-    // TODO(scheglov): triage
-    await super.test_const_reference_type_imported();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_reference_type_imported_withPrefix() async {
-    // TODO(scheglov): triage
-    await super.test_const_reference_type_imported_withPrefix();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_generic() async {
     await super.test_constructor_redirected_factory_named_generic();

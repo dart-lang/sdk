@@ -462,9 +462,16 @@ class _ExprBuilder {
     }
 
     if (expr is kernel.TypeLiteral) {
-      var type = _context.getType(_contextElement, expr.type);
-      var identifier = AstTestFactory.identifier3(type.element.name);
-      identifier.staticElement = type.element;
+      ElementImpl element;
+      var kernelType = expr.type;
+      if (kernelType is kernel.FunctionType) {
+        element = _getElement(kernelType.typedefReference);
+      } else {
+        var type = _context.getType(_contextElement, kernelType);
+        element = type.element;
+      }
+      var identifier = AstTestFactory.identifier3(element.name);
+      identifier.staticElement = element;
       identifier.staticType = _context.libraryContext.resynthesizer.typeType;
       return identifier;
     }
