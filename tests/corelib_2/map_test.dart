@@ -8,8 +8,8 @@ import "package:expect/expect.dart";
 import 'dart:collection';
 import 'dart:convert' show JSON;
 
-Map newJsonMap() => JSON.decode('{}');
-Map newJsonMapCustomReviver() =>
+Map<String, dynamic> newJsonMap() => JSON.decode('{}');
+Map<String, dynamic> newJsonMapCustomReviver() =>
     JSON.decode('{}', reviver: (key, value) => value);
 
 void main() {
@@ -21,8 +21,8 @@ void main() {
   test(new MapView(new SplayTreeMap()));
   test(new MapBaseMap());
   test(new MapMixinMap());
-  test(newJsonMap(), useIntegerKeys: false);
-  test(newJsonMapCustomReviver(), useIntegerKeys: false);
+  test(newJsonMap());
+  test(newJsonMapCustomReviver());
   testLinkedHashMap();
   testMapLiteral();
   testNullValue();
@@ -125,25 +125,28 @@ void main() {
   testFrom();
 }
 
-void test(Map map, {bool useIntegerKeys = true}) {
+void test<K, V>(Map<K, V> map) {
   testDeletedElement(map);
-  if (useIntegerKeys) {
+  if (map is Map<int, dynamic>) {
     testMap(map, 1, 2, 3, 4, 5, 6, 7, 8);
+  } else {
+    map.clear();
+    testMap(map, "value1", "value2", "value3", "value4", "value5", "value6",
+        "value7", "value8");
   }
-  map.clear();
-  testMap(map, "value1", "value2", "value3", "value4", "value5", "value6",
-      "value7", "value8");
 }
 
 void testLinkedHashMap() {
   LinkedHashMap map = new LinkedHashMap();
-  Expect.equals(false, map.containsKey(1));
+  Expect.isFalse(map.containsKey(1));
   map[1] = 1;
   map[1] = 2;
   testLength(1, map);
 }
 
-void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
+void testMap<K, V>(
+    Map<K, V> typedMap, key1, key2, key3, key4, key5, key6, key7, key8) {
+  Map map = typedMap;
   int value1 = 10;
   int value2 = 20;
   int value3 = 30;
@@ -158,7 +161,7 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   map[key1] = value1;
   Expect.equals(value1, map[key1]);
   map[key1] = value2;
-  Expect.equals(false, map.containsKey(key2));
+  Expect.isFalse(map.containsKey(key2));
   testLength(1, map);
 
   map[key1] = value1;
@@ -194,20 +197,20 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   testLength(8, map);
 
   map.remove(key4);
-  Expect.equals(false, map.containsKey(key4));
+  Expect.isFalse(map.containsKey(key4));
   testLength(7, map);
 
   // Test clearing the table.
   map.clear();
   testLength(0, map);
-  Expect.equals(false, map.containsKey(key1));
-  Expect.equals(false, map.containsKey(key2));
-  Expect.equals(false, map.containsKey(key3));
-  Expect.equals(false, map.containsKey(key4));
-  Expect.equals(false, map.containsKey(key5));
-  Expect.equals(false, map.containsKey(key6));
-  Expect.equals(false, map.containsKey(key7));
-  Expect.equals(false, map.containsKey(key8));
+  Expect.isFalse(map.containsKey(key1));
+  Expect.isFalse(map.containsKey(key2));
+  Expect.isFalse(map.containsKey(key3));
+  Expect.isFalse(map.containsKey(key4));
+  Expect.isFalse(map.containsKey(key5));
+  Expect.isFalse(map.containsKey(key6));
+  Expect.isFalse(map.containsKey(key7));
+  Expect.isFalse(map.containsKey(key8));
 
   // Test adding and removing again.
   map[key1] = value1;
@@ -241,64 +244,76 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   map.remove(key8);
   testLength(2, map);
 
-  Expect.equals(true, map.containsKey(key1));
-  Expect.equals(true, map.containsValue(value1));
+  Expect.isTrue(map.containsKey(key1));
+  Expect.isTrue(map.containsValue(value1));
 
   // Test Map.forEach.
-  Map otherMap = new Map();
+  Map otherMap = new Map<K, V>();
   void testForEachMap(key, value) {
     otherMap[key] = value;
   }
 
   map.forEach(testForEachMap);
-  Expect.equals(true, otherMap.containsKey(key1));
-  Expect.equals(true, otherMap.containsKey(key2));
-  Expect.equals(true, otherMap.containsValue(value1));
-  Expect.equals(true, otherMap.containsValue(value2));
+  Expect.isTrue(otherMap.containsKey(key1));
+  Expect.isTrue(otherMap.containsKey(key2));
+  Expect.isTrue(otherMap.containsValue(value1));
+  Expect.isTrue(otherMap.containsValue(value2));
   Expect.equals(2, otherMap.length);
 
   otherMap.clear();
   Expect.equals(0, otherMap.length);
 
   // Test Collection.keys.
-  void testForEachCollection(value) {
-    otherMap[value] = value;
+  void testForEachKey(key) {
+    otherMap[key] = null;
   }
 
   Iterable keys = map.keys;
-  keys.forEach(testForEachCollection);
-  Expect.equals(true, otherMap.containsKey(key1));
-  Expect.equals(true, otherMap.containsKey(key2));
-  Expect.equals(true, otherMap.containsValue(key1));
-  Expect.equals(true, otherMap.containsValue(key2));
-  Expect.equals(true, !otherMap.containsKey(value1));
-  Expect.equals(true, !otherMap.containsKey(value2));
-  Expect.equals(true, !otherMap.containsValue(value1));
-  Expect.equals(true, !otherMap.containsValue(value2));
+  keys.forEach(testForEachKey);
+  Expect.isTrue(otherMap.containsKey(key1));
+  Expect.isTrue(otherMap.containsKey(key2));
+  Expect.isFalse(otherMap.containsKey(value1));
+  Expect.isFalse(otherMap.containsKey(value2));
+
+  Expect.isTrue(otherMap.containsValue(null));
+  Expect.isFalse(otherMap.containsValue(value1));
+  Expect.isFalse(otherMap.containsValue(value2));
   Expect.equals(2, otherMap.length);
   otherMap.clear();
   Expect.equals(0, otherMap.length);
 
   // Test Collection.values.
+  void testForEachValue(value) {
+    if (value == value1) {
+      otherMap[key1] = value;
+    } else if (value == value2) {
+      otherMap[key2] = value;
+    } else {
+      otherMap[key3] = null;
+    }
+  }
+
   Iterable values = map.values;
-  values.forEach(testForEachCollection);
-  Expect.equals(true, !otherMap.containsKey(key1));
-  Expect.equals(true, !otherMap.containsKey(key2));
-  Expect.equals(true, !otherMap.containsValue(key1));
-  Expect.equals(true, !otherMap.containsValue(key2));
-  Expect.equals(true, otherMap.containsKey(value1));
-  Expect.equals(true, otherMap.containsKey(value2));
-  Expect.equals(true, otherMap.containsValue(value1));
-  Expect.equals(true, otherMap.containsValue(value2));
+  values.forEach(testForEachValue);
+  Expect.isTrue(otherMap.containsKey(key1));
+  Expect.isTrue(otherMap.containsKey(key2));
+  Expect.isFalse(otherMap.containsKey(value1));
+  Expect.isFalse(otherMap.containsKey(value2));
+
+  Expect.isTrue(otherMap.containsValue(value1));
+  Expect.isTrue(otherMap.containsValue(value2));
+  Expect.isFalse(otherMap.containsValue(value3));
+  Expect.isFalse(otherMap.containsValue(key1));
+  Expect.isFalse(otherMap.containsValue(null));
   Expect.equals(2, otherMap.length);
   otherMap.clear();
   Expect.equals(0, otherMap.length);
 
   // Test Map.putIfAbsent.
   map.clear();
-  Expect.equals(false, map.containsKey(key1));
+  Expect.isFalse(map.containsKey(key1));
   map.putIfAbsent(key1, () => 10);
-  Expect.equals(true, map.containsKey(key1));
+  Expect.isTrue(map.containsKey(key1));
   Expect.equals(10, map[key1]);
   Expect.equals(10, map.putIfAbsent(key1, () => 11));
 
@@ -314,13 +329,13 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   Expect.equals(50, map['50']);
   Expect.equals(99, map['1']);
   otherMap['50'] = 42;
-  map.addAll(new HashMap.from(otherMap));
+  map.addAll(new HashMap<K, V>.from(otherMap));
   Expect.equals(3, map.length);
   Expect.equals(1, map['99']);
   Expect.equals(42, map['50']);
   Expect.equals(99, map['1']);
   otherMap['99'] = 7;
-  map.addAll(new SplayTreeMap.from(otherMap));
+  map.addAll(new SplayTreeMap<K, V>.from(otherMap));
   Expect.equals(3, map.length);
   Expect.equals(7, map['99']);
   Expect.equals(42, map['50']);
@@ -365,30 +380,30 @@ void testMapLiteral() {
   String third = values[2];
   String all = "${first}${second}${third}";
   Expect.equals(3, all.length);
-  Expect.equals(true, all.contains("a", 0));
-  Expect.equals(true, all.contains("b", 0));
-  Expect.equals(true, all.contains("c", 0));
+  Expect.isTrue(all.contains("a", 0));
+  Expect.isTrue(all.contains("b", 0));
+  Expect.isTrue(all.contains("c", 0));
 }
 
 void testNullValue() {
   Map m = {"a": 1, "b": null, "c": 3};
 
   Expect.equals(null, m["b"]);
-  Expect.equals(true, m.containsKey("b"));
+  Expect.isTrue(m.containsKey("b"));
   Expect.equals(3, m.length);
 
   m["a"] = null;
   m["c"] = null;
   Expect.equals(null, m["a"]);
-  Expect.equals(true, m.containsKey("a"));
+  Expect.isTrue(m.containsKey("a"));
   Expect.equals(null, m["c"]);
-  Expect.equals(true, m.containsKey("c"));
+  Expect.isTrue(m.containsKey("c"));
   Expect.equals(3, m.length);
 
   m.remove("a");
   Expect.equals(2, m.length);
   Expect.equals(null, m["a"]);
-  Expect.equals(false, m.containsKey("a"));
+  Expect.isFalse(m.containsKey("a"));
 }
 
 void testTypes() {
@@ -537,7 +552,8 @@ void testLength(int length, Map map) {
   }
 }
 
-testIdentityMap(Map map) {
+testIdentityMap<K, V>(Map<K, V> typedMap) {
+  Map map = typedMap;
   Expect.isTrue(map.isEmpty);
 
   var nan = double.NAN;
@@ -637,7 +653,7 @@ testIdentityMap(Map map) {
   testLength(4, map);
 
   // Transfer to equality-based map will collapse elements.
-  Map eqMap = new HashMap();
+  Map eqMap = new HashMap<K, V>();
   eqMap.addAll(map);
   testLength(2, eqMap);
   Expect.isTrue(eqMap.containsKey(eq01));
@@ -692,7 +708,8 @@ class Vampire {
       other is Vampire && generation - 1 == (other as Vampire).generation;
 }
 
-void testCustomMap(Map map) {
+void testCustomMap<K, V>(Map<K, V> typedMap) {
+  Map map = typedMap;
   testLength(0, map);
   var c11 = const Customer(1, 1);
   var c12 = const Customer(1, 2);

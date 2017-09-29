@@ -32,11 +32,8 @@ class Foo {}
 main() {
   dynamic x = new ReturnInvocationName(42);
   Expect.equals('final!', x.finalField);
-
-  // https://github.com/dart-lang/sdk/issues/28363
-  // Expect.throws(() => x.finalField = "foo",
-  //              (e) => e is NoSuchMethodError);
-  Expect.equals('final!', x.finalField);
+  Expect.equals('foo', x.finalField = "foo", 'should call noSuchMethod');
+  Expect.equals('final!', x.finalField, 'field was not set');
 
   Expect.equals('_prototype', x._prototype);
   Expect.equals('_prototype', x._prototype());
@@ -56,6 +53,11 @@ main() {
   Expect.equals('unary-', -x);
   Expect.equals('+', x + 42);
   Expect.equals('[]', x[4]);
+
+  dynamic b = new BaseClass();
+  Expect.equals('final!', b.finalField);
+  Expect.throwsNoSuchMethodError(() => b.finalField = "foo");
+  Expect.equals('final!', b.finalField, 'field was not set');
 
   // Verify that noSuchMethod errors are triggered even when the JS object
   // happens to have a matching member name.
