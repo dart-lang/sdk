@@ -238,7 +238,10 @@ invocation_mirror_invoke_on_test: SkipByDesign
 issue21079_test: SkipByDesign
 issue21079_test: SkipByDesign
 many_generic_instanceof_test: RuntimeError
+many_overridden_no_such_method_test: SkipByDesign
+map_literal8_test: RuntimeError
 method_override2_test/*: MissingCompileTimeError
+method_override2_test/none: Pass
 method_override2_test/none: Pass
 method_override3_test/*: MissingCompileTimeError
 method_override3_test/none: Pass
@@ -309,6 +312,8 @@ optional_named_parameters_test/06: MissingCompileTimeError
 optional_named_parameters_test/07: MissingCompileTimeError
 optional_named_parameters_test/08: MissingCompileTimeError
 optional_named_parameters_test/09: MissingCompileTimeError
+overridden_no_such_method_test: SkipByDesign
+overridden_no_such_method_test: SkipByDesign
 overridden_no_such_method_test: SkipByDesign
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError

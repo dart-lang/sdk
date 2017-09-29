@@ -9,6 +9,7 @@ named_parameters_type_test/01: SkipByDesign # Requires checked mode.
 named_parameters_type_test/02: SkipByDesign # Requires checked mode.
 named_parameters_type_test/03: SkipByDesign # Requires checked mode.
 issue13474_test: SkipByDesign # Requires checked mode.
+map_literal4_test: SkipByDesign # Requires checked mode.
 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error2_test/cc02: Fail
@@ -60,6 +61,7 @@ type_parameter_test/05: Pass
 
 [ ! $checked && ! $strong ]
 closure_type_test: RuntimeError
+map_literal1_test/01: MissingCompileTimeError
 
 [ ! $strong ]
 class_literal_static_test/none: Pass
@@ -105,6 +107,16 @@ issue1363_test/01: MissingCompileTimeError # Requires strong mode
 issue15606_test/01: MissingCompileTimeError # Requires strong mode
 issue18628_1_test/01: MissingCompileTimeError # Requires strong mode
 issue18628_2_test/01: MissingCompileTimeError # Requires strong mode
+map_literal3_test/01: MissingCompileTimeError
+map_literal3_test/02: MissingCompileTimeError
+map_literal3_test/03: MissingCompileTimeError
+map_literal3_test/04: MissingCompileTimeError
+map_literal4_test/01: MissingCompileTimeError
+map_literal4_test/02: MissingCompileTimeError
+map_literal4_test/03: MissingCompileTimeError
+map_literal4_test/04: MissingCompileTimeError
+map_literal4_test/05: MissingCompileTimeError
+map_literal4_test/06: MissingCompileTimeError
 number_identifier_test/05: MissingCompileTimeError
 number_identifier_test/08: MissingCompileTimeError
 number_identifier_test/09: MissingCompileTimeError
@@ -161,6 +173,10 @@ void_type_override_test: Skip # Requires strong mode
 void_type_usage_test: Skip # Requires strong mode
 wrong_number_type_arguments_test/*: MissingCompileTimeError # Requires strong mode
 wrong_number_type_arguments_test/none: Pass
+
+[ !$strong && $runtime != none ]
+map_literal11_test/none: MissingRuntimeError
+map_literal7_test: RuntimeError # Requires strong mode
 
 [ $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546

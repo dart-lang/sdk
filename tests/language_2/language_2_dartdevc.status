@@ -177,33 +177,33 @@ const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
 constructor12_test: RuntimeError # Issue 29920
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
-custom_await_stack_trace_test: RuntimeError # Issue 29920
 ct_const_test: RuntimeError # Issue 2992
+custom_await_stack_trace_test: RuntimeError # Issue 29920
 cyclic_type2_test: RuntimeError # Issue 29920
 cyclic_type_test/02: RuntimeError # Issue 29920
 cyclic_type_test/03: RuntimeError # Issue 29920
 cyclic_type_test/04: RuntimeError # Issue 29920
-double_int_to_string_test: RuntimeError # Issue 29920
 deferred_call_empty_before_load_test: RuntimeError # Issue 27777
 deferred_load_constants_test/none: RuntimeError # Issue 27394
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
 deferred_static_seperate_test: RuntimeError # Issue 27777
+double_int_to_string_test: RuntimeError # Issue 29920
 double_to_string_as_fixed2_test/none: RuntimeError # Issue 29920
 dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
-execute_finally6_test: RuntimeError # Issue 29920
-flatten_test/05: MissingRuntimeError # Issue 29920
-flatten_test/08: MissingRuntimeError # Issue 29920
-flatten_test/09: MissingRuntimeError # Issue 29920
-flatten_test/12: MissingRuntimeError # Issue 29920
-for_variable_capture_test: RuntimeError # Issue 29920
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
 example_constructor_test: RuntimeError
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?
+execute_finally6_test: RuntimeError # Issue 29920
 field_increment_bailout_test: RuntimeError # Issue 29920
+flatten_test/05: MissingRuntimeError # Issue 29920
+flatten_test/08: MissingRuntimeError # Issue 29920
+flatten_test/09: MissingRuntimeError # Issue 29920
+flatten_test/12: MissingRuntimeError # Issue 29920
+for_variable_capture_test: RuntimeError # Issue 29920
 function_subtype_inline2_test: RuntimeError
 function_type/function_type50_test: RuntimeError # Issue 29920
 function_type/function_type58_test: RuntimeError # Issue 29920
@@ -227,11 +227,13 @@ invocation_mirror_test: RuntimeError
 issue21159_test: RuntimeError # Issue 30701
 issue23244_test: RuntimeError # Issue 29920
 label_test: RuntimeError # Issue 30675
+many_overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 modulo_test: RuntimeError # Issue 29920
 named_parameter_clash_test: RuntimeError # Issue 29920
 named_parameters_default_eq_test/none: RuntimeError
 null_test/mirrors: RuntimeError # Uses mirrors.
 number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
+overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out

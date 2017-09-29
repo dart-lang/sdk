@@ -223,7 +223,6 @@ optional_named_parameters_test/06: MissingCompileTimeError
 optional_named_parameters_test/07: MissingCompileTimeError
 optional_named_parameters_test/08: MissingCompileTimeError
 optional_named_parameters_test/09: MissingCompileTimeError
-overridden_no_such_method_test: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
@@ -468,7 +467,6 @@ optional_named_parameters_test/06: MissingCompileTimeError
 optional_named_parameters_test/07: MissingCompileTimeError
 optional_named_parameters_test/08: MissingCompileTimeError
 optional_named_parameters_test/09: MissingCompileTimeError
-overridden_no_such_method_test: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
@@ -634,6 +632,7 @@ override_field_method1_negative_test: CompileTimeError
 override_field_method2_negative_test: CompileTimeError
 override_field_method4_negative_test: CompileTimeError
 override_field_method5_negative_test: CompileTimeError
+map_literal_negative_test: CompileTimeError
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626

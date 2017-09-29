@@ -273,7 +273,6 @@ optional_named_parameters_test/06: MissingCompileTimeError
 optional_named_parameters_test/07: MissingCompileTimeError
 optional_named_parameters_test/08: MissingCompileTimeError
 optional_named_parameters_test/09: MissingCompileTimeError
-overridden_no_such_method_test: MissingCompileTimeError, Pass # Probably wrongly passes in d8 and jsshell
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
@@ -1320,6 +1319,9 @@ bool_check_test: RuntimeError # Issue 29647
 bool_condition_check_test: RuntimeError
 generic_test: RuntimeError, OK
 
+[ $compiler == dart2js && $checked ]
+covariant_subtyping_test: CompileTimeError
+
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 function_type/function_type14_test: Crash # Issue 27394
 function_type/function_type15_test: Crash # Issue 27394
@@ -1387,6 +1389,7 @@ issue21079_test: Fail # mirrors not supported
 null_test/0*: Pass # mirrors not supported, fails for the wrong reason
 null_test/none: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
+many_overridden_no_such_method_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos && !$dart2js_with_kernel ]
 await_future_test: Pass, Timeout # Issue 26735
@@ -1411,6 +1414,14 @@ issue23244_test: RuntimeError # 23244
 
 [ $compiler == dart2js && $runtime == chrome && !$dart2js_with_kernel ]
 enum_mirror_test: pass
+
+[ $compiler == dart2js && $runtime != none ]
+map_literal8_test: RuntimeError
+not_enough_positional_arguments_test/00: MissingCompileTimeError
+not_enough_positional_arguments_test/03: MissingCompileTimeError
+not_enough_positional_arguments_test/06: MissingCompileTimeError
+not_enough_positional_arguments_test/07: MissingCompileTimeError
+null_test/mirrors: Skip # Uses mirrors.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.

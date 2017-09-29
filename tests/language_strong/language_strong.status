@@ -176,14 +176,6 @@ malformed_bound_test: Skip
 malformed_inheritance_test: Skip
 malformed_test: Skip
 malformed_type_test: Skip
-many_overridden_no_such_method_test: Skip
-map_literal1_test: Skip
-map_literal2_negative_test: Skip
-map_literal3_test: Skip
-map_literal4_test: Skip
-map_literal6_test: Skip
-map_literal8_test: Skip
-map_literal_negative_test: Skip
 missing_const_constructor_test: Skip
 missing_part_of_tag_test: Skip
 mixin_black_listed_test: Skip

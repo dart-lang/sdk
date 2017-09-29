@@ -227,6 +227,7 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
+map_literal8_test: RuntimeError
 method_override2_test/00: MissingCompileTimeError
 method_override2_test/01: MissingCompileTimeError
 method_override2_test/02: MissingCompileTimeError
@@ -300,7 +301,6 @@ optional_named_parameters_test/06: MissingCompileTimeError
 optional_named_parameters_test/07: MissingCompileTimeError
 optional_named_parameters_test/08: MissingCompileTimeError
 optional_named_parameters_test/09: MissingCompileTimeError
-overridden_no_such_method_test: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
@@ -573,14 +573,6 @@ covariant_subtyping_test: RuntimeError
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
-function_subtype_inline2_test: RuntimeError
-generic_field_mixin6_test/none: RuntimeError
-generic_list_checked_test: RuntimeError
-getters_setters2_test/01: RuntimeError
-getters_setters2_test/none: RuntimeError
-if_null_precedence_test/none: RuntimeError
-inferrer_synthesized_constructor_test: RuntimeError
-typevariable_substitution2_test/02: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -592,6 +584,7 @@ function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
+function_subtype_inline2_test: RuntimeError
 function_subtype_named1_test: RuntimeError
 function_subtype_named2_test: RuntimeError
 function_subtype_not1_test: RuntimeError
@@ -604,6 +597,13 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+generic_field_mixin6_test/none: RuntimeError
+generic_list_checked_test: RuntimeError
+getters_setters2_test/01: RuntimeError
+getters_setters2_test/none: RuntimeError
+if_null_precedence_test/none: RuntimeError
+inferrer_synthesized_constructor_test: RuntimeError
+typevariable_substitution2_test/02: RuntimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

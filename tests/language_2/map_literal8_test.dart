@@ -24,19 +24,17 @@ void main() {
     const B(0): 1,
     const B(1): 2,
     const B(const A()): 3,
-    const B(0): 4,
   };
   Expect.isTrue(m1 is Map);
   Expect.isTrue(m1 is Map<A, int>);
-  Expect.isTrue(m1 is Map<int, dynamic>);
-  Expect.isTrue(m1 is Map<dynamic, A>);
+  Expect.isFalse(m1 is Map<int, dynamic>);
+  Expect.isFalse(m1 is Map<dynamic, A>);
 
   var m2 = const <A, int>{
     const A(): 0,
     const B(0): 1,
     const B(1): 2,
     const B(const A()): 3,
-    const B(0): 4,
   };
   Expect.isTrue(m2 is Map);
   Expect.isTrue(m2 is Map<A, int>);

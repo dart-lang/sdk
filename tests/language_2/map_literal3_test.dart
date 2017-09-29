@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 class MapLiteralTest {
   static testMain() {
-    var map = {"a": 1, "b": 2, "c": 3};
+    var map = <dynamic, dynamic>{"a": 1, "b": 2, "c": 3};
 
     Expect.equals(map.length, 3);
     Expect.equals(map["a"], 1);
@@ -66,36 +66,10 @@ class MapLiteralTest {
     m.remove("16");
     Expect.equals(14, m.length);
 
-    // Check that last value of duplicate key wins for const maps.
-    final cmap = const <String, num>{"a": 10, "b": 100, "a": 1000}; //# static type warning
-    Expect.equals(2, cmap.length);
-    Expect.equals(1000, cmap["a"]);
-    Expect.equals(100, cmap["b"]);
-
-    final cmap2 = const <String, num>{"a": 10, "a": 100, "a": 1000}; //# static type warning
-    Expect.equals(1, cmap2.length);
-    Expect.equals(1000, cmap["a"]);
-
-    // Check that last value of duplicate key wins for mutable maps.
-    var mmap = <String, num>{"a": 10, "b": 100, "a": 1000}; //# static type warning
-
-    Expect.equals(2, mmap.length);
-    Expect.equals(1000, mmap["a"]);
-    Expect.equals(100, mmap["b"]);
-
-    // Check that even if a key gets eliminated (the first "a"), all values
-    // are still evaluated, including side effects.
-    int counter = 0;
-    int ctr() {
-      counter += 10;
-      return counter;
-    }
-
-    mmap = <String, num>{"a": ctr(), "b": ctr(), "a": ctr()}; //# static type warning
-    Expect.equals(2, mmap.length);
-    Expect.equals(40, ctr());
-    Expect.equals(30, mmap["a"]);
-    Expect.equals(20, mmap["b"]);
+    final cmap = const <String, num>{"a": 10, "b": 100, "a": 1000}; //# 01: compile-time error
+    final cmap2 = const <String, num>{"a": 10, "a": 100, "a": 1000}; //# 02: compile-time error
+    var mmap = <String, num>{"a": 10, "b": 100, "a": 1000}; //# 03: compile-time error
+    var mmap = <String, num>{"a": ctr(), "b": ctr(), "a": ctr()}; //# 04: compile-time error
 
     Expect.equals(10, {"beta": 100, "alpha": 9 + 1}["alpha"]);
     Expect.equals(

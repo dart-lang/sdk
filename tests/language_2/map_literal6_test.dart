@@ -20,7 +20,6 @@ class B {
 void main() {
   var m1 = const {
     const A(): 0,
-    const B(0): 1,
     const B(1): 2,
     const B(const A()): 3,
     const B(0): 4,
