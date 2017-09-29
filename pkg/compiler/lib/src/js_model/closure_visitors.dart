@@ -87,12 +87,28 @@ class CapturedScopeBuilder extends ir.Visitor {
     if (!capturedVariablesForScope.isEmpty) {
       assert(_model.scopeInfo != null);
       KernelScopeInfo from = _model.scopeInfo;
-      var capturedScope = new KernelCapturedScope(
-          capturedVariablesForScope,
-          new NodeBox(getBoxName(), _executableContext),
-          from.localsUsedInTryOrSync,
-          from.freeVariables,
-          _hasThisLocal);
+
+      KernelCapturedScope capturedScope;
+      var nodeBox = new NodeBox(getBoxName(), _executableContext);
+      if (node is ir.ForStatement ||
+          node is ir.ForInStatement ||
+          node is ir.WhileStatement ||
+          node is ir.DoStatement) {
+        capturedScope = new KernelCapturedLoopScope(
+            capturedVariablesForScope,
+            nodeBox,
+            [],
+            from.localsUsedInTryOrSync,
+            from.freeVariables,
+            _hasThisLocal);
+      } else {
+        capturedScope = new KernelCapturedScope(
+            capturedVariablesForScope,
+            nodeBox,
+            from.localsUsedInTryOrSync,
+            from.freeVariables,
+            _hasThisLocal);
+      }
       _model.scopeInfo = _scopesCapturedInClosureMap[node] = capturedScope;
     }
   }
@@ -221,6 +237,25 @@ class CapturedScopeBuilder extends ir.Visitor {
     if (_isInsideClosure) {
       _currentScopeInfo.thisUsedAsFreeVariable = true;
     }
+  }
+
+  @override
+  void visitForInStatement(ir.ForInStatement node) {
+    enterNewScope(node, () {
+      node.visitChildren(this);
+    });
+  }
+
+  void visitWhileStatement(ir.WhileStatement node) {
+    enterNewScope(node, () {
+      node.visitChildren(this);
+    });
+  }
+
+  void visitDoStatement(ir.DoStatement node) {
+    enterNewScope(node, () {
+      node.visitChildren(this);
+    });
   }
 
   @override

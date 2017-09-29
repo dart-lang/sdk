@@ -2,6 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*element: boxedLoopVariableExample:*/
+boxedLoopVariableExample() {
+  var input = [1, 2, 3];
+  var fs = [];
+  for (var /*boxed*/ x in input) {
+    fs.add(/*fields=[box0],free=[box0,x]*/ () {
+      return x;
+    });
+    x++;
+  }
+  return fs;
+}
+
 /*element: readParameterInAnonymousClosure:*/
 readParameterInAnonymousClosure(/**/ parameter) {
   return /*fields=[parameter],free=[parameter]*/ () => parameter;
@@ -84,6 +97,7 @@ class Repro {
 }
 
 main() {
+  boxedLoopVariableExample();
   readParameterInAnonymousClosure(null);
   readParameterInClosure(null);
   writeParameterInAnonymousClosure(null);
