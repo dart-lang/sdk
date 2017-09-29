@@ -913,7 +913,7 @@ abstract class Int16List implements List<int>, TypedData {
  *
  * Integers stored in the list are truncated to their low 16 bits,
  * interpreted as an unsigned 16-bit integer with values in the
- * range 0 to 65536.
+ * range 0 to 65535.
  */
 abstract class Uint16List implements List<int>, TypedData {
   /**
@@ -1123,7 +1123,7 @@ abstract class Int64List implements List<int>, TypedData {
  *
  * Integers stored in the list are truncated to their low 64 bits,
  * interpreted as an unsigned 64-bit integer with values in the
- * range 0 to 18446744073709551616.
+ * range 0 to 18446744073709551615.
  */
 abstract class Uint64List implements List<int>, TypedData {
   /**
