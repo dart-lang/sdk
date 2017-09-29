@@ -170,7 +170,7 @@ If memory becomes an issue we could explore extensions that limit the size of in
 This kind of extensions is not on our priority list, but it's good to know that there are possible solutions to potential memory issues due to integers.
 
 ## Evaluation of Size and Performance
-We have done experiments that show that removing bigInt support from integers significantly reduces the size of generated code for precompiled code. Here are experimental findings from Vipunen: https://docs.google.com/document/d/1IUbo_1dZWNupR6-17l28D4yw4Sbt7QUV5e8vZFOKwg0/edit
+We have done experiments that show that removing bigInt support from integers significantly reduces the size of generated code for precompiled code. Here are experimental findings from Vipunen: https://docs.google.com/document/d/1hrtGRhRV07rG_Usq9dBwGgsrhVXxNJD36NAHsUMay4s.
 
 With a wrap-around int64 semantics, all arithmetic operations can be mapped to a single CPU instruction (on 64-bit architectures). As long as the compiler can avoid SMI and null checks, the performance of integer operations is thus optimal.
 
