@@ -4991,6 +4991,9 @@ class FunctionElementImpl_forLUB extends FunctionElementImpl {
   bool get isSynthetic => true;
 
   @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams => _entityRef.typeParameters;
+
+  @override
   List<ParameterElement> get parameters {
     return _parameters ??= ParameterElementImpl
         .resynthesizeList(_entityRef.syntheticParams, this, synthetic: true);

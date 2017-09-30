@@ -815,45 +815,6 @@ class _DeferredInitializerElement extends FunctionElementHandle {
 }
 
 /**
- * Local function element that has been resynthesized from a summary.  The
- * actual element won't be constructed until it is requested.  But properties
- * [context] and [enclosingElement] can be used without creating the actual
- * element.
- */
-class _DeferredLocalFunctionElement extends FunctionElementHandle {
-  /**
-   * The executable element containing this element.
-   */
-  @override
-  final ExecutableElement enclosingElement;
-
-  /**
-   * The index of this function within [ExecutableElement.functions].
-   */
-  final int _localIndex;
-
-  _DeferredLocalFunctionElement(this.enclosingElement, this._localIndex)
-      : super(null, null);
-
-  @override
-  FunctionElement get actualElement {
-    ExecutableElement enclosingElement = this.enclosingElement;
-    if (enclosingElement is PropertyAccessorElement &&
-        enclosingElement.isSynthetic) {
-      return enclosingElement.variable.initializer;
-    } else {
-      return enclosingElement.functions[_localIndex];
-    }
-  }
-
-  @override
-  AnalysisContext get context => enclosingElement.context;
-
-  @override
-  ElementLocation get location => actualElement.location;
-}
-
-/**
  * An instance of [_LibraryResynthesizer] is responsible for resynthesizing the
  * elements in a single library from that library's summary.
  */
@@ -1705,7 +1666,7 @@ class _UnitResynthesizer {
       GenericFunctionTypeElement element =
           new GenericFunctionTypeElementImpl.forSerialized(context, type);
       return element.type;
-    } else if (type.syntheticReturnType != null && type.reference == 0) {
+    } else if (type.syntheticReturnType != null) {
       FunctionElementImpl element =
           new FunctionElementImpl_forLUB(context, type);
       return element.type;
@@ -1908,9 +1869,6 @@ class _UnitResynthesizer {
             Element enclosingElement = enclosingInfo.element;
             if (enclosingElement is VariableElement) {
               element = new _DeferredInitializerElement(enclosingElement);
-            } else if (enclosingElement is ExecutableElement) {
-              element = new _DeferredLocalFunctionElement(
-                  enclosingElement, linkedReference.localIndex);
             } else {
               throw new StateError('Unexpected element enclosing function:'
                   ' ${enclosingElement.runtimeType}');

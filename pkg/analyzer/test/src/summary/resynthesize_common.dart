@@ -688,6 +688,28 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareConstAsts(resynthesized.annotationAst, original.annotationAst, desc);
   }
 
+  void compareElementLocations(
+      Element resynthesized, Element original, String desc) {
+    bool hasFunctionElementByValue(Element e) {
+      if (e == null) {
+        return false;
+      }
+      if (e is FunctionElementImpl_forLUB) {
+        return true;
+      }
+      return hasFunctionElementByValue(e.enclosingElement);
+    }
+
+    if (hasFunctionElementByValue(resynthesized)) {
+      // We resynthesize elements representing types of local functions
+      // without corresponding name offsets, so their locations don't have
+      // corresponding valid @offset components. Also, we don't put
+      // resynthesized local functions into initializers of variables.
+      return;
+    }
+    expect(resynthesized.location, original.location, reason: desc);
+  }
+
   void compareElements(Element resynthesized, Element original, String desc) {
     ElementImpl rImpl = getActualElement(resynthesized, desc);
     ElementImpl oImpl = getActualElement(original, desc);
@@ -716,7 +738,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       expect(rRuntimeType, oImpl.runtimeType);
     }
     expect(resynthesized.kind, original.kind);
-    expect(resynthesized.location, original.location, reason: desc);
+    compareElementLocations(resynthesized, original, desc);
     expect(resynthesized.name, original.name);
     expect(resynthesized.nameOffset, original.nameOffset,
         reason: '$desc.nameOffset');
@@ -1025,8 +1047,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
   void compareTypeImpls(
       TypeImpl resynthesized, TypeImpl original, String desc) {
-    expect(resynthesized.element.location, original.element.location,
-        reason: '$desc.element.location');
+    compareElementLocations(
+        resynthesized.element, original.element, '$desc.element.location');
     expect(resynthesized.name, original.name, reason: '$desc.name');
   }
 
@@ -2394,7 +2416,9 @@ dynamic f() {}
   }
 
   test_closure_generic() async {
-    var library = await checkLibrary('final f = <U, V>(U x, V y) => y;');
+    var library = await checkLibrary(r'''
+final f = <U, V>(U x, V y) => y;
+''');
     if (isStrongMode) {
       checkElementText(library, r'''
 final <U,V>(U, V) → V f;

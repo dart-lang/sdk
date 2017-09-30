@@ -221,15 +221,10 @@ EntityRefBuilder _createLinkedType(
           type.typeArguments, result, compilationUnit, typeParameterContext);
       return result;
     }
-    if (element is FunctionElement && element.enclosingElement == null) {
-      // Element is a synthetic function element that was generated on the fly
-      // to represent a type that has no associated source code location.
-      _storeFunctionElementByValue(result, element, compilationUnit);
-      return result;
-    }
     if (element is FunctionElement) {
-      // Element is a local function inside another executable.
-      result.reference = compilationUnit.addReference(element);
+      // We store all function elements by value.  Synthetic elements, e.g.
+      // created for LUB, don't have actual elements; and local functions
+      // are not exposed from element model.
       _storeFunctionElementByValue(result, element, compilationUnit);
       // TODO(paulberry): do I need to store type arguments?
       return result;
@@ -1097,15 +1092,8 @@ abstract class CompilationUnitElementForLink
       if (containingReference != 0 &&
           _linkedUnit.references[containingReference].kind !=
               ReferenceKind.prefix) {
-        if (linkedReference.kind == ReferenceKind.function) {
-          // Local function
-          _references[index] = resolveRef(containingReference)
-                  .getLocalFunction(linkedReference.localIndex) ??
-              UndefinedElementForLink.instance;
-        } else {
-          _references[index] =
-              resolveRef(containingReference).getContainedName(name);
-        }
+        _references[index] =
+            resolveRef(containingReference).getContainedName(name);
       } else if (linkedReference.dependency == 0) {
         if (linkedReference.kind == ReferenceKind.unresolved) {
           _references[index] = UndefinedElementForLink.instance;
@@ -1144,13 +1132,10 @@ abstract class CompilationUnitElementForLink
           .getTypeParameterType(entity.paramReference);
     } else if (entity.entityKind == EntityRefKind.genericFunctionType) {
       return new GenericFunctionTypeElementForLink(this, context, entity).type;
-    } else if (entity.syntheticReturnType != null && entity.reference == 0) {
-      // TODO(scheglov): Remove "&& entity.reference == 0" condition after
-      // rolling SDK with this change internally, so that we always store
-      // synthetic and local function types by value.
-
-      // TODO(paulberry): implement.
-      throw new UnimplementedError();
+    } else if (entity.syntheticReturnType != null) {
+      FunctionElementImpl element =
+          new FunctionElementForLink_Synthetic(this, context, entity);
+      return element.type;
     } else if (entity.implicitFunctionTypeIndices.isNotEmpty) {
       DartType type = resolveRef(entity.reference).asStaticType;
       for (int index in entity.implicitFunctionTypeIndices) {
@@ -1217,7 +1202,6 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
       int numTypeParameters: 0,
       int unitNum: 0,
       int containingReference: 0,
-      int localIndex: 0,
       ReferenceKind kind: ReferenceKind.classOrEnum}) {
     List<LinkedReferenceBuilder> linkedReferences = _linkedUnit.references;
     List<UnlinkedReference> unlinkedReferences = _unlinkedUnit.references;
@@ -1241,8 +1225,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           linkedReference.numTypeParameters == numTypeParameters &&
           linkedReference.unit == unitNum &&
           candidateContainingReference == containingReference &&
-          linkedReference.kind == kind &&
-          linkedReference.localIndex == localIndex) {
+          linkedReference.kind == kind) {
         return i;
       }
     }
@@ -1253,8 +1236,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
         numTypeParameters: numTypeParameters,
         unit: unitNum,
         containingReference: containingReference,
-        kind: kind,
-        localIndex: localIndex));
+        kind: kind));
     return result;
   }
 
@@ -1275,19 +1257,6 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           numTypeParameters: element.typeParameters.length,
           unitNum: element.enclosingElement.unitNum,
           kind: ReferenceKind.typedef);
-    } else if (element is FunctionElementForLink_Initializer) {
-      return addRawReference('',
-          containingReference: addReference(element.enclosingElement),
-          kind: ReferenceKind.function,
-          localIndex: 0);
-    } else if (element is FunctionElementForLink_Local_NonSynthetic) {
-      ExecutableElementForLink parent = element.enclosingElement;
-      int localIndex = parent.functions.indexOf(element);
-      assert(localIndex != -1);
-      return addRawReference(element.name,
-          containingReference: addReference(parent),
-          kind: ReferenceKind.function,
-          localIndex: localIndex);
     } else if (element is ExecutableElementForLink_NonLocal) {
       ClassElementForLink_Class enclosingClass = element.enclosingClass;
       ReferenceKind kind;
@@ -3284,6 +3253,47 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
     assert(!_hasTypeBeenInferred);
     _inferredReturnType = _dynamicIfNull(type);
   }
+}
+
+/**
+  * Synthetic function element which is created for local functions.
+  */
+class FunctionElementForLink_Synthetic extends ExecutableElementForLink
+    with ReferenceableElementForLink
+    implements FunctionElementForLink_Local {
+  @override
+  final Element enclosingElement;
+
+  final EntityRef _entityRef;
+
+  FunctionElementForLink_Synthetic(
+      CompilationUnitElementForLink compilationUnit,
+      this.enclosingElement,
+      this._entityRef)
+      : super(compilationUnit, null);
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext {
+    if (enclosingElement is TypeParameterizedElementMixin) {
+      return enclosingElement;
+    }
+    return null;
+  }
+
+  @override
+  DartType get returnType {
+    return _declaredReturnType ??= enclosingUnit.resynthesizerContext
+        .resolveTypeRef(this, _entityRef.syntheticReturnType);
+  }
+
+  @override
+  List<UnlinkedParam> get unlinkedParameters => _entityRef.syntheticParams;
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams => _entityRef.typeParameters;
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**

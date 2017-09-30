@@ -3341,7 +3341,6 @@ class LinkedReferenceBuilder extends Object
   int _containingReference;
   int _dependency;
   idl.ReferenceKind _kind;
-  int _localIndex;
   String _name;
   int _numTypeParameters;
   int _unit;
@@ -3392,17 +3391,8 @@ class LinkedReferenceBuilder extends Object
   }
 
   @override
-  int get localIndex => _localIndex ??= 0;
-
-  /**
-   * If [kind] is [ReferenceKind.function] (that is, the entity being referred
-   * to is a local function), the index of the function within
-   * [UnlinkedExecutable.localFunctions].  Otherwise zero.
-   */
-  void set localIndex(int value) {
-    assert(value == null || value >= 0);
-    this._localIndex = value;
-  }
+  int get localIndex =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   String get name => _name ??= '';
@@ -3450,14 +3440,12 @@ class LinkedReferenceBuilder extends Object
       {int containingReference,
       int dependency,
       idl.ReferenceKind kind,
-      int localIndex,
       String name,
       int numTypeParameters,
       int unit})
       : _containingReference = containingReference,
         _dependency = dependency,
         _kind = kind,
-        _localIndex = localIndex,
         _name = name,
         _numTypeParameters = numTypeParameters,
         _unit = unit;
@@ -3477,7 +3465,6 @@ class LinkedReferenceBuilder extends Object
     signature.addString(this._name ?? '');
     signature.addInt(this._numTypeParameters ?? 0);
     signature.addInt(this._containingReference ?? 0);
-    signature.addInt(this._localIndex ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -3494,9 +3481,6 @@ class LinkedReferenceBuilder extends Object
     }
     if (_kind != null && _kind != idl.ReferenceKind.classOrEnum) {
       fbBuilder.addUint8(2, _kind.index);
-    }
-    if (_localIndex != null && _localIndex != 0) {
-      fbBuilder.addUint32(6, _localIndex);
     }
     if (offset_name != null) {
       fbBuilder.addOffset(3, offset_name);
@@ -3530,7 +3514,6 @@ class _LinkedReferenceImpl extends Object
   int _containingReference;
   int _dependency;
   idl.ReferenceKind _kind;
-  int _localIndex;
   String _name;
   int _numTypeParameters;
   int _unit;
@@ -3556,10 +3539,8 @@ class _LinkedReferenceImpl extends Object
   }
 
   @override
-  int get localIndex {
-    _localIndex ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 6, 0);
-    return _localIndex;
-  }
+  int get localIndex =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   String get name {
@@ -3590,7 +3571,6 @@ abstract class _LinkedReferenceMixin implements idl.LinkedReference {
     if (dependency != 0) _result["dependency"] = dependency;
     if (kind != idl.ReferenceKind.classOrEnum)
       _result["kind"] = kind.toString().split('.')[1];
-    if (localIndex != 0) _result["localIndex"] = localIndex;
     if (name != '') _result["name"] = name;
     if (numTypeParameters != 0)
       _result["numTypeParameters"] = numTypeParameters;
@@ -3603,7 +3583,6 @@ abstract class _LinkedReferenceMixin implements idl.LinkedReference {
         "containingReference": containingReference,
         "dependency": dependency,
         "kind": kind,
-        "localIndex": localIndex,
         "name": name,
         "numTypeParameters": numTypeParameters,
         "unit": unit,
