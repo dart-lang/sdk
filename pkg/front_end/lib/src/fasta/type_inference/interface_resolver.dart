@@ -330,8 +330,10 @@ class ForwardingNode extends Procedure {
     // Now decide whether we need a forwarding stub or not, and propagate
     // covariance.
     var covarianceFixes = <_CovarianceFix>[];
-    _computeCovarianceFixes(
-        inheritedMemberSubstitution, inheritedMember, covarianceFixes);
+    if (_interfaceResolver.strongMode) {
+      _computeCovarianceFixes(
+          inheritedMemberSubstitution, inheritedMember, covarianceFixes);
+    }
     if (!isDeclaredInThisClass &&
         (!identical(inheritedMember, _candidates[_start]) ||
             covarianceFixes.isNotEmpty)) {
@@ -408,7 +410,9 @@ class ForwardingStub extends Procedure {
 class InterfaceResolver {
   final TypeEnvironment _typeEnvironment;
 
-  InterfaceResolver(this._typeEnvironment);
+  final bool strongMode;
+
+  InterfaceResolver(this._typeEnvironment, this.strongMode);
 
   /// Populates [forwardingNodes] with a list of the implemented and inherited
   /// members of the given [class_]'s interface.
@@ -448,6 +452,14 @@ class InterfaceResolver {
       i = j;
     }
     forwardingNodes.length = storeIndex;
+  }
+
+  void finalizeCovariance(Class class_, List<ForwardingNode> forwardingNodes) {
+    for (var node in forwardingNodes) {
+      node.resolve();
+      // TODO(paulberry): if a forwarding node was created, store it in the
+      // class.
+    }
   }
 
   /// Retrieves a list of the interface members of the given [class_].

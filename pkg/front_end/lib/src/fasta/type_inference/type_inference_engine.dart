@@ -187,6 +187,8 @@ abstract class TypeInferenceEngine {
 
   CoreTypes get coreTypes;
 
+  TypeSchemaEnvironment get typeSchemaEnvironment;
+
   /// Annotates the formal parameters of any methods in [cls] to indicate the
   /// circumstances in which they require runtime type checks.
   void computeFormalSafety(Class cls);
