@@ -59,6 +59,8 @@ documented getters have corresponding undocumented setters. In this case the
 setters inherit the docs from the getters.
 ''';
 
+// TODO(devoncarew): This lint is very slow - we should profile and optimize it.
+
 class PublicMemberApiDocs extends LintRule {
   PublicMemberApiDocs()
       : super(
@@ -68,14 +70,15 @@ class PublicMemberApiDocs extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  AstVisitor getVisitor() => new _Visitor(this);
 }
 
-class Visitor extends GeneralizingAstVisitor {
+class _Visitor extends GeneralizingAstVisitor {
   InheritanceManager manager;
 
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   bool check(Declaration node) {
     if (node.documentationComment == null && !isOverridingMember(node)) {
@@ -101,9 +104,21 @@ class Visitor extends GeneralizingAstVisitor {
   bool isOverridingMember(Declaration node) =>
       getOverriddenMember(node.element) != null;
 
+  /// Return true if the given node is declared in a compilation unit that is in
+  /// a `lib/` folder.
+  bool isDefinedInLib(AstNode node) {
+    CompilationUnit compilationUnit = node is CompilationUnit
+        ? node
+        : node.getAncestor((node) => node is CompilationUnit);
+    Uri uri = compilationUnit?.element?.source?.uri;
+
+    // TODO(devoncarew): This will have false positives.
+    return uri != null && uri.pathSegments.contains('lib');
+  }
+
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    if (isPrivate(node.name)) {
+    if (isPrivate(node.name) || !isDefinedInLib(node)) {
       return;
     }
 
@@ -142,7 +157,7 @@ class Visitor extends GeneralizingAstVisitor {
     for (MethodDeclaration setter in setters.values) {
       MethodDeclaration getter = getters[setter.name.name];
       if (getter == null) {
-        //Look for an inherited getter.
+        // Look for an inherited getter.
         ExecutableElement getter =
             manager.lookupMember(node.element, setter.name.name);
         if (getter is PropertyAccessorElement) {
@@ -162,13 +177,16 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name) && isDefinedInLib(node)) {
       check(node);
     }
   }
 
   @override
   visitCompilationUnit(CompilationUnit node) {
+    // Ignore this compilation unit if its not in the lib/ folder.
+    if (!isDefinedInLib(node)) return;
+
     LibraryElement library = node == null
         ? null
         : resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
@@ -222,21 +240,25 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (!inPrivateMember(node) && !isPrivate(node.name)) {
+    if (!inPrivateMember(node) &&
+        !isPrivate(node.name) &&
+        isDefinedInLib(node)) {
       check(node);
     }
   }
 
   @override
   visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    if (!inPrivateMember(node) && !isPrivate(node.name)) {
+    if (!inPrivateMember(node) &&
+        !isPrivate(node.name) &&
+        isDefinedInLib(node)) {
       check(node);
     }
   }
 
   @override
   visitEnumDeclaration(EnumDeclaration node) {
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name) && isDefinedInLib(node)) {
       check(node);
     }
   }
@@ -254,16 +276,18 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name) && isDefinedInLib(node)) {
       check(node);
     }
   }
 
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    for (VariableDeclaration decl in node.variables.variables) {
-      if (!isPrivate(decl.name)) {
-        check(decl);
+    if (isDefinedInLib(node)) {
+      for (VariableDeclaration decl in node.variables.variables) {
+        if (!isPrivate(decl.name)) {
+          check(decl);
+        }
       }
     }
   }

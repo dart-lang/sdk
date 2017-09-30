@@ -83,7 +83,8 @@ defineTests() {
       test('no warnings due to bad canonicalization', () async {
         var packagesFilePath =
             new File('test/_data/p4/_packages').absolute.path;
-        await dartlint.runLinter(['--packages', packagesFilePath, 'test/_data/p4'],
+        await dartlint.runLinter(
+            ['--packages', packagesFilePath, 'test/_data/p4'],
             new LinterOptions([]));
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));
@@ -468,6 +469,39 @@ defineTests() {
             collectingOut.trim(),
             stringContainsInOrder(
                 ['D.c2(a)', '1 file analyzed, 1 issue found, in']));
+      });
+    });
+
+    group('public_member_api_docs', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('no lints for non-lib/ sources', () async {
+        var packagesFilePath = new File('.packages').absolute.path;
+        await dartlint.main([
+          '--packages',
+          packagesFilePath,
+          'test/_data/public_member_api_docs',
+          '--rules=public_member_api_docs'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              'lib/a.dart 1:8 [lint] Document all public members.',
+              '2 files analyzed, 1 issue found'
+            ]));
       });
     });
 
