@@ -29,6 +29,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_conflictingConstructorNameAndMember_setter() async {
     return super.test_conflictingConstructorNameAndMember_setter();
   }
@@ -160,13 +161,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() async {
     return super
         .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_invalidGenericFunctionType() async {
-    return super.test_genericTypeAlias_invalidGenericFunctionType();
   }
 
   @override

@@ -5335,7 +5335,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
       if (_kernel != null) {
         var context = enclosingUnit._kernelContext;
         var type = context.getType(this, _kernel.type);
-        _function = (type as FunctionType).element;
+        if (type is FunctionType) {
+          _function = type.element;
+        }
       }
       if (_unlinkedTypedef != null) {
         if (_unlinkedTypedef.style == TypedefStyle.genericFunctionType) {
