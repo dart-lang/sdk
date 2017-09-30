@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/problems.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
@@ -410,9 +411,12 @@ class ForwardingStub extends Procedure {
 class InterfaceResolver {
   final TypeEnvironment _typeEnvironment;
 
+  final Instrumentation _instrumentation;
+
   final bool strongMode;
 
-  InterfaceResolver(this._typeEnvironment, this.strongMode);
+  InterfaceResolver(
+      this._typeEnvironment, this._instrumentation, this.strongMode);
 
   /// Populates [forwardingNodes] with a list of the implemented and inherited
   /// members of the given [class_]'s interface.
@@ -456,9 +460,15 @@ class InterfaceResolver {
 
   void finalizeCovariance(Class class_, List<ForwardingNode> forwardingNodes) {
     for (var node in forwardingNodes) {
-      node.resolve();
-      // TODO(paulberry): if a forwarding node was created, store it in the
-      // class.
+      var resolution = node.resolve();
+      if (resolution is ForwardingStub) {
+        // TODO(paulberry): store the stub in the class.
+        _instrumentation?.record(
+            Uri.parse(class_.location.file),
+            class_.fileOffset,
+            'forwardingStub',
+            new InstrumentationValueForForwardingStub(resolution));
+      }
     }
   }
 
