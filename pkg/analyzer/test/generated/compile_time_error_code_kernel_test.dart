@@ -317,12 +317,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_isInInstanceVariableInitializer_restored() async {
-    return super.test_isInInstanceVariableInitializer_restored();
-  }
-
-  @override
-  @failingTest
   test_memberWithClassName_getter() async {
     return super.test_memberWithClassName_getter();
   }

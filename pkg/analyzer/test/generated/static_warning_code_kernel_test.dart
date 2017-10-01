@@ -105,12 +105,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_notEnoughRequiredArguments_getterReturningFunction() async {
-    return super.test_notEnoughRequiredArguments_getterReturningFunction();
-  }
-
-  @override
-  @failingTest
   test_redirectToMissingConstructor_unnamed() async {
     return super.test_redirectToMissingConstructor_unnamed();
   }

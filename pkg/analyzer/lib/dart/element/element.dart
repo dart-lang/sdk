@@ -1097,12 +1097,6 @@ abstract class ExecutableElement implements FunctionTypedElement {
   static const List<ExecutableElement> EMPTY_LIST = const <ExecutableElement>[];
 
   /**
-   * Return a list containing all of the functions defined within this
-   * executable element.
-   */
-  List<FunctionElement> get functions;
-
-  /**
    * Return `true` if this executable element did not have an explicit return
    * type specified for it in the original source. Note that if there was no
    * explicit return type, and if the element model is fully populated, then

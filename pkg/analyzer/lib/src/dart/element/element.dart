@@ -3954,12 +3954,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   final kernel.Member _kernel;
 
   /**
-   * A list containing all of the functions defined within this executable
-   * element.
-   */
-  List<FunctionElement> _functions;
-
-  /**
    * A list containing all of the parameters defined by this executable element.
    */
   List<ParameterElement> _parameters;
@@ -4068,27 +4062,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   void set external(bool isExternal) {
     _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.EXTERNAL, isExternal);
-  }
-
-  @override
-  List<FunctionElement> get functions {
-    if (serializedExecutable != null) {
-      _functions ??= FunctionElementImpl.resynthesizeList(
-          this, serializedExecutable.localFunctions);
-    }
-    return _functions ?? const <FunctionElement>[];
-  }
-
-  /**
-   * Set the functions defined within this executable element to the given
-   * [functions].
-   */
-  void set functions(List<FunctionElement> functions) {
-    _assertNotResynthesized(serializedExecutable);
-    for (FunctionElement function in functions) {
-      (function as FunctionElementImpl).enclosingElement = this;
-    }
-    this._functions = functions;
   }
 
   /**
@@ -4348,12 +4321,6 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   ElementImpl getChild(String identifier) {
-    for (FunctionElement function in _functions) {
-      FunctionElementImpl functionImpl = function;
-      if (functionImpl.identifier == identifier) {
-        return functionImpl;
-      }
-    }
     for (ParameterElement parameter in parameters) {
       ParameterElementImpl parameterImpl = parameter;
       if (parameterImpl.identifier == identifier) {
@@ -4854,9 +4821,7 @@ class FunctionElementImpl extends ExecutableElementImpl
     String identifier = super.identifier;
     Element enclosing = this.enclosingElement;
     if (enclosing is ExecutableElement) {
-      int id =
-          ElementImpl.findElementIndexUsingIdentical(enclosing.functions, this);
-      identifier += "@$id";
+      identifier += "@$nameOffset";
     }
     return identifier;
   }
@@ -4991,9 +4956,6 @@ class FunctionElementImpl_forLUB extends FunctionElementImpl {
   bool get isSynthetic => true;
 
   @override
-  List<UnlinkedTypeParam> get unlinkedTypeParams => _entityRef.typeParameters;
-
-  @override
   List<ParameterElement> get parameters {
     return _parameters ??= ParameterElementImpl
         .resynthesizeList(_entityRef.syntheticParams, this, synthetic: true);
@@ -5025,6 +4987,9 @@ class FunctionElementImpl_forLUB extends FunctionElementImpl {
   void set type(FunctionType type) {
     assert(false);
   }
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams => _entityRef.typeParameters;
 }
 
 /**

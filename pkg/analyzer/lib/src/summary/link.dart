@@ -1887,6 +1887,14 @@ abstract class ExecutableElementForLink extends Object
   @override
   CompilationUnitElementImpl get enclosingUnit => compilationUnit;
 
+  /**
+   * Return a list containing all of the functions defined within this
+   * executable element.
+   */
+  List<FunctionElement> get functions {
+    return [];
+  }
+
   @override
   bool get hasImplicitReturnType => _unlinkedExecutable.returnType == null;
 
@@ -3201,7 +3209,7 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
   String get identifier {
     String identifier = _unlinkedExecutable.name;
     Element enclosing = this.enclosingElement;
-    if (enclosing is ExecutableElement) {
+    if (enclosing is ExecutableElementForLink) {
       int id =
           ElementImpl.findElementIndexUsingIdentical(enclosing.functions, this);
       identifier += "@$id";

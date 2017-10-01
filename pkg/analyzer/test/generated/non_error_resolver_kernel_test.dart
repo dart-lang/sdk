@@ -84,13 +84,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   }
 
   @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_duplicateDefinition_emptyName() async {
-    return super.test_duplicateDefinition_emptyName();
-  }
-
-  @override
   @assertFailingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30836')
   test_finalNotInitialized_hasNativeClause_hasConstructor() async {

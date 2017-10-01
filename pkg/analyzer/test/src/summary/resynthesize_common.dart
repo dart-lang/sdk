@@ -784,7 +784,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           original.typeParameters[i],
           '$desc type parameter ${original.typeParameters[i].name}');
     }
-    compareLocalElementsOfExecutable(resynthesized, original, desc);
   }
 
   void compareExportElements(ExportElementImpl resynthesized,
@@ -892,19 +891,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareLineInfo(LineInfo resynthesized, LineInfo original) {
     expect(resynthesized.lineCount, original.lineCount);
     expect(resynthesized.lineStarts, original.lineStarts);
-  }
-
-  void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
-      ExecutableElement original, String desc) {
-    if (original is! Member) {
-      List<FunctionElement> rFunctions = resynthesized.functions;
-      List<FunctionElement> oFunctions = original.functions;
-      expect(rFunctions, hasLength(oFunctions.length));
-      for (int i = 0; i < oFunctions.length; i++) {
-        compareFunctionElements(rFunctions[i], oFunctions[i],
-            '$desc local function ${oFunctions[i].name}');
-      }
-    }
   }
 
   void compareMetadata(List<ElementAnnotation> resynthesized,
