@@ -179,8 +179,22 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
         case SendStructureKind.NOT_EQUALS:
           return computeInvokeName('==');
         case SendStructureKind.INVOKE:
-          String dynamicName = getDynamicName();
-          if (dynamicName != null) return computeInvokeName(dynamicName);
+          switch (sendStructure.semantics.kind) {
+            case AccessKind.LOCAL_VARIABLE:
+            case AccessKind.FINAL_LOCAL_VARIABLE:
+            case AccessKind.PARAMETER:
+            case AccessKind.FINAL_PARAMETER:
+              if (id.kind == IdKind.invoke) {
+                return computeInvokeName('call');
+              } else if (id.kind == IdKind.node) {
+                String dynamicName = getDynamicName();
+                if (dynamicName != null) return computeGetName(dynamicName);
+              }
+              break;
+            default:
+              String dynamicName = getDynamicName();
+              if (dynamicName != null) return computeInvokeName(dynamicName);
+          }
           break;
         case SendStructureKind.SET:
           String dynamicName = getDynamicName();
@@ -248,7 +262,14 @@ class IrComputer extends IrDataExtractor with ComputerMixin {
     } else if (node is ir.FunctionExpression) {
       return computeLocalName('');
     } else if (node is ir.MethodInvocation) {
-      return computeInvokeName(node.name.name);
+      ir.TreeNode receiver = node.receiver;
+      if (receiver is ir.VariableGet &&
+          receiver.variable.parent is ir.FunctionDeclaration) {
+        // This is an invocation of a named local function.
+        return computeInvokeName(receiver.variable.name);
+      } else {
+        return computeInvokeName(node.name.name);
+      }
     } else if (node is ir.PropertyGet) {
       return computeGetName(node.name.name);
     } else if (node is ir.PropertySet) {

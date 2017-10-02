@@ -302,7 +302,7 @@ class LocalsHandler<T> {
   TypeInformation use(Local local) {
     assert(!(local is LocalElement && !local.isImplementation));
     if (capturedAndBoxed.containsKey(local)) {
-      FieldElement field = capturedAndBoxed[local];
+      FieldEntity field = capturedAndBoxed[local];
       return inferrer.typeOfMember(field);
     } else {
       return locals[local];

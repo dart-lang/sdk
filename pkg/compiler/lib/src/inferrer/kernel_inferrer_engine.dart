@@ -188,7 +188,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
         }
         break;
       case MemberKind.closureCall:
-        ir.Member node = definition.node;
+        ir.TreeNode node = definition.node;
         if (node is ir.FunctionDeclaration) {
           return node.function;
         } else if (node is ir.FunctionExpression) {

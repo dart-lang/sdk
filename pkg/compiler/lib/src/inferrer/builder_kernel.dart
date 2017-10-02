@@ -398,7 +398,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitVariableGet(ir.VariableGet node) {
-    return _locals.use(_localsMap.getLocalVariable(node.variable));
+    Local local = _localsMap.getLocalVariable(node.variable);
+    TypeInformation type = _locals.use(local);
+    assert(type != null, "Missing type information for $local.");
+    return type;
   }
 
   @override
@@ -427,11 +430,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitMethodInvocation(ir.MethodInvocation node) {
-    TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
 
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
+
+    ir.TreeNode receiver = node.receiver;
+    if (receiver is ir.VariableGet &&
+        receiver.variable.parent is ir.FunctionDeclaration) {
+      // This is an invocation of a named local function.
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(receiver.variable.parent);
+      return handleStaticInvoke(
+          node, selector, mask, info.callMethod, arguments);
+    }
+
+    TypeInformation receiverType = visit(receiver);
     if (selector.name == '==') {
       if (_types.isNull(receiverType)) {
         // null == o
@@ -862,7 +876,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  visitConditionalExpression(ir.ConditionalExpression node) {
+  TypeInformation visitConditionalExpression(ir.ConditionalExpression node) {
     List<IsCheck> positiveTests = <IsCheck>[];
     List<IsCheck> negativeTests = <IsCheck>[];
     bool simpleCondition =
@@ -878,6 +892,54 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     saved.mergeDiamondFlow(thenLocals, _locals);
     _locals = saved;
     return _types.allocateDiamondPhi(firstType, secondType);
+  }
+
+  TypeInformation handleLocalFunction(
+      ir.TreeNode node, ir.FunctionNode functionNode,
+      [ir.VariableDeclaration variable]) {
+    ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
+    TypeInformation localFunctionType =
+        _inferrer.concreteTypes.putIfAbsent(node, () {
+      return _types.allocateClosure(info.callMethod);
+    });
+    if (variable != null) {
+      Local local = _localsMap.getLocalVariable(variable);
+      DartType type = _localsMap.getLocalType(_elementMap, local);
+      _locals.update(local, localFunctionType, node, type);
+    }
+
+    // TODO(redemption): Track exposure of `this`.
+
+    // We don't put the closure in the work queue of the
+    // inferrer, because it will share information with its enclosing
+    // method, like for example the types of local variables.
+    LocalsHandler closureLocals =
+        new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
+    KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
+        _options,
+        _closedWorld,
+        _closureDataLookup,
+        _inferrer,
+        info.callMethod,
+        functionNode,
+        _elementMap,
+        _localsMap,
+        closureLocals);
+    visitor.run();
+    _inferrer.recordReturnType(info.callMethod, visitor._returnType);
+
+    // TODO(redemption): Handle captured variables.
+    return localFunctionType;
+  }
+
+  @override
+  TypeInformation visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    return handleLocalFunction(node, node.function, node.variable);
+  }
+
+  @override
+  TypeInformation visitFunctionExpression(ir.FunctionExpression node) {
+    return handleLocalFunction(node, node.function);
   }
 }
 
