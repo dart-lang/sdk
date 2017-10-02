@@ -367,6 +367,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           break;
         case SendStructureKind.INVOKE:
         case SendStructureKind.BINARY:
+        case SendStructureKind.UNARY:
         case SendStructureKind.EQUALS:
         case SendStructureKind.NOT_EQUALS:
           ast.Node position =

@@ -239,9 +239,6 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralSymbol(ast.LiteralSymbol node) {
-    // TODO(kasperl): We should be able to tell that the type of a literal
-    // symbol is always a non-null exact symbol implementation -- not just
-    // any non-null subtype of the symbol interface.
     return types
         .nonNullSubtype(closedWorld.commonElements.symbolImplementationClass);
   }
@@ -2543,7 +2540,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       native.NativeBehavior nativeBehavior = elements.getNativeData(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == 'JS_OPERATOR_AS_PREFIX' || name == 'JS_STRING_CONCAT') {
+    } else if (name == JavaScriptBackend.JS_STRING_CONCAT) {
       return types.stringType;
     } else {
       sideEffects.setAllSideEffects();

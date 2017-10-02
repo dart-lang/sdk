@@ -11,7 +11,9 @@ import '../constants/constant_system.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
+import '../js_backend/backend.dart';
 import '../kernel/element_map.dart';
+import '../native/behavior.dart';
 import '../options.dart';
 import '../types/constants.dart';
 import '../types/types.dart';
@@ -370,6 +372,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitSymbolLiteral(ir.SymbolLiteral node) {
+    return _types
+        .nonNullSubtype(_closedWorld.commonElements.symbolImplementationClass);
+  }
+
+  @override
+  TypeInformation visitTypeLiteral(ir.TypeLiteral node) {
+    return _types.typeType;
+  }
+
+  @override
   TypeInformation visitVariableDeclaration(ir.VariableDeclaration node) {
     assert(
         node.parent is! ir.FunctionNode, "Unexpected parameter declaration.");
@@ -593,14 +606,46 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         element, arguments, _sideEffects, inLoop);
   }
 
+  TypeInformation handleForeignInvoke(
+      ir.StaticInvocation node,
+      FunctionEntity function,
+      ArgumentsTypes arguments,
+      Selector selector,
+      TypeMask mask) {
+    String name = function.name;
+    handleStaticInvoke(node, selector, mask, function, arguments);
+    if (name == JavaScriptBackend.JS) {
+      NativeBehavior nativeBehavior =
+          _elementMap.getNativeBehaviorForJsCall(node);
+      _sideEffects.add(nativeBehavior.sideEffects);
+      return _inferrer.typeOfNativeBehavior(nativeBehavior);
+    } else if (name == JavaScriptBackend.JS_EMBEDDED_GLOBAL) {
+      NativeBehavior nativeBehavior =
+          _elementMap.getNativeBehaviorForJsEmbeddedGlobalCall(node);
+      _sideEffects.add(nativeBehavior.sideEffects);
+      return _inferrer.typeOfNativeBehavior(nativeBehavior);
+    } else if (name == JavaScriptBackend.JS_BUILTIN) {
+      NativeBehavior nativeBehavior =
+          _elementMap.getNativeBehaviorForJsBuiltinCall(node);
+      _sideEffects.add(nativeBehavior.sideEffects);
+      return _inferrer.typeOfNativeBehavior(nativeBehavior);
+    } else if (name == JavaScriptBackend.JS_STRING_CONCAT) {
+      return _types.stringType;
+    } else {
+      _sideEffects.setAllSideEffects();
+      return _types.dynamicType;
+    }
+  }
+
   @override
   TypeInformation visitStaticInvocation(ir.StaticInvocation node) {
     MemberEntity member = _elementMap.getMember(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    // TODO(redemption): Handle foreign functions.
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
-    if (member.isConstructor) {
+    if (_closedWorld.commonElements.isForeign(member)) {
+      return handleForeignInvoke(node, member, arguments, selector, mask);
+    } else if (member.isConstructor) {
       return handleConstructorInvoke(node, selector, mask, member, arguments);
     } else if (member.isFunction) {
       return handleStaticInvoke(node, selector, mask, member, arguments);

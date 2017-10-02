@@ -172,6 +172,7 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
           if (dynamicName != null) return computeGetName(dynamicName);
           break;
         case SendStructureKind.BINARY:
+        case SendStructureKind.UNARY:
           return computeInvokeName(sendStructure.operator.selectorName);
         case SendStructureKind.EQUALS:
           return computeInvokeName('==');

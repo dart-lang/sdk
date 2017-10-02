@@ -312,6 +312,7 @@ class JavaScriptBackend {
   static const String JS_BUILTIN = 'JS_BUILTIN';
   static const String JS_EMBEDDED_GLOBAL = 'JS_EMBEDDED_GLOBAL';
   static const String JS_INTERCEPTOR_CONSTANT = 'JS_INTERCEPTOR_CONSTANT';
+  static const String JS_STRING_CONCAT = 'JS_STRING_CONCAT';
 
   final Compiler compiler;
 
