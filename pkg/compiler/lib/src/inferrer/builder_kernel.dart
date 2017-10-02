@@ -860,6 +860,25 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         "Unexpected logical operator '${node.operator}'.");
     return null;
   }
+
+  @override
+  visitConditionalExpression(ir.ConditionalExpression node) {
+    List<IsCheck> positiveTests = <IsCheck>[];
+    List<IsCheck> negativeTests = <IsCheck>[];
+    bool simpleCondition =
+        handleCondition(node.condition, positiveTests, negativeTests);
+    LocalsHandler saved = _locals;
+    _locals = new LocalsHandler.from(_locals, node);
+    _updateIsChecks(positiveTests, negativeTests);
+    TypeInformation firstType = visit(node.then);
+    LocalsHandler thenLocals = _locals;
+    _locals = new LocalsHandler.from(saved, node);
+    if (simpleCondition) _updateIsChecks(negativeTests, positiveTests);
+    TypeInformation secondType = visit(node.otherwise);
+    saved.mergeDiamondFlow(thenLocals, _locals);
+    _locals = saved;
+    return _types.allocateDiamondPhi(firstType, secondType);
+  }
 }
 
 class IsCheck {
