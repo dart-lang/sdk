@@ -941,6 +941,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitFunctionExpression(ir.FunctionExpression node) {
     return handleLocalFunction(node, node.function);
   }
+
+  @override
+  visitWhileStatement(ir.WhileStatement node) {
+    return handleLoop(node, _localsMap.getJumpTargetForWhile(node), () {
+      List<IsCheck> positiveTests = <IsCheck>[];
+      List<IsCheck> negativeTests = <IsCheck>[];
+      handleCondition(node.condition, positiveTests, negativeTests);
+      _updateIsChecks(positiveTests, negativeTests);
+      visit(node.body);
+    });
+  }
 }
 
 class IsCheck {
