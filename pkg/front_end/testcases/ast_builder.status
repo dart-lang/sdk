@@ -435,7 +435,6 @@ regress/issue_29978: Crash
 regress/issue_29979: Crash
 regress/issue_29981: Crash
 regress/issue_29984: Crash
-regress/issue_29985: Crash
 reorder_super: Crash
 runtime_checks/call_kinds: Crash
 runtime_checks/call_kinds_get: Crash

@@ -50,8 +50,7 @@ import '../fasta_codes.dart'
         templateIllegalMixin,
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
-        templateInternalProblemUriMissingScheme,
-        templateUnspecified;
+        templateInternalProblemUriMissingScheme;
 
 import '../kernel/kernel_shadow_ast.dart'
     show ShadowClass, ShadowTypeInferenceEngine;
@@ -140,7 +139,7 @@ class SourceLoader<L> extends Loader<L> {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
         library.addCompileTimeError(
-            templateUnspecified.withArguments(error.assertionMessage),
+            error.assertionMessage,
             token.charOffset,
             uri);
       }

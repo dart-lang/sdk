@@ -3928,7 +3928,7 @@ class Message {
   static String convertToString(value) {
     if (value is ErrorToken) {
       // Shouldn't happen.
-      return value.assertionMessage;
+      return value.assertionMessage.message;
     } else if (value is Token) {
       value = value.lexeme;
     } else if (value is ConstantExpression) {

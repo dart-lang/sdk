@@ -95,7 +95,6 @@ regress/issue_29976: RuntimeError
 regress/issue_29982: RuntimeError
 regress/issue_29983: Crash # Issue 29983.
 regress/issue_29984: Crash # Issue 29984.
-regress/issue_29985: Crash # Issue 29985.
 
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.

@@ -382,6 +382,7 @@ abstract class ScannerTest_Fasta_Base {
 
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as fasta.UnterminatedString).start, '"');
   }
 
   void test_string_simple_unterminated_interpolation_block2() {
@@ -438,6 +439,7 @@ abstract class ScannerTest_Fasta_Base {
 
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as fasta.UnterminatedString).start, '"');
   }
 
   void test_string_simple_missing_interpolation_identifier() {
@@ -454,13 +456,13 @@ abstract class ScannerTest_Fasta_Base {
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode,
         same(codeUnexpectedDollarInString));
-    expect((token as fasta.UnterminatedToken).start, r'$');
 
     token = token.next;
     expectToken(token, TokenType.STRING, 6, 0, isSynthetic: true, lexeme: '"');
 
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as fasta.UnterminatedString).start, '"');
   }
 
   void test_string_multi_unterminated() {
@@ -470,7 +472,7 @@ abstract class ScannerTest_Fasta_Base {
 
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.ErrorToken).start, "'''");
+    expect((token as fasta.UnterminatedString).start, "'''");
   }
 
   void test_string_raw_multi_unterminated() {
@@ -480,7 +482,7 @@ abstract class ScannerTest_Fasta_Base {
 
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.ErrorToken).start, "r'''");
+    expect((token as fasta.UnterminatedString).start, "r'''");
   }
 
   void test_string_raw_simple_unterminated_eof() {
@@ -490,7 +492,7 @@ abstract class ScannerTest_Fasta_Base {
 
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.ErrorToken).start, "r'");
+    expect((token as fasta.UnterminatedString).start, "r'");
   }
 
   void test_string_raw_simple_unterminated_eol() {
@@ -500,7 +502,7 @@ abstract class ScannerTest_Fasta_Base {
 
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.ErrorToken).start, "r'");
+    expect((token as fasta.UnterminatedString).start, "r'");
   }
 
   void test_string_simple_unterminated_eof() {
@@ -510,7 +512,7 @@ abstract class ScannerTest_Fasta_Base {
 
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.ErrorToken).start, "'");
+    expect((token as fasta.UnterminatedString).start, "'");
   }
 
   void test_string_simple_unterminated_eol() {
@@ -520,7 +522,7 @@ abstract class ScannerTest_Fasta_Base {
 
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.ErrorToken).start, "'");
+    expect((token as fasta.UnterminatedString).start, "'");
   }
 
   void test_match_angle_brackets() {

@@ -88,7 +88,8 @@ const Code<Message Function(int codePoint)> codeAsciiControlCharacter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAsciiControlCharacter(int codePoint) {
-  String unicode = "(U+${codePoint.toRadixString(16).padLeft(4, '0')})";
+  String unicode =
+      "U+${codePoint.toRadixString(16).toUpperCase().padLeft(4, '0')}";
   return new Message(codeAsciiControlCharacter,
       message:
           """The control character $unicode can only be used in strings and comments.""",
@@ -2231,7 +2232,8 @@ const Code<Message Function(String character, int codePoint)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonAsciiIdentifier(String character, int codePoint) {
-  String unicode = "(U+${codePoint.toRadixString(16).padLeft(4, '0')})";
+  String unicode =
+      "U+${codePoint.toRadixString(16).toUpperCase().padLeft(4, '0')}";
   return new Message(codeNonAsciiIdentifier,
       message:
           """The non-ASCII character '$character' ($unicode) can't be used in identifiers, only in strings and comments.""",
@@ -2257,7 +2259,8 @@ const Code<Message Function(int codePoint)> codeNonAsciiWhitespace =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonAsciiWhitespace(int codePoint) {
-  String unicode = "(U+${codePoint.toRadixString(16).padLeft(4, '0')})";
+  String unicode =
+      "U+${codePoint.toRadixString(16).toUpperCase().padLeft(4, '0')}";
   return new Message(codeNonAsciiWhitespace,
       message:
           """The non-ASCII space character $unicode can only be used in strings and comments.""",
@@ -3360,23 +3363,26 @@ const MessageCode messageUnterminatedComment = const MessageCode(
     message: r"""Comment starting with '/*' must end with '*/'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateUnterminatedString =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""String must end with #string.""",
+const Template<Message Function(String string, String string2)>
+    templateUnterminatedString =
+    const Template<Message Function(String string, String string2)>(
+        messageTemplate:
+            r"""String starting with #string must end with #string2.""",
         withArguments: _withArgumentsUnterminatedString);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeUnterminatedString =
-    const Code<Message Function(String string)>(
+const Code<Message Function(String string, String string2)>
+    codeUnterminatedString =
+    const Code<Message Function(String string, String string2)>(
         "UnterminatedString", templateUnterminatedString,
         analyzerCode: "UNTERMINATED_STRING_LITERAL",
         dart2jsCode: "UNTERMINATED_STRING");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnterminatedString(String string) {
+Message _withArgumentsUnterminatedString(String string, String string2) {
   return new Message(codeUnterminatedString,
-      message: """String must end with $string.""",
-      arguments: {'string': string});
+      message: """String starting with $string must end with $string2.""",
+      arguments: {'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

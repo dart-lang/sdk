@@ -6,7 +6,7 @@ library fasta.parser.parser;
 
 import 'package:front_end/src/fasta/parser/directive_context.dart';
 
-import '../fasta_codes.dart' show Code, Message, Template;
+import '../fasta_codes.dart' show Message, Template;
 
 import '../fasta_codes.dart' as fasta;
 
@@ -4414,29 +4414,7 @@ class Parser {
   }
 
   Token reportErrorToken(ErrorToken token, bool isRecoverable) {
-    Code code = token.errorCode;
-    Message message;
-    if (code == fasta.codeAsciiControlCharacter) {
-      message =
-          fasta.templateAsciiControlCharacter.withArguments(token.character);
-    } else if (code == fasta.codeNonAsciiWhitespace) {
-      message = fasta.templateNonAsciiWhitespace.withArguments(token.character);
-    } else if (code == fasta.codeEncoding) {
-      message = fasta.messageEncoding;
-    } else if (code == fasta.codeNonAsciiIdentifier) {
-      message = fasta.templateNonAsciiIdentifier.withArguments(
-          new String.fromCharCodes([token.character]), token.character);
-    } else if (code == fasta.codeUnterminatedString) {
-      message = fasta.templateUnterminatedString.withArguments(token.start);
-    } else if (code == fasta.codeUnmatchedToken) {
-      Token begin = token.begin;
-      message = fasta.templateUnmatchedToken
-          .withArguments(closeBraceFor(begin.lexeme), begin);
-    } else if (code == fasta.codeUnspecified) {
-      message = fasta.templateUnspecified.withArguments(token.assertionMessage);
-    } else {
-      message = code as Message;
-    }
+    Message message = token.assertionMessage;
     if (isRecoverable) {
       listener.handleRecoverableError(token, message);
       return null;

@@ -364,7 +364,7 @@ UnterminatedComment:
     /*
 
 UnterminatedString:
-  template: "String must end with #string."
+  template: "String starting with #string must end with #string2."
   analyzerCode: UNTERMINATED_STRING_LITERAL
   dart2jsCode: UNTERMINATED_STRING
   script:
