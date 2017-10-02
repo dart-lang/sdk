@@ -169,3 +169,7 @@ html/js_typed_interop_default_arg_test/none: CompileTimeError
 html/js_typed_interop_side_cast_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_side_cast_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_test: CompileTimeError
+
+[ $compiler == dart2js && $runtime == drt ]
+html/js_typed_interop_rename_static_test: RuntimeError
+html/js_typed_interop_lazy_test/none: RuntimeError
