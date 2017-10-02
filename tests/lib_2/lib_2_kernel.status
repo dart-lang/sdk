@@ -222,6 +222,7 @@ html/js_typed_interop_default_arg_test/none: DartkCompileTimeError
 html/js_typed_interop_lazy_test: DartkCompileTimeError
 html/js_typed_interop_rename_static_test: DartkCompileTimeError
 html/js_typed_interop_test: DartkCompileTimeError
+html/js_util_test: DartkCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash

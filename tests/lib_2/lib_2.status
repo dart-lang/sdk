@@ -125,6 +125,7 @@ html/canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Ple
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 html/custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
+html/js_util_test/callConstructor: RuntimeError # Issue 26978
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
