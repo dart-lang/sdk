@@ -416,7 +416,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
 
     // Now, propagate formal safety from overrides.
-    new CovariancePropagator(classHierarchy, cls, instrumentation).run();
+    new CovariancePropagator(classHierarchy, cls).run();
   }
 
   /// Creates an [AccessorNode] to track dependencies of the given [member].

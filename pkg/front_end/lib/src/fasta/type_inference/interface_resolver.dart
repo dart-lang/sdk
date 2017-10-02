@@ -472,6 +472,14 @@ class InterfaceResolver {
     }
   }
 
+  /// If instrumentation is enabled, records the covariance bits for the given
+  /// [class_] to [_instrumentation].
+  void recordInstrumentation(Class class_) {
+    if (_instrumentation != null) {
+      _recordInstrumentation(class_);
+    }
+  }
+
   /// Retrieves a list of the interface members of the given [class_].
   ///
   /// If [setters] is true, setters are retrieved; otherwise getters and methods
@@ -522,6 +530,51 @@ class InterfaceResolver {
     }
     result.length = storeIndex;
     return result;
+  }
+
+  /// Records the covariance bits for the given [class_] to [_instrumentation].
+  ///
+  /// Caller is responsible for checking whether [_instrumentation] is `null`.
+  void _recordInstrumentation(Class class_) {
+    var uri = Uri.parse(class_.fileUri);
+    void recordCovariance(int fileOffset, bool isExplicitlyCovariant,
+        bool isGenericCovariantInterface, bool isGenericCovariantImpl) {
+      var covariance = <String>[];
+      if (isExplicitlyCovariant) covariance.add('explicit');
+      if (isGenericCovariantInterface) covariance.add('genericInterface');
+      if (!isExplicitlyCovariant && isGenericCovariantImpl) {
+        covariance.add('genericImpl');
+      }
+      if (covariance.isNotEmpty) {
+        _instrumentation.record(uri, fileOffset, 'covariance',
+            new InstrumentationValueLiteral(covariance.join(', ')));
+      }
+    }
+
+    for (var procedure in class_.procedures) {
+      if (procedure.isStatic) continue;
+      void recordFormalAnnotations(VariableDeclaration formal) {
+        recordCovariance(formal.fileOffset, formal.isCovariant,
+            formal.isGenericCovariantInterface, formal.isGenericCovariantImpl);
+      }
+
+      void recordTypeParameterAnnotations(TypeParameter typeParameter) {
+        recordCovariance(
+            typeParameter.fileOffset,
+            false,
+            typeParameter.isGenericCovariantInterface,
+            typeParameter.isGenericCovariantImpl);
+      }
+
+      procedure.function.positionalParameters.forEach(recordFormalAnnotations);
+      procedure.function.namedParameters.forEach(recordFormalAnnotations);
+      procedure.function.typeParameters.forEach(recordTypeParameterAnnotations);
+    }
+    for (var field in class_.fields) {
+      if (field.isStatic) continue;
+      recordCovariance(field.fileOffset, field.isCovariant,
+          field.isGenericCovariantInterface, field.isGenericCovariantImpl);
+    }
   }
 
   /// Transforms [member] into a candidate for interface inheritance.

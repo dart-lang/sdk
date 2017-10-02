@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/problems.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:kernel/ast.dart';
@@ -16,18 +15,13 @@ import 'package:kernel/class_hierarchy.dart';
 class CovariancePropagator {
   final ClassHierarchy _classHierarchy;
   final Class _class;
-  final Instrumentation _instrumentation;
 
-  CovariancePropagator(
-      this._classHierarchy, this._class, this._instrumentation);
+  CovariancePropagator(this._classHierarchy, this._class);
 
   /// Runs the full covariance propagation algorithm for [_class].
   void run() {
     _walkCovarianceTargetPairs();
     // TODO(paulberry): create forwarding stubs
-    if (_instrumentation != null) {
-      _recordInstrumentation();
-    }
   }
 
   /// Handles a single pair of [_CovarianceTarget]s.
@@ -54,51 +48,6 @@ class CovariancePropagator {
     }
     if (interfaceTarget.isGenericCovariantImpl) {
       declaredTarget.makeGenericCovariantImpl();
-    }
-  }
-
-  /// Records the covariance bits for the entire class to [_instrumentation].
-  ///
-  /// Caller is responsible for checking whether [_instrumentation] is `null`.
-  void _recordInstrumentation() {
-    var uri = Uri.parse(_class.fileUri);
-    void recordCovariance(int fileOffset, bool isExplicitlyCovariant,
-        bool isGenericCovariantInterface, bool isGenericCovariantImpl) {
-      var covariance = <String>[];
-      if (isExplicitlyCovariant) covariance.add('explicit');
-      if (isGenericCovariantInterface) covariance.add('genericInterface');
-      if (!isExplicitlyCovariant && isGenericCovariantImpl) {
-        covariance.add('genericImpl');
-      }
-      if (covariance.isNotEmpty) {
-        _instrumentation.record(uri, fileOffset, 'covariance',
-            new InstrumentationValueLiteral(covariance.join(', ')));
-      }
-    }
-
-    for (var procedure in _class.procedures) {
-      if (procedure.isStatic) continue;
-      void recordFormalAnnotations(VariableDeclaration formal) {
-        recordCovariance(formal.fileOffset, formal.isCovariant,
-            formal.isGenericCovariantInterface, formal.isGenericCovariantImpl);
-      }
-
-      void recordTypeParameterAnnotations(TypeParameter typeParameter) {
-        recordCovariance(
-            typeParameter.fileOffset,
-            false,
-            typeParameter.isGenericCovariantInterface,
-            typeParameter.isGenericCovariantImpl);
-      }
-
-      procedure.function.positionalParameters.forEach(recordFormalAnnotations);
-      procedure.function.namedParameters.forEach(recordFormalAnnotations);
-      procedure.function.typeParameters.forEach(recordTypeParameterAnnotations);
-    }
-    for (var field in _class.fields) {
-      if (field.isStatic) continue;
-      recordCovariance(field.fileOffset, field.isCovariant,
-          field.isGenericCovariantInterface, field.isGenericCovariantImpl);
     }
   }
 

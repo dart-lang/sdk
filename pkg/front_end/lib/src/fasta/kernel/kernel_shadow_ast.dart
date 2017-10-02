@@ -354,6 +354,7 @@ class ShadowClass extends Class {
         this, _inferenceInfo.forwardingNodesForGettersAndMethods);
     interfaceResolver.finalizeCovariance(
         this, _inferenceInfo.forwardingNodesForSetters);
+    interfaceResolver.recordInstrumentation(this);
   }
 }
 
