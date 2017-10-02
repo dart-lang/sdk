@@ -12,6 +12,7 @@ DeltaBlue: Fail # Fasta and dartk disagree on static initializers
 bug30695: RuntimeError
 call: Fail # Test can't run.
 fallthrough: Fail # Missing FallThroughError.
+function_type_recovery: Fail
 invocations: Fail
 micro: Fail # External method marked abstract.
 named_parameters: Fail # Missing types and unnecessary default values.
@@ -102,4 +103,3 @@ rasta/export: RuntimeError # Expected, this file has no main method.
 rasta/foo: RuntimeError # Expected, this file has no main method.
 
 incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
-function_type_recovery: Pass, Fail # Passes locally and fails on build bot.
