@@ -478,8 +478,7 @@ addTypeTests(ctor, isClass) {
   JS(
       '',
       '''#.is = function is_C(obj) {
-    if (obj != null && obj[#]) return true;
-    return #(obj, this);
+    return obj != null && (obj[#] || #(obj, this));
   }''',
       ctor,
       isClass,
