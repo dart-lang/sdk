@@ -171,4 +171,20 @@ Proof.
     contradiction.
 Qed.
 
+Lemma maps_mapsto_in :
+  forall A (m : NatMap.t A) key,
+  (exists el, NatMap.MapsTo key el m) ->
+  NatMap.In key m.
+Proof.
+  intros.
+  destruct H as (el & H1).
+  pose proof (NatMapFacts.find_mapsto_iff m key el).
+  unfold iff in H. destruct H as [H2 H3].
+  pose proof (H2 H1).
+  assert (Some el <> None). discriminate.
+  rewrite <- H in H0.
+  apply NatMapFacts.in_find_iff in H0.
+  auto.
+Qed.
+
 End MoreNatMapFacts.

@@ -13,22 +13,6 @@ Require Import OperationalSemantics.
 Import Common.NatMapFacts.
 Import Common.MoreNatMapFacts.
 
-Lemma maps_mapsto_in :
-  forall A (m : NatMap.t A) key,
-  (exists el, NatMap.MapsTo key el m) ->
-  NatMap.In key m.
-Proof.
-  intros.
-  destruct H as (el & H1).
-  pose proof (NatMapFacts.find_mapsto_iff m key el).
-  unfold iff in H. destruct H as [H2 H3].
-  pose proof (H2 H1).
-  assert (Some el <> None). discriminate.
-  rewrite <- H in H0.
-  apply NatMapFacts.in_find_iff in H0.
-  auto.
-Qed.
-
 
 Section OperationalSemanticsSpec.
 
@@ -106,8 +90,8 @@ Proof.
   rewrite H in H0.
   pose proof (List.in_inv H0).
   destruct H4.
-    rewrite <- H4. simpl. apply maps_in_mapsto.
-      apply maps_mapsto_in. exists (M_Procedure proc).
+    rewrite <- H4. simpl. apply MoreNatMapFacts.maps_in_mapsto.
+      apply MoreNatMapFacts.maps_mapsto_in. exists (M_Procedure proc).
       auto.
     pose proof (List.in_nil H4). contradiction.
 
@@ -147,7 +131,7 @@ Proof.
   constructor.
 
   (* Case 4. Eval Constructor Invocation. *)
-  pose proof (maps_in_mapsto interface CE class_id H).
+  pose proof (MoreNatMapFacts.maps_in_mapsto interface CE class_id H).
   destruct H0 as (intf & H1).
   set (type := DT_Interface_Type (Interface_Type class_id)).
   set (new_val := mk_runtime_value (Some type)).
@@ -205,7 +189,7 @@ Proof.
   pose proof (runtime_value_interface_procedures_wf
       rcvr_val rcvr_intf rcvr_type_opt proc_desc H).
   pose proof (H2 H0).
-  apply maps_in_mapsto in H3. destruct H3 as (el & H4).
+  apply MoreNatMapFacts.maps_in_mapsto in H3. destruct H3 as (el & H4).
   destruct el eqn:?. destruct p. destruct f eqn:?.
   destruct v eqn:?.
   set (env' := env_extend n0 arg_val empty_env).
@@ -237,7 +221,7 @@ Proof.
       constructor 2 with (get_desc := get_desc).
       auto.
       rewrite Heqd. constructor.
-    pose proof (maps_in_mapsto interface CE n H2).
+    pose proof (MoreNatMapFacts.maps_in_mapsto interface CE n H2).
     destruct H3 as (el & H4).
     set (ret_type := DT_Interface_Type (Interface_Type n)).
     set (ret_intf := el).
