@@ -157,6 +157,7 @@ generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_field_mixin6_test/01: MissingCompileTimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError, OK # No type inference
 generic_function_typedef_test/01: RuntimeError
 generic_function_typedef2_test/04: MissingCompileTimeError
 generic_instanceof_test: RuntimeError

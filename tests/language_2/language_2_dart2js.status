@@ -133,6 +133,9 @@ generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_field_mixin6_test/01: MissingCompileTimeError
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30930
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30930
+generic_function_type_as_type_argument_test/03: CompileTimeError # Issue 30930
 generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: CompileTimeError
 generic_function_typedef2_test/04: MissingCompileTimeError
