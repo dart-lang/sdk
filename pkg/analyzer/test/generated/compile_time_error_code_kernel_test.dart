@@ -164,48 +164,56 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateConstructorName_named() async {
     return super.test_duplicateConstructorName_named();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateConstructorName_unnamed() async {
     return super.test_duplicateConstructorName_unnamed();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateDefinition_acrossLibraries() async {
     return super.test_duplicateDefinition_acrossLibraries();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateDefinition_classMembers_fields() async {
     return super.test_duplicateDefinition_classMembers_fields();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateDefinition_classMembers_fields_oneStatic() async {
     return super.test_duplicateDefinition_classMembers_fields_oneStatic();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateDefinition_classMembers_methods() async {
     return super.test_duplicateDefinition_classMembers_methods();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateDefinition_inPart() async {
     return super.test_duplicateDefinition_inPart();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30960')
   test_exportOfNonLibrary() async {
     return super.test_exportOfNonLibrary();
   }
@@ -250,6 +258,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   test_importOfNonLibrary() async {
     return super.test_importOfNonLibrary();
   }
@@ -688,4 +697,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_uriWithInterpolation_nonConstant() async {
     return super.test_uriWithInterpolation_nonConstant();
   }
+}
+
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
 }

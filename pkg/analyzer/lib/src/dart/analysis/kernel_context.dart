@@ -27,6 +27,7 @@ import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/ast.dart' as kernel;
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/text/ast_to_text.dart' as kernel;
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as pathos;
@@ -35,6 +36,8 @@ import 'package:path/path.dart' as pathos;
  * Support for resynthesizing element model from Kernel.
  */
 class KernelContext {
+  static const DEBUG = false;
+
   /**
    * The [AnalysisContext] which is used to do the analysis.
    */
@@ -139,6 +142,11 @@ class KernelContext {
         }
       }
 
+      if (DEBUG) {
+        var libraryKernel = libraryMap[targetLibrary.uriStr];
+        print(_getLibraryText(libraryKernel));
+      }
+
       // Create and configure a new context.
       AnalysisContextImpl analysisContext =
           AnalysisEngine.instance.createAnalysisContext();
@@ -153,6 +161,13 @@ class KernelContext {
 
       return new KernelContext._(analysisContext, resynthesizer);
     });
+  }
+
+  static String _getLibraryText(kernel.Library library) {
+    StringBuffer buffer = new StringBuffer();
+    new kernel.Printer(buffer, syntheticNames: new kernel.NameSystem())
+        .writeLibraryFile(library);
+    return buffer.toString();
   }
 }
 
