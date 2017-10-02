@@ -11,7 +11,7 @@ import 'package:async_helper/async_helper.dart';
 
 import 'package:expect/expect.dart';
 
-import 'package:front_end/src/tool/compile_platform.dart' show compilePlatform;
+import 'compile_platform.dart' show compilePlatform;
 
 main(List<String> arguments) async {
   await asyncTest(() async {

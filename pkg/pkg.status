@@ -61,6 +61,7 @@ analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
 
 [ $runtime != vm || $mode != release || $system == windows ]
 front_end/test/fasta/*: Skip
+front_end/tool/_fasta/*: Skip
 kernel/test/closures_test: Skip
 
 # Don't analyze tests in strong mode yet
@@ -99,6 +100,7 @@ front_end/test/src/incremental/hot_reload_e2e_test: Pass, RuntimeError # Please 
 
 [ $runtime == vm && $use_sdk ]
 front_end/test/fasta/*: Skip # Issue 28629
+front_end/tool/_fasta/*: Skip # Issue 28629
 compiler/tool/generate_kernel_test*: Skip # Issue 28629
 front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 28629
 
