@@ -103,6 +103,12 @@ import 'util.dart' show closeBraceTokenFor, optional;
 /// corresponds to this grammar snippet: `metadata*`, and [parseArgumentsOpt]
 /// corresponds to: `arguments?`.
 ///
+/// ## Current Token
+///
+/// The current token is always to be found in a formal parameter named
+/// `token`. This parameter should be the first as this increases the chance
+/// that a compiler will place it in a register.
+///
 /// ## Implementation Notes
 ///
 /// The parser assumes that keywords, built-in identifiers, and other special
@@ -147,7 +153,9 @@ import 'util.dart' show closeBraceTokenFor, optional;
 /// in subclasses or listeners. Let's examine how diet parsing and `native`
 /// keyword is currently supported by Fasta.
 ///
-/// #### Implementation of `native` Keyword
+/// #### Legacy Implementation of `native` Keyword
+///
+/// TODO(ahe,danrubel): Remove this section.
 ///
 /// Both dart2js and the Dart VM have used the `native` keyword to mark methods
 /// that couldn't be implemented in the Dart language and needed to be
@@ -187,6 +195,13 @@ import 'util.dart' show closeBraceTokenFor, optional;
 ///     Error: Asynchronous for-loop can only be used in 'async' or 'async*'...
 ///     main() { await for (var x in []) {} }
 ///              ^^^^^
+///
+/// ### Legacy Error Recovery
+///
+/// What's described below will be phased out in preference of the parser
+/// reporting and recovering from syntax errors. The motivation for this is
+/// that we have multiple listeners that use the parser, and this will ensure
+/// consistency.
 ///
 /// For unrecoverable errors, the parser will ask the listener for help to
 /// recover from the error. We haven't made much progress on these kinds of
