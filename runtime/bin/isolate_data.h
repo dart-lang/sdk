@@ -51,7 +51,6 @@ class IsolateData {
   char* script_url;
   char* package_root;
   char* packages_file;
-  uint8_t* udp_receive_buffer;
   void* kernel_program;
 
   void UpdatePackagesFile(const char* packages_file_) {

@@ -16,7 +16,10 @@ namespace dart {
 namespace bin {
 
 Socket::Socket(intptr_t fd)
-    : ReferenceCounted(), fd_(fd), port_(ILLEGAL_PORT) {}
+    : ReferenceCounted(),
+      fd_(fd),
+      port_(ILLEGAL_PORT),
+      udp_receive_buffer_(NULL) {}
 
 void Socket::SetClosedFd() {
   fd_ = kClosedFd;
