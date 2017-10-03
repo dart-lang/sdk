@@ -5655,7 +5655,24 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     SetOffset(before_branch_offset);
   }
 
-  Fragment instructions = BuildExpression();  // read receiver.
+  Fragment instructions;
+  intptr_t type_args_len = 0;
+  if (FLAG_reify_generic_functions) {
+    AlternativeReadingScope alt(reader_);
+    SkipExpression();                         // skip receiver
+    SkipName();                               // skip method name
+    ReadUInt();                               // read argument count.
+    intptr_t list_length = ReadListLength();  // read types list length.
+    if (list_length > 0) {
+      const TypeArguments& type_arguments =
+          T.BuildTypeArguments(list_length);  // read types.
+      instructions += TranslateInstantiatedTypeArguments(type_arguments);
+      instructions += PushArgument();
+    }
+    type_args_len = list_length;
+  }
+
+  instructions += BuildExpression();  // read receiver.
 
   const String& name = ReadNameAsMethodName();  // read name.
   const Token::Kind token_kind =
@@ -5666,6 +5683,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       PeekArgumentsCount() == 1 &&
       (receiver_tag == kNullLiteral ||
        PeekArgumentsFirstPositionalTag() == kNullLiteral)) {
+    ASSERT(type_args_len == 0);
     // "==" or "!=" with null on either side.
     instructions += BuildArguments(NULL, NULL, true);  // read arguments.
     SkipCanonicalNameReference();  // read interface_target_reference.
@@ -5677,13 +5695,11 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
   instructions += PushArgument();  // push receiver as argument.
 
-  // TODO(28109) Support generic methods in the VM or reify them away.
-  const intptr_t kTypeArgsLen = 0;
   Array& argument_names = Array::ZoneHandle(Z);
   intptr_t argument_count;
   instructions +=
       BuildArguments(&argument_names, &argument_count);  // read arguments.
-  ++argument_count;
+  ++argument_count;                                      // include receiver
 
   intptr_t checked_argument_count = 1;
   // If we have a special operation (e.g. +/-/==) we mark both arguments as
@@ -5705,7 +5721,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   instructions +=
-      InstanceCall(position, name, token_kind, kTypeArgsLen, argument_count,
+      InstanceCall(position, name, token_kind, type_args_len, argument_count,
                    argument_names, checked_argument_count, *interface_target);
   // Later optimization passes assume that result of a x.[]=(...) call is not
   // used. We must guarantee this invariant because violation will lead to an
@@ -5725,9 +5741,26 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
 
   ReadFlags();  // read flags.
 
-  // TODO(28109) Support generic methods in the VM or reify them away.
   Tag receiver_tag = PeekTag();               // peek tag for receiver.
-  Fragment instructions = BuildExpression();  // read receiver.
+
+  Fragment instructions;
+  intptr_t type_args_len = 0;
+  if (FLAG_reify_generic_functions) {
+    AlternativeReadingScope alt(reader_);
+    SkipExpression();                         // skip receiver
+    ReadCanonicalNameReference();             // skip target reference
+    ReadUInt();                               // read argument count.
+    intptr_t list_length = ReadListLength();  // read types list length.
+    if (list_length > 0) {
+      const TypeArguments& type_arguments =
+          T.BuildTypeArguments(list_length);  // read types.
+      instructions += TranslateInstantiatedTypeArguments(type_arguments);
+      instructions += PushArgument();
+    }
+    type_args_len = list_length;
+  }
+
+  instructions += BuildExpression();  // read receiver.
 
   NameIndex kernel_name =
       ReadCanonicalNameReference();  // read target_reference.
@@ -5740,6 +5773,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
       PeekArgumentsCount() == 1 &&
       (receiver_tag == kNullLiteral ||
        PeekArgumentsFirstPositionalTag() == kNullLiteral)) {
+    ASSERT(type_args_len == 0);
     // "==" or "!=" with null on either side.
     instructions += BuildArguments(NULL, NULL, true);  // read arguments.
     Token::Kind strict_cmp_kind =
@@ -5758,9 +5792,10 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
   instructions +=
       BuildArguments(&argument_names, &argument_count);  // read arguments.
   ++argument_count;
+  if (type_args_len > 0) ++argument_count;
   return instructions + StaticCall(TokenPosition::kNoSource, target,
                                    argument_count, argument_names,
-                                   ICData::kNoRebind);
+                                   ICData::kNoRebind, type_args_len);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,

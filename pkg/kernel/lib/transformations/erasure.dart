@@ -143,7 +143,7 @@ class Erasure extends Transformer {
     // Type parameters which are defined on a method or top-level function can
     // be used if they're not captured.
     var save = null;
-    if (node.parent.parent is Library) {
+    if (node.parent.parent is Library || node.parent.parent is Class) {
       usableTypeParameters = new Set<TypeParameter>.from(node.typeParameters);
     } else {
       save = usableTypeParameters;
