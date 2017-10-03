@@ -4103,7 +4103,6 @@ LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please tr
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-complete_t01: Skip # Times out sometimes
 LayoutTests/fast/canvas/webgl/texture-npot_t01: Skip # Times out sometimes
-LayoutTests/fast/events/event-fire-order_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/whitespace/nowrap-line-break-after-white-space_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
