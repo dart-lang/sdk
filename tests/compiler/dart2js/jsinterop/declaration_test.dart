@@ -191,6 +191,36 @@ abstract class A {
 
 main() => new B();
 '''),
+  const Test.multi(
+      'Js-interop class that extends a js-interop class from a different '
+      'library.',
+      const {
+        'main.dart': '''
+@JS()
+library test;
+
+import 'package:js/js.dart';
+import 'other.dart';
+
+@JS()
+class B extends A {
+  external method();
+}
+
+main() => new B();
+''',
+        'other.dart': '''
+@JS()
+library other;
+
+import 'package:js/js.dart';
+
+@JS()
+abstract class A {
+  method();
+}
+'''
+      }),
   const Test('Js-interop class that implements a regular class.', '''
 @JS()
 library test;
@@ -382,15 +412,28 @@ void main() {
 
 class Test {
   final String name;
-  final String source;
+  final String _source;
+  final Map<String, String> _sources;
   final List<MessageKind> errors;
   final List<MessageKind> warnings;
   final bool skipForKernel;
 
-  const Test(this.name, this.source,
+  const Test(this.name, this._source,
       {this.errors: const <MessageKind>[],
       this.warnings: const <MessageKind>[],
-      this.skipForKernel: false});
+      this.skipForKernel: false})
+      : _sources = null;
+
+  const Test.multi(this.name, this._sources,
+      {this.errors: const <MessageKind>[],
+      this.warnings: const <MessageKind>[],
+      this.skipForKernel: false})
+      : _source = null;
+
+  String get source => _source != null ? _source : _sources['main.dart'];
+
+  Map<String, String> get sources =>
+      _source != null ? {'main.dart': _source} : _sources;
 }
 
 runTest(Test test) async {
@@ -412,7 +455,7 @@ runTestInternal(Test test, {bool useKernel}) async {
   await runCompiler(
       diagnosticHandler: collector,
       options: options,
-      memorySourceFiles: {'main.dart': test.source});
+      memorySourceFiles: test.sources);
   Expect.equals(
       test.errors.length, collector.errors.length, 'Unexpected error count.');
   Expect.equals(test.warnings.length, collector.warnings.length,
