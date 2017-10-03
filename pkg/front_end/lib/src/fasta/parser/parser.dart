@@ -458,11 +458,9 @@ class Parser {
       final String value = token.stringValue;
       if (identical(value, 'deferred')) {
         firstDeferredKeyword ??= token;
-      }
-      if (identical(value, 'as')) {
+      } else if (identical(value, 'as')) {
         hasPrefix = true;
-      }
-      if (identical(value, 'show') || identical(value, 'hide')) {
+      } else if (identical(value, 'show') || identical(value, 'hide')) {
         hasCombinator = true;
         if (hasPrefix) {
           token = recoveryStart;
@@ -478,18 +476,8 @@ class Parser {
       Token start = token;
 
       // Check for extraneous token in the middle of an import statement.
-      if (token.keyword == null) {
-        final String nextValue = token.next.stringValue;
-        if (identical(nextValue, 'if') ||
-            identical(nextValue, 'deferred') ||
-            identical(nextValue, 'as') ||
-            identical(nextValue, 'hide') ||
-            identical(nextValue, 'show') ||
-            identical(nextValue, ';')) {
-          reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
-          token = token.next;
-        }
-      }
+      token = skipUnexpectedTokenOpt(
+          token, const <String>['if', 'deferred', 'as', 'hide', 'show', ';']);
 
       // During recovery, clauses are parsed in the same order
       // and generate the same events as in the parseImport method above.
@@ -512,11 +500,10 @@ class Parser {
       token = parseImportPrefixOpt(token, true);
       if (previous != token && optional('deferred', previous)) {
         if (firstDeferredKeyword != null) {
-          reportRecoverableError(
-              firstDeferredKeyword, fasta.messageDuplicateDeferred);
+          reportRecoverableError(previous, fasta.messageDuplicateDeferred);
         } else {
           if (hasPrefix) {
-            reportRecoverableError(token, fasta.messageDeferredAfterPrefix);
+            reportRecoverableError(previous, fasta.messageDeferredAfterPrefix);
           }
           firstDeferredKeyword = previous;
         }
@@ -524,10 +511,11 @@ class Parser {
       }
       if (previous != token) {
         if (hasPrefix) {
-          reportRecoverableError(token, fasta.messageDuplicatePrefix);
+          reportRecoverableError(previous, fasta.messageDuplicatePrefix);
         } else {
           if (hasCombinator) {
-            reportRecoverableError(token, fasta.messagePrefixAfterCombinator);
+            reportRecoverableError(
+                previous, fasta.messagePrefixAfterCombinator);
           }
           hasPrefix = true;
         }
@@ -2419,6 +2407,22 @@ class Parser {
     if (firstToken == null) return reportUnrecoverableError(token, message);
     reportRecoverableError(token, message);
     return rewriter.insertTokenBefore(newToken, token);
+  }
+
+  /// Report the given token as unexpected and return the next token
+  /// if the next token is one of the [expectedNext],
+  /// otherwise just return the given token.
+  Token skipUnexpectedTokenOpt(Token token, List<String> expectedNext) {
+    if (token.keyword == null) {
+      final String nextValue = token.next.stringValue;
+      for (String expectedValue in expectedNext) {
+        if (identical(nextValue, expectedValue)) {
+          reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
+          token = token.next;
+        }
+      }
+    }
+    return token;
   }
 
   Token parseLiteralStringOrRecoverExpression(Token token) {
