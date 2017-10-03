@@ -224,6 +224,18 @@ html/node_validator_important_if_you_suppress_make_the_bug_critical_test: DartkC
 html/non_instantiated_is_test: DartkCompileTimeError
 html/notification_test: DartkCompileTimeError
 html/performance_api_test: DartkCompileTimeError
+html/private_extension_member_test: DartkCompileTimeError
+html/query_test: DartkCompileTimeError
+html/queryall_test: DartkCompileTimeError
+html/range_test: DartkCompileTimeError
+html/request_animation_frame_test: DartkCompileTimeError
+html/rtc_test: DartkCompileTimeError
+html/selectelement_test: DartkCompileTimeError
+html/serialized_script_value_test: DartkCompileTimeError
+html/shadow_dom_test: DartkCompileTimeError
+html/shadowroot_test: DartkCompileTimeError
+html/speechrecognition_test: DartkCompileTimeError
+html/storage_test: DartkCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash

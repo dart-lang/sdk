@@ -30,6 +30,7 @@ html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times
 html/custom_elements_test: Pass, Timeout # Issue 26789
 html/custom_element_method_clash_test: Pass, Timeout # Issue 26789
 html/custom_element_name_clash_test: Pass, Timeout # Issue 26789
+html/request_animation_frame_test: Skip # Times out. Issue 22167
 
 [ $runtime == chrome || $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
@@ -58,6 +59,9 @@ typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlie
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
+html/rtc_test: Fail
+html/shadow_dom_test: Fail
+html/speechrecognition_test: Fail
 
 [ ($runtime == safari && $builder_tag == mac10_7)|| $runtime == safarimobilesim ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
@@ -128,6 +132,13 @@ html/custom/document_register_type_extensions_test/single-parameter: Fail # Issu
 html/js_util_test/callConstructor: RuntimeError # Issue 26978
 html/notification_test: Fail # Notification not supported on IE
 html/postmessage_structured_test: Fail # Does not support the MessageEvent constructor.
+html/request_animation_frame_test: Skip # Times out. Issue 22167
+html/scripts_htmltest: Skip # Times out on IE.  Issue 21537
+html/serialized_script_value_test: Fail
+html/storage_test: Pass, RuntimeError # Issue 22166
+html/rtc_test: Fail
+html/shadow_dom_test: Fail
+html/speechrecognition_test: Fail
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.

@@ -23,6 +23,7 @@ profiler/metrics_num_test: Skip # Because of an int / double type test.
 math/double_pow_test: RuntimeError # Issue 29922
 math/low_test: RuntimeError # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
+html/scripts_htmltest: Skip # Issue 29919
 
 [ $compiler == dartdevc && $runtime != none ]
 async/async_await_sync_completer_test: RuntimeError # Issue 29922

@@ -91,6 +91,8 @@ html/canvasrenderingcontext2d_test/fillText: Fail # TODO(dart2js-team): Please t
 isolate/isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
+html/rtc_test: Fail # TODO(dart2js-team): Please triage this failure.
+html/speechrecognition_test: Fail # TODO(dart2js-team): Please triage this failure.
 
 [ $compiler == dart2js && ( $runtime == chrome || $runtime == ff ) ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
@@ -120,6 +122,7 @@ math/math2_test: RuntimeError
 [ $compiler == dart2js && ($runtime != jsshell && $runtime != d8) ]
 js/null_test: RuntimeError # Issue 30652
 html/js_typed_interop_lazy_test/01: RuntimeError
+html/private_extension_member_test: RuntimeError
 
 [ $compiler == dart2js && $csp && $browser ]
 html/custom/element_upgrade_test: Fail # Issue 17298
@@ -176,6 +179,17 @@ html/non_instantiated_is_test: Crash # 'file:*/pkg/compiler/lib/src/common_eleme
 html/notification_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/performance_api_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/postmessage_structured_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/query_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/queryall_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/range_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/request_animation_frame_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/rtc_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/selectelement_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/serialized_script_value_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/shadow_dom_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/shadowroot_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/speechrecognition_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/storage_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -207,7 +221,29 @@ html/non_instantiated_is_test: RuntimeError
 html/notification_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/performance_api_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/postmessage_structured_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/query_test: RuntimeError
+html/queryall_test: RuntimeError
+html/range_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/request_animation_frame_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/rtc_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/selectelement_test: RuntimeError
+html/serialized_script_value_test: RuntimeError
+html/shadow_dom_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/shadowroot_test: RuntimeError
+html/speechrecognition_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/storage_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && $csp ]
 html/js_typed_interop_rename_static_test: RuntimeError
 html/js_typed_interop_lazy_test/none: RuntimeError
+
+[ $compiler == dart2js && $runtime == chrome ]
+html/speechrecognition_test: RuntimeError # Please triage.
+
+[ $compiler == dart2js && $runtime == ff ]
+html/serialized_script_value_test: Pass, RuntimeError # Issue 28983
+html/shadow_dom_test: Fail
+html/speechrecognition_test: Fail
+
+[ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
+html/request_animation_frame_test: Skip # Async test hangs.

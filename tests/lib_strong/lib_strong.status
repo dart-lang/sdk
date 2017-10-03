@@ -34,7 +34,6 @@ html/filereader_test: Skip
 html/fontface_loaded_test: Skip
 html/js_function_getter_trust_types_test: Skip
 html/mutationobserver_test: Skip
-html/resource_http_test: Skip
 html/transferables_test: Skip
 html/webgl_1_test: Skip
 html/wrapping_collections_test: Skip
@@ -66,7 +65,6 @@ html/debugger_test: CompileTimeError # Issue 28969
 [ $compiler == dartdevc ]
 html/deferred_multi_app_htmltest: Skip # Issue 29919
 html/no_linked_scripts_htmltest: Skip # Issue 29919
-html/scripts_htmltest: Skip # Issue 29919
 html/two_scripts_htmltest: Skip # Issue 29919
 html/custom/attribute_changed_callback_test: Crash # Issue 29922
 html/custom/constructor_calls_created_synchronously_test: Crash # Issue 29922
