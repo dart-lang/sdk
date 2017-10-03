@@ -98,7 +98,9 @@ class A extends C with B {}
  */
 @reflectiveTest
 class CompilationUnitMemberTest extends AbstractRecoveryTest {
+  @failingTest
   void test_declarationBeforeDirective_export() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 export 'bar.dart';
@@ -108,7 +110,9 @@ class C { }
 ''');
   }
 
+  @failingTest
   void test_declarationBeforeDirective_import() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 import 'bar.dart';
@@ -118,7 +122,9 @@ class C { }
 ''');
   }
 
+  @failingTest
   void test_declarationBeforeDirective_part() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 part 'bar.dart';
@@ -128,7 +134,9 @@ class C { }
 ''');
   }
 
+  @failingTest
   void test_declarationBeforeDirective_part_of() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 part of foo;
@@ -138,7 +146,9 @@ class C { }
 ''');
   }
 
+  @failingTest
   void test_exportBeforeLibrary() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 export 'bar.dart';
 library l;
@@ -148,7 +158,9 @@ export 'bar.dart';
 ''');
   }
 
+  @failingTest
   void test_importBeforeLibrary() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 import 'bar.dart';
 library l;
@@ -158,7 +170,9 @@ import 'bar.dart';
 ''');
   }
 
+  @failingTest
   void test_partBeforeExport() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 part 'foo.dart';
 export 'bar.dart';
@@ -168,7 +182,9 @@ part 'foo.dart';
 ''');
   }
 
+  @failingTest
   void test_partBeforeImport() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 part 'foo.dart';
 import 'bar.dart';
@@ -178,7 +194,9 @@ part 'foo.dart';
 ''');
   }
 
+  @failingTest
   void test_partBeforeLibrary() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 part 'foo.dart';
 library l;
