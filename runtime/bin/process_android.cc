@@ -435,9 +435,37 @@ class ProcessStarter {
     }
   }
 
-  const char* ResolvePath() {
-    const char* resolved_path = File::GetCanonicalPath(namespc_, path_);
-    return resolved_path == NULL ? path_ : resolved_path;
+  // Tries to find path_ relative to the current namespace.
+  // The path that should be passed to exec is returned in realpath.
+  // Returns true on success, and false if there was an error that should
+  // be reported to the parent.
+  bool FindPathInNamespace(char* realpath, intptr_t realpath_size) {
+    NamespaceScope ns(namespc_, path_);
+    const int fd =
+        TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_RDONLY | O_CLOEXEC));
+    if (fd == -1) {
+      if ((errno == ENOENT) && (strchr(path_, '/') == NULL)) {
+        // path_ was not found relative to the namespace, but since it didn't
+        // contain a '/', we can pass it directly to execvp, which will do a
+        // lookup in PATH.
+        // TODO(zra): If there is a non-default namespace, the entries in PATH
+        // should be treated as relative to the namespace.
+        strncpy(realpath, path_, realpath_size);
+        return true;
+      }
+      return false;
+    }
+    char procpath[PATH_MAX];
+    snprintf(procpath, PATH_MAX, "/proc/self/fd/%d", fd);
+    const intptr_t length =
+        TEMP_FAILURE_RETRY(readlink(procpath, realpath, realpath_size));
+    if (length < 0) {
+      FDUtils::SaveErrorAndClose(fd);
+      return false;
+    }
+    realpath[length] = '\0';
+    FDUtils::SaveErrorAndClose(fd);
+    return true;
   }
 
   void ExecProcess() {
@@ -462,9 +490,13 @@ class ProcessStarter {
       environ = program_environment_;
     }
 
-    const char* resolved_path = ResolvePath();
+    char realpath[PATH_MAX];
+    if (!FindPathInNamespace(realpath, PATH_MAX)) {
+      ReportChildError();
+    }
+    // TODO(dart:io) Test for the existence of execveat, and use it instead.
     VOID_TEMP_FAILURE_RETRY(
-        execvp(resolved_path, const_cast<char* const*>(program_arguments_)));
+        execvp(realpath, const_cast<char* const*>(program_arguments_)));
 
     ReportChildError();
   }
@@ -512,9 +544,14 @@ class ProcessStarter {
 
           // Report the final PID and do the exec.
           ReportPid(getpid());  // getpid cannot fail.
-          const char* resolved_path = ResolvePath();
-          VOID_TEMP_FAILURE_RETRY(execvp(
-              resolved_path, const_cast<char* const*>(program_arguments_)));
+          char realpath[PATH_MAX];
+          if (!FindPathInNamespace(realpath, PATH_MAX)) {
+            ReportChildError();
+          }
+          // TODO(dart:io) Test for the existence of execveat, and use it
+          // instead.
+          VOID_TEMP_FAILURE_RETRY(
+              execvp(realpath, const_cast<char* const*>(program_arguments_)));
           ReportChildError();
         } else {
           // Exit the intermediate process.
