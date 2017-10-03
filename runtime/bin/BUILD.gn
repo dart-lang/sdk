@@ -971,7 +971,7 @@ executable("run_vm_tests") {
   }
 
   if (is_fuchsia) {
-    deps += [ "//apps/tracing/lib/trace" ]
+    deps += [ "//zircon/system/ulib/trace" ]
   }
 
   # The VM sources are already included in libdart, so we just want to add in
