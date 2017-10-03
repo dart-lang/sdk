@@ -5768,11 +5768,11 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
-  NameIndex procedue_reference =
+  NameIndex procedure_reference =
       ReadCanonicalNameReference();  // read procedure reference.
   intptr_t argument_count = PeekArgumentsCount();
   const Function& target = Function::ZoneHandle(
-      Z, H.LookupStaticMethodByKernelProcedure(procedue_reference));
+      Z, H.LookupStaticMethodByKernelProcedure(procedure_reference));
   const Class& klass = Class::ZoneHandle(Z, target.Owner());
   if (target.IsGenerativeConstructor() || target.IsFactory()) {
     // The VM requires a TypeArguments object as first parameter for
@@ -5783,6 +5783,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   Fragment instructions;
   LocalVariable* instance_variable = NULL;
 
+  bool special_case_identical = klass.IsTopLevel() &&
+                                (klass.library() == Library::CoreLibrary()) &&
+                                (target.name() == Symbols::Identical().raw());
+
   // If we cross the Kernel -> VM core library boundary, a [StaticInvocation]
   // can appear, but the thing we're calling is not a static method, but a
   // factory constructor.
@@ -5792,6 +5796,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   //
   // TODO(27590): Get rid of this after we're using core libraries compiled
   // into Kernel.
+  intptr_t type_args_len = 0;
   if (target.IsGenerativeConstructor()) {
     if (klass.NumTypeArguments() > 0) {
       const TypeArguments& type_arguments =
@@ -5816,19 +5821,23 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     const TypeArguments& type_arguments = PeekArgumentsInstantiatedType(klass);
     instructions += TranslateInstantiatedTypeArguments(type_arguments);
     instructions += PushArgument();
-  } else {
-    // TODO(28109) Support generic methods in the VM or reify them away.
+  } else if (!special_case_identical && FLAG_reify_generic_functions) {
+    AlternativeReadingScope alt(reader_);
+    ReadUInt();                               // read argument count.
+    intptr_t list_length = ReadListLength();  // read types list length.
+    if (list_length > 0) {
+      const TypeArguments& type_arguments =
+          T.BuildTypeArguments(list_length);  // read types.
+      instructions += TranslateInstantiatedTypeArguments(type_arguments);
+      instructions += PushArgument();
+    }
+    type_args_len = list_length;
   }
-
-  bool special_case_identical = klass.IsTopLevel() &&
-                                (klass.library() == Library::CoreLibrary()) &&
-                                (target.name() == Symbols::Identical().raw());
 
   Array& argument_names = Array::ZoneHandle(Z);
   instructions += BuildArguments(&argument_names, NULL,
                                  special_case_identical);  // read arguments.
-  const int kTypeArgsLen = 0;
-  ASSERT(target.AreValidArguments(kTypeArgsLen, argument_count, argument_names,
+  ASSERT(target.AreValidArguments(type_args_len, argument_count, argument_names,
                                   NULL));
 
   // Special case identical(x, y) call.
@@ -5838,8 +5847,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ASSERT(argument_count == 2);
     instructions += StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
   } else {
+    if (type_args_len) ++argument_count;
     instructions += StaticCall(position, target, argument_count, argument_names,
-                               ICData::kStatic);
+                               ICData::kStatic, type_args_len);
     if (target.IsGenerativeConstructor()) {
       // Drop the result of the constructor call and leave [instance_variable]
       // on top-of-stack.
