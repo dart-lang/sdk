@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library document_register_basic_test;
+
 import 'dart:html';
 
-import 'package:expect/minitest.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 
 import 'utils.dart';
 
@@ -39,6 +42,8 @@ abstract class BadC extends HtmlElement {
 }
 
 main() {
+  useHtmlConfiguration();
+
   // Adapted from Blink's fast/dom/custom/document-register-basic test.
 
   setUp(() => customElementsReady);
