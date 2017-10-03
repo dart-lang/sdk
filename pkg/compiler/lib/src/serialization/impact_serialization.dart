@@ -6,10 +6,11 @@ library dart2js.serialization.impact;
 
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../universe/selector.dart';
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
 import '../universe/feature.dart';
+import '../universe/selector.dart';
 import '../universe/use.dart';
 import '../universe/world_impact.dart';
 import '../util/enumset.dart';
@@ -110,6 +111,7 @@ class DeserializedResolutionImpact extends WorldImpact
   final Iterable<StaticUse> staticUses;
   final Iterable<TypeUse> typeUses;
   final Iterable<dynamic> nativeData;
+  final Iterable<ClassEntity> seenClasses;
 
   DeserializedResolutionImpact(
       {this.constSymbolNames: const <String>[],
@@ -120,7 +122,8 @@ class DeserializedResolutionImpact extends WorldImpact
       this.mapLiterals: const <MapLiteralUse>[],
       this.staticUses: const <StaticUse>[],
       this.typeUses: const <TypeUse>[],
-      this.nativeData: const <dynamic>[]})
+      this.nativeData: const <dynamic>[],
+      this.seenClasses: const <ClassEntity>[]})
       : this._features = features;
 
   @override

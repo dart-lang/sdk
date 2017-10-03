@@ -42,6 +42,7 @@ import '../resolved_uri_translator.dart';
 import '../serialization/task.dart';
 import '../tree/tree.dart' show Node;
 import '../universe/call_structure.dart';
+import '../universe/class_hierarchy_builder.dart';
 import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
@@ -132,7 +133,9 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
-      SelectorConstraintsStrategy selectorConstraintsStrategy) {
+      SelectorConstraintsStrategy selectorConstraintsStrategy,
+      ClassHierarchyBuilder classHierarchyBuilder,
+      ClassQueries classQueries) {
     return new ElementResolutionWorldBuilder(
         _compiler.backend,
         _compiler.resolution,
@@ -142,7 +145,9 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
         backendUsageBuilder,
         rtiNeedBuilder,
         nativeResolutionEnqueuer,
-        selectorConstraintsStrategy);
+        selectorConstraintsStrategy,
+        classHierarchyBuilder,
+        classQueries);
   }
 
   WorkItemBuilder createResolutionWorkItemBuilder(
@@ -150,6 +155,10 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
       NativeDataBuilder nativeDataBuilder,
       ImpactTransformer impactTransformer) {
     return new ResolutionWorkItemBuilder(_compiler.resolution);
+  }
+
+  ClassQueries createClassQueries() {
+    return new ElementClassQueries(commonElements);
   }
 
   FunctionEntity computeMain(

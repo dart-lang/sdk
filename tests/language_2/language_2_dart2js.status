@@ -1009,7 +1009,7 @@ function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
-function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
@@ -1279,7 +1279,7 @@ function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
-function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError

@@ -580,7 +580,6 @@ field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 final_field_initialization_order_test: RuntimeError
-function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
@@ -951,7 +950,6 @@ final_field_initialization_order_test: RuntimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
-function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError

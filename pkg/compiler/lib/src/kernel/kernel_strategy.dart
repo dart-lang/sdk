@@ -6,16 +6,16 @@ library dart2js.kernel.frontend_strategy;
 
 import '../../compiler_new.dart' as api;
 import '../common.dart';
-import '../common_elements.dart';
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
+import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../environment.dart' as env;
 import '../enqueue.dart';
+import '../environment.dart' as env;
 import '../frontend_strategy.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
@@ -30,9 +30,10 @@ import '../library_loader.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
-import '../serialization/task.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
+import '../serialization/task.dart';
+import '../universe/class_hierarchy_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../world.dart';
@@ -124,7 +125,9 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
-      SelectorConstraintsStrategy selectorConstraintsStrategy) {
+      SelectorConstraintsStrategy selectorConstraintsStrategy,
+      ClassHierarchyBuilder classHierarchyBuilder,
+      ClassQueries classQueries) {
     return new KernelResolutionWorldBuilder(
         _options,
         elementMap,
@@ -134,7 +137,9 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         backendUsageBuilder,
         rtiNeedBuilder,
         nativeResolutionEnqueuer,
-        selectorConstraintsStrategy);
+        selectorConstraintsStrategy,
+        classHierarchyBuilder,
+        classQueries);
   }
 
   WorkItemBuilder createResolutionWorkItemBuilder(
@@ -143,6 +148,10 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       ImpactTransformer impactTransformer) {
     return new KernelWorkItemBuilder(elementMap, nativeBasicData,
         nativeDataBuilder, impactTransformer, closureModels);
+  }
+
+  ClassQueries createClassQueries() {
+    return new KernelClassQueries(elementMap);
   }
 
   @override

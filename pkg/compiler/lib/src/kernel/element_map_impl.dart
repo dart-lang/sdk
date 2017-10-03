@@ -10,13 +10,13 @@ import '../closure.dart' show BoxLocal, ThisLocal;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart';
+import '../common_elements.dart';
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
 import '../constants/constructors.dart';
 import '../constants/evaluation.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
@@ -36,15 +36,16 @@ import '../js_model/locals.dart';
 import '../native/enqueue.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
-import '../ordered_typeset.dart';
 import '../options.dart';
+import '../ordered_typeset.dart';
 import '../ssa/kernel_impact.dart';
 import '../ssa/type_builder.dart';
+import '../universe/class_hierarchy_builder.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
-import '../world.dart';
 import '../util/util.dart' show Link, LinkBuilder;
+import '../world.dart';
 import 'element_map.dart';
 import 'element_map_mixins.dart';
 import 'env.dart';
@@ -1663,7 +1664,9 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
-      SelectorConstraintsStrategy selectorConstraintsStrategy)
+      SelectorConstraintsStrategy selectorConstraintsStrategy,
+      ClassHierarchyBuilder classHierarchyBuilder,
+      ClassQueries classQueries)
       : super(
             options,
             elementMap.elementEnvironment,
@@ -1676,38 +1679,9 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
             backendUsageBuilder,
             rtiNeedBuilder,
             nativeResolutionEnqueuer,
-            selectorConstraintsStrategy);
-
-  @override
-  Iterable<InterfaceType> getSupertypes(ClassEntity cls) {
-    return elementMap._getOrderedTypeSet(cls).supertypes;
-  }
-
-  @override
-  ClassEntity getSuperClass(ClassEntity cls) {
-    return elementMap._getSuperType(cls)?.element;
-  }
-
-  @override
-  bool implementsFunction(ClassEntity cls) {
-    return elementMap._implementsFunction(cls);
-  }
-
-  @override
-  int getHierarchyDepth(ClassEntity cls) {
-    return elementMap._getHierarchyDepth(cls);
-  }
-
-  @override
-  ClassEntity getAppliedMixin(ClassEntity cls) {
-    return elementMap._getAppliedMixin(cls);
-  }
-
-  @override
-  bool validateClass(ClassEntity cls) => true;
-
-  @override
-  bool checkClass(ClassEntity cls) => true;
+            selectorConstraintsStrategy,
+            classHierarchyBuilder,
+            classQueries);
 
   @override
   void forEachLocalFunction(void f(MemberEntity member, Local localFunction)) {
@@ -2500,4 +2474,46 @@ class JsKernelToElementMap extends KernelToElementMapBase
   String getDeferredUri(ir.LibraryDependency node) {
     throw new UnimplementedError('JsKernelToElementMap.getDeferredUri');
   }
+}
+
+class KernelClassQueries extends ClassQueries {
+  final KernelToElementMapForImpactImpl elementMap;
+
+  KernelClassQueries(this.elementMap);
+
+  @override
+  ClassEntity getDeclaration(ClassEntity cls) {
+    return cls;
+  }
+
+  @override
+  Iterable<InterfaceType> getSupertypes(ClassEntity cls) {
+    return elementMap._getOrderedTypeSet(cls).supertypes;
+  }
+
+  @override
+  ClassEntity getSuperClass(ClassEntity cls) {
+    return elementMap._getSuperType(cls)?.element;
+  }
+
+  @override
+  bool implementsFunction(ClassEntity cls) {
+    return elementMap._implementsFunction(cls);
+  }
+
+  @override
+  int getHierarchyDepth(ClassEntity cls) {
+    return elementMap._getHierarchyDepth(cls);
+  }
+
+  @override
+  ClassEntity getAppliedMixin(ClassEntity cls) {
+    return elementMap._getAppliedMixin(cls);
+  }
+
+  @override
+  bool validateClass(ClassEntity cls) => true;
+
+  @override
+  bool checkClass(ClassEntity cls) => true;
 }

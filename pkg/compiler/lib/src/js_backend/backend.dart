@@ -11,11 +11,11 @@ import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/resolution.dart' show Resolution, Target;
 import '../common/tasks.dart' show CompilerTask;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
@@ -46,6 +46,8 @@ import '../tracer.dart';
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/class_hierarchy_builder.dart'
+    show ClassHierarchyBuilder, ClassQueries;
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart'
@@ -719,6 +721,9 @@ class JavaScriptBackend {
         commonElements,
         nativeBasicData,
         _backendUsageBuilder);
+    ClassQueries classQueries = compiler.frontendStrategy.createClassQueries();
+    ClassHierarchyBuilder classHierarchyBuilder =
+        new ClassHierarchyBuilder(commonElements, classQueries);
     impactTransformer = new JavaScriptImpactTransformer(
         compiler.options,
         elementEnvironment,
@@ -729,7 +734,8 @@ class JavaScriptBackend {
         _backendUsageBuilder,
         mirrorsDataBuilder,
         customElementsResolutionAnalysis,
-        rtiNeedBuilder);
+        rtiNeedBuilder,
+        classHierarchyBuilder);
     InterceptorDataBuilder interceptorDataBuilder =
         new InterceptorDataBuilderImpl(
             nativeBasicData, elementEnvironment, commonElements);
@@ -764,7 +770,9 @@ class JavaScriptBackend {
             _backendUsageBuilder,
             rtiNeedBuilder,
             _nativeResolutionEnqueuer,
-            const OpenWorldStrategy()),
+            const OpenWorldStrategy(),
+            classHierarchyBuilder,
+            classQueries),
         compiler.frontendStrategy.createResolutionWorkItemBuilder(
             nativeBasicData, _nativeDataBuilder, impactTransformer));
   }

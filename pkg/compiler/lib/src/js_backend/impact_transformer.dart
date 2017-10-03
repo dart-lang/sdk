@@ -4,6 +4,8 @@
 
 library js_backend.backend.impact_transformer;
 
+import '../universe/class_hierarchy_builder.dart' show ClassHierarchyBuilder;
+
 import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
@@ -43,6 +45,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   final MirrorsDataBuilder _mirrorsDataBuilder;
   final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
+  final ClassHierarchyBuilder _classHierarchyBuilder;
 
   JavaScriptImpactTransformer(
       this._options,
@@ -54,7 +57,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._backendUsageBuider,
       this._mirrorsDataBuilder,
       this._customElementsResolutionAnalysis,
-      this._rtiNeedBuilder);
+      this._rtiNeedBuilder,
+      this._classHierarchyBuilder);
 
   @override
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
@@ -274,6 +278,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     for (native.NativeBehavior behavior in worldImpact.nativeData) {
       _nativeResolutionEnqueuer.registerNativeBehavior(
           transformed, behavior, worldImpact);
+    }
+
+    for (ClassEntity classEntity in worldImpact.seenClasses) {
+      _classHierarchyBuilder.registerClass(classEntity);
     }
 
     return transformed;

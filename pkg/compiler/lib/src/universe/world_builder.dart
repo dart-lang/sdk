@@ -30,6 +30,7 @@ import '../universe/class_set.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart' show World, ClosedWorld, ClosedWorldImpl, OpenWorld;
+import 'class_hierarchy_builder.dart' show ClassHierarchyBuilder, ClassQueries;
 import 'selector.dart' show Selector;
 import 'use.dart'
     show
