@@ -695,8 +695,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       visit(node.body);
       List<ast.Send> tests = <ast.Send>[];
       handleCondition(node.condition, tests);
-      // TODO(29309): This condition appears to stengthen both the back-edge and
-      // exit-edge. For now, avoid strengthening on the condition until the
+      // TODO(29309): This condition appears to strengthen both the back-edge
+      // and exit-edge. For now, avoid strengthening on the condition until the
       // proper fix is found.
       //
       //     updateIsChecks(tests, usePositive: true);

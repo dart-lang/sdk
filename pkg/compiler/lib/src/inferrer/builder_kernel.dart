@@ -952,6 +952,38 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       visit(node.body);
     });
   }
+
+  @override
+  visitDoStatement(ir.DoStatement node) {
+    return handleLoop(node, _localsMap.getJumpTargetForDo(node), () {
+      visit(node.body);
+      List<IsCheck> positiveTests = <IsCheck>[];
+      List<IsCheck> negativeTests = <IsCheck>[];
+      handleCondition(node.condition, positiveTests, negativeTests);
+      // TODO(29309): This condition appears to strengthen both the back-edge
+      // and exit-edge. For now, avoid strengthening on the condition until the
+      // proper fix is found.
+      //
+      //     updateIsChecks(positiveTests, negativeTests);
+    });
+  }
+
+  @override
+  visitForStatement(ir.ForStatement node) {
+    for (ir.VariableDeclaration variable in node.variables) {
+      visit(variable);
+    }
+    return handleLoop(node, _localsMap.getJumpTargetForFor(node), () {
+      List<IsCheck> positiveTests = <IsCheck>[];
+      List<IsCheck> negativeTests = <IsCheck>[];
+      handleCondition(node.condition, positiveTests, negativeTests);
+      _updateIsChecks(positiveTests, negativeTests);
+      visit(node.body);
+      for (ir.Expression update in node.updates) {
+        visit(update);
+      }
+    });
+  }
 }
 
 class IsCheck {
