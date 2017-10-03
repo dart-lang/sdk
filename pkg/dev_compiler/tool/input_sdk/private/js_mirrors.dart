@@ -7,11 +7,12 @@ library dart._js_mirrors;
 import 'dart:mirrors';
 import 'dart:_runtime' as dart;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_internal' as _internal;
+import 'dart:_internal' as _internal show Symbol;
+import 'dart:_js_helper' show PrivateSymbol;
 
 String getName(Symbol symbol) {
-  if (symbol is _internal.PrivateSymbol) {
-    return _internal.PrivateSymbol.getName(symbol);
+  if (symbol is PrivateSymbol) {
+    return PrivateSymbol.getName(symbol);
   } else {
     return _internal.Symbol.getName(symbol as _internal.Symbol);
   }
@@ -49,8 +50,7 @@ TypeMirror reflectType(Type key) {
 
 typedef T _Lazy<T>();
 
-dynamic _getESSymbol(Symbol symbol) =>
-    _internal.PrivateSymbol.getNativeSymbol(symbol);
+dynamic _getESSymbol(Symbol symbol) => PrivateSymbol.getNativeSymbol(symbol);
 
 dynamic _getMember(Symbol symbol) {
   var privateSymbol = _getESSymbol(symbol);
@@ -87,7 +87,7 @@ String _getNameForESSymbol(member) {
 
 Symbol _getSymbolForESSymbol(member) {
   var name = _getNameForESSymbol(member);
-  return new _internal.PrivateSymbol(name, member);
+  return new PrivateSymbol(name, member);
 }
 
 // The [member] must be either a string (public) or an ES6 symbol (private).
@@ -96,7 +96,7 @@ Symbol _getSymbolForMember(member) {
     return new Symbol(member);
   } else {
     var name = _getNameForESSymbol(member);
-    return new _internal.PrivateSymbol(name, member);
+    return new PrivateSymbol(name, member);
   }
 }
 
@@ -304,7 +304,7 @@ class JsClassMirror extends JsMirror implements ClassMirror {
       setters.forEach((symbol, ft) {
         var name = getName(symbol) + '=';
         // Create a separate symbol for the setter.
-        symbol = new _internal.PrivateSymbol(name, _getESSymbol(symbol));
+        symbol = new PrivateSymbol(name, _getESSymbol(symbol));
         _declarations[symbol] =
             new JsMethodMirror._instanceMethod(this, symbol, ft);
       });

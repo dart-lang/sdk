@@ -224,15 +224,15 @@ _toDisplayName(name) => JS('', '''(() => {
 
 Symbol _dartSymbol(name) {
   return (JS('bool', 'typeof # === "symbol"', name))
-      ? JS('Symbol', '#(new #.new(#, #))', const_, _internal.PrivateSymbol,
+      ? JS('Symbol', '#(new #.new(#, #))', const_, PrivateSymbol,
           _toSymbolName(name), name)
       : JS('Symbol', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
 }
 
 Symbol _setterSymbol(name) {
   return (JS('bool', 'typeof # === "symbol"', name))
-      ? JS('Symbol', '#(new #.new(# + "=", #))', const_,
-          _internal.PrivateSymbol, _toSymbolName(name), name)
+      ? JS('Symbol', '#(new #.new(# + "=", #))', const_, PrivateSymbol,
+          _toSymbolName(name), name)
       : JS('Symbol', '#(#.new(# + "="))', const_, Symbol, _toDisplayName(name));
 }
 

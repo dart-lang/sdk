@@ -23,9 +23,8 @@ import 'dart:_js_helper'
         StrongModeTypeError,
         SyncIterable,
         JsLinkedHashMap,
-        ImmutableMap;
-
-import 'dart:_internal' as _internal;
+        ImmutableMap,
+        PrivateSymbol;
 
 part 'utils.dart';
 part 'classes.dart';
