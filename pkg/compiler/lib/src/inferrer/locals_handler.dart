@@ -559,4 +559,12 @@ class LocalsHandler<T> {
   void updateField(FieldEntity element, TypeInformation type) {
     fieldScope.updateField(element, type);
   }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('LocalsHandler(');
+    sb.write('locals=$locals');
+    sb.write(')');
+    return sb.toString();
+  }
 }

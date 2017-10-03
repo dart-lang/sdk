@@ -984,6 +984,60 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       }
     });
   }
+
+  @override
+  visitTryCatch(ir.TryCatch node) {
+    LocalsHandler saved = _locals;
+    _locals = new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
+    initializationIsIndefinite();
+    visit(node.body);
+    saved.mergeDiamondFlow(_locals, null);
+    _locals = saved;
+    for (ir.Catch catchBlock in node.catches) {
+      saved = _locals;
+      _locals = new LocalsHandler.from(_locals, catchBlock);
+      visit(catchBlock);
+      saved.mergeDiamondFlow(_locals, null);
+      _locals = saved;
+    }
+  }
+
+  @override
+  visitTryFinally(ir.TryFinally node) {
+    LocalsHandler saved = _locals;
+    _locals = new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
+    initializationIsIndefinite();
+    visit(node.body);
+    saved.mergeDiamondFlow(_locals, null);
+    _locals = saved;
+    visit(node.finalizer);
+  }
+
+  @override
+  visitCatch(ir.Catch node) {
+    ir.VariableDeclaration exception = node.exception;
+    if (exception != null) {
+      TypeInformation mask;
+      DartType type = node.guard != null
+          ? _elementMap.getDartType(node.guard)
+          : const DynamicType();
+      if (type.isInterfaceType) {
+        InterfaceType interfaceType = type;
+        mask = _types.nonNullSubtype(interfaceType.element);
+      } else {
+        mask = _types.dynamicType;
+      }
+      Local local = _localsMap.getLocalVariable(exception);
+      _locals.update(local, mask, node, const DynamicType());
+    }
+    ir.VariableDeclaration stackTrace = node.stackTrace;
+    if (stackTrace != null) {
+      Local local = _localsMap.getLocalVariable(stackTrace);
+      // TODO(johnniwinther): Use a mask based on [StackTrace].
+      _locals.update(local, _types.dynamicType, node, const DynamicType());
+    }
+    visit(node.body);
+  }
 }
 
 class IsCheck {
