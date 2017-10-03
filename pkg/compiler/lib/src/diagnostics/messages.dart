@@ -3426,14 +3426,6 @@ main() => new A().foo = 0;"""
             """
 main() async {
  var await;
-}""",
-            """
-main() async* {
- var yield;
-}""",
-            """
-main() sync* {
- var yield;
 }"""
           ]),
 

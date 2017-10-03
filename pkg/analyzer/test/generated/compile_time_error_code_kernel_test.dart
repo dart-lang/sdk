@@ -19,42 +19,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_for_statement() async {
-    return super.test_async_used_as_identifier_in_for_statement();
-  }
-
-  @override
-  @failingTest
-  test_async_used_as_identifier_in_getter_name() async {
-    return super.test_async_used_as_identifier_in_getter_name();
-  }
-
-  @override
-  @failingTest
-  test_async_used_as_identifier_in_invocation() async {
-    return super.test_async_used_as_identifier_in_invocation();
-  }
-
-  @override
-  @failingTest
-  test_async_used_as_identifier_in_setter_name() async {
-    return super.test_async_used_as_identifier_in_setter_name();
-  }
-
-  @override
-  @failingTest
-  test_async_used_as_identifier_in_string_interpolation() async {
-    return super.test_async_used_as_identifier_in_string_interpolation();
-  }
-
-  @override
-  @failingTest
-  test_async_used_as_identifier_in_suffix() async {
-    return super.test_async_used_as_identifier_in_suffix();
-  }
-
-  @override
-  @failingTest
   test_bug_23176() async {
     return super.test_bug_23176();
   }

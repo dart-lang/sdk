@@ -173,6 +173,7 @@ ExpectedHexDigit:
 
 ExpectedIdentifier:
   template: "Expected an identifier, but got '#lexeme'."
+  analyzerCode: MISSING_IDENTIFIER
   dart2jsCode: EXPECTED_IDENTIFIER
   script: "do() {} main() {}"
 
@@ -458,7 +459,7 @@ SetterNotSync:
 YieldAsIdentifier:
   template: "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
   analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
-  dart2jsCode: "*ignored*"
+  dart2jsCode: "*fatal*"
 
 YieldNotGenerator:
   template: "'yield' can only be used in 'sync*' or 'async*' methods."
@@ -1095,11 +1096,6 @@ CouldNotParseUri:
 IntegerLiteralIsOutOfRange:
   template: "The integer literal #lexeme can't be represented in 64 bits."
   tip: "Try using BigInt (from 'dart:typed_data' library) if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808."
-
-MissingIdentifier:
-  template: "Expected an identifier."
-  analyzerCode: MISSING_IDENTIFIER
-  dart2jsCode: "*fatal*"
 
 ColonInPlaceOfIn:
   template: "For-in loops use 'in' rather than a colon."

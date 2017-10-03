@@ -1003,7 +1003,7 @@ const Template<Message Function(Token token)> templateExpectedIdentifier =
 const Code<Message Function(Token token)> codeExpectedIdentifier =
     const Code<Message Function(Token token)>(
         "ExpectedIdentifier", templateExpectedIdentifier,
-        dart2jsCode: "EXPECTED_IDENTIFIER");
+        analyzerCode: "MISSING_IDENTIFIER", dart2jsCode: "EXPECTED_IDENTIFIER");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedIdentifier(Token token) {
@@ -2092,16 +2092,6 @@ const MessageCode messageMissingExponent = const MessageCode("MissingExponent",
         r"""Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).""",
     tip:
         r"""Make sure there is an exponent, and remove any whitespace before it.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeMissingIdentifier = messageMissingIdentifier;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingIdentifier = const MessageCode(
-    "MissingIdentifier",
-    analyzerCode: "MISSING_IDENTIFIER",
-    dart2jsCode: "*fatal*",
-    message: r"""Expected an identifier.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingInput = messageMissingInput;
@@ -3401,7 +3391,7 @@ const Code<Null> codeYieldAsIdentifier = messageYieldAsIdentifier;
 const MessageCode messageYieldAsIdentifier = const MessageCode(
     "YieldAsIdentifier",
     analyzerCode: "ASYNC_KEYWORD_USED_AS_IDENTIFIER",
-    dart2jsCode: "*ignored*",
+    dart2jsCode: "*fatal*",
     message:
         r"""'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""");
 

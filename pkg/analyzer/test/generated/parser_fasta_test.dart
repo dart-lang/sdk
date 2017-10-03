@@ -840,14 +840,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_extraTrailingCommaInParameterList() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_extraTrailingCommaInParameterList();
-  }
-
-  @override
-  @failingTest
   void test_factoryTopLevelDeclaration_class() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, found 0;
@@ -1819,30 +1811,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
     super.test_missingIdentifier_inEnum();
-  }
-
-  @override
-  @failingTest
-  void test_missingIdentifier_inSymbol_afterPeriod() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_missingIdentifier_inSymbol_afterPeriod();
-  }
-
-  @override
-  @failingTest
-  void test_missingIdentifier_inSymbol_first() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_missingIdentifier_inSymbol_first();
-  }
-
-  @override
-  @failingTest
-  void test_missingIdentifierForParameterGroup() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_missingIdentifierForParameterGroup();
   }
 
   @override
@@ -3776,20 +3744,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_additiveExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_additiveExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_additiveExpression_missing_RHS_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_additiveExpression_missing_RHS_super();
-  }
-
-  @override
-  @failingTest
   void test_additiveExpression_precedence_multiplicative_left() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_additiveExpression_precedence_multiplicative_left();
@@ -3820,247 +3774,31 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_assignmentExpression_missing_compound1() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_assignmentExpression_missing_compound1();
-  }
-
-  @override
-  @failingTest
-  void test_assignmentExpression_missing_compound2() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_assignmentExpression_missing_compound2();
-  }
-
-  @override
-  @failingTest
-  void test_assignmentExpression_missing_compound3() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_assignmentExpression_missing_compound3();
-  }
-
-  @override
-  @failingTest
-  void test_assignmentExpression_missing_LHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_assignmentExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_assignmentExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_assignmentExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseAndExpression_missing_LHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseAndExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseAndExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseAndExpression_missing_LHS_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseAndExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseAndExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseAndExpression_missing_RHS_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseAndExpression_missing_RHS_super();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseAndExpression_precedence_equality_left() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseAndExpression_precedence_equality_left();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseAndExpression_precedence_equality_right() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseAndExpression_precedence_equality_right();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseAndExpression_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseAndExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseOrExpression_missing_LHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseOrExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseOrExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseOrExpression_missing_LHS_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseOrExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseOrExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseOrExpression_missing_RHS_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseOrExpression_missing_RHS_super();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseOrExpression_precedence_xor_left() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseOrExpression_precedence_xor_left();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseOrExpression_precedence_xor_right() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseOrExpression_precedence_xor_right();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseOrExpression_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseOrExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseXorExpression_missing_LHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseXorExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseXorExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseXorExpression_missing_LHS_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseXorExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseXorExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseXorExpression_missing_RHS_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseXorExpression_missing_RHS_super();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseXorExpression_precedence_and_left() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseXorExpression_precedence_and_left();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseXorExpression_precedence_and_right() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseXorExpression_precedence_and_right();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseXorExpression_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_bitwiseXorExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_classTypeAlias_withBody() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_classTypeAlias_withBody();
   }
 
   @override
-  @failingTest
-  void test_conditionalExpression_missingElse() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_conditionalExpression_missingElse();
-  }
-
-  @override
-  @failingTest
-  void test_conditionalExpression_missingThen() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_conditionalExpression_missingThen();
-  }
-
-  @override
-  @failingTest
-  void test_equalityExpression_missing_LHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_equalityExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_equalityExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_equalityExpression_missing_LHS_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_equalityExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_equalityExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_equalityExpression_missing_RHS_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_equalityExpression_missing_RHS_super();
-  }
-
-  @override
-  @failingTest
   void test_equalityExpression_precedence_relational_left() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_equalityExpression_precedence_relational_left();
+    // Fasta recovers differently. It takes the `is` to be an identifier and
+    // assumes that the right operand of the `==` is the only missing identifier.
+    parseExpression("is ==", [
+//      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
   }
 
   @override
-  @failingTest
   void test_equalityExpression_precedence_relational_right() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_equalityExpression_precedence_relational_right();
+    // Fasta recovers differently. It takes the `is` to be an identifier and
+    // assumes that it is the right operand of the `==`.
+    parseExpression("== is", [
+//      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
   }
 
   @override
@@ -4068,20 +3806,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_equalityExpression_super() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_equalityExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_expressionList_multiple_end() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_expressionList_multiple_end();
-  }
-
-  @override
-  @failingTest
-  void test_expressionList_multiple_middle() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_expressionList_multiple_middle();
   }
 
   @override
@@ -4289,76 +4013,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_logicalAndExpression_missing_LHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_logicalAndExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_logicalAndExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_logicalAndExpression_missing_LHS_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_logicalAndExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_logicalAndExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_logicalAndExpression_precedence_bitwiseOr_left() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_logicalAndExpression_precedence_bitwiseOr_left();
-  }
-
-  @override
-  @failingTest
-  void test_logicalAndExpression_precedence_bitwiseOr_right() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_logicalAndExpression_precedence_bitwiseOr_right();
-  }
-
-  @override
-  @failingTest
-  void test_logicalOrExpression_missing_LHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_logicalOrExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_logicalOrExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_logicalOrExpression_missing_LHS_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_logicalOrExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_logicalOrExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_logicalOrExpression_precedence_logicalAnd_left() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_logicalOrExpression_precedence_logicalAnd_left();
-  }
-
-  @override
-  @failingTest
-  void test_logicalOrExpression_precedence_logicalAnd_right() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_logicalOrExpression_precedence_logicalAnd_right();
-  }
-
-  @override
-  @failingTest
   void test_missing_commaInArgumentList() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_missing_commaInArgumentList();
@@ -4407,48 +4061,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_multiplicativeExpression_missing_LHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_multiplicativeExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_multiplicativeExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_multiplicativeExpression_missing_LHS_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_multiplicativeExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_multiplicativeExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_multiplicativeExpression_missing_RHS_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_multiplicativeExpression_missing_RHS_super();
-  }
-
-  @override
-  @failingTest
-  void test_multiplicativeExpression_precedence_unary_left() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_multiplicativeExpression_precedence_unary_left();
-  }
-
-  @override
-  @failingTest
-  void test_multiplicativeExpression_precedence_unary_right() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_multiplicativeExpression_precedence_unary_right();
-  }
-
-  @override
-  @failingTest
   void test_multiplicativeExpression_super() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_multiplicativeExpression_super();
@@ -4463,65 +4075,29 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_prefixExpression_missing_operand_minus() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_prefixExpression_missing_operand_minus();
-  }
-
-  @override
-  @failingTest
   void test_primaryExpression_argumentDefinitionTest() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_primaryExpression_argumentDefinitionTest();
   }
 
   @override
-  @failingTest
-  void test_relationalExpression_missing_LHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_relationalExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
   void test_relationalExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_relationalExpression_missing_LHS_RHS();
+    // Fasta recovers differently. It takes the `is` to be an identifier.
+    parseExpression("is", [
+//      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
   }
 
   @override
-  @failingTest
   void test_relationalExpression_precedence_shift_right() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_relationalExpression_precedence_shift_right();
-  }
-
-  @override
-  @failingTest
-  void test_shiftExpression_missing_LHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_shiftExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_shiftExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_shiftExpression_missing_LHS_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_shiftExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_shiftExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_shiftExpression_missing_RHS_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_shiftExpression_missing_RHS_super();
+    // Fasta recovers differently. It takes the `is` to be an identifier and
+    // assumes that it is the right operand of the `<<`.
+    parseExpression("<< is", [
+//      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
   }
 
   @override
@@ -4537,13 +4113,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_shiftExpression_precedence_unary_right() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_shiftExpression_precedence_unary_right();
-  }
-
-  @override
-  @failingTest
-  void test_shiftExpression_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_shiftExpression_super();
   }
 
   @override
