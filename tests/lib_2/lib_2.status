@@ -126,6 +126,8 @@ html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not s
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 html/custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 html/js_util_test/callConstructor: RuntimeError # Issue 26978
+html/notification_test: Fail # Notification not supported on IE
+html/postmessage_structured_test: Fail # Does not support the MessageEvent constructor.
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
@@ -136,3 +138,10 @@ mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded typ
 
 [ $compiler != dart2analyzer && $runtime != none && !$strong && $checked ]
 mirrors/redirecting_factory_different_type_test/02: RuntimeError
+
+[ $runtime == safarimobilesim ]
+html/performance_api_test/supported: Fail
+html/notification_test: RuntimeError # Issue 22869
+
+[ $runtime == safari ]
+html/notification_test: Fail # Safari doesn't let us access the fields of the Notification to verify them.

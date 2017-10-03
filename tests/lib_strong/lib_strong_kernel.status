@@ -82,10 +82,6 @@ html/mouse_event_test: DartkCompileTimeError
 html/native_gc_test: DartkCompileTimeError
 html/navigator_test: DartkCompileTimeError
 html/node_test: DartkCompileTimeError
-html/node_validator_important_if_you_suppress_make_the_bug_critical_test: DartkCompileTimeError
-html/non_instantiated_is_test: DartkCompileTimeError
-html/notification_test: DartkCompileTimeError
-html/performance_api_test: DartkCompileTimeError
 html/private_extension_member_test: DartkCompileTimeError
 html/query_test: DartkCompileTimeError
 html/queryall_test: DartkCompileTimeError

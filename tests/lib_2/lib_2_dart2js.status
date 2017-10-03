@@ -144,6 +144,7 @@ html/js_typed_interop_type1_test: SkipByDesign
 html/js_typed_interop_type3_test: SkipByDesign
 html/js_typed_interop_window_property_test: SkipByDesign
 html/js_util_test: SkipByDesign
+html/postmessage_structured_test: SkipByDesign
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 html/js_typed_interop_anonymous2_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -170,6 +171,11 @@ html/js_typed_interop_type_test: RuntimeError
 html/js_typed_interop_window_property_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_util_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/keyboard_event_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/non_instantiated_is_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/notification_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/performance_api_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/postmessage_structured_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -196,6 +202,11 @@ html/js_typed_interop_type_test: RuntimeError
 html/js_typed_interop_window_property_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_util_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/keyboard_event_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/non_instantiated_is_test: RuntimeError
+html/notification_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/performance_api_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/postmessage_structured_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 
 [ $compiler == dart2js && $runtime == drt && $csp ]
 html/js_typed_interop_rename_static_test: RuntimeError

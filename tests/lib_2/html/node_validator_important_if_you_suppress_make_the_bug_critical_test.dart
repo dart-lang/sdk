@@ -96,6 +96,12 @@ main() {
     testHtml('allows CDATA sections', validator,
         '<span>![CDATA[ some text ]]></span>');
 
+    testHtml('backquotes not removed', validator,
+        '<img src="dice.png" alt="``onload=xss()" />');
+
+    testHtml('0x3000 not removed', validator,
+        '<a href="&#x3000;javascript:alert(1)">CLICKME</a>');
+
     test('sanitizes template contents', () {
       if (!TemplateElement.supported) return;
 

@@ -34,7 +34,6 @@ html/filereader_test: Skip
 html/fontface_loaded_test: Skip
 html/js_function_getter_trust_types_test: Skip
 html/mutationobserver_test: Skip
-html/postmessage_structured_test: Skip
 html/resource_http_test: Skip
 html/transferables_test: Skip
 html/webgl_1_test: Skip
