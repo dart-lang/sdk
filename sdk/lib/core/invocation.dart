@@ -16,13 +16,6 @@ abstract class Invocation {
   Symbol get memberName;
 
   /**
-   * An unmodifiable view of the type arguments of the call.
-   *
-   * If the call is not generic, the type arguments list is empty.
-   */
-  List<Type> get typeArguments;
-
-  /**
    * An unmodifiable view of the positional arguments of the call.
    *
    * If the member is a getter, the positional arguments list is

@@ -295,7 +295,6 @@ abstract class int extends self::num {
 }
 abstract class Invocation extends self::Object {
   abstract get memberName() → self::Symbol;
-  abstract get typeArguments() → self::List<self::Type>;
   abstract get positionalArguments() → self::List<dynamic>;
   abstract get namedArguments() → self::Map<self::Symbol, dynamic>;
   abstract get isMethod() → self::bool;
