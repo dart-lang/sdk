@@ -46,6 +46,8 @@ class InterfaceResolverTest {
 
   InterfaceType get intType => coreTypes.intClass.rawType;
 
+  Class get listClass => coreTypes.listClass;
+
   InterfaceType get numType => coreTypes.numClass.rawType;
 
   Class get objectClass => coreTypes.objectClass;
@@ -159,12 +161,13 @@ class InterfaceResolverTest {
     return new Field(new Name(name), type: type);
   }
 
-  Procedure makeForwardingStub(Procedure method, bool setter) {
+  Procedure makeForwardingStub(Procedure method, bool setter,
+      {Substitution substitution}) {
     var a = makeClass(name: 'A', procedures: [method]);
     var b = makeClass(name: 'B', supertype: a.asThisSupertype);
     var node = getForwardingNode(b, setter);
     var stub = ForwardingNode.createForwardingStubForTesting(
-        node, Substitution.empty, method);
+        node, substitution ?? Substitution.empty, method);
     ForwardingNode.createForwardingImplIfNeededForTesting(node, stub.function);
     return stub;
   }
@@ -467,6 +470,22 @@ class InterfaceResolverTest {
     expect(expression.arguments.types, isEmpty);
   }
 
+  void test_createForwardingStub_substitute() {
+    // class C<T> { T foo(T x, {T y}); }
+    var T = new TypeParameter('T', objectType);
+    var x = new VariableDeclaration('x', type: new TypeParameterType(T));
+    var y = new VariableDeclaration('y', type: new TypeParameterType(T));
+    var method = makeEmptyMethod(
+        positionalParameters: [x],
+        namedParameters: [y],
+        returnType: new TypeParameterType(T));
+    var substitution = Substitution.fromPairs([T], [intType]);
+    var stub = makeForwardingStub(method, false, substitution: substitution);
+    expect(stub.function.positionalParameters[0].type, intType);
+    expect(stub.function.namedParameters[0].type, intType);
+    expect(stub.function.returnType, intType);
+  }
+
   void test_createForwardingStub_typeParameter() {
     var typeParameter = new TypeParameter('T', numType);
     var method = makeEmptyMethod(typeParameters: [typeParameter]);
@@ -481,6 +500,55 @@ class InterfaceResolverTest {
     var typeArgument = arguments.types[0] as TypeParameterType;
     expect(typeArgument.parameter, same(stub.function.typeParameters[0]));
     expect(typeArgument.promotedBound, isNull);
+  }
+
+  void test_createForwardingStub_typeParameter_and_substitution() {
+    // class C<T> { void foo<U>(T x, U y); }
+    var T = new TypeParameter('T', objectType);
+    var U = new TypeParameter('U', objectType);
+    var x = new VariableDeclaration('x', type: new TypeParameterType(T));
+    var y = new VariableDeclaration('y', type: new TypeParameterType(U));
+    var method =
+        makeEmptyMethod(typeParameters: [U], positionalParameters: [x, y]);
+    var substitution = Substitution.fromPairs([T], [intType]);
+    var stub = makeForwardingStub(method, false, substitution: substitution);
+    expect(stub.function.positionalParameters[0].type, intType);
+    var stubYType =
+        stub.function.positionalParameters[1].type as TypeParameterType;
+    expect(stubYType.parameter, same(stub.function.typeParameters[0]));
+  }
+
+  void test_createForwardingStub_typeParameter_substituteUses() {
+    // class C { void foo<T>(T x); }
+    var typeParameter = new TypeParameter('T', objectType);
+    var param = new VariableDeclaration('x',
+        type: new TypeParameterType(typeParameter));
+    var method = makeEmptyMethod(
+        typeParameters: [typeParameter], positionalParameters: [param]);
+    var stub = makeForwardingStub(method, false);
+    var stubXType =
+        stub.function.positionalParameters[0].type as TypeParameterType;
+    expect(stubXType.parameter, same(stub.function.typeParameters[0]));
+  }
+
+  void test_createForwardingStub_typeParameter_substituteUses_fBounded() {
+    // class C { void foo<T extends List<T>>(T x); }
+    var typeParameter = new TypeParameter('T', null);
+    typeParameter.bound =
+        new InterfaceType(listClass, [new TypeParameterType(typeParameter)]);
+    var param = new VariableDeclaration('x',
+        type: new TypeParameterType(typeParameter));
+    var method = makeEmptyMethod(
+        typeParameters: [typeParameter], positionalParameters: [param]);
+    var stub = makeForwardingStub(method, false);
+    var stubTypeParameter = stub.function.typeParameters[0];
+    var stubTypeParameterBound = stubTypeParameter.bound as InterfaceType;
+    var stubTypeParameterBoundArg =
+        stubTypeParameterBound.typeArguments[0] as TypeParameterType;
+    expect(stubTypeParameterBoundArg.parameter, same(stubTypeParameter));
+    var stubXType =
+        stub.function.positionalParameters[0].type as TypeParameterType;
+    expect(stubXType.parameter, same(stubTypeParameter));
   }
 
   void test_direct_isGenericCovariant() {

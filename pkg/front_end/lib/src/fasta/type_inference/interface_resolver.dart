@@ -257,17 +257,30 @@ class ForwardingNode extends Procedure {
           type: substitution.substituteType(parameter.type));
     }
 
-    TypeParameter copyTypeParameter(TypeParameter typeParameter) {
-      return new TypeParameter(
-          typeParameter.name, substitution.substituteType(typeParameter.bound));
+    var targetTypeParameters = target.function.typeParameters;
+    List<TypeParameter> typeParameters;
+    if (targetTypeParameters.isNotEmpty) {
+      typeParameters =
+          new List<TypeParameter>.filled(targetTypeParameters.length, null);
+      var additionalSubstitution = <TypeParameter, DartType>{};
+      for (int i = 0; i < targetTypeParameters.length; i++) {
+        var targetTypeParameter = targetTypeParameters[i];
+        var typeParameter = new TypeParameter(targetTypeParameter.name, null);
+        typeParameters[i] = typeParameter;
+        additionalSubstitution[targetTypeParameter] =
+            new TypeParameterType(typeParameter);
+      }
+      substitution = Substitution.combine(
+          substitution, Substitution.fromMap(additionalSubstitution));
+      for (int i = 0; i < typeParameters.length; i++) {
+        typeParameters[i].bound =
+            substitution.substituteType(targetTypeParameters[i].bound);
+      }
     }
-
     var positionalParameters =
         target.function.positionalParameters.map(copyParameter).toList();
     var namedParameters =
         target.function.namedParameters.map(copyParameter).toList();
-    var typeParameters =
-        target.function.typeParameters.map(copyTypeParameter).toList();
     var function = new FunctionNode(null,
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
