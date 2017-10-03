@@ -72,6 +72,7 @@ mirrors/reflected_type_generics_test/05: Fail # Issues in reflecting generic typ
 mirrors/reflected_type_generics_test/06: Fail # Issues in reflecting bounded type variables.
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
+html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 
 [ $compiler == dart2js ]
 async/future_or_strong_test: RuntimeError
@@ -190,6 +191,9 @@ html/shadow_dom_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart'
 html/shadowroot_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/speechrecognition_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/storage_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/streams_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/svg_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/svgelement_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -232,6 +236,9 @@ html/shadow_dom_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance
 html/shadowroot_test: RuntimeError
 html/speechrecognition_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/storage_test: RuntimeError
+html/streams_test: RuntimeError
+html/svg_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/svgelement_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 
 [ $compiler == dart2js && $runtime == drt && $csp ]
 html/js_typed_interop_rename_static_test: RuntimeError

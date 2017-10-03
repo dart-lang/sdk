@@ -139,6 +139,7 @@ html/storage_test: Pass, RuntimeError # Issue 22166
 html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
+html/svgelement_test: Fail
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.

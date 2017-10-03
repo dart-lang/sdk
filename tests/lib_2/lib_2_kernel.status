@@ -236,6 +236,9 @@ html/shadow_dom_test: DartkCompileTimeError
 html/shadowroot_test: DartkCompileTimeError
 html/speechrecognition_test: DartkCompileTimeError
 html/storage_test: DartkCompileTimeError
+html/streams_test: DartkCompileTimeError
+html/svg_test: DartkCompileTimeError
+html/svgelement_test: DartkCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash

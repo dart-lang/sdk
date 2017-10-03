@@ -131,7 +131,6 @@ html/element_types_test: RuntimeError # Issue 29922
 html/touchevent_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $runtime == drt ]
-html/svg_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $system == windows ]
 html/xhr_test/xhr: Skip # Times out. Issue 21527
