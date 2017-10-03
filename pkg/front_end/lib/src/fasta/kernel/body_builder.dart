@@ -1533,22 +1533,25 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       assert(conditionStatement is EmptyStatement);
     }
-    List<VariableDeclaration> variables = <VariableDeclaration>[];
+    List<VariableDeclaration> variables;
     dynamic variableOrExpression = pop();
-    Statement begin;
     if (variableOrExpression is FastaAccessor) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
     if (variableOrExpression is VariableDeclaration) {
-      variables.add(variableOrExpression);
+      variables = <VariableDeclaration>[variableOrExpression];
     } else if (variableOrExpression is List) {
-      // TODO(sigmund): remove this assignment (see issue #28651)
-      Iterable vars = variableOrExpression;
-      variables.addAll(vars);
+      variables = variableOrExpression;
     } else if (variableOrExpression == null) {
-      // Do nothing.
+      variables = <VariableDeclaration>[];
     } else if (variableOrExpression is Expression) {
-      begin = new ShadowExpressionStatement(variableOrExpression);
+      VariableDeclaration variable =
+          new VariableDeclaration.forValue(variableOrExpression);
+      variables = <VariableDeclaration>[variable];
+    } else if (variableOrExpression is ExpressionStatement) {
+      VariableDeclaration variable =
+          new VariableDeclaration.forValue(variableOrExpression.expression);
+      variables = <VariableDeclaration>[variable];
     } else {
       return unhandled("${variableOrExpression.runtimeType}", "endForStatement",
           forKeyword.charOffset, uri);
@@ -1563,9 +1566,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement result =
         new ShadowForStatement(variables, condition, updates, body)
           ..fileOffset = forKeyword.charOffset;
-    if (begin != null) {
-      result = new ShadowBlock(<Statement>[begin, result]);
-    }
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
       breakTarget.resolveBreaks(result);
