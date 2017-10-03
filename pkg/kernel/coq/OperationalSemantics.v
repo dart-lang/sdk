@@ -107,6 +107,16 @@ Definition env_in : nat -> environment -> Prop :=
 
 Definition empty_env : environment := nil.
 
+Definition env_to_type_env : environment -> type_env :=
+  fun env => List.fold_left
+    (fun TE entry =>
+      match (syntactic_type (value entry)) with
+      | None => TE
+      | Some type => NatMap.add (variable_id entry) type TE
+      end)
+    env
+    (NatMap.empty dart_type).
+
 (* TODO(dmitryas): Add some hypotheses about well-formedness of an environment
   w.r.t. to other components. *)
 
@@ -170,6 +180,13 @@ Inductive expression_continuation : Set :=
     -> environment
     -> statement_continuation
     -> expression_continuation
+
+  (** [Halt_Ek] represents the end of program execution.  The main procedure
+    returns a value (or null) to this expression continuation.  The value is
+    then ignored, and the program execution halts.  The constructor doesn't
+    receive any parameters. *)
+  | Halt_Ek :
+    expression_continuation
 
 (** TODO(dmitryas): Write descriptive comments. *)
 with statement_continuation : Set :=
@@ -448,6 +465,8 @@ Inductive step : configuration -> configuration -> Prop :=
     step (Value_Passing_Configuration (Var_Declaration_Ek var_id env cont) val)
          (Forward_Configuration cont env').
 
+(* TODO(dmitryas): Add transitions to final states. *)
+
 
 (** Well-formedness property over configurations is understood as the property
   of being a valid l.h.s. to the [step] relation.  The abstract machine may or
@@ -541,6 +560,136 @@ Inductive configuration_wf : configuration -> Prop :=
   | Forward_Configuration_Wf :
     forall cont env,
     configuration_wf (Forward_Configuration cont env).
+
+
+Inductive configuration_final : configuration -> Prop :=
+
+  | placeholder_final :
+    forall val,
+    configuration_final (Value_Passing_Configuration Halt_Ek val).
+
+
+(** All class and member references in the expression are present in CE and ME
+  respectively.
+
+  TODO(dmitryas): Define actual body of this placeholder. *)
+Definition expression_wf : expression -> Prop := fun _ => True.
+
+
+(** Same as [expression_wf], but for statements.
+
+  TODO(dmitryas): Define actual body of this placeholder. *)
+Definition statement_wf : statement -> Prop := fun _ => True.
+
+
+(** For each variable in the environment there is an interface, so that
+  [value_of_type] predicate is true.
+
+  TODO(dmitryas): Define actual body of this placeholder. *)
+Definition environment_wf : environment -> Prop := fun _ => True.
+
+
+(** Generic well-formedness for expression continuations.
+
+  TODO(dmitryas): Define actual body of this placeholder. *)
+Definition expression_continuation_wf : expression_continuation -> Prop :=
+  fun _ => True.
+
+
+(** Generic well-formedness for statement continuations.
+
+  TODO(dmitryas): Define actual body of this placeholder. *)
+Definition statement_continuation_wf : statement_continuation -> Prop :=
+  fun _ => True.
+
+
+(** Each free variable referenced from the expression is present in the
+  environment.
+
+  TODO(dmitryas): Define actual body of this placeholder. *)
+Definition eval_environment_sufficient : environment -> expression -> Prop :=
+  fun _ _ => True.
+
+
+(** Same as [eval_environment_sufficient], but for statements.
+
+  TODO(dmitryas): Define actual body of this placeholder. *)
+Definition exec_environment_sufficient : environment -> statement -> Prop :=
+  fun _ _ => True.
+
+
+(** The syntactic type of the expression matches the syntactic type of the
+  value expected by the expression continuation.
+
+  TODO(dmitryas): Define actual body of this placeholder. *)
+Definition eval_types_compatible :
+    expression -> expression_continuation -> Prop :=
+  fun _ _ => True.
+
+
+(** The syntactic type returned by the statement (if any) matches the syntactic
+  type of the value expected by the expression continuation.
+
+  TODO(dmitryas): Define actual body of this placeholder. *)
+Definition exec_types_compatible :
+    statement -> expression_continuation -> Prop :=
+  fun _ _ => True.
+
+
+(** The syntactic type of the value matches the syntactic type of the value
+  expected by the expression continuation.
+
+  TODO(dmitryas): Define actual body of this placeholder. *)
+Definition pass_types_compatible :
+   runtime_value -> expression_continuation -> Prop :=
+  fun _ _ => True.
+
+
+Inductive configuration_valid : configuration -> Prop :=
+
+  | Eval_Configuration_Valid :
+    forall exp env cont,
+    expression_wf exp ->
+    environment_wf env ->
+    expression_continuation_wf cont ->
+    eval_environment_sufficient env exp ->
+    eval_types_compatible exp cont ->
+    configuration_valid (Eval_Configuration exp env cont)
+
+  | Exec_Configuration_Valid :
+    forall stmt env ret_cont next_cont,
+    statement_wf stmt ->
+    environment_wf env ->
+    expression_continuation_wf ret_cont ->
+    statement_continuation_wf next_cont ->
+    exec_environment_sufficient env stmt ->
+    exec_types_compatible stmt ret_cont ->
+    configuration_valid (Exec_Configuration stmt env ret_cont next_cont)
+
+  | Value_Passing_Configuration_Valid :
+    forall cont val,
+    (exists intf, value_of_type val intf (syntactic_type val)) ->
+    pass_types_compatible val cont ->
+    configuration_valid (Value_Passing_Configuration cont val)
+
+  | Forward_Configuration_Valid :
+    forall cont env,
+    statement_continuation_wf cont ->
+    environment_wf env ->
+    configuration_valid (Forward_Configuration cont env).
+
+
+Inductive steps : configuration -> configuration -> Prop :=
+
+  | steps_zero :
+    forall conf,
+    steps conf conf
+
+  | steps_trans_right :
+    forall conf1 conf2 conf3,
+    steps conf1 conf2 ->
+    step conf2 conf3 ->
+    steps conf1 conf3.
 
 
 End OperationalSemantics.

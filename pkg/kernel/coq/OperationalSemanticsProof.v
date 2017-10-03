@@ -12,6 +12,7 @@ Require Import OperationalSemantics.
 
 Import Common.NatMapFacts.
 Import Common.MoreNatMapFacts.
+Import ObjectModel.Subtyping.
 
 
 Section OperationalSemanticsSpec.
@@ -316,6 +317,48 @@ Proof.
       exists (Exec_Configuration s env e0 (Block_Sk l e e0 cont)).
       constructor.
 Qed.
+
+
+Lemma configuration_valid_wf :
+  forall conf, configuration_valid CE ME conf -> configuration_wf CE ME conf.
+Proof.
+  admit.
+Admitted.
+
+
+Lemma configuration_valid_step :
+  forall conf1 conf2,
+  configuration_valid CE ME conf1 ->
+  step CE ME conf1 conf2 ->
+  configuration_valid CE ME conf2 \/ configuration_final conf2.
+Proof.
+  admit.
+Admitted.
+
+
+Theorem progress:
+  forall conf1,
+  configuration_valid CE ME conf1 ->
+  exists conf2, step CE ME conf1 conf2 /\
+    (configuration_valid CE ME conf2 \/ configuration_final conf2).
+Proof.
+  intros.
+  admit.
+Admitted.
+
+
+Lemma preservation_eval:
+  forall conf1 conf2 exp val env cont val_type exp_type,
+  configuration_valid CE ME conf1 ->
+  conf1 = Eval_Configuration exp env cont ->
+  conf2 = Value_Passing_Configuration cont val ->
+  steps CE ME conf1 conf2 ->
+  expression_type CE (env_to_type_env env) exp = Some exp_type ->
+  (syntactic_type val) = Some val_type ->
+  subtype (val_type, exp_type) = true.
+Proof.
+  admit.
+Admitted.
 
 
 End OperationalSemanticsSpec.
