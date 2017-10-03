@@ -33,7 +33,7 @@ ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
     KernelAstAdapter astAdapter = new KernelAstAdapter(kernel, compiler.backend,
         resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
     ir.Member member = getIrMember(compiler, resolvedAst);
-    return buildKernelImpact(member, astAdapter);
+    return buildKernelImpact(member, astAdapter, compiler.reporter);
   });
 }
 
@@ -61,9 +61,10 @@ ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
   return member;
 }
 
-ResolutionImpact buildKernelImpact(
-    ir.Member member, KernelToElementMapForImpact elementAdapter) {
-  KernelImpactBuilder builder = new KernelImpactBuilder(elementAdapter, member);
+ResolutionImpact buildKernelImpact(ir.Member member,
+    KernelToElementMapForImpact elementAdapter, DiagnosticReporter reporter) {
+  KernelImpactBuilder builder =
+      new KernelImpactBuilder(elementAdapter, member, reporter);
   if (member is ir.Procedure) {
     return builder.buildProcedure(member);
   } else if (member is ir.Constructor) {
@@ -77,10 +78,11 @@ ResolutionImpact buildKernelImpact(
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
   final KernelToElementMapForImpact elementAdapter;
+  final DiagnosticReporter reporter;
   final ir.Member currentMember;
   _ClassEnsurer classEnsurer;
 
-  KernelImpactBuilder(this.elementAdapter, this.currentMember)
+  KernelImpactBuilder(this.elementAdapter, this.currentMember, this.reporter)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember.name}') {
     this.classEnsurer = new _ClassEnsurer(this);
@@ -328,10 +330,12 @@ class KernelImpactBuilder extends ir.Visitor {
       ConstantValue value =
           elementAdapter.getConstantValue(node.arguments.positional.first);
       if (!value.isString) {
-        failedAt(
+        // TODO(het): Get the actual span for the Symbol constructor argument
+        reporter.reportErrorMessage(
             CURRENT_ELEMENT_SPANNABLE,
-            "Unexpected constant value in const Symbol(...) call: "
-            "${value.toStructuredText()}");
+            MessageKind.STRING_EXPECTED,
+            {'type': value.getType(elementAdapter.commonElements)});
+        return;
       }
       StringConstantValue stringValue = value;
       impactBuilder.registerConstSymbolName(stringValue.primitiveValue);

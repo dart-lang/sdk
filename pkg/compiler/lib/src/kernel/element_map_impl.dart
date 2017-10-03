@@ -1151,7 +1151,8 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
           commonElements, nativeBasicData, reporter, _options);
 
   ResolutionImpact computeWorldImpact(KMember member) {
-    return buildKernelImpact(_members.getData(member).definition.node, this);
+    return buildKernelImpact(
+        _members.getData(member).definition.node, this, reporter);
   }
 
   ScopeModel computeScopeModel(KMember member) {
