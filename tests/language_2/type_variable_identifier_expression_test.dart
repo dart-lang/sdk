@@ -11,13 +11,10 @@ class A {
 
 class B<T> {
   doFunc() {
-    T.func();
+    T.func(); /*@compile-error=unspecified*/
   }
 }
 
 main() {
-  try {
-    var buf = new B<A>().doFunc();
-    print(buf);
-  } on NoSuchMethodError catch (e) {}
+  new B<A>().doFunc();
 }

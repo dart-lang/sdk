@@ -18,7 +18,7 @@ class Bar<T> {
 }
 
 void main() {
-  var x = new Foo<List<String>>();
+  dynamic x = new Foo<List<String>>();
   if (new DateTime.now().millisecondsSinceEpoch == 42) x = new Foo<int>();
   Expect.isFalse(x.m(new Bar<String>().f()));
   Expect.isTrue(x.m(new Bar<List<String>>().f()));

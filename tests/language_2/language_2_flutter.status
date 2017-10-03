@@ -217,9 +217,17 @@ override_inheritance_field_test/53: CompileTimeError
 override_inheritance_field_test/53: CompileTimeError
 override_inheritance_field_test/54: CompileTimeError
 override_inheritance_field_test/54: CompileTimeError
+overridden_no_such_method_test: CompileTimeError
+overridden_no_such_method_test: CompileTimeError
 static_initializer_type_error_test: CompileTimeError
 static_initializer_type_error_test: CompileTimeError
 type_parameter_test/none: CompileTimeError
+type_variable_bounds_test/00: CompileTimeError
+type_variable_bounds_test/06: CompileTimeError
+type_variable_bounds_test/07: CompileTimeError
+type_variable_bounds_test/09: CompileTimeError
+type_variable_bounds_test/10: CompileTimeError
+type_variable_bounds_test/08: CompileTimeError
 type_variable_scope2_test: CompileTimeError
 type_variable_scope_test/00: CompileTimeError
 type_variable_scope_test/01: CompileTimeError

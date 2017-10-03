@@ -17,6 +17,7 @@ generic_function_type_as_type_argument_test/03: CompileTimeError # Issue 30931
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30208
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
+type_variable_bounds4_test/01: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
 
 [ $compiler == dartk && $runtime == vm ]
@@ -241,6 +242,7 @@ function_type2_test: RuntimeError
 map_literal1_test/01: MissingCompileTimeError
 type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/none: RuntimeError
+type_variable_bounds4_test/01: RuntimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.

@@ -338,15 +338,6 @@ try_catch_test: Skip
 type_argument_in_super_type_test: Skip
 type_check_const_function_typedef2_test: Skip
 type_checks_in_factory_method_test: Skip
-type_promotion_parameter_test: Skip
-type_variable_bounds2_test: Skip
-type_variable_bounds3_test: Skip
-type_variable_bounds4_test: Skip
-type_variable_bounds_test: Skip
-type_variable_conflict2_test: Skip
-type_variable_conflict_test: Skip
-type_variable_function_type_test: Skip
-type_variable_identifier_expression_test: Skip
 
 [ $compiler == dart2analyzer && $strong ]
 # async_await_test/02: CompileTimeError # Issue 28823
