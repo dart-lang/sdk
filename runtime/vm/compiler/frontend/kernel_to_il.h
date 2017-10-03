@@ -211,11 +211,9 @@ class ActiveClass {
 
   intptr_t MemberTypeParameterCount(Zone* zone);
 
-  intptr_t ClassTypeParameterCount(Zone* zone) {
-    ASSERT(member != NULL);
-    TypeArguments& class_types =
-        TypeArguments::Handle(zone, klass->type_parameters());
-    return class_types.Length();
+  intptr_t ClassNumTypeArguments() {
+    ASSERT(klass != NULL);
+    return klass->NumTypeArguments();
   }
 
   // The current enclosing class (or the library top-level class).

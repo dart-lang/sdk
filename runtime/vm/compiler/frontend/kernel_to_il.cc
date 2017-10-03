@@ -779,7 +779,7 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 #endif
     instructions += LoadLocal(scopes_->type_arguments_variable);
   } else if (scopes_->this_variable != NULL &&
-             active_class_.ClassTypeParameterCount(Z) > 0) {
+             active_class_.ClassNumTypeArguments() > 0) {
     ASSERT(!parsed_function_->function().IsFactory());
     intptr_t type_arguments_field_offset =
         active_class_.klass->type_arguments_field_offset();

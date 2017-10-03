@@ -394,7 +394,6 @@ function_type/function_type99_test: RuntimeError
 function_type/function_type9_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 issue_1751477_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-method_override_test: RuntimeError # Not triaged.
 mixin_super_constructor_named_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
