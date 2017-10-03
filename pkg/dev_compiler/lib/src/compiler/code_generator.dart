@@ -2132,7 +2132,7 @@ class CodeGenerator extends Object
           } else {
             var accessors = isGetter ? instanceGetters : instanceSetters;
             accessors.add(property);
-            if (extMembers.contains(name)) {
+            if (extMembers.contains(accessor.variable.name)) {
               accessors.add(new JS.Property(
                   _declareMemberName(accessor, useExtension: true), type));
             }
