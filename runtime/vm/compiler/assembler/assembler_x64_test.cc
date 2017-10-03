@@ -3265,6 +3265,52 @@ ASSEMBLER_TEST_RUN(TestSetCC, test) {
   EXPECT_EQ(0xFFFFFF00, res);
 }
 
+ASSEMBLER_TEST_GENERATE(TestSetCC2, assembler) {
+  __ movq(RBX, Immediate(0xFFFFFFFF));
+  __ cmpq(RBX, RBX);
+  __ setcc(EQUAL, BH);
+  __ movq(RAX, RBX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestSetCC2, test) {
+  typedef uword (*TestSetCC)();
+  uword res = reinterpret_cast<TestSetCC>(test->entry())();
+  EXPECT_EQ(0xFFFF01FF, res);
+}
+
+ASSEMBLER_TEST_GENERATE(TestSetCC3, assembler) {
+  __ pushq(R10);
+  __ movq(R10, Immediate(0xFFFFFFFF));
+  __ cmpq(R10, R10);
+  __ setcc(NOT_EQUAL, R10B);
+  __ movq(RAX, R10);
+  __ popq(R10);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestSetCC3, test) {
+  typedef uword (*TestSetCC)();
+  uword res = reinterpret_cast<TestSetCC>(test->entry())();
+  EXPECT_EQ(0xFFFFFF00, res);
+}
+
+ASSEMBLER_TEST_GENERATE(TestSetCC4, assembler) {
+  __ pushq(RSI);
+  __ movq(RSI, Immediate(0xFFFFFFFF));
+  __ cmpq(RSI, RSI);
+  __ setcc(EQUAL, SIL);
+  __ movq(RAX, RSI);
+  __ popq(RSI);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestSetCC4, test) {
+  typedef uword (*TestSetCC)();
+  uword res = reinterpret_cast<TestSetCC>(test->entry())();
+  EXPECT_EQ(0xFFFFFF01, res);
+}
+
 ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
   __ pushq(RSI);
   __ pushq(RDI);
