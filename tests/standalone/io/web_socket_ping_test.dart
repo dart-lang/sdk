@@ -14,7 +14,7 @@ import "dart:async";
 import "dart:io";
 import "dart:math";
 
-part "../../../sdk/lib/io/crypto.dart";
+part "../../../sdk/lib/_http/crypto.dart";
 
 const String webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
