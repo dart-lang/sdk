@@ -8,33 +8,33 @@ class A {
   method1() => null; //# 01: ok
   method2(a) => null; //# 02: ok
   method3(a, b, c, d) => null; //# 03: ok
-  method4() => null; //# 04: static type warning
-  method6(a, b, c) => null; //# 06: static type warning
+  method4() => null; //# 04: compile-time error
+  method6(a, b, c) => null; //# 06: compile-time error
   method7([a]) => null; //# 07: ok
   method8([a, b]) => null; //# 08: ok
   method9([a, b, c]) => null; //# 09: ok
   method10([a]) => null; //# 10: ok
-  method11(a) => null; //# 11: static type warning
-  method12(a, [b]) => null; //# 12: static type warning
-  method13(a, [b]) => null; //# 13: static type warning
-  method14(a, b, [c, d, e]) => null; //# 14: static type warning
+  method11(a) => null; //# 11: compile-time error
+  method12(a, [b]) => null; //# 12: compile-time error
+  method13(a, [b]) => null; //# 13: compile-time error
+  method14(a, b, [c, d, e]) => null; //# 14: compile-time error
   method15({a}) => null; //# 15: ok
   method16({a, b}) => null; //# 16: ok
   method17({a, b, c}) => null; //# 17: ok
   method18(d, {a, b, c}) => null; //# 18: ok
-  method19({a}) => null; //# 19: static type warning
-  method20({a, b}) => null; //# 20: static type warning
-  method21({a, b, c, d}) => null; //# 21: static type warning
+  method19({a}) => null; //# 19: compile-time error
+  method20({a, b}) => null; //# 20: compile-time error
+  method21({a, b, c, d}) => null; //# 21: compile-time error
 
   method22(int a) => null; //# 22: ok
   method23(int a) => null; //# 23: ok
   void method24() {} //# 24: ok
   method25() => null; //# 25: ok
   void method26() {} //# 26: ok
-  int method27() => null; //# 27: static type warning
+  int method27() => null; //# 27: compile-time error
   method28(int a) => null; //# 28: ok
   method29(int a) => null; //# 29: ok
-  method30(int a) => null; //# 30: static type warning
+  method30(int a) => null; //# 30: compile-time error
 }
 
 class B extends A {
@@ -43,10 +43,10 @@ class B extends A {
 }
 
 abstract class I {
-  method5() => null; //# 05: static type warning
-  method31(int a) => null; //# 31: static type warning
-  method32(int a) => null; //# 32: static type warning
-  method33(num a) => null; //# 33: static type warning
+  method5() => null; //# 05: compile-time error
+  method31(int a) => null; //# 31: compile-time error
+  method32(int a) => null; //# 32: compile-time error
+  method33(num a) => null; //# 33: compile-time error
 }
 
 abstract class J {

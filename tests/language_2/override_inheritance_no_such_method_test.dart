@@ -6,22 +6,22 @@
 // concrete classes.
 
 abstract class A {
-  method6(); //# 06: static type warning
-  method7(); //# 07: static type warning
+  method6(); //# 06: compile-time error
+  method7(); //# 07: compile-time error
   method8(); //# 08: ok
 }
 
 abstract class I {
-  method9(); //# 09: static type warning
-  method10(); //# 10: static type warning
+  method9(); //# 09: compile-time error
+  method10(); //# 10: compile-time error
   method11(); //# 11: ok
 }
 
-@proxy //# 02: static type warning
+@proxy //# 02: compile-time error
 @proxy //# 07: continued
 @proxy //# 10: continued
 class Class1 extends A implements I {
-  method1(); //# 01: static type warning
+  method1(); //# 01: compile-time error
 
   method2(); //# 02: continued
 
@@ -39,11 +39,11 @@ class Class1 extends A implements I {
   noSuchMethod(_) => null; //# 11: continued
 }
 
-@proxy //# 12: static type warning
+@proxy //# 12: compile-time error
 class B {
   method12(); //# 12: continued
 
-  noSuchMethod(_) => null; //# 13: static type warning
+  noSuchMethod(_) => null; //# 13: compile-time error
   method13(); //# 13: continued
 }
 

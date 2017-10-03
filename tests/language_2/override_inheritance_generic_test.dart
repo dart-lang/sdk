@@ -5,9 +5,9 @@
 class A<T> {
   method1(T t) => null; //# 01: ok
   method2(T t) => null; //# 02: ok
-  method4(T t) => null; //# 04: static type warning
+  method4(T t) => null; //# 04: compile-time error
   method5(T t) => null; //# 05: ok
-  method7(T t) => null; //# 07: static type warning
+  method7(T t) => null; //# 07: compile-time error
 }
 
 class B<S> extends A
@@ -20,16 +20,16 @@ class B<S> extends A
   method2(int i) => null; //# 02: continued
   method3(S s) => null; //# 03: ok
   method4(int i) => null; //# 04: continued
-  method6(S s) => null; //# 06: static type warning
+  method6(S s) => null; //# 06: compile-time error
 }
 
 abstract class I<U> {
   method3(U u) => null; //# 03: continued
   method6(U u) => null; //# 06: continued
   method7(U u) => null; //# 07: continued
-  method8(U u) => null; //# 08: static type warning
-  method9(U u) => null; //# 09: static type warning
-  method10(U u) => null; //# 10: static type warning
+  method8(U u) => null; //# 08: compile-time error
+  method9(U u) => null; //# 09: compile-time error
+  method10(U u) => null; //# 10: compile-time error
 }
 
 abstract class J<V> {

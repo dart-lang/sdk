@@ -26,6 +26,6 @@ main() {
   Sub sub = s;
   print(s.instanceMethod);
   Expect.equals(42, s.superInstanceMethod());
-  Expect.equals(42, sup.superInstanceMethod()); //# 02: static type warning
+  Expect.equals(42, sup.superInstanceMethod()); //# 02: compile-time error
   Expect.equals(42, sub.superInstanceMethod());
 }

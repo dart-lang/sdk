@@ -316,6 +316,39 @@ override_inheritance_field_test/47: MissingCompileTimeError
 override_inheritance_field_test/48: MissingCompileTimeError
 override_inheritance_field_test/53: MissingCompileTimeError
 override_inheritance_field_test/54: MissingCompileTimeError
+override_inheritance_generic_test/04: MissingCompileTimeError
+override_inheritance_generic_test/06: MissingCompileTimeError
+override_inheritance_generic_test/07: MissingCompileTimeError
+override_inheritance_generic_test/08: MissingCompileTimeError
+override_inheritance_generic_test/09: MissingCompileTimeError
+override_inheritance_generic_test/10: MissingCompileTimeError
+override_inheritance_method_test/04: MissingCompileTimeError
+override_inheritance_method_test/05: MissingCompileTimeError
+override_inheritance_method_test/06: MissingCompileTimeError
+override_inheritance_method_test/11: MissingCompileTimeError
+override_inheritance_method_test/12: MissingCompileTimeError
+override_inheritance_method_test/13: MissingCompileTimeError
+override_inheritance_method_test/14: MissingCompileTimeError
+override_inheritance_method_test/19: MissingCompileTimeError
+override_inheritance_method_test/20: MissingCompileTimeError
+override_inheritance_method_test/21: MissingCompileTimeError
+override_inheritance_method_test/27: MissingCompileTimeError
+override_inheritance_method_test/30: MissingCompileTimeError
+override_inheritance_method_test/31: MissingCompileTimeError
+override_inheritance_method_test/32: MissingCompileTimeError
+override_inheritance_method_test/33: MissingCompileTimeError
+override_inheritance_mixed_test/06: MissingCompileTimeError
+override_inheritance_mixed_test/07: MissingCompileTimeError
+override_inheritance_no_such_method_test/01: MissingCompileTimeError
+override_inheritance_no_such_method_test/02: MissingCompileTimeError
+override_inheritance_no_such_method_test/06: MissingCompileTimeError
+override_inheritance_no_such_method_test/07: MissingCompileTimeError
+override_inheritance_no_such_method_test/09: MissingCompileTimeError
+override_inheritance_no_such_method_test/10: MissingCompileTimeError
+override_inheritance_no_such_method_test/12: MissingCompileTimeError
+override_inheritance_no_such_method_test/13: MissingCompileTimeError
+override_method_with_field_test/02: MissingCompileTimeError
+part2_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -1114,6 +1147,11 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
+override_inheritance_mixed_test/01: MissingCompileTimeError
+override_inheritance_mixed_test/02: MissingCompileTimeError
+override_inheritance_mixed_test/03: MissingCompileTimeError
+override_inheritance_mixed_test/04: MissingCompileTimeError
+override_method_with_field_test/01: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1380,6 +1418,11 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
+override_inheritance_mixed_test/01: MissingCompileTimeError
+override_inheritance_mixed_test/02: MissingCompileTimeError
+override_inheritance_mixed_test/03: MissingCompileTimeError
+override_inheritance_mixed_test/04: MissingCompileTimeError
+override_method_with_field_test/01: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash

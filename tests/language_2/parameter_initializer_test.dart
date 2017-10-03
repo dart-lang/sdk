@@ -49,8 +49,8 @@ class Foo {
 
 class SubFoo extends Foo {
   SubFoo(num y)
-      : super(y),
-        x_ = 0 {
+      : x_ = 0,
+        super(y) {
     // Subfoo.setter of x has been invoked in the Foo constructor.
     Expect.equals(x, 1);
     Expect.equals(x_, 1);

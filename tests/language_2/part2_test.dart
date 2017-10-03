@@ -4,8 +4,8 @@
 
 library org.dartlang.test.part2_test;
 
-part "part_part.dart"; // This is a static warning.
+part "part_part.dart"; //# 01: compile-time error
 
 main() {
-  print(foo);
+  print(foo); //# 01: continued
 }

@@ -84,6 +84,13 @@ override_inheritance_field_test/43: CompileTimeError
 override_inheritance_field_test/45: CompileTimeError
 override_inheritance_field_test/49: CompileTimeError
 override_inheritance_field_test/50: CompileTimeError
+override_inheritance_generic_test/02: CompileTimeError
+override_inheritance_method_test/28: CompileTimeError
+override_inheritance_method_test/29: CompileTimeError
+override_inheritance_no_such_method_test/13: MissingCompileTimeError
+parameter_initializer_test: CompileTimeError
+parser_quirks_test: CompileTimeError
+part_refers_to_core_library_test/01: Crash
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
