@@ -2418,7 +2418,7 @@ class Parser {
       for (String expectedValue in expectedNext) {
         if (identical(nextValue, expectedValue)) {
           reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
-          token = token.next;
+          return token.next;
         }
       }
     }
