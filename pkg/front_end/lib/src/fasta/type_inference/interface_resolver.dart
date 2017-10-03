@@ -251,8 +251,7 @@ class ForwardingNode extends Procedure {
   }
 
   /// Creates a forwarding stub based on the given [target].
-  ForwardingStub _createForwardingStub(
-      Substitution substitution, Procedure target) {
+  Procedure _createForwardingStub(Substitution substitution, Procedure target) {
     VariableDeclaration copyParameter(VariableDeclaration parameter) {
       return new VariableDeclaration(parameter.name,
           type: substitution.substituteType(parameter.type));
@@ -275,7 +274,7 @@ class ForwardingNode extends Procedure {
         typeParameters: typeParameters,
         requiredParameterCount: target.function.requiredParameterCount,
         returnType: substitution.substituteType(target.function.returnType));
-    return new ForwardingStub(name, kind, function);
+    return new Procedure(name, kind, function, isForwardingStub: true);
   }
 
   /// Determines which inherited member this node resolves to.
@@ -384,7 +383,7 @@ class ForwardingNode extends Procedure {
   ///
   /// This method is static so that it can be easily eliminated by tree shaking
   /// when not needed.
-  static ForwardingStub createForwardingStubForTesting(
+  static Procedure createForwardingStubForTesting(
       ForwardingNode node, Substitution substitution, Procedure target) {
     return node._createForwardingStub(substitution, target);
   }
@@ -393,15 +392,6 @@ class ForwardingNode extends Procedure {
   static List<Procedure> getCandidates(ForwardingNode node) {
     return node._candidates.sublist(node._start, node._end);
   }
-}
-
-/// A forwarding stub created by the [InterfaceResolver].
-///
-/// This needs to be a derived class from [Procedure] so that we can tell
-/// whether a given member is a forwarding stub using an "is" check.
-class ForwardingStub extends Procedure {
-  ForwardingStub(Name name, ProcedureKind kind, FunctionNode function)
-      : super(name, kind, function);
 }
 
 /// An [InterfaceResolver] keeps track of the information necessary to resolve
@@ -461,7 +451,7 @@ class InterfaceResolver {
   void finalizeCovariance(Class class_, List<ForwardingNode> forwardingNodes) {
     for (var node in forwardingNodes) {
       var resolution = node.resolve();
-      if (resolution is ForwardingStub) {
+      if (resolution is Procedure && resolution.isForwardingStub) {
         // TODO(paulberry): store the stub in the class.
         _instrumentation?.record(
             Uri.parse(class_.location.file),

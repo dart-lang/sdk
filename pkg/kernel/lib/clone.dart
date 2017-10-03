@@ -388,6 +388,7 @@ class CloneVisitor extends TreeVisitor {
         isStatic: node.isStatic,
         isExternal: node.isExternal,
         isConst: node.isConst,
+        isForwardingStub: node.isForwardingStub,
         transformerFlags: node.transformerFlags,
         fileUri: node.fileUri)
       ..fileEndOffset = node.fileEndOffset;

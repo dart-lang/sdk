@@ -159,7 +159,7 @@ class InterfaceResolverTest {
     return new Field(new Name(name), type: type);
   }
 
-  ForwardingStub makeForwardingStub(Procedure method, bool setter) {
+  Procedure makeForwardingStub(Procedure method, bool setter) {
     var a = makeClass(name: 'A', procedures: [method]);
     var b = makeClass(name: 'B', supertype: a.asThisSupertype);
     var node = getForwardingNode(b, setter);
@@ -617,7 +617,7 @@ class InterfaceResolverTest {
         supertype: a.asThisSupertype,
         implementedTypes: [b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    var stub = node.resolve() as ForwardingStub;
+    var stub = node.resolve() as Procedure;
     var x = stub.function.positionalParameters[0];
     expect(x.isGenericCovariantImpl, isFalse);
     expect(x.isGenericCovariantInterface, isFalse);
@@ -656,7 +656,7 @@ class InterfaceResolverTest {
       new Supertype(b, [numType])
     ]);
     var node = getForwardingNode(c, false);
-    var stub = node.resolve() as ForwardingStub;
+    var stub = node.resolve() as Procedure;
     var u = stub.function.typeParameters[0];
     expect(u.isGenericCovariantImpl, isTrue);
     expect(u.isGenericCovariantInterface, isFalse);
