@@ -2,21 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// The only purpose of this file is to enable analyzer tests on `perf.dart`,
-/// the code here just has a dummy import to the rest of the code.
 library front_end.tool.perf_test;
 
 import 'dart:io' show Platform;
 import 'perf.dart' as m;
 
 main() async {
-  var benchIds = [
-    'scan',
-    'parse',
-    'kernel_gen_e2e',
-    'kernel_gen_e2e_sum',
-    'linked_summarize'
-  ];
+  var benchIds = ['scan', 'parse', 'linked_summarize'];
   var inputFile = Platform.script.resolve('../lib/file_system.dart').path;
   for (var id in benchIds) {
     await m.main([id, inputFile]);
