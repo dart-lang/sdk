@@ -1407,6 +1407,8 @@ override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
+override_inheritance_mixed_test/08: MissingCompileTimeError
+override_inheritance_mixed_test/09: MissingCompileTimeError
 type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
