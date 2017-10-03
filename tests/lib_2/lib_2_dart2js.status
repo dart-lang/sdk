@@ -254,3 +254,6 @@ html/speechrecognition_test: Fail
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 html/request_animation_frame_test: Skip # Async test hangs.
+
+[ $compiler == dart2js && $fast_startup ]
+html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported

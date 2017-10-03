@@ -4,8 +4,7 @@
 
 library constructor_calls_created_synchronously_test;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:test/test.dart';
 import 'dart:html';
 import '../utils.dart';
 import 'dart:mirrors';
@@ -21,8 +20,6 @@ class A extends HtmlElement {
 }
 
 main() {
-  useHtmlConfiguration();
-
   // Adapted from Blink's
   // fast/dom/custom/constructor-calls-created-synchronously test.
 

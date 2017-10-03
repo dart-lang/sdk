@@ -49,13 +49,13 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 [ $runtime == vm ]
 async/stream_timeout_test: RuntimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
-html/*: Skip # dart:html will be a problem in the VM
+html/*: SkipByDesign # dart:html not supported on VM.
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
 mirrors/deferred_type_test: CompileTimeError
+mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_bounded_test/01: MissingCompileTimeError
 mirrors/generic_bounded_test/02: MissingCompileTimeError
-mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/native_class_test: SkipByDesign # Imports dart:html

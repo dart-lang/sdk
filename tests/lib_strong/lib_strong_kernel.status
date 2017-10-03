@@ -25,6 +25,16 @@ html/custom/attribute_changed_callback_test: DartkCompileTimeError
 html/custom/constructor_calls_created_synchronously_test: DartkCompileTimeError
 html/custom/created_callback_test: DartkCompileTimeError
 html/custom/document_register_basic_test: DartkCompileTimeError
+html/custom/document_register_type_extensions_test: DartkCompileTimeError
+html/custom/element_upgrade_test: DartkCompileTimeError
+html/custom/entered_left_view_test: DartkCompileTimeError
+html/custom/js_custom_test: DartkCompileTimeError
+html/custom/mirrors_test: DartkCompileTimeError
+html/custom/regress_194523002_test: DartkCompileTimeError
+html/custom_element_method_clash_test: DartkCompileTimeError
+html/custom_element_name_clash_test: DartkCompileTimeError
+html/custom_elements_23127_test: DartkCompileTimeError
+html/custom_elements_test: DartkCompileTimeError
 html/custom_tags_test: DartkCompileTimeError
 html/dart_object_local_storage_test: DartkCompileTimeError
 html/datalistelement_test: DartkCompileTimeError

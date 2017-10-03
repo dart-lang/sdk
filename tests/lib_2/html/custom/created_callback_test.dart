@@ -4,11 +4,11 @@
 
 library created_callback_test;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:test/test.dart';
 import 'dart:html';
 import 'dart:js' as js;
-import '../utils.dart';
+
+import 'utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';
@@ -56,8 +56,6 @@ class C extends HtmlElement {
 }
 
 main() {
-  useHtmlConfiguration();
-
   // Adapted from Blink's
   // fast/dom/custom/created-callback test.
 
@@ -74,7 +72,7 @@ main() {
   });
 
   test('transfer created callback', () {
-    document.registerElement(A.tag, A);
+    document.registerElement(A.tag, A as dynamic);
     var x = new A();
     expect(A.createdInvocations, 1);
   });
@@ -82,14 +80,12 @@ main() {
   test('unresolved and created callback timing', () {
     var div = new DivElement();
     C.div = div;
-    div.setInnerHtml(
-        """
+    div.setInnerHtml("""
 <x-c id="t"></x-c>
 <x-b id="u"></x-b>
 <x-c id="v"></x-c>
 <x-b id="w"></x-b>
-""",
-        treeSanitizer: NodeTreeSanitizer.trusted);
+""", treeSanitizer: NodeTreeSanitizer.trusted);
 
     upgradeCustomElements(div);
 
@@ -214,7 +210,7 @@ class AccessWhileUpgradingElement extends HtmlElement {
     upgradingContext = new DivElement();
     upgradingContext.setInnerHtml('<$tag></$tag>',
         treeSanitizer: new NullTreeSanitizer());
-    var child = upgradingContext.firstChild;
+    dynamic child = upgradingContext.firstChild;
 
     expect(child.foo, 666);
     expect(upgradingContextChild is HtmlElement, isFalse);

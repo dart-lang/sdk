@@ -6,7 +6,7 @@ import 'dart:html';
 
 import 'package:expect/minitest.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
 class Foo extends HtmlElement {
   static final tag = 'x-foo';
@@ -32,16 +32,10 @@ class Baz extends Foo {
   get thisIsAlsoACustomClass => true;
 }
 
-class BadB {
-}
+class BadB {}
 
 abstract class BadC extends HtmlElement {
   BadC.created() : super.created();
-}
-
-class BadF implements HtmlElement { //# compile-time error
-  static final tag = 'x-tag-f';
-  factory BadF() => new Element.tag(tag);
 }
 
 main() {
@@ -66,9 +60,6 @@ main() {
 
     // Cannot register system type.
     expect(() => document.registerElement('x-bad-e', Object), throws);
-
-    // Must extend HtmlElement, not just implement it.
-    expect(() => document.registerElement(BadF.tag, BadF), throws);
 
     // Constructor initiated instantiation
     var createdFoo = new Foo();

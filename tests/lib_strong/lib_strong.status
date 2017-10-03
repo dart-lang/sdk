@@ -19,13 +19,17 @@ async/future_or_bad_type_test/00: Skip
 async/future_or_bad_type_test/01: Skip
 async/future_or_bad_type_test/implements: Skip
 async/future_or_only_in_async_test/00: Skip
-async/future_test/none: Skip
 async/future_test/01: Skip
+async/future_test/none: Skip
 async/future_test/none: Skip
 async/future_value_chain4_test: Skip
 async/print_test/01: Skip
 async/print_test/none: Skip
 html/cross_frame_test: Skip
+html/custom/created_callback_test: CompileTimeError # Issue 28969
+html/custom/document_register_basic_test: CompileTimeError # Issue 28969
+html/custom/document_register_type_extensions_test: CompileTimeError # Issue 28969
+html/custom/element_upgrade_test: CompileTimeError # Issue 28969
 html/element_dimensions_test: Skip
 html/element_test: Skip
 html/events_test: Skip
@@ -33,6 +37,7 @@ html/fileapi_test: Skip
 html/filereader_test: Skip
 html/fontface_loaded_test: Skip
 html/js_function_getter_trust_types_test: Skip
+html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
 html/mutationobserver_test: Skip
 html/transferables_test: Skip
 html/webgl_1_test: Skip
@@ -55,21 +60,50 @@ mirrors/invoke_call_through_implicit_getter_previously_accessed_test: Skip
 mirrors/invoke_call_through_implicit_getter_test: Skip
 mirrors/lazy_static_test: Skip
 mirrors/mirrors_test: Skip
-html/custom/created_callback_test: CompileTimeError # Issue 28969
-html/custom/document_register_basic_test: CompileTimeError # Issue 28969
+mirrors/mixin_application_test: Skip
+mirrors/mixin_members_test: Skip
+mirrors/model_test: Skip
+mirrors/native_class_test: Skip
+mirrors/no_metadata_test: Skip
+mirrors/operator_test: Skip
+mirrors/parameter_is_const_test: Skip
+mirrors/parameter_of_mixin_app_constructor_test: Skip
+mirrors/parameter_test: Skip
+mirrors/private_symbol_test: Skip
+mirrors/redirecting_factory_different_type_test: Skip
+mirrors/redirecting_factory_test: Skip
+mirrors/reflect_class_test: Skip
+mirrors/reflect_model_test: Skip
+mirrors/reflected_type_classes_test: Skip
+mirrors/reflected_type_test: Skip
+mirrors/regress_16321_test: Skip
+mirrors/regress_19731_test: Skip
 
 [ $compiler == dart2analyzer && $strong ]
 html/debugger_test: CompileTimeError # Issue 28969
 
 # TODO(29919): HTML tests are not supported on dartdevc in test.dart yet.
 [ $compiler == dartdevc ]
-html/deferred_multi_app_htmltest: Skip # Issue 29919
-html/no_linked_scripts_htmltest: Skip # Issue 29919
-html/two_scripts_htmltest: Skip # Issue 29919
 html/custom/attribute_changed_callback_test: Crash # Issue 29922
 html/custom/constructor_calls_created_synchronously_test: Crash # Issue 29922
 html/custom/created_callback_test: CompileTimeError # Issue 29922
 html/custom/document_register_basic_test: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/construction: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/constructors: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/createElement with type extension: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/functional: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/namespaces: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/parsing: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/registration: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/single-parameter createElement: CompileTimeError # Issue 29922
+html/custom/element_upgrade_test: CompileTimeError # Issue 29922
+html/custom/entered_left_view_test: Crash # Issue 29922
+html/custom/js_custom_test: Crash # Issue 29922
+html/custom/mirrors_test: Crash # Issue 29922
+html/custom/regress_194523002_test: Crash # Issue 29922
+html/deferred_multi_app_htmltest: Skip # Issue 29919
+html/no_linked_scripts_htmltest: Skip # Issue 29919
+html/two_scripts_htmltest: Skip # Issue 29919
 
 [ $compiler == dartdevc && $runtime != none ]
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
