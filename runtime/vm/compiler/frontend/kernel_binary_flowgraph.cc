@@ -1288,6 +1288,7 @@ void StreamingScopeBuilder::VisitStatement() {
       intptr_t offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
 
+      ++depth_.loop_;
       EnterScope(relative_kernel_offset_ + offset);
 
       TokenPosition position = builder_->ReadPosition();  // read position.
@@ -1296,8 +1297,6 @@ void StreamingScopeBuilder::VisitStatement() {
       for (intptr_t i = 0; i < list_length; ++i) {
         VisitVariableDeclaration();  // read ith variable.
       }
-
-      ++depth_.loop_;
 
       Tag tag = builder_->ReadTag();  // Read first part of condition.
       if (tag == kSomething) {
@@ -1309,9 +1308,8 @@ void StreamingScopeBuilder::VisitStatement() {
       }
       VisitStatement();  // read body.
 
-      --depth_.loop_;
-
       ExitScope(position, builder_->reader_->max_position());
+      --depth_.loop_;
       return;
     }
     case kForInStatement:
@@ -6755,6 +6753,8 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 
   Fragment declarations;
 
+  loop_depth_inc();
+
   bool new_context = false;
   declarations += EnterScope(offset + relative_kernel_offset_, &new_context);
 
@@ -6763,7 +6763,6 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     declarations += BuildVariableDeclaration();  // read ith variable.
   }
 
-  loop_depth_inc();
   bool negate = false;
   Tag tag = ReadTag();  // Read first part of condition.
   Fragment condition =
@@ -6804,9 +6803,10 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
   }
 
   Fragment loop(declarations.entry, loop_exit);
-  loop_depth_dec();
 
   loop += ExitScope(offset + relative_kernel_offset_);
+
+  loop_depth_dec();
 
   return loop;
 }

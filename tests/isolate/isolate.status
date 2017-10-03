@@ -196,7 +196,6 @@ spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
 [ ($compiler == dartk || $compiler == dartkp) ]
 compile_time_error_test/01: MissingCompileTimeError
 message3_test/int32x4: Crash
-message_test: RuntimeError
 ping_pause_test: Pass, Timeout
 spawn_function_custom_class_test: Pass, Timeout
 spawn_uri_nested_vm_test: Pass, Timeout
