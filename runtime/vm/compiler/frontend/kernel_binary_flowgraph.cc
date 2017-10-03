@@ -7656,15 +7656,20 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   LocalVariable* closure = MakeTemporary();
 
   // The function signature can have uninstantiated class type parameters.
-  //
-  // TODO(regis): Also handle the case of a function signature that has
-  // uninstantiated function type parameters.
   if (!function.HasInstantiatedSignature(kCurrentClass)) {
     instructions += LoadLocal(closure);
     instructions += LoadInstantiatorTypeArguments();
     instructions += flow_graph_builder_->StoreInstanceField(
         TokenPosition::kNoSource,
         Closure::instantiator_type_arguments_offset());
+  }
+
+  // The function signature can have uninstantiated function type parameters.
+  if (!function.HasInstantiatedSignature(kFunctions)) {
+    instructions += LoadLocal(closure);
+    instructions += LoadFunctionTypeArguments();
+    instructions += flow_graph_builder_->StoreInstanceField(
+        TokenPosition::kNoSource, Closure::function_type_arguments_offset());
   }
 
   // Store the function and the context in the closure.

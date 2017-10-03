@@ -7248,9 +7248,10 @@ bool Function::HasInstantiatedSignature(Genericity genericity,
   //     }
   //
   // The signature of `fn` as a converted closure will in both cases look like
-  // `<T>(T) => dynamic`, because the signaute of the converted closure function
-  // is the same as it's top-level target function. However, in the first case
-  // the closure's type is instantiated, and in the second case it's not.
+  // `<T>(T) => dynamic`, because the signature of the converted closure
+  // function is the same as its top-level target function. However, in the
+  // first case the closure's type is instantiated, and in the second case
+  // it's not.
   //
   // Since we can never assume a converted closure is instantiated if it has any
   // type parameters, we always return true in these cases.

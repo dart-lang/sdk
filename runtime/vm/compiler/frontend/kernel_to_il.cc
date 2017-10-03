@@ -1772,9 +1772,6 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   LocalVariable* closure = MakeTemporary();
 
   // The function signature can have uninstantiated class type parameters.
-  //
-  // TODO(regis): Also handle the case of a function signature that has
-  // uninstantiated function type parameters.
   if (!target.HasInstantiatedSignature(kCurrentClass)) {
     fragment += LoadLocal(closure);
     fragment += LoadInstantiatorTypeArguments();
@@ -1782,6 +1779,10 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
         StoreInstanceField(TokenPosition::kNoSource,
                            Closure::instantiator_type_arguments_offset());
   }
+
+  // The function signature cannot have uninstantiated function type parameters,
+  // because the function cannot be local and have parent generic functions.
+  ASSERT(target.HasInstantiatedSignature(kFunctions));
 
   // Allocate a context that closes over `this`.
   fragment += AllocateContext(1);
