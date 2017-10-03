@@ -9,7 +9,7 @@
 // OtherResources=certificates/server_chain.pem
 // OtherResources=certificates/server_key.pem
 
-library dart.io;
+library dart._http;
 
 import "dart:async";
 import "dart:io";

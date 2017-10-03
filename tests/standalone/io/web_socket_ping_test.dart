@@ -7,12 +7,13 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-library dart.io;
+library dart._http;
 
 import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:math";
+import "dart:typed_data";
 
 part "../../../sdk/lib/_http/crypto.dart";
 
