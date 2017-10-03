@@ -154,7 +154,8 @@ class InterfaceResolverTest {
         namedParameters: namedParameters,
         requiredParameterCount: requiredParameterCount,
         returnType: returnType);
-    return new Procedure(new Name(name), kind, function);
+    return new Procedure(new Name(name), kind, function,
+        isAbstract: isAbstract);
   }
 
   Field makeField({String name: 'foo', DartType type: const DynamicType()}) {
@@ -290,6 +291,13 @@ class InterfaceResolverTest {
         supertype: a.asThisSupertype,
         implementedTypes: [b.asThisSupertype]);
     checkCandidateOrder(c, methodA);
+  }
+
+  void test_createForwardingStub_abstract() {
+    var method = makeEmptyMethod(isAbstract: true);
+    var stub = makeForwardingStub(method, false);
+    expect(stub.isAbstract, isTrue);
+    expect(stub.function.body, isNull);
   }
 
   void test_createForwardingStub_getter() {
@@ -456,6 +464,7 @@ class InterfaceResolverTest {
     var stub = makeForwardingStub(method, false);
     expect(stub.name, method.name);
     expect(stub.kind, ProcedureKind.Method);
+    expect(stub.isAbstract, isFalse);
     expect(stub.function.positionalParameters, isEmpty);
     expect(stub.function.namedParameters, isEmpty);
     expect(stub.function.typeParameters, isEmpty);

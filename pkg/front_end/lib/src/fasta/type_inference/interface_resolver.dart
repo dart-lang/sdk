@@ -210,6 +210,7 @@ class ForwardingNode extends Procedure {
         .getDispatchTarget(superclass, procedure.name,
             setter: kind == ProcedureKind.Setter);
     if (superTarget == null) return;
+    procedure.isAbstract = false;
     var positionalArguments = function.positionalParameters
         .map<Expression>((parameter) => new VariableGet(parameter))
         .toList();
@@ -287,7 +288,8 @@ class ForwardingNode extends Procedure {
         typeParameters: typeParameters,
         requiredParameterCount: target.function.requiredParameterCount,
         returnType: substitution.substituteType(target.function.returnType));
-    return new Procedure(name, kind, function, isForwardingStub: true);
+    return new Procedure(name, kind, function,
+        isAbstract: true, isForwardingStub: true);
   }
 
   /// Determines which inherited member this node resolves to.
