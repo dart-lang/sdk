@@ -82,16 +82,6 @@ html/isolates_test: DartkCompileTimeError
 html/js_function_getter_test: DartkCompileTimeError
 html/js_interop_1_test: DartkCompileTimeError
 html/js_test: DartkCompileTimeError
-html/localstorage_test: DartkCompileTimeError
-html/location_test: DartkCompileTimeError
-html/media_stream_test: DartkCompileTimeError
-html/mediasource_test: DartkCompileTimeError
-html/messageevent_test: DartkCompileTimeError
-html/mirrors_js_typed_interop_test: DartkCompileTimeError
-html/mouse_event_test: DartkCompileTimeError
-html/native_gc_test: DartkCompileTimeError
-html/navigator_test: DartkCompileTimeError
-html/node_test: DartkCompileTimeError
 html/table_test: DartkCompileTimeError
 html/text_event_test: DartkCompileTimeError
 html/touchevent_test: DartkCompileTimeError

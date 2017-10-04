@@ -24,6 +24,7 @@ js/null_test: RuntimeError # Issue 30652
 math/double_pow_test: RuntimeError # Issue 29922
 math/low_test: RuntimeError # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
+html/no_linked_scripts_htmltest: Skip # Issue 29919
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 profiler/metrics_num_test: Skip # Because of an int / double type test.
 
@@ -65,6 +66,8 @@ html/js_util_test: RuntimeError # Issue 29922
 html/js_typed_interop_type3_test/*: RuntimeError # Issue 30947
 html/js_typed_interop_type_test: RuntimeError # Issue 30947
 html/keyboard_event_test: RuntimeError # Issue 30946
+html/media_stream_test: RuntimeError # Issue 29922
+html/mediasource_test: RuntimeError # Issue 29922
 
 [ $strong && $compiler == dartdevc ]
 html/custom/document_register_template_test: Crash # Compiler crash issue ????

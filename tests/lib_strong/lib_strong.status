@@ -38,7 +38,6 @@ html/filereader_test: Skip
 html/fontface_loaded_test: Skip
 html/js_function_getter_trust_types_test: Skip
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
-html/mutationobserver_test: Skip
 html/transferables_test: Skip
 html/webgl_1_test: Skip
 html/wrapping_collections_test: Skip
@@ -118,8 +117,6 @@ html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode 
 html/input_element_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 html/isolates_test: RuntimeError # Issue 29922
-html/media_stream_test: RuntimeError # Issue 29922
-html/mediasource_test: RuntimeError # Issue 29922
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 html/typing_test: RuntimeError # Issue 29922
 html/websql_test/functional: RuntimeError # Issue 29922

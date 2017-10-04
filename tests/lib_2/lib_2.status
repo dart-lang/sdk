@@ -59,6 +59,8 @@ typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlie
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
+html/mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
+html/media_stream_test: Pass, Fail
 html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
@@ -130,6 +132,10 @@ html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not s
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 html/custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 html/js_util_test/callConstructor: RuntimeError # Issue 26978
+html/localstorage_test: Pass, RuntimeError # Issue 22166
+html/no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
+html/media_stream_test: Pass, Fail
+html/mediasource_test: Pass, Fail # Windows 8: Supported: yes, functional: no
 html/notification_test: Fail # Notification not supported on IE
 html/postmessage_structured_test: Fail # Does not support the MessageEvent constructor.
 html/request_animation_frame_test: Skip # Times out. Issue 22167

@@ -43,6 +43,7 @@ html/custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
 html/custom_elements_test: Pass, Timeout # Issue 26789
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
+html/mirrors_js_typed_interop_test: Pass, Slow
 html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 isolate/enum_const_test/02: RuntimeError # Issue 21817
 isolate/error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
@@ -73,6 +74,7 @@ html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # TODO(
 html/canvasrenderingcontext2d_test/fillText: Fail # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
+html/media_stream_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/rtc_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/speechrecognition_test: Fail # TODO(dart2js-team): Please triage this failure.
 
@@ -113,6 +115,9 @@ html/custom/js_custom_test: Fail # Issue 14643
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 
+[ $compiler == dart2js && $fast_startup ]
+html/mirrors_js_typed_interop_test: Fail # mirrors not supported
+
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 html/js_typed_interop_bind_this_test: SkipByDesign
 html/js_typed_interop_callable_object_test: SkipByDesign
@@ -123,6 +128,7 @@ html/js_typed_interop_type1_test: SkipByDesign
 html/js_typed_interop_type3_test: SkipByDesign
 html/js_typed_interop_window_property_test: SkipByDesign
 html/js_util_test: SkipByDesign
+html/mirrors_js_typed_interop_test: SkipByDesign
 html/postmessage_structured_test: SkipByDesign
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
@@ -150,6 +156,17 @@ html/js_typed_interop_type_test: RuntimeError
 html/js_typed_interop_window_property_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_util_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/keyboard_event_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/localstorage_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/location_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/media_stream_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/mediasource_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/messageevent_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/mirrors_js_typed_interop_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/mouse_event_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/mutationobserver_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/native_gc_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/navigator_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/node_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/non_instantiated_is_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/notification_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -195,6 +212,17 @@ html/js_typed_interop_type_test: RuntimeError
 html/js_typed_interop_window_property_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_util_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/keyboard_event_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/localstorage_test: RuntimeError
+html/location_test: RuntimeError
+html/media_stream_test: RuntimeError, Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/mediasource_test: RuntimeError, Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/messageevent_test: RuntimeError
+html/mirrors_js_typed_interop_test: RuntimeError
+html/mouse_event_test: RuntimeError
+html/mutationobserver_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/native_gc_test: RuntimeError
+html/navigator_test: RuntimeError
+html/node_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/non_instantiated_is_test: RuntimeError
 html/notification_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -224,6 +252,7 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
+html/media_stream_test: RuntimeError # Please triage.
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/kill_self_synchronously_test: RuntimeError
 
@@ -233,6 +262,8 @@ convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 2
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 html/custom/document_register_basic_test: Skip # Times out, or unittest times out
+html/messageevent_test: Pass, RuntimeError # Issue 28983
+html/media_stream_test: Fail
 html/request_animation_frame_test: Skip # Async test hangs.
 html/serialized_script_value_test: Pass, RuntimeError # Issue 28983
 html/shadow_dom_test: Fail
