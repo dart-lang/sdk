@@ -3266,10 +3266,12 @@ ASSEMBLER_TEST_RUN(TestSetCC, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(TestSetCC2, assembler) {
+  __ pushq(RBX);
   __ movq(RBX, Immediate(0xFFFFFFFF));
   __ cmpq(RBX, RBX);
   __ setcc(EQUAL, BH);
   __ movq(RAX, RBX);
+  __ popq(RBX);
   __ ret();
 }
 
