@@ -244,16 +244,16 @@ html/svgelement_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance
 html/js_typed_interop_rename_static_test: RuntimeError
 html/js_typed_interop_lazy_test/none: RuntimeError
 
-[ $compiler == dart2js && $runtime == chrome ]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == drt || $runtime == ff) ]
 html/speechrecognition_test: RuntimeError # Please triage.
 
 [ $compiler == dart2js && $runtime == ff ]
 html/serialized_script_value_test: Pass, RuntimeError # Issue 28983
 html/shadow_dom_test: Fail
-html/speechrecognition_test: Fail
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 html/request_animation_frame_test: Skip # Async test hangs.
 
 [ $compiler == dart2js && $fast_startup ]
 html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
+html/custom/document_register_basic_test: Pass, Slow
