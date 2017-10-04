@@ -6,13 +6,23 @@ class Class1<T> {
   /*element: Class1.field:hasThis*/
   var field = /*fields=[T],free=[T],hasThis*/ () => T;
 
+  /*element: Class1.funcField:hasThis*/
+  Function funcField;
+
   /*element: Class1.:hasThis*/
   Class1() {
     field = /*fields=[T],free=[T],hasThis*/ () => T;
   }
 
+  /*element: Class1.setFunc:hasThis*/
+  Class1.setFunc(this.funcField);
+
   /*element: Class1.fact:*/
   factory Class1.fact() => new Class1<T>();
+
+  /*element: Class1.fact2:*/
+  factory Class1.fact2() =>
+      new Class1.setFunc(/*fields=[T],free=[T]*/ () => new Set<T>());
 
   /*element: Class1.method1:hasThis*/
   method1() => T;
@@ -27,4 +37,5 @@ class Class1<T> {
 main() {
   new Class1<int>().method1();
   new Class1<int>.fact().method2();
+  new Class1<int>.fact2().funcField() is Set;
 }

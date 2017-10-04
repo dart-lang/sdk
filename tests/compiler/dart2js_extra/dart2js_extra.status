@@ -206,9 +206,6 @@ mirrors_declarations_filtering_test: RuntimeError
 mirrors_used_closure_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 mirrors_used_metatargets_test: RuntimeError
 mirrors_used_native_test: RuntimeError
-mirrors_used_warning2_test: RuntimeError
-mirrors_used_warning_test/minif: RuntimeError
-mirrors_used_warning_test/none: RuntimeError
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -220,6 +217,9 @@ reflect_native_types_test: RuntimeError
 regress/4562_test/none: CompileTimeError
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
+mirrors_used_warning2_test: RuntimeError
+mirrors_used_warning_test/minif: RuntimeError
+mirrors_used_warning_test/none: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError
 
@@ -264,9 +264,6 @@ mirrors_declarations_filtering_test: RuntimeError
 mirrors_used_closure_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 mirrors_used_metatargets_test: RuntimeError
 mirrors_used_native_test: RuntimeError
-mirrors_used_warning2_test: RuntimeError
-mirrors_used_warning_test/minif: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-mirrors_used_warning_test/none: RuntimeError
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -278,6 +275,8 @@ reflect_native_types_test: RuntimeError
 regress/4562_test/none: CompileTimeError
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
+mirrors_used_warning2_test: RuntimeError
+mirrors_used_warning_test/none: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError # Issue 30902
 

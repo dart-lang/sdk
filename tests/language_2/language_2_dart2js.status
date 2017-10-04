@@ -926,7 +926,10 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-closure_in_constructor_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.factory#))in j:closure_call(A_A$factory_closure.call).
+async_await_syntax_test/a06a: RuntimeError
+async_await_syntax_test/b06a: RuntimeError
+async_await_syntax_test/c06a: RuntimeError
+async_await_syntax_test/d06a: RuntimeError
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
@@ -1189,7 +1192,10 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-closure_in_constructor_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.factory#))in j:closure_call(A_A$factory_closure.call).
+async_await_syntax_test/a06a: RuntimeError
+async_await_syntax_test/b06a: RuntimeError
+async_await_syntax_test/c06a: RuntimeError
+async_await_syntax_test/d06a: RuntimeError
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError

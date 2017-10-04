@@ -101,12 +101,30 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   void convertClosures(Iterable<MemberEntity> processedEntities,
       ClosedWorldRefiner closedWorldRefiner) {}
 
+  void _updateScopeBasedOnRtiNeed(
+      KernelScopeInfo scope,
+      ir.Node node,
+      Set<ir.Node> localFunctionsNeedingRti,
+      Set<ClassEntity> classesNeedingRti,
+      MemberEntity outermostEntity) {
+    if (localFunctionsNeedingRti.contains(node) ||
+        classesNeedingRti.contains(outermostEntity.enclosingClass)) {
+      // TODO(efortuna): add clause "or compiler.options.enableTypeAssertions"?
+      if (outermostEntity is FunctionEntity &&
+          outermostEntity is! ConstructorEntity) {
+        scope.thisUsedAsFreeVariable = scope.thisUsedAsFreeVariableIfNeedsRti ||
+            scope.thisUsedAsFreeVariable;
+      } else {
+        scope.freeVariables.addAll(scope.freeVariablesForRti);
+      }
+    }
+  }
+
   void createClosureEntities(
       JsClosedWorldBuilder closedWorldBuilder,
       Map<MemberEntity, ScopeModel> closureModels,
-      // TODO(johnniwinther,efortuna): Use this to add needed access to type
-      // variables for RTI.
-      Set<ir.Node> localFunctionsNeedingRti) {
+      Set<ir.Node> localFunctionsNeedingRti,
+      Set<ClassEntity> classesNeedingRti) {
     closureModels.forEach((MemberEntity member, ScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       Map<Local, JRecordField> allBoxedVariables =
@@ -118,6 +136,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
           .forEach((ir.Node node, KernelCapturedScope scope) {
         Map<Local, JRecordField> boxedVariables =
             _elementMap.makeRecordContainer(scope, member, localsMap);
+        _updateScopeBasedOnRtiNeed(
+            scope, node, localFunctionsNeedingRti, classesNeedingRti, member);
+
         if (scope is KernelCapturedLoopScope) {
           _capturedScopesMap[node] = new JsCapturedLoopScope.from(
               boxedVariables, scope, localsMap, _elementMap);
@@ -144,7 +165,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
             member,
             functionNode,
             closuresToGenerate[node],
-            allBoxedVariables);
+            allBoxedVariables,
+            localFunctionsNeedingRti,
+            classesNeedingRti);
         // Add also for the call method.
         _scopeMap[closureClass.callMethod] = closureClass;
       }
@@ -162,7 +185,11 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       MemberEntity member,
       ir.FunctionNode node,
       KernelScopeInfo info,
-      Map<Local, JRecordField> boxedVariables) {
+      Map<Local, JRecordField> boxedVariables,
+      Set<ir.Node> localFunctionsNeedingRti,
+      Set<ClassEntity> classesNeedingRti) {
+    _updateScopeBasedOnRtiNeed(
+        info, node.parent, localFunctionsNeedingRti, classesNeedingRti, member);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
     KernelClosureClass closureClass = closedWorldBuilder.buildClosureClass(
         member,
@@ -264,10 +291,25 @@ class KernelScopeInfo {
   Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
       freeVariables = new Set<ir.Node>();
 
+  /// A set of type parameters that are defined in another scope and are only
+  /// used if runtime type information is checked. If runtime type information
+  /// needs to be retained, all of these type variables will be added ot the
+  /// freeVariables set. Whether these variables are actually used as
+  /// freeVariables will be set by the time this structure is converted to a
+  /// JsScopeInfo, so JsScopeInfo does not need to use them.
+  Set<TypeParameterTypeWithContext> freeVariablesForRti =
+      new Set<TypeParameterTypeWithContext>();
+
   /// If true, `this` is used as a free variable, in this scope. It is stored
   /// separately from [freeVariables] because there is no single
   /// `VariableDeclaration` node that represents `this`.
   bool thisUsedAsFreeVariable = false;
+
+  /// If true, `this` is used as a free variable, in this scope if we are also
+  /// performing runtime type checks. It is stored
+  /// separately from [thisUsedAsFreeVariable] because we don't know at this
+  /// stage if we will be needing type checks for this scope.
+  bool thisUsedAsFreeVariableIfNeedsRti = false;
 
   KernelScopeInfo(this.hasThisLocal)
       : localsUsedInTryOrSync = new Set<ir.VariableDeclaration>(),
@@ -284,6 +326,9 @@ class KernelScopeInfo {
       this.capturedVariablesAccessor,
       this.localsUsedInTryOrSync,
       this.freeVariables,
+      this.freeVariablesForRti,
+      this.thisUsedAsFreeVariable,
+      this.thisUsedAsFreeVariableIfNeedsRti,
       this.hasThisLocal);
 
   String toString() {
@@ -359,9 +404,19 @@ class KernelCapturedScope extends KernelScopeInfo {
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
       Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
           freeVariables,
+      Set<TypeParameterTypeWithContext> freeVariablesForRti,
+      bool thisUsedAsFreeVariable,
+      bool thisUsedAsFreeVariableIfNeedsRti,
       bool hasThisLocal)
-      : super.withBoxedVariables(boxedVariables, capturedVariablesAccessor,
-            localsUsedInTryOrSync, freeVariables, hasThisLocal);
+      : super.withBoxedVariables(
+            boxedVariables,
+            capturedVariablesAccessor,
+            localsUsedInTryOrSync,
+            freeVariables,
+            freeVariablesForRti,
+            thisUsedAsFreeVariable,
+            thisUsedAsFreeVariableIfNeedsRti,
+            hasThisLocal);
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
@@ -391,9 +446,19 @@ class KernelCapturedLoopScope extends KernelCapturedScope {
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
       Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
           freeVariables,
+      Set<TypeParameterTypeWithContext> freeVariablesForRti,
+      bool thisUsedAsFreeVariable,
+      bool thisUsedAsFreeVariableIfNeedsRti,
       bool hasThisLocal)
-      : super(boxedVariables, capturedVariablesAccessor, localsUsedInTryOrSync,
-            freeVariables, hasThisLocal);
+      : super(
+            boxedVariables,
+            capturedVariablesAccessor,
+            localsUsedInTryOrSync,
+            freeVariables,
+            freeVariablesForRti,
+            thisUsedAsFreeVariable,
+            thisUsedAsFreeVariableIfNeedsRti,
+            hasThisLocal);
 
   bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 }
@@ -444,7 +509,7 @@ class KernelClosureClass extends JsScopeInfo
         return local;
       }
     }
-    failedAt(field, "No local for $field.");
+    failedAt(field, "No local for $field. Options: $localToFieldMap");
     return null;
   }
 
@@ -707,4 +772,13 @@ class TypeParameterTypeWithContext implements ir.Node {
   visitChildren(ir.Visitor v) {
     throw new UnsupportedError('TypeParameterTypeWithContext.visitChildren');
   }
+
+  int get hashCode => type.hashCode;
+
+  bool operator ==(other) {
+    if (other is! TypeParameterTypeWithContext) return false;
+    return type == other.type && memberContext == other.memberContext;
+  }
+
+  String toString() => 'TypeParameterTypeWithContext $type $memberContext';
 }
