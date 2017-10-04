@@ -439,6 +439,14 @@ class DebuggerStackTrace : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DebuggerStackTrace);
 };
 
+// On which exceptions to pause.
+typedef enum {
+  kNoPauseOnExceptions = 1,
+  kPauseOnUnhandledExceptions,
+  kPauseOnAllExceptions,
+  kInvalidExceptionPauseInfo
+} Dart_ExceptionPauseInfo;
+
 class Debugger {
  public:
   enum ResumeAction {

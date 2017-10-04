@@ -8,6 +8,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/debugger_api_impl_test.h"
 #include "vm/globals.h"
 #include "vm/message_handler.h"
 #include "vm/object_id_ring.h"
