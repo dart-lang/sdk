@@ -304,6 +304,9 @@ class CodeGenerator extends Object
 
     // Transform the AST to make coercions explicit.
     compilationUnits = CoercionReifier.reify(compilationUnits);
+    var items = <JS.ModuleItem>[];
+    var root = new JS.Identifier('_root');
+    items.add(js.statement('const # = Object.create(null)', [root]));
 
     if (compilationUnits.any((u) => isSdkInternalRuntime(
         resolutionMap.elementDeclaredByCompilationUnit(u).library))) {
@@ -319,7 +322,6 @@ class CodeGenerator extends Object
     _typeTable = new TypeTable(_runtimeModule);
 
     // Initialize our library variables.
-    var items = <JS.ModuleItem>[];
     var isBuildingSdk = false;
     for (var unit in compilationUnits) {
       var library =
@@ -331,14 +333,14 @@ class CodeGenerator extends Object
           : new JS.TemporaryId(jsLibraryName(_libraryRoot, library));
       _libraries[library] = libraryTemp;
       items.add(new JS.ExportDeclaration(
-          js.call('const # = Object.create(null)', [libraryTemp])));
+          js.call('const # = Object.create(#)', [libraryTemp, root])));
 
       // dart:_runtime has a magic module that holds extension method symbols.
       // TODO(jmesserly): find a cleaner design for this.
       if (isSdkInternalRuntime(library)) {
         isBuildingSdk = true;
-        items.add(new JS.ExportDeclaration(js
-            .call('const # = Object.create(null)', [_extensionSymbolsModule])));
+        items.add(new JS.ExportDeclaration(js.call(
+            'const # = Object.create(#)', [_extensionSymbolsModule, root])));
       }
     }
 
