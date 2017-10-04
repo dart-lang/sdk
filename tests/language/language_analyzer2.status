@@ -282,11 +282,9 @@ parser_quirks_test: StaticWarning
 part2_test: StaticWarning
 positional_parameters_type_test/01: StaticWarning
 prefix13_negative_test: CompileTimeError
-prefix14_test: StaticWarning
 prefix15_negative_test: CompileTimeError
 prefix15_test: StaticWarning
 prefix16_test: StaticWarning
-prefix17_test: StaticWarning
 prefix18_negative_test: CompileTimeError
 prefix22_test: StaticWarning
 prefix23_test: StaticWarning
