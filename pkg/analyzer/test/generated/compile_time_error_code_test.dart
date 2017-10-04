@@ -4688,8 +4688,6 @@ f() {
   }
 
   test_nonConstValueInInitializer_assert_condition() async {
-    resetWith(
-        options: new AnalysisOptionsImpl()..enableAssertInitializer = true);
     Source source = addSource(r'''
 class A {
   const A(int i) : assert(i.isNegative);
@@ -4701,8 +4699,6 @@ class A {
   }
 
   test_nonConstValueInInitializer_assert_message() async {
-    resetWith(
-        options: new AnalysisOptionsImpl()..enableAssertInitializer = true);
     Source source = addSource(r'''
 class A {
   const A(int i) : assert(i < 0, 'isNegative = ${i.isNegative}');

@@ -51,7 +51,6 @@ AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
   analysisOptions.hint = false;
   analysisOptions.lint = options.enableLints;
   analysisOptions.generateSdkErrors = options.showSdkWarnings;
-  analysisOptions.enableAssertInitializer = options.enableAssertInitializer;
   analysisOptions.enableTiming = options.enableTiming;
   analysisOptions.lintRules = options.enabledLints?.toList(growable: false);
   return analysisOptions;
@@ -64,10 +63,6 @@ class DriverOptions {
 
   /// The path to the dart SDK.
   String dartSdkPath;
-
-  /// Whether the parser is able to parse asserts in the initializer list of a
-  /// constructor
-  bool enableAssertInitializer = false;
 
   /// Whether to show lint warnings.
   bool enableLints = true;

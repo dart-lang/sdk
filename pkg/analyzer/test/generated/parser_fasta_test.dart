@@ -2970,11 +2970,6 @@ class FastaParserTestCase extends Object
   bool enableGenericMethodComments = false;
 
   @override
-  set enableAssertInitializer(bool value) {
-    // Asserts in initializer lists are always anabled.
-  }
-
-  @override
   set enableLazyAssignmentOperators(bool value) {
     // Lazy assignment operators are always enabled
   }

@@ -39,12 +39,4 @@ void main() {
         parseFunctionBodies: false);
     expect(unit.toString(), equals("void main();"));
   });
-
-  test("allows you to specify whether to parse initializer asserts", () {
-    var text = "class C { C() : assert(true); }";
-    expect(() => parseCompilationUnit(text),
-        throwsA(new isInstanceOf<AnalyzerErrorGroup>()));
-    var unit = parseCompilationUnit(text, enableAssertInitializer: true);
-    expect(unit.toString(), equals("class C {C() : assert (true);;}"));
-  });
 }

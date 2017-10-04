@@ -42,7 +42,6 @@ void applyToAnalysisOptions(
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
-  static const String enableAssertInitializer = 'enableAssertInitializer';
   static const String enableAsync = 'enableAsync';
   static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableInitializingFormalAccess =
@@ -86,7 +85,6 @@ class AnalyzerOptions {
 
   /// Supported `analyzer` language configuration options.
   static const List<String> languageOptions = const [
-    enableAssertInitializer,
     enableAsync,
     enableGenericMethods,
     enableStrictCallChecks,
@@ -576,9 +574,7 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object feature, Object value) {
     bool boolValue = toBool(value);
     if (boolValue != null) {
-      if (feature == AnalyzerOptions.enableAssertInitializer) {
-        options.enableAssertInitializer = boolValue;
-      } else if (feature == AnalyzerOptions.enableStrictCallChecks) {
+      if (feature == AnalyzerOptions.enableStrictCallChecks) {
         options.enableStrictCallChecks = boolValue;
       } else if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;

@@ -1068,6 +1068,8 @@ error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $strong ]
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_test/01: MissingStaticWarning
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 field3a_negative_test: StaticWarning # Issue 28823

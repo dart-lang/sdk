@@ -201,12 +201,6 @@ class Parser {
   int _errorListenerLock = 0;
 
   /**
-   * A flag indicating whether the parser is to parse asserts in the initializer
-   * list of a constructor.
-   */
-  bool _enableAssertInitializer = false;
-
-  /**
    * A flag indicating whether the parser is to parse the non-nullable modifier
    * in type names.
    */
@@ -305,15 +299,15 @@ class Parser {
    * Return `true` if the parser is to parse asserts in the initializer list of
    * a constructor.
    */
-  bool get enableAssertInitializer => _enableAssertInitializer;
+  @deprecated
+  bool get enableAssertInitializer => true;
 
   /**
    * Set whether the parser is to parse asserts in the initializer list of a
    * constructor to match the given [enable] flag.
    */
-  void set enableAssertInitializer(bool enable) {
-    _enableAssertInitializer = enable;
-  }
+  @deprecated
+  void set enableAssertInitializer(bool enable) {}
 
   /**
    * Return `true` if the parser is to parse the non-nullable modifier in type
@@ -6687,8 +6681,7 @@ class Parser {
         } else if (_matches(TokenType.OPEN_CURLY_BRACKET) ||
             _matches(TokenType.FUNCTION)) {
           _reportErrorForCurrentToken(ParserErrorCode.MISSING_INITIALIZER);
-        } else if (_enableAssertInitializer &&
-            _matchesKeyword(Keyword.ASSERT)) {
+        } else if (_matchesKeyword(Keyword.ASSERT)) {
           initializers.add(_parseAssertInitializer());
         } else {
           initializers.add(parseConstructorFieldInitializer(false));
@@ -7801,7 +7794,6 @@ class Parser {
     BooleanErrorListener listener = new BooleanErrorListener();
     Parser parser = new Parser(_source, listener);
     parser._currentToken = _cloneTokens(startToken);
-    parser._enableAssertInitializer = _enableAssertInitializer;
     parser._enableNnbd = _enableNnbd;
     parser._inAsync = _inAsync;
     parser._inGenerator = _inGenerator;

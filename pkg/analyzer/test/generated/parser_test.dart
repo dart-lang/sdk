@@ -44,9 +44,7 @@ main() {
 abstract class AbstractParserTestCase implements ParserTestHelpers {
   bool get allowNativeClause;
 
-  set allowNativeClause(bool value);
-
-  void set enableAssertInitializer(bool value);
+  void set allowNativeClause(bool value);
 
   void set enableGenericMethodComments(bool value);
 
@@ -1337,7 +1335,6 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseConstructor_assert() {
-    enableAssertInitializer = true;
     createParser('C(x, y) : _x = x, assert (x < y), _y = y;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
@@ -8363,12 +8360,6 @@ class ParserTestCase extends EngineTestCase
   bool allowNativeClause = true;
 
   /**
-   * A flag indicating whether the parser is to parse asserts in the initializer
-   * list of a constructor.
-   */
-  bool enableAssertInitializer = false;
-
-  /**
    * A flag indicating whether parser is to parse async.
    */
   bool parseAsync = true;
@@ -8439,7 +8430,6 @@ class ParserTestCase extends EngineTestCase
     // Create and initialize the parser.
     //
     parser = new Parser(source, listener);
-    parser.enableAssertInitializer = enableAssertInitializer;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;

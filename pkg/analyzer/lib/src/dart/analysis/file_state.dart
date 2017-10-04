@@ -566,7 +566,6 @@ class FileState {
 
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
-    parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
     parser.parseGenericMethodComments = analysisOptions.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
