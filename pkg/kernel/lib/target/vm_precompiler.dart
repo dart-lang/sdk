@@ -8,11 +8,11 @@ import '../core_types.dart' show CoreTypes;
 import '../transformations/precompiler.dart' as transformPrecompiler
     show transformProgram;
 import 'targets.dart' show TargetFlags;
-import 'vm_fasta.dart' show VmFastaTarget;
+import 'vm.dart' show VmTarget;
 
 /// Dart VM ahead-of-time compiler (a.k.a. precompiler) target.
 /// This target relies on strong mode and whole-program analysis.
-class VmPrecompilerTarget extends VmFastaTarget {
+class VmPrecompilerTarget extends VmTarget {
   VmPrecompilerTarget(TargetFlags flags) : super(flags);
 
   @override

@@ -241,7 +241,7 @@ ProcessedOptions analyzeCommandLine(
 
   final bool strongMode = options.containsKey("--strong-mode");
 
-  final String targetName = options["-t"] ?? options["--target"] ?? "vm_fasta";
+  final String targetName = options["-t"] ?? options["--target"] ?? "vm";
 
   final List<ImplementationOption> targetOptions =
       (options["--target-options"] ?? <String>[])

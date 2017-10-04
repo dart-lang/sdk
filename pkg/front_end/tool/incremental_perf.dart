@@ -46,7 +46,7 @@ import 'package:front_end/front_end.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/physical_file_system.dart';
-import 'package:kernel/target/flutter_fasta.dart';
+import 'package:kernel/target/flutter.dart';
 import 'package:kernel/target/targets.dart';
 
 main(List<String> args) async {
@@ -71,7 +71,7 @@ main(List<String> args) async {
         _resolveOverlayUri(options["sdk-library-specification"]);
   }
   if (options['target'] == 'flutter') {
-    compilerOptions..target = new FlutterFastaTarget(new TargetFlags());
+    compilerOptions..target = new FlutterTarget(new TargetFlags());
   }
 
   var timer1 = new Stopwatch()..start();

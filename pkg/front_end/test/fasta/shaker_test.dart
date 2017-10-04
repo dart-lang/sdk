@@ -38,7 +38,7 @@ import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart' show loadProgramFromBytes;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
@@ -104,7 +104,7 @@ class BuildProgram
         var platformOutline = context.loadPlatformOutline();
         var uriTranslator = await context.options.getUriTranslator();
         var dillTarget = new DillTarget(context.options.ticker, uriTranslator,
-            new VmFastaTarget(new TargetFlags(strongMode: false)));
+            new VmTarget(new TargetFlags(strongMode: false)));
         dillTarget.loader.appendLibraries(platformOutline);
         var sourceTarget = new KernelTarget(
             context.options.fileSystem, false, dillTarget, uriTranslator);

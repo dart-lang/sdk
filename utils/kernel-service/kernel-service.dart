@@ -34,7 +34,7 @@ import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/testing/hybrid_file_system.dart';
 import 'package:kernel/kernel.dart' show Program;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+import 'package:kernel/target/vm.dart' show VmTarget;
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
 const bool strongMode = const bool.fromEnvironment('DFE_STRONG_MODE');
@@ -60,7 +60,7 @@ abstract class Compiler {
     options = new CompilerOptions()
       ..strongMode = strongMode
       ..fileSystem = fileSystem
-      ..target = new VmFastaTarget(new TargetFlags(strongMode: strongMode))
+      ..target = new VmTarget(new TargetFlags(strongMode: strongMode))
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernel
       ..verbose = verbose

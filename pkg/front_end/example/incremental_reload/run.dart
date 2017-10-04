@@ -58,8 +58,7 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('output',
       help: 'Output dill file', defaultsTo: 'out.dill', abbr: 'o')
   ..addOption('target',
-      help: 'One of none, vm, vm_fasta, vmcc, vmreify, flutter, flutter_fasta',
-      defaultsTo: 'vm');
+      help: 'One of none, vm, vmcc, vmreify, flutter', defaultsTo: 'vm');
 
 String usage = '''
 Usage: dart [options] input.dart

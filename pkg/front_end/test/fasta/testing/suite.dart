@@ -62,7 +62,7 @@ import 'package:kernel/kernel.dart' show loadProgramFromBytes;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
-import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+import 'package:kernel/target/vm.dart' show VmTarget;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -240,7 +240,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       Program platformOutline = await context.loadPlatformOutline();
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-          new TestVmFastaTarget(new TargetFlags(strongMode: strongMode)));
+          new TestVmTarget(new TargetFlags(strongMode: strongMode)));
       dillTarget.loader.appendLibraries(platformOutline);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.
@@ -292,7 +292,7 @@ class Transform extends Step<Program, Program, FastaContext> {
   Future<Result<Program>> run(Program program, FastaContext context) async {
     KernelTarget sourceTarget = context.programToTarget[program];
     context.programToTarget.remove(program);
-    TestVmFastaTarget backendTarget = sourceTarget.backendTarget;
+    TestVmTarget backendTarget = sourceTarget.backendTarget;
     backendTarget.enabled = true;
     try {
       if (sourceTarget.loader.coreTypes != null) {
@@ -305,12 +305,12 @@ class Transform extends Step<Program, Program, FastaContext> {
   }
 }
 
-class TestVmFastaTarget extends VmFastaTarget {
+class TestVmTarget extends VmTarget {
   bool enabled = false;
 
-  TestVmFastaTarget(TargetFlags flags) : super(flags);
+  TestVmTarget(TargetFlags flags) : super(flags);
 
-  String get name => "vm_fasta";
+  String get name => "vm";
 
   void performModularTransformationsOnLibraries(
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,

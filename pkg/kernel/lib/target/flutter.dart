@@ -3,28 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.target.flutter;
 
-import '../ast.dart';
-import '../class_hierarchy.dart';
-import '../core_types.dart';
-import '../transformations/continuation.dart' as cont;
-import '../transformations/erasure.dart';
-import '../transformations/mixin_full_resolution.dart' as mix;
-import '../transformations/sanitize_for_vm.dart';
 import 'targets.dart';
+import 'vm.dart' show VmTarget;
 
-class FlutterTarget extends Target {
-  final TargetFlags flags;
+class FlutterTarget extends VmTarget {
+  FlutterTarget(TargetFlags flags) : super(flags);
 
-  FlutterTarget(this.flags);
-
-  bool get strongMode => flags.strongMode;
-
-  bool get strongModeSdk => false;
-
+  @override
   String get name => 'flutter';
 
   // This is the order that bootstrap libraries are loaded according to
   // `runtime/vm/object_store.h`.
+  @override
   List<String> get extraRequiredLibraries => const <String>[
         'dart:async',
         'dart:collection',
@@ -46,53 +36,4 @@ class FlutterTarget extends Target {
         // Required for flutter.
         'dart:ui',
       ];
-
-  void performModularTransformationsOnLibraries(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
-      {void logger(String msg)}) {
-    mix.transformLibraries(this, coreTypes, hierarchy, libraries);
-  }
-
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
-      {void logger(String msg)}) {
-    cont.transformProgram(coreTypes, program);
-
-    if (strongMode) {
-      new Erasure().transform(program);
-    }
-
-    new SanitizeForVM().transform(program);
-  }
-
-  @override
-  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
-      String name, Arguments arguments, int offset, bool isSuper) {
-    // TODO(ahe): This should probably return the same as VmTarget does.
-    return new InvalidExpression();
-  }
-
-  @override
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
-    // TODO(ahe): This should probably return the same as VmTarget does.
-    return new InvalidExpression();
-  }
-
-  // TODO(sigmund,ahe): limit this to `dart-ext` libraries only (see
-  // https://github.com/dart-lang/sdk/issues/29763).
-  @override
-  bool enableNative(Uri uri) => true;
-
-  @override
-  bool get nativeExtensionExpectsString => true;
 }

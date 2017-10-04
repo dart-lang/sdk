@@ -26,8 +26,8 @@ import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
 
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm_fasta.dart';
-import 'package:kernel/target/flutter_fasta.dart';
+import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:kernel/target/flutter.dart' show FlutterTarget;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 /// Set of input files that were read by this script to generate patched SDK.
@@ -134,8 +134,8 @@ Future _main(List<String> argv) async {
 
   var flags = new TargetFlags();
   var target = forVm
-      ? new VmFastaTarget(flags)
-      : (forFlutter ? new FlutterFastaTarget(flags) : new Dart2jsTarget(flags));
+      ? new VmTarget(flags)
+      : (forFlutter ? new FlutterTarget(flags) : new Dart2jsTarget(flags));
   var platformDeps =
       await compilePlatform(outDirUri, target, packages, platform, outline);
   deps.addAll(platformDeps);
