@@ -58,13 +58,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_const_invalid_constructorFieldInitializer_fromLibrary() async {
-    return super.test_const_invalid_constructorFieldInitializer_fromLibrary();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_constConstructor_redirect_generic() async {
     return super.test_constConstructor_redirect_generic();

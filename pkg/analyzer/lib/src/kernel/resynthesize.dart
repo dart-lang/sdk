@@ -230,7 +230,7 @@ class _ExprBuilder {
 
   ConstructorInitializer buildInitializer(kernel.Initializer k) {
     if (k is kernel.FieldInitializer) {
-      Expression value = _build(k.value);
+      Expression value = build(k.value);
       ConstructorFieldInitializer initializer = AstTestFactory
           .constructorFieldInitializer(false, k.field.name.name, value);
       initializer.fieldName.staticElement = _getElement(k.fieldReference);
@@ -245,8 +245,8 @@ class _ExprBuilder {
             invocation.name.name == 'call') {
           var body = receiver.function.body;
           if (body is kernel.AssertStatement) {
-            var condition = _build(body.condition);
-            var message = body.message != null ? _build(body.message) : null;
+            var condition = build(body.condition);
+            var message = body.message != null ? build(body.message) : null;
             return AstTestFactory.assertInitializer(condition, message);
           }
         }
@@ -520,6 +520,9 @@ class _ExprBuilder {
   }
 
   SimpleIdentifier _buildSimpleIdentifier(kernel.Reference reference) {
+    if (reference == null) {
+      throw const _CompilationErrorFound();
+    }
     String name = reference.canonicalName.name;
     SimpleIdentifier identifier = AstTestFactory.identifier3(name);
     Element element = _getElement(reference);
