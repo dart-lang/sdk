@@ -348,6 +348,10 @@ class _ExprBuilder {
       return _buildIdentifier(expr.targetReference, isGet: true);
     }
 
+    if (expr is kernel.ThisExpression) {
+      return AstTestFactory.thisExpression();
+    }
+
     if (expr is kernel.PropertyGet) {
       Expression target = _build(expr.receiver);
       kernel.Reference reference = expr.interfaceTargetReference;

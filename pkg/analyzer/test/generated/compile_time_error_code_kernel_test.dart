@@ -72,13 +72,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_constInitializedWithNonConstValue_finalField() async {
-    return super.test_constInitializedWithNonConstValue_finalField();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_constWithUndefinedConstructorDefault() async {
     return super.test_constWithUndefinedConstructorDefault();
@@ -457,20 +450,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonConstantDefaultValue_method_named() async {
-    return super.test_nonConstantDefaultValue_method_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonConstantDefaultValue_method_positional() async {
-    return super.test_nonConstantDefaultValue_method_positional();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_nonConstantDefaultValueFromDeferredLibrary_nested() async {
     return super.test_nonConstantDefaultValueFromDeferredLibrary_nested();
   }
@@ -487,14 +466,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30983')
   test_nonConstMapAsExpressionStatement_only() async {
     return super.test_nonConstMapAsExpressionStatement_only();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonConstValueInInitializer_instanceCreation_inDifferentFile() async {
-    return super
-        .test_nonConstValueInInitializer_instanceCreation_inDifferentFile();
   }
 
   @override
