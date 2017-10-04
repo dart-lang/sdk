@@ -80,34 +80,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_defaultValueInFunctionTypeAlias() async {
-    return super.test_defaultValueInFunctionTypeAlias();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_defaultValueInFunctionTypedParameter_named() async {
-    return super.test_defaultValueInFunctionTypedParameter_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_defaultValueInFunctionTypedParameter_optional() async {
-    return super.test_defaultValueInFunctionTypedParameter_optional();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_defaultValueInRedirectingFactoryConstructor() async {
-    return super.test_defaultValueInRedirectingFactoryConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_deferredImportWithInvalidUri() async {
     return super.test_deferredImportWithInvalidUri();
   }

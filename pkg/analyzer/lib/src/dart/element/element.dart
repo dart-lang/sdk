@@ -7997,7 +7997,7 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   FunctionElement get initializer {
     if (_initializer == null) {
-      if (_kernel != null && _kernel.initializer != null) {
+      if (_kernel != null) {
         _initializer = new FunctionElementImpl.forOffset(-1)
           ..enclosingElement = this
           ..isSynthetic = true;
