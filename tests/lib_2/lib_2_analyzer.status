@@ -23,6 +23,7 @@ mirrors/mirrors_nsm_test/dart2js: CompileTimeError, OK
 mirrors/mirrors_nsm_test: CompileTimeError, OK
 mirrors/relation_subclass_test: CompileTimeError, OK
 mirrors/repeated_private_anon_mixin_app_test: CompileTimeError, OK # Intentional library name conflict.
+html/transferables_test: CompileTimeError # Issue 30975
 
 [ $compiler == dart2analyzer && !$strong ]
 html/custom/element_upgrade_failure_test: MissingCompileTimeError

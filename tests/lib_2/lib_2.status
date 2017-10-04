@@ -31,6 +31,7 @@ html/custom_elements_test: Pass, Timeout # Issue 26789
 html/custom_element_method_clash_test: Pass, Timeout # Issue 26789
 html/custom_element_name_clash_test: Pass, Timeout # Issue 26789
 html/request_animation_frame_test: Skip # Times out. Issue 22167
+html/transition_event_test: Skip # Times out. Issue 22167
 
 [ $runtime == chrome || $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
@@ -146,6 +147,11 @@ html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
 html/svgelement_test: Fail
+html/text_event_test: RuntimeError # Issue 23437
+html/transferables_test: Pass, Fail # Issues 20659.
+html/transition_event_test: Skip # Times out. Issue 22167
+html/two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
+html/touchevent_test: Fail # IE does not support TouchEvents
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
@@ -163,3 +169,7 @@ html/notification_test: RuntimeError # Issue 22869
 
 [ $runtime == safari ]
 html/notification_test: Fail # Safari doesn't let us access the fields of the Notification to verify them.
+html/touchevent_test: Fail # Safari does not support TouchEvents
+
+[ $runtime == chrome ]
+html/touchevent_test: Fail # Touch events are only supported on touch devices

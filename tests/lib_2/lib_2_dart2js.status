@@ -186,6 +186,16 @@ html/storage_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': F
 html/streams_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/svg_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/svgelement_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/table_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/text_event_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/touchevent_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/track_element_constructor_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/transferables_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/transition_event_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/trusted_html_tree_sanitizer_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/typed_arrays_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/typed_arrays_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/typed_arrays_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -242,6 +252,20 @@ html/storage_test: RuntimeError
 html/streams_test: RuntimeError
 html/svg_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/svgelement_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/table_test: RuntimeError
+html/text_event_test: RuntimeError
+html/touchevent_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/track_element_constructor_test: RuntimeError
+html/transferables_test: RuntimeError
+html/transition_event_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/trusted_html_tree_sanitizer_test/not_create_document_fragment: RuntimeError
+html/trusted_html_tree_sanitizer_test/untrusted: RuntimeError
+html/trusted_html_tree_sanitizer_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/typed_arrays_1_test/arrays: RuntimeError
+html/typed_arrays_1_test/supported: RuntimeError
+html/typed_arrays_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/typed_arrays_2_test: RuntimeError
+html/typed_arrays_3_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && $csp ]
 html/js_typed_interop_rename_static_test: RuntimeError
@@ -268,6 +292,8 @@ html/request_animation_frame_test: Skip # Async test hangs.
 html/serialized_script_value_test: Pass, RuntimeError # Issue 28983
 html/shadow_dom_test: Fail
 html/speechrecognition_test: RuntimeError # Please triage.
+html/text_event_test: Fail # Issue 17893
+html/touchevent_test: Fail
 isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt ]

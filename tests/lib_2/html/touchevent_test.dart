@@ -9,7 +9,7 @@ import 'package:expect/minitest.dart';
 main() {
   group('supported', () {
     test('supported', () {
-      expect(TouchEvent.supported, true);
+      expect(TouchEvent.supported, isTrue);
     });
   });
 
@@ -19,7 +19,7 @@ main() {
 
       expect(() {
         var e = new TouchEvent(null, null, null, 'touch');
-        expect(e is TouchEvent, true);
+        expect(e is TouchEvent, isTrue);
       }, expectation);
     });
   });

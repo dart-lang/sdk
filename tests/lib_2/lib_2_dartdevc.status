@@ -27,6 +27,8 @@ math/random_big_test: RuntimeError # Issue 29922
 html/no_linked_scripts_htmltest: Skip # Issue 29919
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 profiler/metrics_num_test: Skip # Because of an int / double type test.
+html/two_scripts_htmltest: Skip # Issue 29919
+html/transferables_test: CompileTimeError # Issue 30975
 
 [ $compiler == dartdevc && $runtime != none ]
 async/async_await_sync_completer_test: RuntimeError # Issue 29922
@@ -68,6 +70,7 @@ html/js_typed_interop_type_test: RuntimeError # Issue 30947
 html/keyboard_event_test: RuntimeError # Issue 30946
 html/media_stream_test: RuntimeError # Issue 29922
 html/mediasource_test: RuntimeError # Issue 29922
+html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 
 [ $strong && $compiler == dartdevc ]
 html/custom/document_register_template_test: Crash # Compiler crash issue ????
@@ -77,3 +80,6 @@ html/custom/mirrors_2_test: Crash # Compiler crash issue ????
 math/math_test: RuntimeError # Issue 29922
 math/math2_test: RuntimeError # Issue 29922
 html/svg_test: RuntimeError # Issue 29922
+
+[ $compiler == dartdevc && $runtime == chrome ]
+html/touchevent_test: RuntimeError # Issue 29922
