@@ -1890,6 +1890,20 @@ ASSEMBLER_TEST_RUN(SingleFPMoves2, test) {
   EXPECT_EQ(234, reinterpret_cast<SingleFPMoves2Code>(test->entry())());
 }
 
+ASSEMBLER_TEST_GENERATE(MovqXmmToCpu, assembler) {
+  __ movq(RAX, Immediate(bit_cast<int32_t, float>(234.5f)));
+  __ movd(XMM0, RAX);
+  __ cvtss2sd(XMM0, XMM0);
+  __ movq(RAX, XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(MovqXmmToCpu, test) {
+  typedef uint64_t (*MovqXmmToCpuCode)();
+  EXPECT_EQ((bit_cast<uint64_t, double>(234.5f)),
+            reinterpret_cast<MovqXmmToCpuCode>(test->entry())());
+}
+
 ASSEMBLER_TEST_GENERATE(PackedDoubleAdd, assembler) {
   static const struct ALIGN16 {
     double a;

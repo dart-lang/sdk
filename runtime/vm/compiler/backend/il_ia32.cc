@@ -3948,25 +3948,16 @@ LocationSummary* Float32x4ConstructorInstr::MakeLocationSummary(
 }
 
 void Float32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  XmmRegister v0 = locs()->in(0).fpu_reg();
-  XmmRegister v1 = locs()->in(1).fpu_reg();
-  XmmRegister v2 = locs()->in(2).fpu_reg();
-  XmmRegister v3 = locs()->in(3).fpu_reg();
-  ASSERT(v0 == locs()->out(0).fpu_reg());
-  __ subl(ESP, Immediate(16));
-  __ cvtsd2ss(v0, v0);
-  __ movss(Address(ESP, 0), v0);
-  __ movsd(v0, v1);
-  __ cvtsd2ss(v0, v0);
-  __ movss(Address(ESP, 4), v0);
-  __ movsd(v0, v2);
-  __ cvtsd2ss(v0, v0);
-  __ movss(Address(ESP, 8), v0);
-  __ movsd(v0, v3);
-  __ cvtsd2ss(v0, v0);
-  __ movss(Address(ESP, 12), v0);
-  __ movups(v0, Address(ESP, 0));
-  __ addl(ESP, Immediate(16));
+  // TODO(dartbug.com/30949) avoid transfer through memory. SSE4.1 has
+  // insertps, with SSE2 this instruction can be implemented through unpcklps.
+  const XmmRegister out = locs()->out(0).fpu_reg();
+  __ SubImmediate(ESP, Immediate(kSimd128Size));
+  for (intptr_t i = 0; i < 4; i++) {
+    __ cvtsd2ss(out, locs()->in(i).fpu_reg());
+    __ movss(Address(ESP, kFloatSize * i), out);
+  }
+  __ movups(out, Address(ESP, 0));
+  __ AddImmediate(ESP, Immediate(kSimd128Size));
 }
 
 LocationSummary* Float32x4ZeroInstr::MakeLocationSummary(Zone* zone,
@@ -4204,54 +4195,24 @@ void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(locs()->out(0).fpu_reg() == replacement);
 
-  switch (op_kind()) {
-    case MethodRecognizer::kFloat32x4WithX:
-      __ cvtsd2ss(replacement, replacement);
-      __ subl(ESP, Immediate(16));
-      // Move value to stack.
-      __ movups(Address(ESP, 0), value);
-      // Write over X value.
-      __ movss(Address(ESP, 0), replacement);
-      // Move updated value into output register.
-      __ movups(replacement, Address(ESP, 0));
-      __ addl(ESP, Immediate(16));
-      break;
-    case MethodRecognizer::kFloat32x4WithY:
-      __ cvtsd2ss(replacement, replacement);
-      __ subl(ESP, Immediate(16));
-      // Move value to stack.
-      __ movups(Address(ESP, 0), value);
-      // Write over Y value.
-      __ movss(Address(ESP, 4), replacement);
-      // Move updated value into output register.
-      __ movups(replacement, Address(ESP, 0));
-      __ addl(ESP, Immediate(16));
-      break;
-    case MethodRecognizer::kFloat32x4WithZ:
-      __ cvtsd2ss(replacement, replacement);
-      __ subl(ESP, Immediate(16));
-      // Move value to stack.
-      __ movups(Address(ESP, 0), value);
-      // Write over Z value.
-      __ movss(Address(ESP, 8), replacement);
-      // Move updated value into output register.
-      __ movups(replacement, Address(ESP, 0));
-      __ addl(ESP, Immediate(16));
-      break;
-    case MethodRecognizer::kFloat32x4WithW:
-      __ cvtsd2ss(replacement, replacement);
-      __ subl(ESP, Immediate(16));
-      // Move value to stack.
-      __ movups(Address(ESP, 0), value);
-      // Write over W value.
-      __ movss(Address(ESP, 12), replacement);
-      // Move updated value into output register.
-      __ movups(replacement, Address(ESP, 0));
-      __ addl(ESP, Immediate(16));
-      break;
-    default:
-      UNREACHABLE();
-  }
+  // TODO(dartbug.com/30949) avoid transfer through memory. SSE4.1 has
+  // insertps. SSE2 these instructions can be implemented via a combination
+  // of shufps/movss/movlhps.
+  COMPILE_ASSERT(MethodRecognizer::kFloat32x4WithY ==
+                     (MethodRecognizer::kFloat32x4WithX + 1) &&
+                 MethodRecognizer::kFloat32x4WithZ ==
+                     (MethodRecognizer::kFloat32x4WithX + 2) &&
+                 MethodRecognizer::kFloat32x4WithW ==
+                     (MethodRecognizer::kFloat32x4WithX + 3));
+  const intptr_t lane_index = op_kind() - MethodRecognizer::kFloat32x4WithX;
+  ASSERT(0 <= lane_index && lane_index < 4);
+
+  __ cvtsd2ss(replacement, replacement);
+  __ SubImmediate(ESP, Immediate(kSimd128Size));
+  __ movups(Address(ESP, 0), value);
+  __ movss(Address(ESP, lane_index * kFloatSize), replacement);
+  __ movups(replacement, Address(ESP, 0));
+  __ AddImmediate(ESP, Immediate(kSimd128Size));
 }
 
 LocationSummary* Float32x4ToInt32x4Instr::MakeLocationSummary(Zone* zone,
@@ -4450,25 +4411,20 @@ void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ mulpd(left, right);
       break;
     case MethodRecognizer::kFloat64x2WithX:
-      __ subl(ESP, Immediate(16));
-      // Move value to stack.
+    case MethodRecognizer::kFloat64x2WithY: {
+      // TODO(dartbug.com/30949) avoid transfer through memory
+      COMPILE_ASSERT(MethodRecognizer::kFloat64x2WithY ==
+                     (MethodRecognizer::kFloat64x2WithX + 1));
+      const intptr_t lane_index = op_kind() - MethodRecognizer::kFloat64x2WithX;
+      ASSERT(0 <= lane_index && lane_index < 2);
+
+      __ SubImmediate(ESP, Immediate(kSimd128Size));
       __ movups(Address(ESP, 0), left);
-      // Write over X value.
-      __ movsd(Address(ESP, 0), right);
-      // Move updated value into output register.
+      __ movsd(Address(ESP, lane_index * kDoubleSize), right);
       __ movups(left, Address(ESP, 0));
-      __ addl(ESP, Immediate(16));
+      __ AddImmediate(ESP, Immediate(kSimd128Size));
       break;
-    case MethodRecognizer::kFloat64x2WithY:
-      __ subl(ESP, Immediate(16));
-      // Move value to stack.
-      __ movups(Address(ESP, 0), left);
-      // Write over Y value.
-      __ movsd(Address(ESP, 8), right);
-      // Move updated value into output register.
-      __ movups(left, Address(ESP, 0));
-      __ addl(ESP, Immediate(16));
-      break;
+    }
     case MethodRecognizer::kFloat64x2Min:
       __ minpd(left, right);
       break;
@@ -4495,18 +4451,14 @@ LocationSummary* Int32x4ConstructorInstr::MakeLocationSummary(Zone* zone,
 }
 
 void Int32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register v0 = locs()->in(0).reg();
-  Register v1 = locs()->in(1).reg();
-  Register v2 = locs()->in(2).reg();
-  Register v3 = locs()->in(3).reg();
   XmmRegister result = locs()->out(0).fpu_reg();
-  __ subl(ESP, Immediate(4 * kInt32Size));
-  __ movl(Address(ESP, 0 * kInt32Size), v0);
-  __ movl(Address(ESP, 1 * kInt32Size), v1);
-  __ movl(Address(ESP, 2 * kInt32Size), v2);
-  __ movl(Address(ESP, 3 * kInt32Size), v3);
+  // TODO(dartbug.com/30949) avoid transfer through memory.
+  __ SubImmediate(ESP, Immediate(kSimd128Size));
+  for (intptr_t i = 0; i < 4; i++) {
+    __ movl(Address(ESP, i * kInt32Size), locs()->in(i).reg());
+  }
   __ movups(result, Address(ESP, 0));
-  __ addl(ESP, Immediate(4 * kInt32Size));
+  __ AddImmediate(ESP, Immediate(kSimd128Size));
 }
 
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
@@ -4525,50 +4477,21 @@ LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
 }
 
 void Int32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register v0 = locs()->in(0).reg();
-  Register v1 = locs()->in(1).reg();
-  Register v2 = locs()->in(2).reg();
-  Register v3 = locs()->in(3).reg();
+  // TODO(dartbug.com/30949) avoid transfer through memory and branches.
   XmmRegister result = locs()->out(0).fpu_reg();
-  Label x_false, x_done;
-  Label y_false, y_done;
-  Label z_false, z_done;
-  Label w_false, w_done;
-  __ subl(ESP, Immediate(16));
-  __ CompareObject(v0, Bool::True());
-  __ j(NOT_EQUAL, &x_false);
-  __ movl(Address(ESP, 0), Immediate(0xFFFFFFFF));
-  __ jmp(&x_done);
-  __ Bind(&x_false);
-  __ movl(Address(ESP, 0), Immediate(0x0));
-  __ Bind(&x_done);
-
-  __ CompareObject(v1, Bool::True());
-  __ j(NOT_EQUAL, &y_false);
-  __ movl(Address(ESP, 4), Immediate(0xFFFFFFFF));
-  __ jmp(&y_done);
-  __ Bind(&y_false);
-  __ movl(Address(ESP, 4), Immediate(0x0));
-  __ Bind(&y_done);
-
-  __ CompareObject(v2, Bool::True());
-  __ j(NOT_EQUAL, &z_false);
-  __ movl(Address(ESP, 8), Immediate(0xFFFFFFFF));
-  __ jmp(&z_done);
-  __ Bind(&z_false);
-  __ movl(Address(ESP, 8), Immediate(0x0));
-  __ Bind(&z_done);
-
-  __ CompareObject(v3, Bool::True());
-  __ j(NOT_EQUAL, &w_false);
-  __ movl(Address(ESP, 12), Immediate(0xFFFFFFFF));
-  __ jmp(&w_done);
-  __ Bind(&w_false);
-  __ movl(Address(ESP, 12), Immediate(0x0));
-  __ Bind(&w_done);
-
+  __ SubImmediate(ESP, Immediate(kSimd128Size));
+  for (intptr_t i = 0; i < 4; i++) {
+    Label store_false, done;
+    __ CompareObject(locs()->in(i).reg(), Bool::True());
+    __ j(NOT_EQUAL, &store_false);
+    __ movl(Address(ESP, kInt32Size * i), Immediate(0xFFFFFFFF));
+    __ jmp(&done);
+    __ Bind(&store_false);
+    __ movl(Address(ESP, kInt32Size * i), Immediate(0x0));
+    __ Bind(&done);
+  }
   __ movups(result, Address(ESP, 0));
-  __ addl(ESP, Immediate(16));
+  __ AddImmediate(ESP, Immediate(kSimd128Size));
 }
 
 LocationSummary* Int32x4GetFlagInstr::MakeLocationSummary(Zone* zone,
@@ -4578,42 +4501,36 @@ LocationSummary* Int32x4GetFlagInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::RequiresRegister());
+  // TODO(dartbug.com/30953) need register with a byte component for setcc.
+  summary->set_out(0, Location::RegisterLocation(EDX));
   return summary;
 }
 
 void Int32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // TODO(dartbug.com/30949) avoid transfer through memory.
+  COMPILE_ASSERT(MethodRecognizer::kInt32x4GetFlagY ==
+                     (MethodRecognizer::kInt32x4GetFlagX + 1) &&
+                 MethodRecognizer::kInt32x4GetFlagZ ==
+                     (MethodRecognizer::kInt32x4GetFlagX + 2) &&
+                 MethodRecognizer::kInt32x4GetFlagW ==
+                     (MethodRecognizer::kInt32x4GetFlagX + 3));
+  const intptr_t lane_index = op_kind() - MethodRecognizer::kInt32x4GetFlagX;
+  ASSERT(0 <= lane_index && lane_index < 4);
+
   XmmRegister value = locs()->in(0).fpu_reg();
-  Register result = locs()->out(0).reg();
-  Label done;
-  Label non_zero;
-  __ subl(ESP, Immediate(16));
-  // Move value to stack.
+  ASSERT(locs()->out(0).reg() == EDX);
+  __ SubImmediate(ESP, Immediate(kSimd128Size));
   __ movups(Address(ESP, 0), value);
-  switch (op_kind()) {
-    case MethodRecognizer::kInt32x4GetFlagX:
-      __ movl(result, Address(ESP, 0));
-      break;
-    case MethodRecognizer::kInt32x4GetFlagY:
-      __ movl(result, Address(ESP, 4));
-      break;
-    case MethodRecognizer::kInt32x4GetFlagZ:
-      __ movl(result, Address(ESP, 8));
-      break;
-    case MethodRecognizer::kInt32x4GetFlagW:
-      __ movl(result, Address(ESP, 12));
-      break;
-    default:
-      UNREACHABLE();
-  }
-  __ addl(ESP, Immediate(16));
-  __ testl(result, result);
-  __ j(NOT_ZERO, &non_zero, Assembler::kNearJump);
-  __ LoadObject(result, Bool::False());
-  __ jmp(&done);
-  __ Bind(&non_zero);
-  __ LoadObject(result, Bool::True());
-  __ Bind(&done);
+  __ movl(EDX, Address(ESP, lane_index * kInt32Size));
+  __ AddImmediate(ESP, Immediate(kSimd128Size));
+
+  // EDX = EDX != 0 ? 0 : 1
+  __ testl(EDX, EDX);
+  __ setcc(ZERO, DL);
+  __ movzxb(EDX, DL);
+
+  ASSERT_BOOL_FALSE_FOLLOWS_BOOL_TRUE();
+  __ movl(EDX, Address(THR, EDX, TIMES_4, Thread::bool_true_offset()));
 }
 
 LocationSummary* Int32x4SelectInstr::MakeLocationSummary(Zone* zone,
@@ -4652,57 +4569,45 @@ void Int32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* Int32x4SetFlagInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresRegister());
+  // TODO(dartbug.com/30953) need register with a byte component for setcc.
+  summary->set_temp(0, Location::RegisterLocation(EDX));
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
 void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  COMPILE_ASSERT(MethodRecognizer::kInt32x4WithFlagY ==
+                     (MethodRecognizer::kInt32x4WithFlagX + 1) &&
+                 MethodRecognizer::kInt32x4WithFlagZ ==
+                     (MethodRecognizer::kInt32x4WithFlagX + 2) &&
+                 MethodRecognizer::kInt32x4WithFlagW ==
+                     (MethodRecognizer::kInt32x4WithFlagX + 3));
+  const intptr_t lane_index = op_kind() - MethodRecognizer::kInt32x4WithFlagX;
+  ASSERT(0 <= lane_index && lane_index < 4);
+
+  // TODO(dartbug.com/30949) avoid transfer through memory.
   XmmRegister mask = locs()->in(0).fpu_reg();
   Register flag = locs()->in(1).reg();
   ASSERT(mask == locs()->out(0).fpu_reg());
-  __ subl(ESP, Immediate(16));
-  // Copy mask to stack.
+  __ SubImmediate(ESP, Immediate(kSimd128Size));
   __ movups(Address(ESP, 0), mask);
-  Label falsePath, exitPath;
+
+  // EDX = flag == true ? -1 : 0
+  __ xorl(EDX, EDX);
   __ CompareObject(flag, Bool::True());
-  __ j(NOT_EQUAL, &falsePath);
-  switch (op_kind()) {
-    case MethodRecognizer::kInt32x4WithFlagX:
-      __ movl(Address(ESP, 0), Immediate(0xFFFFFFFF));
-      __ jmp(&exitPath);
-      __ Bind(&falsePath);
-      __ movl(Address(ESP, 0), Immediate(0x0));
-      break;
-    case MethodRecognizer::kInt32x4WithFlagY:
-      __ movl(Address(ESP, 4), Immediate(0xFFFFFFFF));
-      __ jmp(&exitPath);
-      __ Bind(&falsePath);
-      __ movl(Address(ESP, 4), Immediate(0x0));
-      break;
-    case MethodRecognizer::kInt32x4WithFlagZ:
-      __ movl(Address(ESP, 8), Immediate(0xFFFFFFFF));
-      __ jmp(&exitPath);
-      __ Bind(&falsePath);
-      __ movl(Address(ESP, 8), Immediate(0x0));
-      break;
-    case MethodRecognizer::kInt32x4WithFlagW:
-      __ movl(Address(ESP, 12), Immediate(0xFFFFFFFF));
-      __ jmp(&exitPath);
-      __ Bind(&falsePath);
-      __ movl(Address(ESP, 12), Immediate(0x0));
-      break;
-    default:
-      UNREACHABLE();
-  }
-  __ Bind(&exitPath);
+  __ setcc(EQUAL, DL);
+  __ negl(EDX);
+
+  __ movl(Address(ESP, lane_index * kInt32Size), EDX);
+
   // Copy mask back to register.
   __ movups(mask, Address(ESP, 0));
-  __ addl(ESP, Immediate(16));
+  __ AddImmediate(ESP, Immediate(kSimd128Size));
 }
 
 LocationSummary* Int32x4ToFloat32x4Instr::MakeLocationSummary(Zone* zone,

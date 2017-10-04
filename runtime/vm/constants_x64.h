@@ -52,6 +52,14 @@ enum ByteRegister {
   kNoByteRegister = -1  // Signals an illegal register.
 };
 
+inline ByteRegister ByteRegisterOf(Register reg) {
+  if (RSP <= reg && reg <= RDI) {
+    return static_cast<ByteRegister>(reg | 0x10);
+  } else {
+    return static_cast<ByteRegister>(reg);
+  }
+}
+
 enum XmmRegister {
   XMM0 = 0,
   XMM1 = 1,
