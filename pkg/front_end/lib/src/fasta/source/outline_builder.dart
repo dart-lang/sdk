@@ -339,6 +339,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleRecoverClassHeader() {
+    pop(NullValue.TypeBuilderList); // interfaces
+    pop(); // supertype
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("endClassDeclaration");
     String documentationComment = _getDocumentationComment(beginToken);

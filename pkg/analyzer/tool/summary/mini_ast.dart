@@ -187,6 +187,11 @@ class MiniAstBuilder extends StackListener {
     push(popList(memberCount));
   }
 
+  @override
+  void handleRecoverClassHeader() {
+    pop(); // superclass
+  }
+
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
     List<ClassMember> members = pop();

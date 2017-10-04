@@ -1077,22 +1077,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_implementsBeforeExtends() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, found 0
-    super.test_implementsBeforeExtends();
-  }
-
-  @override
-  @failingTest
-  void test_implementsBeforeWith() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.IMPLEMENTS_BEFORE_WITH, found 0
-    super.test_implementsBeforeWith();
-  }
-
-  @override
-  @failingTest
   void test_initializedVariableInForEach() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, found 0
@@ -2060,22 +2044,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_multipleExtendsClauses() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, found 0
-    super.test_multipleExtendsClauses();
-  }
-
-  @override
-  @failingTest
-  void test_multipleImplementsClauses() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, found 0
-    super.test_multipleImplementsClauses();
-  }
-
-  @override
-  @failingTest
   void test_multipleLibraryDirectives() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, found 0
@@ -2112,14 +2080,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
     //   test/generated/parser_fasta_test.dart 3702:39                      ParserProxy._run
     super.test_multipleVariablesInForEach();
-  }
-
-  @override
-  @failingTest
-  void test_multipleWithClauses() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MULTIPLE_WITH_CLAUSES, found 0
-    super.test_multipleWithClauses();
   }
 
   @override
@@ -2813,22 +2773,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   void test_voidVariable_statement_noInitializer() {
     // TODO(brianwilkerson) Passes, but ought to fail.
     super.test_voidVariable_statement_noInitializer();
-  }
-
-  @override
-  @failingTest
-  void test_withBeforeExtends() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.WITH_BEFORE_EXTENDS, found 0
-    super.test_withBeforeExtends();
-  }
-
-  @override
-  @failingTest
-  void test_withWithoutExtends() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.WITH_WITHOUT_EXTENDS, found 0
-    super.test_withWithoutExtends();
   }
 
   @override
@@ -3617,6 +3561,7 @@ class ParserProxy implements analyzer.Parser {
 
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
     _eventListener.begin('CompilationUnit');
+    _fastaParser.firstToken = _currentFastaToken;
     _currentFastaToken =
         _fastaParser.parseTopLevelDeclaration(_currentFastaToken);
     expect(_currentFastaToken.isEof, isTrue);

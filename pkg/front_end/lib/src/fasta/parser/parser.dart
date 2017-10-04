@@ -4,8 +4,6 @@
 
 library fasta.parser.parser;
 
-import 'package:front_end/src/fasta/parser/directive_context.dart';
-
 import '../fasta_codes.dart' show Message, Template;
 
 import '../fasta_codes.dart' as fasta;
@@ -20,8 +18,10 @@ import '../../scanner/token.dart'
         BeginToken,
         CASCADE_PRECEDENCE,
         EQUALITY_PRECEDENCE,
+        Keyword,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
+        SyntheticKeywordToken,
         SyntheticStringToken,
         SyntheticToken,
         TokenType;
@@ -60,6 +60,8 @@ import 'assert.dart' show Assert;
 
 import 'async_modifier.dart' show AsyncModifier;
 
+import 'directive_context.dart';
+
 import 'formal_parameter_kind.dart'
     show
         FormalParameterKind,
@@ -72,7 +74,9 @@ import 'listener.dart' show Listener;
 
 import 'member_kind.dart' show MemberKind;
 
-import 'token_stream_rewriter.dart';
+import 'recovery_listeners.dart' show ClassHeaderRecoveryListener;
+
+import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 
 import 'type_continuation.dart'
     show TypeContinuation, typeContiunationFromFormalParameterKind;
@@ -218,7 +222,7 @@ import 'util.dart' show closeBraceTokenFor, optional;
 /// would handle such errors in later phases. We hope that these cases will go
 /// away as Fasta matures.
 class Parser {
-  final Listener listener;
+  Listener listener;
 
   Uri get uri => listener.uri;
 
@@ -447,11 +451,13 @@ class Parser {
     }
   }
 
-  Token parseImportRecovery(Token importKeyword, Token recoveryStart) {
+  /// Recover given out-of-order clauses in an import directive
+  /// where [token] is the import keyword
+  /// and [recoveryStart] is the token on which main parsing stopped.
+  Token parseImportRecovery(Token token, Token recoveryStart) {
     Token firstDeferredKeyword;
     bool hasPrefix = false;
     bool hasCombinator = false;
-    Token token = importKeyword;
 
     // Determine which clauses have already been parsed.
     while (token != recoveryStart) {
@@ -1077,6 +1083,18 @@ class Parser {
   }
 
   Token parseClass(Token token, Token begin, Token classKeyword) {
+    Token start = token;
+    token = parseClassHeader(token, begin, classKeyword);
+    if (!optional('{', token)) {
+      // Recovery
+      token = parseClassHeaderRecovery(start, begin, classKeyword);
+    }
+    token = parseClassBody(token);
+    listener.endClassDeclaration(begin, token);
+    return token.next;
+  }
+
+  Token parseClassHeader(Token token, Token begin, Token classKeyword) {
     token = parseClassExtendsOpt(token);
     token = parseClassImplementsOpt(token);
     Token nativeToken;
@@ -1085,9 +1103,109 @@ class Parser {
       token = parseNativeClause(nativeToken);
     }
     listener.handleClassHeader(begin, classKeyword, nativeToken);
-    token = parseClassBody(token);
-    listener.endClassDeclaration(begin, token);
-    return token.next;
+    return token;
+  }
+
+  /// Recover given out-of-order clauses in a class header.
+  Token parseClassHeaderRecovery(Token token, Token begin, Token classKeyword) {
+    final primaryListener = listener;
+    final recoveryListener = new ClassHeaderRecoveryListener(primaryListener);
+
+    // Reparse to determine which clauses have already been parsed
+    // but intercept the events so they are not sent to the primary listener.
+    listener = recoveryListener;
+    token = parseClassHeader(token, begin, classKeyword);
+    bool hasExtends = recoveryListener.extendsKeyword != null;
+    bool hasImplements = recoveryListener.implementsKeyword != null;
+    Token withKeyword = recoveryListener.withKeyword;
+
+    // Update the recovery listener to forward subsequent events
+    // to the primary listener.
+    recoveryListener.listener = primaryListener;
+
+    // Parse additional out-of-order clauses
+    Token start;
+    do {
+      start = token;
+
+      // Check for extraneous token in the middle of a class header.
+      token = skipUnexpectedTokenOpt(
+          token, const <String>['extends', 'with', 'implements', '{']);
+
+      // During recovery, clauses are parsed in the same order
+      // and generate the same events as in the parseClassHeader method above.
+      recoveryListener.clear();
+      if (optional('with', token)) {
+        // If there is a `with` clause without a preceding `extends` clause
+        // then insert a synthetic `extends` clause and parse both clauses.
+        Token extendsKeyword =
+            new SyntheticKeywordToken(Keyword.EXTENDS, token.offset);
+        Token superclassToken = new SyntheticStringToken(
+            TokenType.IDENTIFIER, 'Object', token.offset);
+        if (firstToken == null) {
+          return reportUnrecoverableError(
+              token, fasta.messageWithWithoutExtends);
+        }
+        rewriter.insertTokenBefore(extendsKeyword, token);
+        rewriter.insertTokenBefore(superclassToken, token);
+        token = parseType(superclassToken);
+        token = parseMixinApplicationRest(token);
+        listener.handleClassExtends(extendsKeyword);
+      } else {
+        token = parseClassExtendsOpt(token);
+
+        if (recoveryListener.extendsKeyword != null) {
+          if (hasExtends) {
+            reportRecoverableError(
+                recoveryListener.extendsKeyword, fasta.messageMultipleExtends);
+          } else {
+            if (withKeyword != null) {
+              reportRecoverableError(recoveryListener.extendsKeyword,
+                  fasta.messageWithBeforeExtends);
+            } else if (hasImplements) {
+              reportRecoverableError(recoveryListener.extendsKeyword,
+                  fasta.messageImplementsBeforeExtends);
+            }
+            hasExtends = true;
+          }
+        }
+      }
+
+      if (recoveryListener.withKeyword != null) {
+        if (withKeyword != null) {
+          reportRecoverableError(
+              recoveryListener.withKeyword, fasta.messageMultipleWith);
+        } else {
+          if (hasImplements) {
+            reportRecoverableError(recoveryListener.withKeyword,
+                fasta.messageImplementsBeforeWith);
+          }
+          withKeyword = recoveryListener.withKeyword;
+        }
+      }
+
+      token = parseClassImplementsOpt(token);
+
+      if (recoveryListener.implementsKeyword != null) {
+        if (hasImplements) {
+          reportRecoverableError(recoveryListener.implementsKeyword,
+              fasta.messageMultipleImplements);
+        } else {
+          hasImplements = true;
+        }
+      }
+
+      listener.handleRecoverClassHeader();
+
+      // Exit if a class body is detected, or if no progress has been made
+    } while (!optional('{', token) && start != token);
+
+    if (withKeyword != null && !hasExtends) {
+      reportRecoverableError(withKeyword, fasta.messageWithWithoutExtends);
+    }
+
+    listener = primaryListener;
+    return token;
   }
 
   Token parseClassExtendsOpt(Token token) {

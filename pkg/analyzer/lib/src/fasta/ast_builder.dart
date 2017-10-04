@@ -1398,6 +1398,7 @@ class AstBuilder extends ScopeListener {
 
   @override
   void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    debugEvent("ClassHeader");
     NativeClause nativeClause;
     if (nativeToken != null) {
       nativeClause = ast.nativeClause(nativeToken, nativeName);
@@ -1429,6 +1430,35 @@ class AstBuilder extends ScopeListener {
     );
     classDeclaration.nativeClause = nativeClause;
     declarations.add(classDeclaration);
+  }
+
+  @override
+  void handleRecoverClassHeader() {
+    debugEvent("RecoverClassHeader");
+    ImplementsClause implementsClause = pop(NullValue.IdentifierList);
+    WithClause withClause = pop(NullValue.WithClause);
+    ExtendsClause extendsClause = pop(NullValue.ExtendsClause);
+    ClassDeclaration declaration = declarations.last;
+    if (extendsClause != null && !extendsClause.extendsKeyword.isSynthetic) {
+      if (declaration.extendsClause?.superclass == null) {
+        declaration.extendsClause = extendsClause;
+      }
+    }
+    if (withClause != null) {
+      if (declaration.withClause == null) {
+        declaration.withClause = withClause;
+      } else {
+        declaration.withClause.mixinTypes.addAll(withClause.mixinTypes);
+      }
+    }
+    if (implementsClause != null) {
+      if (declaration.implementsClause == null) {
+        declaration.implementsClause = implementsClause;
+      } else {
+        declaration.implementsClause.interfaces
+            .addAll(implementsClause.interfaces);
+      }
+    }
   }
 
   @override
@@ -2101,6 +2131,14 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
         return;
+      case "IMPLEMENTS_BEFORE_EXTENDS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, offset, length);
+        return;
+      case "IMPLEMENTS_BEFORE_WITH":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.IMPLEMENTS_BEFORE_WITH, offset, length);
+        return;
       case "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
@@ -2130,6 +2168,18 @@ class AstBuilder extends ScopeListener {
       case "MISSING_HEX_DIGIT":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
+        return;
+      case "MULTIPLE_EXTENDS_CLAUSES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, offset, length);
+        return;
+      case "MULTIPLE_IMPLEMENTS_CLAUSES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, offset, length);
+        return;
+      case "MULTIPLE_WITH_CLAUSES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_WITH_CLAUSES, offset, length);
         return;
       case "MISSING_FUNCTION_BODY":
         errorReporter?.reportErrorForOffset(
@@ -2185,6 +2235,14 @@ class AstBuilder extends ScopeListener {
       case "VAR_AND_TYPE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.VAR_AND_TYPE, offset, length);
+        return;
+      case "WITH_BEFORE_EXTENDS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.WITH_BEFORE_EXTENDS, offset, length);
+        return;
+      case "WITH_WITHOUT_EXTENDS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.WITH_WITHOUT_EXTENDS, offset, length);
         return;
       case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
         errorReporter?.reportErrorForOffset(

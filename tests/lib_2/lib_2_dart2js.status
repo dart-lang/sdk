@@ -32,6 +32,7 @@ async/zone_create_periodic_timer_test: RuntimeError # Timer interface not suppor
 async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.
 
 [ $compiler == dart2js ]
+async/future_or_bad_type_test: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass

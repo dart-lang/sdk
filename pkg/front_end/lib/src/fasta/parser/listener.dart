@@ -114,6 +114,17 @@ class Listener {
     logEvent("ClassHeader");
   }
 
+  /// Handle recovery associated with a class header.
+  /// This may be called multiple times after [handleClassHeader]
+  /// to recover information about the previous class header.
+  /// The substructures are a subset of
+  /// and in the same order as [handleClassHeader]:
+  /// - supertype (may be a mixin application)
+  /// - implemented types
+  void handleRecoverClassHeader() {
+    logEvent("RecoverClassHeader");
+  }
+
   /// Handle the end of a class declaration.  Substructures:
   /// - class header
   /// - class body

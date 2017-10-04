@@ -114,6 +114,13 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleRecoverClassHeader() {
+    popNode(); // interfaces
+    popNode(); // extendsNode
+    popNode(); // supertype
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     NodeList body = popNode();
     NodeList interfaces = popNode();

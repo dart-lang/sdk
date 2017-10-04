@@ -140,6 +140,55 @@ ExpectedButGot:
     - "main() => true ? 1;"
     - "main() => foo(x: 1 y: 2);"
 
+MultipleExtends:
+  template: "Each class definition can have at most one extends clause."
+  tip: "Try choosing one superclass and define your class to implement (or mix in) the others."
+  analyzerCode: MULTIPLE_EXTENDS_CLAUSES
+  dart2jsCode: "*ignored*"
+  script: "class A extends B extends C {}"
+
+MultipleWith:
+  template: "Each class definition can have at most one with clause."
+  tip: "Try combining all of the with clauses into a single clause."
+  analyzerCode: MULTIPLE_WITH_CLAUSES
+  dart2jsCode: "*ignored*"
+  script: "class A extends B with C, D with E {}"
+
+WithWithoutExtends:
+  template: "The with clause can't be used without an extends clause."
+  tip: "Try adding an extends clause such as 'extends Object'."
+  analyzerCode: WITH_WITHOUT_EXTENDS
+  dart2jsCode: "GENERIC"
+  script: "class A with B, C {}"
+
+WithBeforeExtends:
+  template: "The extends clause must be before the with clause."
+  tip: "Try moving the extends clause before the with clause."
+  analyzerCode: WITH_BEFORE_EXTENDS
+  dart2jsCode: "*ignored*"
+  script: "class A with B extends C {}"
+
+ImplementsBeforeExtends:
+  template: "The extends clause must be before the implements clause."
+  tip: "Try moving the extends clause before the implements clause."
+  analyzerCode: IMPLEMENTS_BEFORE_EXTENDS
+  dart2jsCode: "*ignored*"
+  script: "class A implements B extends C {}"
+
+ImplementsBeforeWith:
+  template: "The with clause must be before the implements clause."
+  tip: "Try moving the with clause before the implements clause."
+  analyzerCode: IMPLEMENTS_BEFORE_WITH
+  dart2jsCode: "*ignored*"
+  script: "class A extends B implements C with D {}"
+
+MultipleImplements:
+  template: "Each class definition can have at most one implements clause."
+  tip: "Try combining all of the implements clauses into a single clause."
+  analyzerCode: MULTIPLE_IMPLEMENTS_CLAUSES
+  dart2jsCode: "GENERIC"
+  script: "class A implements B implements C, D {}"
+
 ExpectedClassBody:
   template: "Expected a class body, but got '#lexeme'."
   analyzerCode: MISSING_CLASS_BODY

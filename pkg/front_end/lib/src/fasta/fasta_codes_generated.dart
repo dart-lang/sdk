@@ -1502,6 +1502,28 @@ Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeImplementsBeforeExtends = messageImplementsBeforeExtends;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageImplementsBeforeExtends = const MessageCode(
+    "ImplementsBeforeExtends",
+    analyzerCode: "IMPLEMENTS_BEFORE_EXTENDS",
+    dart2jsCode: "*ignored*",
+    message: r"""The extends clause must be before the implements clause.""",
+    tip: r"""Try moving the extends clause before the implements clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeImplementsBeforeWith = messageImplementsBeforeWith;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageImplementsBeforeWith = const MessageCode(
+    "ImplementsBeforeWith",
+    analyzerCode: "IMPLEMENTS_BEFORE_WITH",
+    dart2jsCode: "*ignored*",
+    message: r"""The with clause must be before the implements clause.""",
+    tip: r"""Try moving the with clause before the implements clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImportAfterPart = messageImportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2146,6 +2168,40 @@ const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
     dart2jsCode: "*fatal*",
     message: r"""Deferred imports should have a prefix.""",
     tip: r"""Try adding a prefix to the import.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMultipleExtends = messageMultipleExtends;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMultipleExtends = const MessageCode("MultipleExtends",
+    analyzerCode: "MULTIPLE_EXTENDS_CLAUSES",
+    dart2jsCode: "*ignored*",
+    message: r"""Each class definition can have at most one extends clause.""",
+    tip:
+        r"""Try choosing one superclass and define your class to implement (or mix in) the others.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMultipleImplements = messageMultipleImplements;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMultipleImplements = const MessageCode(
+    "MultipleImplements",
+    analyzerCode: "MULTIPLE_IMPLEMENTS_CLAUSES",
+    dart2jsCode: "GENERIC",
+    message:
+        r"""Each class definition can have at most one implements clause.""",
+    tip:
+        r"""Try combining all of the implements clauses into a single clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMultipleWith = messageMultipleWith;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMultipleWith = const MessageCode("MultipleWith",
+    analyzerCode: "MULTIPLE_WITH_CLAUSES",
+    dart2jsCode: "*ignored*",
+    message: r"""Each class definition can have at most one with clause.""",
+    tip: r"""Try combining all of the with clauses into a single clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNamedFunctionExpression = messageNamedFunctionExpression;
@@ -3385,6 +3441,28 @@ const MessageCode messageUnterminatedToken = const MessageCode(
     "UnterminatedToken",
     dart2jsCode: "UNTERMINATED_TOKEN",
     message: r"""Incomplete token.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWithBeforeExtends = messageWithBeforeExtends;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWithBeforeExtends = const MessageCode(
+    "WithBeforeExtends",
+    analyzerCode: "WITH_BEFORE_EXTENDS",
+    dart2jsCode: "*ignored*",
+    message: r"""The extends clause must be before the with clause.""",
+    tip: r"""Try moving the extends clause before the with clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWithWithoutExtends = messageWithWithoutExtends;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWithWithoutExtends = const MessageCode(
+    "WithWithoutExtends",
+    analyzerCode: "WITH_WITHOUT_EXTENDS",
+    dart2jsCode: "GENERIC",
+    message: r"""The with clause can't be used without an extends clause.""",
+    tip: r"""Try adding an extends clause such as 'extends Object'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeYieldAsIdentifier = messageYieldAsIdentifier;

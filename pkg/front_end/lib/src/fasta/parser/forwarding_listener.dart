@@ -1168,6 +1168,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleRecoverClassHeader() {
+    listener?.handleRecoverClassHeader();
+  }
+
+  @override
   void handleRecoverExpression(Token token, Message message) {
     listener?.handleRecoverExpression(token, message);
   }

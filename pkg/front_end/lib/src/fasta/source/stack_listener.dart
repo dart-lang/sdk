@@ -198,6 +198,11 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleRecoverClassHeader() {
+    debugEvent("RecoverClassHeader");
+  }
+
+  @override
   void handleClassImplements(Token implementsKeyword, int interfacesCount) {
     debugEvent("ClassImplements");
   }

@@ -1100,6 +1100,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void handleRecoverClassHeader() {
+    expectIn('ClassDeclaration');
+    listener.handleRecoverClassHeader();
+  }
+
+  @override
   void handleRecoverImport(Token semicolon) {
     expectIn('CompilationUnit');
     listener.handleRecoverImport(semicolon);

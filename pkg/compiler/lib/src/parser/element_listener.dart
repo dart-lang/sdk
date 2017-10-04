@@ -306,6 +306,11 @@ class ElementListener extends Listener {
   }
 
   @override
+  void handleRecoverClassHeader() {
+    popNode(); // superType
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     popNode(); // superType
     popNode(); // typeParameters
