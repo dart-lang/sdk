@@ -5,6 +5,7 @@
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -66,15 +67,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   }
 
   test_messageCoverage() {
-    String analyzerPath = new io.File.fromUri(io.Platform.script).path;
-    while (path.basename(analyzerPath) != 'analyzer') {
-      String previousPath = analyzerPath;
-      analyzerPath = path.dirname(analyzerPath);
-      if (analyzerPath == previousPath) {
-        fail('Could not find the path to the analyzer package.');
-      }
-    }
-
+    String analyzerPath = path.join(package_root.packageRoot, 'analyzer');
     String astBuilderPath =
         path.join(analyzerPath, 'lib', 'src', 'fasta', 'ast_builder.dart');
     List<String> translatedCodes = getTranslatedCodes(astBuilderPath);
