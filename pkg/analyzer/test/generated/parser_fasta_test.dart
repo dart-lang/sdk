@@ -10,7 +10,6 @@ import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
-import 'package:analyzer/src/generated/parser.dart' show CommentAndMetadata;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart'
@@ -21,7 +20,6 @@ import 'package:front_end/src/fasta/parser.dart' show IdentifierContext;
 import 'package:front_end/src/fasta/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
-import 'package:front_end/src/fasta/source/stack_listener.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -3573,24 +3571,6 @@ class ParserProxy implements analyzer.Parser {
 
   List<Combinator> parseCombinators() {
     return _run((parser) => parser.parseCombinators);
-  }
-
-  @override
-  CommentAndMetadata parseCommentAndMetadata() {
-    List commentAndMetadata =
-        _run((parser) => parser.parseMetadataStar, nodeCount: -1);
-    expect(commentAndMetadata, hasLength(2));
-    Object comment = commentAndMetadata[0];
-    Object metadata = commentAndMetadata[1];
-    if (comment == NullValue.Comments) {
-      comment = null;
-    }
-    if (metadata == NullValue.Metadata) {
-      metadata = null;
-    } else {
-      metadata = new List<Annotation>.from(metadata);
-    }
-    return new CommentAndMetadata(comment, metadata);
   }
 
   @override

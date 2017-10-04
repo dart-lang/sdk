@@ -11608,96 +11608,108 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCommentAndMetadata_c() {
-    createParser('/** 1 */');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
+    createParser('/** 1 */ class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
     listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, isNull);
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNotNull);
+    expect(declaration.metadata, isEmpty);
   }
 
   void test_parseCommentAndMetadata_cmc() {
-    createParser('/** 1 */ @A /** 2 */');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
+    createParser('/** 1 */ @A /** 2 */ class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
     listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(1));
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNotNull);
+    expect(declaration.metadata, hasLength(1));
   }
 
   void test_parseCommentAndMetadata_cmcm() {
-    createParser('/** 1 */ @A /** 2 */ @B');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
+    createParser('/** 1 */ @A /** 2 */ @B class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
     listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(2));
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNotNull);
+    expect(declaration.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_cmm() {
-    createParser('/** 1 */ @A @B');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
+    createParser('/** 1 */ @A @B class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
     listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(2));
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNotNull);
+    expect(declaration.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_m() {
-    createParser('@A');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
+    createParser('@A class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
     listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNull);
-    expect(commentAndMetadata.metadata, hasLength(1));
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.metadata, hasLength(1));
   }
 
   void test_parseCommentAndMetadata_mcm() {
-    createParser('@A /** 1 */ @B');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
+    createParser('@A /** 1 */ @B class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
     listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(2));
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNotNull);
+    expect(declaration.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_mcmc() {
-    createParser('@A /** 1 */ @B /** 2 */');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
+    createParser('@A /** 1 */ @B /** 2 */ class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
     listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(2));
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNotNull);
+    expect(declaration.documentationComment.tokens[0].lexeme, contains('2'));
+    expect(declaration.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_mm() {
-    createParser('@A @B(x)');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
+    createParser('@A @B(x) class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
     listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNull);
-    expect(commentAndMetadata.metadata, hasLength(2));
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_none() {
-    createParser('');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
+    createParser('class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
     listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNull);
-    expect(commentAndMetadata.metadata, isNull);
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.metadata, isEmpty);
   }
 
   void test_parseCommentAndMetadata_singleLine() {
     createParser(r'''
 /// 1
 /// 2
+class C {}
 ''');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
     listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, isNull);
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNotNull);
+    expect(declaration.metadata, isEmpty);
   }
 
   void test_parseConfiguration_noOperator_dottedIdentifier() {
