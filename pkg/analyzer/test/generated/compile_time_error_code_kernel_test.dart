@@ -242,7 +242,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31004')
   test_invalidUri_part() async {
     return super.test_invalidUri_part();
   }
@@ -270,7 +270,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31005')
   test_mixinOfNonClass_typeAlias() async {
     return super.test_mixinOfNonClass_typeAlias();
   }
@@ -499,14 +499,14 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_recursiveInterfaceInheritance_mixin() async {
     return super.test_recursiveInterfaceInheritance_mixin();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_recursiveInterfaceInheritanceBaseCaseWith() async {
     return super.test_recursiveInterfaceInheritanceBaseCaseWith();
   }
@@ -548,42 +548,42 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_11987() async {
     return super.test_typeAliasCannotReferenceItself_11987();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_generic() async {
     return super.test_typeAliasCannotReferenceItself_generic();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_parameterType_named() async {
     return super.test_typeAliasCannotReferenceItself_parameterType_named();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_parameterType_positional() async {
     return super.test_typeAliasCannotReferenceItself_parameterType_positional();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_parameterType_required() async {
     return super.test_typeAliasCannotReferenceItself_parameterType_required();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_parameterType_typeArgument() async {
     return super
         .test_typeAliasCannotReferenceItself_parameterType_typeArgument();
@@ -591,7 +591,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
     return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
   }
