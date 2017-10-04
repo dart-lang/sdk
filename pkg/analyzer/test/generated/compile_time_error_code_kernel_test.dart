@@ -207,21 +207,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() async {
-    return super
-        .test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAnnotation_notVariableOrConstructorInvocation() async {
-    return super.test_invalidAnnotation_notVariableOrConstructorInvocation();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_invalidAnnotationFromDeferredLibrary_namedConstructor() async {
     return super.test_invalidAnnotationFromDeferredLibrary_namedConstructor();
@@ -302,13 +287,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30982')
   test_multipleSuperInitializers() async {
     return super.test_multipleSuperInitializers();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_noAnnotationConstructorArguments() async {
-    return super.test_noAnnotationConstructorArguments();
   }
 
   @override

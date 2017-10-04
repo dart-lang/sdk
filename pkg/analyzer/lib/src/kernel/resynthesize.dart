@@ -481,9 +481,13 @@ class _ExprBuilder {
     }
 
     // Invalid annotations are represented as Let.
-    if (expr is kernel.Let &&
-        expr.variable.initializer is kernel.ShadowSyntheticExpression) {
-      expr = (expr as kernel.Let).variable.initializer;
+    if (expr is kernel.Let) {
+      kernel.Let let = expr;
+      if (let.variable.initializer is kernel.ShadowSyntheticExpression) {
+        expr = let.variable.initializer;
+      } else if (let.body is kernel.ShadowSyntheticExpression) {
+        expr = let.body;
+      }
     }
 
     // Synthetic expression representing a constant error.
