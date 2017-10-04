@@ -16,7 +16,7 @@ abstract class UsedAsBaseClass extends core::Object {
     core::print("Unused");
   }
   method calledFromB() → void {
-    this.calledFromSubclass();
+    this.{self::UsedAsBaseClass::calledFromSubclass}();
   }
   method calledFromSubclass() → void {
     core::print("Unused");
@@ -52,7 +52,7 @@ class ClassB extends self::UsedAsBaseClass implements self::UsedAsInterface, sel
     ;
   method usedInSubclass() → void {
     core::print("B");
-    this.calledFromB();
+    this.{self::UsedAsBaseClass::calledFromB}();
   }
   method calledFromSubclass() → void {}
 }

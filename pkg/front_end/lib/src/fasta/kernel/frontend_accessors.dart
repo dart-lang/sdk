@@ -296,6 +296,9 @@ class ThisPropertyAccessor extends Accessor {
       : super(helper, token);
 
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    if (getter == null) {
+      helper.warnUnresolvedGet(name, offsetForToken(token));
+    }
     var read = new ShadowPropertyGet(new ShadowThisExpression(), name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -304,6 +307,9 @@ class ThisPropertyAccessor extends Accessor {
 
   Expression _makeWrite(Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
+    if (setter == null) {
+      helper.warnUnresolvedSet(name, offsetForToken(token));
+    }
     var write = new PropertySet(new ShadowThisExpression(), name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;

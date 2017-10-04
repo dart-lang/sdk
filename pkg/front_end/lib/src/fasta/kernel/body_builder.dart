@@ -1126,7 +1126,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         if (constantExpressionRequired || member.isField) {
           return new UnresolvedAccessor(this, n, token);
         }
-        return new ThisPropertyAccessor(this, token, n, null, null);
+        return new ThisPropertyAccessor(this, token, n, lookupInstanceMember(n),
+            lookupInstanceMember(n, isSetter: true));
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
@@ -1177,8 +1178,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         deprecated_addCompileTimeError(
             offsetForToken(token), "Not a constant expression.");
       }
-      return new ThisPropertyAccessor(
-          this, token, new Name(name, library.library), null, null);
+      Name n = new Name(name, library.library);
+      Member getter;
+      Member setter;
+      if (builder is AccessErrorBuilder) {
+        setter = builder.parent.target;
+        getter = lookupInstanceMember(n);
+      } else {
+        getter = builder.target;
+        setter = lookupInstanceMember(n, isSetter: true);
+      }
+      return new ThisPropertyAccessor(this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
       return new StaticAccessor(this, token, builder.target, null);
@@ -3361,7 +3371,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool isConstantExpression: false,
       bool isNullAware: false,
       bool isImplicitCall: false,
-      bool isSuper: false}) {
+      bool isSuper: false,
+      Member interfaceTarget}) {
     if (constantExpressionRequired && !isConstantExpression) {
       return deprecated_buildCompileTimeError(
           "Not a constant expression.", offset);
@@ -3398,14 +3409,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           new ConditionalExpression(
               buildIsNull(new VariableGet(variable), offset),
               new NullLiteral(),
-              new MethodInvocation(new VariableGet(variable), name, arguments)
+              new MethodInvocation(
+                  new VariableGet(variable), name, arguments, interfaceTarget)
                 ..fileOffset = offset,
               null)
             ..fileOffset = offset)
         ..fileOffset = offset;
     } else {
       return new ShadowMethodInvocation(receiver, name, arguments,
-          isImplicitCall: isImplicitCall)
+          isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget)
         ..fileOffset = offset;
     }
   }

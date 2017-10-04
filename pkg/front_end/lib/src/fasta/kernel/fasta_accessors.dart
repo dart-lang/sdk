@@ -125,7 +125,8 @@ abstract class BuilderHelper {
       {bool isConstantExpression,
       bool isNullAware,
       bool isImplicitCall,
-      bool isSuper});
+      bool isSuper,
+      Member interfaceTarget});
 
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
@@ -363,20 +364,27 @@ class ThisAccessor extends FastaAccessor {
       }
       return buildConstructorInitializer(offset, name, arguments);
     }
+    Member getter = helper.lookupInstanceMember(name, isSuper: isSuper);
     if (send is SendAccessor) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
-      return helper.buildMethodInvocation(
-          new ShadowThisExpression(), name, arguments, offset,
-          isSuper: isSuper);
-    } else if (isSuper) {
-      Member getter = helper.lookupInstanceMember(name, isSuper: true);
-      Member setter =
-          helper.lookupInstanceMember(name, isSuper: true, isSetter: true);
-      return new SuperPropertyAccessor(
-          helper, send.token, name, getter, setter);
+      if (getter == null) {
+        helper.warnUnresolvedMethod(name, offsetForToken(send.token),
+            isSuper: isSuper);
+      }
+      return helper.buildMethodInvocation(new ShadowThisExpression(), name,
+          send.arguments, offsetForToken(send.token),
+          isSuper: isSuper, interfaceTarget: getter);
     } else {
-      return new ThisPropertyAccessor(helper, send.token, name, null, null);
+      Member setter =
+          helper.lookupInstanceMember(name, isSuper: isSuper, isSetter: true);
+      if (isSuper) {
+        return new SuperPropertyAccessor(
+            helper, send.token, name, getter, setter);
+      } else {
+        return new ThisPropertyAccessor(
+            helper, send.token, name, getter, setter);
+      }
     }
   }
 
@@ -699,7 +707,7 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
       Member setter,
       bool isNullAware) {
     if (receiver is ThisExpression) {
-      return new ThisPropertyAccessor(helper, token, name, getter, setter);
+      return unsupported("ThisExpression", offsetForToken(token), helper.uri);
     } else {
       return isNullAware
           ? new NullAwarePropertyAccessor(
@@ -862,13 +870,17 @@ class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
 
   Expression doInvocation(int offset, Arguments arguments) {
     Member interfaceTarget = getter;
+    if (interfaceTarget == null) {
+      helper.warnUnresolvedMethod(name, offset);
+    }
     if (interfaceTarget is Field) {
       // TODO(ahe): In strong mode we should probably rewrite this to
       // `this.name.call(arguments)`.
       interfaceTarget = null;
     }
     return helper.buildMethodInvocation(
-        new ShadowThisExpression(), name, arguments, offset);
+        new ShadowThisExpression(), name, arguments, offset,
+        interfaceTarget: interfaceTarget);
   }
 
   toString() => "ThisPropertyAccessor()";
@@ -1005,7 +1017,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
       if (builder == null) {
         // If we find a setter, [builder] is an
         // [AccessErrorBuilder], not null.
-        accessor = new UnresolvedAccessor(helper, name, token);
+        accessor = new UnresolvedAccessor(helper, name, send.token);
       } else {
         Builder setter;
         if (builder.isSetter) {

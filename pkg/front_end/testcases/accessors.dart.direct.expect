@@ -17,11 +17,11 @@ class C extends core::Object {
     on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {
       core::print("Expected error: ${e}");
     }
-    this.onlySetter = "hest";
+    this.{self::C::onlySetter} = "hest";
   }
   method testD() → dynamic {
     core::print(this.onlySetter);
-    this.onlySetter = "hest";
+    this.{self::C::onlySetter} = "hest";
   }
 }
 class D extends self::C {

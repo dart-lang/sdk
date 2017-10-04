@@ -469,3 +469,4 @@ typedef: Crash
 uninitialized_fields: Crash
 unused_methods: Crash
 void_methods: Crash
+warn_unresolved_sends: Crash

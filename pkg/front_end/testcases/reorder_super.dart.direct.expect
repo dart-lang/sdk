@@ -7,7 +7,7 @@ class B extends core::Object {
   field core::String y;
   constructor •(core::num x, core::String y) → void
     : self::B::x = x, self::B::y = y, super core::Object::•() {
-    self::events = self::events.+("super(${this.x}, ${this.y})\n");
+    self::events = self::events.+("super(${this.{self::B::x}}, ${this.{self::B::y}})\n");
   }
 }
 class C extends self::B {

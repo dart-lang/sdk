@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic superField;
+  default constructor •() → void
+    ;
+  method superMethod() → dynamic
+    ;
+  get setterOnly() → dynamic
+    ;
+  set setterOnly(dynamic _) → void
+    ;
+  get getterOnly() → dynamic
+    ;
+  set getterOnly(dynamic _) → void
+    ;
+}
+class D extends self::C {
+  field dynamic field;
+  default constructor •() → void
+    ;
+  set setterOnly(dynamic _) → void
+    ;
+  get getterOnly() → dynamic
+    ;
+  method method() → dynamic
+    ;
+  method test() → void
+    ;
+}
+class E extends self::D {
+  field dynamic missingField;
+  default constructor •() → void
+    ;
+  method missingMethod() → void
+    ;
+}
+static method main() → dynamic
+  ;

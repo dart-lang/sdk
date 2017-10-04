@@ -7,9 +7,9 @@ abstract class Base<T extends core::Object, U extends core::Object> extends core
     : super core::Object::•()
     ;
   operator [](core::String s) → self::Base::T
-    return this.getValue(s);
+    return this.{self::Base::getValue}(s);
   operator []=(core::String s, self::Base::U v) → void
-    return this.setValue(s, v);
+    return this.{self::Base::setValue}(s, v);
   abstract method getValue(core::String s) → self::Base::T;
   abstract method setValue(core::String s, self::Base::U v) → void;
 }
