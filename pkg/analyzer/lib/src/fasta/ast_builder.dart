@@ -2050,6 +2050,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DUPLICATE_PREFIX, offset, length);
         return;
+      case "EMPTY_ENUM_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EMPTY_ENUM_BODY, offset, length);
+        return;
       case "EXPECTED_EXECUTABLE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_EXECUTABLE, offset, length);

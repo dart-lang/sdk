@@ -426,14 +426,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_emptyEnumBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EMPTY_ENUM_BODY, found 0
-    super.test_emptyEnumBody();
-  }
-
-  @override
-  @failingTest
   void test_enumInClass() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.ENUM_IN_CLASS, found 0

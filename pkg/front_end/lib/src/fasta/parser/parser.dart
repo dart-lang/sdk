@@ -1027,6 +1027,8 @@ class Parser {
         token = parseIdentifier(token, IdentifierContext.enumValueDeclaration);
         count++;
       }
+    } else {
+      reportRecoverableError(token, fasta.messageEnumDeclarationEmpty);
     }
     token = expect('}', token);
     listener.endEnum(enumKeyword, leftBrace, count);

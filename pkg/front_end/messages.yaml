@@ -828,8 +828,12 @@ TypeVariableDuplicatedNameCause:
 TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
 
-EnumDeclartionEmpty:
+EnumDeclarationEmpty:
   template: "An enum declaration can't be empty."
+  analyzerCode: EMPTY_ENUM_BODY
+  dart2jsCode: "*ignored*"
+  script:
+    - "enum E {}"
 
 ExternalClass:
   template: "Classes can't be declared to be 'external'."

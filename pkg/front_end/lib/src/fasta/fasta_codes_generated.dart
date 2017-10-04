@@ -825,11 +825,13 @@ Message _withArgumentsEnumConstantSameNameAsEnclosing(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeEnumDeclartionEmpty = messageEnumDeclartionEmpty;
+const Code<Null> codeEnumDeclarationEmpty = messageEnumDeclarationEmpty;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumDeclartionEmpty = const MessageCode(
-    "EnumDeclartionEmpty",
+const MessageCode messageEnumDeclarationEmpty = const MessageCode(
+    "EnumDeclarationEmpty",
+    analyzerCode: "EMPTY_ENUM_BODY",
+    dart2jsCode: "*ignored*",
     message: r"""An enum declaration can't be empty.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
