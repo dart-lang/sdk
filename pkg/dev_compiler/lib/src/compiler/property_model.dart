@@ -419,5 +419,10 @@ class ClassPropertyModel {
     if (!type.isObject) {
       _collectNativeMembers(element.supertype, members);
     }
+    if (element.isEnum) {
+      // TODO(jmesserly): analyzer does not create the synthetic element
+      // for the enum's `toString()` method, so we'll use the one on Object.
+      members.add('toString');
+    }
   }
 }

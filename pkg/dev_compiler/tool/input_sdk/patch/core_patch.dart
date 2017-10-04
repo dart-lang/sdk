@@ -11,7 +11,7 @@ import 'dart:_js_helper'
         checkInt,
         getRuntimeType,
         getTraceFromException,
-        JsLinkedHashMap,
+        LinkedMap,
         JSSyntaxRegExp,
         NoInline,
         notNull,
@@ -390,7 +390,7 @@ class Map<K, V> {
   }
 
   @patch
-  factory Map() = JsLinkedHashMap<K, V>.es6;
+  factory Map() = LinkedMap<K, V>;
 }
 
 @patch

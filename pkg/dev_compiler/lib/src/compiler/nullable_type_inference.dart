@@ -24,7 +24,7 @@ import 'property_model.dart';
 // TODO(vsm): Revisit whether we really need this when we get
 // better non-nullability in the type system.
 abstract class NullableTypeInference {
-  LibraryElement get dartCoreLibrary;
+  LibraryElement get coreLibrary;
   VirtualFieldModel get virtualFields;
 
   InterfaceType getImplementationType(DartType type);
@@ -74,7 +74,7 @@ abstract class NullableTypeInference {
       }
     }
 
-    if (e.name == 'identical' && identical(e.library, dartCoreLibrary)) {
+    if (e.name == 'identical' && identical(e.library, coreLibrary)) {
       return true;
     }
     // If this is a method call, check to see whether it is to a final
@@ -87,7 +87,7 @@ abstract class NullableTypeInference {
         DartType targetType = container.type;
         InterfaceType implType = getImplementationType(targetType);
         if (implType != null) {
-          MethodElement method = implType.lookUpMethod(e.name, dartCoreLibrary);
+          MethodElement method = implType.lookUpMethod(e.name, coreLibrary);
           if (method != null) e = method;
         }
       }
@@ -111,7 +111,7 @@ abstract class NullableTypeInference {
       var targetType = container.type;
       var implType = getImplementationType(targetType);
       if (implType != null) {
-        var getter = implType.lookUpGetter(name, dartCoreLibrary);
+        var getter = implType.lookUpGetter(name, coreLibrary);
         if (getter != null) element = getter;
       }
     }

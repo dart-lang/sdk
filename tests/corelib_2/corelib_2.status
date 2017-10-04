@@ -22,6 +22,9 @@ string_static_test: MissingCompileTimeError
 [ !$checked && $compiler != dartdevc && $runtime != none ]
 null_nosuchmethod_test: RuntimeError # needs Dart 2 or checked mode
 
+[ $compiler != dartdevc && $runtime != none ]
+map_keys2_test: RuntimeError # needs Dart 2 is checks
+
 [ (!$checked && $runtime == vm) || (!$checked && $compiler == dart2js) || $compiler == precompiler ]
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
 
@@ -105,7 +108,6 @@ iterable_to_list_test/*: RuntimeError
 list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
 nan_infinity_test/01: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
-map_keys2_test: RuntimeError # Issue 29921
 null_nosuchmethod_test/01: RuntimeError # DDC checks type before too many arguments, so TypeError instead of NSM
 regexp/bol-with-multiline_test: RuntimeError # Issue 29921
 regexp/invalid-range-in-class_test: RuntimeError # Issue 29921
@@ -363,7 +365,6 @@ big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 [ $compiler == none && ($runtime == vm || $runtime == flutter)]
 string_trimlr_test/02: RuntimeError # Issue 29060
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-
 
 [ $compiler == precompiler || $compiler == app_jit ]
 string_trimlr_test/02: RuntimeError # Issue 29060

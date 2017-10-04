@@ -542,31 +542,6 @@ notNull(x) {
   return x;
 }
 
-///
-/// Creates a dart:collection LinkedHashMap.
-///
-/// For a map with string keys an object literal can be used, for example
-/// `map({'hi': 1, 'there': 2})`.
-///
-/// Otherwise an array should be used, for example `map([1, 2, 3, 4])` will
-/// create a map with keys [1, 3] and values [2, 4]. Each key-value pair
-/// should be adjacent entries in the array.
-///
-/// For a map with no keys the function can be called with no arguments, for
-/// example `map()`.
-///
-// TODO(jmesserly): this could be faster
-// TODO(jmesserly): we can use default values `= dynamic` once #417 is fixed.
-// TODO(jmesserly): move this to classes for consistency with list literals?
-map<K, V>(JSArray elements) {
-  var map = new JsLinkedHashMap<K, V>();
-  if (elements == null) return map;
-  for (var i = 0, end = elements.length - 1; i < end; i += 2) {
-    map[JS('', '#[#]', elements, i)] = JS('', '#[#]', elements, i + 1);
-  }
-  return map;
-}
-
 /// The global constant map table.
 final constantMaps = JS('', 'new Map()');
 
@@ -585,7 +560,7 @@ constMap<K, V>(JSArray elements) {
   map = lookupNonTerminal(map, K);
   var result = JS('', '#.get(#)', map, V);
   if (result != null) return result;
-  result = new ImmutableMap<K, V>(elements);
+  result = new ImmutableMap<K, V>.from(elements);
   JS('', '#.set(#, #)', map, V, result);
   return result;
 }
@@ -735,6 +710,8 @@ const_(obj) => JS('', '''(() => {
   // Right now we use the (name,value) pairs in sequence, which prevents
   // an object with incorrect field values being returned, but won't
   // canonicalize correctly if key order is different.
+  //
+  // See issue https://github.com/dart-lang/sdk/issues/30876
   for (let i = 0; i < count; i++) {
     let name = names[i];
     map = lookupNonTerminal(map, name);
@@ -799,6 +776,17 @@ int hashCode(obj) {
   return obj == null ? 0 : JS('int', '#[#]', obj, extensionSymbol('hashCode'));
 }
 
+hashKey(k) {
+  if (k == null) return 0;
+  switch (JS('String', 'typeof #', k)) {
+    case "object":
+    case "function":
+      return JS('int', '#[#] & 0x3ffffff', k, extensionSymbol('hashCode'));
+  }
+  // For primitive types we can store the key directly in an ES6 Map.
+  return k;
+}
+
 @JSExportName('toString')
 String _toString(obj) {
   if (obj == null) return "null";
@@ -834,6 +822,7 @@ String str(strings, @rest values) => JS('', '''(() => {
 
 final identityHashCode_ = JS('', 'Symbol("_identityHashCode")');
 
+/// Adapts a Dart `get iterator` into a JS `[Symbol.iterator]`.
 // TODO(jmesserly): instead of an adaptor, we could compile Dart iterators
 // natively implementing the JS iterator protocol. This would allow us to
 // optimize them a bit.

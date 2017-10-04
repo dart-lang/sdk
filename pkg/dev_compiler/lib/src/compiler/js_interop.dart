@@ -47,7 +47,7 @@ bool isPublicJSAnnotation(DartObjectImpl value) =>
 bool isJSAnonymousAnnotation(DartObjectImpl value) =>
     _isJsLibType('_Anonymous', value.type.element);
 
-bool _isBuiltinAnnotation(
+bool isBuiltinAnnotation(
     DartObjectImpl value, String libraryName, String annotationName) {
   var e = value?.type?.element;
   if (e?.name != annotationName) return false;
@@ -59,22 +59,22 @@ bool _isBuiltinAnnotation(
 /// Whether [value] is a `@JSExportName` (internal annotation used in SDK
 /// instead of `@JS` from `package:js`).
 bool isJSExportNameAnnotation(DartObjectImpl value) =>
-    _isBuiltinAnnotation(value, '_foreign_helper', 'JSExportName');
+    isBuiltinAnnotation(value, '_foreign_helper', 'JSExportName');
 
 bool isJsName(DartObjectImpl value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'JSName');
+    isBuiltinAnnotation(value, '_js_helper', 'JSName');
 
 bool isJsPeerInterface(DartObjectImpl value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'JsPeerInterface');
+    isBuiltinAnnotation(value, '_js_helper', 'JsPeerInterface');
 
 bool isNativeAnnotation(DartObjectImpl value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'Native');
+    isBuiltinAnnotation(value, '_js_helper', 'Native');
 
 bool isNotNullAnnotation(DartObjectImpl value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'NotNull');
+    isBuiltinAnnotation(value, '_js_helper', 'NotNull');
 
 bool isNullCheckAnnotation(DartObjectImpl value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'NullCheck');
+    isBuiltinAnnotation(value, '_js_helper', 'NullCheck');
 
 /// Returns the name value of the `JSExportName` annotation (when compiling
 /// the SDK), or `null` if there's none. This is used to control the name

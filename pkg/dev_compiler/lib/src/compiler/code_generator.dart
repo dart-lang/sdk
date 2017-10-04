@@ -128,7 +128,7 @@ class CodeGenerator extends Object
   /// The  type provider from the current Analysis [context].
   final TypeProvider types;
 
-  final LibraryElement dartCoreLibrary;
+  final LibraryElement coreLibrary;
   final LibraryElement dartJSLibrary;
 
   /// The dart:async `StreamIterator<>` type.
@@ -153,6 +153,10 @@ class CodeGenerator extends Object
   final ClassElement stringClass;
   final ClassElement functionClass;
   final ClassElement privateSymbolClass;
+  final InterfaceType linkedHashMapImplType;
+  final InterfaceType identityHashMapImplType;
+  final InterfaceType linkedHashSetImplType;
+  final InterfaceType identityHashSetImplType;
 
   ConstFieldVisitor _constants;
 
@@ -216,7 +220,7 @@ class CodeGenerator extends Object
         _jsNumber = _getLibrary(c, 'dart:_interceptors').getType('JSNumber'),
         interceptorClass =
             _getLibrary(c, 'dart:_interceptors').getType('Interceptor'),
-        dartCoreLibrary = _getLibrary(c, 'dart:core'),
+        coreLibrary = _getLibrary(c, 'dart:core'),
         boolClass = _getLibrary(c, 'dart:core').getType('bool'),
         intClass = _getLibrary(c, 'dart:core').getType('int'),
         doubleClass = _getLibrary(c, 'dart:core').getType('double'),
@@ -227,6 +231,14 @@ class CodeGenerator extends Object
         functionClass = _getLibrary(c, 'dart:core').getType('Function'),
         privateSymbolClass =
             _getLibrary(c, 'dart:_internal').getType('PrivateSymbol'),
+        linkedHashMapImplType =
+            _getLibrary(c, 'dart:_js_helper').getType('LinkedMap').type,
+        identityHashMapImplType =
+            _getLibrary(c, 'dart:_js_helper').getType('IdentityMap').type,
+        linkedHashSetImplType =
+            _getLibrary(c, 'dart:collection').getType('_HashSet').type,
+        identityHashSetImplType =
+            _getLibrary(c, 'dart:collection').getType('_IdentityHashSet').type,
         dartJSLibrary = _getLibrary(c, 'dart:js') {
     typeRep = new JSTypeRep(rules, types);
   }
@@ -363,7 +375,7 @@ class CodeGenerator extends Object
     }
 
     // Add implicit dart:core dependency so it is first.
-    emitLibraryName(dartCoreLibrary);
+    emitLibraryName(coreLibrary);
 
     // Visit each compilation unit and emit its code.
     //
@@ -510,8 +522,8 @@ class CodeGenerator extends Object
     }
 
     String coreModuleName;
-    if (!_libraries.containsKey(dartCoreLibrary)) {
-      coreModuleName = _libraryToModule(dartCoreLibrary);
+    if (!_libraries.containsKey(coreLibrary)) {
+      coreModuleName = _libraryToModule(coreLibrary);
     }
     modules.forEach((module, libraries) {
       // Generate import directives.
@@ -610,11 +622,12 @@ class CodeGenerator extends Object
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         inferNullableTypes(declaration);
-        if (isInternalSdk &&
-            (declaration.variables.isFinal || declaration.variables.isConst)) {
-          _emitInternalSdkFields(declaration.variables.variables);
-        } else {
-          (fields ??= []).addAll(declaration.variables.variables);
+        var lazyFields = declaration.variables.variables;
+        if (isInternalSdk) {
+          lazyFields = _emitInternalSdkFields(lazyFields);
+        }
+        if (lazyFields.isNotEmpty) {
+          (fields ??= []).addAll(lazyFields);
         }
         continue;
       }
@@ -2189,12 +2202,11 @@ class CodeGenerator extends Object
       }
       emitSignature('Constructor', constructors);
     }
-
     // Add static property dart._runtimeType to Object.
     // All other Dart classes will (statically) inherit this property.
     if (classElem == objectClass) {
       body.add(_callHelperStatement('tagComputed(#, () => #.#);',
-          [className, emitLibraryName(dartCoreLibrary), 'Type']));
+          [className, emitLibraryName(coreLibrary), 'Type']));
     }
   }
 
@@ -2777,7 +2789,7 @@ class CodeGenerator extends Object
     var isSync = !(element.isAsynchronous || element.isGenerator);
     var formals = _emitFormalParameterList(parameters, destructure: isSync);
     var typeFormals = _emitTypeFormals(type.typeFormals);
-    formals.insertAll(0, typeFormals);
+    if (_reifyGeneric(element)) formals.insertAll(0, typeFormals);
 
     JS.Block code = isSync
         ? _emitFunctionBody(element, parameters, body)
@@ -3786,8 +3798,14 @@ class CodeGenerator extends Object
   }
 
   List<JS.Expression> _emitInvokeTypeArguments(InvocationExpression node) {
+    // add no reify generic check here: if (node.function)
+    // node is Identifier
+    var function = node.function;
+    if (function is Identifier && !_reifyGeneric(function.staticElement)) {
+      return null;
+    }
     return _emitFunctionTypeArguments(
-        node.function.staticType, node.staticInvokeType, node.typeArguments);
+        function.staticType, node.staticInvokeType, node.typeArguments);
   }
 
   /// If `g` is a generic function type, and `f` is an instantiation of it,
@@ -4194,17 +4212,30 @@ class CodeGenerator extends Object
 
   /// Treat dart:_runtime fields as safe to eagerly evaluate.
   // TODO(jmesserly): it'd be nice to avoid this special case.
-  void _emitInternalSdkFields(List<VariableDeclaration> fields) {
+  List<VariableDeclaration> _emitInternalSdkFields(
+      List<VariableDeclaration> fields) {
+    var lazyFields = <VariableDeclaration>[];
     for (var field in fields) {
       // Skip our magic undefined constant.
       var element = field.element as TopLevelVariableElement;
       if (element.name == 'undefined') continue;
-      _moduleItems.add(annotate(
-          js.statement('# = #;',
-              [_emitTopLevelName(field.element), _visitInitializer(field)]),
-          field,
-          field.element));
+
+      var init = field.initializer;
+      if (init == null ||
+          init is Literal ||
+          _isJSInvocation(init) ||
+          init is InstanceCreationExpression &&
+              isSdkInternalRuntime(init.staticElement.library)) {
+        _moduleItems.add(annotate(
+            js.statement('# = #;',
+                [_emitTopLevelName(field.element), _visitInitializer(field)]),
+            field,
+            field.element));
+      } else {
+        lazyFields.add(field);
+      }
     }
+    return lazyFields;
   }
 
   JS.Expression _visitInitializer(VariableDeclaration node) {
@@ -4280,31 +4311,56 @@ class CodeGenerator extends Object
       SimpleIdentifier name,
       ArgumentList argumentList,
       bool isConst) {
+    if (element == null) {
+      return _throwUnsafe('unresolved constructor: ${type?.name ?? '<null>'}'
+          '.${name?.name ?? '<unnamed>'}');
+    }
+
+    var classElem = element.enclosingElement;
+    if (_isObjectLiteral(classElem)) {
+      return _emitObjectLiteral(argumentList);
+    }
+
     JS.Expression emitNew() {
-      JS.Expression ctor;
-      bool isFactory = false;
-      bool isNative = false;
-      if (element == null) {
-        ctor = _throwUnsafe('unresolved constructor: ${type?.name ?? '<null>'}'
-            '.${name?.name ?? '<unnamed>'}');
-      } else {
-        ctor = _emitConstructorName(element, type);
-        isFactory = element.isFactory;
-        var classElem = element.enclosingElement;
-        isNative = _isJSNative(classElem);
-      }
       var args = _emitArgumentList(argumentList);
+      if (argumentList.arguments.isEmpty && element.library.isInSdk) {
+        // Skip the slow SDK factory constructors when possible.
+        switch (classElem.name) {
+          case 'Map':
+          case 'HashMap':
+          case 'LinkedHashMap':
+            if (element.name == '') {
+              return js.call('new #.new()', _emitMapImplType(type));
+            } else if (element.name == 'identity') {
+              return js.call(
+                  'new #.new()', _emitMapImplType(type, identity: true));
+            }
+            break;
+          case 'Set':
+          case 'HashSet':
+          case 'LinkedHashSet':
+            if (element.name == '') {
+              return js.call('new #.new()', _emitSetImplType(type));
+            } else if (element.name == 'identity') {
+              return js.call(
+                  'new #.new()', _emitSetImplType(type, identity: true));
+            }
+            break;
+          case 'List':
+            if (element.name == '' && type is InterfaceType) {
+              return _emitList(type.typeArguments[0], []);
+            }
+            break;
+        }
+      }
       // Native factory constructors are JS constructors - use new here.
-      return isFactory && !isNative
+      var ctor = _emitConstructorName(element, type);
+      return element.isFactory && !_isJSNative(classElem)
           ? new JS.Call(ctor, args)
           : new JS.New(ctor, args);
     }
 
-    if (element != null && _isObjectLiteral(element.enclosingElement)) {
-      return _emitObjectLiteral(argumentList);
-    }
-    if (isConst) return _emitConst(emitNew);
-    return emitNew();
+    return isConst ? _emitConst(emitNew) : emitNew();
   }
 
   bool _isObjectLiteral(Element classElem) {
@@ -5499,23 +5555,41 @@ class CodeGenerator extends Object
 
   @override
   visitMapLiteral(MapLiteral node) {
-    var isConst = node.constKeyword != null;
-    // TODO(jmesserly): we can likely make these faster.
-    JS.Expression emitMap() {
-      var entries = node.entries;
-      var type = node.staticType as InterfaceType;
-
-      var elements = <JS.Expression>[];
-      for (var e in entries) {
-        elements.add(_visit(e.key));
-        elements.add(_visit(e.value));
+    emitEntries() {
+      var entries = <JS.Expression>[];
+      for (var e in node.entries) {
+        entries.add(_visit(e.key));
+        entries.add(_visit(e.value));
       }
-      var args = type.typeArguments.map(_emitType).toList();
-      args.add(new JS.ArrayInitializer(elements));
-      return _callHelper(isConst ? 'constMap(#)' : 'map(#)', [args]);
+      return new JS.ArrayInitializer(entries);
     }
 
-    return isConst ? _cacheConst(emitMap) : emitMap();
+    if (node.constKeyword == null) {
+      var mapType = _emitMapImplType(node.staticType);
+      if (node.entries.isEmpty) {
+        return js.call('new #.new()', [mapType]);
+      }
+      return js.call('new #.from(#)', [mapType, emitEntries()]);
+    }
+    var typeArgs = (node.staticType as InterfaceType).typeArguments;
+    return _cacheConst(() => _callHelper('constMap(#, #, #)',
+        [_emitType(typeArgs[0]), _emitType(typeArgs[1]), emitEntries()]));
+  }
+
+  JS.Expression _emitMapImplType(InterfaceType type, {bool identity}) {
+    var typeArgs = type.typeArguments;
+    if (typeArgs.isEmpty) return _emitType(type);
+    identity ??= isPrimitiveType(typeArgs[0]);
+    type = identity ? identityHashMapImplType : linkedHashMapImplType;
+    return _emitType(type.instantiate(typeArgs));
+  }
+
+  JS.Expression _emitSetImplType(InterfaceType type, {bool identity}) {
+    var typeArgs = type.typeArguments;
+    if (typeArgs.isEmpty) return _emitType(type);
+    identity ??= isPrimitiveType(typeArgs[0]);
+    type = identity ? identityHashSetImplType : linkedHashSetImplType;
+    return _emitType(type.instantiate(typeArgs));
   }
 
   @override
@@ -6137,6 +6211,13 @@ bool _isDeferredLoadLibrary(Expression target, SimpleIdentifier name) {
 
 bool _annotatedNullCheck(Element e) =>
     e != null && findAnnotation(e, isNullCheckAnnotation) != null;
+
+bool _reifyGeneric(Element e) =>
+    e == null ||
+    !e.library.isInSdk ||
+    findAnnotation(
+            e, (a) => isBuiltinAnnotation(a, '_js_helper', 'NoReifyGeneric')) ==
+        null;
 
 final _friendlyOperatorName = {
   '<': 'lessThan',

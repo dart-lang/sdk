@@ -178,8 +178,8 @@ branch_canonicalization_test: RuntimeError # Issue 29920
 call_closurization_test: RuntimeError # Issue 29920
 call_test: RuntimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
-compile_time_constant_d_test: RuntimeError # Issue 29920
-compile_time_constant_e_test: RuntimeError # Issue 30466
+compile_time_constant_d_test: RuntimeError # Issue 30876
+compile_time_constant_e_test: RuntimeError # Issue 30876
 const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
 constructor12_test: RuntimeError # Issue 29920

@@ -22,6 +22,14 @@ class NotNull {
 
 const notNull = const NotNull();
 
+/// Marks a generic function or static method API to be not reified.
+/// ****CAUTION******
+/// This is currently unchecked, and hence should be used very carefully for
+/// internal SDK APIs only.
+class NoReifyGeneric {
+  const NoReifyGeneric();
+}
+
 /// Tells the development compiler to check a variable for null at its
 /// declaration point, and then to assume that the variable is non-null
 /// from that point forward.
