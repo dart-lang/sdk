@@ -1451,6 +1451,7 @@ class Printer extends Visitor<Null> {
   void writeVariableDeclaration(VariableDeclaration node,
       {bool useVarKeyword: false}) {
     if (showOffsets) writeWord("[${node.fileOffset}]");
+    writeAnnotationList(node.annotations);
     writeModifier(node.isCovariant, 'covariant');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
@@ -1591,6 +1592,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitTypeParameter(TypeParameter node) {
+    writeAnnotationList(node.annotations);
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);

@@ -1439,6 +1439,7 @@ class BinaryBuilder {
 
   void readTypeParameter(TypeParameter node) {
     node.flags = readByte();
+    node.annotations = readAnnotationList(node);
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
   }
@@ -1479,11 +1480,18 @@ class BinaryBuilder {
   VariableDeclaration readVariableDeclaration() {
     int offset = readOffset();
     int fileEqualsOffset = readOffset();
+    // The [VariableDeclaration] instance is not created at this point yet,
+    // so `null` is temporarily set as the parent of the annotation nodes.
+    var annotations = readAnnotationList(null);
     int flags = readByte();
-    return new VariableDeclaration(readStringOrNullIfEmpty(),
+    var node = new VariableDeclaration(readStringOrNullIfEmpty(),
         type: readDartType(), initializer: readExpressionOption(), flags: flags)
       ..fileOffset = offset
       ..fileEqualsOffset = fileEqualsOffset;
+    for (var annotation in annotations) {
+      annotation.parent = node;
+    }
+    return node;
   }
 
   int readOffset() {

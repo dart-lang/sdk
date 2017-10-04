@@ -960,6 +960,8 @@ type VariableDeclaration {
   // If it does not contain one this should be -1.
   FileOffset fileEqualsOffset;
 
+  List<Expression> annotations;
+
   Byte flags (isFinal, isConst, isFieldFormal, isCovariant,
               isInScope, isGenericCovariantImpl, isGenericCovariantInterface);
   // For named parameters, this is the parameter name.
@@ -1069,6 +1071,7 @@ type TypeParameterType extends DartType {
 type TypeParameter {
   // Note: there is no tag on TypeParameter
   Byte flags (isGenericCovariantImpl, isGenericCovariantInterface);
+  List<Expression> annotations;
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
 }

@@ -88,6 +88,7 @@ class VariableDeclarationHelper {
   enum Field {
     kPosition,
     kEqualPosition,
+    kAnnotations,
     kFlags,
     kNameIndex,
     kType,

@@ -1142,6 +1142,7 @@ class BinaryPrinter extends Visitor {
     node.binaryOffsetNoTag = getBufferOffset();
     writeOffset(node.fileOffset);
     writeOffset(node.fileEqualsOffset);
+    writeAnnotationList(node.annotations);
     writeByte(node.flags);
     writeStringReference(node.name ?? '');
     writeNode(node.type);
@@ -1257,6 +1258,7 @@ class BinaryPrinter extends Visitor {
 
   visitTypeParameter(TypeParameter node) {
     writeByte(node.flags);
+    writeAnnotationList(node.annotations);
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
   }

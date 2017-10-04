@@ -86,6 +86,9 @@ void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
     case kEqualPosition:
       equals_position_ = builder_->ReadPosition();  // read equals position.
       if (++next_read_ == field) return;
+    case kAnnotations:
+      builder_->SkipListOfExpressions();  // read annotations.
+      if (++next_read_ == field) return;
     case kFlags:
       flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
@@ -874,9 +877,10 @@ void StreamingScopeBuilder::VisitFunctionNode() {
   intptr_t list_length =
       builder_->ReadListLength();  // read type_parameters list length.
   for (intptr_t i = 0; i < list_length; ++i) {
-    builder_->ReadFlags();            // read flags.
-    builder_->SkipStringReference();  // read ith name index.
-    VisitDartType();                  // read ith bound.
+    builder_->ReadFlags();              // read flags.
+    builder_->SkipListOfExpressions();  // read annotations.
+    builder_->SkipStringReference();    // read ith name index.
+    VisitDartType();                    // read ith bound.
   }
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
 
@@ -1588,9 +1592,10 @@ void StreamingScopeBuilder::VisitFunctionType(bool simple) {
     intptr_t list_length =
         builder_->ReadListLength();  // read type_parameters list length.
     for (int i = 0; i < list_length; ++i) {
-      builder_->SkipFlags();            // read flags.
-      builder_->SkipStringReference();  // read string index (name).
-      VisitDartType();                  // read dart type.
+      builder_->SkipFlags();              // read flags.
+      builder_->SkipListOfExpressions();  // read annotations.
+      builder_->SkipStringReference();    // read string index (name).
+      VisitDartType();                    // read dart type.
     }
     builder_->ReadUInt();  // read required parameter count.
     builder_->ReadUInt();  // read total parameter count.
@@ -4344,9 +4349,10 @@ void StreamingFlowGraphBuilder::SkipListOfVariableDeclarations() {
 void StreamingFlowGraphBuilder::SkipTypeParametersList() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
-    SkipFlags();            // read ith flags.
-    SkipStringReference();  // read ith name index.
-    SkipDartType();         // read ith bound.
+    SkipFlags();              // read ith flags.
+    SkipListOfExpressions();  // read annotations.
+    SkipStringReference();    // read ith name index.
+    SkipDartType();           // read ith bound.
   }
 }
 
@@ -5741,7 +5747,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
 
   ReadFlags();  // read flags.
 
-  Tag receiver_tag = PeekTag();               // peek tag for receiver.
+  Tag receiver_tag = PeekTag();  // peek tag for receiver.
 
   Fragment instructions;
   intptr_t type_args_len = 0;
@@ -7902,8 +7908,8 @@ intptr_t StreamingFlowGraphBuilder::SourceTableSize() {
       LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
           SourceTableFieldCountFromFirstLibraryOffset,
       1, 0);
-  SetOffset(source_table_offset);    // read source table offset.
-  return reader_->ReadUInt32();      // read source table size.
+  SetOffset(source_table_offset);  // read source table offset.
+  return reader_->ReadUInt32();    // read source table size.
 }
 
 intptr_t StreamingFlowGraphBuilder::GetOffsetForSourceInfo(intptr_t index) {

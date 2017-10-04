@@ -4059,6 +4059,12 @@ class VariableDeclaration extends Statement {
   /// (this is the default if none is specifically set).
   int fileEqualsOffset = TreeNode.noOffset;
 
+  /// List of metadata annotations on the variable declaration.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  List<Expression> annotations = const <Expression>[];
+
   /// For named parameters, this is the name of the parameter. No two named
   /// parameters (in the same parameter list) can have the same name.
   ///
@@ -4174,6 +4180,10 @@ class VariableDeclaration extends Statement {
     flags = value
         ? (flags | FlagGenericCovariantInterface)
         : (flags & ~FlagGenericCovariantInterface);
+  }
+
+  void addAnnotation(Expression annotation) {
+    annotations.add(annotation..parent = this);
   }
 
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);
@@ -4737,6 +4747,12 @@ class TypeParameterType extends DartType {
 class TypeParameter extends TreeNode {
   int flags = 0;
 
+  /// List of metadata annotations on the type parameter.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  List<Expression> annotations = const <Expression>[];
+
   String name; // Cosmetic name.
 
   /// The bound on the type variable.
@@ -4778,6 +4794,10 @@ class TypeParameter extends TreeNode {
     flags = value
         ? (flags | FlagGenericCovariantInterface)
         : (flags & ~FlagGenericCovariantInterface);
+  }
+
+  void addAnnotation(Expression annotation) {
+    annotations.add(annotation..parent = this);
   }
 
   accept(TreeVisitor v) => v.visitTypeParameter(this);
