@@ -98,12 +98,12 @@ class OutlineBuilder extends UnhandledListener {
     List<TypeBuilder> typeArguments = pop();
     if (arguments == null) {
       int charOffset = pop();
-      String expression = pop();
+      Object expression = pop();
       push(new MetadataBuilder.fromExpression(
           expression, postfix, library, charOffset));
     } else {
       int charOffset = pop();
-      String typeName = pop();
+      Object typeName = pop();
       push(new MetadataBuilder.fromConstructor(
           library.addConstructorReference(
               typeName, typeArguments, postfix, charOffset),
@@ -298,12 +298,12 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void handleQualified(Token period) {
     debugEvent("handleQualified");
-    int charOffset = pop();
-    String name = pop();
-    charOffset = pop(); // We just want the charOffset of receiver.
-    String receiver = pop();
-    push("$receiver.$name");
-    push(charOffset);
+    int suffixOffset = pop();
+    String suffix = pop();
+    int offset = pop();
+    var prefix = pop();
+    push(new QualifiedName(prefix, suffix, suffixOffset));
+    push(offset);
   }
 
   @override
@@ -311,10 +311,10 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("endLibraryName");
     popCharOffset();
     String documentationComment = _getDocumentationComment(libraryKeyword);
-    String name = pop();
+    Object name = pop();
     List<MetadataBuilder> metadata = pop();
     library.documentationComment = documentationComment;
-    library.name = name;
+    library.name = "${name}";
     library.metadata = metadata;
   }
 
@@ -368,7 +368,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginTopLevelMethod(Token token, Token name) {
-    library.beginNestedDeclaration(name.lexeme, hasMembers: false);
+    library.beginNestedDeclaration("#method", hasMembers: false);
   }
 
   @override
@@ -444,7 +444,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginMethod(Token token, Token name) {
-    library.beginNestedDeclaration(name.lexeme, hasMembers: false);
+    library.beginNestedDeclaration("#method", hasMembers: false);
   }
 
   @override
@@ -463,7 +463,7 @@ class OutlineBuilder extends UnhandledListener {
     if (Operator.subtract == nameOrOperator && formals == null) {
       nameOrOperator = Operator.unaryMinus;
     }
-    String name;
+    Object name;
     ProcedureKind kind;
     if (nameOrOperator is Operator) {
       name = operatorToString(nameOrOperator);
@@ -574,7 +574,7 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("Type");
     List<TypeBuilder> arguments = pop();
     int charOffset = pop();
-    String name = pop();
+    Object name = pop();
     push(library.addNamedType(name, arguments, charOffset));
   }
 
@@ -845,10 +845,10 @@ class OutlineBuilder extends UnhandledListener {
       Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     debugEvent("endPartOf");
     popCharOffset();
-    String containingLibrary = pop();
+    Object containingLibrary = pop();
     List<MetadataBuilder> metadata = pop();
     if (hasName) {
-      library.addPartOf(metadata, containingLibrary, null);
+      library.addPartOf(metadata, "$containingLibrary", null);
     } else {
       library.addPartOf(metadata, null, containingLibrary);
     }
@@ -862,7 +862,7 @@ class OutlineBuilder extends UnhandledListener {
     String suffix = popIfNotNull(periodBeforeName);
     List<TypeBuilder> typeArguments = pop();
     int charOffset = pop();
-    String name = pop();
+    Object name = pop();
     push(library.addConstructorReference(
         name, typeArguments, suffix, charOffset));
   }

@@ -54,6 +54,8 @@ export 'void_type_builder.dart' show VoidTypeBuilder;
 
 export 'function_type_builder.dart' show FunctionTypeBuilder;
 
+export 'qualified_name.dart' show QualifiedName;
+
 import 'library_builder.dart' show LibraryBuilder;
 
 import 'package:front_end/src/fasta/builder/class_builder.dart'

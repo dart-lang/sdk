@@ -25,6 +25,7 @@ import '../builder/builder.dart'
         NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
+        QualifiedName,
         Scope,
         TypeBuilder,
         TypeDeclarationBuilder,
@@ -124,7 +125,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   List<T> get types => libraryDeclaration.types;
 
-  T addNamedType(String name, List<T> arguments, int charOffset);
+  T addNamedType(Object name, List<T> arguments, int charOffset);
 
   T addMixinApplication(T supertype, List<T> mixins, int charOffset);
 
@@ -136,7 +137,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   T addVoidType(int charOffset);
 
   ConstructorReferenceBuilder addConstructorReference(
-      String name, List<T> typeArguments, String suffix, int charOffset) {
+      Object name, List<T> typeArguments, String suffix, int charOffset) {
     ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
         name, typeArguments, suffix, this, charOffset);
     constructorReferences.add(ref);
@@ -259,7 +260,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<MetadataBuilder> metadata,
       int modifiers,
       T returnType,
-      String name,
+      Object name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
@@ -675,22 +676,21 @@ class DeclarationBuilder<T extends TypeBuilder> {
         map[builder.name] = builder;
       }
       for (T type in types) {
-        String name = type.name;
-        Builder builder;
+        Object nameOrQualified = type.name;
+        String name = nameOrQualified is QualifiedName
+            ? nameOrQualified.prefix
+            : nameOrQualified;
+        TypeVariableBuilder builder;
         if (name != null) {
-          int index = name.indexOf(".");
-          if (index != -1) {
-            if (map.containsKey(name.substring(0, index))) {
-              builder = type.buildInvalidType();
-            }
-          } else {
-            builder = map[name];
-          }
+          builder = map[name];
         }
         if (builder == null) {
           // Since name didn't resolve in this scope, propagate it to the
           // parent declaration.
           parent.addType(type);
+        } else if (nameOrQualified is QualifiedName) {
+          // Attempt to use type variable as prefix.
+          type.bind(type.buildInvalidType());
         } else {
           type.bind(builder);
         }

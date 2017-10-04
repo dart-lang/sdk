@@ -26,7 +26,7 @@ import 'kernel_builder.dart'
 class KernelNamedTypeBuilder
     extends NamedTypeBuilder<KernelTypeBuilder, DartType>
     implements KernelTypeBuilder {
-  KernelNamedTypeBuilder(String name, List<KernelTypeBuilder> arguments,
+  KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments,
       int charOffset, Uri fileUri)
       : super(name, arguments, charOffset, fileUri);
 
@@ -43,7 +43,7 @@ class KernelNamedTypeBuilder
         ? templateSupertypeIsTypeVariable
         : templateSupertypeIsIllegal;
     library.addCompileTimeError(
-        template.withArguments(name), charOffset, fileUri);
+        template.withArguments("$name"), charOffset, fileUri);
     return null;
   }
 

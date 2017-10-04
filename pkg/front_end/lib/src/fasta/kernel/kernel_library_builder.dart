@@ -72,6 +72,7 @@ import 'kernel_builder.dart'
         NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
+        QualifiedName,
         Scope,
         TypeBuilder,
         TypeVariableBuilder,
@@ -114,7 +115,7 @@ class KernelLibraryBuilder
   Uri get uri => library.importUri;
 
   KernelTypeBuilder addNamedType(
-      String name, List<KernelTypeBuilder> arguments, int charOffset) {
+      Object name, List<KernelTypeBuilder> arguments, int charOffset) {
     return addType(
         new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri));
   }
@@ -248,7 +249,7 @@ class KernelLibraryBuilder
     if (isNamed) {
       modifiers |= namedMixinApplicationMask;
     } else {
-      name = supertype.name;
+      name = "${supertype.name}";
       int index = name.indexOf("^");
       if (index != -1) {
         name = name.substring(0, index);
@@ -544,25 +545,26 @@ class KernelLibraryBuilder
         charOffset);
   }
 
-  String computeAndValidateConstructorName(String name, int charOffset) {
+  String computeAndValidateConstructorName(Object name, int charOffset) {
     String className = currentDeclaration.name;
-    bool startsWithClassName = name.startsWith(className);
-    if (startsWithClassName && name.length == className.length) {
-      // Unnamed constructor or factory.
-      return "";
+    String prefix;
+    String suffix;
+    if (name is QualifiedName) {
+      prefix = name.prefix;
+      suffix = name.suffix;
+    } else {
+      prefix = name;
+      suffix = null;
     }
-    int index = name.indexOf(".");
-    if (startsWithClassName && index == className.length) {
-      // Named constructor or factory.
-      return name.substring(index + 1);
+    if (prefix == className) {
+      return suffix ?? "";
     }
-    if (index == -1) {
+    if (suffix == null) {
       // A legal name for a regular method, but not for a constructor.
       return null;
     }
-    String suffix = name.substring(index + 1);
     addCompileTimeError(
-        templateIllegalMethodName.withArguments(name, "$className.$suffix"),
+        templateIllegalMethodName.withArguments("$name", "$className.$suffix"),
         charOffset,
         fileUri);
     return suffix;
@@ -573,7 +575,7 @@ class KernelLibraryBuilder
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
-      String name,
+      Object name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
@@ -584,7 +586,7 @@ class KernelLibraryBuilder
       {bool isTopLevel}) {
     // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
-    endNestedDeclaration(name).resolveTypes(typeVariables, this);
+    endNestedDeclaration("#method").resolveTypes(typeVariables, this);
     ProcedureBuilder procedure;
     String constructorName =
         isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
@@ -642,7 +644,7 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration("#factory_method");
-    String name = constructorNameReference.name;
+    Object name = constructorNameReference.name;
     String constructorName =
         computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {

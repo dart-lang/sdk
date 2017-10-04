@@ -21,7 +21,7 @@ abstract class TypeBuilder extends Builder {
   void bind(TypeDeclarationBuilder builder);
 
   /// May return null, for example, for mixin applications.
-  String get name;
+  Object get name;
 
   String get debugName;
 
