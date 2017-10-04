@@ -73,21 +73,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_constEvalThrowsException_finalAlreadySet_initializer() async {
-    return super.test_constEvalThrowsException_finalAlreadySet_initializer();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constEvalThrowsException_finalAlreadySet_initializing_formal() async {
-    return super
-        .test_constEvalThrowsException_finalAlreadySet_initializing_formal();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_constInitializedWithNonConstValue_finalField() async {
     return super.test_constInitializedWithNonConstValue_finalField();
   }

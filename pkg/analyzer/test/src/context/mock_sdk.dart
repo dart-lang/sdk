@@ -315,6 +315,10 @@ class _CompileTimeError {
 class _ConstantExpressionError {
   const _ConstantExpressionError();
 }
+
+class _DuplicatedFieldInitializerError {
+  _DuplicatedFieldInitializerError(String name);
+}
 ''');
 
 const _MockSdkLibrary _LIB_FOREIGN_HELPER = const _MockSdkLibrary(

@@ -42,26 +42,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_fieldInitializedInInitializerAndDeclaration_final() async {
-    return super.test_fieldInitializedInInitializerAndDeclaration_final();
-  }
-
-  @override
-  @failingTest
-  test_finalInitializedInDeclarationAndConstructor_initializers() async {
-    return super
-        .test_finalInitializedInDeclarationAndConstructor_initializers();
-  }
-
-  @override
-  @failingTest
-  test_finalInitializedInDeclarationAndConstructor_initializingFormal() async {
-    return super
-        .test_finalInitializedInDeclarationAndConstructor_initializingFormal();
-  }
-
-  @override
-  @failingTest
   test_finalNotInitialized_inConstructor_1() async {
     return super.test_finalNotInitialized_inConstructor_1();
   }
