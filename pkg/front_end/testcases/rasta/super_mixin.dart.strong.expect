@@ -18,6 +18,10 @@ class C<V extends core::Object> extends self::_Super&Mixin^#T0^#T0<self::C::V> {
   default constructor •() → void
     : super self::Super::•()
     ;
+  forwardingStub method g(self::C::V a) → self::C::V
+    return super.{mix::Mixin::g}(a);
+  forwardingStub set t(self::C::V _) → void
+    return super.{mix::Mixin::t} = _;
 }
 abstract class _Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> {
 }

@@ -11,6 +11,7 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
   abstract method noSuchMethod(core::Invocation invocation) → dynamic;
   method then<S extends core::Object>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError = null}) → self::MyFuture<self::MyFuture::then::S>
     return null;
+  abstract forwardingStub method timeout(core::Duration timeLimit, {() → asy::FutureOr<self::MyFuture::T> onTimeout}) → asy::Future<self::MyFuture::T>;
 }
 static field self::MyFuture<dynamic> f;
 static field asy::Future<core::int> t1 = self::f.{self::MyFuture::then}<core::int>((dynamic _) → self::MyFuture<core::int> => new self::MyFuture::value<core::int>("hi"));

@@ -18,5 +18,7 @@ class C extends self::B implements self::I<core::int> {
   default constructor •() → void
     : super self::B::•()
     ;
+  forwardingStub method f(core::int x, core::int y) → void
+    return super.{self::B::f}(x, y);
 }
 static method main() → void {}

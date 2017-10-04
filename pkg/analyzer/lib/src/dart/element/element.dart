@@ -875,8 +875,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (_kernel != null) {
       _methods ??= _kernel.procedures
           .where((k) =>
-              k.kind == kernel.ProcedureKind.Method ||
-              k.kind == kernel.ProcedureKind.Operator)
+              !k.isForwardingStub &&
+              (k.kind == kernel.ProcedureKind.Method ||
+                  k.kind == kernel.ProcedureKind.Operator))
           .map((k) => new MethodElementImpl.forKernel(this, k))
           .toList(growable: false);
     }
@@ -1337,6 +1338,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
       // Build explicit property accessors and implicit fields.
       for (var k in _kernel.procedures) {
+        if (k.isForwardingStub) continue;
         bool isGetter = k.kind == kernel.ProcedureKind.Getter;
         bool isSetter = k.kind == kernel.ProcedureKind.Setter;
         if (isGetter || isSetter) {

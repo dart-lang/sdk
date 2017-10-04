@@ -15,6 +15,8 @@ class B<E extends core::Object> extends self::A<self::B::E> {
     ;
   get x() → self::B::E
     return this.{self::B::y};
+  forwardingStub set x(self::B::E _) → void
+    return super.{self::A::x} = _;
 }
 static method foo() → dynamic {
   core::int y = new self::B::•<core::String>().{self::B::x};

@@ -248,7 +248,7 @@ class ForwardingNode extends Procedure {
         unhandled('$kind', '_createForwardingImplIfNeeded', -1, null);
         break;
     }
-    function.body = new ReturnStatement(superCall);
+    function.body = new ReturnStatement(superCall)..parent = function;
   }
 
   /// Creates a forwarding stub based on the given [target].
@@ -289,7 +289,11 @@ class ForwardingNode extends Procedure {
         requiredParameterCount: target.function.requiredParameterCount,
         returnType: substitution.substituteType(target.function.returnType));
     return new Procedure(name, kind, function,
-        isAbstract: true, isForwardingStub: true);
+        isAbstract: true,
+        isForwardingStub: true,
+        fileUri: enclosingClass.fileUri)
+      ..fileOffset = enclosingClass.fileOffset
+      ..parent = enclosingClass;
   }
 
   /// Determines which inherited member this node resolves to.
@@ -466,8 +470,17 @@ class InterfaceResolver {
   void finalizeCovariance(Class class_, List<ForwardingNode> forwardingNodes) {
     for (var node in forwardingNodes) {
       var resolution = node.resolve();
-      if (resolution is Procedure && resolution.isForwardingStub) {
-        // TODO(paulberry): store the stub in the class.
+      if (resolution is Procedure &&
+          resolution.isForwardingStub &&
+          identical(resolution.enclosingClass, class_)) {
+        if (strongMode) {
+          // Note: dartbug.com/30965 prevents us from adding forwarding stubs to
+          // mixin applications, so we skip for now.
+          // TODO(paulberry): get rid of this if-test after the bug is fixed.
+          if (class_.mixedInType == null) {
+            class_.addMember(resolution);
+          }
+        }
         _instrumentation?.record(
             Uri.parse(class_.location.file),
             class_.fileOffset,
@@ -558,6 +571,8 @@ class InterfaceResolver {
 
     for (var procedure in class_.procedures) {
       if (procedure.isStatic) continue;
+      // Forwarding stubs are annotated separately
+      if (procedure.isForwardingStub) continue;
       void recordFormalAnnotations(VariableDeclaration formal) {
         recordCovariance(formal.fileOffset, formal.isCovariant,
             formal.isGenericCovariantInterface, formal.isGenericCovariantImpl);
