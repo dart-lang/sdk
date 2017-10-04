@@ -77,7 +77,8 @@ Future<IdData> computeData(
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
   elementEnvironment.forEachClass(mainLibrary, (ClassEntity cls) {
-    if (closedWorld.isInstantiated(cls)) {
+    if (closedWorld.isInstantiated(cls) &&
+        !elementEnvironment.isEnumClass(cls)) {
       elementEnvironment.forEachConstructor(cls,
           (ConstructorEntity constructor) {
         computeMemberData(compiler, constructor, actualMap, verbose: verbose);
@@ -86,6 +87,11 @@ Future<IdData> computeData(
     elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
       if (cls == declarer) {
+        if (elementEnvironment.isEnumClass(cls)) {
+          if (member.isInstanceMember || member.name == 'values') {
+            return;
+          }
+        }
         computeMemberData(compiler, member, actualMap, verbose: verbose);
       }
     });

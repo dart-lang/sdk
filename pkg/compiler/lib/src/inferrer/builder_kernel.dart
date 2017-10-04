@@ -706,6 +706,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitDirectPropertyGet(ir.DirectPropertyGet node) {
+    TypeInformation receiverType = thisType;
+    MemberEntity member = _elementMap.getMember(node.target);
+    TypeMask mask = _memberData.typeOfSend(node);
+    // TODO(johnniwinther): Use `node.target` to narrow the receiver type.
+    return handleDynamicGet(
+        node, new Selector.getter(member.memberName), mask, receiverType);
+  }
+
+  @override
   TypeInformation visitPropertySet(ir.PropertySet node) {
     TypeInformation rhsType = visit(node.value);
     TypeInformation receiverType = visit(node.receiver);
@@ -1055,6 +1065,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _locals.update(local, _types.dynamicType, node, const DynamicType());
     }
     visit(node.body);
+  }
+
+  @override
+  TypeInformation visitThrow(ir.Throw node) {
+    visit(node.expression);
+    _locals.seenReturnOrThrow = true;
+    return _types.nonNullEmpty();
   }
 }
 

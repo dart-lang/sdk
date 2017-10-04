@@ -775,6 +775,9 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     if (result.isMalformed) return null;
     return result;
   }
+
+  @override
+  bool isEnumClass(covariant ClassElement cls) => cls.isEnumClass;
 }
 
 /// AST-based logic for processing annotations. These annotations are processed

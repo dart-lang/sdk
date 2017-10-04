@@ -1467,6 +1467,12 @@ class KernelElementEnvironment implements ElementEnvironment {
     // TODO(redemption): Support this.
     throw new UnsupportedError('ElementEnvironment.getFunctionTypeOfTypedef');
   }
+
+  @override
+  bool isEnumClass(ClassEntity cls) {
+    ClassData classData = elementMap._classes.getData(cls);
+    return classData.isEnumClass;
+  }
 }
 
 /// Visitor that converts kernel dart types into [DartType].
