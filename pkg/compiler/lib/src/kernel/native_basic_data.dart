@@ -99,23 +99,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
         // For now, assume the library is a js-interop library.
         isJsLibrary = true;
 
-        bool implementsJsJavaScriptObjectClass = false;
-        elementEnvironment.forEachSupertype(cls, (InterfaceType supertype) {
-          if (supertype.element == commonElements.jsJavaScriptObjectClass) {
-            implementsJsJavaScriptObjectClass = true;
-          }
-        });
-        if (!implementsJsJavaScriptObjectClass) {
-          reporter.reportErrorMessage(
-              cls, MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS, {
-            'cls': cls.name,
-            'superclass': elementEnvironment.getSuperClass(cls).name
-          });
-        }
-
-        elementEnvironment.forEachClassMember(cls,
-            (ClassEntity declarer, MemberEntity member) {
-          if (declarer != cls) return;
+        elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
           if (member.isField) return;
           FunctionEntity function = member;
 
@@ -147,7 +131,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
           }
 
           if (constructor.isFactoryConstructor && isAnonymous) {
-            if (constructor.parameterStructure.requiredParameters > 0) {
+            if (constructor.parameterStructure.positionalParameters > 0) {
               reporter.reportErrorMessage(
                   constructor,
                   MessageKind
@@ -160,6 +144,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
         });
       }
     });
+
     if (isJsLibrary) {
       // TODO(johnniwinther): Remove this when fasta supports library metadata.
       // For now, assume the empty name.
@@ -172,6 +157,35 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
   @override
   void processJsInteropAnnotations(
       NativeBasicData nativeBasicData, NativeDataBuilder nativeDataBuilder) {
-    // Nothing to do; all is computed in [extractJsInteropAnnotations].
+    DiagnosticReporter reporter = elementMap.reporter;
+    ElementEnvironment elementEnvironment = elementMap.elementEnvironment;
+    CommonElements commonElements = elementMap.commonElements;
+
+    for (LibraryEntity library in elementEnvironment.libraries) {
+      // Error checking for class inheritance must happen after the first pass
+      // through all the classes because it is possible to declare a subclass
+      // before a superclass that has not yet had "markJsInteropClass" called on
+      // it.
+      elementEnvironment.forEachClass(library, (ClassEntity cls) {
+        Iterable<ConstantValue> metadata =
+            elementEnvironment.getClassMetadata(cls);
+        String className = getJsInteropName(cls, metadata);
+        if (className != null) {
+          bool implementsJsJavaScriptObjectClass = false;
+          elementEnvironment.forEachSupertype(cls, (InterfaceType supertype) {
+            if (supertype.element == commonElements.jsJavaScriptObjectClass) {
+              implementsJsJavaScriptObjectClass = true;
+            }
+          });
+          if (!implementsJsJavaScriptObjectClass) {
+            reporter.reportErrorMessage(
+                cls, MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS, {
+              'cls': cls.name,
+              'superclass': elementEnvironment.getSuperClass(cls).name
+            });
+          }
+        }
+      });
+    }
   }
 }

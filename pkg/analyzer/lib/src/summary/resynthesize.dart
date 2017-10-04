@@ -815,45 +815,6 @@ class _DeferredInitializerElement extends FunctionElementHandle {
 }
 
 /**
- * Local function element that has been resynthesized from a summary.  The
- * actual element won't be constructed until it is requested.  But properties
- * [context] and [enclosingElement] can be used without creating the actual
- * element.
- */
-class _DeferredLocalFunctionElement extends FunctionElementHandle {
-  /**
-   * The executable element containing this element.
-   */
-  @override
-  final ExecutableElement enclosingElement;
-
-  /**
-   * The index of this function within [ExecutableElement.functions].
-   */
-  final int _localIndex;
-
-  _DeferredLocalFunctionElement(this.enclosingElement, this._localIndex)
-      : super(null, null);
-
-  @override
-  FunctionElement get actualElement {
-    ExecutableElement enclosingElement = this.enclosingElement;
-    if (enclosingElement is PropertyAccessorElement &&
-        enclosingElement.isSynthetic) {
-      return enclosingElement.variable.initializer;
-    } else {
-      return enclosingElement.functions[_localIndex];
-    }
-  }
-
-  @override
-  AnalysisContext get context => enclosingElement.context;
-
-  @override
-  ElementLocation get location => actualElement.location;
-}
-
-/**
  * An instance of [_LibraryResynthesizer] is responsible for resynthesizing the
  * elements in a single library from that library's summary.
  */
@@ -1585,11 +1546,20 @@ class _UnitResynthesizer {
     if (constExpr == null) {
       // Invalid constant expression.
     } else if (constExpr is Identifier) {
+      var element = constExpr.staticElement;
       ArgumentList arguments =
           constExpr.getProperty(_ConstExprBuilder.ARGUMENT_LIST);
-      elementAnnotation.element = constExpr.staticElement;
-      elementAnnotation.annotationAst =
-          AstTestFactory.annotation2(constExpr, null, arguments);
+      if (element is PropertyAccessorElement && arguments == null) {
+        elementAnnotation.element = element;
+        elementAnnotation.annotationAst = AstTestFactory.annotation(constExpr);
+      } else if (element is ConstructorElement && arguments != null) {
+        elementAnnotation.element = element;
+        elementAnnotation.annotationAst =
+            AstTestFactory.annotation2(constExpr, null, arguments);
+      } else {
+        elementAnnotation.annotationAst = AstTestFactory
+            .annotation(AstTestFactory.identifier3(r'#invalidConst'));
+      }
     } else if (constExpr is InstanceCreationExpression) {
       elementAnnotation.element = constExpr.staticElement;
       Identifier typeName = constExpr.constructorName.type.name;
@@ -1606,12 +1576,23 @@ class _UnitResynthesizer {
     } else if (constExpr is PropertyAccess) {
       var target = constExpr.target as Identifier;
       var propertyName = constExpr.propertyName;
+      var propertyElement = propertyName.staticElement;
       ArgumentList arguments =
           constExpr.getProperty(_ConstExprBuilder.ARGUMENT_LIST);
-      elementAnnotation.element = propertyName.staticElement;
-      elementAnnotation.annotationAst = AstTestFactory.annotation2(
-          target, propertyName, arguments)
-        ..element = propertyName.staticElement;
+      if (propertyElement is PropertyAccessorElement && arguments == null) {
+        elementAnnotation.element = propertyElement;
+        elementAnnotation.annotationAst = AstTestFactory.annotation2(
+            target, propertyName, null)
+          ..element = propertyElement;
+      } else if (propertyElement is ConstructorElement && arguments != null) {
+        elementAnnotation.element = propertyElement;
+        elementAnnotation.annotationAst = AstTestFactory.annotation2(
+            target, propertyName, arguments)
+          ..element = propertyElement;
+      } else {
+        elementAnnotation.annotationAst = AstTestFactory
+            .annotation(AstTestFactory.identifier3(r'#invalidConst'));
+      }
     } else {
       throw new StateError(
           'Unexpected annotation type: ${constExpr.runtimeType}');
@@ -1685,7 +1666,7 @@ class _UnitResynthesizer {
       GenericFunctionTypeElement element =
           new GenericFunctionTypeElementImpl.forSerialized(context, type);
       return element.type;
-    } else if (type.syntheticReturnType != null && type.reference == 0) {
+    } else if (type.syntheticReturnType != null) {
       FunctionElementImpl element =
           new FunctionElementImpl_forLUB(context, type);
       return element.type;
@@ -1879,10 +1860,6 @@ class _UnitResynthesizer {
                 summaryResynthesizer, location);
             break;
           case ReferenceKind.typedef:
-            element = new FunctionTypeAliasElementHandle(
-                summaryResynthesizer, location);
-            isDeclarableType = true;
-            break;
           case ReferenceKind.genericFunctionTypedef:
             element = new GenericTypeAliasElementHandle(
                 summaryResynthesizer, location);
@@ -1892,9 +1869,6 @@ class _UnitResynthesizer {
             Element enclosingElement = enclosingInfo.element;
             if (enclosingElement is VariableElement) {
               element = new _DeferredInitializerElement(enclosingElement);
-            } else if (enclosingElement is ExecutableElement) {
-              element = new _DeferredLocalFunctionElement(
-                  enclosingElement, linkedReference.localIndex);
             } else {
               throw new StateError('Unexpected element enclosing function:'
                   ' ${enclosingElement.runtimeType}');

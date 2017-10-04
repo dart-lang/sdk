@@ -814,7 +814,8 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Object::null_array();
   ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
-                               args_info, locs(), ICData::Handle());
+                               args_info, locs(), ICData::Handle(),
+                               ICData::kStatic);
   ASSERT(locs()->out(0).reg() == RAX);
 }
 
@@ -3533,56 +3534,15 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   }
 }
 
-void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const intptr_t box_cid = BoxCid();
-
-  if (value_cid == box_cid) {
-    EmitLoadFromBox(compiler);
-  } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
-    EmitSmiConversion(compiler);
-  } else if (FLAG_experimental_strong_mode &&
-             (representation() == kUnboxedDouble) &&
-             value()->Type()->IsNullableDouble()) {
-    EmitLoadFromBox(compiler);
-  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-             (representation() == kUnboxedInt64) &&
-             value()->Type()->IsNullableInt()) {
-    const Register value = locs()->in(0).reg();
-    const Register result = locs()->out(0).reg();
-    ASSERT(value == result);
-    Label done;
-    __ SmiUntag(value);
-    __ j(NOT_CARRY, &done, Assembler::kNearJump);
-    __ movq(value, Address(value, TIMES_2, Mint::value_offset()));
-    __ Bind(&done);
-  } else {
-    const Register box = locs()->in(0).reg();
-    Label* deopt =
-        compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
-    Label is_smi;
-
-    if ((value()->Type()->ToNullableCid() == box_cid) &&
-        value()->Type()->is_nullable()) {
-      __ CompareObject(box, Object::null_object());
-      __ j(EQUAL, deopt);
-    } else {
-      __ testq(box, Immediate(kSmiTagMask));
-      __ j(ZERO, CanConvertSmi() ? &is_smi : deopt);
-      __ CompareClassId(box, box_cid);
-      __ j(NOT_EQUAL, deopt);
-    }
-
-    EmitLoadFromBox(compiler);
-
-    if (is_smi.IsLinked()) {
-      Label done;
-      __ jmp(&done);
-      __ Bind(&is_smi);
-      EmitSmiConversion(compiler);
-      __ Bind(&done);
-    }
-  }
+void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  ASSERT(value == result);
+  Label done;
+  __ SmiUntag(value);
+  __ j(NOT_CARRY, &done, Assembler::kNearJump);
+  __ movq(value, Address(value, TIMES_2, Mint::value_offset()));
+  __ Bind(&done);
 }
 
 LocationSummary* UnboxInteger32Instr::MakeLocationSummary(Zone* zone,
@@ -5058,7 +5018,8 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Object::null_array();
   ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
-                               args_info, locs(), ICData::Handle());
+                               args_info, locs(), ICData::Handle(),
+                               ICData::kStatic);
   __ Bind(&done);
 }
 

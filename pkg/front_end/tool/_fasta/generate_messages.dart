@@ -69,9 +69,12 @@ String compileTemplate(String name, String template, String tip,
         break;
 
       case "#unicode":
+        // Write unicode value using at least four (but otherwise no more than
+        // necessary) hex digits, using uppercase letters.
+        // http://www.unicode.org/versions/Unicode10.0.0/appA.pdf
         parameters.add("int codePoint");
-        conversions.add("String unicode = "
-            "\"(U+\${codePoint.toRadixString(16).padLeft(4, '0')})\";");
+        conversions.add("String unicode = \"U+\${codePoint.toRadixString(16)"
+            ".toUpperCase().padLeft(4, '0')}\";");
         arguments.add("'codePoint': codePoint");
         break;
 

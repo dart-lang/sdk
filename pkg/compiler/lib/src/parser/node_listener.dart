@@ -46,10 +46,11 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void endImport(Token importKeyword, Token semicolon) {
     NodeList combinators = popNode();
-    Identifier prefix = asKeyword != null ? popNode() : null;
+    Flag flag = popNode();
+    bool isDeferred = flag == Flag.TRUE;
+    Identifier prefix = popNode();
     NodeList conditionalUris = popNode();
     StringNode uri = popLiteralString();
     pushNode(new Import(
@@ -61,18 +62,7 @@ class NodeListener extends ElementListener {
         // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
         // (element) instead of Metatada (node).
         null,
-        isDeferred: deferredKeyword != null));
-  }
-
-  @override
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
-    popNode(); // combinators
-    if (asKeyword != null) {
-      popNode(); // prefix
-    }
-    popNode(); // conditionalUris
-    // TODO(danrubel): recover
+        isDeferred: isDeferred));
   }
 
   @override
@@ -114,23 +104,27 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void handleClassExtends(Token extendsKeyword) {
+    pushNode(new TokenNode(extendsKeyword));
+  }
+
+  @override
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    pushNode(makeNodeList(interfacesCount, implementsKeyword, null, ","));
+  }
+
+  @override
+  void endClassDeclaration(Token beginToken, Token endToken) {
     NodeList body = popNode();
-    NodeList interfaces =
-        makeNodeList(interfacesCount, implementsKeyword, null, ",");
+    NodeList interfaces = popNode();
+    TokenNode extendsNode = popNode();
     Node supertype = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     Modifiers modifiers = popNode();
+    // TODO(danrubel): can we remove the extends keyword from ClassNode ?
     pushNode(new ClassNode(modifiers, name, typeParameters, supertype,
-        interfaces, beginToken, extendsKeyword, body, endToken));
+        interfaces, beginToken, extendsNode.token, body, endToken));
   }
 
   @override

@@ -115,8 +115,6 @@ class Emitter extends emitterTask.EmitterBase {
 
   @override
   js.Template templateForBuiltin(JsBuiltin builtin) {
-    String typeNameProperty = ModelEmitter.typeNameProperty;
-
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
         ClassElement objectClass = _closedWorld.commonElements.objectClass;
@@ -130,7 +128,7 @@ class Emitter extends emitterTask.EmitterBase {
         return _backend.rtiEncoder.templateForIsFunctionType;
 
       case JsBuiltin.rawRtiToJsConstructorName:
-        return js.js.expressionTemplateFor("#.$typeNameProperty");
+        return js.js.expressionTemplateFor("#.name");
 
       case JsBuiltin.rawRuntimeType:
         return js.js.expressionTemplateFor("#.constructor");
@@ -145,7 +143,7 @@ class Emitter extends emitterTask.EmitterBase {
         return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
 
       case JsBuiltin.isGivenTypeRti:
-        return js.js.expressionTemplateFor('#.$typeNameProperty === #');
+        return js.js.expressionTemplateFor('#.name === #');
 
       case JsBuiltin.getMetadata:
         String metadataAccess =

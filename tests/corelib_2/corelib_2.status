@@ -19,6 +19,9 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
+[ !$checked && $compiler != dartdevc && $runtime != none ]
+null_nosuchmethod_test: RuntimeError # needs Dart 2 or checked mode
+
 [ (!$checked && $runtime == vm) || (!$checked && $compiler == dart2js) || $compiler == precompiler ]
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
 
@@ -101,10 +104,9 @@ iterable_reduce_test/none: RuntimeError
 iterable_to_list_test/*: RuntimeError
 list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
 nan_infinity_test/01: RuntimeError # Issue 29921
-null_nosuchmethod_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
-map_test: RuntimeError # Issue 29921
 map_keys2_test: RuntimeError # Issue 29921
+null_nosuchmethod_test/01: RuntimeError # DDC checks type before too many arguments, so TypeError instead of NSM
 regexp/bol-with-multiline_test: RuntimeError # Issue 29921
 regexp/invalid-range-in-class_test: RuntimeError # Issue 29921
 regexp/look-ahead_test: RuntimeError # Issue 29921
@@ -530,7 +532,6 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: RuntimeError
-symbol_test/01: Crash # Assertion failure: Unexpected constant value in const Symbol(...) call: IntConstant(0)
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
@@ -565,7 +566,6 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: RuntimeError
-symbol_test/01: Crash # Assertion failure: Unexpected constant value in const Symbol(...) call: IntConstant(0)
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError

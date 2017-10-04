@@ -383,12 +383,6 @@ abstract class ClosedWorldRefiner {
 }
 
 abstract class OpenWorld implements World {
-  /// Called to add [cls] to the set of known classes.
-  ///
-  /// This ensures that class hierarchy queries can be performed on [cls] and
-  /// classes that extend or implement it.
-  void registerClass(covariant ClassEntity cls);
-
   void registerUsedElement(MemberEntity element);
   void registerTypedef(TypedefEntity typedef);
 

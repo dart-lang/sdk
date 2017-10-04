@@ -26,6 +26,7 @@ import 'error_suppression_kernel_test.dart' as error_suppression_kernel_test;
 import 'error_suppression_test.dart' as error_suppression_test;
 import 'gn_test.dart' as gn_test;
 import 'hint_code_driver_test.dart' as hint_code_driver_test;
+import 'hint_code_kernel_test.dart' as hint_code_kernel_test;
 import 'hint_code_test.dart' as hint_code_test;
 import 'inheritance_manager_test.dart' as inheritance_manager_test;
 import 'java_core_test.dart' as java_core_test;
@@ -87,6 +88,7 @@ main() {
     error_suppression_test.main();
     gn_test.main();
     hint_code_driver_test.main();
+    hint_code_kernel_test.main();
     hint_code_test.main();
     inheritance_manager_test.main();
     java_core_test.main();

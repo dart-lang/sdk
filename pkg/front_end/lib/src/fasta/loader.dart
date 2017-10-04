@@ -173,10 +173,13 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   /// If [wasHandled] is true, this error is added to [handledErrors],
   /// otherwise it is added to [unhandledErrors].
   void addCompileTimeError(Message message, int charOffset, Uri fileUri,
-      {bool silent: false, bool wasHandled: false}) {
+      {bool silent: false, bool wasHandled: false, LocatedMessage context}) {
     if (!silent) {
       target.context
           .report(message.withLocation(fileUri, charOffset), Severity.error);
+      if (context != null) {
+        target.context.report(context, Severity.error);
+      }
     }
     (wasHandled ? handledErrors : unhandledErrors)
         .add(message.withLocation(fileUri, charOffset));

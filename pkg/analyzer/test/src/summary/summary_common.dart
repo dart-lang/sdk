@@ -489,7 +489,6 @@ abstract class SummaryTest {
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0,
-      int localIndex: 0,
       bool unresolvedHasName: false}) {
     linkedSourceUnit ??= definingUnit;
     unlinkedSourceUnit ??= unlinkedUnits[0];
@@ -528,7 +527,6 @@ abstract class SummaryTest {
     expect(referenceResolution.kind, expectedKind);
     expect(referenceResolution.unit, expectedTargetUnit);
     expect(referenceResolution.numTypeParameters, numTypeParameters);
-    expect(referenceResolution.localIndex, localIndex);
     return reference;
   }
 
@@ -1556,7 +1554,7 @@ f() {
     int outerClosureIndex =
         definingUnit.references[closureType.reference].containingReference;
     checkReferenceIndex(outerClosureIndex, null, '',
-        expectedKind: ReferenceKind.function, localIndex: 1);
+        expectedKind: ReferenceKind.function);
     int topLevelFunctionIndex =
         definingUnit.references[outerClosureIndex].containingReference;
     checkReferenceIndex(topLevelFunctionIndex, null, 'f',
@@ -9117,7 +9115,6 @@ part "${'a'}.dart"; // <-part
     expect(linkedReference0.containingReference, 0);
     expect(linkedReference0.dependency, 0);
     expect(linkedReference0.kind, ReferenceKind.unresolved);
-    expect(linkedReference0.localIndex, 0);
     expect(linkedReference0.name, '');
     expect(linkedReference0.numTypeParameters, 0);
     expect(linkedReference0.unit, 0);

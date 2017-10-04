@@ -90,7 +90,19 @@ class Listener {
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   void beginClassDeclaration(Token beginToken, Token name) {}
 
-  /// Handle the end of a class declaration.  Substructures:
+  /// Handle an extends clause in a class declaration. Substructures:
+  /// - supertype (may be a mixin application)
+  void handleClassExtends(Token extendsKeyword) {
+    logEvent("ClassExtends");
+  }
+
+  /// Handle an implements clause in a class declaration. Substructures:
+  /// - implemented types
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    logEvent("ClassImplements");
+  }
+
+  /// Handle the header of a class declaration.  Substructures:
   /// - metadata
   /// - modifiers
   /// - class name
@@ -98,15 +110,14 @@ class Listener {
   /// - supertype (may be a mixin application)
   /// - implemented types
   /// - native clause
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    logEvent("ClassHeader");
+  }
+
+  /// Handle the end of a class declaration.  Substructures:
+  /// - class header
   /// - class body
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void endClassDeclaration(Token beginToken, Token endToken) {
     logEvent("ClassDeclaration");
   }
 
@@ -436,14 +447,21 @@ class Listener {
 
   void beginImport(Token importKeyword) {}
 
+  /// Signals that the current import is deferred and/or has a prefix
+  /// depending upon whether [deferredKeyword] and [asKeyword]
+  /// are not `null` respectively. Substructures:
+  /// - prefix identifier (only if asKeyword != null)
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    logEvent("ImportPrefix");
+  }
+
   /// Handle the end of an import directive.  Substructures:
   /// - metadata
   /// - uri
   /// - conditional uris
-  /// - prefix identifier (only if asKeyword != null)
+  /// - prefix identifier
   /// - combinators
-  void endImport(Token importKeyword, Token DeferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void endImport(Token importKeyword, Token semicolon) {
     logEvent("Import");
   }
 
@@ -452,10 +470,9 @@ class Listener {
   /// to recover information about the previous import directive.
   /// The substructures are a subset of and in the same order as [endImport]:
   /// - conditional uris
-  /// - prefix identifier (only if asKeyword != null)
+  /// - prefix identifier
   /// - combinators
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
+  void handleRecoverImport(Token semicolon) {
     logEvent("ImportRecovery");
   }
 

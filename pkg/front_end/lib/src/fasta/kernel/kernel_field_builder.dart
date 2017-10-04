@@ -47,9 +47,9 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       this.initializerTokenForInference,
       this.hasInitializer)
       : field = new ShadowField(null, fileUri: compilationUnit?.relativeFileUri)
-          ..fileOffset = charOffset,
-        super(
-            documentationComment, name, modifiers, compilationUnit, charOffset);
+          ..fileOffset = charOffset
+          ..documentationComment = documentationComment,
+        super(name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {
     if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
@@ -63,7 +63,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       type == null && (hasInitializer || isInstanceMember);
 
   Field build(SourceLibraryBuilder library) {
-    field.documentationComment = documentationComment;
     field.name ??= new Name(name, library.target);
     if (type != null) {
       field.type = type.build(library);
@@ -104,7 +103,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
             typeInferenceEngine.coreTypes,
             currentClass,
             isInstanceMember,
-            fileUri,
+            library.fileUri,
             typeInferrer);
         Parser parser = new Parser(bodyBuilder);
         Token token = parser.parseExpression(initializerTokenForInference);

@@ -164,6 +164,8 @@ class _LibraryVirtualFieldModel {
 /// - getters and setters can be overridden.
 ///
 class ClassPropertyModel {
+  final ExtensionTypeSet extensionTypes;
+
   /// Fields that are virtual, that is, they must be generated as a property
   /// pair in JavaScript.
   ///
@@ -187,14 +189,15 @@ class ClassPropertyModel {
 
   final mockMembers = <String, ExecutableElement>{};
 
-  final extensionMembers = new Set<ExecutableElement>();
-  final mixinExtensionMembers = new Set<ExecutableElement>();
+  final extensionMethods = new Set<String>();
+
+  final extensionAccessors = new Set<String>();
 
   /// Parameters that are covariant due to covariant generics.
   final Set<Element> covariantParameters;
 
   ClassPropertyModel.build(
-      ExtensionTypeSet extensionTypes,
+      this.extensionTypes,
       VirtualFieldModel fieldModel,
       ClassElement classElem,
       this.covariantParameters,
@@ -218,13 +221,12 @@ class ClassPropertyModel {
     }
 
     _collectMockMembers(classElem.type);
-    _collectExtensionMembers(extensionTypes, classElem);
+    _collectExtensionMembers(classElem);
 
     var virtualAccessorNames = new HashSet<String>()
       ..addAll(inheritedGetters)
       ..addAll(inheritedSetters)
-      ..addAll(extensionMembers
-          .map((m) => m is PropertyAccessorElement ? m.variable.name : m.name))
+      ..addAll(extensionAccessors)
       ..addAll(mockMembers.values
           .map((m) => m is PropertyAccessorElement ? m.variable.name : m.name));
 
@@ -301,47 +303,121 @@ class ClassPropertyModel {
     concreteMembers.forEach(mockMembers.remove);
   }
 
-  void _collectExtensionMembers(
-      ExtensionTypeSet extensionTypes, ClassElement element) {
+  void _collectExtensionMembers(ClassElement element) {
     if (extensionTypes.isNativeClass(element)) return;
 
-    // Collect all extension types we implement.
-    var type = element.type;
-    var types = extensionTypes.collectNativeInterfaces(element);
-    if (types.isEmpty) return;
+    // Find all generic interfaces that could be used to call into members of
+    // this class. This will help us identify which parameters need checks
+    // for soundness.
+    var allNatives = new HashSet<String>();
+    _collectNativeMembers(element.type, allNatives);
+    if (allNatives.isEmpty) return;
 
-    // Collect all possible extension method names.
-    var possibleExtensions = new HashSet<String>();
-    for (var t in types) {
-      for (var m in [t.methods, t.accessors].expand((m) => m)) {
-        if (!m.isStatic && m.isPublic) possibleExtensions.add(m.name);
+    // For members on this class, check them against all generic interfaces.
+    var seenConcreteMembers = new HashSet<String>();
+    _findExtensionMembers(element.type, seenConcreteMembers, allNatives);
+    // Add mock members. These are compiler-generated concrete members that
+    // forward to `noSuchMethod`.
+    for (var m in mockMembers.values) {
+      var name = m is PropertyAccessorElement ? m.variable.name : m.name;
+      if (seenConcreteMembers.add(name) && allNatives.contains(name)) {
+        var extMembers = m is PropertyAccessorElement
+            ? extensionAccessors
+            : extensionMethods;
+        extMembers.add(name);
       }
     }
 
-    // Collect all of extension methods this type and its mixins implement.
+    // For members of the superclass, we may need to add checks because this
+    // class adds a new unsafe interface. Collect those checks.
 
-    void visitType(InterfaceType type, bool isMixin) {
-      for (var mixin in type.mixins) {
-        // If the mixin isn't native, make sure to visit it too, because those
-        // methods haven't been accounted for yet.
-        if (!extensionTypes.hasNativeSubtype(mixin)) visitType(mixin, true);
-      }
-      for (var m in [type.methods, type.accessors].expand((m) => m)) {
-        if (!m.isAbstract && possibleExtensions.contains(m.name)) {
-          (isMixin ? mixinExtensionMembers : extensionMembers).add(m);
+    var visited = new HashSet<ClassElement>()..add(element);
+    var existingMembers = new HashSet<String>();
+
+    void visitImmediateSuper(InterfaceType type) {
+      // For members of mixins/supertypes, check them against new interfaces,
+      // and also record any existing checks they already had.
+      var oldCovariant = new HashSet<String>();
+      _collectNativeMembers(type, oldCovariant);
+      var newCovariant = allNatives.difference(oldCovariant);
+      if (newCovariant.isEmpty) return;
+
+      existingMembers.addAll(oldCovariant);
+
+      void visitSuper(InterfaceType type) {
+        var element = type.element;
+        if (visited.add(element)) {
+          _findExtensionMembers(type, seenConcreteMembers, newCovariant);
+          element.mixins.reversed.forEach(visitSuper);
+          var s = element.supertype;
+          if (s != null) visitSuper(s);
         }
       }
+
+      visitSuper(type);
     }
 
-    visitType(type, false);
+    element.mixins.reversed.forEach(visitImmediateSuper);
+    var s = element.supertype;
+    if (s != null) visitImmediateSuper(s);
+  }
 
-    for (var m in mockMembers.values) {
-      if (possibleExtensions.contains(m.name)) extensionMembers.add(m);
+  /// Searches all concrete instance members declared on this type, skipping
+  /// already [seenConcreteMembers], and adds them to [extensionMembers] if
+  /// needed.
+  ///
+  /// By tracking the set of seen members, we can visit superclasses and mixins
+  /// and ultimately collect every most-derived member exposed by a given type.
+  void _findExtensionMembers(InterfaceType type,
+      HashSet<String> seenConcreteMembers, Set<String> allNatives) {
+    // We only visit each most derived concrete member.
+    // To avoid visiting an overridden superclass member, we skip members
+    // we've seen, and visit starting from the class, then mixins in
+    // reverse order, then superclasses.
+    for (var m in type.methods) {
+      var name = m.name;
+      if (!m.isStatic &&
+          !m.isAbstract &&
+          seenConcreteMembers.add(name) &&
+          allNatives.contains(name)) {
+        extensionMethods.add(name);
+      }
     }
-    if (element.isEnum) {
-      // TODO(jmesserly): analyzer does not create the synthetic element
-      // for the enum's `toString()` method, so we'll use the one on Object.
-      extensionMembers.add(element.lookUpMethod('toString', null));
+    for (var m in type.accessors) {
+      var name = m.variable.name;
+      if (!m.isStatic &&
+          !m.isAbstract &&
+          seenConcreteMembers.add(name) &&
+          allNatives.contains(name)) {
+        extensionAccessors.add(name);
+      }
+    }
+    if (type.element.isEnum) {
+      extensionMethods.add('toString');
+    }
+  }
+
+  /// Collects all supertypes that may themselves contain native subtypes,
+  /// excluding [Object], for example `List` is implemented by several native
+  /// types.
+  void _collectNativeMembers(InterfaceType type, Set<String> members) {
+    var element = type.element;
+    if (extensionTypes.hasNativeSubtype(type)) {
+      for (var m in type.methods) {
+        if (m.isPublic && !m.isStatic) members.add(m.name);
+      }
+      for (var m in type.accessors) {
+        if (m.isPublic && !m.isStatic) members.add(m.variable.name);
+      }
+    }
+    for (var m in element.mixins.reversed) {
+      _collectNativeMembers(m, members);
+    }
+    for (var i in element.interfaces) {
+      _collectNativeMembers(i, members);
+    }
+    if (!type.isObject) {
+      _collectNativeMembers(element.supertype, members);
     }
   }
 }

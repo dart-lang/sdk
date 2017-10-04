@@ -31,32 +31,6 @@ typedef ControllerCancelCallback();
  * It's possible to check whether the stream is paused or not, and whether
  * it has subscribers or not, as well as getting a callback when either of
  * these change.
- *
- * If the stream starts or stops having listeners (first listener subscribing,
- * last listener unsubscribing), the `onSubscriptionStateChange` callback
- * is notified as soon as possible. If the subscription stat changes during
- * an event firing or a callback being executed, the change will not be reported
- * until the current event or callback has finished.
- * If the pause state has also changed during an event or callback, only the
- * subscription state callback is notified.
- *
- * If the subscriber state has not changed, but the pause state has, the
- * `onPauseStateChange` callback is notified as soon as possible, after firing
- * a current event or completing another callback. This happens if the stream
- * is not paused, and a listener pauses it, or if the stream has been resumed
- * from pause and has no pending events. If the listeners resume a paused stream
- * while it still has queued events, the controller will still consider the
- * stream paused until all queued events have been dispatched.
- *
- * Whether to invoke a callback depends only on the state before and after
- * a stream action, for example firing an event. If the state changes multiple
- * times during the action, and then ends up in the same state as before, no
- * callback is performed.
- *
- * If listeners are added after the stream has completed (sent a "done" event),
- * the listeners will be sent a "done" event eventually, but they won't affect
- * the stream at all, and won't trigger callbacks. From the controller's point
- * of view, the stream is completely inert when has completed.
  */
 abstract class StreamController<T> implements StreamSink<T> {
   /** The stream that this controller is controlling. */

@@ -20,6 +20,7 @@
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/fasta/type_inference/dependency_collector.dart';
+import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
@@ -63,6 +64,20 @@ List<DartType> getExplicitTypeArguments(Arguments arguments) {
     assert(arguments.types.isEmpty);
     return null;
   }
+}
+
+/// Information associated with a class during type inference.
+class ClassInferenceInfo {
+  /// The builder associated with this class.
+  SourceClassBuilder builder;
+
+  /// The visitor for determining if a given type makes covariant use of one of
+  /// the class's generic parameters, and therefore requires covariant checks.
+  IncludesTypeParametersCovariantly needsCheckVisitor;
+
+  final forwardingNodesForGettersAndMethods = <ForwardingNode>[];
+
+  final forwardingNodesForSetters = <ForwardingNode>[];
 }
 
 /// Concrete shadow object representing a set of invocation arguments.
@@ -298,9 +313,49 @@ class ShadowCascadeExpression extends Let implements ShadowExpression {
 
 /// Shadow object representing a class in kernel form.
 class ShadowClass extends Class {
-  SourceClassBuilder builder;
+  var _inferenceInfo = new ClassInferenceInfo();
 
-  ShadowClass({String name}) : super(name: name);
+  ShadowClass(
+      {String name,
+      Supertype supertype,
+      Supertype mixedInType,
+      List<TypeParameter> typeParameters,
+      List<Supertype> implementedTypes,
+      List<Procedure> procedures,
+      List<Field> fields})
+      : super(
+            name: name,
+            supertype: supertype,
+            mixedInType: mixedInType,
+            typeParameters: typeParameters,
+            implementedTypes: implementedTypes,
+            procedures: procedures,
+            fields: fields);
+
+  static void clearClassInferenceInfo(ShadowClass class_) {
+    class_._inferenceInfo = null;
+  }
+
+  static ClassInferenceInfo getClassInferenceInfo(ShadowClass class_) =>
+      class_._inferenceInfo;
+
+  /// Creates forwarding nodes for this class.
+  void setupForwardingNodes(InterfaceResolver interfaceResolver) {
+    interfaceResolver.createForwardingNodes(
+        this, _inferenceInfo.forwardingNodesForGettersAndMethods, false);
+    interfaceResolver.createForwardingNodes(
+        this, _inferenceInfo.forwardingNodesForSetters, true);
+  }
+
+  /// Resolves all forwarding nodes for this class, propagates covariance
+  /// annotations, and creates forwarding stubs as needed.
+  void finalizeCovariance(InterfaceResolver interfaceResolver) {
+    interfaceResolver.finalizeCovariance(
+        this, _inferenceInfo.forwardingNodesForGettersAndMethods);
+    interfaceResolver.finalizeCovariance(
+        this, _inferenceInfo.forwardingNodesForSetters);
+    interfaceResolver.recordInstrumentation(this);
+  }
 }
 
 /// Abstract shadow object representing a complex assignment in kernel form.

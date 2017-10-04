@@ -380,9 +380,6 @@ no_support_debugger_test: Skip # kernel-service snapshot not compatible with fla
 regress_29350_test: MissingCompileTimeError
 assert_test: RuntimeError
 io/compile_all_test: Crash
-io/http_cookie_test: RuntimeError
-io/http_proxy_advanced_test: RuntimeError
-io/socket_many_connections_test: RuntimeError
 map_insert_remove_oom_test: Crash
 package/package1_test: CompileTimeError
 package/package_test: CompileTimeError

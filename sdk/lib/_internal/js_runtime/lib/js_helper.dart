@@ -309,6 +309,7 @@ class JSInvocationMirror implements Invocation {
   var /* String or Symbol */ _memberName;
   final String _internalName;
   final int _kind;
+  final List<Type> _typeArguments;
   final List _arguments;
   final List _namedArgumentNames;
   /** Map from argument name to index in _arguments. */
@@ -337,6 +338,11 @@ class JSInvocationMirror implements Invocation {
   bool get isGetter => _kind == GETTER;
   bool get isSetter => _kind == SETTER;
   bool get isAccessor => _kind != METHOD;
+
+  List<Type> get typeArguments {
+    // UNIMPLEMENTED
+    return const <Type>[];
+  }
 
   List get positionalArguments {
     if (isGetter) return const [];

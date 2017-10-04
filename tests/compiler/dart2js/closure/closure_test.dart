@@ -104,6 +104,12 @@ class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
     }
   }
 
+  visitLoop(ast.Loop node) {
+    pushLoopNode(node);
+    super.visitLoop(node);
+    popLoop();
+  }
+
   @override
   String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
     if (element != null && element.isLocal) {
@@ -166,6 +172,24 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
     popMember();
   }
 
+  visitForStatement(ir.ForStatement node) {
+    pushLoopNode(node);
+    super.visitForStatement(node);
+    popLoop();
+  }
+
+  visitWhileStatement(ir.WhileStatement node) {
+    pushLoopNode(node);
+    super.visitWhileStatement(node);
+    popLoop();
+  }
+
+  visitForInStatement(ir.ForInStatement node) {
+    pushLoopNode(node);
+    super.visitForInStatement(node);
+    popLoop();
+  }
+
   @override
   String computeNodeValue(Id id, ir.Node node) {
     if (node is ir.VariableDeclaration) {
@@ -216,6 +240,21 @@ abstract class ComputeValueMixin<T> {
 
   void popMember() {
     scopeInfoStack = scopeInfoStack.tail;
+    capturedScopeStack = capturedScopeStack.tail;
+  }
+
+  void pushLoopNode(T node) {
+    //scopeInfoStack = // TODO?
+    //    scopeInfoStack.prepend(closureDataLookup.getScopeInfo(member));
+    capturedScopeStack = capturedScopeStack
+        .prepend(closureDataLookup.getCapturedLoopScope(node));
+    if (capturedScope.requiresContextBox) {
+      boxNames[capturedScope.context] = 'box${boxNames.length}';
+    }
+    dump(node);
+  }
+
+  void popLoop() {
     capturedScopeStack = capturedScopeStack.tail;
   }
 

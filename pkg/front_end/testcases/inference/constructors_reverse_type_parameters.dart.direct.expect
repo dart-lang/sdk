@@ -9,6 +9,6 @@ class Pair<T extends core::Object, U extends core::Object> extends core::Object 
     : self::Pair::t = t, self::Pair::u = u, super core::Object::•()
     ;
   get reversed() → self::Pair<self::Pair::U, self::Pair::T>
-    return new self::Pair::•<dynamic, dynamic>(this.u, this.t);
+    return new self::Pair::•<dynamic, dynamic>(this.{self::Pair::u}, this.{self::Pair::t});
 }
 static method main() → dynamic {}

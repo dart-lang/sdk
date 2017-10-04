@@ -342,7 +342,10 @@ class Configuration {
       isValid = false;
     }
 
-    if (runtime.isIE && Platform.operatingSystem != 'windows') {
+    if (runtime.isIE &&
+        Platform.operatingSystem != 'windows' &&
+        !listStatusFiles &&
+        !listTests) {
       print("Warning: cannot run Internet Explorer on non-Windows operating"
           " system.");
       isValid = false;

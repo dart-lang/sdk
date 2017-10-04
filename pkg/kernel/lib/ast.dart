@@ -1306,6 +1306,7 @@ class Procedure extends Member {
       bool isStatic: false,
       bool isExternal: false,
       bool isConst: false,
+      bool isForwardingStub: false,
       int transformerFlags: 0,
       this.fileUri,
       Reference reference})
@@ -1315,6 +1316,7 @@ class Procedure extends Member {
     this.isStatic = isStatic;
     this.isExternal = isExternal;
     this.isConst = isConst;
+    this.isForwardingStub = isForwardingStub;
     this.transformerFlags = transformerFlags;
   }
 
@@ -1322,6 +1324,7 @@ class Procedure extends Member {
   static const int FlagAbstract = 1 << 1;
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
+  static const int FlagForwardingStub = 1 << 4;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1330,6 +1333,8 @@ class Procedure extends Member {
   /// True if this has the `const` modifier.  This is only possible for external
   /// constant factories, such as `String.fromEnvironment`.
   bool get isConst => flags & FlagConst != 0;
+
+  bool get isForwardingStub => flags & FlagForwardingStub != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1345,6 +1350,11 @@ class Procedure extends Member {
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  void set isForwardingStub(bool value) {
+    flags =
+        value ? (flags | FlagForwardingStub) : (flags & ~FlagForwardingStub);
   }
 
   bool get isInstanceMember => !isStatic;

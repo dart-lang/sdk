@@ -70,6 +70,13 @@ enum_private_test: Skip
 enum_syntax_test: Skip
 error_stacktrace_test: Skip
 example_constructor_test: Skip
+double_to_string_as_exponential2_test: Skip
+double_to_string_as_fixed2_test: Skip
+double_to_string_as_precision2_test: Skip
+duplicate_constructor_test: Skip
+duplicate_export_negative_test: Skip
+duplicate_implements_test: Skip
+duplicate_interface_negative_test: Skip
 export_ambiguous_main_negative_test: Skip
 extend_type_parameter2_negative_test: Skip
 extend_type_parameter_negative_test: Skip
@@ -91,17 +98,6 @@ factory_redirection2_test: Skip
 factory_redirection3_cyclic_test: Skip
 factory_redirection_test: Skip
 factory_return_type_checked_test: Skip
-fauxverride_test: Skip
-field1_negative_test: Skip
-field2_negative_test: Skip
-field3_negative_test: Skip
-field4_negative_test: Skip
-field5_negative_test: Skip
-field6_negative_test: Skip
-field6a_negative_test: Skip
-field_decl_missing_var_type_test: Skip
-field_initialization_order_test: Skip
-field_method4_negative_test: Skip
 field_override2_test: Skip
 field_override3_test: Skip
 field_override4_test: Skip
@@ -180,14 +176,6 @@ malformed_bound_test: Skip
 malformed_inheritance_test: Skip
 malformed_test: Skip
 malformed_type_test: Skip
-many_overridden_no_such_method_test: Skip
-map_literal1_test: Skip
-map_literal2_negative_test: Skip
-map_literal3_test: Skip
-map_literal4_test: Skip
-map_literal6_test: Skip
-map_literal8_test: Skip
-map_literal_negative_test: Skip
 missing_const_constructor_test: Skip
 missing_part_of_tag_test: Skip
 mixin_black_listed_test: Skip
@@ -208,10 +196,6 @@ mixin_invalid_bound_test: Skip
 mixin_invalid_inheritance1_test: Skip
 mixin_invalid_inheritance2_test: Skip
 mixin_lib_extends_field_test: Skip
-mixin_lib_extends_method_test: Skip
-mixin_method_test: Skip
-mixin_super_bound2_test: Skip
-mixin_super_bound_test: Skip
 naming3_test: Skip
 naming_test: Skip
 new_expression1_negative_test: Skip
@@ -228,20 +212,6 @@ no_such_method_empty_selector_test: Skip
 no_such_method_mock_test: Skip
 no_such_method_negative_test: Skip
 no_such_method_test: Skip
-override_inheritance_generic_test: Skip
-override_inheritance_method_test: Skip
-override_inheritance_mixed_test: Skip
-override_inheritance_no_such_method_test: Skip
-override_method_with_field_test: Skip
-parameter_default_test: Skip
-parameter_initializer1_negative_test: Skip
-parameter_initializer2_negative_test: Skip
-parameter_initializer3_negative_test: Skip
-parameter_initializer4_negative_test: Skip
-parameter_initializer6_negative_test: Skip
-parameter_initializer_test: Skip
-parser_quirks_test: Skip
-part2_test: Skip
 positional_parameters_type_test: Skip
 prefix11_negative_test: Skip
 prefix12_negative_test: Skip
@@ -354,24 +324,6 @@ try_catch_test: Skip
 type_argument_in_super_type_test: Skip
 type_check_const_function_typedef2_test: Skip
 type_checks_in_factory_method_test: Skip
-type_literal_prefix_call_test: Skip
-type_parameter_test: Skip
-type_promotion_assign_test: Skip
-type_promotion_closure_test: Skip
-type_promotion_functions_test: Skip
-type_promotion_local_test: Skip
-type_promotion_logical_and_test: Skip
-type_promotion_more_specific_test: Skip
-type_promotion_multiple_test: Skip
-type_promotion_parameter_test: Skip
-type_variable_bounds2_test: Skip
-type_variable_bounds3_test: Skip
-type_variable_bounds4_test: Skip
-type_variable_bounds_test: Skip
-type_variable_conflict2_test: Skip
-type_variable_conflict_test: Skip
-type_variable_function_type_test: Skip
-type_variable_identifier_expression_test: Skip
 
 [ $compiler == dart2analyzer && $strong ]
 # async_await_test/02: CompileTimeError # Issue 28823
@@ -383,12 +335,14 @@ type_variable_identifier_expression_test: Skip
 # async_star_test/04: CompileTimeError # Issue 28823
 # async_star_test/05: CompileTimeError # Issue 28823
 # async_star_test/none: CompileTimeError # Issue 28823
+# closure_side_effect_test: CompileTimeError # Issue 28823
 bit_operations_test/01: MissingStaticWarning # Issue 28823
 bit_operations_test/02: MissingStaticWarning # Issue 28823
 bit_operations_test/03: MissingStaticWarning # Issue 28823
 bit_operations_test/04: MissingStaticWarning # Issue 28823
-# closure_side_effect_test: CompileTimeError # Issue 28823
 field3a_negative_test: StaticWarning # Issue 28823
+interface_inherit_field_test: StaticWarning # Issue 28823
+internal_library_test/02: MissingStaticWarning # Issue 28823
 main_not_a_function_test/01: MissingStaticWarning # Issue 28823
 main_test/03: MissingStaticWarning # Issue 28823
 no_main_test/01: MissingStaticWarning # Issue 28823
@@ -423,9 +377,10 @@ call_closurization_test: RuntimeError # Issue 29920
 const_evaluation_test/01: RuntimeError # Issue 29920
 dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?
+double_int_to_string_test: RuntimeError # Issue 29920
+execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
-field_increment_bailout_test: RuntimeError # Issue 29920
 field_optimization3_test: RuntimeError # Issue 29920
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
@@ -436,8 +391,6 @@ lazy_static3_test: RuntimeError # Issue 29920
 left_shift_test: RuntimeError # Issue 29920
 list_is_test: RuntimeError # Issue 29920
 main_test/03: MissingRuntimeError # Issue 29920
-map_literal10_test: RuntimeError # Issue 29920
-map_literal7_test: RuntimeError # Issue 29920
 mint_arithmetic_test: RuntimeError # Issue 29920
 nan_identical_test: RuntimeError # Issue 29920
 nested_switch_label_test: RuntimeError # Issue 29920
@@ -449,7 +402,6 @@ stacktrace_test: RuntimeError # Issue 29920
 switch_label2_test: RuntimeError # Issue 29920
 switch_label_test: RuntimeError # Issue 29920
 switch_try_catch_test: RuntimeError # Issue 29920
-throwing_lazy_variable_test: RuntimeError # Issue 29920
 truncdiv_test: RuntimeError # Issue 29920
 
 # This test does not generate the expected compile time error, but it also does

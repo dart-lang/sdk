@@ -283,7 +283,6 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
         // When reading from .dill files, the original source files haven't been
         // loaded. Load the file if possible to provide a better error message.
         file = provider.autoReadFromFile(uri);
-        print(' file=$file');
       }
       if (file is SourceFile) {
         print(file.getLocationMessage(color(message), begin, end,

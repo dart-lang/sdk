@@ -12,6 +12,22 @@
 
 # Tests containing intentional syntax errors.
 double_invalid_test: Skip # Contains illegaly formatted double.
+getter_declaration_negative_test: Skip # Contains getter with argument.
+issue1578_negative_test: Skip # Line noise.
+is_not_class4_negative_test: Skip # Contains `a is A is A`.
+is_not_class1_negative_test: Skip # Contains `a is "A"`.
+interface_injection2_negative_test: Skip # `class C implements S;`.
+interface_injection1_negative_test: Skip # `abstract class I implements S;`.
+label8_negative_test: Skip # Contains misplaced label.
+operator1_negative_test: Skip # Contains static operator declaration.
+operator2_negative_test: Skip # Contains operator === declaration.
+string_escape4_negative_test: Skip # Single line string literal with \n.
+string_interpolate1_negative_test: Skip # Interpolation syntax error.
+string_interpolate2_negative_test: Skip # Interpolation syntax error.
+unary_plus_negative_test: Skip # Uses non-existing unary plus.
+
+# Tests containing `native` (not part of the Dart grammar).
+const_native_factory_test: Skip # Uses `native`.
 
 # Wrong tests.
 built_in_identifier_prefix_test: Skip # A built-in identifier can _not_ be a prefix.
@@ -24,6 +40,7 @@ assign_static_type_test: Skip # Not yet supported.
 assignable_expression_test: Skip # Not yet supported.
 async_await_syntax_test: Skip # Not yet supported.
 async_return_types_test: Skip # Not yet supported.
+await_backwards_compatibility_test: Skip # Not yet supported.
 bad_constructor_test: Skip # Not yet supported.
 bad_override_test: Skip # Not yet supported.
 bad_raw_string_test: Skip # Not yet supported.
@@ -40,7 +57,53 @@ class_syntax_test: Skip # Not yet supported.
 compile_time_constant10_test: Skip # Not yet supported.
 compile_time_constant11_test: Skip # Not yet supported.
 compile_time_constant13_test: Skip # Not yet supported.
+const_syntax_test: Skip # Not yet supported.
+constants_test: Skip # Not yet supported.
+constructor_name_test: Skip # Not yet supported.
+constructor_redirect2_test: Skip # Not yet supported.
+covariant_test: Skip # Not yet supported.
+cyclic_typedef_test: Skip # Not yet supported.
+deferred_type_dependency_test: Skip # Not yet supported.
+deferred_no_prefix_test: Skip # Not yet supported.
+deferred_constraints_constants_test: Skip # Not yet supported.
+function_syntax_test: Skip # Not yet supported.
 get_set_syntax_test: Skip # Not yet supported.
+mixin_super_constructor_named_test: Skip # Not yet supported.
+mixin_super_constructor_positionals_test: Skip # Not yet supported.
+mixin_super_constructor_named_test: Skip # Not yet supported.
+mixin_super_constructor_positionals_test: Skip # Not yet supported.
+getter_parameters_test: Skip # Not yet supported.
+interface_cycle_test: Skip # Not yet supported.
+illegal_declaration_test: Skip # Not yet supported.
+illegal_initializer_test: Skip # Not yet supported.
+keyword_type_expression_test: Skip # Not yet supported.
+method_override2_test: Skip # Not yet supported.
+mixin_supertype_subclass2_test: Skip # Not yet supported.
+mixin_supertype_subclass4_test: Skip # Not yet supported.
+mixin_supertype_subclass_test: Skip # Not yet supported.
+named_constructor_test: Skip # Not yet supported.
+named_parameters_aggregated_test: Skip # Not yet supported.
+null_test: Skip # Not yet supported.
+number_identifier_test: Skip # Not yet supported.
+static_final_field2_test: Skip # Not yet supported.
+static_parameter_test: Skip # Not yet supported.
+static_top_level_test: Skip # Not yet supported.
+string_interpolation1_test: Skip # Not yet supported.
+string_interpolation2_test: Skip # Not yet supported.
+string_interpolation3_test: Skip # Not yet supported.
+string_interpolation4_test: Skip # Not yet supported.
+string_interpolation5_test: Skip # Not yet supported.
+string_interpolation6_test: Skip # Not yet supported.
+string_interpolation9_test: Skip # Not yet supported.
+unbalanced_brace_test: Skip # Not yet supported.
+unsigned_right_shift_test: Skip # Not yet supported (but this will be OK!).
+unsupported_operators_test: Skip # Not yet supported.
+variable_declaration_metadata_test: Skip # Not yet supported.
+
+# Tests using generic methods.
+generic_methods_unused_parameter_test: Skip # Not yet supported.
+generic_methods_named_parameters_test: Skip # Not yet supported.
+generic_function_typedef2_test: Skip # Not yet supported.
 
 # Tests using assert in initializer list.
 assertion_initializer_test: Skip # Not yet supported.
@@ -51,3 +114,8 @@ assertion_initializer_const_function_error_test: Skip # Not yet supported.
 
 # Tests using generalized void.
 void_type_function_types_test: Skip # Not yet supported.
+
+# Tests that fail because of the deep nesting.
+deep_nesting1_negative_test: Skip # Issue: nesting.
+deep_nesting2_negative_test: Skip # Issue: nesting.
+issue_1751477_test: Skip # Issue: nesting.

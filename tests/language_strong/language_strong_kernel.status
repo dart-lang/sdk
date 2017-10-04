@@ -19,12 +19,6 @@ conditional_import_string_test: DartkCompileTimeError
 conditional_import_test: DartkCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_locals_test: RuntimeError
-enum_duplicate_test/01: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
-enum_mirror_test: RuntimeError
-enum_test: RuntimeError
-evaluation_redirecting_constructor_test: RuntimeError
 export_double_same_main_test: DartkCrash
 export_main_test: DartkCrash
 f_bounded_equality_test: RuntimeError
@@ -35,16 +29,7 @@ inferrer_closure_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 lazy_static7_test: DartkCompileTimeError
 main_not_a_function_test/01: DartkCrash
-many_named_arguments_test: DartkCompileTimeError
-map_literal11_test: RuntimeError
-map_literal7_test: RuntimeError
 mixin_generic_test: RuntimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
-mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: RuntimeError
-mixin_mixin_bound2_test: RuntimeError
-mixin_mixin_bound_test: RuntimeError
 no_main_test/01: DartkCrash
 prefix10_negative_test: Fail
 prefix21_test: RuntimeError
@@ -59,5 +44,3 @@ setter_no_getter_test/01: Crash # VM does not support BottomType
 switch_try_catch_test: RuntimeError
 sync_generator3_test/test2: RuntimeError
 type_error_test: RuntimeError # Throws CastError instead of TypeError
-type_literal_test: RuntimeError
-type_parameter_literal_test: RuntimeError

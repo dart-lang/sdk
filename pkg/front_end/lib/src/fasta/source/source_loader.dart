@@ -8,6 +8,9 @@ import 'dart:async' show Future;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:front_end/src/fasta/type_inference/interface_resolver.dart'
+    show InterfaceResolver;
+
 import 'package:kernel/ast.dart' show Arguments, Expression, Program;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -47,8 +50,7 @@ import '../fasta_codes.dart'
         templateIllegalMixin,
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
-        templateInternalProblemUriMissingScheme,
-        templateUnspecified;
+        templateInternalProblemUriMissingScheme;
 
 import '../kernel/kernel_shadow_ast.dart'
     show ShadowClass, ShadowTypeInferenceEngine;
@@ -91,6 +93,8 @@ class SourceLoader<L> extends Loader<L> {
   CoreTypes coreTypes;
 
   TypeInferenceEngine typeInferenceEngine;
+
+  InterfaceResolver interfaceResolver;
 
   Instrumentation instrumentation;
 
@@ -135,7 +139,7 @@ class SourceLoader<L> extends Loader<L> {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
         library.addCompileTimeError(
-            templateUnspecified.withArguments(error.assertionMessage),
+            error.assertionMessage,
             token.charOffset,
             uri);
       }
@@ -486,6 +490,10 @@ class SourceLoader<L> extends Loader<L> {
   /// them.
   void prepareTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
+    interfaceResolver = new InterfaceResolver(
+        typeInferenceEngine.typeSchemaEnvironment,
+        instrumentation,
+        target.strongMode);
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
         library.prepareTopLevelInference(library, null);
@@ -493,8 +501,9 @@ class SourceLoader<L> extends Loader<L> {
     });
     for (ShadowClass class_ in hierarchy
         .getOrderedClasses(sourceClasses.map((builder) => builder.target))) {
-      var builder = class_.builder;
+      var builder = ShadowClass.getClassInferenceInfo(class_).builder;
       builder.prepareTopLevelInference(builder.library, builder);
+      class_.setupForwardingNodes(interfaceResolver);
     }
     ticker.logMs("Prepared top level inference");
   }
@@ -502,8 +511,14 @@ class SourceLoader<L> extends Loader<L> {
   /// Performs the second phase of top level initializer inference, which is to
   /// visit fields and top level variables in topologically-sorted order and
   /// assign their types.
-  void performTopLevelInference() {
+  void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     typeInferenceEngine.finishTopLevel();
+    for (var builder in sourceClasses) {
+      ShadowClass target = builder.target;
+      target.finalizeCovariance(interfaceResolver);
+      ShadowClass.clearClassInferenceInfo(target);
+    }
+    interfaceResolver = null;
     ticker.logMs("Performed top level inference");
   }
 

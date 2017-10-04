@@ -11,7 +11,9 @@ import '../constants/constant_system.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
+import '../js_backend/backend.dart';
 import '../kernel/element_map.dart';
+import '../native/behavior.dart';
 import '../options.dart';
 import '../types/constants.dart';
 import '../types/types.dart';
@@ -164,9 +166,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         node.initializers.first is ir.RedirectingInitializer)) {
       // Iterate over all instance fields, and give a null type to
       // fields that we haven't initialized for sure.
-      _elementMap.elementEnvironment.forEachClassMember(cls,
-          (ClassEntity declarer, MemberEntity member) {
-        if (declarer != cls) return;
+      _elementMap.elementEnvironment.forEachLocalClassMember(cls,
+          (MemberEntity member) {
         if (member.isField && member.isInstanceMember && member.isAssignable) {
           TypeInformation type = _locals.fieldScope.readField(member);
           MemberDefinition definition = _elementMap.getMemberDefinition(member);
@@ -371,6 +372,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitSymbolLiteral(ir.SymbolLiteral node) {
+    return _types
+        .nonNullSubtype(_closedWorld.commonElements.symbolImplementationClass);
+  }
+
+  @override
+  TypeInformation visitTypeLiteral(ir.TypeLiteral node) {
+    return _types.typeType;
+  }
+
+  @override
   TypeInformation visitVariableDeclaration(ir.VariableDeclaration node) {
     assert(
         node.parent is! ir.FunctionNode, "Unexpected parameter declaration.");
@@ -386,7 +398,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitVariableGet(ir.VariableGet node) {
-    return _locals.use(_localsMap.getLocalVariable(node.variable));
+    Local local = _localsMap.getLocalVariable(node.variable);
+    TypeInformation type = _locals.use(local);
+    assert(type != null, "Missing type information for $local.");
+    return type;
   }
 
   @override
@@ -415,11 +430,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitMethodInvocation(ir.MethodInvocation node) {
-    TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
 
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
+
+    ir.TreeNode receiver = node.receiver;
+    if (receiver is ir.VariableGet &&
+        receiver.variable.parent is ir.FunctionDeclaration) {
+      // This is an invocation of a named local function.
+      ClosureRepresentationInfo info =
+          _closureDataLookup.getClosureInfo(receiver.variable.parent);
+      return handleStaticInvoke(
+          node, selector, mask, info.callMethod, arguments);
+    }
+
+    TypeInformation receiverType = visit(receiver);
     if (selector.name == '==') {
       if (_types.isNull(receiverType)) {
         // null == o
@@ -594,29 +620,83 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         element, arguments, _sideEffects, inLoop);
   }
 
+  TypeInformation handleClosureCall(ir.Node node, Selector selector,
+      TypeMask mask, MemberEntity member, ArgumentsTypes arguments) {
+    return _inferrer.registerCalledClosure(
+        node,
+        selector,
+        mask,
+        _inferrer.typeOfMember(member),
+        _analyzedMember,
+        arguments,
+        _sideEffects,
+        inLoop);
+  }
+
+  TypeInformation handleForeignInvoke(
+      ir.StaticInvocation node,
+      FunctionEntity function,
+      ArgumentsTypes arguments,
+      Selector selector,
+      TypeMask mask) {
+    String name = function.name;
+    handleStaticInvoke(node, selector, mask, function, arguments);
+    if (name == JavaScriptBackend.JS) {
+      NativeBehavior nativeBehavior =
+          _elementMap.getNativeBehaviorForJsCall(node);
+      _sideEffects.add(nativeBehavior.sideEffects);
+      return _inferrer.typeOfNativeBehavior(nativeBehavior);
+    } else if (name == JavaScriptBackend.JS_EMBEDDED_GLOBAL) {
+      NativeBehavior nativeBehavior =
+          _elementMap.getNativeBehaviorForJsEmbeddedGlobalCall(node);
+      _sideEffects.add(nativeBehavior.sideEffects);
+      return _inferrer.typeOfNativeBehavior(nativeBehavior);
+    } else if (name == JavaScriptBackend.JS_BUILTIN) {
+      NativeBehavior nativeBehavior =
+          _elementMap.getNativeBehaviorForJsBuiltinCall(node);
+      _sideEffects.add(nativeBehavior.sideEffects);
+      return _inferrer.typeOfNativeBehavior(nativeBehavior);
+    } else if (name == JavaScriptBackend.JS_STRING_CONCAT) {
+      return _types.stringType;
+    } else {
+      _sideEffects.setAllSideEffects();
+      return _types.dynamicType;
+    }
+  }
+
   @override
   TypeInformation visitStaticInvocation(ir.StaticInvocation node) {
     MemberEntity member = _elementMap.getMember(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    // TODO(redemption): Handle foreign functions.
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
-    if (member.isConstructor) {
+    if (_closedWorld.commonElements.isForeign(member)) {
+      return handleForeignInvoke(node, member, arguments, selector, mask);
+    } else if (member.isConstructor) {
       return handleConstructorInvoke(node, selector, mask, member, arguments);
     } else if (member.isFunction) {
       return handleStaticInvoke(node, selector, mask, member, arguments);
     } else {
-      handleStaticInvoke(node, selector, mask, member, arguments);
-      return _inferrer.registerCalledClosure(
-          node,
-          selector,
-          mask,
-          _inferrer.typeOfMember(member),
-          _analyzedMember,
-          arguments,
-          _sideEffects,
-          inLoop);
+      return handleClosureCall(node, selector, mask, member, arguments);
     }
+  }
+
+  @override
+  TypeInformation visitStaticGet(ir.StaticGet node) {
+    MemberEntity member = _elementMap.getMember(node.target);
+    TypeMask mask = _memberData.typeOfSend(node);
+    return handleStaticInvoke(
+        node, new Selector.getter(member.memberName), mask, member, null);
+  }
+
+  @override
+  TypeInformation visitStaticSet(ir.StaticSet node) {
+    TypeInformation rhsType = visit(node.value);
+    MemberEntity member = _elementMap.getMember(node.target);
+    TypeMask mask = _memberData.typeOfSend(node);
+    handleStaticInvoke(node, new Selector.setter(member.memberName), mask,
+        member, new ArgumentsTypes([rhsType], null));
+    return rhsType;
   }
 
   @override
@@ -627,6 +707,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // TODO(redemption): Use `node.interfaceTarget` to narrow the receiver type
     // for --trust-type-annotations/strong-mode.
     return handleDynamicGet(node, selector, mask, receiverType);
+  }
+
+  @override
+  TypeInformation visitDirectPropertyGet(ir.DirectPropertyGet node) {
+    TypeInformation receiverType = thisType;
+    MemberEntity member = _elementMap.getMember(node.target);
+    TypeMask mask = _memberData.typeOfSend(node);
+    // TODO(johnniwinther): Use `node.target` to narrow the receiver type.
+    return handleDynamicGet(
+        node, new Selector.getter(member.memberName), mask, receiverType);
   }
 
   @override
@@ -815,6 +905,214 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     failedAt(CURRENT_ELEMENT_SPANNABLE,
         "Unexpected logical operator '${node.operator}'.");
     return null;
+  }
+
+  @override
+  TypeInformation visitConditionalExpression(ir.ConditionalExpression node) {
+    List<IsCheck> positiveTests = <IsCheck>[];
+    List<IsCheck> negativeTests = <IsCheck>[];
+    bool simpleCondition =
+        handleCondition(node.condition, positiveTests, negativeTests);
+    LocalsHandler saved = _locals;
+    _locals = new LocalsHandler.from(_locals, node);
+    _updateIsChecks(positiveTests, negativeTests);
+    TypeInformation firstType = visit(node.then);
+    LocalsHandler thenLocals = _locals;
+    _locals = new LocalsHandler.from(saved, node);
+    if (simpleCondition) _updateIsChecks(negativeTests, positiveTests);
+    TypeInformation secondType = visit(node.otherwise);
+    saved.mergeDiamondFlow(thenLocals, _locals);
+    _locals = saved;
+    return _types.allocateDiamondPhi(firstType, secondType);
+  }
+
+  TypeInformation handleLocalFunction(
+      ir.TreeNode node, ir.FunctionNode functionNode,
+      [ir.VariableDeclaration variable]) {
+    ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
+    TypeInformation localFunctionType =
+        _inferrer.concreteTypes.putIfAbsent(node, () {
+      return _types.allocateClosure(info.callMethod);
+    });
+    if (variable != null) {
+      Local local = _localsMap.getLocalVariable(variable);
+      DartType type = _localsMap.getLocalType(_elementMap, local);
+      _locals.update(local, localFunctionType, node, type);
+    }
+
+    // TODO(redemption): Track exposure of `this`.
+
+    // We don't put the closure in the work queue of the
+    // inferrer, because it will share information with its enclosing
+    // method, like for example the types of local variables.
+    LocalsHandler closureLocals =
+        new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
+    KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
+        _options,
+        _closedWorld,
+        _closureDataLookup,
+        _inferrer,
+        info.callMethod,
+        functionNode,
+        _elementMap,
+        _localsMap,
+        closureLocals);
+    visitor.run();
+    _inferrer.recordReturnType(info.callMethod, visitor._returnType);
+
+    // TODO(redemption): Handle captured variables.
+    return localFunctionType;
+  }
+
+  @override
+  TypeInformation visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    return handleLocalFunction(node, node.function, node.variable);
+  }
+
+  @override
+  TypeInformation visitFunctionExpression(ir.FunctionExpression node) {
+    return handleLocalFunction(node, node.function);
+  }
+
+  @override
+  visitWhileStatement(ir.WhileStatement node) {
+    return handleLoop(node, _localsMap.getJumpTargetForWhile(node), () {
+      List<IsCheck> positiveTests = <IsCheck>[];
+      List<IsCheck> negativeTests = <IsCheck>[];
+      handleCondition(node.condition, positiveTests, negativeTests);
+      _updateIsChecks(positiveTests, negativeTests);
+      visit(node.body);
+    });
+  }
+
+  @override
+  visitDoStatement(ir.DoStatement node) {
+    return handleLoop(node, _localsMap.getJumpTargetForDo(node), () {
+      visit(node.body);
+      List<IsCheck> positiveTests = <IsCheck>[];
+      List<IsCheck> negativeTests = <IsCheck>[];
+      handleCondition(node.condition, positiveTests, negativeTests);
+      // TODO(29309): This condition appears to strengthen both the back-edge
+      // and exit-edge. For now, avoid strengthening on the condition until the
+      // proper fix is found.
+      //
+      //     updateIsChecks(positiveTests, negativeTests);
+    });
+  }
+
+  @override
+  visitForStatement(ir.ForStatement node) {
+    for (ir.VariableDeclaration variable in node.variables) {
+      visit(variable);
+    }
+    return handleLoop(node, _localsMap.getJumpTargetForFor(node), () {
+      List<IsCheck> positiveTests = <IsCheck>[];
+      List<IsCheck> negativeTests = <IsCheck>[];
+      handleCondition(node.condition, positiveTests, negativeTests);
+      _updateIsChecks(positiveTests, negativeTests);
+      visit(node.body);
+      for (ir.Expression update in node.updates) {
+        visit(update);
+      }
+    });
+  }
+
+  @override
+  visitTryCatch(ir.TryCatch node) {
+    LocalsHandler saved = _locals;
+    _locals = new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
+    initializationIsIndefinite();
+    visit(node.body);
+    saved.mergeDiamondFlow(_locals, null);
+    _locals = saved;
+    for (ir.Catch catchBlock in node.catches) {
+      saved = _locals;
+      _locals = new LocalsHandler.from(_locals, catchBlock);
+      visit(catchBlock);
+      saved.mergeDiamondFlow(_locals, null);
+      _locals = saved;
+    }
+  }
+
+  @override
+  visitTryFinally(ir.TryFinally node) {
+    LocalsHandler saved = _locals;
+    _locals = new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
+    initializationIsIndefinite();
+    visit(node.body);
+    saved.mergeDiamondFlow(_locals, null);
+    _locals = saved;
+    visit(node.finalizer);
+  }
+
+  @override
+  visitCatch(ir.Catch node) {
+    ir.VariableDeclaration exception = node.exception;
+    if (exception != null) {
+      TypeInformation mask;
+      DartType type = node.guard != null
+          ? _elementMap.getDartType(node.guard)
+          : const DynamicType();
+      if (type.isInterfaceType) {
+        InterfaceType interfaceType = type;
+        mask = _types.nonNullSubtype(interfaceType.element);
+      } else {
+        mask = _types.dynamicType;
+      }
+      Local local = _localsMap.getLocalVariable(exception);
+      _locals.update(local, mask, node, const DynamicType());
+    }
+    ir.VariableDeclaration stackTrace = node.stackTrace;
+    if (stackTrace != null) {
+      Local local = _localsMap.getLocalVariable(stackTrace);
+      // TODO(johnniwinther): Use a mask based on [StackTrace].
+      _locals.update(local, _types.dynamicType, node, const DynamicType());
+    }
+    visit(node.body);
+  }
+
+  @override
+  TypeInformation visitThrow(ir.Throw node) {
+    visit(node.expression);
+    _locals.seenReturnOrThrow = true;
+    return _types.nonNullEmpty();
+  }
+
+  @override
+  TypeInformation visitSuperPropertyGet(ir.SuperPropertyGet node) {
+    // TODO(redemption): Track exposure of `this`.
+    MemberEntity member = _elementMap.getSuperMember(
+        _analyzedMember, node.name, node.interfaceTarget);
+    TypeMask mask = _memberData.typeOfSend(node);
+    return handleStaticInvoke(
+        node, new Selector.getter(member.memberName), mask, member, null);
+  }
+
+  @override
+  TypeInformation visitSuperPropertySet(ir.SuperPropertySet node) {
+    // TODO(redemption): Track exposure of `this`.
+    TypeInformation rhsType = visit(node.value);
+    MemberEntity member = _elementMap.getSuperMember(
+        _analyzedMember, node.name, node.interfaceTarget);
+    TypeMask mask = _memberData.typeOfSend(node);
+    handleStaticInvoke(node, new Selector.setter(member.memberName), mask,
+        member, new ArgumentsTypes([rhsType], null));
+    return rhsType;
+  }
+
+  @override
+  TypeInformation visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
+    // TODO(redemption): Track exposure of `this`.
+    MemberEntity member = _elementMap.getSuperMember(
+        _analyzedMember, node.name, node.interfaceTarget);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+    if (member.isFunction) {
+      return handleStaticInvoke(node, selector, mask, member, arguments);
+    } else {
+      return handleClosureCall(node, selector, mask, member, arguments);
+    }
   }
 }
 

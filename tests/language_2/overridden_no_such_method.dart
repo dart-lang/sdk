@@ -25,7 +25,7 @@ class OverriddenNoSuchMethod {
   }
 
   static testMain() {
-    var obj = new OverriddenNoSuchMethod();
-    obj.foo(101, 202); /*@compile-error=unspecified*/
+    dynamic obj = new OverriddenNoSuchMethod();
+    obj.foo(101, 202);
   }
 }

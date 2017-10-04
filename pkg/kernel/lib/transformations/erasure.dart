@@ -35,6 +35,10 @@ class Erasure extends Transformer {
 
   int constantContexts = 0;
 
+  // A set of type parameters which don't need to be substituted for their
+  // bounds because the runtime is able to substitute them correctly at runtime.
+  Set<TypeParameter> usableTypeParameters = null;
+
   void transform(Program program) {
     program.accept(this);
   }
@@ -76,7 +80,14 @@ class Erasure extends Transformer {
           positionalParameterNames: function.positionalParameterNames,
           typedefReference: function.typedefReference);
     }
-    type = substitute(type, substitution);
+
+    var temporarySubstitution =
+        Substitution.filtered(Substitution.fromMap(substitution), (parameter) {
+      return (usableTypeParameters == null ||
+          !usableTypeParameters.contains(parameter));
+    });
+
+    type = temporarySubstitution.substituteType(type);
     if (isInConstantContext) {
       type = substitute(type, constantSubstitution);
     }
@@ -128,34 +139,29 @@ class Erasure extends Transformer {
         substitution[parameter] = substitute(parameter.bound, substitution);
       }
     }
+
+    // Type parameters which are defined on a method or top-level function can
+    // be used if they're not captured.
+    var save = null;
+    if (node.parent.parent is Library || node.parent.parent is Class) {
+      usableTypeParameters = new Set<TypeParameter>.from(node.typeParameters);
+    } else {
+      save = usableTypeParameters;
+      usableTypeParameters = null;
+    }
+
     node.transformChildren(this);
+    if (save != null) usableTypeParameters = save;
+
     node.typeParameters.forEach(substitution.remove);
-    node.typeParameters.clear();
     return node;
   }
 
   @override
   visitStaticInvocation(StaticInvocation node) {
-    if (node.target.kind != ProcedureKind.Factory) {
-      node.arguments.types.clear();
-    }
     if (node.isConst) pushConstantContext();
     node.transformChildren(this);
     if (node.isConst) popConstantContext();
-    return node;
-  }
-
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    node.arguments.types.clear();
-    node.transformChildren(this);
-    return node;
-  }
-
-  @override
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
-    node.arguments.types.clear();
-    node.transformChildren(this);
     return node;
   }
 

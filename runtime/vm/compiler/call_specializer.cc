@@ -1449,10 +1449,10 @@ void CallSpecializer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     ASSERT(target.always_inline());
 
     const intptr_t kTypeArgsLen = 0;
-    StaticCallInstr* new_call =
-        new (Z) StaticCallInstr(call->token_pos(), target, kTypeArgsLen,
-                                Object::null_array(),  // argument_names
-                                args, call->deopt_id(), call->CallCount());
+    StaticCallInstr* new_call = new (Z) StaticCallInstr(
+        call->token_pos(), target, kTypeArgsLen,
+        Object::null_array(),  // argument_names
+        args, call->deopt_id(), call->CallCount(), ICData::kStatic);
     Environment* copy =
         call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
     for (intptr_t i = 0; i < args->length(); ++i) {

@@ -6,13 +6,14 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/names.dart';
+import '../common/resolution.dart';
+import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../common_elements.dart';
-import '../elements/types.dart';
 import '../elements/elements.dart' show AstElement, ResolvedAst;
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/element_map.dart';
 import '../kernel/kernel.dart';
@@ -21,9 +22,7 @@ import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
-
 import 'kernel_ast_adapter.dart';
-import '../common/resolution.dart';
 
 /// Computes the [ResolutionImpact] for [resolvedAst] through kernel.
 ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
@@ -34,7 +33,7 @@ ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
     KernelAstAdapter astAdapter = new KernelAstAdapter(kernel, compiler.backend,
         resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
     ir.Member member = getIrMember(compiler, resolvedAst);
-    return buildKernelImpact(member, astAdapter);
+    return buildKernelImpact(member, astAdapter, compiler.reporter);
   });
 }
 
@@ -62,9 +61,10 @@ ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
   return member;
 }
 
-ResolutionImpact buildKernelImpact(
-    ir.Member member, KernelToElementMapForImpact elementAdapter) {
-  KernelImpactBuilder builder = new KernelImpactBuilder(elementAdapter, member);
+ResolutionImpact buildKernelImpact(ir.Member member,
+    KernelToElementMapForImpact elementAdapter, DiagnosticReporter reporter) {
+  KernelImpactBuilder builder = new KernelImpactBuilder(
+      elementAdapter, elementAdapter.getMember(member), reporter);
   if (member is ir.Procedure) {
     return builder.buildProcedure(member);
   } else if (member is ir.Constructor) {
@@ -78,11 +78,15 @@ ResolutionImpact buildKernelImpact(
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
   final KernelToElementMapForImpact elementAdapter;
-  final ir.Member currentMember;
+  final DiagnosticReporter reporter;
+  final MemberEntity currentMember;
+  _ClassEnsurer classEnsurer;
 
-  KernelImpactBuilder(this.elementAdapter, this.currentMember)
+  KernelImpactBuilder(this.elementAdapter, this.currentMember, this.reporter)
       : this.impactBuilder =
-            new ResolutionWorldImpactBuilder('${currentMember.name}');
+            new ResolutionWorldImpactBuilder('${currentMember.name}') {
+    this.classEnsurer = new _ClassEnsurer(this);
+  }
 
   CommonElements get commonElements => elementAdapter.commonElements;
 
@@ -95,10 +99,16 @@ class KernelImpactBuilder extends ir.Visitor {
     return type;
   }
 
+  void registerSeenClasses(ir.DartType irType) {
+    DartType type = elementAdapter.getDartType(irType);
+    classEnsurer.ensureClassesInType(type);
+  }
+
   /// Add checked-mode type use for the parameter type and constant for the
   /// default value of [parameter].
   void handleParameter(ir.VariableDeclaration parameter) {
     checkType(parameter.type);
+    registerSeenClasses(parameter.type);
     visitNode(parameter.initializer);
   }
 
@@ -108,12 +118,14 @@ class KernelImpactBuilder extends ir.Visitor {
     if (checkReturnType) {
       checkType(node.returnType);
     }
+    registerSeenClasses(node.returnType);
     node.positionalParameters.forEach(handleParameter);
     node.namedParameters.forEach(handleParameter);
   }
 
   ResolutionImpact buildField(ir.Field field) {
     checkType(field.type);
+    registerSeenClasses(field.type);
     if (field.initializer != null) {
       visitNode(field.initializer);
       if (!field.isInstanceMember &&
@@ -251,6 +263,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitListLiteral(ir.ListLiteral literal) {
     visitNodes(literal.expressions);
     DartType elementType = checkType(literal.typeArgument);
+    registerSeenClasses(literal.typeArgument);
 
     impactBuilder.registerListLiteral(new ListLiteralUse(
         commonElements.listType(elementType),
@@ -263,6 +276,8 @@ class KernelImpactBuilder extends ir.Visitor {
     visitNodes(literal.entries);
     DartType keyType = checkType(literal.keyType);
     DartType valueType = checkType(literal.valueType);
+    registerSeenClasses(literal.keyType);
+    registerSeenClasses(literal.valueType);
     impactBuilder.registerMapLiteral(new MapLiteralUse(
         commonElements.mapType(keyType, valueType),
         isConstant: literal.isConst,
@@ -301,6 +316,7 @@ class KernelImpactBuilder extends ir.Visitor {
 
     InterfaceType type = elementAdapter.createInterfaceType(
         target.enclosingClass, node.arguments.types);
+    classEnsurer.ensureClassesInType(type);
     CallStructure callStructure =
         elementAdapter.getCallStructure(node.arguments);
     impactBuilder.registerStaticUse(isConst
@@ -314,10 +330,12 @@ class KernelImpactBuilder extends ir.Visitor {
       ConstantValue value =
           elementAdapter.getConstantValue(node.arguments.positional.first);
       if (!value.isString) {
-        failedAt(
+        // TODO(het): Get the actual span for the Symbol constructor argument
+        reporter.reportErrorMessage(
             CURRENT_ELEMENT_SPANNABLE,
-            "Unexpected constant value in const Symbol(...) call: "
-            "${value.toStructuredText()}");
+            MessageKind.STRING_EXPECTED,
+            {'type': value.getType(elementAdapter.commonElements)});
+        return;
       }
       StringConstantValue stringValue = value;
       impactBuilder.registerConstSymbolName(stringValue.primitiveValue);
@@ -397,6 +415,7 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitStaticGet(ir.StaticGet node) {
     ir.Member target = node.target;
+    registerSeenClasses(target.getterType);
     if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
       FunctionEntity method = elementAdapter.getMethod(target);
       impactBuilder.registerStaticUse(new StaticUse.staticTearOff(method));
@@ -410,6 +429,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitStaticSet(ir.StaticSet node) {
     visitNode(node.value);
     MemberEntity member = elementAdapter.getMember(node.target);
+    registerSeenClasses(node.target.setterType);
     impactBuilder.registerStaticUse(new StaticUse.staticSet(member));
   }
 
@@ -422,8 +442,7 @@ class KernelImpactBuilder extends ir.Visitor {
           method, elementAdapter.getCallStructure(arguments)));
     } else {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
-          elementAdapter.getSuperNoSuchMethod(
-              elementAdapter.getClass(currentMember.enclosingClass)),
+          elementAdapter.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
@@ -458,8 +477,7 @@ class KernelImpactBuilder extends ir.Visitor {
       }
     } else {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
-          elementAdapter.getSuperNoSuchMethod(
-              elementAdapter.getClass(currentMember.enclosingClass)),
+          elementAdapter.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
@@ -491,8 +509,7 @@ class KernelImpactBuilder extends ir.Visitor {
       }
     } else {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
-          elementAdapter.getSuperNoSuchMethod(
-              elementAdapter.getClass(currentMember.enclosingClass)),
+          elementAdapter.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
@@ -579,6 +596,7 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitVariableDeclaration(ir.VariableDeclaration node) {
     checkType(node.type);
+    registerSeenClasses(node.type);
     if (node.initializer != null) {
       visitNode(node.initializer);
     } else {
@@ -590,6 +608,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitIsExpression(ir.IsExpression node) {
     impactBuilder.registerTypeUse(
         new TypeUse.isCheck(elementAdapter.getDartType(node.type)));
+    registerSeenClasses(node.type);
     visitNode(node.operand);
   }
 
@@ -597,6 +616,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitAsExpression(ir.AsExpression node) {
     impactBuilder.registerTypeUse(
         new TypeUse.asCast(elementAdapter.getDartType(node.type)));
+    registerSeenClasses(node.type);
     visitNode(node.operand);
   }
 
@@ -672,4 +692,46 @@ class KernelImpactBuilder extends ir.Visitor {
   // instead to ensure that we don't visit unwanted parts of the ir.
   @override
   void defaultNode(ir.Node node) => node.visitChildren(this);
+}
+
+class _ClassEnsurer extends BaseDartTypeVisitor<dynamic, Null> {
+  final KernelImpactBuilder builder;
+
+  _ClassEnsurer(this.builder);
+
+  void ensureClassesInType(DartType type) {
+    type.accept(this, null);
+  }
+
+  @override
+  visitType(DartType type, _) {}
+
+  @override
+  visitFunctionType(FunctionType type, _) {
+    type.returnType.accept(this, null);
+    type.parameterTypes.forEach((t) {
+      t.accept(this, null);
+    });
+    type.optionalParameterTypes.forEach((t) {
+      t.accept(this, null);
+    });
+    type.namedParameterTypes.forEach((t) {
+      t.accept(this, null);
+    });
+  }
+
+  @override
+  visitInterfaceType(InterfaceType type, _) {
+    builder.impactBuilder.registerSeenClass(type.element);
+    type.typeArguments.forEach((t) {
+      t.accept(this, null);
+    });
+  }
+
+  @override
+  visitTypedefType(TypedefType type, _) {
+    type.typeArguments.forEach((t) {
+      t.accept(this, null);
+    });
+  }
 }

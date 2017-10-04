@@ -166,10 +166,14 @@ void Assembler::popq(const Address& address) {
 }
 
 void Assembler::setcc(Condition condition, ByteRegister dst) {
+  ASSERT(dst != kNoByteRegister);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (dst >= 8) {
+    EmitUint8(REX_PREFIX | (((dst & 0x08) != 0) ? REX_B : REX_NONE));
+  }
   EmitUint8(0x0F);
   EmitUint8(0x90 + condition);
-  EmitUint8(0xC0 + dst);
+  EmitUint8(0xC0 + (dst & 0x07));
 }
 
 void Assembler::movl(Register dst, Register src) {
@@ -3327,7 +3331,10 @@ void Assembler::LoadClass(Register result, Register object) {
   LoadClassById(result, TMP);
 }
 
-void Assembler::CompareClassId(Register object, intptr_t class_id) {
+void Assembler::CompareClassId(Register object,
+                               intptr_t class_id,
+                               Register scratch) {
+  ASSERT(scratch == kNoRegister);
   LoadClassId(TMP, object);
   cmpl(TMP, Immediate(class_id));
 }

@@ -10,7 +10,7 @@ class C extends core::Object {
     core::print("Called m");
   }
   method testC() → dynamic {
-    this.m();
+    this.{self::C::m}();
   }
 }
 class D extends self::C {
@@ -18,7 +18,7 @@ class D extends self::C {
     : super self::C::•()
     ;
   method testD() → dynamic {
-    this.m();
+    this.{self::C::m}();
   }
 }
 static method main() → dynamic {

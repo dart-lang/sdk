@@ -108,6 +108,7 @@ class AnalyzerOptionsValidator extends CompositeValidator {
 /// Convenience class for composing validators.
 class CompositeValidator extends OptionsValidator {
   final List<OptionsValidator> validators;
+
   CompositeValidator(this.validators);
 
   @override
@@ -131,6 +132,7 @@ class ErrorBuilder {
       code = singularProposalCode;
     }
   }
+
   AnalysisOptionsWarningCode get pluralProposalCode =>
       AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
 
@@ -438,6 +440,9 @@ class StrongModeOptionValueValidator extends OptionsValidator {
         if (!AnalyzerOptions.trueOrFalse.contains(value)) {
           trueOrFalseBuilder.reportError(
               reporter, AnalyzerOptions.strong_mode, v);
+        } else if (value == 'false') {
+          reporter.reportErrorForSpan(
+              AnalysisOptionsHintCode.SPEC_MODE_DEPRECATED, v.span);
         }
       }
     }
@@ -458,6 +463,7 @@ class TopLevelOptionValidator extends OptionsValidator {
   final List<String> supportedOptions;
   String _valueProposal;
   AnalysisOptionsWarningCode _warningCode;
+
   TopLevelOptionValidator(this.pluginName, this.supportedOptions) {
     assert(supportedOptions != null && !supportedOptions.isEmpty);
     if (supportedOptions.length > 1) {
@@ -491,6 +497,7 @@ class TopLevelOptionValidator extends OptionsValidator {
 /// An error-builder that knows about `true` and `false` legal values.
 class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
   TrueOrFalseValueErrorBuilder() : super(AnalyzerOptions.trueOrFalse);
+
   @override
   AnalysisOptionsWarningCode get pluralProposalCode =>
       AnalysisOptionsWarningCode.UNSUPPORTED_VALUE;

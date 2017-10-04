@@ -13,6 +13,10 @@ main() {
   });
 }
 
+/// Tests marked with this annotations fail because we either have not triaged
+/// them, or know that this is an analyzer problem.
+const potentialAnalyzerProblem = const Object();
+
 /// Tests marked with this annotation fail because of a Fasta problem.
 class FastaProblem {
   const FastaProblem(String issueUri);
@@ -25,42 +29,42 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_async_future_int_with_return_future_int() async {
-    return super.test_async_future_int_with_return_future_int();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_conflictingConstructorNameAndMember_setter() async {
     return super.test_conflictingConstructorNameAndMember_setter();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_constConstructorWithNonConstSuper_unresolved() async {
     return super.test_constConstructorWithNonConstSuper_unresolved();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_constDeferredClass_new() async {
     return super.test_constDeferredClass_new();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_constEvalTypeBoolNumString_equal() async {
     return super.test_constEvalTypeBoolNumString_equal();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_constEvalTypeBoolNumString_notEqual() async {
     return super.test_constEvalTypeBoolNumString_notEqual();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_constRedirectSkipsSupertype() async {
     return super.test_constRedirectSkipsSupertype();
   }
@@ -74,14 +78,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_constWithUndefinedConstructor() async {
     return super.test_constWithUndefinedConstructor();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_emptyName() async {
-    return super.test_duplicateDefinition_emptyName();
   }
 
   @override
@@ -101,6 +100,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_finalNotInitialized_redirectingConstructor() async {
     return super.test_finalNotInitialized_redirectingConstructor();
   }
@@ -158,24 +158,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_genericTypeAlias_invalidGenericFunctionType() async {
-    return super.test_genericTypeAlias_invalidGenericFunctionType();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_noTypeParameters() async {
-    return super.test_genericTypeAlias_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_typeParameters() async {
-    return super.test_genericTypeAlias_typeParameters();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_implicitThisReferenceInInitializer_constructorName() async {
     return super.test_implicitThisReferenceInInitializer_constructorName();
   }
@@ -203,72 +186,84 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_newWithUndefinedConstructor() async {
     return super.test_newWithUndefinedConstructor();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_nonConstValueInInitializer_binary_bool() async {
     return super.test_nonConstValueInInitializer_binary_bool();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_nonConstValueInInitializer_binary_dynamic() async {
     return super.test_nonConstValueInInitializer_binary_dynamic();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_nonConstValueInInitializer_binary_int() async {
     return super.test_nonConstValueInInitializer_binary_int();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_nonConstValueInInitializer_binary_num() async {
     return super.test_nonConstValueInInitializer_binary_num();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_nonConstValueInInitializer_redirecting() async {
     return super.test_nonConstValueInInitializer_redirecting();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_nonConstValueInInitializer_unary() async {
     return super.test_nonConstValueInInitializer_unary();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_nonGenerativeConstructor() async {
     return super.test_nonGenerativeConstructor();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_propagateTypeArgs_intoSupertype() async {
     return super.test_propagateTypeArgs_intoSupertype();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_recursiveConstructorRedirect() async {
     return super.test_recursiveConstructorRedirect();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_redirectToNonConstConstructor() async {
     return super.test_redirectToNonConstConstructor();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_referenceToDeclaredVariableInInitializer_constructorName() async {
     return super
         .test_referenceToDeclaredVariableInInitializer_constructorName();
@@ -276,18 +271,21 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_staticAccessToInstanceMember_annotation() async {
     return super.test_staticAccessToInstanceMember_annotation();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_undefinedConstructorInInitializer_explicit_named() async {
     return super.test_undefinedConstructorInInitializer_explicit_named();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_undefinedConstructorInInitializer_redirecting() async {
     return super.test_undefinedConstructorInInitializer_redirecting();
   }
@@ -308,6 +306,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new() async {
     return super
         .test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new();

@@ -8,6 +8,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/src/dart/ast/ast.dart' show NodeListImpl;
 import 'package:front_end/src/fasta/parser.dart'
     show
         Assert,
@@ -1207,11 +1208,26 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    debugEvent("ImportPrefix");
+    if (asKeyword == null) {
+      // If asKeyword is null, then no prefix has been pushed on the stack.
+      // Push a placeholder indicating that there is no prefix.
+      push(NullValue.Prefix);
+      push(NullValue.As);
+    } else {
+      push(asKeyword);
+    }
+    push(deferredKeyword ?? NullValue.Deferred);
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
     debugEvent("Import");
     List<Combinator> combinators = pop();
-    SimpleIdentifier prefix = popIfNotNull(asKeyword);
+    Token deferredKeyword = pop(NullValue.Deferred);
+    Token asKeyword = pop(NullValue.As);
+    SimpleIdentifier prefix = pop(NullValue.Prefix);
     List<Configuration> configurations = pop();
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
@@ -1232,11 +1248,12 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
+  void handleRecoverImport(Token semicolon) {
     debugEvent("RecoverImport");
     List<Combinator> combinators = pop();
-    SimpleIdentifier prefix = popIfNotNull(asKeyword);
+    Token deferredKeyword = pop(NullValue.Deferred);
+    Token asKeyword = pop(NullValue.As);
+    SimpleIdentifier prefix = pop(NullValue.Prefix);
     List<Configuration> configurations = pop();
 
     ImportDirective directive = directives.last;
@@ -1335,8 +1352,12 @@ class AstBuilder extends ScopeListener {
   @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassBody");
-    push(new _ClassBody(
-        beginToken, popList(memberCount) ?? <ClassMember>[], endToken));
+    ClassDeclaration classDeclaration = declarations.last;
+    classDeclaration.leftBracket = beginToken;
+    NodeListImpl<ClassMember> members = classDeclaration.members;
+    members.setLength(memberCount);
+    popList(memberCount, members);
+    classDeclaration.rightBracket = endToken;
   }
 
   @override
@@ -1346,25 +1367,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
-    debugEvent("ClassDeclaration");
-    _ClassBody body = pop();
-    NativeClause nativeClause;
-    if (nativeToken != null) {
-      nativeClause = ast.nativeClause(nativeToken, nativeName);
-    }
-    ImplementsClause implementsClause;
-    if (implementsKeyword != null) {
-      List<TypeName> interfaces = popList(interfacesCount);
-      implementsClause = ast.implementsClause(implementsKeyword, interfaces);
-    }
+  void handleClassExtends(Token extendsKeyword) {
     ExtendsClause extendsClause;
     WithClause withClause;
     var supertype = pop();
@@ -1379,29 +1382,59 @@ class AstBuilder extends ScopeListener {
       unhandled("${supertype.runtimeType}", "supertype",
           extendsKeyword.charOffset, uri);
     }
+    push(extendsClause ?? NullValue.ExtendsClause);
+    push(withClause ?? NullValue.WithClause);
+  }
+
+  @override
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    if (implementsKeyword != null) {
+      List<TypeName> interfaces = popList(interfacesCount);
+      push(ast.implementsClause(implementsKeyword, interfaces));
+    } else {
+      push(NullValue.IdentifierList);
+    }
+  }
+
+  @override
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    NativeClause nativeClause;
+    if (nativeToken != null) {
+      nativeClause = ast.nativeClause(nativeToken, nativeName);
+    }
+    ImplementsClause implementsClause = pop(NullValue.IdentifierList);
+    WithClause withClause = pop(NullValue.WithClause);
+    ExtendsClause extendsClause = pop(NullValue.ExtendsClause);
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
     assert(className == name.name);
-    className = null;
     _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
     Comment comment = pop();
+    // leftBracket, members, and rightBracket are set in [endClassBody].
     ClassDeclaration classDeclaration = ast.classDeclaration(
-        comment,
-        metadata,
-        abstractKeyword,
-        classKeyword,
-        name,
-        typeParameters,
-        extendsClause,
-        withClause,
-        implementsClause,
-        body.beginToken,
-        body.members,
-        body.endToken);
+      comment,
+      metadata,
+      abstractKeyword,
+      classKeyword,
+      name,
+      typeParameters,
+      extendsClause,
+      withClause,
+      implementsClause,
+      null, // leftBracket
+      <ClassMember>[],
+      null, // rightBracket
+    );
     classDeclaration.nativeClause = nativeClause;
     declarations.add(classDeclaration);
+  }
+
+  @override
+  void endClassDeclaration(Token beginToken, Token endToken) {
+    debugEvent("ClassDeclaration");
+    className = null;
   }
 
   @override
@@ -1472,7 +1505,7 @@ class AstBuilder extends ScopeListener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    addCompileTimeError(message, token.offset);
+    addCompileTimeErrorWithLength(message, token.offset, token.length);
   }
 
   @override
@@ -1966,6 +1999,10 @@ class AstBuilder extends ScopeListener {
 
   @override
   void addCompileTimeError(Message message, int charOffset) {
+    addCompileTimeErrorWithLength(message, charOffset, 1);
+  }
+
+  void addCompileTimeErrorWithLength(Message message, int offset, int length) {
     Code code = message.code;
     Map<String, dynamic> arguments = message.arguments;
 
@@ -1983,122 +2020,173 @@ class AstBuilder extends ScopeListener {
     switch (code.analyzerCode) {
       case "ABSTRACT_CLASS_MEMBER":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ABSTRACT_CLASS_MEMBER, charOffset, 1);
+            ParserErrorCode.ABSTRACT_CLASS_MEMBER, offset, length);
+        return;
+      case "ASYNC_KEYWORD_USED_AS_IDENTIFIER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, offset, length);
         return;
       case "COLON_IN_PLACE_OF_IN":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COLON_IN_PLACE_OF_IN, charOffset, 1);
+            ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
         return;
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_CLASS, charOffset, 1);
+            ParserErrorCode.CONST_CLASS, offset, length);
+        return;
+      case "DEFERRED_AFTER_PREFIX":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DEFERRED_AFTER_PREFIX, offset, length);
         return;
       case "DIRECTIVE_AFTER_DECLARATION":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, offset, length);
+        return;
+      case "DUPLICATE_DEFERRED":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DUPLICATE_DEFERRED, offset, length);
         return;
       case "DUPLICATE_PREFIX":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATE_PREFIX, charOffset, 1);
+            ParserErrorCode.DUPLICATE_PREFIX, offset, length);
         return;
       case "EXPECTED_EXECUTABLE":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_EXECUTABLE, charOffset, 1);
+            ParserErrorCode.EXPECTED_EXECUTABLE, offset, length);
         return;
       case "EXPECTED_STRING_LITERAL":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_STRING_LITERAL, charOffset, 1);
+            ParserErrorCode.EXPECTED_STRING_LITERAL, offset, length);
         return;
       case "EXPECTED_TYPE_NAME":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
+            ParserErrorCode.EXPECTED_TYPE_NAME, offset, length);
         return;
       case "EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-            charOffset,
-            1);
+            offset,
+            length);
         return;
       case "EXTERNAL_CLASS":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_CLASS, charOffset, 1);
+            ParserErrorCode.EXTERNAL_CLASS, offset, length);
         return;
       case "EXTERNAL_ENUM":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_ENUM, charOffset, 1);
+            ParserErrorCode.EXTERNAL_ENUM, offset, length);
         return;
       case "EXTERNAL_METHOD_WITH_BODY":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, charOffset, 1);
+            ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, offset, length);
         return;
       case "EXTERNAL_TYPEDEF":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_TYPEDEF, charOffset, 1);
+            ParserErrorCode.EXTERNAL_TYPEDEF, offset, length);
         return;
       case "EXTRANEOUS_MODIFIER":
         String text = stringOrTokenLexeme();
-        errorReporter?.reportErrorForOffset(ParserErrorCode.EXTRANEOUS_MODIFIER,
-            charOffset, text.length, [text]);
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTRANEOUS_MODIFIER, offset, length, [text]);
         return;
       case "GETTER_WITH_PARAMETERS":
-        // TODO(brianwilkerson) This should highlight either the parameter list
-        // or the name of the getter, but I don't know how to compute the length
-        // of the region.
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.GETTER_WITH_PARAMETERS, charOffset, 1);
+            ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);
+        return;
+      case "ILLEGAL_CHARACTER":
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
         return;
       case "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-            charOffset,
-            1);
+            offset,
+            length);
         return;
       case "LIBRARY_DIRECTIVE_NOT_FIRST":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, charOffset, 1);
+            ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, offset, length);
+        return;
+      case "MISSING_CATCH_OR_FINALLY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_CATCH_OR_FINALLY, offset, length);
+        return;
+      case "MISSING_CLASS_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_CLASS_BODY, offset, length);
+        return;
+//      case "MISSING_CONST_FINAL_VAR_OR_TYPE":
+//        errorReporter?.reportErrorForOffset(
+//            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, offset, length);
+//        return;
+      case "MISSING_DIGIT":
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.MISSING_DIGIT, offset, length);
+        return;
+      case "MISSING_HEX_DIGIT":
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
+        return;
+      case "MISSING_FUNCTION_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_FUNCTION_BODY, offset, length);
         return;
       case "MISSING_IDENTIFIER":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_IDENTIFIER, charOffset, 1);
+            ParserErrorCode.MISSING_IDENTIFIER, offset, length);
         return;
       case "MISSING_PREFIX_IN_DEFERRED_IMPORT":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, charOffset, 1);
+            ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, offset, length);
         return;
       case "MULTIPLE_PART_OF_DIRECTIVES":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, charOffset, 1);
+            ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, offset, length);
         return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, charOffset, 1);
+            ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, offset, length);
         return;
       case "NON_PART_OF_DIRECTIVE_IN_PART":
         if (directives.isEmpty) {
           errorReporter?.reportErrorForOffset(
-              ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
+              ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, offset, length);
         } else {
           errorReporter?.reportErrorForOffset(
-              ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, charOffset, 1);
+              ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, offset, length);
         }
-        return;
-      case "PART_OUT_OF_ORDER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, charOffset, 1);
         return;
       case "PREFIX_AFTER_COMBINATOR":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.PREFIX_AFTER_COMBINATOR, charOffset, 1);
+            ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();
         if (text == ';') {
           errorReporter?.reportErrorForOffset(
-              ParserErrorCode.EXPECTED_TOKEN, charOffset, text.length, [text]);
+              ParserErrorCode.EXPECTED_TOKEN, offset, length, [text]);
         } else {
-          errorReporter?.reportErrorForOffset(ParserErrorCode.UNEXPECTED_TOKEN,
-              charOffset, text.length, [text]);
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.UNEXPECTED_TOKEN, offset, length, [text]);
         }
+        return;
+      case "UNTERMINATED_MULTI_LINE_COMMENT":
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, offset, length);
+        return;
+      case "UNTERMINATED_STRING_LITERAL":
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.UNTERMINATED_STRING_LITERAL, offset, length);
+        return;
+      case "VAR_AND_TYPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.VAR_AND_TYPE, offset, length);
+        return;
+      case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
+            offset,
+            length);
         return;
       default:
       // fall through
@@ -2112,21 +2200,6 @@ class AstBuilder extends ScopeListener {
     // TODO(brianwilkerson) Eliminate the need for this method.
     return token.type == tokenType ? token : null;
   }
-}
-
-/// Data structure placed on the stack to represent a class body.
-///
-/// This is needed because analyzer has no separate AST representation of a
-/// class body; it simply stores all of the relevant data in the
-/// [ClassDeclaration] object.
-class _ClassBody {
-  final Token beginToken;
-
-  final List<ClassMember> members;
-
-  final Token endToken;
-
-  _ClassBody(this.beginToken, this.members, this.endToken);
 }
 
 /// Data structure placed on the stack to represent a mixin application (a

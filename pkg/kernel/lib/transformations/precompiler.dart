@@ -13,6 +13,7 @@ import '../ast.dart'
         Library,
         Member,
         MethodInvocation,
+        Name,
         Procedure,
         Program,
         PropertyGet,
@@ -28,7 +29,7 @@ import '../visitor.dart' show Transformer;
 /// Performs whole-program transformations for Dart VM precompiler.
 /// Assumes strong mode and closed world.
 Program transformProgram(CoreTypes coreTypes, Program program) {
-  new _DevirtualizationTransformer(program).visitProgram(program);
+  new _DevirtualizationTransformer(coreTypes, program).visitProgram(program);
   return program;
 }
 
@@ -38,10 +39,15 @@ class _DevirtualizationTransformer extends Transformer {
   /// Toggles tracing (useful for debugging).
   static const _trace = const bool.fromEnvironment('trace.devirtualization');
 
-  ClosedWorldClassHierarchy _hierarchy;
+  final ClosedWorldClassHierarchy _hierarchy;
+  Set<Name> _objectMemberNames;
 
-  _DevirtualizationTransformer(Program program)
-      : _hierarchy = new ClosedWorldClassHierarchy(program) {}
+  _DevirtualizationTransformer(CoreTypes coreTypes, Program program)
+      : _hierarchy = new ClosedWorldClassHierarchy(program) {
+    _objectMemberNames = new Set<Name>.from(_hierarchy
+        .getInterfaceMembers(coreTypes.objectClass)
+        .map((Member m) => m.name));
+  }
 
   @override
   TreeNode visitLibrary(Library node) {
@@ -57,7 +63,9 @@ class _DevirtualizationTransformer extends Transformer {
     node = super.visitMethodInvocation(node);
 
     Member target = node.interfaceTarget;
-    if ((target != null) && (target is! Field)) {
+    if ((target != null) &&
+        (target is! Field) &&
+        !_objectMemberNames.contains(target.name)) {
       Member singleTarget =
           _hierarchy.getSingleTargetForInterfaceInvocation(target);
       if ((singleTarget is Procedure) && !singleTarget.isGetter) {
@@ -78,7 +86,7 @@ class _DevirtualizationTransformer extends Transformer {
     node = super.visitPropertyGet(node);
 
     Member target = node.interfaceTarget;
-    if (target != null) {
+    if ((target != null) && !_objectMemberNames.contains(target.name)) {
       Member singleTarget =
           _hierarchy.getSingleTargetForInterfaceInvocation(target);
       if (singleTarget != null) {

@@ -302,7 +302,7 @@ class LocalsHandler<T> {
   TypeInformation use(Local local) {
     assert(!(local is LocalElement && !local.isImplementation));
     if (capturedAndBoxed.containsKey(local)) {
-      FieldElement field = capturedAndBoxed[local];
+      FieldEntity field = capturedAndBoxed[local];
       return inferrer.typeOfMember(field);
     } else {
       return locals[local];
@@ -558,5 +558,13 @@ class LocalsHandler<T> {
 
   void updateField(FieldEntity element, TypeInformation type) {
     fieldScope.updateField(element, type);
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('LocalsHandler(');
+    sb.write('locals=$locals');
+    sb.write(')');
+    return sb.toString();
   }
 }

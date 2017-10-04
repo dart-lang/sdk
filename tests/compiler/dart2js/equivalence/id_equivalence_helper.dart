@@ -35,7 +35,7 @@ const String stopAfterTypeInference = 'stopAfterTypeInference';
 Future<Compiler> compileFromSource(
     AnnotatedCode code, Uri mainUri, List<String> options) async {
   Compiler compiler = compilerFor(
-      memorySourceFiles: {'main.dart': code.sourceCode}, options: options);
+      memorySourceFiles: {mainUri.path: code.sourceCode}, options: options);
   compiler.stopAfterTypeInference = options.contains(stopAfterTypeInference);
   await compiler.run(mainUri);
   return compiler;
@@ -46,7 +46,7 @@ Future<Compiler> compileFromDill(
     AnnotatedCode code, Uri mainUri, List<String> options) async {
   Compiler compiler = await compileWithDill(
       entryPoint: mainUri,
-      memorySourceFiles: {'main.dart': code.sourceCode},
+      memorySourceFiles: {mainUri.path: code.sourceCode},
       options: options,
       beforeRun: (Compiler compiler) {
         compiler.stopAfterTypeInference =
@@ -69,26 +69,32 @@ Future<IdData> computeData(
       new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd);
   Map<Id, IdValue> expectedMap = computeExpectedMap(code);
   Map<Id, ActualData> actualMap = <Id, ActualData>{};
-  Uri mainUri = Uri.parse('memory:main.dart');
+  // Pretend this is a dart2js_native test to allow use of 'native' keyword and
+  // import of private libraries.
+  Uri mainUri = Uri.parse('memory:sdk/tests/compiler/dart2js_native/main.dart');
   Compiler compiler = await compileFunction(code, mainUri, options);
   ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
   elementEnvironment.forEachClass(mainLibrary, (ClassEntity cls) {
-    if (closedWorld.isInstantiated(cls)) {
+    if (closedWorld.isInstantiated(cls) &&
+        !elementEnvironment.isEnumClass(cls)) {
       elementEnvironment.forEachConstructor(cls,
           (ConstructorEntity constructor) {
         computeMemberData(compiler, constructor, actualMap, verbose: verbose);
       });
     }
-    if (closedWorld.isImplemented(cls)) {
-      elementEnvironment.forEachClassMember(cls,
-          (ClassEntity declarer, MemberEntity member) {
-        if (cls == declarer) {
-          computeMemberData(compiler, member, actualMap, verbose: verbose);
+    elementEnvironment.forEachClassMember(cls,
+        (ClassEntity declarer, MemberEntity member) {
+      if (cls == declarer) {
+        if (elementEnvironment.isEnumClass(cls)) {
+          if (member.isInstanceMember || member.name == 'values') {
+            return;
+          }
         }
-      });
-    }
+        computeMemberData(compiler, member, actualMap, verbose: verbose);
+      }
+    });
   });
   elementEnvironment.forEachLibraryMember(mainLibrary, (MemberEntity member) {
     computeMemberData(compiler, member, actualMap, verbose: verbose);

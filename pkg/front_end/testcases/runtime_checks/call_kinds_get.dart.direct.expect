@@ -10,10 +10,10 @@ class C extends core::Object {
   get x() → dynamic
     return null;
   method test() → void {
-    dynamic v1 = this.x;
-    dynamic v2 = this.x;
-    dynamic v3 = this.y;
-    dynamic v4 = this.y;
+    dynamic v1 = this.{self::C::x};
+    dynamic v2 = this.{self::C::x};
+    dynamic v3 = this.{self::C::y};
+    dynamic v4 = this.{self::C::y};
   }
 }
 static method test(self::C c, dynamic d) → void {

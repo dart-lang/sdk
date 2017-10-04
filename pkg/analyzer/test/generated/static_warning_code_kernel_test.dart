@@ -12,16 +12,15 @@ main() {
   });
 }
 
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
+}
+
 @reflectiveTest
 class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   bool get enableKernelDriver => true;
-
-  @override
-  @failingTest
-  test_ambiguousImport_inPart() async {
-    return super.test_ambiguousImport_inPart();
-  }
 
   @override
   @failingTest
@@ -81,6 +80,7 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   test_importOfNonLibrary() async {
     return super.test_importOfNonLibrary();
   }
@@ -107,12 +107,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @failingTest
   test_newWithUndefinedConstructorDefault() async {
     return super.test_newWithUndefinedConstructorDefault();
-  }
-
-  @override
-  @failingTest
-  test_notEnoughRequiredArguments_getterReturningFunction() async {
-    return super.test_notEnoughRequiredArguments_getterReturningFunction();
   }
 
   @override

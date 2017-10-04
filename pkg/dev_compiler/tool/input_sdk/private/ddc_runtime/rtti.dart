@@ -145,7 +145,7 @@ void tagComputed(value, compute) {
 }
 
 void tagLazy(value, compute) {
-  defineMemoizedGetter(value, _runtimeType, compute);
+  defineLazyGetter(value, _runtimeType, compute);
 }
 
 var _loadedModules = JS('', 'new Map()');

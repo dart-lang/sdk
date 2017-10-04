@@ -465,6 +465,8 @@ class ClassData {
 
   ClassData(this.cls, this.definition);
 
+  bool get isEnumClass => cls != null && cls.isEnum;
+
   Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(cls.annotations);
   }

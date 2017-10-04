@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/parser/identifier_context.dart'
-    show IdentifierContext;
-import 'package:front_end/src/fasta/parser.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
+import 'package:front_end/src/fasta/parser.dart';
+import 'package:front_end/src/fasta/parser/forwarding_listener.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
 
@@ -31,8 +28,7 @@ import 'package:test/test.dart';
  * When calling `parseUnit`, do not call `begin` or `end`,
  * but call `expectEmpty` after `parseUnit` returns.
  */
-class ForwardingTestListener implements fasta.Listener {
-  final fasta.Listener listener;
+class ForwardingTestListener extends ForwardingListener {
   final _stack = <String>[];
 
   void begin(String event) {
@@ -61,879 +57,861 @@ class ForwardingTestListener implements fasta.Listener {
     _stack.removeLast();
   }
 
-  ForwardingTestListener(this.listener);
-
-  @override
-  Uri get uri => listener.uri;
+  ForwardingTestListener([Listener listener]) : super(listener);
 
   @override
   void beginArguments(Token token) {
-    listener.beginArguments(token);
+    super.beginArguments(token);
     begin('Arguments');
   }
 
   @override
-  void beginAssert(Token assertKeyword, fasta.Assert kind) {
-    listener.beginAssert(assertKeyword, kind);
+  void beginAssert(Token assertKeyword, Assert kind) {
+    super.beginAssert(assertKeyword, kind);
     begin('Assert');
   }
 
   @override
   void beginAwaitExpression(Token token) {
-    listener.beginAwaitExpression(token);
+    super.beginAwaitExpression(token);
     begin('AwaitExpression');
   }
 
   @override
   void beginBlock(Token token) {
-    listener.beginBlock(token);
+    super.beginBlock(token);
     begin('Block');
   }
 
   @override
   void beginBlockFunctionBody(Token token) {
-    listener.beginBlockFunctionBody(token);
+    super.beginBlockFunctionBody(token);
     begin('BlockFunctionBody');
   }
 
   @override
   void beginCascade(Token token) {
-    listener.beginCascade(token);
+    super.beginCascade(token);
     begin('Cascade');
   }
 
   @override
   void beginCaseExpression(Token caseKeyword) {
-    listener.beginCaseExpression(caseKeyword);
+    super.beginCaseExpression(caseKeyword);
     begin('CaseExpression');
   }
 
   @override
   void beginCatchClause(Token token) {
-    listener.beginCatchClause(token);
+    super.beginCatchClause(token);
     begin('CatchClause');
   }
 
   @override
   void beginClassBody(Token token) {
-    listener.beginClassBody(token);
+    super.beginClassBody(token);
     begin('ClassBody');
   }
 
   @override
   void beginClassDeclaration(Token beginToken, Token name) {
-    listener.beginClassDeclaration(beginToken, name);
+    super.beginClassDeclaration(beginToken, name);
     begin('ClassDeclaration');
   }
 
   @override
   void beginClassOrNamedMixinApplication(Token token) {
-    listener.beginClassOrNamedMixinApplication(token);
+    super.beginClassOrNamedMixinApplication(token);
     begin('ClassOrNamedMixinApplication');
   }
 
   @override
   void beginCombinators(Token token) {
-    listener.beginCombinators(token);
+    super.beginCombinators(token);
     begin('Combinators');
   }
 
   @override
   void beginCompilationUnit(Token token) {
     expectEmpty();
-    listener.beginCompilationUnit(token);
+    super.beginCompilationUnit(token);
     begin('CompilationUnit');
   }
 
   @override
   void beginConditionalUri(Token ifKeyword) {
-    listener.beginConditionalUri(ifKeyword);
+    super.beginConditionalUri(ifKeyword);
     begin('ConditionalUri');
   }
 
   @override
   void beginConditionalUris(Token token) {
-    listener.beginConditionalUris(token);
+    super.beginConditionalUris(token);
     begin('ConditionalUris');
   }
 
   @override
   void beginConstExpression(Token constKeyword) {
-    listener.beginConstExpression(constKeyword);
+    super.beginConstExpression(constKeyword);
     begin('ConstExpression');
   }
 
   @override
   void beginConstLiteral(Token token) {
-    listener.beginConstLiteral(token);
+    super.beginConstLiteral(token);
     begin('ConstLiteral');
   }
 
   @override
   void beginConstructorReference(Token start) {
-    listener.beginConstructorReference(start);
+    super.beginConstructorReference(start);
     begin('ConstructorReference');
   }
 
   @override
   void beginDoWhileStatement(Token token) {
-    listener.beginDoWhileStatement(token);
+    super.beginDoWhileStatement(token);
     begin('DoWhileStatement');
   }
 
   @override
   void beginDoWhileStatementBody(Token token) {
-    listener.beginDoWhileStatementBody(token);
+    super.beginDoWhileStatementBody(token);
     begin('DoWhileStatementBody');
   }
 
   @override
   void beginDottedName(Token token) {
-    listener.beginDottedName(token);
+    super.beginDottedName(token);
     begin('DottedName');
   }
 
   @override
   void beginElseStatement(Token token) {
-    listener.beginElseStatement(token);
+    super.beginElseStatement(token);
     begin('ElseStatement');
   }
 
   @override
   void beginEnum(Token enumKeyword) {
-    listener.beginEnum(enumKeyword);
+    super.beginEnum(enumKeyword);
     begin('Enum');
   }
 
   @override
   void beginExport(Token token) {
-    listener.beginExport(token);
+    super.beginExport(token);
     begin('Export');
   }
 
   @override
   void beginExpressionStatement(Token token) {
-    listener.beginExpressionStatement(token);
+    super.beginExpressionStatement(token);
     begin('ExpressionStatement');
   }
 
   @override
   void beginFactoryMethod(Token token) {
-    listener.beginFactoryMethod(token);
+    super.beginFactoryMethod(token);
     begin('FactoryMethod');
   }
 
   @override
   void beginFieldInitializer(Token token) {
-    listener.beginFieldInitializer(token);
+    super.beginFieldInitializer(token);
     begin('FieldInitializer');
   }
 
   @override
   void beginForInBody(Token token) {
-    listener.beginForInBody(token);
+    super.beginForInBody(token);
     begin('ForInBody');
   }
 
   @override
   void beginForInExpression(Token token) {
-    listener.beginForInExpression(token);
+    super.beginForInExpression(token);
     begin('ForInExpression');
   }
 
   @override
   void beginForStatement(Token token) {
-    listener.beginForStatement(token);
+    super.beginForStatement(token);
     begin('ForStatement');
   }
 
   @override
   void beginForStatementBody(Token token) {
-    listener.beginForStatementBody(token);
+    super.beginForStatementBody(token);
     begin('ForStatementBody');
   }
 
   @override
-  void beginFormalParameter(Token token, fasta.MemberKind kind) {
-    listener.beginFormalParameter(token, kind);
+  void beginFormalParameter(Token token, MemberKind kind) {
+    super.beginFormalParameter(token, kind);
     begin('FormalParameter');
   }
 
   @override
-  void beginFormalParameters(Token token, fasta.MemberKind kind) {
-    listener.beginFormalParameters(token, kind);
+  void beginFormalParameters(Token token, MemberKind kind) {
+    super.beginFormalParameters(token, kind);
     begin('FormalParameters');
   }
 
   @override
   void beginLocalFunctionDeclaration(Token token) {
-    listener.beginLocalFunctionDeclaration(token);
+    super.beginLocalFunctionDeclaration(token);
     begin('LocalFunctionDeclaration');
   }
 
   @override
   void beginFunctionExpression(Token token) {
-    listener.beginFunctionExpression(token);
+    super.beginFunctionExpression(token);
     begin('FunctionExpression');
   }
 
   @override
   void beginFunctionName(Token token) {
-    listener.beginFunctionName(token);
+    super.beginFunctionName(token);
     begin('FunctionName');
   }
 
   @override
   void beginFunctionType(Token beginToken) {
-    listener.beginFunctionType(beginToken);
+    super.beginFunctionType(beginToken);
     begin('FunctionType');
   }
 
   @override
   void beginFunctionTypeAlias(Token token) {
-    listener.beginFunctionTypeAlias(token);
+    super.beginFunctionTypeAlias(token);
     begin('FunctionTypeAlias');
   }
 
   @override
   void beginFunctionTypedFormalParameter(Token token) {
-    listener.beginFunctionTypedFormalParameter(token);
+    super.beginFunctionTypedFormalParameter(token);
     begin('FunctionTypedFormalParameter');
   }
 
   @override
   void beginHide(Token hideKeyword) {
-    listener.beginHide(hideKeyword);
+    super.beginHide(hideKeyword);
     begin('Hide');
   }
 
   @override
   void beginIdentifierList(Token token) {
-    listener.beginIdentifierList(token);
+    super.beginIdentifierList(token);
     begin('IdentifierList');
   }
 
   @override
   void beginIfStatement(Token token) {
-    listener.beginIfStatement(token);
+    super.beginIfStatement(token);
     begin('IfStatement');
   }
 
   @override
   void beginImport(Token importKeyword) {
-    listener.beginImport(importKeyword);
+    super.beginImport(importKeyword);
     begin('Import');
   }
 
   @override
   void beginInitializedIdentifier(Token token) {
-    listener.beginInitializedIdentifier(token);
+    super.beginInitializedIdentifier(token);
     begin('InitializedIdentifier');
   }
 
   @override
   void beginInitializer(Token token) {
-    listener.beginInitializer(token);
+    super.beginInitializer(token);
     begin('Initializer');
   }
 
   @override
   void beginInitializers(Token token) {
-    listener.beginInitializers(token);
+    super.beginInitializers(token);
     begin('Initializers');
   }
 
   @override
   void beginLabeledStatement(Token token, int labelCount) {
-    listener.beginLabeledStatement(token, labelCount);
+    super.beginLabeledStatement(token, labelCount);
     begin('LabeledStatement');
   }
 
   @override
   void beginLibraryName(Token token) {
-    listener.beginLibraryName(token);
+    super.beginLibraryName(token);
     begin('LibraryName');
   }
 
   @override
   void beginLiteralMapEntry(Token token) {
-    listener.beginLiteralMapEntry(token);
+    super.beginLiteralMapEntry(token);
     begin('LiteralMapEntry');
   }
 
   @override
   void beginLiteralString(Token token) {
-    listener.beginLiteralString(token);
+    super.beginLiteralString(token);
     begin('LiteralString');
   }
 
   @override
   void beginLiteralSymbol(Token token) {
-    listener.beginLiteralSymbol(token);
+    super.beginLiteralSymbol(token);
     begin('LiteralSymbol');
   }
 
   @override
   void beginMember(Token token) {
-    listener.beginMember(token);
+    super.beginMember(token);
     begin('Member');
   }
 
   @override
   void beginMetadata(Token token) {
-    listener.beginMetadata(token);
+    super.beginMetadata(token);
     begin('Metadata');
   }
 
   @override
   void beginMetadataStar(Token token) {
-    listener.beginMetadataStar(token);
+    super.beginMetadataStar(token);
     begin('MetadataStar');
   }
 
   @override
   void beginMethod(Token token, Token name) {
-    listener.beginMethod(token, name);
+    super.beginMethod(token, name);
     begin('Method');
   }
 
   @override
   void beginMixinApplication(Token token) {
-    listener.beginMixinApplication(token);
+    super.beginMixinApplication(token);
     begin('MixinApplication');
   }
 
   @override
   void beginNamedFunctionExpression(Token token) {
-    listener.beginNamedFunctionExpression(token);
+    super.beginNamedFunctionExpression(token);
     begin('NamedFunctionExpression');
   }
 
   @override
   void beginNamedMixinApplication(Token beginToken, Token name) {
-    listener.beginNamedMixinApplication(beginToken, name);
+    super.beginNamedMixinApplication(beginToken, name);
     begin('NamedMixinApplication');
   }
 
   @override
   void beginNewExpression(Token token) {
-    listener.beginNewExpression(token);
+    super.beginNewExpression(token);
     begin('NewExpression');
   }
 
   @override
   void beginOptionalFormalParameters(Token token) {
-    listener.beginOptionalFormalParameters(token);
+    super.beginOptionalFormalParameters(token);
     begin('OptionalFormalParameters');
   }
 
   @override
   void beginPart(Token token) {
-    listener.beginPart(token);
+    super.beginPart(token);
     begin('Part');
   }
 
   @override
   void beginPartOf(Token token) {
-    listener.beginPartOf(token);
+    super.beginPartOf(token);
     begin('PartOf');
   }
 
   @override
   void beginRedirectingFactoryBody(Token token) {
-    listener.beginRedirectingFactoryBody(token);
+    super.beginRedirectingFactoryBody(token);
     begin('RedirectingFactoryBody');
   }
 
   @override
   void beginRethrowStatement(Token token) {
-    listener.beginRethrowStatement(token);
+    super.beginRethrowStatement(token);
     begin('RethrowStatement');
   }
 
   @override
   void beginReturnStatement(Token token) {
-    listener.beginReturnStatement(token);
+    super.beginReturnStatement(token);
     begin('ReturnStatement');
   }
 
   @override
   void beginShow(Token showKeyword) {
-    listener.beginShow(showKeyword);
+    super.beginShow(showKeyword);
     begin('Show');
   }
 
   @override
   void beginSwitchBlock(Token token) {
-    listener.beginSwitchBlock(token);
+    super.beginSwitchBlock(token);
     begin('SwitchBlock');
   }
 
   @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
-    listener.beginSwitchCase(labelCount, expressionCount, firstToken);
+    super.beginSwitchCase(labelCount, expressionCount, firstToken);
     begin('SwitchCase');
   }
 
   @override
   void beginSwitchStatement(Token token) {
-    listener.beginSwitchStatement(token);
+    super.beginSwitchStatement(token);
     begin('SwitchStatement');
   }
 
   @override
   void beginThenStatement(Token token) {
-    listener.beginThenStatement(token);
+    super.beginThenStatement(token);
     begin('ThenStatement');
   }
 
   @override
   void beginTopLevelMember(Token token) {
-    listener.beginTopLevelMember(token);
+    super.beginTopLevelMember(token);
     begin('TopLevelMember');
   }
 
   @override
   void beginTopLevelMethod(Token token, Token name) {
-    listener.beginTopLevelMethod(token, name);
+    super.beginTopLevelMethod(token, name);
     begin('TopLevelMethod');
   }
 
   @override
   void beginTryStatement(Token token) {
-    listener.beginTryStatement(token);
+    super.beginTryStatement(token);
     begin('TryStatement');
   }
 
   @override
   void beginTypeArguments(Token token) {
-    listener.beginTypeArguments(token);
+    super.beginTypeArguments(token);
     begin('TypeArguments');
   }
 
   @override
   void beginTypeList(Token token) {
-    listener.beginTypeList(token);
+    super.beginTypeList(token);
     begin('TypeList');
   }
 
   @override
   void beginTypeVariable(Token token) {
-    listener.beginTypeVariable(token);
+    super.beginTypeVariable(token);
     begin('TypeVariable');
   }
 
   @override
   void beginTypeVariables(Token token) {
-    listener.beginTypeVariables(token);
+    super.beginTypeVariables(token);
     begin('TypeVariables');
   }
 
   @override
   void beginVariableInitializer(Token token) {
-    listener.beginVariableInitializer(token);
+    super.beginVariableInitializer(token);
     begin('VariableInitializer');
   }
 
   @override
   void beginVariablesDeclaration(Token token) {
-    listener.beginVariablesDeclaration(token);
+    super.beginVariablesDeclaration(token);
     begin('VariablesDeclaration');
   }
 
   @override
   void beginWhileStatement(Token token) {
-    listener.beginWhileStatement(token);
+    super.beginWhileStatement(token);
     begin('WhileStatement');
   }
 
   @override
   void beginWhileStatementBody(Token token) {
-    listener.beginWhileStatementBody(token);
+    super.beginWhileStatementBody(token);
     begin('WhileStatementBody');
   }
 
   @override
   void beginYieldStatement(Token token) {
-    listener.beginYieldStatement(token);
+    super.beginYieldStatement(token);
     begin('YieldStatement');
-  }
-
-  @override
-  void discardTypeReplacedWithCommentTypeAssign() {
-    listener.discardTypeReplacedWithCommentTypeAssign();
-    // TODO(danrubel): implement discardTypeReplacedWithCommentTypeAssign
   }
 
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     end('Arguments');
-    listener.endArguments(count, beginToken, endToken);
+    super.endArguments(count, beginToken, endToken);
   }
 
   @override
-  void endAssert(Token assertKeyword, fasta.Assert kind, Token leftParenthesis,
+  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token commaToken, Token semicolonToken) {
     end('Assert');
-    listener.endAssert(
+    super.endAssert(
         assertKeyword, kind, leftParenthesis, commaToken, semicolonToken);
   }
 
   @override
   void endAwaitExpression(Token beginToken, Token endToken) {
     end('AwaitExpression');
-    listener.endAwaitExpression(beginToken, endToken);
+    super.endAwaitExpression(beginToken, endToken);
   }
 
   @override
   void endBlock(int count, Token beginToken, Token endToken) {
     end('Block');
-    listener.endBlock(count, beginToken, endToken);
+    super.endBlock(count, beginToken, endToken);
   }
 
   @override
   void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
     end('BlockFunctionBody');
-    listener.endBlockFunctionBody(count, beginToken, endToken);
+    super.endBlockFunctionBody(count, beginToken, endToken);
   }
 
   @override
   void endCascade() {
     end('Cascade');
-    listener.endCascade();
+    super.endCascade();
   }
 
   @override
   void endCaseExpression(Token colon) {
     end('CaseExpression');
-    listener.endCaseExpression(colon);
+    super.endCaseExpression(colon);
   }
 
   @override
   void endCatchClause(Token token) {
     end('CatchClause');
-    listener.endCatchClause(token);
+    super.endCatchClause(token);
   }
 
   @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     end('ClassBody');
-    listener.endClassBody(memberCount, beginToken, endToken);
+    super.endClassBody(memberCount, beginToken, endToken);
   }
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void endClassDeclaration(Token beginToken, Token endToken) {
     end('ClassDeclaration');
     end('ClassOrNamedMixinApplication');
-    listener.endClassDeclaration(interfacesCount, beginToken, classKeyword,
-        extendsKeyword, implementsKeyword, nativeToken, endToken);
+    super.endClassDeclaration(beginToken, endToken);
   }
 
   @override
   void endCombinators(int count) {
     end('Combinators');
-    listener.endCombinators(count);
+    super.endCombinators(count);
   }
 
   @override
   void endCompilationUnit(int count, Token token) {
     end('CompilationUnit');
-    listener.endCompilationUnit(count, token);
+    super.endCompilationUnit(count, token);
     expectEmpty();
   }
 
   @override
   void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     end('ConditionalUri');
-    listener.endConditionalUri(ifKeyword, leftParen, equalSign);
+    super.endConditionalUri(ifKeyword, leftParen, equalSign);
   }
 
   @override
   void endConditionalUris(int count) {
     end('ConditionalUris');
-    listener.endConditionalUris(count);
+    super.endConditionalUris(count);
   }
 
   @override
   void endConstExpression(Token token) {
     end('ConstExpression');
-    listener.endConstExpression(token);
+    super.endConstExpression(token);
   }
 
   @override
   void endConstLiteral(Token token) {
     end('ConstLiteral');
-    listener.endConstLiteral(token);
+    super.endConstLiteral(token);
   }
 
   @override
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
     end('ConstructorReference');
-    listener.endConstructorReference(start, periodBeforeName, endToken);
+    super.endConstructorReference(start, periodBeforeName, endToken);
   }
 
   @override
   void endDoWhileStatement(
       Token doKeyword, Token whileKeyword, Token endToken) {
     end('DoWhileStatement');
-    listener.endDoWhileStatement(doKeyword, whileKeyword, endToken);
+    super.endDoWhileStatement(doKeyword, whileKeyword, endToken);
   }
 
   @override
   void endDoWhileStatementBody(Token token) {
     end('DoWhileStatementBody');
-    listener.endDoWhileStatementBody(token);
+    super.endDoWhileStatementBody(token);
   }
 
   @override
   void endDottedName(int count, Token firstIdentifier) {
     end('DottedName');
-    listener.endDottedName(count, firstIdentifier);
+    super.endDottedName(count, firstIdentifier);
   }
 
   @override
   void endElseStatement(Token token) {
     end('ElseStatement');
-    listener.endElseStatement(token);
+    super.endElseStatement(token);
   }
 
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     end('Enum');
-    listener.endEnum(enumKeyword, leftBrace, count);
+    super.endEnum(enumKeyword, leftBrace, count);
   }
 
   @override
   void endExport(Token exportKeyword, Token semicolon) {
     end('Export');
-    listener.endExport(exportKeyword, semicolon);
+    super.endExport(exportKeyword, semicolon);
   }
 
   @override
   void endExpressionStatement(Token token) {
     end('ExpressionStatement');
-    listener.endExpressionStatement(token);
+    super.endExpressionStatement(token);
   }
 
   @override
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     end('FactoryMethod');
-    listener.endFactoryMethod(beginToken, factoryKeyword, endToken);
+    super.endFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override
   void endFieldInitializer(Token assignment, Token token) {
     end('FieldInitializer');
-    listener.endFieldInitializer(assignment, token);
+    super.endFieldInitializer(assignment, token);
   }
 
   @override
   void endFields(int count, Token beginToken, Token endToken) {
     // beginMember --> endFields, endMember
     expectIn('Member');
-    listener.endFields(count, beginToken, endToken);
+    super.endFields(count, beginToken, endToken);
   }
 
   @override
   void endForIn(Token awaitToken, Token forToken, Token leftParen,
       Token inKeyword, Token endToken) {
     end('ForStatement');
-    listener.endForIn(awaitToken, forToken, leftParen, inKeyword, endToken);
+    super.endForIn(awaitToken, forToken, leftParen, inKeyword, endToken);
   }
 
   @override
   void endForInBody(Token token) {
     end('ForInBody');
-    listener.endForInBody(token);
+    super.endForInBody(token);
   }
 
   @override
   void endForInExpression(Token token) {
     end('ForInExpression');
-    listener.endForInExpression(token);
+    super.endForInExpression(token);
   }
 
   @override
   void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     end('ForStatement');
-    listener.endForStatement(
+    super.endForStatement(
         forKeyword, leftParen, leftSeparator, updateExpressionCount, endToken);
   }
 
   @override
   void endForStatementBody(Token token) {
     end('ForStatementBody');
-    listener.endForStatementBody(token);
+    super.endForStatementBody(token);
   }
 
   @override
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      fasta.FormalParameterKind kind, fasta.MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     end('FormalParameter');
-    listener.endFormalParameter(thisKeyword, nameToken, kind, memberKind);
+    super.endFormalParameter(thisKeyword, nameToken, kind, memberKind);
   }
 
   @override
   void endFormalParameters(
-      int count, Token beginToken, Token endToken, fasta.MemberKind kind) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     end('FormalParameters');
-    listener.endFormalParameters(count, beginToken, endToken, kind);
+    super.endFormalParameters(count, beginToken, endToken, kind);
   }
 
   @override
   void endLocalFunctionDeclaration(Token endToken) {
     end('LocalFunctionDeclaration');
-    listener.endLocalFunctionDeclaration(endToken);
+    super.endLocalFunctionDeclaration(endToken);
   }
 
   @override
   void endFunctionExpression(Token beginToken, Token token) {
     end('FunctionExpression');
-    listener.endFunctionExpression(beginToken, token);
+    super.endFunctionExpression(beginToken, token);
   }
 
   @override
   void endFunctionName(Token beginToken, Token token) {
     end('FunctionName');
-    listener.endFunctionName(beginToken, token);
+    super.endFunctionName(beginToken, token);
   }
 
   @override
   void endFunctionType(Token functionToken, Token endToken) {
     end('FunctionType');
-    listener.endFunctionType(functionToken, endToken);
+    super.endFunctionType(functionToken, endToken);
   }
 
   @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     end('FunctionTypeAlias');
-    listener.endFunctionTypeAlias(typedefKeyword, equals, endToken);
+    super.endFunctionTypeAlias(typedefKeyword, equals, endToken);
   }
 
   @override
   void endFunctionTypedFormalParameter() {
     end('FunctionTypedFormalParameter');
-    listener.endFunctionTypedFormalParameter();
+    super.endFunctionTypedFormalParameter();
   }
 
   @override
   void endHide(Token hideKeyword) {
     end('Hide');
-    listener.endHide(hideKeyword);
+    super.endHide(hideKeyword);
   }
 
   @override
   void endIdentifierList(int count) {
     end('IdentifierList');
-    listener.endIdentifierList(count);
+    super.endIdentifierList(count);
   }
 
   @override
   void endIfStatement(Token ifToken, Token elseToken) {
     end('IfStatement');
-    listener.endIfStatement(ifToken, elseToken);
+    super.endIfStatement(ifToken, elseToken);
   }
 
   @override
-  void endImport(Token importKeyword, Token DeferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void endImport(Token importKeyword, Token semicolon) {
     end('Import');
-    listener.endImport(importKeyword, DeferredKeyword, asKeyword, semicolon);
+    super.endImport(importKeyword, semicolon);
   }
 
   @override
   void endInitializedIdentifier(Token nameToken) {
     end('InitializedIdentifier');
-    listener.endInitializedIdentifier(nameToken);
+    super.endInitializedIdentifier(nameToken);
   }
 
   @override
   void endInitializer(Token token) {
     end('Initializer');
-    listener.endInitializer(token);
+    super.endInitializer(token);
   }
 
   @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     end('Initializers');
-    listener.endInitializers(count, beginToken, endToken);
+    super.endInitializers(count, beginToken, endToken);
   }
 
   @override
   void endLabeledStatement(int labelCount) {
     end('LabeledStatement');
-    listener.endLabeledStatement(labelCount);
+    super.endLabeledStatement(labelCount);
   }
 
   @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     end('LibraryName');
-    listener.endLibraryName(libraryKeyword, semicolon);
+    super.endLibraryName(libraryKeyword, semicolon);
   }
 
   @override
   void endLiteralMapEntry(Token colon, Token endToken) {
     end('LiteralMapEntry');
-    listener.endLiteralMapEntry(colon, endToken);
+    super.endLiteralMapEntry(colon, endToken);
   }
 
   @override
   void endLiteralString(int interpolationCount, Token endToken) {
     end('LiteralString');
-    listener.endLiteralString(interpolationCount, endToken);
+    super.endLiteralString(interpolationCount, endToken);
   }
 
   @override
   void endLiteralSymbol(Token hashToken, int identifierCount) {
     end('LiteralSymbol');
-    listener.endLiteralSymbol(hashToken, identifierCount);
+    super.endLiteralSymbol(hashToken, identifierCount);
   }
 
   @override
   void endMember() {
     end('Member');
-    listener.endMember();
+    super.endMember();
   }
 
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     end('Metadata');
-    listener.endMetadata(beginToken, periodBeforeName, endToken);
+    super.endMetadata(beginToken, periodBeforeName, endToken);
   }
 
   @override
   void endMetadataStar(int count) {
     end('MetadataStar');
-    listener.endMetadataStar(count);
+    super.endMetadataStar(count);
   }
 
   @override
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     end('Method');
-    listener.endMethod(getOrSet, beginToken, endToken);
+    super.endMethod(getOrSet, beginToken, endToken);
   }
 
   @override
   void endMixinApplication(Token withKeyword) {
     end('MixinApplication');
-    listener.endMixinApplication(withKeyword);
+    super.endMixinApplication(withKeyword);
   }
 
   @override
   void endNamedFunctionExpression(Token endToken) {
     end('NamedFunctionExpression');
-    listener.endNamedFunctionExpression(endToken);
+    super.endNamedFunctionExpression(endToken);
   }
 
   @override
@@ -941,85 +919,85 @@ class ForwardingTestListener implements fasta.Listener {
       Token implementsKeyword, Token endToken) {
     end('NamedMixinApplication');
     end('ClassOrNamedMixinApplication');
-    listener.endNamedMixinApplication(
+    super.endNamedMixinApplication(
         begin, classKeyword, equals, implementsKeyword, endToken);
   }
 
   @override
   void endNewExpression(Token token) {
     end('NewExpression');
-    listener.endNewExpression(token);
+    super.endNewExpression(token);
   }
 
   @override
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     end('OptionalFormalParameters');
-    listener.endOptionalFormalParameters(count, beginToken, endToken);
+    super.endOptionalFormalParameters(count, beginToken, endToken);
   }
 
   @override
   void endPart(Token partKeyword, Token semicolon) {
     end('Part');
-    listener.endPart(partKeyword, semicolon);
+    super.endPart(partKeyword, semicolon);
   }
 
   @override
   void endPartOf(
       Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     end('PartOf');
-    listener.endPartOf(partKeyword, ofKeyword, semicolon, hasName);
+    super.endPartOf(partKeyword, ofKeyword, semicolon, hasName);
   }
 
   @override
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     end('RedirectingFactoryBody');
-    listener.endRedirectingFactoryBody(beginToken, endToken);
+    super.endRedirectingFactoryBody(beginToken, endToken);
   }
 
   @override
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     end('RethrowStatement');
-    listener.endRethrowStatement(rethrowToken, endToken);
+    super.endRethrowStatement(rethrowToken, endToken);
   }
 
   @override
   void endReturnStatement(
       bool hasExpression, Token beginToken, Token endToken) {
     end('ReturnStatement');
-    listener.endReturnStatement(hasExpression, beginToken, endToken);
+    super.endReturnStatement(hasExpression, beginToken, endToken);
   }
 
   @override
   void endShow(Token showKeyword) {
     end('Show');
-    listener.endShow(showKeyword);
+    super.endShow(showKeyword);
   }
 
   @override
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
     end('SwitchBlock');
-    listener.endSwitchBlock(caseCount, beginToken, endToken);
+    super.endSwitchBlock(caseCount, beginToken, endToken);
   }
 
   @override
   void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
       int statementCount, Token firstToken, Token endToken) {
     end('SwitchCase');
-    listener.endSwitchCase(labelCount, expressionCount, defaultKeyword,
+    super.endSwitchCase(labelCount, expressionCount, defaultKeyword,
         statementCount, firstToken, endToken);
   }
 
   @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     end('SwitchStatement');
-    listener.endSwitchStatement(switchKeyword, endToken);
+    super.endSwitchStatement(switchKeyword, endToken);
   }
 
   @override
   void endThenStatement(Token token) {
     end('ThenStatement');
-    listener.endThenStatement(token);
+    super.endThenStatement(token);
   }
 
   @override
@@ -1027,296 +1005,110 @@ class ForwardingTestListener implements fasta.Listener {
     // There is no corresponding beginTopLevelDeclaration
     //_expectBegin('TopLevelDeclaration');
     expectIn('CompilationUnit');
-    listener.endTopLevelDeclaration(token);
+    super.endTopLevelDeclaration(token);
   }
 
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     end('TopLevelMember');
-    listener.endTopLevelFields(count, beginToken, endToken);
+    super.endTopLevelFields(count, beginToken, endToken);
   }
 
   @override
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     end('TopLevelMethod');
     end('TopLevelMember');
-    listener.endTopLevelMethod(beginToken, getOrSet, endToken);
+    super.endTopLevelMethod(beginToken, getOrSet, endToken);
   }
 
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     end('TryStatement');
-    listener.endTryStatement(catchCount, tryKeyword, finallyKeyword);
+    super.endTryStatement(catchCount, tryKeyword, finallyKeyword);
   }
 
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     end('TypeArguments');
-    listener.endTypeArguments(count, beginToken, endToken);
+    super.endTypeArguments(count, beginToken, endToken);
   }
 
   @override
   void endTypeList(int count) {
     end('TypeList');
-    listener.endTypeList(count);
+    super.endTypeList(count);
   }
 
   @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     end('TypeVariable');
-    listener.endTypeVariable(token, extendsOrSuper);
+    super.endTypeVariable(token, extendsOrSuper);
   }
 
   @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     end('TypeVariables');
-    listener.endTypeVariables(count, beginToken, endToken);
+    super.endTypeVariables(count, beginToken, endToken);
   }
 
   @override
   void endVariableInitializer(Token assignmentOperator) {
     end('VariableInitializer');
-    listener.endVariableInitializer(assignmentOperator);
+    super.endVariableInitializer(assignmentOperator);
   }
 
   @override
   void endVariablesDeclaration(int count, Token endToken) {
     end('VariablesDeclaration');
-    listener.endVariablesDeclaration(count, endToken);
+    super.endVariablesDeclaration(count, endToken);
   }
 
   @override
   void endWhileStatement(Token whileKeyword, Token endToken) {
     end('WhileStatement');
-    listener.endWhileStatement(whileKeyword, endToken);
+    super.endWhileStatement(whileKeyword, endToken);
   }
 
   @override
   void endWhileStatementBody(Token token) {
     end('WhileStatementBody');
-    listener.endWhileStatementBody(token);
+    super.endWhileStatementBody(token);
   }
 
   @override
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     end('YieldStatement');
-    listener.endYieldStatement(yieldToken, starToken, endToken);
+    super.endYieldStatement(yieldToken, starToken, endToken);
   }
 
   @override
-  void handleAsOperator(Token operator, Token endToken) {
-    listener.handleAsOperator(operator, endToken);
-    // TODO(danrubel): implement handleAsOperator
+  void handleClassExtends(Token extendsKeyword) {
+    expectIn('ClassDeclaration');
+    listener.handleClassExtends(extendsKeyword);
   }
 
   @override
-  void handleAssignmentExpression(Token token) {
-    listener.handleAssignmentExpression(token);
-    // TODO(danrubel): implement handleAssignmentExpression
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    expectIn('ClassDeclaration');
+    listener.handleClassHeader(begin, classKeyword, nativeToken);
   }
 
   @override
-  void handleAsyncModifier(Token asyncToken, Token starToken) {
-    listener.handleAsyncModifier(asyncToken, starToken);
-    // TODO(danrubel): implement handleAsyncModifier
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    expectIn('ClassDeclaration');
+    listener.handleClassImplements(implementsKeyword, interfacesCount);
   }
 
   @override
-  void beginBinaryExpression(Token token) {
-    listener.beginBinaryExpression(token);
-    // TODO(danrubel): implement beginBinaryExpression
-  }
-
-  @override
-  void endBinaryExpression(Token token) {
-    listener.endBinaryExpression(token);
-    // TODO(danrubel): implement endBinaryExpression
-  }
-
-  @override
-  void handleBreakStatement(
-      bool hasTarget, Token breakKeyword, Token endToken) {
-    listener.handleBreakStatement(hasTarget, breakKeyword, endToken);
-    // TODO(danrubel): implement handleBreakStatement
-  }
-
-  @override
-  void handleCaseMatch(Token caseKeyword, Token colon) {
-    listener.handleCaseMatch(caseKeyword, colon);
-    // TODO(danrubel): implement handleCaseMatch
-  }
-
-  @override
-  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
-    listener.handleCatchBlock(onKeyword, catchKeyword, comma);
-    // TODO(danrubel): implement handleCatchBlock
-  }
-
-  @override
-  void handleConditionalExpression(Token question, Token colon) {
-    listener.handleConditionalExpression(question, colon);
-    // TODO(danrubel): implement handleConditionalExpression
-  }
-
-  @override
-  void handleContinueStatement(
-      bool hasTarget, Token continueKeyword, Token endToken) {
-    listener.handleContinueStatement(hasTarget, continueKeyword, endToken);
-    // TODO(danrubel): implement handleContinueStatement
-  }
-
-  @override
-  void handleEmptyStatement(Token token) {
-    listener.handleEmptyStatement(token);
-    // TODO(danrubel): implement handleEmptyStatement
-  }
-
-  @override
-  void handleEmptyFunctionBody(Token semicolon) {
-    listener.handleEmptyFunctionBody(semicolon);
-    // TODO(danrubel): implement handleEmptyFunctionBody
-  }
-
-  @override
-  void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
-    listener.handleExpressionFunctionBody(arrowToken, endToken);
-    // TODO(danrubel): implement handleExpressionFunctionBody
-  }
-
-  @override
-  void handleExtraneousExpression(Token token, Message message) {
-    listener.handleExtraneousExpression(token, message);
-    // TODO(danrubel): implement handleExtraneousExpression
-  }
-
-  @override
-  void handleFinallyBlock(Token finallyKeyword) {
-    listener.handleFinallyBlock(finallyKeyword);
-    // TODO(danrubel): implement handleFinallyBlock
-  }
-
-  @override
-  void handleFormalParameterWithoutValue(Token token) {
-    listener.handleFormalParameterWithoutValue(token);
-    // TODO(danrubel): implement handleFormalParameterWithoutValue
-  }
-
-  @override
-  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
-    listener.handleFunctionBodySkipped(token, isExpressionBody);
-    // TODO(danrubel): implement handleFunctionBodySkipped
-  }
-
-  @override
-  void handleIdentifier(Token token, IdentifierContext context) {
-    listener.handleIdentifier(token, context);
-    // TODO(danrubel): implement handleIdentifier
-  }
-
-  @override
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
+  void handleRecoverImport(Token semicolon) {
     expectIn('CompilationUnit');
-    listener.handleRecoverImport(deferredKeyword, asKeyword, semicolon);
-  }
-
-  @override
-  void handleIndexedExpression(
-      Token openSquareBracket, Token closeSquareBracket) {
-    listener.handleIndexedExpression(openSquareBracket, closeSquareBracket);
-    // TODO(danrubel): implement handleIndexedExpression
-  }
-
-  @override
-  void handleInvalidExpression(Token token) {
-    listener.handleInvalidExpression(token);
-    // TODO(danrubel): implement handleInvalidExpression
-  }
-
-  @override
-  void handleInvalidFunctionBody(Token token) {
-    listener.handleInvalidFunctionBody(token);
-    // TODO(danrubel): implement handleInvalidFunctionBody
-  }
-
-  @override
-  void handleInvalidTypeReference(Token token) {
-    listener.handleInvalidTypeReference(token);
-    // TODO(danrubel): implement handleInvalidTypeReference
+    listener.handleRecoverImport(semicolon);
   }
 
   @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
     expectIn('CompilationUnit');
     listener.handleInvalidTopLevelDeclaration(endToken);
-  }
-
-  @override
-  void handleIsOperator(Token operator, Token not, Token endToken) {
-    listener.handleIsOperator(operator, not, endToken);
-    // TODO(danrubel): implement handleIsOperator
-  }
-
-  @override
-  void handleLabel(Token token) {
-    listener.handleLabel(token);
-    // TODO(danrubel): implement handleLabel
-  }
-
-  @override
-  void handleLiteralBool(Token token) {
-    listener.handleLiteralBool(token);
-    // TODO(danrubel): implement handleLiteralBool
-  }
-
-  @override
-  void handleLiteralDouble(Token token) {
-    listener.handleLiteralDouble(token);
-    // TODO(danrubel): implement handleLiteralDouble
-  }
-
-  @override
-  void handleLiteralInt(Token token) {
-    listener.handleLiteralInt(token);
-    // TODO(danrubel): implement handleLiteralInt
-  }
-
-  @override
-  void handleLiteralList(
-      int count, Token beginToken, Token constKeyword, Token endToken) {
-    listener.handleLiteralList(count, beginToken, constKeyword, endToken);
-    // TODO(danrubel): implement handleLiteralList
-  }
-
-  @override
-  void handleLiteralMap(
-      int count, Token beginToken, Token constKeyword, Token endToken) {
-    listener.handleLiteralMap(count, beginToken, constKeyword, endToken);
-    // TODO(danrubel): implement handleLiteralMap
-  }
-
-  @override
-  void handleLiteralNull(Token token) {
-    listener.handleLiteralNull(token);
-    // TODO(danrubel): implement handleLiteralNull
-  }
-
-  @override
-  void handleModifier(Token token) {
-    listener.handleModifier(token);
-    // TODO(danrubel): implement handleModifier
-  }
-
-  @override
-  void handleModifiers(int count) {
-    listener.handleModifiers(count);
-    // TODO(danrubel): implement handleModifiers
-  }
-
-  @override
-  void handleNamedArgument(Token colon) {
-    listener.handleNamedArgument(colon);
-    // TODO(danrubel): implement handleNamedArgument
   }
 
   @override
@@ -1344,242 +1136,14 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void handleNoArguments(Token token) {
-    listener.handleNoArguments(token);
-    // TODO(danrubel): implement handleNoArguments
-  }
-
-  @override
-  void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
-    listener.handleNoConstructorReferenceContinuationAfterTypeArguments(token);
-    // TODO(danrubel): implement handleNoConstructorReferenceContinuationAfterTypeArguments
-  }
-
-  @override
-  void handleNoExpression(Token token) {
-    listener.handleNoExpression(token);
-    // TODO(danrubel): implement handleNoExpression
-  }
-
-  @override
-  void handleNoFieldInitializer(Token token) {
-    listener.handleNoFieldInitializer(token);
-    // TODO(danrubel): implement handleNoFieldInitializer
-  }
-
-  @override
-  void handleNoFormalParameters(Token token, fasta.MemberKind kind) {
-    listener.handleNoFormalParameters(token, kind);
-    // TODO(danrubel): implement handleNoFormalParameters
-  }
-
-  @override
-  void handleNoFunctionBody(Token token) {
-    listener.handleNoFunctionBody(token);
-    // TODO(danrubel): implement handleNoFunctionBody
-  }
-
-  @override
-  void handleNoInitializers() {
-    listener.handleNoInitializers();
-    // TODO(danrubel): implement handleNoInitializers
-  }
-
-  @override
-  void handleNoName(Token token) {
-    listener.handleNoName(token);
-    // TODO(danrubel): implement handleNoName
-  }
-
-  @override
-  void handleNoType(Token token) {
-    listener.handleNoType(token);
-    // TODO(danrubel): implement handleNoType
-  }
-
-  @override
-  void handleNoTypeArguments(Token token) {
-    listener.handleNoTypeArguments(token);
-    // TODO(danrubel): implement handleNoTypeArguments
-  }
-
-  @override
-  void handleNoTypeVariables(Token token) {
-    listener.handleNoTypeVariables(token);
-    // TODO(danrubel): implement handleNoTypeVariables
-  }
-
-  @override
-  void handleNoVariableInitializer(Token token) {
-    listener.handleNoVariableInitializer(token);
-    // TODO(danrubel): implement handleNoVariableInitializer
-  }
-
-  @override
-  void handleOperator(Token token) {
-    listener.handleOperator(token);
-    // TODO(danrubel): implement handleOperator
-  }
-
-  @override
-  void handleOperatorName(Token operatorKeyword, Token token) {
-    listener.handleOperatorName(operatorKeyword, token);
-    // TODO(danrubel): implement handleOperatorName
-  }
-
-  @override
-  void handleParenthesizedExpression(Token token) {
-    listener.handleParenthesizedExpression(token);
-    // TODO(danrubel): implement handleParenthesizedExpression
-  }
-
-  @override
-  void handleQualified(Token period) {
-    listener.handleQualified(period);
-    // TODO(danrubel): implement handleQualified
-  }
-
-  @override
-  void handleRecoverExpression(Token token, Message message) {
-    listener.handleRecoverExpression(token, message);
-    // TODO(danrubel): implement handleRecoverExpression
-  }
-
-  @override
-  void handleRecoverableError(Token token, Message message) {
-    listener.handleRecoverableError(token, message);
-    // TODO(danrubel): implement handleRecoverableError
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    expectIn('Import');
+    listener.handleImportPrefix(deferredKeyword, asKeyword);
   }
 
   @override
   void handleScript(Token token) {
+    expectIn('CompilationUnit');
     listener.handleScript(token);
-    // TODO(danrubel): implement handleScript
-  }
-
-  @override
-  void handleSend(Token beginToken, Token endToken) {
-    listener.handleSend(beginToken, endToken);
-    // TODO(danrubel): implement handleSend
-  }
-
-  @override
-  void handleStringJuxtaposition(int literalCount) {
-    listener.handleStringJuxtaposition(literalCount);
-    // TODO(danrubel): implement handleStringJuxtaposition
-  }
-
-  @override
-  void handleStringPart(Token token) {
-    listener.handleStringPart(token);
-    // TODO(danrubel): implement handleStringPart
-  }
-
-  @override
-  void handleSuperExpression(Token token, IdentifierContext context) {
-    listener.handleSuperExpression(token, context);
-    // TODO(danrubel): implement handleSuperExpression
-  }
-
-  @override
-  void handleSymbolVoid(Token token) {
-    listener.handleSymbolVoid(token);
-    // TODO(danrubel): implement handleSymbolVoid
-  }
-
-  @override
-  void handleThisExpression(Token token, IdentifierContext context) {
-    listener.handleThisExpression(token, context);
-    // TODO(danrubel): implement handleThisExpression
-  }
-
-  @override
-  void handleThrowExpression(Token throwToken, Token endToken) {
-    listener.handleThrowExpression(throwToken, endToken);
-    // TODO(danrubel): implement handleThrowExpression
-  }
-
-  @override
-  void handleType(Token beginToken, Token endToken) {
-    listener.handleType(beginToken, endToken);
-    // TODO(danrubel): implement handleType
-  }
-
-  @override
-  void handleUnaryPostfixAssignmentExpression(Token token) {
-    listener.handleUnaryPostfixAssignmentExpression(token);
-    // TODO(danrubel): implement handleUnaryPostfixAssignmentExpression
-  }
-
-  @override
-  void handleUnaryPrefixAssignmentExpression(Token token) {
-    listener.handleUnaryPrefixAssignmentExpression(token);
-    // TODO(danrubel): implement handleUnaryPrefixAssignmentExpression
-  }
-
-  @override
-  void handleUnaryPrefixExpression(Token token) {
-    listener.handleUnaryPrefixExpression(token);
-    // TODO(danrubel): implement handleUnaryPrefixExpression
-  }
-
-  @override
-  Token handleUnrecoverableError(Token token, Message message) {
-    return listener.handleUnrecoverableError(token, message);
-    // TODO(danrubel): implement handleUnrecoverableError
-  }
-
-  @override
-  void handleValuedFormalParameter(Token equals, Token token) {
-    listener.handleValuedFormalParameter(equals, token);
-    // TODO(danrubel): implement handleValuedFormalParameter
-  }
-
-  @override
-  void handleVoidKeyword(Token token) {
-    listener.handleVoidKeyword(token);
-    // TODO(danrubel): implement handleVoidKeyword
-  }
-
-  @override
-  Token injectGenericCommentTypeAssign(Token token) {
-    return listener.injectGenericCommentTypeAssign(token);
-    // TODO(danrubel): implement injectGenericCommentTypeAssign
-  }
-
-  @override
-  Token injectGenericCommentTypeList(Token token) {
-    return listener.injectGenericCommentTypeList(token);
-    // TODO(danrubel): implement injectGenericCommentTypeList
-  }
-
-  @override
-  void logEvent(String name) {
-    listener.logEvent(name);
-    // TODO(danrubel): implement logEvent
-  }
-
-  @override
-  Token newSyntheticToken(Token next) {
-    return listener.newSyntheticToken(next);
-    // TODO(danrubel): implement newSyntheticToken
-  }
-
-  // TODO(danrubel): implement recoverableErrors
-  @override
-  List<fasta.ParserError> get recoverableErrors => listener.recoverableErrors;
-
-  @override
-  Token replaceTokenWithGenericCommentTypeAssign(
-      Token tokenToStartReplacing, Token tokenWithComment) {
-    return listener.replaceTokenWithGenericCommentTypeAssign(
-        tokenToStartReplacing, tokenWithComment);
-    // TODO(danrubel): implement replaceTokenWithGenericCommentTypeAssign
-  }
-
-  @override
-  set suppressParseErrors(bool value) {
-    listener.suppressParseErrors = value;
-    // TODO(danrubel): implement suppressParseErrors
   }
 }

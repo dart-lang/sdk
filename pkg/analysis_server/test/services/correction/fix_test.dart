@@ -2433,6 +2433,24 @@ main() {
 ''');
   }
 
+  test_createLocalVariable_functionType_named_generic() async {
+    await resolveTestUnit('''
+typedef MY_FUNCTION<T>(T p);
+foo(MY_FUNCTION<int> f) {}
+main() {
+  foo(bar);
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_LOCAL_VARIABLE, '''
+typedef MY_FUNCTION<T>(T p);
+foo(MY_FUNCTION<int> f) {}
+main() {
+  MY_FUNCTION<int> bar;
+  foo(bar);
+}
+''');
+  }
+
   @failingTest
   test_createLocalVariable_functionType_synthetic() async {
     await resolveTestUnit('''

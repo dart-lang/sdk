@@ -1288,6 +1288,7 @@ void StreamingScopeBuilder::VisitStatement() {
       intptr_t offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
 
+      ++depth_.loop_;
       EnterScope(relative_kernel_offset_ + offset);
 
       TokenPosition position = builder_->ReadPosition();  // read position.
@@ -1296,8 +1297,6 @@ void StreamingScopeBuilder::VisitStatement() {
       for (intptr_t i = 0; i < list_length; ++i) {
         VisitVariableDeclaration();  // read ith variable.
       }
-
-      ++depth_.loop_;
 
       Tag tag = builder_->ReadTag();  // Read first part of condition.
       if (tag == kSomething) {
@@ -1309,9 +1308,8 @@ void StreamingScopeBuilder::VisitStatement() {
       }
       VisitStatement();  // read body.
 
-      --depth_.loop_;
-
       ExitScope(position, builder_->reader_->max_position());
+      --depth_.loop_;
       return;
     }
     case kForInStatement:
@@ -3427,8 +3425,9 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
           const Function& target = Function::ZoneHandle(
               Z, H.LookupConstructorByKernelConstructor(canonical_target));
-          instructions += StaticCall(TokenPosition::kNoSource, target,
-                                     argument_count, argument_names);
+          instructions +=
+              StaticCall(TokenPosition::kNoSource, target, argument_count,
+                         argument_names, ICData::kStatic);
           instructions += Drop();
           break;
         }
@@ -3448,8 +3447,9 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
           const Function& target = Function::ZoneHandle(
               Z, H.LookupConstructorByKernelConstructor(canonical_target));
-          instructions += StaticCall(TokenPosition::kNoSource, target,
-                                     argument_count, argument_names);
+          instructions +=
+              StaticCall(TokenPosition::kNoSource, target, argument_count,
+                         argument_names, ICData::kStatic);
           instructions += Drop();
           break;
         }
@@ -3557,7 +3557,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   intptr_t argument_count = positional_argument_count + named_argument_count;
   if (!target.is_static()) ++argument_count;
   body += StaticCall(TokenPosition::kNoSource, target, argument_count,
-                     argument_names);
+                     argument_names, ICData::kNoRebind);
 
   // Return the result.
   body += Return(function_node_helper.end_position_);
@@ -3848,7 +3848,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     instructions += PushArgument();
 
     // Call _asyncSetThreadStackTrace
-    instructions += StaticCall(TokenPosition::kNoSource, target, 1);
+    instructions += StaticCall(TokenPosition::kNoSource, target,
+                               /* argument_count = */ 1, ICData::kStatic);
     instructions += Drop();
 
     // TODO(29737): This sequence should be generated in order.
@@ -5018,17 +5019,21 @@ Fragment StreamingFlowGraphBuilder::LoadStaticField() {
 
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
-                                               intptr_t argument_count) {
-  return flow_graph_builder_->StaticCall(position, target, argument_count);
+                                               intptr_t argument_count,
+                                               ICData::RebindRule rebind_rule) {
+  return flow_graph_builder_->StaticCall(position, target, argument_count,
+                                         rebind_rule);
 }
 
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
                                                intptr_t argument_count,
                                                const Array& argument_names,
+                                               ICData::RebindRule rebind_rule,
                                                intptr_t type_args_count) {
   return flow_graph_builder_->StaticCall(position, target, argument_count,
-                                         argument_names, type_args_count);
+                                         argument_names, rebind_rule,
+                                         type_args_count);
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(
@@ -5486,7 +5491,12 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   }
 
   instructions += PushArgument();
-  return instructions + StaticCall(position, target, 1);
+  // Static calls are marked as "no-rebind", which is currently safe because
+  // DirectPropertyGet are only used in enums (index in toString) and enums
+  // can't change their structure during hot reload.
+  // If there are other sources of DirectPropertyGet in the future, this code
+  // have to be adjusted.
+  return instructions + StaticCall(position, target, 1, ICData::kNoRebind);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
@@ -5510,7 +5520,12 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
   instructions += StoreLocal(TokenPosition::kNoSource, value);
   instructions += PushArgument();
 
-  instructions += StaticCall(position, target, 2);
+  // Static calls are marked as "no-rebind", which is currently safe because
+  // DirectPropertyGet are only used in enums (index in toString) and enums
+  // can't change their structure during hot reload.
+  // If there are other sources of DirectPropertyGet in the future, this code
+  // have to be adjusted.
+  instructions += StaticCall(position, target, 2, ICData::kNoRebind);
 
   return instructions + Drop();
 }
@@ -5537,7 +5552,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
         Fragment instructions = Constant(field);
         return instructions + LoadStaticField();
       } else {
-        return StaticCall(position, getter, 0);
+        return StaticCall(position, getter, 0, ICData::kStatic);
       }
     }
   } else {
@@ -5545,7 +5560,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
         Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
 
     if (H.IsGetter(target)) {
-      return StaticCall(position, function, 0);
+      return StaticCall(position, function, 0, ICData::kStatic);
     } else if (H.IsMethod(target)) {
       return Constant(constant_evaluator_.EvaluateExpression(offset));
     } else {
@@ -5589,7 +5604,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
     // Invoke the setter function.
     const Function& function =
         Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
-    instructions += StaticCall(position, function, 1);
+    instructions += StaticCall(position, function, 1, ICData::kStatic);
 
     // Drop the unused result & leave the stored value on the stack.
     return instructions + Drop();
@@ -5640,7 +5655,24 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     SetOffset(before_branch_offset);
   }
 
-  Fragment instructions = BuildExpression();  // read receiver.
+  Fragment instructions;
+  intptr_t type_args_len = 0;
+  if (FLAG_reify_generic_functions) {
+    AlternativeReadingScope alt(reader_);
+    SkipExpression();                         // skip receiver
+    SkipName();                               // skip method name
+    ReadUInt();                               // read argument count.
+    intptr_t list_length = ReadListLength();  // read types list length.
+    if (list_length > 0) {
+      const TypeArguments& type_arguments =
+          T.BuildTypeArguments(list_length);  // read types.
+      instructions += TranslateInstantiatedTypeArguments(type_arguments);
+      instructions += PushArgument();
+    }
+    type_args_len = list_length;
+  }
+
+  instructions += BuildExpression();  // read receiver.
 
   const String& name = ReadNameAsMethodName();  // read name.
   const Token::Kind token_kind =
@@ -5651,6 +5683,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       PeekArgumentsCount() == 1 &&
       (receiver_tag == kNullLiteral ||
        PeekArgumentsFirstPositionalTag() == kNullLiteral)) {
+    ASSERT(type_args_len == 0);
     // "==" or "!=" with null on either side.
     instructions += BuildArguments(NULL, NULL, true);  // read arguments.
     SkipCanonicalNameReference();  // read interface_target_reference.
@@ -5662,13 +5695,11 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
   instructions += PushArgument();  // push receiver as argument.
 
-  // TODO(28109) Support generic methods in the VM or reify them away.
-  const intptr_t kTypeArgsLen = 0;
   Array& argument_names = Array::ZoneHandle(Z);
   intptr_t argument_count;
   instructions +=
       BuildArguments(&argument_names, &argument_count);  // read arguments.
-  ++argument_count;
+  ++argument_count;                                      // include receiver
 
   intptr_t checked_argument_count = 1;
   // If we have a special operation (e.g. +/-/==) we mark both arguments as
@@ -5690,7 +5721,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   instructions +=
-      InstanceCall(position, name, token_kind, kTypeArgsLen, argument_count,
+      InstanceCall(position, name, token_kind, type_args_len, argument_count,
                    argument_names, checked_argument_count, *interface_target);
   // Later optimization passes assume that result of a x.[]=(...) call is not
   // used. We must guarantee this invariant because violation will lead to an
@@ -5710,9 +5741,26 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
 
   ReadFlags();  // read flags.
 
-  // TODO(28109) Support generic methods in the VM or reify them away.
   Tag receiver_tag = PeekTag();               // peek tag for receiver.
-  Fragment instructions = BuildExpression();  // read receiver.
+
+  Fragment instructions;
+  intptr_t type_args_len = 0;
+  if (FLAG_reify_generic_functions) {
+    AlternativeReadingScope alt(reader_);
+    SkipExpression();                         // skip receiver
+    ReadCanonicalNameReference();             // skip target reference
+    ReadUInt();                               // read argument count.
+    intptr_t list_length = ReadListLength();  // read types list length.
+    if (list_length > 0) {
+      const TypeArguments& type_arguments =
+          T.BuildTypeArguments(list_length);  // read types.
+      instructions += TranslateInstantiatedTypeArguments(type_arguments);
+      instructions += PushArgument();
+    }
+    type_args_len = list_length;
+  }
+
+  instructions += BuildExpression();  // read receiver.
 
   NameIndex kernel_name =
       ReadCanonicalNameReference();  // read target_reference.
@@ -5725,6 +5773,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
       PeekArgumentsCount() == 1 &&
       (receiver_tag == kNullLiteral ||
        PeekArgumentsFirstPositionalTag() == kNullLiteral)) {
+    ASSERT(type_args_len == 0);
     // "==" or "!=" with null on either side.
     instructions += BuildArguments(NULL, NULL, true);  // read arguments.
     Token::Kind strict_cmp_kind =
@@ -5743,8 +5792,10 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
   instructions +=
       BuildArguments(&argument_names, &argument_count);  // read arguments.
   ++argument_count;
+  if (type_args_len > 0) ++argument_count;
   return instructions + StaticCall(TokenPosition::kNoSource, target,
-                                   argument_count, argument_names);
+                                   argument_count, argument_names,
+                                   ICData::kNoRebind, type_args_len);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
@@ -5752,11 +5803,11 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
-  NameIndex procedue_reference =
+  NameIndex procedure_reference =
       ReadCanonicalNameReference();  // read procedure reference.
   intptr_t argument_count = PeekArgumentsCount();
   const Function& target = Function::ZoneHandle(
-      Z, H.LookupStaticMethodByKernelProcedure(procedue_reference));
+      Z, H.LookupStaticMethodByKernelProcedure(procedure_reference));
   const Class& klass = Class::ZoneHandle(Z, target.Owner());
   if (target.IsGenerativeConstructor() || target.IsFactory()) {
     // The VM requires a TypeArguments object as first parameter for
@@ -5767,6 +5818,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   Fragment instructions;
   LocalVariable* instance_variable = NULL;
 
+  bool special_case_identical = klass.IsTopLevel() &&
+                                (klass.library() == Library::CoreLibrary()) &&
+                                (target.name() == Symbols::Identical().raw());
+
   // If we cross the Kernel -> VM core library boundary, a [StaticInvocation]
   // can appear, but the thing we're calling is not a static method, but a
   // factory constructor.
@@ -5776,6 +5831,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   //
   // TODO(27590): Get rid of this after we're using core libraries compiled
   // into Kernel.
+  intptr_t type_args_len = 0;
   if (target.IsGenerativeConstructor()) {
     if (klass.NumTypeArguments() > 0) {
       const TypeArguments& type_arguments =
@@ -5800,19 +5856,23 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     const TypeArguments& type_arguments = PeekArgumentsInstantiatedType(klass);
     instructions += TranslateInstantiatedTypeArguments(type_arguments);
     instructions += PushArgument();
-  } else {
-    // TODO(28109) Support generic methods in the VM or reify them away.
+  } else if (!special_case_identical && FLAG_reify_generic_functions) {
+    AlternativeReadingScope alt(reader_);
+    ReadUInt();                               // read argument count.
+    intptr_t list_length = ReadListLength();  // read types list length.
+    if (list_length > 0) {
+      const TypeArguments& type_arguments =
+          T.BuildTypeArguments(list_length);  // read types.
+      instructions += TranslateInstantiatedTypeArguments(type_arguments);
+      instructions += PushArgument();
+    }
+    type_args_len = list_length;
   }
-
-  bool special_case_identical = klass.IsTopLevel() &&
-                                (klass.library() == Library::CoreLibrary()) &&
-                                (target.name() == Symbols::Identical().raw());
 
   Array& argument_names = Array::ZoneHandle(Z);
   instructions += BuildArguments(&argument_names, NULL,
                                  special_case_identical);  // read arguments.
-  const int kTypeArgsLen = 0;
-  ASSERT(target.AreValidArguments(kTypeArgsLen, argument_count, argument_names,
+  ASSERT(target.AreValidArguments(type_args_len, argument_count, argument_names,
                                   NULL));
 
   // Special case identical(x, y) call.
@@ -5822,8 +5882,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ASSERT(argument_count == 2);
     instructions += StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
   } else {
-    instructions +=
-        StaticCall(position, target, argument_count, argument_names);
+    if (type_args_len) ++argument_count;
+    instructions += StaticCall(position, target, argument_count, argument_names,
+                               ICData::kStatic, type_args_len);
     if (target.IsGenerativeConstructor()) {
       // Drop the result of the constructor call and leave [instance_variable]
       // on top-of-stack.
@@ -5920,7 +5981,8 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
   const Function& target = Function::ZoneHandle(
       Z, H.LookupConstructorByKernelConstructor(klass, kernel_name));
   ++argument_count;
-  instructions += StaticCall(position, target, argument_count, argument_names);
+  instructions += StaticCall(position, target, argument_count, argument_names,
+                             ICData::kStatic);
   return instructions + Drop();
 }
 
@@ -6284,7 +6346,8 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(bool is_const,
       Z, factory_class.LookupFactory(
              Library::PrivateCoreLibName(Symbols::ListLiteralFactory())));
 
-  return instructions + StaticCall(position, factory_method, 2);
+  return instructions +
+         StaticCall(position, factory_method, 2, ICData::kStatic);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildMapLiteral(bool is_const,
@@ -6344,7 +6407,8 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(bool is_const,
       Z, map_class.LookupFactory(
              Library::PrivateCoreLibName(Symbols::MapLiteralFactory())));
 
-  return instructions + StaticCall(position, factory_method, 2);
+  return instructions +
+         StaticCall(position, factory_method, 2, ICData::kStatic);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
@@ -6616,7 +6680,8 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   }
   otherwise_fragment += PushArgument();  // message
 
-  otherwise_fragment += StaticCall(TokenPosition::kNoSource, target, 3);
+  otherwise_fragment +=
+      StaticCall(TokenPosition::kNoSource, target, 3, ICData::kStatic);
   otherwise_fragment += Drop();
 
   return Fragment(instructions.entry, then);
@@ -6733,6 +6798,8 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 
   Fragment declarations;
 
+  loop_depth_inc();
+
   bool new_context = false;
   declarations += EnterScope(offset + relative_kernel_offset_, &new_context);
 
@@ -6741,7 +6808,6 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     declarations += BuildVariableDeclaration();  // read ith variable.
   }
 
-  loop_depth_inc();
   bool negate = false;
   Tag tag = ReadTag();  // Read first part of condition.
   Fragment condition =
@@ -6782,9 +6848,10 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
   }
 
   Fragment loop(declarations.entry, loop_exit);
-  loop_depth_dec();
 
   loop += ExitScope(offset + relative_kernel_offset_);
+
+  loop_depth_dec();
 
   return loop;
 }
@@ -6923,7 +6990,8 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
       body_fragment += NullConstant();
       body_fragment += PushArgument();  // line
 
-      body_fragment += StaticCall(TokenPosition::kNoSource, constructor, 3);
+      body_fragment +=
+          StaticCall(TokenPosition::kNoSource, constructor, 3, ICData::kStatic);
       body_fragment += Drop();
 
       // Throw the exception
@@ -7588,15 +7656,20 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   LocalVariable* closure = MakeTemporary();
 
   // The function signature can have uninstantiated class type parameters.
-  //
-  // TODO(regis): Also handle the case of a function signature that has
-  // uninstantiated function type parameters.
   if (!function.HasInstantiatedSignature(kCurrentClass)) {
     instructions += LoadLocal(closure);
     instructions += LoadInstantiatorTypeArguments();
     instructions += flow_graph_builder_->StoreInstanceField(
         TokenPosition::kNoSource,
         Closure::instantiator_type_arguments_offset());
+  }
+
+  // The function signature can have uninstantiated function type parameters.
+  if (!function.HasInstantiatedSignature(kFunctions)) {
+    instructions += LoadLocal(closure);
+    instructions += LoadFunctionTypeArguments();
+    instructions += flow_graph_builder_->StoreInstanceField(
+        TokenPosition::kNoSource, Closure::function_type_arguments_offset());
   }
 
   // Store the function and the context in the closure.

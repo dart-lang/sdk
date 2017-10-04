@@ -194,6 +194,21 @@ blankLine() {
     expect(elementsList, hasLength(0));
   }
 
+  test_none_constructorDeclarationReturnType() async {
+    String selection = r'''
+class A {
+  A();
+  A.named();
+}
+''';
+    String content = """
+$selection
+""";
+    List<ImportedElements> elementsList = await _computeElements(
+        content, content.indexOf(selection), selection.length);
+    expect(elementsList, hasLength(0));
+  }
+
   test_none_partialNames() async {
     String selection = 'x + y';
     String content = """

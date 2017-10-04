@@ -154,17 +154,13 @@ regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Issue 29976.
 regress/issue_29982: RuntimeError # Issue 29982.
 regress/issue_29983: Crash # Issue 29983.
-regress/issue_29984: Crash # Issue 29984.
-regress/issue_29985: Crash # Issue 29985.
 
 runtime_checks/contravariant_generic_return: Fail
 runtime_checks/contravariant_generic_return_tear_off: Fail
 runtime_checks/contravariant_getter: Fail
-runtime_checks/covariant_generic_parameter_in_interface_mixin: Fail
-runtime_checks/covariant_generic_parameter_in_interface_super: Fail
-runtime_checks/covariant_generic_parameter_in_interface_super_mixin: Fail
 runtime_checks/field_forwarding_stub_generic_covariant: Fail
-runtime_checks/forwarding_stub_with_non_covariant_param: Fail
+runtime_checks/generic_covariance_inheritance_setter_field: Fail
+runtime_checks/generic_vs_explicit_covariance: Fail
 runtime_checks_new/derived_class_typed: Fail
 runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Fail
 runtime_checks_new/field_forwarding_stub_explicit_covariant: Fail

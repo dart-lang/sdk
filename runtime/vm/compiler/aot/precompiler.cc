@@ -2623,9 +2623,10 @@ void Precompiler::PopulateWithICData(const Function& function,
           const Array& arguments_descriptor =
               Array::Handle(zone, call->GetArgumentsDescriptor());
           const ICData& ic_data = ICData::ZoneHandle(
-              zone, ICData::New(function, call->function_name(),
-                                arguments_descriptor, call->deopt_id(),
-                                call->checked_argument_count(), false));
+              zone,
+              ICData::New(function, call->function_name(), arguments_descriptor,
+                          call->deopt_id(), call->checked_argument_count(),
+                          ICData::kInstance));
           call->set_ic_data(&ic_data);
         }
       } else if (instr->IsStaticCall()) {
@@ -2649,7 +2650,7 @@ void Precompiler::PopulateWithICData(const Function& function,
           const ICData& ic_data = ICData::ZoneHandle(
               zone, ICData::New(function, String::Handle(zone, target.name()),
                                 arguments_descriptor, call->deopt_id(),
-                                num_args_checked, true));
+                                num_args_checked, ICData::kStatic));
           ic_data.AddTarget(target);
           call->set_ic_data(&ic_data);
         }

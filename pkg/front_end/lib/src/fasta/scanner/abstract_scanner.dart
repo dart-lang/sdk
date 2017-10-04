@@ -10,10 +10,18 @@ import 'dart:typed_data' show Uint16List, Uint32List;
 
 import '../../scanner/token.dart' show BeginToken, Token, TokenType;
 
+import '../fasta_codes.dart'
+    show
+        Message,
+        messageExpectedHexDigit,
+        messageMissingExponent,
+        messageUnexpectedDollarInString,
+        messageUnterminatedComment;
+
 import '../scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
 
-import 'error_token.dart' show UnterminatedToken;
+import 'error_token.dart' show UnterminatedString, UnterminatedToken;
 
 import 'keyword_state.dart' show KeywordState;
 
@@ -684,7 +692,7 @@ abstract class AbstractScanner implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          unterminated('0x', shouldAdvance: false);
+          unterminated(messageExpectedHexDigit, shouldAdvance: false);
           return next;
         }
         appendSubstringToken(TokenType.HEXADECIMAL, start, true);
@@ -727,8 +735,8 @@ abstract class AbstractScanner implements Scanner {
           } else {
             if (!hasExponentDigits) {
               appendSyntheticSubstringToken(TokenType.DOUBLE, start, true, '0');
-              appendErrorToken(
-                  new UnterminatedToken('1e', tokenStart, stringOffset));
+              appendErrorToken(new UnterminatedToken(
+                  messageMissingExponent, tokenStart, stringOffset));
               return next;
             }
             break;
@@ -807,7 +815,7 @@ abstract class AbstractScanner implements Scanner {
     while (true) {
       if (identical($EOF, next)) {
         if (!asciiOnlyLines) handleUnicode(unicodeStart);
-        unterminated('/*');
+        unterminated(messageUnterminatedComment);
         break;
       } else if (identical($STAR, next)) {
         next = advance();
@@ -1089,7 +1097,7 @@ abstract class AbstractScanner implements Scanner {
     } else {
       beginToken(); // The synthetic identifier starts here.
       appendSyntheticSubstringToken(TokenType.IDENTIFIER, scanOffset, true, '');
-      unterminated(r'$', shouldAdvance: false);
+      unterminated(messageUnexpectedDollarInString, shouldAdvance: false);
     }
     beginToken(); // The string interpolation suffix starts here.
     return next;
@@ -1217,8 +1225,8 @@ abstract class AbstractScanner implements Scanner {
     return advanceAfterError(true);
   }
 
-  int unterminated(String prefix, {bool shouldAdvance: true}) {
-    appendErrorToken(new UnterminatedToken(prefix, tokenStart, stringOffset));
+  int unterminated(Message message, {bool shouldAdvance: true}) {
+    appendErrorToken(new UnterminatedToken(message, tokenStart, stringOffset));
     return advanceAfterError(shouldAdvance);
   }
 
@@ -1229,7 +1237,7 @@ abstract class AbstractScanner implements Scanner {
     String prefix = isRaw ? 'r$suffix' : suffix;
 
     appendSyntheticSubstringToken(TokenType.STRING, start, asciiOnly, suffix);
-    unterminated(prefix, shouldAdvance: false);
+    appendErrorToken(new UnterminatedString(prefix, tokenStart, stringOffset));
   }
 
   int advanceAfterError(bool shouldAdvance) {

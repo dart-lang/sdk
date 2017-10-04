@@ -1360,11 +1360,6 @@ class CompilerResolution implements Resolution {
   bool get wasProxyConstantComputedTestingOnly => _proxyConstant != null;
 
   @override
-  void registerClass(ClassElement cls) {
-    enqueuer.worldBuilder.registerClass(cls);
-  }
-
-  @override
   void resolveClass(ClassElement cls) {
     _compiler.resolver.resolveClass(cls);
   }
@@ -1575,6 +1570,11 @@ class CompilerResolution implements Resolution {
           .getConstantValue(resolver.constantCompiler.compileConstant(field));
     }
     return _proxyConstant == value;
+  }
+
+  @override
+  void registerClass(ClassEntity cls) {
+    enqueuer.worldBuilder.registerClass(cls);
   }
 }
 

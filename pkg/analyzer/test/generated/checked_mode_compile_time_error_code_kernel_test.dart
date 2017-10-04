@@ -20,32 +20,7 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
 
   @override
   @failingTest
-  test_fieldFormalParameterNotAssignableToField_fieldType_unresolved() async {
-    return super
-        .test_fieldFormalParameterNotAssignableToField_fieldType_unresolved();
-  }
-
-  @override
-  @failingTest
-  test_fieldTypeMismatch_unresolved() async {
-    return super.test_fieldTypeMismatch_unresolved();
-  }
-
-  @override
-  @failingTest
-  test_parameterNotAssignable_undefined() async {
-    return super.test_parameterNotAssignable_undefined();
-  }
-
-  @override
-  @failingTest
   test_redirectingConstructor_paramTypeMismatch() async {
     return super.test_redirectingConstructor_paramTypeMismatch();
-  }
-
-  @override
-  @failingTest
-  test_topLevelVarNotAssignable_undefined() async {
-    return super.test_topLevelVarNotAssignable_undefined();
   }
 }

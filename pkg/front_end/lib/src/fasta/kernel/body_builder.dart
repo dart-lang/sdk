@@ -61,7 +61,7 @@ import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
 import '../type_inference/type_promotion.dart' show TypePromoter;
 
-import 'frontend_accessors.dart' show buildIsNull, makeBinary;
+import 'frontend_accessors.dart' show buildIsNull;
 
 import 'redirecting_factory_body.dart'
     show
@@ -875,11 +875,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return deprecated_buildCompileTimeError(
           "Not an operator: '$operator'.", token.charOffset);
     } else {
-      Expression result =
-          makeBinary(a, new Name(operator), null, b, offset: token.charOffset);
-      if (isSuper) {
-        result = toSuperMethodInvocation(result);
-      }
+      Expression result = buildMethodInvocation(a, new Name(operator),
+          new ShadowArguments(<Expression>[b]), token.charOffset,
+          // This *could* be a constant expression, we can't know without
+          // evaluating [a] and [b].
+          isConstantExpression: !isSuper,
+          isSuper: isSuper);
       return negate ? new ShadowNot(result) : result;
     }
   }
@@ -925,45 +926,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
-  @override
-  Expression toSuperMethodInvocation(MethodInvocation node) {
-    Member target = lookupSuperMember(node.name);
-    if (target == null || (target is Procedure && !target.isAccessor)) {
-      if (target == null) {
-        warnUnresolvedMethod(node.name, node.fileOffset, isSuper: true);
-      } else if (!areArgumentsCompatible(target.function, node.arguments)) {
-        target = null;
-        warning(
-            fasta.templateSuperclassMethodArgumentMismatch
-                .withArguments(node.name.name),
-            node.fileOffset);
-      }
-      Expression result;
-      if (target != null) {
-        result = new ShadowDirectMethodInvocation(
-            new ShadowThisExpression()..fileOffset = node.fileOffset,
-            target,
-            node.arguments);
-      }
-      // TODO(ahe): Use [DirectMethodInvocation] when possible, that is,
-      // make the next line conditional:
-      result =
-          new ShadowSuperMethodInvocation(node.name, node.arguments, target);
-      return result..fileOffset = node.fileOffset;
-    }
-
-    Expression receiver = new ShadowDirectPropertyGet(
-        new ShadowThisExpression()..fileOffset = node.fileOffset, target)
-      ..fileOffset = node.fileOffset;
-    // TODO(ahe): Use [DirectPropertyGet] when possible, that is, make the next
-    // line conditional:
-    receiver = new ShadowSuperPropertyGet(node.name, target)
-      ..fileOffset = node.fileOffset;
-    return buildMethodInvocation(
-        receiver, callName, node.arguments, node.arguments.fileOffset,
-        isImplicitCall: true);
-  }
-
   bool areArgumentsCompatible(FunctionNode function, Arguments arguments) {
     // TODO(ahe): Implement this.
     return true;
@@ -972,27 +934,54 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int charOffset,
-      {bool isSuper: false,
+      {Member candidate,
+      bool isSuper: false,
       bool isGetter: false,
       bool isSetter: false,
       bool isStatic: false}) {
     Message message;
     Name kernelName = new Name(name, library.library);
+    LocatedMessage context;
+    if (candidate != null) {
+      // TODO(ahe): Not sure `candidate.location.file` is guaranteed to be
+      // relative to Uri.base.
+      Uri uri = Uri.base.resolve(candidate.location.file);
+      int offset = candidate.fileOffset;
+      Message message;
+      if (offset == -1 && candidate is Constructor) {
+        offset = candidate.enclosingClass.fileOffset;
+        message = fasta.templateCandidateFoundIsDefaultConstructor
+            .withArguments(candidate.enclosingClass.name);
+      } else {
+        message = fasta.messageCandidateFound;
+      }
+      context = message.withLocation(uri, offset);
+    }
+
     if (isGetter) {
       message = warnUnresolvedGet(kernelName, charOffset,
-          isSuper: isSuper, reportWarning: !constantExpressionRequired);
+          isSuper: isSuper,
+          reportWarning: !constantExpressionRequired,
+          context: context);
     } else if (isSetter) {
       message = warnUnresolvedSet(kernelName, charOffset,
-          isSuper: isSuper, reportWarning: !constantExpressionRequired);
+          isSuper: isSuper,
+          reportWarning: !constantExpressionRequired,
+          context: context);
     } else {
+      // TODO(ahe): This might be a constructor, and we need to provide a
+      // better error message in that case. Currently we say "method", not
+      // "constructor" and the unnamed constructor is simply referred to as ''.
       message = warnUnresolvedMethod(kernelName, charOffset,
-          isSuper: isSuper, reportWarning: !constantExpressionRequired);
+          isSuper: isSuper,
+          reportWarning: !constantExpressionRequired,
+          context: context);
     }
     if (constantExpressionRequired) {
       // TODO(ahe): Use [error] below instead of building a compile-time error,
       // should be:
       //    return library.loader.throwCompileConstantError(error, charOffset);
-      return buildCompileTimeError(message, charOffset);
+      return buildCompileTimeError(message, charOffset, context: context);
     } else {
       Expression error = library.loader.instantiateNoSuchMethodError(
           receiver, name, arguments, charOffset,
@@ -1007,36 +996,36 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Message warnUnresolvedGet(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true}) {
+      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoGetter.withArguments(name.name)
         : fasta.templateGetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset);
+      warning(message, charOffset, context: context);
     }
     return message;
   }
 
   @override
   Message warnUnresolvedSet(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true}) {
+      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoSetter.withArguments(name.name)
         : fasta.templateSetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset);
+      warning(message, charOffset, context: context);
     }
     return message;
   }
 
   @override
   Message warnUnresolvedMethod(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true}) {
+      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoMethod.withArguments(name.name)
         : fasta.templateMethodNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset);
+      warning(message, charOffset, context: context);
     }
     return message;
   }
@@ -1049,11 +1038,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Member lookupSuperMember(Name name, {bool isSetter: false}) {
-    Class superclass = classBuilder.cls.superclass;
-    return superclass == null
-        ? null
-        : hierarchy.getDispatchTarget(superclass, name, setter: isSetter);
+  Member lookupInstanceMember(Name name,
+      {bool isSetter: false, bool isSuper: false}) {
+    Class cls = classBuilder.cls;
+    if (isSuper) {
+      cls = cls.superclass;
+      if (cls == null) return null;
+    }
+    return isSuper
+        ? hierarchy.getDispatchTarget(cls, name, setter: isSetter)
+        : hierarchy.getInterfaceMember(cls, name, setter: isSetter);
   }
 
   @override
@@ -1132,7 +1126,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         if (constantExpressionRequired || member.isField) {
           return new UnresolvedAccessor(this, n, token);
         }
-        return new ThisPropertyAccessor(this, token, n, null, null);
+        return new ThisPropertyAccessor(this, token, n, lookupInstanceMember(n),
+            lookupInstanceMember(n, isSetter: true));
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
@@ -1183,8 +1178,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         deprecated_addCompileTimeError(
             offsetForToken(token), "Not a constant expression.");
       }
-      return new ThisPropertyAccessor(
-          this, token, new Name(name, library.library), null, null);
+      Name n = new Name(name, library.library);
+      Member getter;
+      Member setter;
+      if (builder is AccessErrorBuilder) {
+        setter = builder.parent.target;
+        getter = lookupInstanceMember(n);
+      } else {
+        getter = builder.target;
+        setter = lookupInstanceMember(n, isSetter: true);
+      }
+      return new ThisPropertyAccessor(this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
       return new StaticAccessor(this, token, builder.target, null);
@@ -1539,22 +1543,25 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       assert(conditionStatement is EmptyStatement);
     }
-    List<VariableDeclaration> variables = <VariableDeclaration>[];
+    List<VariableDeclaration> variables;
     dynamic variableOrExpression = pop();
-    Statement begin;
     if (variableOrExpression is FastaAccessor) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
     if (variableOrExpression is VariableDeclaration) {
-      variables.add(variableOrExpression);
+      variables = <VariableDeclaration>[variableOrExpression];
     } else if (variableOrExpression is List) {
-      // TODO(sigmund): remove this assignment (see issue #28651)
-      Iterable vars = variableOrExpression;
-      variables.addAll(vars);
+      variables = variableOrExpression;
     } else if (variableOrExpression == null) {
-      // Do nothing.
+      variables = <VariableDeclaration>[];
     } else if (variableOrExpression is Expression) {
-      begin = new ShadowExpressionStatement(variableOrExpression);
+      VariableDeclaration variable =
+          new VariableDeclaration.forValue(variableOrExpression);
+      variables = <VariableDeclaration>[variable];
+    } else if (variableOrExpression is ExpressionStatement) {
+      VariableDeclaration variable =
+          new VariableDeclaration.forValue(variableOrExpression.expression);
+      variables = <VariableDeclaration>[variable];
     } else {
       return unhandled("${variableOrExpression.runtimeType}", "endForStatement",
           forKeyword.charOffset, uri);
@@ -1569,9 +1576,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement result =
         new ShadowForStatement(variables, condition, updates, body)
           ..fileOffset = forKeyword.charOffset;
-    if (begin != null) {
-      result = new ShadowBlock(<Statement>[begin, result]);
-    }
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
       breakTarget.resolveBreaks(result);
@@ -2043,8 +2047,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression index = popForValue();
     var receiver = pop();
     if (receiver is ThisAccessor && receiver.isSuper) {
-      push(new SuperIndexAccessor(this, openSquareBracket, index,
-          lookupSuperMember(indexGetName), lookupSuperMember(indexSetName)));
+      push(new SuperIndexAccessor(
+          this,
+          openSquareBracket,
+          index,
+          lookupInstanceMember(indexGetName, isSuper: true),
+          lookupInstanceMember(indexSetName, isSuper: true)));
     } else {
       push(IndexAccessor.make(
           this, openSquareBracket, toValue(receiver), index, null, null));
@@ -2063,20 +2071,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (optional("-", token)) {
         operator = "unary-";
       }
+      bool isSuper = false;
+      Expression receiverValue;
       if (receiver is ThisAccessor && receiver.isSuper) {
-        push(toSuperMethodInvocation(buildMethodInvocation(
-            new ShadowThisExpression()
-              ..fileOffset = offsetForToken(receiver.token),
-            new Name(operator),
-            new Arguments.empty(),
-            token.charOffset)));
+        isSuper = true;
+        receiverValue = new ShadowThisExpression()
+          ..fileOffset = offsetForToken(receiver.token);
       } else {
-        push(buildMethodInvocation(toValue(receiver), new Name(operator),
-            new Arguments.empty(), token.charOffset,
-            // This *could* be a constant expression, we can't know without
-            // evaluating [receiver].
-            isConstantExpression: true));
+        receiverValue = toValue(receiver);
       }
+      push(buildMethodInvocation(receiverValue, new Name(operator),
+          new Arguments.empty(), token.charOffset,
+          // This *could* be a constant expression, we can't know without
+          // evaluating [receiver].
+          isConstantExpression: !isSuper,
+          isSuper: isSuper));
     }
   }
 
@@ -2194,7 +2203,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     if (!checkArguments(target.function, arguments, typeParameters)) {
       return throwNoSuchMethodError(new NullLiteral()..fileOffset = charOffset,
-          target.name.name, arguments, charOffset);
+          target.name.name, arguments, charOffset,
+          candidate: target);
     }
     if (target is Constructor) {
       if (isConst && !target.isConst) {
@@ -3122,12 +3132,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Expression buildCompileTimeError(Message message, int charOffset) {
+  Expression buildCompileTimeError(Message message, int charOffset,
+      {LocatedMessage context}) {
     // TODO(ahe): This method should be passed the erroneous expression, wrap
     // it in a class (TBD) from which the erroneous expression can be easily
     // extracted. Similar for statements and initializers. See also [issue
     // 29717](https://github.com/dart-lang/sdk/issues/29717)
-    library.addCompileTimeError(message, charOffset, uri, wasHandled: true);
+    library.addCompileTimeError(message, charOffset, uri,
+        wasHandled: true, context: context);
     return new ShadowSyntheticExpression(library.loader
         .throwCompileConstantError(
             library.loader.buildCompileTimeError(message, charOffset, uri)));
@@ -3297,7 +3309,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void warningNotError(Message message, int charOffset) {
-    super.warning(message, charOffset);
+    library.addWarning(message, charOffset, uri);
+  }
+
+  @override
+  void warning(Message message, int charOffset, {LocatedMessage context}) {
+    if (constantExpressionRequired) {
+      addCompileTimeError(message, charOffset);
+    } else {
+      library.addWarning(message, charOffset, uri, context: context);
+    }
+  }
+
+  @override
+  void nit(Message message, int charOffset) {
+    library.addNit(message, charOffset, uri);
   }
 
   @override
@@ -3344,11 +3370,38 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Expression receiver, Name name, Arguments arguments, int offset,
       {bool isConstantExpression: false,
       bool isNullAware: false,
-      bool isImplicitCall: false}) {
+      bool isImplicitCall: false,
+      bool isSuper: false,
+      Member interfaceTarget}) {
     if (constantExpressionRequired && !isConstantExpression) {
       return deprecated_buildCompileTimeError(
           "Not a constant expression.", offset);
     }
+    if (isSuper) {
+      // We can ignore [isNullAware] on super sends.
+      assert(receiver is ThisExpression);
+      Member target = lookupInstanceMember(name, isSuper: true);
+
+      if (target == null || (target is Procedure && !target.isAccessor)) {
+        if (target == null) {
+          warnUnresolvedMethod(name, offset, isSuper: true);
+        } else if (!areArgumentsCompatible(target.function, arguments)) {
+          target = null;
+          warning(
+              fasta.templateSuperclassMethodArgumentMismatch
+                  .withArguments(name.name),
+              offset);
+        }
+        return new ShadowSuperMethodInvocation(name, arguments, target)
+          ..fileOffset = offset;
+      }
+
+      receiver = new ShadowSuperPropertyGet(name, target)..fileOffset = offset;
+      return new ShadowMethodInvocation(receiver, callName, arguments,
+          isImplicitCall: true)
+        ..fileOffset = arguments.fileOffset;
+    }
+
     if (isNullAware) {
       VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
       return new ShadowNullAwareMethodInvocation(
@@ -3356,14 +3409,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           new ConditionalExpression(
               buildIsNull(new VariableGet(variable), offset),
               new NullLiteral(),
-              new MethodInvocation(new VariableGet(variable), name, arguments)
+              new MethodInvocation(
+                  new VariableGet(variable), name, arguments, interfaceTarget)
                 ..fileOffset = offset,
               null)
             ..fileOffset = offset)
         ..fileOffset = offset;
     } else {
       return new ShadowMethodInvocation(receiver, name, arguments,
-          isImplicitCall: isImplicitCall)
+          isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget)
         ..fileOffset = offset;
     }
   }

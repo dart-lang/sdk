@@ -21,9 +21,12 @@ import 'dart:_js_helper'
         StrongModeCastError,
         StrongModeErrorImplementation,
         StrongModeTypeError,
-        SyncIterable;
-import 'dart:_internal' as _internal;
+        SyncIterable,
+        JsLinkedHashMap,
+        ImmutableMap,
+        PrivateSymbol;
 
+part 'utils.dart';
 part 'classes.dart';
 part 'rtti.dart';
 part 'types.dart';
@@ -31,7 +34,6 @@ part 'errors.dart';
 part 'generators.dart';
 part 'operations.dart';
 part 'profile.dart';
-part 'utils.dart';
 
 // TODO(vsm): Move polyfill code to dart:html.
 // Note, native extensions are registered onto types in dart.global.

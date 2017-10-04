@@ -40,78 +40,6 @@ class StrongModeLocalInferenceTest_Kernel
 
   @override
   @failingTest
-  test_factoryConstructor_propagation() async {
-    return super.test_factoryConstructor_propagation();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_assignFromFuture() async {
-    return super.test_futureOr_assignFromFuture();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards1() async {
-    return super.test_futureOr_downwards1();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards2() async {
-    return super.test_futureOr_downwards2();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards3() async {
-    return super.test_futureOr_downwards3();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards4() async {
-    return super.test_futureOr_downwards4();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards5() async {
-    return super.test_futureOr_downwards5();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards6() async {
-    return super.test_futureOr_downwards6();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards7() async {
-    return super.test_futureOr_downwards7();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards8() async {
-    return super.test_futureOr_downwards8();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_upwards1() async {
-    return super.test_futureOr_upwards1();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_upwards2() async {
-    return super.test_futureOr_upwards2();
-  }
-
-  @override
-  @failingTest
   test_generic_partial() async {
     return super.test_generic_partial();
   }
@@ -187,12 +115,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   @failingTest
   test_instantiateToBounds_class_ok_referenceOther_multi() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_multi();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_functionType() async {
-    return super.test_notInstantiatedBound_functionType();
   }
 }
 

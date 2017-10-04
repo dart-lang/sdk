@@ -252,7 +252,7 @@ class KernelTarget extends TargetImplementation {
       loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
       loader.prepareTopLevelInference(sourceClasses);
-      loader.performTopLevelInference();
+      loader.performTopLevelInference(sourceClasses);
       loader.computeFormalSafety(sourceClasses);
     } on deprecated_InputError catch (e) {
       handleInputError(e, isFullProgram: false);

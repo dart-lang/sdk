@@ -8,6 +8,7 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 [ $compiler == precompiler ]
 async/stream_timeout_test: RuntimeError
+html/*: SkipByDesign # dart:html not supported on AOT.
 mirrors/*: SkipByDesign # Mirrors not supported on AOT.
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout

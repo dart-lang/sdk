@@ -9,8 +9,6 @@ deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeE
 deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 
 [ $compiler == dartk || $compiler == dartkp ]
-method_override_test: RuntimeError # Not triaged.
-
 conditional_import_string_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 conditional_import_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -97,9 +95,6 @@ map_literal3_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 map_literal6_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 
 dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
-
-for2_test: RuntimeError # KernelVM bug: Closure conversion?
-for_variable_capture_test: RuntimeError # KernelVM bug: Closure conversion?
 
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.

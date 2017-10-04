@@ -533,7 +533,7 @@ main() {
     });
   });
 
-  group('avoid leaks on dart:core', () {
+  group('avoid leaks on dart core', () {
     test('String', () {
       var s = confuse('Hello');
       var stringWrapper = confuse(new StringWrapper('Hello'));

@@ -526,6 +526,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   List<FunctionTypeAliasElement> get newPrune {
     Element element = this.element;
+    if (element is GenericFunctionTypeElement) {
+      element = (element as GenericFunctionTypeElement).enclosingElement;
+    }
     if (element is FunctionTypeAliasElement && !element.isSynthetic) {
       // This typedef should be pruned, along with anything that was previously
       // pruned.
@@ -914,7 +917,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   FunctionTypeImpl pruned(List<FunctionTypeAliasElement> prune) {
     if (prune == null) {
       return this;
-    } else if (prune.contains(element)) {
+    } else if (prune.contains(element) ||
+        prune.contains(element.enclosingElement)) {
       // Circularity found.  Prune the type declaration.
       return new CircularFunctionTypeImpl();
     } else {

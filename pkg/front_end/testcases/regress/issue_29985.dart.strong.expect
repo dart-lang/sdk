@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29985.dart:6:3: Error: The non-ASCII character '\u55357\u56603' (U+1F51B) can't be used in identifiers, only in strings and comments.\nTry using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).\n  \u55357\u56603\n  ^", "pkg/front_end/testcases/regress/issue_29985.dart:7:1: Error: Expected ';' before this.\n}\n^"]/* from null */;
+static method bad() → dynamic {
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#🔛, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
+}
+static method main() → dynamic {}

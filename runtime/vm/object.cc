@@ -81,6 +81,7 @@ DEFINE_FLAG(bool,
             "Remove script timestamps to allow for deterministic testing.");
 
 DECLARE_FLAG(bool, show_invisible_frames);
+DECLARE_FLAG(bool, strong);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);
@@ -1463,25 +1464,26 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
                          core_lib);
     pending_classes.Add(library_prefix_cls);
 
-    RegisterPrivateClass(type_cls, Symbols::Type(), core_lib);
+    RegisterPrivateClass(type_cls, Symbols::_Type(), core_lib);
     pending_classes.Add(type_cls);
 
-    RegisterPrivateClass(type_ref_cls, Symbols::TypeRef(), core_lib);
+    RegisterPrivateClass(type_ref_cls, Symbols::_TypeRef(), core_lib);
     pending_classes.Add(type_ref_cls);
 
-    RegisterPrivateClass(type_parameter_cls, Symbols::TypeParameter(),
+    RegisterPrivateClass(type_parameter_cls, Symbols::_TypeParameter(),
                          core_lib);
     pending_classes.Add(type_parameter_cls);
 
-    RegisterPrivateClass(bounded_type_cls, Symbols::BoundedType(), core_lib);
+    RegisterPrivateClass(bounded_type_cls, Symbols::_BoundedType(), core_lib);
     pending_classes.Add(bounded_type_cls);
 
-    RegisterPrivateClass(mixin_app_type_cls, Symbols::MixinAppType(), core_lib);
+    RegisterPrivateClass(mixin_app_type_cls, Symbols::_MixinAppType(),
+                         core_lib);
     pending_classes.Add(mixin_app_type_cls);
 
     cls = Class::New<Integer>();
     object_store->set_integer_implementation_class(cls);
-    RegisterPrivateClass(cls, Symbols::IntegerImplementation(), core_lib);
+    RegisterPrivateClass(cls, Symbols::_IntegerImplementation(), core_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<Smi>();
@@ -1655,6 +1657,17 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     // 'toString' method is implemented.
     type = object_store->object_type();
     stacktrace_cls.set_super_type(type);
+
+    // Abstract class that represents the Dart class Type.
+    // Note that this class is implemented by Dart class _AbstractType.
+    cls = Class::New<Instance>(kIllegalCid);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    RegisterClass(cls, Symbols::Type(), core_lib);
+    pending_classes.Add(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_type_type(type);
 
     // Abstract class that represents the Dart class Function.
     cls = Class::New<Instance>(kIllegalCid);
@@ -3778,10 +3791,11 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       return true;
     }
     // In the case of a subtype test, each occurrence of DynamicType in type S
-    // is interpreted as the bottom type, a subtype of all types.
+    // is interpreted as the bottom type, a subtype of all types, but not in
+    // strong mode.
     // However, DynamicType is not more specific than any type.
     if (thsi.IsDynamicClass()) {
-      return test_kind == Class::kIsSubtypeOf;
+      return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
     }
     // Check for ObjectType. Any type that is not NullType or DynamicType
     // (already checked above), is more specific than ObjectType/VoidType.
@@ -3813,7 +3827,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
-        return test_kind == Class::kIsSubtypeOf;
+        return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
       }
       return type_arguments.TypeTest(test_kind, other_type_arguments,
                                      from_index, num_type_params, bound_error,
@@ -6312,12 +6326,25 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   // Note that type parameters declared by a generic signature are preserved.
   Function& this_fun = Function::Handle(raw());
   if (!this_fun.HasInstantiatedSignature()) {
+    // HasCompatibleParametersWith is called at compile time to check for bad
+    // overrides and can only detect some obviously wrong overrides, but it
+    // should never give false negatives.
+    if (FLAG_strong) {
+      // Instantiating all type parameters to dynamic is not the right thing
+      // to do in strong mode, because of contravariance of parameter types.
+      // It is better to skip the test than to give a false negative.
+      return true;
+    }
     this_fun = this_fun.InstantiateSignatureFrom(Object::null_type_arguments(),
                                                  Object::null_type_arguments(),
                                                  Heap::kOld);
   }
   Function& other_fun = Function::Handle(other.raw());
   if (!other_fun.HasInstantiatedSignature()) {
+    if (FLAG_strong) {
+      // See comment above.
+      return true;
+    }
     other_fun = other_fun.InstantiateSignatureFrom(
         Object::null_type_arguments(), Object::null_type_arguments(),
         Heap::kOld);
@@ -6400,12 +6427,14 @@ RawFunction* Function::InstantiateSignatureFrom(
 
 // If test_kind == kIsSubtypeOf, checks if the type of the specified parameter
 // of this function is a subtype or a supertype of the type of the specified
-// parameter of the other function.
+// parameter of the other function. In strong mode, we only check for supertype,
+// i.e. contravariance.
+// Note that types marked as covariant are already dealt with in the front-end.
 // If test_kind == kIsMoreSpecificThan, checks if the type of the specified
 // parameter of this function is more specific than the type of the specified
 // parameter of the other function.
-// Note that we do not apply contravariance of parameter types, but covariance
-// of both parameter types and result type.
+// Note that for kIsMoreSpecificThan, we do not apply contravariance of
+// parameter types, but covariance of both parameter types and result type.
 bool Function::TestParameterType(TypeTestKind test_kind,
                                  intptr_t parameter_position,
                                  intptr_t other_parameter_position,
@@ -6415,7 +6444,7 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  Heap::Space space) const {
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-  if (other_param_type.IsDynamicType()) {
+  if (!FLAG_strong && other_param_type.IsDynamicType()) {
     return true;
   }
   const AbstractType& param_type =
@@ -6424,10 +6453,10 @@ bool Function::TestParameterType(TypeTestKind test_kind,
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
-                                space) &&
-        !other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
-                                      space)) {
+    if (!((!FLAG_strong && param_type.IsSubtypeOf(other_param_type, bound_error,
+                                                  bound_trail, space)) ||
+          other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
+                                       space))) {
       return false;
     }
   } else {
@@ -6516,10 +6545,10 @@ bool Function::TypeTest(TypeTestKind test_kind,
       return false;
     }
     if (test_kind == kIsSubtypeOf) {
-      if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
-                                space) &&
-          !other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
-                                      space)) {
+      if (!(res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
+                                 space) ||
+            (!FLAG_strong && other_res_type.IsSubtypeOf(res_type, bound_error,
+                                                        bound_trail, space)))) {
         return false;
       }
     } else {
@@ -6548,7 +6577,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
   // function type, there exists an optional named parameter of this function
   // type with an identical name and with a type S that is a either a subtype
   // or supertype of T (if test_kind == kIsSubtypeOf) or that is more specific
-  // than T (if test_kind == kIsMoreSpecificThan).
+  // than T (if test_kind == kIsMoreSpecificThan). In strong mode, we only check
+  // for supertype, i.e. contravariance.
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
   const int num_params = num_fixed_params + num_opt_named_params;
@@ -7055,16 +7085,6 @@ void Function::DropUncompiledConvertedClosureFunction() const {
   }
 }
 
-RawString* Function::UserVisibleFormalParameters() const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  // Typically 3, 5,.. elements in 'pieces', e.g.:
-  // '_LoadRequest', CommaSpace, '_LoadError'.
-  GrowableHandlePtrArray<const String> pieces(zone, 5);
-  BuildSignatureParameters(thread, zone, kUserVisibleName, &pieces);
-  return Symbols::FromConcatAll(thread, pieces);
-}
-
 void Function::BuildSignatureParameters(
     Thread* thread,
     Zone* zone,
@@ -7228,9 +7248,10 @@ bool Function::HasInstantiatedSignature(Genericity genericity,
   //     }
   //
   // The signature of `fn` as a converted closure will in both cases look like
-  // `<T>(T) => dynamic`, because the signaute of the converted closure function
-  // is the same as it's top-level target function. However, in the first case
-  // the closure's type is instantiated, and in the second case it's not.
+  // `<T>(T) => dynamic`, because the signature of the converted closure
+  // function is the same as its top-level target function. However, in the
+  // first case the closure's type is instantiated, and in the second case
+  // it's not.
   //
   // Since we can never assume a converted closure is instantiated if it has any
   // type parameters, we always return true in these cases.
@@ -12896,13 +12917,17 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
   }
 }
 
-void ICData::SetIsStaticCall(bool static_call) const {
+ICData::RebindRule ICData::rebind_rule() const {
+  return (ICData::RebindRule)RebindRuleBits::decode(raw_ptr()->state_bits_);
+}
+
+void ICData::set_rebind_rule(uint32_t rebind_rule) const {
   StoreNonPointer(&raw_ptr()->state_bits_,
-                  StaticCallBit::update(static_call, raw_ptr()->state_bits_));
+                  RebindRuleBits::update(rebind_rule, raw_ptr()->state_bits_));
 }
 
 bool ICData::is_static_call() const {
-  return StaticCallBit::decode(raw_ptr()->state_bits_);
+  return rebind_rule() != kInstance;
 }
 
 void ICData::set_state_bits(uint32_t bits) const {
@@ -13692,7 +13717,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
                                  const Array& arguments_descriptor,
                                  intptr_t deopt_id,
                                  intptr_t num_args_tested,
-                                 bool is_static_call) {
+                                 RebindRule rebind_rule) {
   ASSERT(!owner.IsNull());
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
@@ -13714,7 +13739,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
 #if defined(TAG_IC_DATA)
   result.set_tag(-1);
 #endif
-  result.SetIsStaticCall(is_static_call);
+  result.set_rebind_rule(rebind_rule);
   result.SetNumArgsTested(num_args_tested);
   return result.raw();
 }
@@ -13746,11 +13771,11 @@ RawICData* ICData::New(const Function& owner,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
                        intptr_t num_args_tested,
-                       bool is_static_call) {
+                       RebindRule rebind_rule) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(
       zone, NewDescriptor(zone, owner, target_name, arguments_descriptor,
-                          deopt_id, num_args_tested, is_static_call));
+                          deopt_id, num_args_tested, rebind_rule));
   result.set_ic_data_array(
       Array::Handle(zone, CachedEmptyICDataArray(num_args_tested)));
   return result.raw();
@@ -13760,7 +13785,7 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
   const ICData& result = ICData::Handle(ICData::New(
       Function::Handle(from.Owner()), String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()), from.deopt_id(),
-      num_args_tested, from.is_static_call()));
+      num_args_tested, from.rebind_rule()));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();
@@ -13772,7 +13797,7 @@ RawICData* ICData::Clone(const ICData& from) {
       zone, Function::Handle(zone, from.Owner()),
       String::Handle(zone, from.target_name()),
       Array::Handle(zone, from.arguments_descriptor()), from.deopt_id(),
-      from.NumArgsTested(), from.is_static_call()));
+      from.NumArgsTested(), from.rebind_rule()));
   // Clone entry array.
   const Array& from_array = Array::Handle(zone, from.ic_data());
   const intptr_t len = from_array.Length();
@@ -16408,6 +16433,10 @@ RawType* Type::ArrayType() {
 
 RawType* Type::DartFunctionType() {
   return Isolate::Current()->object_store()->function_type();
+}
+
+RawType* Type::DartTypeType() {
+  return Isolate::Current()->object_store()->type_type();
 }
 
 RawType* Type::NewNonParameterizedType(const Class& type_class) {

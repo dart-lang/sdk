@@ -211,6 +211,7 @@ enum MessageKind {
   INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE,
   INVALID_CONSTANT_COMPLEMENT_TYPE,
   INVALID_CONSTANT_CONDITIONAL_TYPE,
+  INVALID_CONSTANT_CONSTRUCTOR,
   INVALID_CONSTANT_INDEX,
   INVALID_CONSTANT_INTERPOLATION_TYPE,
   INVALID_CONSTANT_NEGATE_TYPE,
@@ -3425,14 +3426,6 @@ main() => new A().foo = 0;"""
             """
 main() async {
  var await;
-}""",
-            """
-main() async* {
- var yield;
-}""",
-            """
-main() sync* {
- var yield;
 }"""
           ]),
 
@@ -3635,6 +3628,11 @@ part of test.main;
           MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE,
           "`#{constant}` of type '#{type}' is not a valid logical and operand. "
           "Must be a value of type 'bool'."),
+
+      MessageKind.INVALID_CONSTANT_CONSTRUCTOR: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
+          "Constructor '#{constructorName}' is not a valid constant "
+          "constructor."),
 
       //////////////////////////////////////////////////////////////////////////////
       // Patch errors start.
@@ -3922,7 +3920,7 @@ class Message {
   static String convertToString(value) {
     if (value is ErrorToken) {
       // Shouldn't happen.
-      return value.assertionMessage;
+      return value.assertionMessage.message;
     } else if (value is Token) {
       value = value.lexeme;
     } else if (value is ConstantExpression) {

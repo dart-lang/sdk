@@ -37,6 +37,18 @@ enum ByteRegister {
   CH = 5,
   DH = 6,
   BH = 7,
+  SPL = 4 | 0x10,
+  BPL = 5 | 0x10,
+  SIL = 6 | 0x10,
+  DIL = 7 | 0x10,
+  R8B = 8,
+  R9B = 9,
+  R10B = 10,
+  R11B = 11,
+  R12B = 12,
+  R13B = 13,
+  R14B = 14,
+  R15B = 15,
   kNoByteRegister = -1  // Signals an illegal register.
 };
 

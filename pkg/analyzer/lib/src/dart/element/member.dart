@@ -140,16 +140,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   ExecutableElement get baseElement => super.baseElement as ExecutableElement;
 
   @override
-  List<FunctionElement> get functions {
-    //
-    // Elements within this element should have type parameters substituted,
-    // just like this element.
-    //
-    throw new UnsupportedError('functions');
-//    return getBaseElement().getFunctions();
-  }
-
-  @override
   bool get hasImplicitReturnType => baseElement.hasImplicitReturnType;
 
   @override
@@ -193,7 +183,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     // TODO(brianwilkerson) We need to finish implementing the accessors used
     // below so that we can safely invoke them.
     super.visitChildren(visitor);
-    safelyVisitChildren(baseElement.functions, visitor);
     safelyVisitChildren(parameters, visitor);
   }
 }

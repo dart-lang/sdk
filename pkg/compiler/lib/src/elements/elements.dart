@@ -4,17 +4,18 @@
 
 library elements;
 
+import 'package:front_end/src/fasta/scanner.dart'
+    show Token, isUserDefinableOperator, isMinusOperator;
+
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
+import '../common_elements.dart' show CommonElements;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../common_elements.dart' show CommonElements;
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/scope.dart' show Scope;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../script.dart';
-import 'package:front_end/src/fasta/scanner.dart'
-    show Token, isUserDefinableOperator, isMinusOperator;
 import '../tree/tree.dart' hide AsyncModifier;
 import '../universe/call_structure.dart';
 import '../util/util.dart';

@@ -1986,32 +1986,23 @@ class CodeGenerator extends Object
   /// add forwarders.
   void _defineExtensionMembers(
       JS.Expression className, List<JS.Statement> body) {
-    void emitExtensions(
-        JS.Expression target, Iterable<ExecutableElement> extensions) {
+    void emitExtensions(String helperName, Iterable<String> extensions) {
       if (extensions.isEmpty) return;
 
       var names = extensions
-          .map((e) => _declareMemberName(e, useExtension: false))
+          .map((e) => _propertyName(_jsMemberNameForDartMember(e)))
           .toList();
-      body.add(_callHelperStatement('defineExtensionMembers(#, #);', [
-        target,
+      body.add(js.statement('#.#(#, #);', [
+        _runtimeModule,
+        helperName,
+        className,
         new JS.ArrayInitializer(names, multiline: names.length > 4)
       ]));
     }
 
-    // Define mixin members (if any) on the mixin class.
-    var mixinClass = js.call('#.__proto__', [className]);
-    emitExtensions(mixinClass, _classProperties.mixinExtensionMembers);
-    emitExtensions(className, _classProperties.extensionMembers);
-  }
-
-  void _buildSignatureField(
-      List<JS.Property> sigFields, String name, List<JS.Property> elements) {
-    if (elements.isEmpty) return;
-    var o = new JS.ObjectInitializer(elements, multiline: elements.length > 1);
-    // TODO(vsm): Remove
-    var e = js.call('() => #', o);
-    sigFields.add(new JS.Property(_propertyName(name), e));
+    var props = _classProperties;
+    emitExtensions('defineExtensionMethods', props.extensionMethods);
+    emitExtensions('defineExtensionAccessors', props.extensionAccessors);
   }
 
   /// Emit the signature on the class recording the runtime type information
@@ -2025,172 +2016,178 @@ class CodeGenerator extends Object
       ]));
     }
 
-    var staticMethods = <JS.Property>[];
-    var instanceMethods = <JS.Property>[];
-    var staticNames = <JS.Expression>[];
-    for (var method in classElem.methods) {
-      // TODO(vsm): Clean up all the nasty duplication.
-      if (method.isAbstract) {
-        continue;
+    void emitSignature(String name, List<JS.Property> elements) {
+      if (elements.isEmpty) return;
+
+      if (!name.startsWith('Static')) {
+        var proto = classElem.type.isObject
+            ? js.call('Object.create(null)')
+            : _callHelper('get${name}s(#.__proto__)', [className]);
+        elements.insert(0, new JS.Property(_propertyName('__proto__'), proto));
       }
+      body.add(_callHelperStatement('set${name}Signature(#, () => #)', [
+        className,
+        new JS.ObjectInitializer(elements, multiline: elements.length > 1)
+      ]));
+    }
 
-      var name = method.name;
-      DartType reifiedType = _getMemberRuntimeType(method);
-      // Don't add redundant signatures for inherited methods whose signature
-      // did not change.  If we are not overriding, or if the thing we are
-      // overriding has a different reified type from ourselves, we must
-      // emit a signature on this class.  Otherwise we will inherit the
-      // signature from the superclass.
-      var needsSignature =
-          classElem.lookUpInheritedConcreteMethod(name, currentLibrary) ==
-                  null ||
-              _getMemberRuntimeType(classElem.type.lookUpInheritedMethod(name,
-                      library: currentLibrary, thisType: false)) !=
-                  reifiedType;
+    {
+      var extMembers = _classProperties.extensionMethods;
+      var staticMethods = <JS.Property>[];
+      var instanceMethods = <JS.Property>[];
+      for (var method in classElem.methods) {
+        // TODO(vsm): Clean up all the nasty duplication.
+        if (method.isAbstract) {
+          continue;
+        }
 
-      var annotationNode = annotatedMembers[method] as MethodDeclaration;
+        var name = method.name;
+        var reifiedType = _getMemberRuntimeType(method);
+        var memberOverride =
+            classElem.type.lookUpMethodInSuperclass(name, currentLibrary);
+        // Don't add redundant signatures for inherited methods whose signature
+        // did not change.  If we are not overriding, or if the thing we are
+        // overriding has a different reified type from ourselves, we must
+        // emit a signature on this class.  Otherwise we will inherit the
+        // signature from the superclass.
+        var needsSignature = memberOverride == null ||
+            memberOverride.isAbstract ||
+            _getMemberRuntimeType(memberOverride) != reifiedType;
 
-      var type = _emitAnnotatedFunctionType(
-          reifiedType, annotationNode?.metadata,
-          parameters: annotationNode?.parameters?.parameters,
-          nameType: false,
-          definite: true);
+        if (needsSignature) {
+          var annotationNode = annotatedMembers[method] as MethodDeclaration;
 
-      if (needsSignature) {
-        var memberName = _declareMemberName(method);
-        var property = new JS.Property(memberName, type);
-        // We record the names of static methods separately so we can
-        // attach metadata to them individually.
-        // TODO(leafp): Revisit this.
-        if (method.isStatic) {
-          staticNames.add(memberName);
-          staticMethods.add(property);
-        } else {
-          instanceMethods.add(property);
+          var type = _emitAnnotatedFunctionType(
+              reifiedType, annotationNode?.metadata,
+              parameters: annotationNode?.parameters?.parameters,
+              nameType: false,
+              definite: true);
+          var property = new JS.Property(_declareMemberName(method), type);
+          if (method.isStatic) {
+            staticMethods.add(property);
+          } else {
+            instanceMethods.add(property);
+            if (extMembers.contains(name)) {
+              instanceMethods.add(new JS.Property(
+                  _declareMemberName(method, useExtension: true), type));
+            }
+          }
         }
       }
+
+      emitSignature('Method', instanceMethods);
+      emitSignature('StaticMethod', staticMethods);
     }
 
-    var staticGetters = <JS.Property>[];
-    var instanceGetters = <JS.Property>[];
-    var staticSetters = <JS.Property>[];
-    var instanceSetters = <JS.Property>[];
-    for (var accessor in classElem.accessors) {
-      if (accessor.isAbstract || accessor.isSynthetic) {
-        continue;
+    {
+      var extMembers = _classProperties.extensionAccessors;
+      var staticGetters = <JS.Property>[];
+      var instanceGetters = <JS.Property>[];
+      var staticSetters = <JS.Property>[];
+      var instanceSetters = <JS.Property>[];
+      for (var accessor in classElem.accessors) {
+        if (accessor.isAbstract || accessor.isSynthetic) {
+          continue;
+        }
+        // Static getters/setters cannot be called with dynamic dispatch, nor
+        // can they be torn off.
+        // TODO(jmesserly): can we attach static method type info at the tearoff
+        // point, and avoid saving the information otherwise? Same trick would
+        // work for top-level functions.
+
+        var isStatic = accessor.isStatic;
+        if (!options.emitMetadata && accessor.isStatic) {
+          continue;
+        }
+
+        var name = accessor.name;
+        var isGetter = accessor.isGetter;
+        var memberOverride = isGetter
+            ? classElem.type.lookUpGetterInSuperclass(name, currentLibrary)
+            : classElem.type.lookUpSetterInSuperclass(name, currentLibrary);
+
+        var reifiedType = accessor.type;
+        // Don't add redundant signatures for inherited methods whose signature
+        // did not change.  If we are not overriding, or if the thing we are
+        // overriding has a different reified type from ourselves, we must
+        // emit a signature on this class.  Otherwise we will inherit the
+        // signature from the superclass.
+        var needsSignature = memberOverride == null ||
+            memberOverride.isAbstract ||
+            memberOverride.type != reifiedType;
+
+        if (needsSignature) {
+          // TODO(jmesserly): we could reduce work by not saving a full function
+          // type for getters/setters. These only need 1 type to be saved.
+          var annotationNode = annotatedMembers[accessor] as MethodDeclaration;
+          var type = _emitAnnotatedFunctionType(
+              reifiedType, annotationNode?.metadata,
+              parameters: annotationNode?.parameters?.parameters,
+              nameType: false,
+              definite: true);
+
+          var property = new JS.Property(_declareMemberName(accessor), type);
+          if (isStatic) {
+            (isGetter ? staticGetters : staticSetters).add(property);
+          } else {
+            var accessors = isGetter ? instanceGetters : instanceSetters;
+            accessors.add(property);
+            if (extMembers.contains(accessor.variable.name)) {
+              accessors.add(new JS.Property(
+                  _declareMemberName(accessor, useExtension: true), type));
+            }
+          }
+        }
       }
-      // Static getters/setters cannot be called with dynamic dispatch, nor
-      // can they be torn off.
-      // TODO(jmesserly): can we attach static method type info at the tearoff
-      // point, and avoid saving the information otherwise? Same trick would
-      // work for top-level functions.
+      emitSignature('Getter', instanceGetters);
+      emitSignature('Setter', instanceSetters);
+      emitSignature('StaticGetter', staticGetters);
+      emitSignature('StaticSetter', staticSetters);
+    }
 
-      var isStatic = accessor.isStatic;
-      if (!options.emitMetadata && accessor.isStatic) {
-        continue;
+    {
+      var instanceFields = <JS.Property>[];
+      var staticFields = <JS.Property>[];
+      for (var field in classElem.fields) {
+        if (field.isSynthetic && !classElem.isEnum) continue;
+        // Only instance fields need to be saved for dynamic dispatch.
+        var isStatic = field.isStatic;
+        if (!options.emitMetadata && isStatic) {
+          continue;
+        }
+
+        var fieldNode = annotatedMembers[field] as VariableDeclaration;
+        var metadata = fieldNode != null
+            ? (fieldNode.parent.parent as FieldDeclaration).metadata
+            : null;
+
+        var memberName = _declareMemberName(field.getter);
+        var fieldSig = _emitFieldSignature(field.type,
+            metadata: metadata, isFinal: field.isFinal);
+        (isStatic ? staticFields : instanceFields)
+            .add(new JS.Property(memberName, fieldSig));
       }
+      emitSignature('Field', instanceFields);
+      emitSignature('StaticField', staticFields);
+    }
 
-      var name = accessor.name;
-      var isGetter = accessor.isGetter;
-      var getOverride = isGetter
-          ? classElem.lookUpInheritedConcreteGetter
-          : classElem.lookUpInheritedConcreteSetter;
-      var lookup = isGetter
-          ? classElem.type.lookUpInheritedGetter
-          : classElem.type.lookUpInheritedSetter;
-
-      var reifiedType = accessor.type;
-      // Don't add redundant signatures for inherited methods whose signature
-      // did not change.  If we are not overriding, or if the thing we are
-      // overriding has a different reified type from ourselves, we must
-      // emit a signature on this class.  Otherwise we will inherit the
-      // signature from the superclass.
-      var needsSignature = getOverride(name, currentLibrary) == null ||
-          lookup(name, library: currentLibrary, thisType: false).type !=
-              reifiedType;
-
-      // TODO(jmesserly): we could reduce work by not saving a full function
-      // type for getters/setters. These only need 1 type to be saved.
-
-      var annotationNode = annotatedMembers[accessor] as MethodDeclaration;
-      var type = _emitAnnotatedFunctionType(
-          reifiedType, annotationNode?.metadata,
-          parameters: annotationNode?.parameters?.parameters,
-          nameType: false,
-          definite: true);
-
-      if (needsSignature) {
-        var memberName = _declareMemberName(accessor);
-        var property = new JS.Property(memberName, type);
-
-        (isGetter
-                ? (isStatic ? staticGetters : instanceGetters)
-                : (isStatic ? staticSetters : instanceSetters))
-            .add(property);
+    {
+      var constructors = <JS.Property>[];
+      if (options.emitMetadata) {
+        for (var ctor in classElem.constructors) {
+          var annotationNode = annotatedMembers[ctor] as ConstructorDeclaration;
+          var memberName = _constructorName(ctor.name);
+          var type = _emitAnnotatedFunctionType(
+              ctor.type, annotationNode?.metadata,
+              parameters: annotationNode?.parameters?.parameters,
+              nameType: false,
+              definite: true);
+          constructors.add(new JS.Property(memberName, type));
+        }
       }
+      emitSignature('Constructor', constructors);
     }
 
-    var instanceFields = <JS.Property>[];
-    var staticFields = <JS.Property>[];
-    for (var field in classElem.fields) {
-      if (field.isSynthetic && !classElem.isEnum) continue;
-      // Only instance fields need to be saved for dynamic dispatch.
-      var isStatic = field.isStatic;
-      if (!options.emitMetadata && isStatic) {
-        continue;
-      }
-
-      var fieldNode = annotatedMembers[field] as VariableDeclaration;
-      var metadata = fieldNode != null
-          ? (fieldNode.parent.parent as FieldDeclaration).metadata
-          : null;
-
-      assert(field.getter != null, '$field in $classElem has no getter???');
-      var memberName = _declareMemberName(field.getter);
-      var fieldSig = _emitFieldSignature(field.type,
-          metadata: metadata, isFinal: field.isFinal);
-      (isStatic ? staticFields : instanceFields)
-          .add(new JS.Property(memberName, fieldSig));
-    }
-
-    var constructors = <JS.Property>[];
-    if (options.emitMetadata) {
-      for (var ctor in classElem.constructors) {
-        var annotationNode = annotatedMembers[ctor] as ConstructorDeclaration;
-        var memberName = _constructorName(ctor.name);
-        var type = _emitAnnotatedFunctionType(
-            ctor.type, annotationNode?.metadata,
-            parameters: annotationNode?.parameters?.parameters,
-            nameType: false,
-            definite: true);
-        constructors.add(new JS.Property(memberName, type));
-      }
-    }
-    var sigFields = <JS.Property>[];
-    _buildSignatureField(sigFields, 'constructors', constructors);
-    _buildSignatureField(sigFields, 'fields', instanceFields);
-    _buildSignatureField(sigFields, 'getters', instanceGetters);
-    _buildSignatureField(sigFields, 'setters', instanceSetters);
-    _buildSignatureField(sigFields, 'methods', instanceMethods);
-    _buildSignatureField(sigFields, 'sfields', staticFields);
-    _buildSignatureField(sigFields, 'sgetters', staticGetters);
-    _buildSignatureField(sigFields, 'ssetters', staticSetters);
-    _buildSignatureField(sigFields, 'statics', staticMethods);
-    if (!staticMethods.isEmpty) {
-      assert(!staticNames.isEmpty);
-      // Emit names so that we can lazily attach metadata to statics
-      // TODO(leafp): revisit this strategy
-      sigFields.add(new JS.Property(
-          _propertyName('names'), new JS.ArrayInitializer(staticNames)));
-    }
-    // We set signature here, even if empty, to simplify the work of
-    // defineExtensionMembers at runtime. See _defineExtensionMembers.
-    if (!sigFields.isEmpty ||
-        _classProperties.extensionMembers.isNotEmpty ||
-        _classProperties.mixinExtensionMembers.isNotEmpty) {
-      var sig = new JS.ObjectInitializer(sigFields);
-      body.add(_callHelperStatement('setSignature(#, #);', [className, sig]));
-    }
     // Add static property dart._runtimeType to Object.
     // All other Dart classes will (statically) inherit this property.
     if (classElem == objectClass) {
@@ -3000,19 +2997,21 @@ class CodeGenerator extends Object
       var member = _emitMemberName(name,
           isStatic: isStatic, type: type, element: accessor);
 
-      if (isStatic) {
-        var dynType = _emitStaticAccess(type);
-        return new JS.PropertyAccess(dynType, member);
-      }
-
       // For instance members, we add implicit-this.
       // For method tear-offs, we ensure it's a bound method.
       if (element is MethodElement &&
           !inInvocationContext(node) &&
           !_isJSNative(element.enclosingElement)) {
+        if (isStatic) {
+          // TODO(jmesserly): instead of looking up the function type, we could
+          // simply emit it here.
+          return _callHelper(
+              'tagStatic(#, #)', [_emitStaticAccess(type), member]);
+        }
         return _callHelper('bind(this, #)', member);
       }
-      return js.call('this.#', member);
+      var target = isStatic ? _emitStaticAccess(type) : new JS.This();
+      return new JS.PropertyAccess(target, member);
     }
 
     if (element is ParameterElement) {
@@ -3388,7 +3387,7 @@ class CodeGenerator extends Object
         return js.call(
             '#[#] = #', [_visit(target), _visit(left.index), _visit(right)]);
       }
-      return _emitSend(target, '[]=', [left.index, right]);
+      return _emitSend(target, '[]=', [left.index, right], left.staticElement);
     }
 
     if (left is SimpleIdentifier) {
@@ -3622,7 +3621,7 @@ class CodeGenerator extends Object
   /// [jsTarget].[jsName], replacing `super` if it is not allowed in scope.
   JS.Expression _emitTargetAccess(
       JS.Expression jsTarget, JS.Expression jsName, Element member) {
-    if (!_superAllowed && jsTarget is JS.Super) {
+    if (!_superAllowed && jsTarget is JS.Super && member != null) {
       return _getSuperHelper(member, jsName)
         ..sourceInformation = jsTarget.sourceInformation;
     }
@@ -3642,7 +3641,6 @@ class CodeGenerator extends Object
             isGetter: !isSetter, isSetter: isSetter);
       } else {
         var method = member as MethodElement;
-        var name = method.name;
         var params = new List<JS.Identifier>.from(
             _emitTypeFormals(method.typeParameters));
         for (var param in method.parameters) {
@@ -3655,6 +3653,8 @@ class CodeGenerator extends Object
 
         var fn = js.call(
             'function(#) { return super[#](#); }', [params, jsName, params]);
+        var name = method.name;
+        name = _friendlyOperatorName[name] ?? name;
         return new JS.Method(new JS.TemporaryId(name), fn);
       }
     });
@@ -4401,7 +4401,7 @@ class CodeGenerator extends Object
     var negated = op.type == TokenType.BANG_EQ;
 
     if (left is SuperExpression) {
-      return _emitSend(left, op.lexeme, [right]);
+      return _emitSend(left, op.lexeme, [right], node.staticElement);
     }
 
     // Conceptually `x == y` in Dart is defined as:
@@ -5093,9 +5093,10 @@ class CodeGenerator extends Object
         result = _callHelper('#(#)', [memberName, jsTarget]);
       }
     } else if (accessor is MethodElement &&
-        !isStatic &&
         !_isJSNative(accessor.enclosingElement)) {
-      if (isSuper) {
+      if (isStatic) {
+        result = _callHelper('tagStatic(#, #)', [jsTarget, jsName]);
+      } else if (isSuper) {
         result = _callHelper('bind(this, #, #)',
             [jsName, _emitTargetAccess(jsTarget, jsName, accessor)]);
       } else {
@@ -5117,8 +5118,10 @@ class CodeGenerator extends Object
   /// **Please note** this function does not support method invocation syntax
   /// `obj.name(args)` because that could be a getter followed by a call.
   /// See [visitMethodInvocation].
-  JS.Expression _emitSend(
-      Expression target, String name, List<Expression> args) {
+  JS.Expression _emitSend(Expression target, String name, List<Expression> args,
+      [Element element]) {
+    // TODO(jmesserly): calls that don't pass `element` are probably broken for
+    // `super` calls from disallowed super locations.
     var type = getStaticType(target);
     var memberName = _emitMemberName(name, type: type);
     if (isDynamicInvoke(target)) {
@@ -5134,7 +5137,10 @@ class CodeGenerator extends Object
     }
 
     // Generic dispatch to a statically known method.
-    return js.call('#.#(#)', [_visit(target), memberName, _visitList(args)]);
+    return js.call('#(#)', [
+      _emitTargetAccess(_visit(target), memberName, element),
+      _visitList(args)
+    ]);
   }
 
   @override
@@ -5143,7 +5149,7 @@ class CodeGenerator extends Object
     if (_useNativeJsIndexer(target.staticType)) {
       return new JS.PropertyAccess(_visit(target), _visit(node.index));
     }
-    return _emitSend(target, '[]', [node.index]);
+    return _emitSend(target, '[]', [node.index], node.staticElement);
   }
 
   // TODO(jmesserly): ideally we'd check the method and see if it is marked
@@ -5491,41 +5497,23 @@ class CodeGenerator extends Object
 
   @override
   visitMapLiteral(MapLiteral node) {
+    var isConst = node.constKeyword != null;
     // TODO(jmesserly): we can likely make these faster.
     JS.Expression emitMap() {
       var entries = node.entries;
-      Object mapArguments = null;
       var type = node.staticType as InterfaceType;
-      var typeArgs = type.typeArguments;
-      var reifyTypeArgs = typeArgs.any((t) => !t.isDynamic);
-      if (entries.isEmpty && !reifyTypeArgs) {
-        mapArguments = [];
-      } else if (entries.every((e) => e.key is StringLiteral)) {
-        // Use JS object literal notation if possible, otherwise use an array.
-        // We could do this any time all keys are non-nullable String type.
-        // For now, support StringLiteral as the common non-nullable String case.
-        var props = <JS.Property>[];
-        for (var e in entries) {
-          props.add(new JS.Property(_visit(e.key), _visit(e.value)));
-        }
-        mapArguments = new JS.ObjectInitializer(props);
-      } else {
-        var values = <JS.Expression>[];
-        for (var e in entries) {
-          values.add(_visit(e.key));
-          values.add(_visit(e.value));
-        }
-        mapArguments = new JS.ArrayInitializer(values);
+
+      var elements = <JS.Expression>[];
+      for (var e in entries) {
+        elements.add(_visit(e.key));
+        elements.add(_visit(e.value));
       }
-      var types = <JS.Expression>[];
-      if (reifyTypeArgs) {
-        types.addAll(typeArgs.map((e) => _emitType(e)));
-      }
-      return _callHelper('map(#, #)', [mapArguments, types]);
+      var args = type.typeArguments.map(_emitType).toList();
+      args.add(new JS.ArrayInitializer(elements));
+      return _callHelper(isConst ? 'constMap(#)' : 'map(#)', [args]);
     }
 
-    if (node.constKeyword != null) return _emitConst(emitMap);
-    return emitMap();
+    return isConst ? _cacheConst(emitMap) : emitMap();
   }
 
   @override
@@ -5705,32 +5693,33 @@ class CodeGenerator extends Object
     }
 
     useExtension ??= _isSymbolizedMember(type, name);
-
-    // When generating synthetic names, we use _ as the prefix, since Dart names
-    // won't have this (eliminated above), nor will static names reach here.
-    switch (name) {
-      case '[]':
-        name = '_get';
-        break;
-      case '[]=':
-        name = '_set';
-        break;
-      case 'unary-':
-        name = '_negate';
-        break;
-      case '==':
-        name = '_equals';
-        break;
-      case 'constructor':
-      case 'prototype':
-        name = '_$name';
-        break;
-    }
-
+    name = _jsMemberNameForDartMember(name);
     if (useExtension) {
       return _getExtensionSymbolInternal(name);
     }
     return _propertyName(name);
+  }
+
+  /// Returns the JS member name for a public Dart instance member, before it
+  /// is symbolized; generally you should use [_emitMemberName] or
+  /// [_declareMemberName] instead of this.
+  String _jsMemberNameForDartMember(String name) {
+    // When generating synthetic names, we use _ as the prefix, since Dart names
+    // won't have this (eliminated above), nor will static names reach here.
+    switch (name) {
+      case '[]':
+        return '_get';
+      case '[]=':
+        return '_set';
+      case 'unary-':
+        return '_negate';
+      case '==':
+        return '_equals';
+      case 'constructor':
+      case 'prototype':
+        return '_$name';
+    }
+    return name;
   }
 
   /// This is an internal method used by [_emitMemberName] and the

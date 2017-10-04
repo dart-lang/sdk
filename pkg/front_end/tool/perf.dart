@@ -2,7 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// An entrypoint used to run portions of front_end and measure its performance.
+/// An entrypoint used to run portions of analyzer and measure its performance.
+///
+/// TODO(sigmund): rename to 'analyzer_perf.dart' in sync with changes to the
+/// perf bots.
+///
+/// This file was started to measure the implementation of the front-end when it
+/// was based on the analyzer codebase.  Now that we are using fasta as the
+/// implementation (which is measured in fasta_perf.dart), we still want to
+/// measure the analyzer to ensure that there are no regressions when replacing
+/// features (e.g. there is no regression from replacing summaries with kernel
+/// outlines).
 library front_end.tool.perf;
 
 import 'dart:async';
@@ -16,24 +26,18 @@ import 'package:analyzer/file_system/physical_file_system.dart'
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/kernel/loader.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
-import 'package:front_end/compilation_message.dart';
-import 'package:front_end/compiler_options.dart';
 import 'package:front_end/src/scanner/reader.dart';
 import 'package:front_end/src/scanner/scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
-import 'package:kernel/kernel.dart' hide Source;
 import 'package:package_config/discovery.dart';
 import 'package:path/path.dart' as path;
-import 'package:source_span/source_span.dart' show SourceSpan;
 
 main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
@@ -51,12 +55,6 @@ main(List<String> args) async {
   var handlers = {
     'scan': () async => scanFiles(files),
     'parse': () async => parseFiles(files),
-    'kernel_gen_e2e': () async {
-      await generateKernel(entryUri, useSdkSummary: false);
-    },
-    'kernel_gen_e2e_sum': () async {
-      await generateKernel(entryUri, useSdkSummary: true, compileSdk: false);
-    },
     'unlinked_summarize': () async => summarize(files),
     'unlinked_summarize_from_sources': () async => summarize(files),
     'prelinked_summarize': () async => summarize(files, prelink: true),
@@ -116,99 +114,6 @@ void collectSources(Source start, Set<Source> files) {
       collectSources(next, files);
     }
   }
-}
-
-Future<Program> generateKernel(Uri entryUri,
-    {bool useSdkSummary: false, bool compileSdk: true}) async {
-  // TODO(sigmund): this is here only to compute the input size,
-  // we should extract the input size from the frontend instead.
-  scanReachableFiles(entryUri);
-
-  var dartkTimer = new Stopwatch()..start();
-  // TODO(sigmund): add a constructor with named args to compiler options.
-  var options = new CompilerOptions()
-    ..strongMode = false
-    ..compileSdk = compileSdk
-    ..packagesFileUri = _repoUri.resolve('.packages')
-    ..onError = ((e) => print('${e.message}'));
-  if (useSdkSummary) {
-    options.sdkSummary = _sdkUri.resolve('lib/_internal/spec.sum');
-  } else {
-    options.sdkRoot = _sdkUri;
-  }
-  Program program = await _kernelForProgramViaDartk(entryUri, options);
-  dartkTimer.stop();
-  var suffix = useSdkSummary ? '_sum' : '';
-  report('kernel_gen_e2e${suffix}', dartkTimer.elapsedMicroseconds);
-  return program;
-}
-
-_kernelForProgramViaDartk(Uri source, CompilerOptions options) async {
-  var loader = await _createLoader(options, entry: source);
-  loader.loadProgram(source, compileSdk: options.compileSdk);
-  _reportErrors(loader.errors, options.onError);
-  return loader.program;
-}
-
-/// Create a [DartLoader] using the provided [options].
-///
-/// If [options] contain no configuration to resolve `.packages`, the [entry]
-/// file will be used to search for a `.packages` file.
-Future<DartLoader> _createLoader(CompilerOptions options,
-    {Program program, Uri entry}) async {
-  var kernelOptions = _convertOptions(options);
-  var packages = await createPackages(_uriToPath(options.packagesFileUri),
-      discoveryPath: entry?.path);
-  var loader =
-      new DartLoader(program ?? new Program(), kernelOptions, packages);
-  var patchPaths = <String, List<String>>{};
-
-  // TODO(sigmund,paulberry): use ProcessedOptions so that we can resolve the
-  // URIs correctly even if sdkRoot is inferred and not specified explicitly.
-  String resolve(Uri patch) => _uriToPath(options.sdkRoot.resolveUri(patch));
-
-  options.targetPatches.forEach((name, patches) {
-    patchPaths['dart:$name'] = patches.map(resolve).toList();
-  });
-  AnalysisOptionsImpl analysisOptions = loader.context.analysisOptions;
-  analysisOptions.patchPaths = patchPaths;
-  return loader;
-}
-
-DartOptions _convertOptions(CompilerOptions options) {
-  return new DartOptions(
-      strongMode: options.strongMode,
-      sdk: _uriToPath(options.sdkRoot),
-      // TODO(sigmund): make it possible to use summaries and still compile the
-      // sdk sources.
-      sdkSummary: options.compileSdk ? null : _uriToPath(options.sdkSummary),
-      packagePath: _uriToPath(options.packagesFileUri),
-      declaredVariables: options.declaredVariables);
-}
-
-String _uriToPath(Uri uri) {
-  if (uri == null) return null;
-  if (uri.scheme != 'file') {
-    throw new StateError('Only file URIs are supported: $uri');
-  }
-  return uri.toFilePath();
-}
-
-void _reportErrors(List errors, ErrorHandler onError) {
-  if (onError == null) return;
-  for (var error in errors) {
-    onError(new _DartkError(error));
-  }
-}
-
-class _DartkError implements CompilationMessage {
-  String get tip => null;
-  SourceSpan get span => null;
-  String get analyzerCode => null;
-  String get dart2jsCode => null;
-  Severity get severity => Severity.error;
-  final String message;
-  _DartkError(this.message);
 }
 
 /// Generates unlinkmed summaries for all files in [files], and returns them in

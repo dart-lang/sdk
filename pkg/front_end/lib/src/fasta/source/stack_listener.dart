@@ -29,6 +29,7 @@ import '../scanner.dart' show Token;
 
 enum NullValue {
   Arguments,
+  As,
   Block,
   BreakTarget,
   CascadeReceiver,
@@ -39,8 +40,10 @@ enum NullValue {
   ConstructorInitializers,
   ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,
+  Deferred,
   DocumentationComment,
   Expression,
+  ExtendsClause,
   FieldInitializer,
   FormalParameters,
   FunctionBody,
@@ -52,13 +55,16 @@ enum NullValue {
   Metadata,
   Modifiers,
   ParameterDefaultValue,
+  Prefix,
   StringLiteral,
   SwitchScope,
   Type,
   TypeArguments,
+  TypeBuilderList,
   TypeList,
   TypeVariable,
   TypeVariables,
+  WithClause,
 }
 
 abstract class StackListener extends Listener {
@@ -95,9 +101,15 @@ abstract class StackListener extends Listener {
     stack.push(node);
   }
 
+  void pushIfNull(Token tokenOrNull, NullValue nullValue) {
+    if (tokenOrNull == null) stack.push(nullValue);
+  }
+
   Object peek() => stack.last;
 
-  Object pop() => stack.pop();
+  Object pop([NullValue nullValue]) {
+    return stack.pop(nullValue);
+  }
 
   Object popIfNotNull(Object value) {
     return value == null ? null : pop();
@@ -173,6 +185,21 @@ abstract class StackListener extends Listener {
   void endCompilationUnit(int count, Token token) {
     debugEvent("CompilationUnit");
     checkEmpty(token.charOffset);
+  }
+
+  @override
+  void handleClassExtends(Token extendsKeyword) {
+    debugEvent("ClassExtends");
+  }
+
+  @override
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    debugEvent("ClassHeader");
+  }
+
+  @override
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    debugEvent("ClassImplements");
   }
 
   @override
@@ -340,11 +367,17 @@ class Stack {
     }
   }
 
-  Object pop() {
+  Object pop([NullValue nullValue]) {
     assert(arrayLength > 0);
     final Object value = array[--arrayLength];
     array[arrayLength] = null;
-    return value is NullValue ? null : value;
+    if (value is! NullValue) {
+      return value;
+    } else if (nullValue == null || value == nullValue) {
+      return null;
+    } else {
+      return value;
+    }
   }
 
   List popList(int count, List list) {

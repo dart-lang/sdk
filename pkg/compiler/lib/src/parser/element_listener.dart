@@ -149,14 +149,21 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
-      Token semicolon) {
-    NodeList combinators = popNode();
-    bool isDeferred = deferredKeyword != null;
-    Identifier prefix;
-    if (asKeyword != null) {
-      prefix = popNode();
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    if (asKeyword == null) {
+      // If asKeyword is null, then no prefix has been pushed on the stack.
+      // Push a placeholder indicating that there is no prefix.
+      pushNode(null);
     }
+    pushNode(deferredKeyword != null ? Flag.TRUE : Flag.FALSE);
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
+    NodeList combinators = popNode();
+    Flag flag = popNode();
+    bool isDeferred = flag == Flag.TRUE;
+    Identifier prefix = popNode();
     NodeList conditionalUris = popNode();
     StringNode uri = popLiteralString();
     addLibraryTag(new Import(importKeyword, uri, conditionalUris, prefix,
@@ -165,12 +172,10 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleRecoverImport(
-      Token deferredKeyword, Token asKeyword, Token semicolon) {
+  void handleRecoverImport(Token semicolon) {
     popNode(); // combinators
-    if (asKeyword != null) {
-      popNode(); // prefix
-    }
+    popNode(); // isDeferred
+    popNode(); // prefix
     popNode(); // conditionalUris
     // TODO(danrubel): recover
   }
@@ -296,15 +301,12 @@ class ElementListener extends Listener {
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {}
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
     makeNodeList(interfacesCount, implementsKeyword, null, ","); // interfaces
+  }
+
+  @override
+  void endClassDeclaration(Token beginToken, Token endToken) {
     popNode(); // superType
     popNode(); // typeParameters
     Identifier name = popNode();

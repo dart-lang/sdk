@@ -137,6 +137,7 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   @potentialAnalyzerProblem
   test_class_type_parameters_bound() async {
+    // https://github.com/dart-lang/sdk/issues/29561
     // Fasta does not provide a flag for explicit vs. implicit Object bound.
     await super.test_class_type_parameters_bound();
   }
@@ -185,60 +186,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @notForDart2
-  test_defaultValue_refersToGenericClass_constructor() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_constructor();
-  }
-
-  @failingTest
-  @notForDart2
-  test_defaultValue_refersToGenericClass_constructor2() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_constructor2();
-  }
-
-  @failingTest
-  @notForDart2
-  test_defaultValue_refersToGenericClass_functionG() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_functionG();
-  }
-
-  @failingTest
-  @notForDart2
-  test_defaultValue_refersToGenericClass_methodG() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_methodG();
-  }
-
-  @failingTest
-  @notForDart2
-  test_defaultValue_refersToGenericClass_methodG_classG() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_methodG_classG();
-  }
-
-  @failingTest
-  @notForDart2
-  test_defaultValue_refersToGenericClass_methodNG() async {
-    // Analyzer allows the inferred type of a const to refer to type parameters
-    // that are in scope; Dart 2.0 infers a different type so that the constant
-    // doesn't depend on a (non-constant) type parameter.
-    await super.test_defaultValue_refersToGenericClass_methodNG();
-  }
-
-  @failingTest
-  @notForDart2
   test_export_configurations_useDefault() async {
     await super.test_export_configurations_useDefault();
   }
@@ -265,12 +212,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @notForDart2
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunction_asGenericFunctionReturnType() async {
-    await super.test_genericFunction_asGenericFunctionReturnType();
   }
 
   @failingTest
@@ -311,26 +252,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_functionTypeAlias_simple() async {
-    await super.test_instantiateToBounds_functionTypeAlias_simple();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_simple() async {
     await super.test_instantiateToBounds_simple();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
-  test_invalid_annotation_prefixed_constructor() async {
-    await super.test_invalid_annotation_prefixed_constructor();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
-  test_invalid_annotation_unprefixed_constructor() async {
-    await super.test_invalid_annotation_unprefixed_constructor();
   }
 
   @failingTest
@@ -406,12 +329,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
-  test_metadata_invalid_classDeclaration() async {
-    await super.test_metadata_invalid_classDeclaration();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
   test_metadata_libraryDirective() async {
     await super.test_metadata_libraryDirective();
@@ -436,14 +353,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
+  @notForDart2
   test_parameter_checked() async {
+    // @checked is deprecated, use `covariant` instead.
     await super.test_parameter_checked();
   }
 
   @failingTest
-  @potentialAnalyzerProblem
+  @notForDart2
   test_parameter_checked_inherited() async {
+    // @checked is deprecated, use `covariant` instead.
     await super.test_parameter_checked_inherited();
   }
 
@@ -461,43 +380,21 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @potentialAnalyzerProblem
-  test_type_reference_to_typedef_with_type_arguments() async {
-    // TODO(scheglov): triage
-    await super.test_type_reference_to_typedef_with_type_arguments();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_typedef_with_type_arguments_implicit() async {
-    // TODO(scheglov): triage
-    await super.test_type_reference_to_typedef_with_type_arguments_implicit();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
   test_typedef_documented() async {
     // TODO(scheglov): implement
     await super.test_typedef_documented();
   }
 
   @failingTest
-  @potentialAnalyzerProblem
-  test_typedef_generic() async {
-    // TODO(scheglov): triage
-    await super.test_typedef_generic();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
   test_typedef_generic_asFieldType() async {
-    // TODO(scheglov): triage
     await super.test_typedef_generic_asFieldType();
   }
 
   @failingTest
   @potentialAnalyzerProblem
   test_typedef_type_parameters_bound() async {
-    // TODO(scheglov): triage
+    // https://github.com/dart-lang/sdk/issues/29561
     await super.test_typedef_type_parameters_bound();
   }
 

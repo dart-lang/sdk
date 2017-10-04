@@ -825,7 +825,9 @@ class Assembler : public ValueObject {
 
   void LoadClass(Register result, Register object);
 
-  void CompareClassId(Register object, intptr_t class_id);
+  void CompareClassId(Register object,
+                      intptr_t class_id,
+                      Register scratch = kNoRegister);
 
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);

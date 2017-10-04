@@ -166,6 +166,16 @@ class AnalysisOptionsHintCode extends ErrorCode {
           " consider renaming it to analysis_options.yaml.");
 
   /**
+   * An error code indicating that strong-mode: false is being deprecated.
+   */
+  static const AnalysisOptionsHintCode SPEC_MODE_DEPRECATED =
+      const AnalysisOptionsHintCode(
+          'SPEC_MODE_DEPRECATED',
+          "The option 'strong-mode: false' is being deprecated.",
+          "It's recommended to use 'strong-mode: true' and make your code "
+          "strong mode clean.");
+
+  /**
    * Initialize a newly created hint code to have the given [name].
    */
   const AnalysisOptionsHintCode(String name, String message,

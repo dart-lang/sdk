@@ -90,6 +90,9 @@ class NullConstantConstructorVisitor
   @override
   visitRedirectingGenerative(
       constants.RedirectingGenerativeConstantConstructor constructor, arg) {}
+
+  @override
+  visitErroneous(constants.ErroneousConstantConstructor constructor, arg) {}
 }
 
 void useConstant(

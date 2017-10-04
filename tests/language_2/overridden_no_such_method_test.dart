@@ -10,5 +10,5 @@ import "package:expect/expect.dart";
 part "overridden_no_such_method.dart";
 
 main() {
-  OverriddenNoSuchMethod.testMain(); /*@compile-error=unspecified*/
+  OverriddenNoSuchMethod.testMain();
 }

@@ -3958,6 +3958,7 @@ typedef String G(int p);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     FunctionTypeAlias nodeF = unit.declarations[0];
     FunctionTypeAlias nodeG = unit.declarations[1];
+    GenericTypeAliasElement elementG = nodeG.element;
     {
       FormalParameter parameter = nodeF.parameters.parameters[0];
       DartType parameterType =
@@ -3965,7 +3966,7 @@ typedef String G(int p);
       Element returnTypeElement =
           resolutionMap.typeForTypeName(nodeF.returnType).element;
       expect(returnTypeElement.displayName, 'int');
-      expect(parameterType.element, nodeG.element);
+      expect(parameterType.element, elementG.function);
     }
     {
       FormalParameter parameter = nodeG.parameters.parameters[0];

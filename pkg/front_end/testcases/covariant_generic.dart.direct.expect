@@ -14,7 +14,7 @@ class Foo<T extends core::Object> extends core::Object {
   method method(self::Foo::T x) → void {}
   set setter(self::Foo::T x) → dynamic {}
   method withCallback((self::Foo::T) → void callback) → void {
-    callback.call(this.finalField);
+    callback.call(this.{self::Foo::finalField});
   }
 }
 static method main() → dynamic {

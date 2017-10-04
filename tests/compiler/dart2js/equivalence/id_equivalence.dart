@@ -366,7 +366,35 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           }
           break;
         case SendStructureKind.INVOKE:
+          switch (sendStructure.semantics.kind) {
+            case AccessKind.LOCAL_VARIABLE:
+            case AccessKind.FINAL_LOCAL_VARIABLE:
+            case AccessKind.PARAMETER:
+            case AccessKind.FINAL_PARAMETER:
+              computeForNode(node, createAccessId(node));
+              computeForNode(node, createInvokeId(node.argumentsNode));
+              break;
+            case AccessKind.STATIC_FIELD:
+            case AccessKind.FINAL_STATIC_FIELD:
+            case AccessKind.TOPLEVEL_FIELD:
+            case AccessKind.FINAL_TOPLEVEL_FIELD:
+            case AccessKind.STATIC_GETTER:
+            case AccessKind.TOPLEVEL_GETTER:
+            case AccessKind.SUPER_FIELD:
+            case AccessKind.SUPER_FINAL_FIELD:
+            case AccessKind.SUPER_GETTER:
+              computeForNode(node, createInvokeId(node.argumentsNode));
+              break;
+            default:
+              ast.Node position =
+                  computeAccessPosition(node, sendStructure.semantics);
+              if (position != null) {
+                computeForNode(node, createInvokeId(position));
+              }
+          }
+          break;
         case SendStructureKind.BINARY:
+        case SendStructureKind.UNARY:
         case SendStructureKind.EQUALS:
         case SendStructureKind.NOT_EQUALS:
           ast.Node position =
@@ -546,8 +574,15 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitMethodInvocation(ir.MethodInvocation node) {
-    computeForNode(node, createInvokeId(node));
-    super.visitMethodInvocation(node);
+    ir.TreeNode receiver = node.receiver;
+    if (receiver is ir.VariableGet &&
+        receiver.variable.parent is ir.FunctionDeclaration) {
+      // This is an invocation of a named local function.
+      computeForNode(node, createInvokeId(node.receiver));
+    } else {
+      computeForNode(node, createInvokeId(node));
+      super.visitMethodInvocation(node);
+    }
   }
 
   visitPropertyGet(ir.PropertyGet node) {

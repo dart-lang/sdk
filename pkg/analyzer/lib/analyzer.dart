@@ -39,10 +39,15 @@ export 'package:analyzer/src/generated/utilities_dart.dart';
 /// If [parseFunctionBodies] is [false] then only function signatures will be
 /// parsed.
 CompilationUnit parseCompilationUnit(String contents,
-    {String name, bool suppressErrors: false, bool parseFunctionBodies: true}) {
+    {String name,
+    bool suppressErrors: false,
+    bool parseFunctionBodies: true,
+    bool enableAssertInitializer: false}) {
   Source source = new StringSource(contents, name);
   return _parseSource(contents, source,
-      suppressErrors: suppressErrors, parseFunctionBodies: parseFunctionBodies);
+      suppressErrors: suppressErrors,
+      parseFunctionBodies: parseFunctionBodies,
+      enableAssertInitializer: enableAssertInitializer);
 }
 
 /// Parses a Dart file into an AST.
@@ -103,13 +108,16 @@ String stringLiteralToString(StringLiteral literal) {
 }
 
 CompilationUnit _parseSource(String contents, Source source,
-    {bool suppressErrors: false, bool parseFunctionBodies: true}) {
+    {bool suppressErrors: false,
+    bool parseFunctionBodies: true,
+    bool enableAssertInitializer: false}) {
   var reader = new CharSequenceReader(contents);
   var errorCollector = new _ErrorCollector();
   var scanner = new Scanner(source, reader, errorCollector);
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector)
-    ..parseFunctionBodies = parseFunctionBodies;
+    ..parseFunctionBodies = parseFunctionBodies
+    ..enableAssertInitializer = enableAssertInitializer;
   var unit = parser.parseCompilationUnit(token)
     ..lineInfo = new LineInfo(scanner.lineStarts);
 

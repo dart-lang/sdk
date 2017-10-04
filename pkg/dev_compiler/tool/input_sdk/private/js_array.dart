@@ -173,8 +173,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return new WhereIterable<E>(this, f);
   }
 
-  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) {
-    return new ExpandIterable<E, dynamic/*=T*/ >(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) {
+    return new ExpandIterable<E, T>(this, f);
   }
 
   void addAll(Iterable<E> collection) {
@@ -202,7 +202,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     }
   }
 
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) {
+  Iterable<T> map<T>(T f(E element)) {
     return new MappedListIterable<E, T>(this, f);
   }
 
@@ -245,10 +245,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return value;
   }
 
-  /*=T*/ fold/*<T>*/(
-      /*=T*/ initialValue,
-      /*=T*/ combine(/*=T*/ previousValue, E element)) {
-    var/*=T*/ value = initialValue;
+  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+    var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to

@@ -462,9 +462,16 @@ class _ExprBuilder {
     }
 
     if (expr is kernel.TypeLiteral) {
-      var type = _context.getType(_contextElement, expr.type);
-      var identifier = AstTestFactory.identifier3(type.element.name);
-      identifier.staticElement = type.element;
+      ElementImpl element;
+      var kernelType = expr.type;
+      if (kernelType is kernel.FunctionType) {
+        element = _getElement(kernelType.typedefReference);
+      } else {
+        var type = _context.getType(_contextElement, kernelType);
+        element = type.element;
+      }
+      var identifier = AstTestFactory.identifier3(element.name);
+      identifier.staticElement = element;
       identifier.staticType = _context.libraryContext.resynthesizer.typeType;
       return identifier;
     }
@@ -916,7 +923,7 @@ class _KernelUnitResynthesizerContextImpl
 
   DartType getType(ElementImpl context, kernel.DartType kernelType) {
     if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
-    if (kernelType is kernel.InvalidType) return DynamicTypeImpl.instance;
+    if (kernelType is kernel.InvalidType) return UndefinedTypeImpl.instance;
     if (kernelType is kernel.BottomType) return BottomTypeImpl.instance;
     if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
 
@@ -936,35 +943,9 @@ class _KernelUnitResynthesizerContextImpl
     }
 
     if (kernelType is kernel.FunctionType) {
-      if (kernelType.typedef != null) {
-        FunctionTypeAliasElementImpl element = libraryContext.resynthesizer
-            ._getElement(kernelType.typedef.canonicalName);
-        return element.type;
-      }
-
-      if (context is ParameterElementImpl) {
-        var typeElement =
-            new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
-        return typeElement.type;
-      } else {
-        var functionElement = new FunctionElementImpl.synthetic([], null);
-        functionElement.enclosingElement = context;
-
-        functionElement.typeParameters = kernelType.typeParameters.map((k) {
-          return new TypeParameterElementImpl.forKernel(functionElement, k);
-        }).toList(growable: false);
-
-        var parameters = getFunctionTypeParameters(kernelType);
-        functionElement.parameters = ParameterElementImpl.forKernelParameters(
-            functionElement,
-            kernelType.requiredParameterCount,
-            parameters[0],
-            parameters[1]);
-
-        functionElement.returnType =
-            getType(functionElement, kernelType.returnType);
-        return functionElement.type;
-      }
+      var typeElement =
+          new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
+      return typeElement.type;
     }
 
     // TODO(scheglov) Support other kernel types.

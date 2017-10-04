@@ -31,7 +31,16 @@ class MissingCodeTest extends AbstractRecoveryTest {
     testUserDefinableOperatorWithSuper('&');
   }
 
-  void test_asExpression() {
+  @failingTest
+  void test_asExpression_missingLeft() {
+    testRecovery('''
+convert(x) => as T;
+''', [ParserErrorCode.EXPECTED_TYPE_NAME], '''
+convert(x) => _s_ as T;
+''');
+  }
+
+  void test_asExpression_missingRight() {
     testRecovery('''
 convert(x) => x as ;
 ''', [ParserErrorCode.EXPECTED_TYPE_NAME], '''
@@ -157,7 +166,21 @@ f() => x ? _s_ : z;
     testUserDefinableOperatorWithSuper('^');
   }
 
-  void test_isExpression() {
+  void test_isExpression_missingLeft() {
+    testRecovery('''
+f() {
+  if (is String) {
+  }
+}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f() {
+  if (_s_ is String) {
+  }
+}
+''');
+  }
+
+  void test_isExpression_missingRight() {
     testRecovery('''
 f(x) {
   if (x is ) {}
@@ -469,7 +492,6 @@ f([a = 0]) {}
 ''');
   }
 
-  @failingTest
   void test_missingDefault_named_last() {
     testRecovery('''
 f({a: }) {}
@@ -478,16 +500,14 @@ f({a: _s_}) {}
 ''');
   }
 
-  @failingTest
   void test_missingDefault_named_notLast() {
     testRecovery('''
-f({a, b: }) {}
+f({a: , b}) {}
 ''', [ParserErrorCode.MISSING_IDENTIFIER], '''
-f({a, b: _s_}) {}
+f({a: _s_, b}) {}
 ''');
   }
 
-  @failingTest
   void test_missingDefault_positional_last() {
     testRecovery('''
 f([a = ]) {}
@@ -496,12 +516,11 @@ f([a = _s_]) {}
 ''');
   }
 
-  @failingTest
   void test_missingDefault_positional_notLast() {
     testRecovery('''
-f([a, b = ]) {}
+f([a = , b]) {}
 ''', [ParserErrorCode.MISSING_IDENTIFIER], '''
-f([a, b = _s_]) {}
+f([a = _s_, b]) {}
 ''');
   }
 

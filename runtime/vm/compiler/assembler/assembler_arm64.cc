@@ -938,7 +938,10 @@ void Assembler::LoadClass(Register result, Register object) {
   LoadClassById(result, TMP);
 }
 
-void Assembler::CompareClassId(Register object, intptr_t class_id) {
+void Assembler::CompareClassId(Register object,
+                               intptr_t class_id,
+                               Register scratch) {
+  ASSERT(scratch == kNoRegister);
   LoadClassId(TMP, object);
   CompareImmediate(TMP, class_id);
 }

@@ -7,9 +7,6 @@ mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
 [ $compiler == dartk || $compiler == dartkp ]
 async/future_or_strong_test: RuntimeError
-async/future_test/01: RuntimeError
-async/future_test/none: RuntimeError
-async/schedule_microtask2_test: RuntimeError
 isolate/issue_21398_parent_isolate2_test/none: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
@@ -142,6 +139,9 @@ mirrors/variable_is_const_test/01: MissingCompileTimeError
 [ $compiler == dartk && $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
 html/canvasrenderingcontext2d_test: DartkCompileTimeError
+html/custom/constructor_calls_created_synchronously_test: DartkCompileTimeError
+html/custom/created_callback_test: DartkCompileTimeError
+html/custom/document_register_basic_test: DartkCompileTimeError
 html/custom/document_register_type_extensions_test: DartkCompileTimeError
 html/custom/element_upgrade_test: DartkCompileTimeError
 html/custom/entered_left_view_test: DartkCompileTimeError
@@ -152,6 +152,37 @@ html/custom_element_method_clash_test: DartkCompileTimeError
 html/custom_element_name_clash_test: DartkCompileTimeError
 html/custom_elements_23127_test: DartkCompileTimeError
 html/custom_elements_test: DartkCompileTimeError
+html/js_typed_interop_anonymous2_exp_test: DartkCompileTimeError
+html/js_typed_interop_anonymous2_test: DartkCompileTimeError
+html/js_typed_interop_anonymous_exp_test: DartkCompileTimeError
+html/js_typed_interop_anonymous_test: DartkCompileTimeError
+html/js_typed_interop_anonymous_unreachable_exp_test: DartkCompileTimeError
+html/js_typed_interop_anonymous_unreachable_test: DartkCompileTimeError
+html/js_typed_interop_default_arg_test/explicit_argument: DartkCompileTimeError
+html/js_typed_interop_default_arg_test/none: DartkCompileTimeError
+html/js_typed_interop_lazy_test: DartkCompileTimeError
+html/js_typed_interop_rename_static_test: DartkCompileTimeError
+html/js_typed_interop_test: DartkCompileTimeError
+html/js_util_test: DartkCompileTimeError
+html/node_validator_important_if_you_suppress_make_the_bug_critical_test: DartkCompileTimeError
+html/non_instantiated_is_test: DartkCompileTimeError
+html/notification_test: DartkCompileTimeError
+html/performance_api_test: DartkCompileTimeError
+html/private_extension_member_test: DartkCompileTimeError
+html/query_test: DartkCompileTimeError
+html/queryall_test: DartkCompileTimeError
+html/range_test: DartkCompileTimeError
+html/request_animation_frame_test: DartkCompileTimeError
+html/rtc_test: DartkCompileTimeError
+html/selectelement_test: DartkCompileTimeError
+html/serialized_script_value_test: DartkCompileTimeError
+html/shadow_dom_test: DartkCompileTimeError
+html/shadowroot_test: DartkCompileTimeError
+html/speechrecognition_test: DartkCompileTimeError
+html/storage_test: DartkCompileTimeError
+html/streams_test: DartkCompileTimeError
+html/svg_test: DartkCompileTimeError
+html/svgelement_test: DartkCompileTimeError
 mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
@@ -192,6 +223,13 @@ mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_metadata_test: Crash
 mirrors/private_class_field_test: RuntimeError
 mirrors/private_field_test: RuntimeError
+mirrors/private_types_test: RuntimeError
+mirrors/redirecting_factory_different_type_test/01: Crash
+mirrors/redirecting_factory_different_type_test/02: Crash
+mirrors/redirecting_factory_different_type_test/none: Crash
+mirrors/reflected_type_function_type_test: RuntimeError
+mirrors/reflected_type_typedefs_test: RuntimeError
+mirrors/reflected_type_typevars_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError
@@ -204,13 +242,6 @@ mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
-mirrors/private_types_test: RuntimeError
-mirrors/redirecting_factory_different_type_test/01: Crash
-mirrors/redirecting_factory_different_type_test/02: Crash
-mirrors/redirecting_factory_different_type_test/none: Crash
-mirrors/reflected_type_function_type_test: RuntimeError
-mirrors/reflected_type_typedefs_test: RuntimeError
-mirrors/reflected_type_typevars_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash

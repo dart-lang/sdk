@@ -81,6 +81,9 @@ class FileState {
   /// The list of the libraries exported by this library.
   List<FileState> get exportedLibraries => _exportedLibraries;
 
+  /// Return the [fileUri] string.
+  String get fileUriStr => fileUri.toString();
+
   @override
   int get hashCode => uri.hashCode;
 

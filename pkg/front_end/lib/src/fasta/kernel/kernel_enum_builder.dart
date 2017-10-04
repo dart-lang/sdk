@@ -235,7 +235,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     members.forEach(setParent);
     constructors.forEach(setParent);
     selfType.bind(enumBuilder);
-    cls.builder = enumBuilder;
+    ShadowClass.getClassInferenceInfo(cls).builder = enumBuilder;
     return enumBuilder;
   }
 

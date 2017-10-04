@@ -53,6 +53,8 @@ abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   ///
   /// This is only available after the world builder has been closed.
   ClosedWorld get closedWorldForTesting;
+
+  void registerClass(ClassEntity cls);
 }
 
 /// Extended [ResolutionWorldBuilder] interface used by the
@@ -321,8 +323,6 @@ abstract class ResolutionWorldBuilderBase
   final Set<FieldEntity> fieldSetters = new Set<FieldEntity>();
   final Set<DartType> isChecks = new Set<DartType>();
 
-  _ClassEnsurer _classEnsurer;
-
   /// Set of all closures in the program. Used by the mirror tracking system
   /// to find all live closure instances.
   final Set<Local> localFunctions = new Set<Local>();
@@ -358,6 +358,8 @@ abstract class ResolutionWorldBuilderBase
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
+  final ClassHierarchyBuilder classHierarchyBuilder;
+  final ClassQueries classQueries;
 
   bool hasRuntimeTypeSupport = false;
   bool hasIsolateSupport = false;
@@ -368,15 +370,6 @@ abstract class ResolutionWorldBuilderBase
   final Set<MemberEntity> _liveInstanceMembers = new Set<MemberEntity>();
 
   final Set<TypedefEntity> _allTypedefs = new Set<TypedefEntity>();
-
-  final Map<ClassEntity, Set<ClassEntity>> _mixinUses =
-      new Map<ClassEntity, Set<ClassEntity>>();
-
-  // We keep track of subtype and subclass relationships in four
-  // distinct sets to make class hierarchy analysis faster.
-  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
-      <ClassEntity, ClassHierarchyNode>{};
-  final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
@@ -396,9 +389,9 @@ abstract class ResolutionWorldBuilderBase
       this._backendUsageBuilder,
       this._rtiNeedBuilder,
       this._nativeResolutionEnqueuer,
-      this.selectorConstraintsStrategy) {
-    _classEnsurer = new _ClassEnsurer(this);
-  }
+      this.selectorConstraintsStrategy,
+      this.classHierarchyBuilder,
+      this.classQueries);
 
   Iterable<ClassEntity> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
@@ -793,21 +786,12 @@ abstract class ResolutionWorldBuilderBase
 
   /// Returns an iterable over all mixin applications that mixin [cls].
   Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls) {
-    Iterable<ClassEntity> uses = _mixinUses[cls];
+    Iterable<ClassEntity> uses = classHierarchyBuilder.mixinUses[cls];
     return uses != null ? uses : const <ClassEntity>[];
   }
 
   void registerTypedef(TypedefEntity typdef) {
     _allTypedefs.add(typdef);
-  }
-
-  void registerMixinUse(
-      covariant ClassEntity mixinApplication, covariant ClassEntity mixin) {
-    // TODO(johnniwinther): Add map restricted to live classes.
-    // We don't support patch classes as mixin.
-    Set<ClassEntity> users =
-        _mixinUses.putIfAbsent(mixin, () => new Set<ClassEntity>());
-    users.add(mixinApplication);
   }
 
   void registerUsedElement(MemberEntity element) {
@@ -831,85 +815,6 @@ abstract class ResolutionWorldBuilderBase
     return usage != null && usage.hasUse;
   }
 
-  bool checkClass(covariant ClassEntity cls);
-  bool validateClass(covariant ClassEntity cls);
-
-  /// Returns the class mixed into [cls] if any.
-  ClassEntity getAppliedMixin(covariant ClassEntity cls);
-
-  /// Returns the hierarchy depth of [cls].
-  int getHierarchyDepth(covariant ClassEntity cls);
-
-  /// Returns `true` if [cls] implements `Function` either explicitly or through
-  /// a `call` method.
-  bool implementsFunction(covariant ClassEntity cls);
-
-  /// Returns the superclass of [cls] if any.
-  ClassEntity getSuperClass(covariant ClassEntity cls);
-
-  /// Returns all supertypes of [cls].
-  Iterable<InterfaceType> getSupertypes(covariant ClassEntity cls);
-
-  ClassHierarchyNode _ensureClassHierarchyNode(ClassEntity cls) {
-    assert(checkClass(cls));
-    return _classHierarchyNodes.putIfAbsent(cls, () {
-      ClassHierarchyNode parentNode;
-      ClassEntity superclass = getSuperClass(cls);
-      if (superclass != null) {
-        parentNode = _ensureClassHierarchyNode(superclass);
-      }
-      return new ClassHierarchyNode(parentNode, cls, getHierarchyDepth(cls));
-    });
-  }
-
-  ClassSet _ensureClassSet(ClassEntity cls) {
-    assert(checkClass(cls));
-    return _classSets.putIfAbsent(cls, () {
-      ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
-      ClassSet classSet = new ClassSet(node);
-
-      for (InterfaceType type in getSupertypes(cls)) {
-        // TODO(johnniwinther): Optimization: Avoid adding [cls] to
-        // superclasses.
-        ClassSet subtypeSet = _ensureClassSet(type.element);
-        subtypeSet.addSubtype(node);
-      }
-
-      ClassEntity appliedMixin = getAppliedMixin(cls);
-      if (appliedMixin != null) {
-        // TODO(johnniwinther): Store this in the [ClassSet].
-        registerMixinUse(cls, appliedMixin);
-      }
-
-      return classSet;
-    });
-  }
-
-  void _updateSuperClassHierarchyNodeForClass(ClassHierarchyNode node) {
-    // Ensure that classes implicitly implementing `Function` are in its
-    // subtype set.
-    ClassEntity cls = node.cls;
-    if (cls != _commonElements.functionClass && implementsFunction(cls)) {
-      ClassSet subtypeSet = _ensureClassSet(_commonElements.functionClass);
-      subtypeSet.addSubtype(node);
-    }
-    if (!node.isInstantiated && node.parentNode != null) {
-      _updateSuperClassHierarchyNodeForClass(node.parentNode);
-    }
-  }
-
-  void _updateClassHierarchyNodeForClass(ClassEntity cls,
-      {bool directlyInstantiated: false, bool abstractlyInstantiated: false}) {
-    ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
-    _updateSuperClassHierarchyNodeForClass(node);
-    if (directlyInstantiated) {
-      node.isDirectlyInstantiated = true;
-    }
-    if (abstractlyInstantiated) {
-      node.isAbstractlyInstantiated = true;
-    }
-  }
-
   Map<ClassEntity, Set<ClassEntity>> populateHierarchyNodes() {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         new Map<ClassEntity, Set<ClassEntity>>();
@@ -921,26 +826,26 @@ abstract class ResolutionWorldBuilderBase
       if (!info.hasInstantiation) {
         return;
       }
-      assert(checkClass(cls));
-      if (!validateClass(cls)) {
+      assert(classQueries.checkClass(cls));
+      if (!classQueries.validateClass(cls)) {
         failedAt(cls, 'Class "${cls.name}" is not resolved.');
       }
 
-      _updateClassHierarchyNodeForClass(cls,
+      classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
           directlyInstantiated: info.isDirectlyInstantiated,
           abstractlyInstantiated: info.isAbstractlyInstantiated);
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.
-      ClassEntity superclass = getSuperClass(cls);
+      ClassEntity superclass = classQueries.getSuperClass(cls);
       while (superclass != null) {
         Set<ClassEntity> typesImplementedBySubclassesOfCls =
             typesImplementedBySubclasses.putIfAbsent(
                 superclass, () => new Set<ClassEntity>());
-        for (InterfaceType current in getSupertypes(cls)) {
+        for (InterfaceType current in classQueries.getSupertypes(cls)) {
           typesImplementedBySubclassesOfCls.add(current.element);
         }
-        superclass = getSuperClass(superclass);
+        superclass = classQueries.getSuperClass(superclass);
       }
     }
 
@@ -949,26 +854,6 @@ abstract class ResolutionWorldBuilderBase
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
     forEachInstantiatedClass(addSubtypes);
-
-    instantiatedTypes.forEach((type) {
-      _classEnsurer.ensureClassesInType(type);
-
-      var callType = _dartTypes.getCallType(type);
-      if (callType != null) {
-        _classEnsurer.ensureClassesInType(callType);
-      }
-    });
-    localFunctions.forEach((function) {
-      _classEnsurer.ensureClassesInType(
-          _elementEnvironment.getLocalFunctionType(function));
-    });
-    isChecks.forEach(_classEnsurer.ensureClassesInType);
-    closurizedMembers.forEach((function) {
-      _classEnsurer
-          .ensureClassesInType(_elementEnvironment.getFunctionType(function));
-    });
-
-    _classHierarchyNodes.keys.toList().forEach(_ensureClassSet);
 
     return typesImplementedBySubclasses;
   }
@@ -982,6 +867,10 @@ abstract class ResolutionWorldBuilderBase
     }
     assignedInstanceMembers.addAll(fieldSetters);
     return assignedInstanceMembers;
+  }
+
+  void registerClass(ClassEntity cls) {
+    classHierarchyBuilder.registerClass(cls);
   }
 }
 
@@ -1001,7 +890,9 @@ abstract class KernelResolutionWorldBuilderBase
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
-      SelectorConstraintsStrategy selectorConstraintsStrategy)
+      SelectorConstraintsStrategy selectorConstraintsStrategy,
+      ClassHierarchyBuilder classHierarchyBuilder,
+      ClassQueries classQueries)
       : super(
             options,
             elementEnvironment,
@@ -1014,18 +905,27 @@ abstract class KernelResolutionWorldBuilderBase
             backendUsageBuilder,
             rtiNeedBuilder,
             nativeResolutionEnqueuer,
-            selectorConstraintsStrategy);
+            selectorConstraintsStrategy,
+            classHierarchyBuilder,
+            classQueries);
 
   @override
   ClosedWorld closeWorld() {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
-    _classHierarchyNodes.keys.toList().forEach(_ensureClassSet);
+
+    var backendUsage = _backendUsageBuilder.close();
+    backendUsage.helperClassesUsed.forEach(classHierarchyBuilder.registerClass);
+    _nativeResolutionEnqueuer.liveNativeClasses
+        .forEach(classHierarchyBuilder.registerClass);
+
     _closed = true;
     assert(
-        _classHierarchyNodes.length == _classSets.length,
+        classHierarchyBuilder.classHierarchyNodes.length ==
+            classHierarchyBuilder.classSets.length,
         "ClassHierarchyNode/ClassSet mismatch: "
-        "$_classHierarchyNodes vs $_classSets");
+        "${classHierarchyBuilder.classHierarchyNodes} vs "
+        "${classHierarchyBuilder.classSets}");
     return _closedWorldCache = new KernelClosedWorld(elementMap,
         options: _options,
         elementEnvironment: _elementEnvironment,
@@ -1043,65 +943,9 @@ abstract class KernelResolutionWorldBuilderBase
         assignedInstanceMembers: computeAssignedInstanceMembers(),
         processedMembers: _processedMembers,
         allTypedefs: _allTypedefs,
-        mixinUses: _mixinUses,
+        mixinUses: classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
-        classHierarchyNodes: _classHierarchyNodes,
-        classSets: _classSets);
-  }
-
-  @override
-  void registerClass(ClassEntity cls) {
-    throw new UnimplementedError('KernelResolutionWorldBuilder.registerClass');
-  }
-}
-
-// TODO(het): Make this have a type of BaseResolutionDartTypeVisitor<void, Null>
-// TODO(het): This is a BaseResolutionDartTypeVisitor because in the element
-//     model, it may pass a ResolutionTypedefType instead of a TypedefType,
-//     which will crash because ResolutionTypedefType.accept expects a
-//     ResolutionDartTypeVisitor. Switch to normal DartTypeVisitor when we
-//     switch fully to the entity model.
-class _ClassEnsurer extends BaseResolutionDartTypeVisitor<dynamic, Null> {
-  final ResolutionWorldBuilderBase worldBuilder;
-
-  _ClassEnsurer(this.worldBuilder);
-
-  void ensureClassesInType(DartType type) {
-    type.accept(this, null);
-  }
-
-  @override
-  visitType(DartType type, _) {}
-
-  @override
-  visitFunctionType(FunctionType type, _) {
-    type.returnType.accept(this, null);
-    type.parameterTypes.forEach((t) {
-      t.accept(this, null);
-    });
-    type.optionalParameterTypes.forEach((t) {
-      t.accept(this, null);
-    });
-    type.namedParameterTypes.forEach((t) {
-      t.accept(this, null);
-    });
-  }
-
-  @override
-  visitInterfaceType(InterfaceType type, _) {
-    worldBuilder._ensureClassSet(type.element);
-    type.typeArguments.forEach((t) {
-      t.accept(this, null);
-    });
-  }
-
-  @override
-  visitTypedefType(TypedefType type, _) {
-    type.typeArguments.forEach((t) {
-      t.accept(this, null);
-    });
-    var functionType =
-        worldBuilder._elementEnvironment.getFunctionTypeOfTypedef(type.element);
-    functionType?.accept(this, null);
+        classHierarchyNodes: classHierarchyBuilder.classHierarchyNodes,
+        classSets: classHierarchyBuilder.classSets);
   }
 }

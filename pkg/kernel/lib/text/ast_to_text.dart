@@ -749,6 +749,7 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isAbstract, 'abstract');
+    writeModifier(node.isForwardingStub, 'forwardingStub');
     writeWord(procedureKindToString(node.kind));
     if ((node.enclosingClass == null &&
             node.enclosingLibrary.fileUri != node.fileUri) ||

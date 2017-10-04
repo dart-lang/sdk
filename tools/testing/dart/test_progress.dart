@@ -646,14 +646,19 @@ List<String> _buildFailureOutput(TestCase test,
     }
   }
 
-  var arguments = ['python', 'tools/test.py'];
+  var arguments;
+  if (Platform.isFuchsia) {
+    arguments = [Platform.executable, Platform.script.path];
+  } else {
+    arguments = ['python', 'tools/test.py'];
+  }
   arguments.addAll(test.configuration.reproducingArguments);
   arguments.add(test.displayName);
-  var testPyCommandline = arguments.map(escapeCommandLineArgument).join(' ');
+  var testCommandLine = arguments.map(escapeCommandLineArgument).join(' ');
 
   output.add('');
   output.add('Short reproduction command (experimental):');
-  output.add("    $testPyCommandline");
+  output.add("    $testCommandLine");
   return output;
 }
 

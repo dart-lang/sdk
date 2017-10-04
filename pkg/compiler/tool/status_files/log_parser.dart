@@ -25,7 +25,11 @@ List<Record> parse(String log) {
   bool reproIsNext = false;
   for (var line in log.split('\n')) {
     if (line.startsWith("FAILED: ")) {
-      int space = line.lastIndexOf(' ');
+      int lastSlash = line.lastIndexOf('/');
+      // Some tests (particularly the html tests) have "group names" with spaces
+      // in them. So we find the test name by the space just before the last
+      // slash.
+      int space = line.substring(0, lastSlash).lastIndexOf(' ');
       test = line.substring(space + 1).trim();
       suite = '';
       var slash = test.indexOf('/');

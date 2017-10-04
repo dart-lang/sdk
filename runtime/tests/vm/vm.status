@@ -56,6 +56,9 @@ cc/StackOverflowStackTraceInfo: Crash
 # TODO(zra): Investigate
 dart/byte_array_test: Crash
 dart/byte_array_optimized_test: Crash
+cc/DartAPI_StackOverflowStackTraceInfoBraceFunction1: Crash
+cc/DartAPI_StackOverflowStackTraceInfoBraceFunction2: Crash
+cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Crash
 
 # Profiler is completely disabled in SIMDBC builds.
 # On the simluator stack traces produced by the Profiler do not match

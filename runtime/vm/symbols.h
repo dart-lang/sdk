@@ -154,11 +154,12 @@ class ObjectPointerVisitor;
   V(null, "null")                                                              \
   V(Dynamic, "dynamic")                                                        \
   V(UnresolvedClass, "UnresolvedClass")                                        \
-  V(Type, "_Type")                                                             \
-  V(TypeRef, "_TypeRef")                                                       \
-  V(TypeParameter, "_TypeParameter")                                           \
-  V(BoundedType, "_BoundedType")                                               \
-  V(MixinAppType, "_MixinAppType")                                             \
+  V(Type, "Type")                                                              \
+  V(_Type, "_Type")                                                            \
+  V(_TypeRef, "_TypeRef")                                                      \
+  V(_TypeParameter, "_TypeParameter")                                          \
+  V(_BoundedType, "_BoundedType")                                              \
+  V(_MixinAppType, "_MixinAppType")                                            \
   V(TypeArguments, "TypeArguments")                                            \
   V(Patch, "patch")                                                            \
   V(PatchClass, "PatchClass")                                                  \
@@ -197,7 +198,7 @@ class ObjectPointerVisitor;
   V(LanguageError, "LanguageError")                                            \
   V(UnhandledException, "UnhandledException")                                  \
   V(UnwindError, "UnwindError")                                                \
-  V(IntegerImplementation, "_IntegerImplementation")                           \
+  V(_IntegerImplementation, "_IntegerImplementation")                          \
   V(Number, "num")                                                             \
   V(_Smi, "_Smi")                                                              \
   V(_Mint, "_Mint")                                                            \

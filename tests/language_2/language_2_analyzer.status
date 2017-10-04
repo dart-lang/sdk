@@ -94,6 +94,14 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
+dynamic_field_test/01: MissingCompileTimeError
+dynamic_field_test/02: MissingCompileTimeError
+dynamic_prefix_core_test/01: MissingCompileTimeError
+emit_const_fields_test: Pass
+empty_block_case_test: MissingCompileTimeError
+enum_private_test/02: MissingCompileTimeError
+field_initialization_order_test/01: MissingCompileTimeError
+field_method4_test: MissingCompileTimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
@@ -168,6 +176,16 @@ method_override6_test/01: MissingCompileTimeError
 method_override6_test/02: MissingCompileTimeError
 method_override6_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
+mixin_of_mixin_test/01: MissingCompileTimeError
+mixin_of_mixin_test/02: MissingCompileTimeError
+mixin_of_mixin_test/03: MissingCompileTimeError
+mixin_of_mixin_test/04: MissingCompileTimeError
+mixin_of_mixin_test/05: MissingCompileTimeError
+mixin_of_mixin_test/06: MissingCompileTimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
+mixin_super_bound_test/01: MissingCompileTimeError
+mixin_super_bound_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameters_errors_test/01: MissingCompileTimeError
@@ -205,7 +223,6 @@ optional_named_parameters_test/06: MissingCompileTimeError
 optional_named_parameters_test/07: MissingCompileTimeError
 optional_named_parameters_test/08: MissingCompileTimeError
 optional_named_parameters_test/09: MissingCompileTimeError
-overridden_no_such_method_test: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
@@ -245,6 +262,42 @@ override_inheritance_field_test/47: MissingCompileTimeError
 override_inheritance_field_test/48: MissingCompileTimeError
 override_inheritance_field_test/53: MissingCompileTimeError
 override_inheritance_field_test/54: MissingCompileTimeError
+override_inheritance_generic_test/04: MissingCompileTimeError
+override_inheritance_generic_test/06: MissingCompileTimeError
+override_inheritance_generic_test/07: MissingCompileTimeError
+override_inheritance_generic_test/08: MissingCompileTimeError
+override_inheritance_generic_test/09: MissingCompileTimeError
+override_inheritance_generic_test/10: MissingCompileTimeError
+override_inheritance_method_test/04: MissingCompileTimeError
+override_inheritance_method_test/05: MissingCompileTimeError
+override_inheritance_method_test/06: MissingCompileTimeError
+override_inheritance_method_test/11: MissingCompileTimeError
+override_inheritance_method_test/12: MissingCompileTimeError
+override_inheritance_method_test/13: MissingCompileTimeError
+override_inheritance_method_test/14: MissingCompileTimeError
+override_inheritance_method_test/19: MissingCompileTimeError
+override_inheritance_method_test/20: MissingCompileTimeError
+override_inheritance_method_test/21: MissingCompileTimeError
+override_inheritance_method_test/27: MissingCompileTimeError
+override_inheritance_method_test/30: MissingCompileTimeError
+override_inheritance_method_test/31: MissingCompileTimeError
+override_inheritance_method_test/32: MissingCompileTimeError
+override_inheritance_method_test/33: MissingCompileTimeError
+override_inheritance_mixed_test/06: MissingCompileTimeError
+override_inheritance_mixed_test/07: MissingCompileTimeError
+override_inheritance_mixed_test/08: MissingCompileTimeError
+override_inheritance_mixed_test/09: MissingCompileTimeError
+override_inheritance_no_such_method_test/01: MissingCompileTimeError
+override_inheritance_no_such_method_test/02: MissingCompileTimeError
+override_inheritance_no_such_method_test/06: MissingCompileTimeError
+override_inheritance_no_such_method_test/07: MissingCompileTimeError
+override_inheritance_no_such_method_test/09: MissingCompileTimeError
+override_inheritance_no_such_method_test/10: MissingCompileTimeError
+override_inheritance_no_such_method_test/12: MissingCompileTimeError
+override_inheritance_no_such_method_test/13: MissingCompileTimeError
+override_method_with_field_test/02: MissingCompileTimeError
+parser_quirks_test: StaticWarning
+part2_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -257,8 +310,8 @@ static_final_field2_test/01: MissingCompileTimeError
 static_getter_no_setter1_test/01: MissingCompileTimeError
 static_getter_no_setter2_test/01: MissingCompileTimeError
 static_getter_no_setter3_test/01: MissingCompileTimeError
-static_setter_get_test/01: MissingCompileTimeError
 static_initializer_type_error_test: MissingCompileTimeError
+static_setter_get_test/01: MissingCompileTimeError
 string_interpolate_test: StaticWarning
 string_test/01: MissingCompileTimeError
 string_unicode1_negative_test: CompileTimeError
@@ -266,6 +319,8 @@ string_unicode2_negative_test: CompileTimeError
 string_unicode3_negative_test: CompileTimeError
 string_unicode4_negative_test: CompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+type_parameter_test/05: MissingCompileTimeError
+type_variable_identifier_expression_test: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && ! $strong && $checked ]
@@ -356,6 +411,14 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
+dynamic_field_test/01: MissingCompileTimeError
+dynamic_field_test/02: MissingCompileTimeError
+dynamic_prefix_core_test/01: MissingCompileTimeError
+emit_const_fields_test: Pass
+empty_block_case_test: MissingCompileTimeError
+enum_private_test/02: MissingCompileTimeError
+field_initialization_order_test/01: MissingCompileTimeError
+field_method4_test: MissingCompileTimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 generic_list_checked_test: CompileTimeError
@@ -394,6 +457,16 @@ method_override5_test/*: MissingCompileTimeError
 method_override6_test/none: Pass
 method_override6_test/*: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
+mixin_of_mixin_test/01: MissingCompileTimeError
+mixin_of_mixin_test/02: MissingCompileTimeError
+mixin_of_mixin_test/03: MissingCompileTimeError
+mixin_of_mixin_test/04: MissingCompileTimeError
+mixin_of_mixin_test/05: MissingCompileTimeError
+mixin_of_mixin_test/06: MissingCompileTimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
+mixin_super_bound_test/01: MissingCompileTimeError
+mixin_super_bound_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameters_errors_test/01: MissingCompileTimeError
@@ -431,7 +504,6 @@ optional_named_parameters_test/06: MissingCompileTimeError
 optional_named_parameters_test/07: MissingCompileTimeError
 optional_named_parameters_test/08: MissingCompileTimeError
 optional_named_parameters_test/09: MissingCompileTimeError
-overridden_no_such_method_test: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
@@ -471,6 +543,42 @@ override_inheritance_field_test/47: MissingCompileTimeError
 override_inheritance_field_test/48: MissingCompileTimeError
 override_inheritance_field_test/53: MissingCompileTimeError
 override_inheritance_field_test/54: MissingCompileTimeError
+override_inheritance_generic_test/04: MissingCompileTimeError
+override_inheritance_generic_test/06: MissingCompileTimeError
+override_inheritance_generic_test/07: MissingCompileTimeError
+override_inheritance_generic_test/08: MissingCompileTimeError
+override_inheritance_generic_test/09: MissingCompileTimeError
+override_inheritance_generic_test/10: MissingCompileTimeError
+override_inheritance_method_test/04: MissingCompileTimeError
+override_inheritance_method_test/05: MissingCompileTimeError
+override_inheritance_method_test/06: MissingCompileTimeError
+override_inheritance_method_test/11: MissingCompileTimeError
+override_inheritance_method_test/12: MissingCompileTimeError
+override_inheritance_method_test/13: MissingCompileTimeError
+override_inheritance_method_test/14: MissingCompileTimeError
+override_inheritance_method_test/19: MissingCompileTimeError
+override_inheritance_method_test/20: MissingCompileTimeError
+override_inheritance_method_test/21: MissingCompileTimeError
+override_inheritance_method_test/27: MissingCompileTimeError
+override_inheritance_method_test/30: MissingCompileTimeError
+override_inheritance_method_test/31: MissingCompileTimeError
+override_inheritance_method_test/32: MissingCompileTimeError
+override_inheritance_method_test/33: MissingCompileTimeError
+override_inheritance_mixed_test/06: MissingCompileTimeError
+override_inheritance_mixed_test/07: MissingCompileTimeError
+override_inheritance_mixed_test/08: MissingCompileTimeError
+override_inheritance_mixed_test/09: MissingCompileTimeError
+override_inheritance_no_such_method_test/01: MissingCompileTimeError
+override_inheritance_no_such_method_test/02: MissingCompileTimeError
+override_inheritance_no_such_method_test/06: MissingCompileTimeError
+override_inheritance_no_such_method_test/07: MissingCompileTimeError
+override_inheritance_no_such_method_test/09: MissingCompileTimeError
+override_inheritance_no_such_method_test/10: MissingCompileTimeError
+override_inheritance_no_such_method_test/12: MissingCompileTimeError
+override_inheritance_no_such_method_test/13: MissingCompileTimeError
+override_method_with_field_test/02: MissingCompileTimeError
+parser_quirks_test: StaticWarning
+part2_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -492,6 +600,7 @@ string_unicode2_negative_test: CompileTimeError
 string_unicode3_negative_test: CompileTimeError
 string_unicode4_negative_test: CompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+type_variable_identifier_expression_test: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
 
 [ $compiler == dart2analyzer ]
@@ -518,10 +627,16 @@ deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 duplicate_export_negative_test: CompileTimeError
 duplicate_interface_negative_test: CompileTimeError
+emit_const_fields_test: CompileTimeError
+enum_syntax_test/05: Fail # Issue 21649
+enum_syntax_test/06: Fail # Issue 21649
+field3_test/01: MissingCompileTimeError
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_list_checked_test: StaticWarning
 generic_local_functions_test: CompileTimeError # Issue 28515
+generic_local_functions_test: CompileTimeError # Issue 28515
+generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_test: StaticWarning
 generics_test: StaticWarning
@@ -531,14 +646,10 @@ getter_setter_in_lib_test: Fail # Issue 23286
 import_core_prefix_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
-interface_test/00: MissingCompileTimeError
-issue1578_negative_test: CompileTimeError
-type_variable_scope_test/none: fail # Issue 11578
-type_variable_static_context_negative_test: fail # Issue 12161
+inst_field_initializer1_negative_test: CompileTimeError
 instance_call_wrong_argument_count_negative_test: fail # Issue 11585
 instance_method2_negative_test: CompileTimeError
 instance_method_negative_test: CompileTimeError
-interface_static_non_final_fields_negative_test: fail # Issue 11594
 interface2_negative_test: CompileTimeError
 interface_injection1_negative_test: CompileTimeError
 interface_injection2_negative_test: CompileTimeError
@@ -548,6 +659,15 @@ issue1578_negative_test: CompileTimeError
 is_not_class1_negative_test: CompileTimeError
 is_not_class4_negative_test: CompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
+interface_static_non_final_fields_negative_test: fail # Issue 11594
+interface_test/00: MissingCompileTimeError
+is_not_class1_negative_test: CompileTimeError
+is_not_class1_negative_test: CompileTimeError
+is_not_class4_negative_test: CompileTimeError
+is_not_class4_negative_test: CompileTimeError
+issue1578_negative_test: CompileTimeError
+issue1578_negative_test: CompileTimeError
+issue1578_negative_test: CompileTimeError
 label2_negative_test: CompileTimeError
 label3_negative_test: CompileTimeError
 label5_negative_test: CompileTimeError
@@ -572,9 +692,12 @@ string_escape4_negative_test: CompileTimeError
 string_interpolate1_negative_test: CompileTimeError
 string_interpolate2_negative_test: CompileTimeError
 type_variable_scope_test/none: fail # Issue 11578
+type_variable_scope_test/none: fail # Issue 11578
+type_variable_static_context_negative_test: fail # Issue 12161
 type_variable_static_context_negative_test: fail # Issue 12161
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
+vm/lazy_deopt_with_exception_test: Pass
 vm/reflect_core_vm_test: CompileTimeError
 method_override7_test/03: Fail # Issue 11497
 method_override_test: StaticWarning
@@ -583,6 +706,13 @@ override_field_method1_negative_test: CompileTimeError
 override_field_method2_negative_test: CompileTimeError
 override_field_method4_negative_test: CompileTimeError
 override_field_method5_negative_test: CompileTimeError
+map_literal_negative_test: CompileTimeError
+parameter_initializer1_negative_test: CompileTimeError
+parameter_initializer2_negative_test: CompileTimeError
+parameter_initializer3_negative_test: CompileTimeError
+parameter_initializer4_negative_test: CompileTimeError
+parameter_initializer6_negative_test: CompileTimeError
+part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -597,6 +727,7 @@ bit_operations_test/01: MissingStaticWarning # Issue 28823
 bit_operations_test/02: MissingStaticWarning # Issue 28823
 bit_operations_test/03: MissingStaticWarning # Issue 28823
 bit_operations_test/04: MissingStaticWarning # Issue 28823
+error_stacktrace_test/00: Pass
 generic_list_checked_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 generic_methods_test: CompileTimeError
@@ -606,6 +737,8 @@ generic_test: CompileTimeError
 generics_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 interceptor6_test: CompileTimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 multiline_newline_test/01: CompileTimeError
@@ -645,6 +778,12 @@ override_inheritance_field_test/43: CompileTimeError
 override_inheritance_field_test/45: CompileTimeError
 override_inheritance_field_test/49: CompileTimeError
 override_inheritance_field_test/50: CompileTimeError
+override_inheritance_generic_test/02: CompileTimeError
+override_inheritance_method_test/28: CompileTimeError
+override_inheritance_method_test/29: CompileTimeError
+override_inheritance_no_such_method_test/13: MissingCompileTimeError
+parameter_initializer_test: CompileTimeError
+parser_quirks_test: CompileTimeError
 regress_30339_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 string_unicode1_negative_test: CompileTimeError
@@ -698,6 +837,7 @@ void_type_override_test/none: CompileTimeError # Issue 30177
 
 [ ! $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: StaticWarning # Issue 25626
+accessor_conflict_export_test: CompileTimeError
 accessor_conflict_export_test: StaticWarning # Issue 25626
 accessor_conflict_import2_test: StaticWarning # Issue 25626
 accessor_conflict_import_prefixed2_test: StaticWarning # Issue 25626
@@ -825,6 +965,86 @@ string_no_operator_test/16: MissingCompileTimeError
 string_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
+type_promotion_parameter_test/01: MissingCompileTimeError
+type_promotion_parameter_test/02: MissingCompileTimeError
+type_promotion_parameter_test/03: MissingCompileTimeError
+type_promotion_parameter_test/04: MissingCompileTimeError
+type_promotion_parameter_test/05: MissingCompileTimeError
+type_promotion_parameter_test/06: MissingCompileTimeError
+type_promotion_parameter_test/07: MissingCompileTimeError
+type_promotion_parameter_test/08: MissingCompileTimeError
+type_promotion_parameter_test/09: MissingCompileTimeError
+type_promotion_parameter_test/10: MissingCompileTimeError
+type_promotion_parameter_test/11: MissingCompileTimeError
+type_promotion_parameter_test/12: MissingCompileTimeError
+type_promotion_parameter_test/13: MissingCompileTimeError
+type_promotion_parameter_test/14: MissingCompileTimeError
+type_promotion_parameter_test/15: MissingCompileTimeError
+type_promotion_parameter_test/16: MissingCompileTimeError
+type_promotion_parameter_test/17: MissingCompileTimeError
+type_promotion_parameter_test/18: MissingCompileTimeError
+type_promotion_parameter_test/19: MissingCompileTimeError
+type_promotion_parameter_test/20: MissingCompileTimeError
+type_promotion_parameter_test/21: MissingCompileTimeError
+type_promotion_parameter_test/22: MissingCompileTimeError
+type_promotion_parameter_test/23: MissingCompileTimeError
+type_promotion_parameter_test/24: MissingCompileTimeError
+type_promotion_parameter_test/25: MissingCompileTimeError
+type_promotion_parameter_test/26: MissingCompileTimeError
+type_promotion_parameter_test/27: MissingCompileTimeError
+type_promotion_parameter_test/28: MissingCompileTimeError
+type_promotion_parameter_test/29: MissingCompileTimeError
+type_promotion_parameter_test/30: MissingCompileTimeError
+type_promotion_parameter_test/31: MissingCompileTimeError
+type_promotion_parameter_test/32: MissingCompileTimeError
+type_promotion_parameter_test/33: MissingCompileTimeError
+type_promotion_parameter_test/34: MissingCompileTimeError
+type_promotion_parameter_test/35: MissingCompileTimeError
+type_promotion_parameter_test/36: MissingCompileTimeError
+type_promotion_parameter_test/37: MissingCompileTimeError
+type_promotion_parameter_test/38: MissingCompileTimeError
+type_promotion_parameter_test/39: MissingCompileTimeError
+type_promotion_parameter_test/40: MissingCompileTimeError
+type_promotion_parameter_test/41: MissingCompileTimeError
+type_promotion_parameter_test/42: MissingCompileTimeError
+type_promotion_parameter_test/43: MissingCompileTimeError
+type_promotion_parameter_test/44: MissingCompileTimeError
+type_promotion_parameter_test/45: MissingCompileTimeError
+type_promotion_parameter_test/46: MissingCompileTimeError
+type_promotion_parameter_test/47: MissingCompileTimeError
+type_promotion_parameter_test/48: MissingCompileTimeError
+type_promotion_parameter_test/49: MissingCompileTimeError
+type_promotion_parameter_test/50: MissingCompileTimeError
+type_promotion_parameter_test/51: MissingCompileTimeError
+type_promotion_parameter_test/52: MissingCompileTimeError
+type_promotion_parameter_test/54: MissingCompileTimeError
+type_promotion_parameter_test/55: MissingCompileTimeError
+type_promotion_parameter_test/56: MissingCompileTimeError
+type_variable_bounds_test/00: MissingCompileTimeError
+type_variable_bounds_test/01: MissingCompileTimeError
+type_variable_bounds_test/02: MissingCompileTimeError
+type_variable_bounds_test/03: MissingCompileTimeError
+type_variable_bounds_test/04: MissingCompileTimeError
+type_variable_bounds_test/05: MissingCompileTimeError
+type_variable_bounds_test/06: MissingCompileTimeError
+type_variable_bounds_test/07: MissingCompileTimeError
+type_variable_bounds_test/08: MissingCompileTimeError
+type_variable_bounds_test/09: MissingCompileTimeError
+type_variable_bounds_test/10: MissingCompileTimeError
+type_variable_bounds_test/11: MissingCompileTimeError
+type_variable_bounds2_test: MissingCompileTimeError
+type_variable_bounds3_test/00: MissingCompileTimeError
+type_variable_bounds4_test/01: MissingCompileTimeError
+type_variable_conflict2_test/01: MissingCompileTimeError
+type_variable_conflict2_test/02: MissingCompileTimeError
+type_variable_conflict2_test/03: MissingCompileTimeError
+type_variable_conflict2_test/04: MissingCompileTimeError
+type_variable_conflict2_test/05: MissingCompileTimeError
+type_variable_conflict2_test/06: MissingCompileTimeError
+type_variable_conflict2_test/07: MissingCompileTimeError
+type_variable_conflict2_test/08: MissingCompileTimeError
+type_variable_conflict2_test/09: MissingCompileTimeError
+type_variable_conflict2_test/10: MissingCompileTimeError
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError
 type_variable_scope_test/02: MissingCompileTimeError
@@ -844,8 +1064,15 @@ vm/type_vm_test: StaticWarning
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: CompileTimeError
+error_stacktrace_test/00: MissingCompileTimeError
+vm/lazy_deopt_with_exception_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $strong ]
+constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
+constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
+field3a_negative_test: StaticWarning # Issue 28823
+generic_methods_closure_test: CompileTimeError # Issue 29070
+generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29070
 generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29070
 generic_methods_shadowing_test: CompileTimeError # Issue 29070
@@ -853,9 +1080,10 @@ generic_methods_closure_test: CompileTimeError # Issue 29070
 generic_methods_simple_is_expression_test: CompileTimeError # Issue 29070
 generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
 generic_methods_type_expression_test: CompileTimeError # Incorrectly disallows type parameter in "is" test.
-constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 instantiate_type_variable_test/01: CompileTimeError
 string_interpolate_test: CompileTimeError
 
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30929
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30929

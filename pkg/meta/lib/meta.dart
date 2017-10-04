@@ -54,6 +54,9 @@ const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
 /// Indicates that this parameter may have a tighter type than the parameter on
 /// its superclass. The actual argument will be checked at runtime to ensure it
 /// is a subtype of the overridden parameter type.
+///
+/// DEPRECATED: Use the `covariant` modifier instead.
+@deprecated
 const _Checked checked = const _Checked();
 
 /// Used to annotate a library, or any declaration that is part of the public

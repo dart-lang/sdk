@@ -1289,6 +1289,7 @@ LayoutTests/fast/multicol/hit-test-above-or-below_t01: RuntimeError # Please tri
 LayoutTests/fast/multicol/hit-test-end-of-column-with-line-height_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/hit-test-end-of-column_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/hit-test-float_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/hit-test-gap-between-pages_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance-images_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance_t07: RuntimeError # Please triage this failure
@@ -3128,7 +3129,6 @@ LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError #
 LayoutTests/fast/dom/Node/fragment-mutation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/NodeIterator/NodeIterator-basic_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/NodeList/nodelist-reachable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/bug-19527_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/getClientRects-character_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/insertNode-empty-fragment-crash_t01: RuntimeError # Please triage this failure
@@ -3313,7 +3313,6 @@ LayoutTests/fast/events/div-focus_t01: Pass, RuntimeError # Please triage this f
 LayoutTests/fast/events/document-elementFromPoint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-attributes-after-exception_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-creation_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/event-fire-order_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-trace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/fire-scroll-event_t01: RuntimeError # Please triage this failure
@@ -3899,8 +3898,6 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLEl
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/kind_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: RuntimeError # Please triage this failure
@@ -4092,7 +4089,11 @@ Language/Classes/Constructors/Factories/return_type_t05: Pass, Slow # Issue 2594
 Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issue 25940
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/device-aspect-ratio_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/media-rule-screenDepthPerComponent_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/media/media-query-list_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 LayoutTests/fast/canvas/webgl/*: Skip # Issue 26725
@@ -4102,6 +4103,7 @@ LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please tr
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-complete_t01: Skip # Times out sometimes
 LayoutTests/fast/canvas/webgl/texture-npot_t01: Skip # Times out sometimes
+LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/whitespace/nowrap-line-break-after-white-space_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure

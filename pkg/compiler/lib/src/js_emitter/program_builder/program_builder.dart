@@ -515,9 +515,8 @@ class ProgramBuilder {
         .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
       for (ClassEntity cls in classElements) {
         if (_nativeData.isJsInteropClass(cls)) {
-          _elementEnvironment.forEachClassMember(cls,
-              (ClassEntity declarer, MemberEntity member) {
-            if (declarer != cls) return;
+          _elementEnvironment.forEachLocalClassMember(cls,
+              (MemberEntity member) {
             var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
@@ -554,7 +553,7 @@ class ProgramBuilder {
             FunctionType functionType = null;
 
             if (member.isFunction) {
-              MethodElement fn = member;
+              FunctionEntity fn = member;
               functionType = _elementEnvironment.getFunctionType(fn);
             } else if (member.isGetter) {
               if (_options.trustTypeAnnotations) {
@@ -874,7 +873,6 @@ class ProgramBuilder {
       _worldBuilder.forEachParameter(method,
           (DartType type, String name, ConstantValue defaultValue) {
         if (index >= parameterStructure.requiredParameters) {
-          assert(defaultValue != null);
           optionalParameterDefaultValues.add(defaultValue);
         }
         index++;

@@ -12,6 +12,7 @@ Require Import Coq.Logic.FunctionalExtensionality.
 Import Common.OptionMonad.
 Import Common.ListExtensions.
 Import Common.NatMapFacts.
+Import Common.MoreNatMapFacts.
 
 Module N := Coq.Arith.PeanoNat.Nat.
 
@@ -216,10 +217,10 @@ Fixpoint expression_type
       if string_dec prop_name "call" then [rec_type] else None
     | DT_Interface_Type (Interface_Type class) =>
       interface <- NatMap.find class CE;
-      getter <- List.find (fun P =>
-        if string_dec (gt_name P) prop_name then true else false)
-        (getters interface);
-      [gt_type getter]
+      proc_desc <- List.find (fun P =>
+        if string_dec (pr_name P) prop_name then true else false)
+        (procedures interface);
+      [DT_Function_Type (pr_type proc_desc)]
     end
   | E_Invocation_Expression (IE_Constructor_Invocation (Constructor_Invocation class)) =>
     _ <- NatMap.find class CE;
@@ -245,37 +246,28 @@ Fixpoint expression_type
   end
 .
 
-Fixpoint statement_type (CE : class_env) (TE : type_env) (s : statement) :
-    option (type_env * option dart_type) :=
+Fixpoint statement_type (CE : class_env) (TE : type_env) (s : statement) (r: dart_type) :
+    option type_env :=
   match s with
   | S_Expression_Statement (Expression_Statement e) =>
-    _ <- expression_type CE TE e; [(TE, None)]
+    _ <- expression_type CE TE e; [TE]
   | S_Return_Statement (Return_Statement re) =>
-    rt <- expression_type CE TE re; [(TE, Some rt)]
+    rt <- expression_type CE TE re;
+    if subtype (rt, r) then [TE] else None
   | S_Variable_Declaration (Variable_Declaration _ _ None) => None
   | S_Variable_Declaration (Variable_Declaration var type (Some init)) =>
     init_type <- expression_type CE TE init;
     if subtype (init_type, type) then
-      [(NatMap.add var type TE, None)]
+      [NatMap.add var type TE]
     else
       None
   | S_Block (Block stmts) =>
     let process_statements := fix process_statements TE stmts :=
       match stmts with
-      | nil => [(TE, None)]
+      | nil => [TE]
       | (s::ss) =>
-        st <- statement_type CE TE s;
-        let (TE', s_rt) := st in
-        sst <- process_statements TE' ss;
-        let (TE'', ss_rt) := sst in
-        match (s_rt, ss_rt) with
-        | (None, ss_rt) => [(TE'', ss_rt)]
-        | (Some rt, None) => [(TE'', Some rt)]
-        | (Some rt, Some rt') =>
-          if subtype (rt, rt') then [(TE'', Some rt')] else
-            if subtype (rt', rt) then [(TE'', Some rt)] else
-              None
-        end
+        TE' <- statement_type CE TE s r;
+        process_statements TE' ss
       end in
     process_statements TE stmts
   end
@@ -286,10 +278,7 @@ Definition procedure_type (CE : class_env) (p : procedure) : bool :=
   let (param, ret_type, body) := fn in
   let (param_var, param_type, _) := param in
   let TE := NatMap.add param_var param_type (NatMap.empty _) in
-  match statement_type CE TE body with
-  | Some (_, Some t) => subtype (t, ret_type)
-  | _ => false
-  end
+  match statement_type CE TE body ret_type with Some _ => true | None => false end
 .
 
 Definition class_type (CE : class_env) (c : class) : bool :=
@@ -406,7 +395,7 @@ Section Typing_Equivalence_Homomorphism.
     destruct H1.
     unfold expression_type in H1.
     fold expression_type in H1.
-    force_expr (expression_type CE (NatMap.add v s TE) rec).
+    force_expr (expression_type CE (NatMap.add v s TE) rec) H1.
     destruct d.
 
     (* Case 1: receiver has interface type. *)
@@ -498,12 +487,12 @@ Section Typing_Equivalence_Homomorphism.
     apply (expr_induction subtype_at); crush.
   Qed.
 
-  Local Definition type_env_subtype (TE': type_env) (TE: type_env) :=
+  Definition type_env_subtype (TE': type_env) (TE: type_env) :=
     forall v s, NatMap.MapsTo v s TE -> exists t, NatMap.MapsTo v t TE' /\ t ◁ s.
 
   Notation "X ◂ Y" := (type_env_subtype X Y) (at level 71, no associativity).
 
-  Local Lemma type_env_subtype_refl : forall TE, TE ◂ TE.
+  Lemma type_env_subtype_refl : forall TE, TE ◂ TE.
     unfold type_env_subtype.
     intros.
     exists s.
@@ -511,7 +500,7 @@ Section Typing_Equivalence_Homomorphism.
   Qed.
   Hint Immediate type_env_subtype_refl.
 
-  Local Lemma type_env_subtype_1 :
+  Lemma type_env_subtype_1 :
     forall v d d' TE TE', TE ◂ TE' -> d ◁ d' -> NatMap.add v d TE ◂ NatMap.add v d' TE'.
     intros.
     unfold type_env_subtype in *.
@@ -533,17 +522,82 @@ Section Typing_Equivalence_Homomorphism.
   Qed.
   Hint Resolve type_env_subtype_1.
 
-  Local Definition option_subtype X Y :=
-    match (X, Y) with
-    | (Some x, Some y) => x ◁ y
-    | _ => True
-    end
-  .
+  Definition expr_extra_irrelevance_at e :=
+    forall CE TE et v t,
+      ~NatMap.In v TE ->
+      expression_type CE TE e = [et] ->
+      expression_type CE (NatMap.add v t TE) e = [et].
+
+  Theorem expr_extra_irrelvance : forall e, expr_extra_irrelevance_at e.
+    apply (expr_induction expr_extra_irrelevance_at).
+    crush.
+    crush.
+    crush.
+
+    unfold expr_extra_irrelevance_at.
+    intros.
+    simpl in *.
+    apply NatMap.find_1.
+    apply NatMap.find_2 in H0.
+    assert (v <> n).
+    contradict H.
+    unfold NatMap.MapsTo in *.
+    unfold NatMap.In in *.
+    unfold NatMap.Raw.PX.In in *.
+    exists et; crush.
+    crush.
+
+    unfold expr_extra_irrelevance_at.
+    intros.
+    simpl in H1.
+    force_options.
+    pose proof (H _ _ _ _ t H0 H3).
+    crush.
+
+    crush.
+    crush.
+
+    unfold expr_extra_irrelevance_at.
+    intros.
+    unfold expression_type in H2.
+    fold expression_type in H2.
+    remember (expression_type CE TE e) as E.
+    destruct E; [idtac|simpl in H1; contradict H1; crush].
+    pose proof (H _ _ _ _ t H1 (eq_sym HeqE)).
+    rewrite bind_some in H2.
+    destruct a.
+    force_options.
+    pose proof (H0 _ _ _ _ t H1 H5).
+    destruct n.
+    unfold expression_type.
+    fold expression_type.
+    rewrite H3.
+    rewrite H4.
+    rewrite bind_some.
+    rewrite bind_some.
+    crush.
+
+
+    unfold expr_extra_irrelevance_at.
+    crush.
+
+    crush.
+  Qed.
+
+  Theorem subtype_homo_env_expr :
+    forall e CE TE TE' es,
+                 expression_type CE TE e = [es] /\ TE' ◂ TE ->
+     (exists et, expression_type CE TE' e = [et] /\ et ◁ es).
+  Proof.
+    (* This is tedious to prove in Coq, but it follows directly from
+       subtype_homo_expr and expr_extra_irrelevance, along with the finiteness
+       of finite maps. *)
+  Admitted.
 
   Definition subtype_at_stmt (st: statement) :=
-    forall CE TE TE' v s t es,
-                      statement_type CE (NatMap.add v s TE) st = [(TE', es)] /\ t ◁ s ->
-      exists TE'' et, statement_type CE (NatMap.add v t TE) st = [(TE'', et)] /\ option_subtype et es /\ TE'' ◂ TE'.
+    forall CE X X' Y r,
+                 statement_type CE X st r = [X'] /\ Y ◂ X ->
+      exists Y', statement_type CE Y st r = [Y'] /\ Y' ◂ X'.
 
   Local Lemma subtype_at_return : forall r, subtype_at_stmt (S_Return_Statement r).
   Proof.
@@ -554,16 +608,14 @@ Section Typing_Equivalence_Homomorphism.
     intuition.
     force_options.
     inversion H0.
-    clear H0.
-    rewrite H4 in *.
-    destruct es.
-    pose proof (subtype_homo_expr e _ _ _ _ _ _ (conj H2 H1)).
+    pose proof (subtype_homo_env_expr e _ _ _ _ (conj H2 H1)).
     destruct H.
-    exists (NatMap.add v t TE).
-    exists (Some x).
+    exists Y.
     crush.
+    assert (x ◁ r0) by (refine (subtype_trans d x r0 _); auto).
     crush.
   Qed.
+  Hint Immediate subtype_at_return.
 
   Local Lemma subtype_at_vardecl : forall vd, subtype_at_stmt (S_Variable_Declaration vd).
   Proof.
@@ -574,21 +626,19 @@ Section Typing_Equivalence_Homomorphism.
     destruct o; [idtac|crush].
     intuition.
     force_options.
-    inversion H0.
-    clear H0.
-    clear H5.
-    pose proof (subtype_homo_expr e _ _ _ _ _ _ (conj H2 H1)).
+    assert (forall A (x y : A), [x] = [y] -> x = y) as R by crush.
+    apply R in H0; clear R.
+    pose proof (subtype_homo_env_expr e _ _ _ _ (conj H2 H1)).
     destruct H.
     intuition.
-    rewrite H0.
+    rewrite H4.
     simpl.
     assert (x ◁ d) by
         (refine (subtype_trans d0 x d _); crush).
-    rewrite H.
-    exists (NatMap.add n d (NatMap.add v t TE)).
-    exists None.
+    exists (NatMap.add n d Y).
     crush.
   Qed.
+  Hint Immediate subtype_at_vardecl.
 
   Local Lemma subtype_at_exprstmt : forall es, subtype_at_stmt (S_Expression_Statement es).
   Proof.
@@ -598,11 +648,87 @@ Section Typing_Equivalence_Homomorphism.
     destruct es.
     intuition; force_options.
     inversion H0; clear H0.
-    clear H4; clear es0.
-    exists (NatMap.add v t TE).
-    exists None.
-    pose proof (subtype_homo_expr e _ _ _ _ _ _ (conj H2 H1)).
+    exists Y.
+    pose proof (subtype_homo_env_expr e _ _ _ _ (conj H2 H1)).
+    destruct H.
+    intuition.
+    rewrite H0.
     crush.
+    crush.
+  Qed.
+  Hint Immediate subtype_at_exprstmt.
+
+  Local Lemma subtype_at_block : forall ss, Forall subtype_at_stmt ss -> subtype_at_stmt (S_Block (Block ss)).
+  Proof.
+    induction ss.
+
+    unfold subtype_at_stmt.
+    intros.
+    simpl.
+    exists Y.
+    crush.
+
+    intros.
+    rewrite forall_list_all in H.
+    simpl in H.
+    destruct H.
+    unfold subtype_at_stmt.
+    intros.
+    unfold statement_type in *.
+    fold statement_type in *.
+    unfold subtype_at_stmt in H.
+    extract_head statement_type in H1.
+    destruct H2; [idtac|simpl in H1; crush].
+    simpl in H1.
+    destruct H1.
+    pose proof (H _ _ _ _ _ (conj (eq_sym H2Eq) H2)) as Z.
+    destruct Z.
+    destruct H3.
+    intuition.
+    simpl.
+    match type of H1 with
+    | ?Y _ _ = ?W => remember Y as PS
+    end.
+
+    (* We need to prove a lemma about the inline helper function. *)
+    assert (
+        forall X Y Y',
+          X ◂ Y -> PS Y ss = [Y'] ->
+          exists X', PS X ss = [X'] /\ X' ◂ Y') as L.
+    generalize H0.
+    generalize ss as l.
+    clear - HeqPS.
+    induction l.
+    intros.
+    exists X; crush.
+
+    intros.
+    destruct H0.
+    rewrite HeqPS in H1.
+    rewrite <- HeqPS in H1.
+    force_options.
+    rewrite HeqPS.
+    rewrite <- HeqPS.
+    pose proof (H0 _ _ _ _ _ (conj H4 H)).
+    destruct H3; destruct H3.
+    rewrite H3; simpl.
+    apply (IHl H2 x t); crush.
+
+    clear HeqPS.
+    clear H.
+    rewrite H3.
+    simpl.
+    pose proof (L x t X' H4 H1).
+    destruct H as (Y', H).
+    destruct H.
+    exists Y'.
+    crush.
+  Qed.
+  Hint Immediate subtype_at_block.
+
+  Theorem subtype_homo_stmt : forall s, subtype_at_stmt s.
+  Proof.
+    apply (statement_induction subtype_at_stmt); auto.
   Qed.
 
 End Typing_Equivalence_Homomorphism.
@@ -611,7 +737,7 @@ Section Environments.
 
 (** Function environment maps defined functions to their procedure type. Used
     for direct method invocation, direct property get etc. *)
-Definition member_env : Type := NatMap.t (member_desc * member).
+Definition member_env : Type := NatMap.t member.
 
 Definition procedure_dissect (envs: class_env * member_env) (p : procedure) :=
   let (CE, ME)             := envs in
@@ -623,7 +749,7 @@ Definition procedure_dissect (envs: class_env * member_env) (p : procedure) :=
   let (param, ret_type, _) := fn in
   let (_, param_type, _)   := param in
   let proc := mk_procedure_desc name_str id (Function_Type param_type ret_type) in
-  (proc, (CE, NatMap.add id (MD_Method proc, M_Procedure p) ME)).
+  (proc, (CE, NatMap.add id (M_Procedure p) ME)).
 
 Definition procedure_to_env p envs := snd (procedure_dissect envs p).
 Definition procedure_to_desc envs p := fst (procedure_dissect envs p).

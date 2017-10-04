@@ -39,6 +39,7 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         Message,
         codeTypeNotFound,
         messagePartOfSelf,
@@ -581,8 +582,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   @override
   void addWarning(Message message, int charOffset, Uri uri,
-      {bool silent: false}) {
-    super.addWarning(message, charOffset, uri, silent: silent);
+      {bool silent: false, LocatedMessage context}) {
+    super
+        .addWarning(message, charOffset, uri, silent: silent, context: context);
     if (!silent) {
       // TODO(ahe): All warnings should have a charOffset, but currently, some
       // unresolved type warnings lack them.
@@ -590,6 +592,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         // TODO(ahe): Should I add a value for messages?
         loader.instrumentation?.record(uri, charOffset, "warning",
             new InstrumentationValueLiteral(message.code.name));
+        if (context != null) {
+          loader.instrumentation?.record(context.uri, context.charOffset,
+              "context", new InstrumentationValueLiteral(context.code.name));
+        }
       }
     }
   }

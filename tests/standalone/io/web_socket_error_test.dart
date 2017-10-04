@@ -9,7 +9,7 @@
 // OtherResources=certificates/server_chain.pem
 // OtherResources=certificates/server_key.pem
 
-library dart.io;
+library dart._http;
 
 import "dart:async";
 import "dart:io";
@@ -20,7 +20,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 
-part "../../../sdk/lib/io/crypto.dart";
+part "../../../sdk/lib/_http/crypto.dart";
 
 const String webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const String CERT_NAME = 'localhost_cert';

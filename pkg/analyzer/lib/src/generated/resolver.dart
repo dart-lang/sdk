@@ -9654,10 +9654,9 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    FunctionTypeAliasElementImpl element =
-        node.element as FunctionTypeAliasElementImpl;
+    var element = node.element as GenericTypeAliasElementImpl;
     super.visitFunctionTypeAlias(node);
-    element.returnType = _computeReturnType(node.returnType);
+    element.function.returnType = _computeReturnType(node.returnType);
     return null;
   }
 

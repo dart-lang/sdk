@@ -529,10 +529,8 @@ class ObjectFormatter extends Formatter {
     var ret = new LinkedHashSet<NameValuePair>();
     // We use a Set rather than a List to avoid duplicates.
     var properties = new Set<NameValuePair>();
-    addPropertiesFromSignature(
-        dart.getFieldSig(type), properties, object, true);
-    addPropertiesFromSignature(
-        dart.getGetterSig(type), properties, object, true);
+    addPropertiesFromSignature(dart.getFields(type), properties, object, true);
+    addPropertiesFromSignature(dart.getGetters(type), properties, object, true);
     ret.addAll(sortProperties(properties));
     addMetadataChildren(object, ret);
     return ret.toList();
@@ -801,12 +799,12 @@ class ClassFormatter implements Formatter {
     var staticMethods = new Set<NameValuePair>();
     // Static fields and properties.
     addPropertiesFromSignature(
-        dart.getStaticFieldSig(type), staticProperties, type, false);
+        dart.getStaticFields(type), staticProperties, type, false);
     addPropertiesFromSignature(
-        dart.getStaticGetterSig(type), staticProperties, type, false);
+        dart.getStaticGetters(type), staticProperties, type, false);
     // static methods.
     addPropertiesFromSignature(
-        dart.getStaticSig(type), staticMethods, type, false);
+        dart.getStaticMethods(type), staticMethods, type, false);
 
     if (staticProperties.isNotEmpty || staticMethods.isNotEmpty) {
       ret
@@ -818,7 +816,7 @@ class ClassFormatter implements Formatter {
     // instance methods.
     var instanceMethods = new Set<NameValuePair>();
     // Instance methods are defined on the prototype not the constructor object.
-    addPropertiesFromSignature(dart.getMethodSig(type), instanceMethods,
+    addPropertiesFromSignature(dart.getMethods(type), instanceMethods,
         JS('', '#.prototype', type), false,
         tagTypes: true);
     if (instanceMethods.isNotEmpty) {

@@ -205,7 +205,7 @@ class ExitCodeHandler {
   static void SendShutdownMessage() {
     zx_port_packet_t pkt;
     pkt.key = kShutdownPacketKey;
-    zx_status_t status = zx_port_queue(port_, reinterpret_cast<void*>(&pkt), 0);
+    zx_status_t status = zx_port_queue(port_, &pkt, 0);
     if (status != ZX_OK) {
       Log::PrintErr("ExitCodeHandler: zx_port_queue failed: %s\n",
                     zx_status_get_string(status));
@@ -219,8 +219,7 @@ class ExitCodeHandler {
 
     zx_port_packet_t pkt;
     while (true) {
-      zx_status_t status = zx_port_wait(port_, ZX_TIME_INFINITE,
-                                        reinterpret_cast<void*>(&pkt), 0);
+      zx_status_t status = zx_port_wait(port_, ZX_TIME_INFINITE, &pkt, 0);
       if (status != ZX_OK) {
         FATAL1("ExitCodeHandler: zx_port_wait failed: %s\n",
                zx_status_get_string(status));
@@ -398,8 +397,7 @@ bool Process::Wait(intptr_t pid,
   }
   while ((out_tmp != NULL) || (err_tmp != NULL) || (exit_tmp != NULL)) {
     zx_port_packet_t pkt;
-    status =
-        zx_port_wait(port, ZX_TIME_INFINITE, reinterpret_cast<void*>(&pkt), 0);
+    status = zx_port_wait(port, ZX_TIME_INFINITE, &pkt, 0);
     if (status != ZX_OK) {
       Log::PrintErr("Process::Wait: zx_port_wait failed: %s\n",
                     zx_status_get_string(status));

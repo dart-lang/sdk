@@ -12,6 +12,7 @@ main() {
     defineReflectiveTests(ClassDeclarationTest);
     defineReflectiveTests(CompilationUnitMemberTest);
     defineReflectiveTests(ImportDirectiveTest);
+    defineReflectiveTests(TryStatementTest);
   });
 }
 
@@ -46,7 +47,10 @@ class A extends B with D implements C {}
     // Parser crashes
     testRecovery('''
 class A implements B with C extends D {}
-''', [ParserErrorCode.IMPLEMENTS_BEFORE_WITH], '''
+''', [
+      ParserErrorCode.IMPLEMENTS_BEFORE_WITH,
+      ParserErrorCode.WITH_BEFORE_EXTENDS
+    ], '''
 class A extends D with C implements B {}
 ''');
   }
@@ -98,7 +102,9 @@ class A extends C with B {}
  */
 @reflectiveTest
 class CompilationUnitMemberTest extends AbstractRecoveryTest {
+  @failingTest
   void test_declarationBeforeDirective_export() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 export 'bar.dart';
@@ -108,7 +114,9 @@ class C { }
 ''');
   }
 
+  @failingTest
   void test_declarationBeforeDirective_import() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 import 'bar.dart';
@@ -118,7 +126,9 @@ class C { }
 ''');
   }
 
+  @failingTest
   void test_declarationBeforeDirective_part() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 part 'bar.dart';
@@ -128,7 +138,9 @@ class C { }
 ''');
   }
 
+  @failingTest
   void test_declarationBeforeDirective_part_of() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 part of foo;
@@ -138,7 +150,9 @@ class C { }
 ''');
   }
 
+  @failingTest
   void test_exportBeforeLibrary() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 export 'bar.dart';
 library l;
@@ -148,7 +162,9 @@ export 'bar.dart';
 ''');
   }
 
+  @failingTest
   void test_importBeforeLibrary() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 import 'bar.dart';
 library l;
@@ -158,7 +174,9 @@ import 'bar.dart';
 ''');
   }
 
+  @failingTest
   void test_partBeforeExport() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 part 'foo.dart';
 export 'bar.dart';
@@ -168,7 +186,9 @@ part 'foo.dart';
 ''');
   }
 
+  @failingTest
   void test_partBeforeImport() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 part 'foo.dart';
 import 'bar.dart';
@@ -178,7 +198,9 @@ part 'foo.dart';
 ''');
   }
 
+  @failingTest
   void test_partBeforeLibrary() {
+    // TODO(danrubel): members are not reordered
     testRecovery('''
 part 'foo.dart';
 library l;
@@ -224,7 +246,7 @@ import 'bar.dart' deferred as p show A;
     // indicating that `deferred` should be moved before `as`.
     testRecovery('''
 import 'bar.dart' as p deferred;
-''', [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT], '''
+''', [ParserErrorCode.DEFERRED_AFTER_PREFIX], '''
 import 'bar.dart' deferred as p;
 ''');
   }
@@ -237,19 +259,19 @@ import 'bar.dart' as p;
 ''');
   }
 
-  void test_unknownTokenBeforePrefix() {
+  void test_unknownTokenAtEnd() {
     testRecovery('''
-import 'bar.dart' d as p;
+import 'bar.dart' as p sh;
 ''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
 import 'bar.dart' as p;
 ''');
   }
 
-  void test_unknownTokenBeforePrefixAfterDeferred() {
+  void test_unknownTokenBeforePrefix() {
     testRecovery('''
-import 'bar.dart' deferred s as p;
+import 'bar.dart' d as p;
 ''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
-import 'bar.dart' deferred as p;
+import 'bar.dart' as p;
 ''');
   }
 
@@ -264,6 +286,59 @@ import 'b.dart';
     ], '''
 import 'bar.dart' as p show A;
 import 'b.dart';
+''');
+  }
+
+  void test_unknownTokenBeforePrefixAfterDeferred() {
+    testRecovery('''
+import 'bar.dart' deferred s as p;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+import 'bar.dart' deferred as p;
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when the clauses in a try statement are
+ * out of order.
+ */
+@reflectiveTest
+class TryStatementTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_finallyBeforeCatch() {
+    testRecovery('''
+f() {
+  try {
+  } finally {
+  } catch (e) {
+  }
+}
+''', [/*ParserErrorCode.CATCH_AFTER_FINALLY*/], '''
+f() {
+  try {
+  } catch (e) {
+  } finally {
+  }
+}
+''');
+  }
+
+  @failingTest
+  void test_finallyBeforeOn() {
+    testRecovery('''
+f() {
+  try {
+  } finally {
+  } on String {
+  }
+}
+''', [/*ParserErrorCode.CATCH_AFTER_FINALLY*/], '''
+f() {
+  try {
+  } on String {
+  } finally {
+  }
+}
 ''');
   }
 }

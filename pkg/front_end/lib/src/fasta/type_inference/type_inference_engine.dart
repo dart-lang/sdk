@@ -6,7 +6,6 @@ import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
-import 'package:front_end/src/fasta/type_inference/covariance_propagator.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
@@ -186,6 +185,8 @@ abstract class TypeInferenceEngine {
   ClassHierarchy get classHierarchy;
 
   CoreTypes get coreTypes;
+
+  TypeSchemaEnvironment get typeSchemaEnvironment;
 
   /// Annotates the formal parameters of any methods in [cls] to indicate the
   /// circumstances in which they require runtime type checks.
@@ -412,9 +413,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         }
       }
     }
-
-    // Now, propagate formal safety from overrides.
-    new CovariancePropagator(classHierarchy, cls, instrumentation).run();
   }
 
   /// Creates an [AccessorNode] to track dependencies of the given [member].

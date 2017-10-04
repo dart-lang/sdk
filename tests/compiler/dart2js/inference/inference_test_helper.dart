@@ -37,9 +37,17 @@ abstract class ComputeValueMixin<T> {
   String getMemberValue(MemberEntity member) {
     GlobalTypeInferenceMemberResult<T> memberResult =
         results.resultOfMember(member);
-    return getTypeMaskValue(member.isFunction || member.isConstructor
-        ? memberResult.returnType
-        : memberResult.type);
+    if (member.isFunction || member.isConstructor || member.isGetter) {
+      return getTypeMaskValue(memberResult.returnType);
+    } else if (member.isField) {
+      return getTypeMaskValue(memberResult.type);
+    } else {
+      assert(member.isSetter);
+      // Setters have no type mask of interest; the return type is always void
+      // and shouldn't be used, and their type is a closure which cannot be
+      // created.
+      return null;
+    }
   }
 
   String getParameterValue(Local parameter) {

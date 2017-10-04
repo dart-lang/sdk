@@ -481,9 +481,7 @@ conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib1::f() (ShadowStaticInvocation)
-const_error_multiply_initialized_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C:: (Constructor)
 const_error_multiply_initialized_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/03: Crash # Unsupported operation: Unexpected initializer #lib2::C:: (Constructor)
 const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_factory_with_body_test/01: MissingCompileTimeError
@@ -493,7 +491,6 @@ const_map3_test/00: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib3::C1:: (Constructor)
 constants_test/05: MissingCompileTimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
@@ -541,7 +538,6 @@ deferred_load_inval_code_test: CompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
-deferred_no_prefix_test/01: MissingCompileTimeError
 deferred_no_such_method_test: CompileTimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_only_constant_test: CompileTimeError
@@ -584,8 +580,6 @@ field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 final_field_initialization_order_test: RuntimeError
-final_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib1::C1:: (Constructor)
-function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
@@ -846,9 +840,7 @@ conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib3::f() (ShadowStaticInvocation)
-const_error_multiply_initialized_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C:: (Constructor)
 const_error_multiply_initialized_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/03: Crash # Unsupported operation: Unexpected initializer #lib1::C:: (Constructor)
 const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_factory_with_body_test/01: MissingCompileTimeError
@@ -858,7 +850,6 @@ const_map3_test/00: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-const_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib2::C1:: (Constructor)
 constants_test/05: MissingCompileTimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
@@ -956,11 +947,9 @@ field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 final_field_initialization_order_test: RuntimeError
-final_syntax_test/09: Crash # Unsupported operation: Unexpected initializer #lib1::C1:: (Constructor)
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
-function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError

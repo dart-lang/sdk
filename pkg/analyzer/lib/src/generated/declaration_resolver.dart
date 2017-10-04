@@ -247,13 +247,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      FunctionElement element = _walker.getFunction();
-      _matchOffset(element, node.offset);
-      node.element = element;
-      _walker._elementHolder.addFunction(element);
-      _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
-        super.visitFunctionExpression(node);
-      });
+      node.accept(_walker.elementBuilder);
       return null;
     } else {
       return super.visitFunctionExpression(node);
@@ -719,7 +713,7 @@ class ElementWalker {
    * Creates an [ElementWalker] which walks the child elements of a typedef
    * element.
    */
-  ElementWalker.forTypedef(FunctionTypeAliasElement element)
+  ElementWalker.forTypedef(GenericTypeAliasElementImpl element)
       : element = element,
         _parameters = element.parameters,
         _typeParameters = element.typeParameters;
@@ -730,7 +724,7 @@ class ElementWalker {
         elementBuilder =
             new LocalElementBuilder(elementHolder, compilationUnit),
         _elementHolder = elementHolder,
-        _functions = element.functions,
+        _functions = const <ExecutableElement>[],
         _parameters = element.parameters,
         _typeParameters = element.typeParameters;
 
@@ -818,7 +812,7 @@ class ElementWalker {
     check(_variables, _variableIndex);
     Element element = this.element;
     if (element is ExecutableElementImpl) {
-      element.functions = _elementHolder.functions;
+      element.encloseElements(_elementHolder.functions);
       element.encloseElements(_elementHolder.labels);
       element.encloseElements(_elementHolder.localVariables);
     }

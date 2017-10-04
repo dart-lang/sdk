@@ -102,7 +102,8 @@ class ResultComparator extends AstComparator {
    */
   @override
   bool isEqualTokensNotNull(Token first, Token second) =>
-      first.length == second.length && first.lexeme == second.lexeme;
+      (first.isSynthetic || first.length == second.length) &&
+      first.lexeme == second.lexeme;
 
   void _safelyWriteNodePath(StringBuffer buffer, AstNode node) {
     buffer.write('  path: ');
@@ -123,11 +124,13 @@ class ResultComparator extends AstComparator {
   }
 
   /**
-   * Compare the [first] and [second] nodes, failing the test if they are
+   * Compare the [actual] and [expected] nodes, failing the test if they are
    * different.
    */
-  static void compare(AstNode first, AstNode second) {
+  static void compare(AstNode actual, AstNode expected) {
     ResultComparator comparator = new ResultComparator();
-    comparator.isEqualNodes(first, second);
+    if (!comparator.isEqualNodes(actual, expected)) {
+      fail('Expected: $expected\nbut found: $actual');
+    }
   }
 }

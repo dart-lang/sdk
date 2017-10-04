@@ -140,7 +140,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
         environment, status_handle,
         "Environment values must be builtin strings", &environment_length);
     if (string_environment == NULL) {
-      Dart_SetReturnValue(args, Dart_NewBoolean(false));
+      Dart_SetBooleanReturnValue(args, false);
       return;
     }
   }

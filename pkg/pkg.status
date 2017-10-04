@@ -16,6 +16,7 @@ analyzer_plugin/tool/spec/check_all_test: Skip  # Issue 29133
 
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_kernel_test: Slow, Pass
+analyzer/test/generated/hint_code_kernel_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_kernel_test: Slow, Pass
 analyzer/test/generated/static_type_warning_code_kernel_test: Slow, Pass
@@ -61,6 +62,7 @@ analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
 
 [ $runtime != vm || $mode != release || $system == windows ]
 front_end/test/fasta/*: Skip
+front_end/tool/_fasta/*: Skip
 kernel/test/closures_test: Skip
 
 # Don't analyze tests in strong mode yet
@@ -99,20 +101,22 @@ front_end/test/src/incremental/hot_reload_e2e_test: Pass, RuntimeError # Please 
 
 [ $runtime == vm && $use_sdk ]
 front_end/test/fasta/*: Skip # Issue 28629
+front_end/tool/_fasta/*: Skip # Issue 28629
 compiler/tool/generate_kernel_test*: Skip # Issue 28629
 front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 28629
 
 [ $runtime == vm && ! $use_sdk ]
 front_end/tool/perf_test: Skip # Issue 28698
-
-[ $runtime == vm ]
-front_end/tool/perf_test: Skip # Issue 30825
+front_end/tool/incremental_perf_test: Slow, Pass
 
 [ $runtime == vm && $use_sdk ]
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 front_end/test/kernel_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 front_end/test/summary_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 front_end/test/mixin_export_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
+
+[ $runtime == vm && $use_sdk && $checked ]
+front_end/tool/incremental_perf_test: RuntimeError # Issue 29881
 
 [ $runtime == vm && $system == windows]
 analysis_server/*: Skip # Issue 27557

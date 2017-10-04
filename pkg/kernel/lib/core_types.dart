@@ -58,8 +58,9 @@ class CoreTypes {
   Constructor _externalNameDefaultConstructor;
   Class _invocationMirrorClass;
   Constructor _invocationMirrorDefaultConstructor;
+  Constructor _invocationMirrorWithTypeConstructor;
   Class _noSuchMethodErrorClass;
-  Constructor _noSuchMethodErrorImplementationConstructor;
+  Constructor _noSuchMethodErrorDefaultConstructor;
   Procedure _listFromConstructor;
   Procedure _printProcedure;
   Procedure _identicalProcedure;
@@ -189,6 +190,11 @@ class CoreTypes {
         _index.getMember('dart:core', '_InvocationMirror', '');
   }
 
+  Constructor get invocationMirrorWithTypeConstructor {
+    return _invocationMirrorWithTypeConstructor ??=
+        _index.getMember('dart:core', '_InvocationMirror', '_withType');
+  }
+
   Class get iterableClass {
     return _iterableClass ??= _index.getClass('dart:core', 'Iterable');
   }
@@ -219,11 +225,10 @@ class CoreTypes {
         _index.getClass('dart:core', 'NoSuchMethodError');
   }
 
-  /// An implementation-specific constructor suitable for use by
-  /// `Target.instantiateNoSuchMethodError`.
-  Constructor get noSuchMethodErrorImplementationConstructor {
-    return _noSuchMethodErrorImplementationConstructor ??=
-        _index.getMember('dart:core', 'NoSuchMethodError', '_withType');
+  Constructor get noSuchMethodErrorDefaultConstructor {
+    return _noSuchMethodErrorDefaultConstructor ??=
+        // TODO(regis): Replace 'withInvocation' with '' after dart2js is fixed.
+        _index.getMember('dart:core', 'NoSuchMethodError', 'withInvocation');
   }
 
   Class get nullClass {

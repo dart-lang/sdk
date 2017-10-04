@@ -592,7 +592,6 @@ class ConstructedConstantExpression extends ConstantExpression {
       Map<FieldEntity, ConstantExpression> fieldMap =
           computeInstanceFields(environment);
       if (fieldMap == null) {
-        // An erroneous constant constructor was encountered in the super-chain.
         return new NonConstantValue();
       }
       bool isValidAsConstant = true;

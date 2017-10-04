@@ -31,7 +31,7 @@ import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
 
-import 'package:front_end/src/tool/command_line.dart' show withGlobalOptions;
+import 'command_line.dart' show withGlobalOptions;
 
 const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 

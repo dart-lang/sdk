@@ -21,6 +21,8 @@ black_listed_test/none: fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
+field_initialization_order_test/none: RuntimeError
+field3_test/01: MissingCompileTimeError
 generic_list_checked_test: CompileTimeError
 generic_local_functions_test: CompileTimeError
 generic_methods_closure_test: CompileTimeError # Issue 29920
@@ -42,6 +44,8 @@ getter_setter_in_lib_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 string_interpolate_test: CompileTimeError
@@ -80,6 +84,13 @@ override_inheritance_field_test/43: CompileTimeError
 override_inheritance_field_test/45: CompileTimeError
 override_inheritance_field_test/49: CompileTimeError
 override_inheritance_field_test/50: CompileTimeError
+override_inheritance_generic_test/02: CompileTimeError
+override_inheritance_method_test/28: CompileTimeError
+override_inheritance_method_test/29: CompileTimeError
+override_inheritance_no_such_method_test/13: MissingCompileTimeError
+parameter_initializer_test: CompileTimeError
+parser_quirks_test: CompileTimeError
+part_refers_to_core_library_test/01: Crash
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -88,7 +99,6 @@ accessor_conflict_import2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
-const_objects_are_immutable_test: RuntimeError # Issue 29897
 method_override_test: CompileTimeError # Negative test
 method_override7_test/03: MissingCompileTimeError # Issue 30514
 mixin_super_test: RuntimeError
@@ -168,30 +178,34 @@ branch_canonicalization_test: RuntimeError # Issue 29920
 call_closurization_test: RuntimeError # Issue 29920
 call_test: RuntimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
-canonical_const_test: RuntimeError # Ints and doubles are unified.
-compile_time_constant_a_test: RuntimeError # Issue 30526
-compile_time_constant_b_test: RuntimeError # Issue 29920
 compile_time_constant_d_test: RuntimeError # Issue 29920
-compile_time_constant10_test/none: RuntimeError
+compile_time_constant_e_test: RuntimeError # Issue 30466
 const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
 constructor12_test: RuntimeError # Issue 29920
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
-custom_await_stack_trace_test: RuntimeError # Issue 29920
 ct_const_test: RuntimeError # Issue 2992
+custom_await_stack_trace_test: RuntimeError # Issue 29920
 cyclic_type2_test: RuntimeError # Issue 29920
 cyclic_type_test/02: RuntimeError # Issue 29920
 cyclic_type_test/03: RuntimeError # Issue 29920
 cyclic_type_test/04: RuntimeError # Issue 29920
-double_int_to_string_test: RuntimeError # Issue 29920
 deferred_call_empty_before_load_test: RuntimeError # Issue 27777
 deferred_load_constants_test/none: RuntimeError # Issue 27394
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
 deferred_static_seperate_test: RuntimeError # Issue 27777
+double_int_to_string_test: RuntimeError # Issue 29920
 double_to_string_as_fixed2_test/none: RuntimeError # Issue 29920
+dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
+emit_const_fields_test: CompileTimeError
+enum_syntax_test/05: MissingCompileTimeError
+enum_syntax_test/06: MissingCompileTimeError
+example_constructor_test: RuntimeError
+exception_test: RuntimeError # DDC doesn't implement NullThrownError?
 execute_finally6_test: RuntimeError # Issue 29920
+field_increment_bailout_test: RuntimeError # Issue 29920
 flatten_test/05: MissingRuntimeError # Issue 29920
 flatten_test/08: MissingRuntimeError # Issue 29920
 flatten_test/09: MissingRuntimeError # Issue 29920
@@ -220,11 +234,13 @@ invocation_mirror_test: RuntimeError
 issue21159_test: RuntimeError # Issue 30701
 issue23244_test: RuntimeError # Issue 29920
 label_test: RuntimeError # Issue 30675
+many_overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 modulo_test: RuntimeError # Issue 29920
 named_parameter_clash_test: RuntimeError # Issue 29920
 named_parameters_default_eq_test/none: RuntimeError
 null_test/mirrors: RuntimeError # Uses mirrors.
 number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
+overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out

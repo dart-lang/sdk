@@ -2,23 +2,55 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: Super.:[exact=Super]*/
-class Super {
-  /*element: Super.field:Union of [[exact=JSUInt31], [exact=Sub]]*/
-  var field = 42;
+/*element: main:[null]*/
+main() {
+  superFieldUpdate();
+  superSetterUpdate();
 }
 
-/*element: Sub.:[exact=Sub]*/
-class Sub extends Super {
-  /*element: Sub.method:[subclass=Closure]*/
+////////////////////////////////////////////////////////////////////////////////
+// Update of super field.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Super1.:[exact=Super1]*/
+class Super1 {
+  /*element: Super1.field:Union of [[exact=JSUInt31], [exact=Sub1]]*/
+  dynamic field = 42;
+}
+
+/*element: Sub1.:[exact=Sub1]*/
+class Sub1 extends Super1 {
+  /*element: Sub1.method:[subclass=Closure]*/
   method() {
-    // ignore: INVALID_ASSIGNMENT
-    var a = super.field = new Sub();
-    return a. /*[exact=Sub]*/ method;
+    var a = super.field = new Sub1();
+    return a. /*[exact=Sub1]*/ method;
   }
 }
 
-/*element: main:[null]*/
-main() {
-  new Sub(). /*invoke: [exact=Sub]*/ method();
+/*element: superFieldUpdate:[null]*/
+superFieldUpdate() {
+  new Sub1(). /*invoke: [exact=Sub1]*/ method();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Update of super setter.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Super2.:[exact=Super2]*/
+class Super2 {
+  set setter(/*[exact=Sub2]*/ value) {}
+}
+
+/*element: Sub2.:[exact=Sub2]*/
+class Sub2 extends Super2 {
+  /*element: Sub2.method:[subclass=Closure]*/
+  method() {
+    var a = super.setter = new Sub2();
+    return a. /*[exact=Sub2]*/ method;
+  }
+}
+
+/*element: superSetterUpdate:[null]*/
+superSetterUpdate() {
+  new Sub2(). /*invoke: [exact=Sub2]*/ method();
 }

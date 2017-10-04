@@ -17,11 +17,11 @@ class C extends core::Object {
     on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {
       core::print("Expected error: ${e}");
     }
-    this.onlySetter = "hest";
+    this.{self::C::onlySetter} = "hest";
   }
   method testD() → dynamic {
     core::print(this.onlySetter);
-    this.onlySetter = "hest";
+    this.{self::C::onlySetter} = "hest";
   }
 }
 class D extends self::C {
@@ -39,7 +39,7 @@ static set onlySetter(dynamic value) → void {
 }
 static method main() → dynamic {
   try {
-    core::print(throw new core::NoSuchMethodError::_withType(null, #onlySetter, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null));
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#onlySetter, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{})));
     throw "No error thrown";
   }
   on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {

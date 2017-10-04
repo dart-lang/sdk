@@ -31,7 +31,7 @@ class Utf8Decoder {
           as dynamic/*=Converter<List<int>, T>*/;
     }
     // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
-    return super.fuse/*<T>*/(next);
+    return super.fuse<T>(next);
   }
 
   // Allow intercepting of UTF-8 decoding when built-in lists are passed.
