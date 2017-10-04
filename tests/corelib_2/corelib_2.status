@@ -532,7 +532,6 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: RuntimeError
-symbol_test/01: Crash # Assertion failure: Unexpected constant value in const Symbol(...) call: IntConstant(0)
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
@@ -567,7 +566,6 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: RuntimeError
-symbol_test/01: Crash # Assertion failure: Unexpected constant value in const Symbol(...) call: IntConstant(0)
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
