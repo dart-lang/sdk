@@ -83,14 +83,12 @@ Future<IdData> computeData(
         computeMemberData(compiler, constructor, actualMap, verbose: verbose);
       });
     }
-    if (closedWorld.isImplemented(cls)) {
-      elementEnvironment.forEachClassMember(cls,
-          (ClassEntity declarer, MemberEntity member) {
-        if (cls == declarer) {
-          computeMemberData(compiler, member, actualMap, verbose: verbose);
-        }
-      });
-    }
+    elementEnvironment.forEachClassMember(cls,
+        (ClassEntity declarer, MemberEntity member) {
+      if (cls == declarer) {
+        computeMemberData(compiler, member, actualMap, verbose: verbose);
+      }
+    });
   });
   elementEnvironment.forEachLibraryMember(mainLibrary, (MemberEntity member) {
     computeMemberData(compiler, member, actualMap, verbose: verbose);

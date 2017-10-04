@@ -678,6 +678,24 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitStaticGet(ir.StaticGet node) {
+    MemberEntity member = _elementMap.getMember(node.target);
+    TypeMask mask = _memberData.typeOfSend(node);
+    return handleStaticInvoke(
+        node, new Selector.getter(member.memberName), mask, member, null);
+  }
+
+  @override
+  TypeInformation visitStaticSet(ir.StaticSet node) {
+    TypeInformation rhsType = visit(node.value);
+    MemberEntity member = _elementMap.getMember(node.target);
+    TypeMask mask = _memberData.typeOfSend(node);
+    handleStaticInvoke(node, new Selector.setter(member.memberName), mask,
+        member, new ArgumentsTypes([rhsType], null));
+    return rhsType;
+  }
+
+  @override
   TypeInformation visitPropertyGet(ir.PropertyGet node) {
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);

@@ -136,8 +136,22 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   @override
   bool isFieldInitializerPotentiallyNull(
       FieldEntity field, ir.Node initializer) {
-    // TODO(johnniwinther): Implement the ad-hoc check in ast inferrer?
-    return true;
+    // TODO(13429): We could do better here by using the
+    // constant handler to figure out if it's a lazy field or not.
+    // TODO(johnniwinther): Implement the ad-hoc check in ast inferrer? This
+    // mimicks that ast inferrer which return `true` for [ast.Send] and
+    // non-const [ast.NewExpression].
+    if (initializer is ir.MethodInvocation ||
+        initializer is ir.PropertyGet ||
+        initializer is ir.PropertySet ||
+        initializer is ir.StaticInvocation ||
+        initializer is ir.StaticGet ||
+        initializer is ir.StaticSet ||
+        initializer is ir.Let ||
+        initializer is ir.ConstructorInvocation && !initializer.isConst) {
+      return true;
+    }
+    return false;
   }
 
   @override
