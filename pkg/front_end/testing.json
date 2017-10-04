@@ -49,9 +49,8 @@
         "\\.dart$"
       ],
       "exclude": [
-        "/test/.*_test\\.dart$",
-        "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/.*_part[0-9]*\\.dart$",
+        "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/shaker/"
       ]
     },
@@ -66,9 +65,8 @@
         "\\.dart$"
       ],
       "exclude": [
-        "/test/.*_test\\.dart$",
-        "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/.*_part[0-9]*\\.dart$",
+        "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/shaker/"
       ]
     },
@@ -83,9 +81,8 @@
         "\\.dart$"
       ],
       "exclude": [
-        "/test/.*_test\\.dart$",
-        "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/.*_part[0-9]*\\.dart$",
+        "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/shaker/"
       ]
     },
@@ -100,9 +97,8 @@
         "\\.dart$"
       ],
       "exclude": [
-        "/test/.*_test\\.dart$",
-        "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/.*_part[0-9]*\\.dart$",
+        "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/shaker/"
       ]
     },
