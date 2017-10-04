@@ -191,6 +191,19 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
                 if (dynamicName != null) return computeGetName(dynamicName);
               }
               break;
+            case AccessKind.STATIC_FIELD:
+            case AccessKind.FINAL_STATIC_FIELD:
+            case AccessKind.TOPLEVEL_FIELD:
+            case AccessKind.FINAL_TOPLEVEL_FIELD:
+            case AccessKind.STATIC_GETTER:
+            case AccessKind.TOPLEVEL_GETTER:
+            case AccessKind.SUPER_FIELD:
+            case AccessKind.SUPER_FINAL_FIELD:
+            case AccessKind.SUPER_GETTER:
+              if (id.kind == IdKind.invoke) {
+                return computeInvokeName('call');
+              }
+              break;
             default:
               String dynamicName = getDynamicName();
               if (dynamicName != null) return computeInvokeName(dynamicName);

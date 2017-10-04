@@ -374,6 +374,17 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
               computeForNode(node, createAccessId(node));
               computeForNode(node, createInvokeId(node.argumentsNode));
               break;
+            case AccessKind.STATIC_FIELD:
+            case AccessKind.FINAL_STATIC_FIELD:
+            case AccessKind.TOPLEVEL_FIELD:
+            case AccessKind.FINAL_TOPLEVEL_FIELD:
+            case AccessKind.STATIC_GETTER:
+            case AccessKind.TOPLEVEL_GETTER:
+            case AccessKind.SUPER_FIELD:
+            case AccessKind.SUPER_FINAL_FIELD:
+            case AccessKind.SUPER_GETTER:
+              computeForNode(node, createInvokeId(node.argumentsNode));
+              break;
             default:
               ast.Node position =
                   computeAccessPosition(node, sendStructure.semantics);

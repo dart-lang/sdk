@@ -18,6 +18,12 @@ main() {
   staticCallWithNamedArguments2();
   staticCallWithNamedArguments3a();
   staticCallWithNamedArguments3b();
+
+  invokeStaticFieldUninitialized();
+  invokeStaticFieldTearOff();
+  invokeStaticFieldTearOffParameters();
+
+  invokeStaticGetterTearOff();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -156,3 +162,53 @@ staticCallWithNamedArguments3b() => _returnNamedNullCalledTwice(a: 0.5);
 
 /*element: _returnNamedNullCalledTwice:[null|exact=JSDouble]*/
 _returnNamedNullCalledTwice({/*[null|exact=JSDouble]*/ a}) => a;
+
+////////////////////////////////////////////////////////////////////////////////
+/// Call an uninitialized top level field.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _field1:[null]*/
+dynamic _field1;
+
+/*element: invokeStaticFieldUninitialized:[null|subclass=Object]*/
+invokeStaticFieldUninitialized() => _field1();
+
+////////////////////////////////////////////////////////////////////////////////
+/// Call a top level field initialized to a tear-off of a top level method.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _method1:[exact=JSUInt31]*/
+_method1() => 42;
+
+/*element: _field2:[null|subclass=Closure]*/
+dynamic _field2 = _method1;
+
+/*element: invokeStaticFieldTearOff:[null|subclass=Object]*/
+invokeStaticFieldTearOff() => _field2();
+
+////////////////////////////////////////////////////////////////////////////////
+/// Call a top level field initialized to a tear-off of a top level method
+/// taking one argument.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _method2:[exact=JSUInt31]*/
+_method2(/*[exact=JSUInt31]*/ o) => 42;
+
+/*element: _field3:[null|subclass=Closure]*/
+dynamic _field3 = _method2;
+
+/*element: invokeStaticFieldTearOffParameters:[null|subclass=Object]*/
+invokeStaticFieldTearOffParameters() => _field3(42);
+
+////////////////////////////////////////////////////////////////////////////////
+/// Call a top level getter returning a tear-off of a top level method.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _method3:[exact=JSUInt31]*/
+_method3() => 42;
+
+/*element: _getter1:[subclass=Closure]*/
+get _getter1 => _method3;
+
+/*element: invokeStaticGetterTearOff:[null|subclass=Object]*/
+invokeStaticGetterTearOff() => _getter1();

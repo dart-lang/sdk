@@ -620,6 +620,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         element, arguments, _sideEffects, inLoop);
   }
 
+  TypeInformation handleClosureCall(ir.Node node, Selector selector,
+      TypeMask mask, MemberEntity member, ArgumentsTypes arguments) {
+    return _inferrer.registerCalledClosure(
+        node,
+        selector,
+        mask,
+        _inferrer.typeOfMember(member),
+        _analyzedMember,
+        arguments,
+        _sideEffects,
+        inLoop);
+  }
+
   TypeInformation handleForeignInvoke(
       ir.StaticInvocation node,
       FunctionEntity function,
@@ -664,16 +677,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else if (member.isFunction) {
       return handleStaticInvoke(node, selector, mask, member, arguments);
     } else {
-      handleStaticInvoke(node, selector, mask, member, arguments);
-      return _inferrer.registerCalledClosure(
-          node,
-          selector,
-          mask,
-          _inferrer.typeOfMember(member),
-          _analyzedMember,
-          arguments,
-          _sideEffects,
-          inLoop);
+      return handleClosureCall(node, selector, mask, member, arguments);
     }
   }
 
@@ -1072,6 +1076,43 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     visit(node.expression);
     _locals.seenReturnOrThrow = true;
     return _types.nonNullEmpty();
+  }
+
+  @override
+  TypeInformation visitSuperPropertyGet(ir.SuperPropertyGet node) {
+    // TODO(redemption): Track exposure of `this`.
+    MemberEntity member = _elementMap.getSuperMember(
+        _analyzedMember, node.name, node.interfaceTarget);
+    TypeMask mask = _memberData.typeOfSend(node);
+    return handleStaticInvoke(
+        node, new Selector.getter(member.memberName), mask, member, null);
+  }
+
+  @override
+  TypeInformation visitSuperPropertySet(ir.SuperPropertySet node) {
+    // TODO(redemption): Track exposure of `this`.
+    TypeInformation rhsType = visit(node.value);
+    MemberEntity member = _elementMap.getSuperMember(
+        _analyzedMember, node.name, node.interfaceTarget);
+    TypeMask mask = _memberData.typeOfSend(node);
+    handleStaticInvoke(node, new Selector.setter(member.memberName), mask,
+        member, new ArgumentsTypes([rhsType], null));
+    return rhsType;
+  }
+
+  @override
+  TypeInformation visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
+    // TODO(redemption): Track exposure of `this`.
+    MemberEntity member = _elementMap.getSuperMember(
+        _analyzedMember, node.name, node.interfaceTarget);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+    if (member.isFunction) {
+      return handleStaticInvoke(node, selector, mask, member, arguments);
+    } else {
+      return handleClosureCall(node, selector, mask, member, arguments);
+    }
   }
 }
 

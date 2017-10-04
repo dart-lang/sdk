@@ -338,12 +338,13 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     throw new UnsupportedError("Unexpected member: $node");
   }
 
-  MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
+  MemberEntity getSuperMember(
+      MemberEntity context, ir.Name name, ir.Member target,
       {bool setter: false}) {
     if (target != null) {
       return getMember(target);
     }
-    ClassEntity cls = getMember(context).enclosingClass;
+    ClassEntity cls = context.enclosingClass;
     IndexedClass superclass = _getSuperType(cls)?.element;
     while (superclass != null) {
       ClassEnv env = _classes.getEnv(superclass);

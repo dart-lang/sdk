@@ -225,7 +225,8 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
-  MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
+  MemberEntity getSuperMember(
+      MemberEntity context, ir.Name name, ir.Member target,
       {bool setter: false}) {
     assert(target != null);
     return getMember(target);

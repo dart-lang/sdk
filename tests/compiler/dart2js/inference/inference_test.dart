@@ -15,10 +15,7 @@ const List<String> skipforAst = const <String>[
 ];
 
 /// Tests that are not yet working in the kernel pipeline.
-const List<String> skipforKernel = const <String>[
-  'super_get.dart',
-  'super_set.dart',
-];
+const List<String> skipforKernel = const <String>[];
 
 main(List<String> args) {
   asyncTest(() async {

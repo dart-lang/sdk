@@ -63,8 +63,8 @@ ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
 
 ResolutionImpact buildKernelImpact(ir.Member member,
     KernelToElementMapForImpact elementAdapter, DiagnosticReporter reporter) {
-  KernelImpactBuilder builder =
-      new KernelImpactBuilder(elementAdapter, member, reporter);
+  KernelImpactBuilder builder = new KernelImpactBuilder(
+      elementAdapter, elementAdapter.getMember(member), reporter);
   if (member is ir.Procedure) {
     return builder.buildProcedure(member);
   } else if (member is ir.Constructor) {
@@ -79,7 +79,7 @@ class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
   final KernelToElementMapForImpact elementAdapter;
   final DiagnosticReporter reporter;
-  final ir.Member currentMember;
+  final MemberEntity currentMember;
   _ClassEnsurer classEnsurer;
 
   KernelImpactBuilder(this.elementAdapter, this.currentMember, this.reporter)
@@ -442,8 +442,7 @@ class KernelImpactBuilder extends ir.Visitor {
           method, elementAdapter.getCallStructure(arguments)));
     } else {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
-          elementAdapter.getSuperNoSuchMethod(
-              elementAdapter.getClass(currentMember.enclosingClass)),
+          elementAdapter.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
@@ -478,8 +477,7 @@ class KernelImpactBuilder extends ir.Visitor {
       }
     } else {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
-          elementAdapter.getSuperNoSuchMethod(
-              elementAdapter.getClass(currentMember.enclosingClass)),
+          elementAdapter.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
@@ -511,8 +509,7 @@ class KernelImpactBuilder extends ir.Visitor {
       }
     } else {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
-          elementAdapter.getSuperNoSuchMethod(
-              elementAdapter.getClass(currentMember.enclosingClass)),
+          elementAdapter.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
