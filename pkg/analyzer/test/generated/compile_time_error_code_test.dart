@@ -1084,7 +1084,7 @@ const a = new A();''');
     // the code is correct--we shouldn't report an error.
     Source source = addSource(r'''
 class A {
-  external factory const A();
+  external const factory A();
 }
 const x = const A();''');
     await computeAnalysisResult(source);

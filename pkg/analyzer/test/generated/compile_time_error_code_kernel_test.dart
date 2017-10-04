@@ -72,13 +72,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_constEval_newInstance_externalFactoryConstConstructor() async {
-    // TODO(scheglov): replace `factory const` with `const factory`
-    return super.test_constEval_newInstance_externalFactoryConstConstructor();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_constEvalThrowsException_finalAlreadySet_initializer() async {
     return super.test_constEvalThrowsException_finalAlreadySet_initializer();
