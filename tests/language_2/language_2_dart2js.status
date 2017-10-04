@@ -247,6 +247,42 @@ mixin_type_parameters_errors_test/05: MissingCompileTimeError
 mixin_type_parameters_mixin_extends_test: RuntimeError
 mixin_type_parameters_mixin_test: RuntimeError
 mixin_type_parameters_super_extends_test: RuntimeError
+
+least_upper_bound_test/03: MissingCompileTimeError
+least_upper_bound_test/04: MissingCompileTimeError
+least_upper_bound_test/10: MissingCompileTimeError
+least_upper_bound_test/19: MissingCompileTimeError
+least_upper_bound_test/20: MissingCompileTimeError
+least_upper_bound_test/23: MissingCompileTimeError
+least_upper_bound_test/24: MissingCompileTimeError
+least_upper_bound_test/29: MissingCompileTimeError
+least_upper_bound_test/30: MissingCompileTimeError
+least_upper_bound_test/32: MissingCompileTimeError
+least_upper_bound_expansive_test/01: MissingCompileTimeError
+least_upper_bound_expansive_test/02: MissingCompileTimeError
+least_upper_bound_expansive_test/03: MissingCompileTimeError
+least_upper_bound_expansive_test/04: MissingCompileTimeError
+least_upper_bound_expansive_test/05: MissingCompileTimeError
+least_upper_bound_expansive_test/06: MissingCompileTimeError
+least_upper_bound_expansive_test/07: MissingCompileTimeError
+least_upper_bound_expansive_test/08: MissingCompileTimeError
+least_upper_bound_expansive_test/09: MissingCompileTimeError
+least_upper_bound_expansive_test/10: MissingCompileTimeError
+least_upper_bound_expansive_test/11: MissingCompileTimeError
+least_upper_bound_expansive_test/12: MissingCompileTimeError
+library_ambiguous_test/00: MissingCompileTimeError
+library_ambiguous_test/01: MissingCompileTimeError
+library_ambiguous_test/02: MissingCompileTimeError
+library_ambiguous_test/03: MissingCompileTimeError
+library_ambiguous_test/04: MissingCompileTimeError
+
+# The following tests are supposed to fail.
+# In testing-mode, dart2js supports all dart:X libraries (because it
+# uses '--categories=all').
+library_env_test/has_no_html_support: RuntimeError, OK
+library_env_test/has_no_io_support: RuntimeError, OK
+library_env_test/has_no_mirror_support: RuntimeError, OK
+
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/03: MissingCompileTimeError
@@ -584,6 +620,7 @@ multiline_newline_test/05: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
 multiline_newline_test/none: RuntimeError # Issue 23888
 number_identity2_test: RuntimeError # Issue 12596
+left_shift_test: RuntimeError # Issue 1533
 numbers_test: RuntimeError, OK # Issue 1533
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
@@ -1155,6 +1192,9 @@ override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
 override_inheritance_mixed_test/04: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
+lazy_static8_test: RuntimeError
+left_shift_test: RuntimeError
+
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1426,6 +1466,8 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
+lazy_static8_test: RuntimeError
+left_shift_test: RuntimeError
 override_inheritance_mixed_test/01: MissingCompileTimeError
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
@@ -1522,6 +1564,8 @@ instance_creation_in_function_annotation_test: Fail # mirrors not supported
 invocation_mirror2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on2_test: Fail # mirrors not supported
 invocation_mirror_invoke_on_test: Fail # mirrors not supported
+library_env_test/has_mirror_support: Fail # mirrors not supported
+library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
 issue21079_test: Fail # mirrors not supported
 many_overridden_no_such_method_test: Fail # mirrors not supported
 null_test/0*: Pass # mirrors not supported, fails for the wrong reason
@@ -1563,3 +1607,7 @@ null_test/mirrors: Skip # Uses mirrors.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
+
+[ $compiler == dart2js && $browser && !$dart2js_with_kernel ]
+library_env_test/has_no_io_support: Pass # Issue 27398
+library_env_test/has_io_support: RuntimeError # Issue 27398

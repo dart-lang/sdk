@@ -40,17 +40,17 @@ void testC1(bool z, C1<int> a, N<C1<String>> b) {
     // Object is the most specific type in the intersection of the supertypes.
 
     // Is least upper bound dynamic?
-    (z ? a : b).z; //# 01: static type warning
+    (z ? a : b).z; //# 01: compile-time error
     // Is least upper bound N<...> ?
-    (z ? a : b).n; //# 02: static type warning
+    (z ? a : b).n; //# 02: compile-time error
     // Is least upper bound C1<...> ?
-    (z ? a : b).c1; //# 03: static type warning
+    (z ? a : b).c1; //# 03: compile-time error
     // Is least upper bound N<dynamic> ?
-    (z ? a : b).n.z; //# 04: static type warning
+    (z ? a : b).n.z; //# 04: compile-time error
     // Is least upper bound N<N<...>> ?
-    (z ? a : b).n.n; //# 05: static type warning
+    (z ? a : b).n.n; //# 05: compile-time error
     // Is least upper bound N<C1<...>> ?
-    (z ? a : b).n.c1; //# 06: static type warning
+    (z ? a : b).n.c1; //# 06: compile-time error
   }
 }
 
@@ -81,17 +81,17 @@ void testC2(bool z, C2<int> a, N<C2<String>> b) {
     // Object is the most specific type in the intersection of the supertypes.
 
     // Is least upper bound dynamic?
-    (z ? a : b).z; //# 07: static type warning
+    (z ? a : b).z; //# 07: compile-time error
     // Is least upper bound N<...> ?
-    (z ? a : b).n; //# 08: static type warning
+    (z ? a : b).n; //# 08: compile-time error
     // Is least upper bound C2<...> ?
-    (z ? a : b).c2; //# 09: static type warning
+    (z ? a : b).c2; //# 09: compile-time error
     // Is least upper bound N<dynamic> ?
-    (z ? a : b).n.z; //# 10: static type warning
+    (z ? a : b).n.z; //# 10: compile-time error
     // Is least upper bound N<N<...>> ?
-    (z ? a : b).n.n; //# 11: static type warning
+    (z ? a : b).n.n; //# 11: compile-time error
     // Is least upper bound N<C2<...>> ?
-    (z ? a : b).n.c2; //# 12: static type warning
+    (z ? a : b).n.c2; //# 12: compile-time error
   }
 }
 

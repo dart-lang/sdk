@@ -144,11 +144,6 @@ is_object_test: Skip
 isnot_malformed_type_test: Skip
 issue11724_test: Skip
 issue11793_test: Skip
-issue13474_test: Skip
-least_upper_bound_expansive_test: Skip
-least_upper_bound_test: Skip
-library_ambiguous_test: Skip
-library_negative_test: Skip
 list_double_index_in_loop2_test: Skip
 list_double_index_in_loop_test: Skip
 list_literal1_test: Skip
@@ -387,8 +382,6 @@ instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
 instanceof2_test: RuntimeError # Issue 29920
 instanceof4_test/01: RuntimeError # Issue 29920
 instanceof4_test/none: RuntimeError # Issue 29920
-lazy_static3_test: RuntimeError # Issue 29920
-left_shift_test: RuntimeError # Issue 29920
 list_is_test: RuntimeError # Issue 29920
 main_test/03: MissingRuntimeError # Issue 29920
 mint_arithmetic_test: RuntimeError # Issue 29920

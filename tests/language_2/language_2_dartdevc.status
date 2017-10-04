@@ -55,6 +55,14 @@ interceptor6_test: CompileTimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
 internal_library_test/02: Crash
+least_upper_bound_expansive_test/none: RuntimeError # 30908
+library_env_test/none: RuntimeError # Issue 30907
+library_env_test/has_html_support: RuntimeError # Issue 30907
+library_env_test/has_no_io_support: RuntimeError # Issue 30907
+library_env_test/has_no_mirror_support: RuntimeError # Issue 30907
+library_env_test/has_no_html_support: RuntimeError, OK
+library_env_test/has_io_support: RuntimeError, OK
+library_env_test/has_mirror_support: RuntimeError, OK
 override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
@@ -234,8 +242,8 @@ invocation_mirror_test: RuntimeError
 issue21159_test: RuntimeError # Issue 30701
 issue23244_test: RuntimeError # Issue 29920
 label_test: RuntimeError # Issue 30675
+modulo_test: RuntimeError # Ints and doubles are unified.
 many_overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
-modulo_test: RuntimeError # Issue 29920
 named_parameter_clash_test: RuntimeError # Issue 29920
 named_parameters_default_eq_test/none: RuntimeError
 null_test/mirrors: RuntimeError # Uses mirrors.
@@ -244,3 +252,6 @@ numbers_test: RuntimeError # Issue 29920
 overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out
+lazy_static3_test: RuntimeError # Issue 30852
+lazy_static8_test: RuntimeError # Issue 30852
+left_shift_test: RuntimeError # Ints and doubles are unified.

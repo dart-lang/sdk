@@ -190,3 +190,6 @@ type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
 
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
+
+[ $compiler == none || $compiler == app_jit ]
+library_env_test/has_no_mirror_support: RuntimeError, OK

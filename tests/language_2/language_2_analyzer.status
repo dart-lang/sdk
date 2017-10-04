@@ -159,6 +159,7 @@ if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 is_not_class2_test/*: MissingCompileTimeError
+library_ambiguous_test/04: MissingCompileTimeError
 method_override2_test/00: MissingCompileTimeError
 method_override2_test/01: MissingCompileTimeError
 method_override2_test/02: MissingCompileTimeError
@@ -699,6 +700,7 @@ vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
 vm/lazy_deopt_with_exception_test: Pass
 vm/reflect_core_vm_test: CompileTimeError
+library_negative_test: CompileTimeError
 method_override7_test/03: Fail # Issue 11497
 method_override_test: StaticWarning
 override_field_test/03: Fail # Issue 29703
@@ -934,6 +936,36 @@ initializing_formal_type_test: MissingCompileTimeError
 instantiate_type_variable_test/01: StaticWarning
 interceptor6_test: StaticWarning
 invocation_mirror_test: StaticWarning
+least_upper_bound_expansive_test/01: MissingCompileTimeError
+least_upper_bound_expansive_test/02: MissingCompileTimeError
+least_upper_bound_expansive_test/03: MissingCompileTimeError
+least_upper_bound_expansive_test/04: MissingCompileTimeError
+least_upper_bound_expansive_test/05: MissingCompileTimeError
+least_upper_bound_expansive_test/06: MissingCompileTimeError
+least_upper_bound_expansive_test/07: MissingCompileTimeError
+least_upper_bound_expansive_test/08: MissingCompileTimeError
+least_upper_bound_expansive_test/09: MissingCompileTimeError
+least_upper_bound_expansive_test/10: MissingCompileTimeError
+least_upper_bound_expansive_test/11: MissingCompileTimeError
+least_upper_bound_expansive_test/12: MissingCompileTimeError
+least_upper_bound_test/03: MissingCompileTimeError
+least_upper_bound_test/04: MissingCompileTimeError
+least_upper_bound_test/10: MissingCompileTimeError
+least_upper_bound_test/19: MissingCompileTimeError
+least_upper_bound_test/20: MissingCompileTimeError
+least_upper_bound_test/23: MissingCompileTimeError
+least_upper_bound_test/24: MissingCompileTimeError
+least_upper_bound_test/25: StaticWarning
+least_upper_bound_test/26: StaticWarning
+least_upper_bound_test/29: MissingCompileTimeError
+least_upper_bound_test/30: MissingCompileTimeError
+least_upper_bound_test/31: StaticWarning
+least_upper_bound_test/32: MissingCompileTimeError
+library_ambiguous_test/00: MissingCompileTimeError
+library_ambiguous_test/01: MissingCompileTimeError
+library_ambiguous_test/02: MissingCompileTimeError
+library_ambiguous_test/03: MissingCompileTimeError
+library_ambiguous_test/04: MissingCompileTimeError
 multiple_interface_inheritance_test: StaticWarning # Issue 30552
 named_parameters_test/01: MissingCompileTimeError
 named_parameters_test/02: MissingCompileTimeError

@@ -150,6 +150,8 @@ issue21079_test: CompileTimeError
 issue21079_test: CompileTimeError
 issue_25671a_test/01: CompileTimeError
 issue_25671b_test/01: CompileTimeError
+library_env_test/has_no_mirror_support: Pass
+library_env_test/has_mirror_support: RuntimeError, Ok
 many_overridden_no_such_method_test: CompileTimeError
 method_override2_test/01: CompileTimeError
 method_override3_test/00: CompileTimeError

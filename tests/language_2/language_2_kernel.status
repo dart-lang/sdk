@@ -19,6 +19,7 @@ generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 type_variable_bounds4_test/01: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
+library_env_test/has_no_mirror_support: RuntimeError
 
 [ $compiler == dartk && $runtime == vm ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -408,6 +409,8 @@ vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test u
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/type_vm_test: RuntimeError # Fasta bug: Bad position information in stack trace.
+library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.
+library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError
@@ -452,9 +455,11 @@ deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeE
 deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
+# Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
+language_2/least_upper_bound_expansive_test/none: CompileTimeError
 duplicate_export_negative_test: Fail # Issue 6134
 example_constructor_test: Fail, OK
 field_initialization_order_test: Fail, OK

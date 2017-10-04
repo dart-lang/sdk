@@ -27,7 +27,6 @@ function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
 inferrer_closure_test: RuntimeError
 initializing_formal_final_test: RuntimeError
-lazy_static7_test: DartkCompileTimeError
 main_not_a_function_test/01: DartkCrash
 mixin_generic_test: RuntimeError
 no_main_test/01: DartkCrash

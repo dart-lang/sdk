@@ -238,6 +238,22 @@ invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign
 issue21079_test: SkipByDesign
 issue21079_test: SkipByDesign
+least_upper_bound_expansive_test/none: CompileTimeError
+least_upper_bound_test/03: MissingCompileTimeError
+least_upper_bound_test/04: MissingCompileTimeError
+least_upper_bound_test/10: MissingCompileTimeError
+least_upper_bound_test/19: MissingCompileTimeError
+least_upper_bound_test/20: MissingCompileTimeError
+least_upper_bound_test/23: MissingCompileTimeError
+least_upper_bound_test/24: MissingCompileTimeError
+least_upper_bound_test/29: MissingCompileTimeError
+least_upper_bound_test/30: MissingCompileTimeError
+least_upper_bound_test/32: MissingCompileTimeError
+library_ambiguous_test/00: MissingCompileTimeError
+library_ambiguous_test/01: MissingCompileTimeError
+library_ambiguous_test/02: MissingCompileTimeError
+library_ambiguous_test/03: MissingCompileTimeError
+library_ambiguous_test/04: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: SkipByDesign
 map_literal8_test: RuntimeError
@@ -527,6 +543,7 @@ vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers
 void_block_return_test/00: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
+library_env_test/has_mirror_support: RuntimeError, OK
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
@@ -700,6 +717,14 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 vm/regress_27201_test: Fail
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $browser ]
+library_env_test/has_io_support: RuntimeError, OK
+library_env_test/has_no_html_support: RuntimeError, OK
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ! $browser ]
+library_env_test/has_html_support: RuntimeError, OK
+library_env_test/has_no_io_support: RuntimeError, OK
 
 [ $runtime == dart_precompiled && $minified ]
 vm/no_such_args_error_message_vm_test: Skip
