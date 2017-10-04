@@ -79,7 +79,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30997')
   test_deferredImportWithInvalidUri() async {
     return super.test_deferredImportWithInvalidUri();
   }
