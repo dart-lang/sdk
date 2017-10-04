@@ -39,11 +39,18 @@ class KernelMixinApplicationBuilder
         relativeFileUri = relativizeUri(fileUri),
         super(supertype, mixins, charOffset, fileUri);
 
+  @override
   InterfaceType build(LibraryBuilder library) {
     return unsupported("build", charOffset, fileUri);
   }
 
+  @override
   Supertype buildSupertype(LibraryBuilder library) {
     return unsupported("buildSupertype", charOffset, fileUri);
+  }
+
+  @override
+  buildInvalidType() {
+    return unsupported("buildInvalidType", charOffset, fileUri);
   }
 }

@@ -676,9 +676,16 @@ class DeclarationBuilder<T extends TypeBuilder> {
       }
       for (T type in types) {
         String name = type.name;
-        TypeVariableBuilder builder;
+        Builder builder;
         if (name != null) {
-          builder = map[name];
+          int index = name.indexOf(".");
+          if (index != -1) {
+            if (map.containsKey(name.substring(0, index))) {
+              builder = type.buildInvalidType();
+            }
+          } else {
+            builder = map[name];
+          }
         }
         if (builder == null) {
           // Since name didn't resolve in this scope, propagate it to the

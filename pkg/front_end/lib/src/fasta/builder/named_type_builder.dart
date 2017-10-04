@@ -23,7 +23,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
   NamedTypeBuilder(this.name, this.arguments, int charOffset, Uri fileUri)
       : super(charOffset, fileUri);
 
-  InvalidTypeBuilder<T, R> buildInvalidType(String name);
+  InvalidTypeBuilder<T, R> buildInvalidType();
 
   void bind(TypeDeclarationBuilder builder) {
     this.builder = builder;
@@ -49,7 +49,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
         return;
       }
     }
-    builder = buildInvalidType(name);
+    builder = buildInvalidType();
   }
 
   String get debugName => "NamedTypeBuilder";

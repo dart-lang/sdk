@@ -33,6 +33,8 @@ abstract class TypeBuilder extends Builder {
 
   build(LibraryBuilder library);
 
+  buildInvalidType();
+
   @override
   String get fullNameForErrors {
     StringBuffer sb = new StringBuffer();

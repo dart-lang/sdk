@@ -465,6 +465,7 @@ stringliteral: Crash
 super_rasta_copy: Crash
 top_level_accessors: Crash
 type_variable_as_super: Crash
+type_variable_prefix: Crash
 typedef: Crash
 uninitialized_fields: Crash
 unused_methods: Crash

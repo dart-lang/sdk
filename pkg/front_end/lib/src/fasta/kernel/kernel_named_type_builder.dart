@@ -4,7 +4,7 @@
 
 library fasta.kernel_interface_type_builder;
 
-import 'package:kernel/ast.dart' show DartType, DynamicType, Supertype;
+import 'package:kernel/ast.dart' show DartType, Supertype;
 
 import '../messages.dart'
     show
@@ -30,21 +30,12 @@ class KernelNamedTypeBuilder
       int charOffset, Uri fileUri)
       : super(name, arguments, charOffset, fileUri);
 
-  KernelInvalidTypeBuilder buildInvalidType(String name) {
+  KernelInvalidTypeBuilder buildInvalidType() {
     // TODO(ahe): Record error instead of printing.
-    warning(templateTypeNotFound.withArguments(name), charOffset, fileUri);
-    return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
-  }
-
-  DartType handleMissingType() {
-    // TODO(ahe): Record error instead of printing.
-    warning(templateTypeNotFound.withArguments(name), charOffset, fileUri);
-    return const DynamicType();
-  }
-
-  Supertype handleMissingSupertype() {
-    warning(templateTypeNotFound.withArguments(name), charOffset, fileUri);
-    return null;
+    warning(templateTypeNotFound.withArguments("$name"), charOffset, fileUri);
+    // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
+    // KernelInvalidTypeBuilder?
+    return new KernelInvalidTypeBuilder("$name", charOffset, fileUri);
   }
 
   Supertype handleInvalidSupertype(LibraryBuilder library) {
@@ -57,12 +48,10 @@ class KernelNamedTypeBuilder
   }
 
   DartType build(LibraryBuilder library) {
-    if (builder == null) return handleMissingType();
     return builder.buildType(library, arguments);
   }
 
   Supertype buildSupertype(LibraryBuilder library) {
-    if (builder == null) return handleMissingSupertype();
     if (builder is KernelClassBuilder) {
       KernelClassBuilder builder = this.builder;
       return builder.buildSupertype(library, arguments);
