@@ -83,7 +83,7 @@ isolate/exit_at_spawn_test: Skip # Issue 23876
 
 [ $compiler == dart2js && $fast_startup ]
 html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
-html/custom/document_register_basic_test: Pass, Slow
+html/custom/document_register_basic_test: Pass, Slow, RuntimeError # Slow and sometimes times out
 html/custom/js_custom_test: Fail # mirrors not supported
 html/custom/mirrors_2_test: Fail # mirrors not supported
 html/custom/mirrors_test: Fail # mirrors not supported
@@ -96,6 +96,9 @@ isolate/isolate_current_test: Fail  # please triage
 [ $compiler == dart2js && $runtime == ie11 ]
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == safari ]
+html/custom/document_register_basic_test: Pass, Timeout
 
 [ $compiler == dart2js && $browser ]
 html/js_typed_interop_lazy_test/01: RuntimeError
