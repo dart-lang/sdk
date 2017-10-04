@@ -661,9 +661,6 @@ _TODO: complete the documentation for the following files_.
 `lib/src/js_emitter/type_test_registry.dart`
 `lib/src/js_emitter/js_emitter.dart.rej`
 `lib/src/js_emitter/class_stub_generator.dart`
-`lib/src/js_emitter/lazy_emitter`
-`lib/src/js_emitter/lazy_emitter/model_emitter.dart`
-`lib/src/js_emitter/lazy_emitter/emitter.dart`
 `lib/src/js_emitter/startup_emitter`
 `lib/src/js_emitter/startup_emitter/deferred_fragment_hash.dart`
 `lib/src/js_emitter/startup_emitter/model_emitter.dart`

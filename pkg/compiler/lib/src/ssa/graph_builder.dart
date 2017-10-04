@@ -302,7 +302,7 @@ abstract class GraphBuilder {
       case 'USE_CONTENT_SECURITY_POLICY':
         return options.useContentSecurityPolicy;
       case 'IS_FULL_EMITTER':
-        return !USE_LAZY_EMITTER && !options.useStartupEmitter;
+        return !options.useStartupEmitter;
       default:
         return null;
     }
