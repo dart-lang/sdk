@@ -13,7 +13,7 @@ import 'dart:collection';
 ///
 /// A [BinaryPrinter] can be used to write one file and must then be
 /// discarded.
-class BinaryPrinter extends Visitor {
+class BinaryPrinter extends Visitor implements BinarySink {
   VariableIndexer _variableIndexer;
   LabelIndexer _labelIndexer;
   SwitchCaseIndexer _switchCaseIndexer;
@@ -23,6 +23,12 @@ class BinaryPrinter extends Visitor {
   final Set<String> _knownSourceUri = new Set<String>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
+
+  List<_MetadataSubsection> _metadataSubsections;
+
+  /// Map used to assign reference ids to nodes contained within metadata
+  /// payloads.
+  Map<Node, int> _nodeReferences;
 
   final BufferedSink _sink;
 
@@ -83,7 +89,7 @@ class BinaryPrinter extends Visitor {
     writeByte(value & 0xFF);
   }
 
-  void writeUtf8Bytes(List<int> utf8Bytes) {
+  void writeByteList(List<int> utf8Bytes) {
     writeUInt30(utf8Bytes.length);
     writeBytes(utf8Bytes);
   }
@@ -136,6 +142,9 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeNode(Node node) {
+    if (_metadataSubsections != null) {
+      _recordNodeOffsetForMetadataMapping(node);
+    }
     node.accept(this);
   }
 
@@ -191,22 +200,136 @@ class BinaryPrinter extends Visitor {
 
   void writeProgramFile(Program program) {
     computeCanonicalNames(program);
+    final programOffset = getBufferOffset();
     writeUInt32(Tag.ProgramFile);
     indexLinkTable(program);
     indexUris(program);
+    // Note: must write metadata payloads before any other node in the program
+    // to collect references to nodes contained within metadata payloads.
+    _writeMetadataPayloads(program);
+    if (_metadataSubsections != null) {
+      _recordNodeOffsetForMetadataMappingImpl(program, programOffset);
+    }
     libraryOffsets = <int>[];
     writeLibraries(program);
     writeUriToSource(program.uriToSource);
     writeLinkTable(program);
+    _writeMetadataMappingSection(program);
     writeStringTable(stringIndexer, true);
     writeProgramIndex(program, program.libraries);
 
     _flush();
   }
 
+  @override
+  void writeNodeReference(Node node) {
+    if (!MetadataRepository.isSupported(node)) {
+      throw "Can't reference nodes of type ${node.runtimeType} from metadata.";
+    }
+
+    if (node == null) {
+      writeUInt30(0);
+    } else {
+      final id =
+          _nodeReferences.putIfAbsent(node, () => _nodeReferences.length);
+      writeUInt30(id + 1);
+    }
+  }
+
+  /// Collect and write out all metadata contained in metadata repositories
+  /// associated with the program.
+  ///
+  /// Non-empty metadata subsections will be collected in [_metadataSubsections]
+  /// and used to generate metadata mappings after all nodes in the program
+  /// are written and all node offsets are known.
+  ///
+  /// Note: must write metadata payloads before any other node in the program
+  /// to collect references to nodes contained within metadata payloads.
+  void _writeMetadataPayloads(Program program) {
+    program.metadata.forEach((tag, repository) {
+      if (repository.mapping.isEmpty) {
+        return;
+      }
+
+      // Write all payloads collecting outgoing node references and remembering
+      // metadata offset for each node that had associated metadata.
+      _nodeReferences = <Node, int>{};
+      final metadataOffsets = <Node, int>{};
+      repository.mapping.forEach((node, value) {
+        if (!MetadataRepository.isSupported(node)) {
+          throw "Nodes of type ${node.runtimeType} can't have metadata.";
+        }
+
+        metadataOffsets[node] = getBufferOffset();
+        repository.writeToBinary(value, this);
+      });
+
+      _metadataSubsections ??= <_MetadataSubsection>[];
+      _metadataSubsections.add(new _MetadataSubsection(
+          repository, metadataOffsets, _nodeReferences));
+
+      _nodeReferences = null;
+    });
+  }
+
+  /// If the given [Node] has any metadata associated with it or is referenced
+  /// from some metadata payload then we need to record its offset.
+  void _recordNodeOffsetForMetadataMapping(Node node) {
+    _recordNodeOffsetForMetadataMappingImpl(node, getBufferOffset());
+  }
+
+  void _recordNodeOffsetForMetadataMappingImpl(Node node, int nodeOffset) {
+    for (var subsection in _metadataSubsections) {
+      final metadataOffset = subsection.metadataOffsets[node];
+      if (metadataOffset != null) {
+        subsection.metadataMapping..add(nodeOffset)..add(metadataOffset);
+      }
+      if (subsection.nodeToReferenceId != null) {
+        final id = subsection.nodeToReferenceId[node];
+        if (id != null) {
+          subsection.offsetsOfReferencedNodes[id] = nodeOffset;
+        }
+      }
+    }
+  }
+
+  void _writeMetadataMappingSection(Program program) {
+    if (_metadataSubsections == null) {
+      writeUInt32(0); // Empty section.
+      return;
+    }
+
+    _recordNodeOffsetForMetadataMappingImpl(program, 0);
+
+    // RList<MetadataMapping> metadataMappings
+    for (var subsection in _metadataSubsections) {
+      // UInt32 tag
+      writeUInt32(stringIndexer.put(subsection.repository.tag));
+
+      // RList<Pair<UInt32, UInt32>> nodeOffsetToMetadataOffset
+      final mappingLength = subsection.metadataMapping.length;
+      for (var i = 0; i < mappingLength; i += 2) {
+        writeUInt32(subsection.metadataMapping[i]); // node offset
+        writeUInt32(subsection.metadataMapping[i + 1]); // metadata offset
+      }
+      writeUInt32(mappingLength ~/ 2);
+
+      // RList<UInt32> nodeReferences
+      if (subsection.nodeToReferenceId != null) {
+        for (var nodeOffset in subsection.offsetsOfReferencedNodes) {
+          writeUInt32(nodeOffset);
+        }
+        writeUInt32(subsection.offsetsOfReferencedNodes.length);
+      } else {
+        writeUInt32(0);
+      }
+    }
+    writeUInt32(_metadataSubsections.length);
+  }
+
   /// Write all of some of the libraries of the [program].
   void writeLibraries(Program program) {
-    writeList(program.libraries, writeNode);
+    program.libraries.forEach(writeNode);
   }
 
   void writeProgramIndex(Program program, List<Library> libraries) {
@@ -254,8 +377,8 @@ class BinaryPrinter extends Visitor {
       Source source =
           uriToSource[uri.value] ?? new Source(<int>[], const <int>[]);
 
-      writeUtf8Bytes(uri.utf8Bytes);
-      writeUtf8Bytes(source.source);
+      writeByteList(uri.utf8Bytes);
+      writeByteList(source.source);
       List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
       int previousLineStart = 0;
@@ -338,6 +461,9 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeName(Name node) {
+    if (_metadataSubsections != null) {
+      _recordNodeOffsetForMetadataMapping(node);
+    }
     writeStringReference(node.name);
     // TODO: Consider a more compressed format for private names within the
     // enclosing library.
@@ -404,6 +530,9 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeLibraryDependency(LibraryDependency node) {
+    if (_metadataSubsections != null) {
+      _recordNodeOffsetForMetadataMapping(node);
+    }
     writeOffset(node.fileOffset);
     writeByte(node.flags);
     writeNodeList(node.annotations);
@@ -426,6 +555,9 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeLibraryPart(LibraryPart node) {
+    if (_metadataSubsections != null) {
+      _recordNodeOffsetForMetadataMapping(node);
+    }
     writeNodeList(node.annotations);
     writeStringReference(node.fileUri ?? '');
   }
@@ -1139,6 +1271,9 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeVariableDeclaration(VariableDeclaration node) {
+    if (_metadataSubsections != null) {
+      _recordNodeOffsetForMetadataMapping(node);
+    }
     node.binaryOffsetNoTag = getBufferOffset();
     writeOffset(node.fileOffset);
     writeOffset(node.fileEqualsOffset);
@@ -1487,4 +1622,35 @@ class BufferedSink {
   void flushAndDestroy() {
     _sink.add(_buffer.sublist(0, length));
   }
+}
+
+/// Non-empty metadata subsection.
+class _MetadataSubsection {
+  final MetadataRepository<Object> repository;
+
+  /// Offsets of metadata payloads associated with the nodes.
+  final Map<Node, int> metadataOffsets;
+
+  /// List of (nodeOffset, metadataOffset) pairs.
+  /// Gradually filled by the writer as writing progresses, which by
+  /// construction guarantees that pairs are sorted by first component
+  /// (nodeOffset) in ascending order.
+  final List<int> metadataMapping = <int>[];
+
+  /// Mapping between nodes that are referenced from inside metadata payloads
+  /// and their ids.
+  final Map<Node, int> nodeToReferenceId;
+
+  /// Mapping between reference ids and offsets of referenced nodes.
+  /// Gradually filled by the writer as writing progresses but is not
+  /// guaranteed to be sorted.
+  final List<int> offsetsOfReferencedNodes;
+
+  _MetadataSubsection(
+      this.repository, this.metadataOffsets, Map<Node, int> nodeToReferenceId)
+      : nodeToReferenceId =
+            nodeToReferenceId.isNotEmpty ? nodeToReferenceId : null,
+        offsetsOfReferencedNodes = nodeToReferenceId.isNotEmpty
+            ? new List<int>.filled(nodeToReferenceId.length, 0)
+            : null;
 }

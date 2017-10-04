@@ -53,6 +53,11 @@ class BinaryBuilder {
 
   bool _isReadingLibraryImplementation = false;
 
+  /// If binary contains metadata section with payloads referencing other nodes
+  /// such Kernel binary can't be read lazily because metadata cross references
+  /// will not be resolved correctly.
+  bool _noLazyReading = false;
+
   BinaryBuilder(this._bytes, [this.filename]);
 
   fail(String message) {
@@ -86,7 +91,7 @@ class BinaryBuilder {
         readByte();
   }
 
-  List<int> readUtf8Bytes() {
+  List<int> readByteList() {
     List<int> bytes = new Uint8List(readUInt());
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
@@ -112,6 +117,21 @@ class BinaryBuilder {
       return '\ufeff' * numByteOrderMarks + string;
     }
     return string;
+  }
+
+  /// Read metadataMappings section from the binary. Return [true] if
+  /// any metadata mapping contains metadata with node references.
+  /// In this case we need to disable lazy loading of the binary.
+  bool _readMetadataSection(Program program) {
+    // Default reader ignores metadata section entirely.
+    return false;
+  }
+
+  /// Process any pending metadata associations. Called once the Program
+  /// is fully deserialized and metadata containing references to nodes can
+  /// be safely parsed.
+  void _processPendingMetadataAssociations(Program program) {
+    // Default reader ignores metadata section entirely.
   }
 
   void readStringTable(List<String> table) {
@@ -346,6 +366,9 @@ class BinaryBuilder {
     _byteOffset = index.binaryOffsetForCanonicalNames;
     readLinkTable(program.root);
 
+    _byteOffset = index.binaryOffsetForStringTable;
+    _noLazyReading = _readMetadataSection(program);
+
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<String, Source> uriToSource = readUriToSource();
     program.uriToSource.addAll(uriToSource);
@@ -361,6 +384,8 @@ class BinaryBuilder {
         getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
     program.mainMethodName ??= mainMethod;
 
+    _processPendingMetadataAssociations(program);
+
     _byteOffset = _programStartOffset + programFileSize;
   }
 
@@ -371,10 +396,10 @@ class BinaryBuilder {
     _sourceUriTable.length = length;
     Map<String, Source> uriToSource = <String, Source>{};
     for (int i = 0; i < length; ++i) {
-      List<int> uriBytes = readUtf8Bytes();
+      List<int> uriBytes = readByteList();
       String uri = const Utf8Decoder().convert(uriBytes);
       _sourceUriTable[i] = uri;
-      List<int> sourceCode = readUtf8Bytes();
+      List<int> sourceCode = readByteList();
       int lineCount = readUInt();
       List<int> lineStarts = new List<int>(lineCount);
       int previousLineStart = 0;
@@ -541,17 +566,21 @@ class BinaryBuilder {
     }
     library.dependencies.length = length;
     for (int i = 0; i < length; ++i) {
-      var fileOffset = readOffset();
-      var flags = readByte();
-      var annotations = readExpressionList();
-      var targetLibrary = readLibraryReference();
-      var prefixName = readStringOrNullIfEmpty();
-      var names = readCombinatorList();
-      library.dependencies[i] = new LibraryDependency.byReference(
-          flags, annotations, targetLibrary, prefixName, names)
-        ..fileOffset = fileOffset
-        ..parent = library;
+      library.dependencies[i] = readLibraryDependency(library);
     }
+  }
+
+  LibraryDependency readLibraryDependency(Library library) {
+    var fileOffset = readOffset();
+    var flags = readByte();
+    var annotations = readExpressionList();
+    var targetLibrary = readLibraryReference();
+    var prefixName = readStringOrNullIfEmpty();
+    var names = readCombinatorList();
+    return new LibraryDependency.byReference(
+        flags, annotations, targetLibrary, prefixName, names)
+      ..fileOffset = fileOffset
+      ..parent = library;
   }
 
   void _readAdditionalExports(Library library) {
@@ -579,11 +608,14 @@ class BinaryBuilder {
     int length = readUInt();
     library.parts.length = length;
     for (int i = 0; i < length; ++i) {
-      var annotations = readExpressionList();
-      var fileUri = readStringOrNullIfEmpty();
-      library.parts[i] = new LibraryPart(annotations, fileUri)
-        ..parent = library;
+      library.parts[i] = readLibraryPart(library);
     }
+  }
+
+  LibraryPart readLibraryPart(Library library) {
+    var annotations = readExpressionList();
+    var fileUri = readStringOrNullIfEmpty();
+    return new LibraryPart(annotations, fileUri)..parent = library;
   }
 
   Typedef readTypedef() {
@@ -796,7 +828,8 @@ class BinaryBuilder {
     int functionNodeSize = endOffset - _byteOffset;
     // Read small factories up front. Postpone everything else.
     bool readFunctionNodeNow =
-        kind == ProcedureKind.Factory && functionNodeSize <= 50;
+        (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
+            _noLazyReading;
     var function;
     var transformerFlags;
     if (readFunctionNodeNow) {
@@ -1258,16 +1291,7 @@ class BinaryBuilder {
             new List<SwitchCase>.generate(count, (i) => new SwitchCase.empty());
         switchCaseStack.addAll(cases);
         for (int i = 0; i < cases.length; ++i) {
-          var caseNode = cases[i];
-          int length = readUInt();
-          caseNode.expressions.length = length;
-          caseNode.expressionOffsets.length = length;
-          for (int i = 0; i < length; ++i) {
-            caseNode.expressionOffsets[i] = readOffset();
-            caseNode.expressions[i] = readExpression()..parent = caseNode;
-          }
-          caseNode.isDefault = readByte() == 1;
-          caseNode.body = readStatement()..parent = caseNode;
+          readSwitchCaseInto(cases[i]);
         }
         switchCaseStack.length -= count;
         return new SwitchStatement(expression, cases)..fileOffset = offset;
@@ -1310,6 +1334,18 @@ class BinaryBuilder {
       default:
         throw fail('Invalid statement tag: $tag');
     }
+  }
+
+  void readSwitchCaseInto(SwitchCase caseNode) {
+    int length = readUInt();
+    caseNode.expressions.length = length;
+    caseNode.expressionOffsets.length = length;
+    for (int i = 0; i < length; ++i) {
+      caseNode.expressionOffsets[i] = readOffset();
+      caseNode.expressions[i] = readExpression()..parent = caseNode;
+    }
+    caseNode.isDefault = readByte() == 1;
+    caseNode.body = readStatement()..parent = caseNode;
   }
 
   List<Catch> readCatchList() {
@@ -1499,4 +1535,331 @@ class BinaryBuilder {
     // but actually ranges from -1 and up (thus the -1)
     return readUInt() - 1;
   }
+}
+
+class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
+  /// List of metadata subsections that have corresponding [MetadataRepository]
+  /// and are awaiting to be parsed and attached to nodes.
+  List<_MetadataSubsection> _subsections;
+
+  /// Current mapping from node references to nodes used by readNodeReference.
+  /// Note: each metadata subsection has its own mapping.
+  List<Node> _referencedNodes;
+
+  BinaryBuilderWithMetadata(bytes, [filename]) : super(bytes, filename);
+
+  @override
+  bool _readMetadataSection(Program program) {
+    bool containsNodeReferences = false;
+
+    // At the beginning of this function _byteOffset points right past
+    // metadataMappings to string table.
+
+    // Read the length of metadataMappings.
+    _byteOffset -= 4;
+    final subSectionCount = readUint32();
+
+    int endOffset = _byteOffset - 4; // End offset of the current subsection.
+    for (var i = 0; i < subSectionCount; i++) {
+      // RList<UInt32> nodeReferences
+      _byteOffset = endOffset - 4;
+      final referencesLength = readUint32();
+      final referencesStart = (endOffset - 4) - 4 * referencesLength;
+
+      // RList<Pair<UInt32, UInt32>> nodeOffsetToMetadataOffset
+      _byteOffset = referencesStart - 4;
+      final mappingLength = readUint32();
+      final mappingStart = (referencesStart - 4) - 4 * 2 * mappingLength;
+      _byteOffset = mappingStart - 4;
+
+      // UInt32 tag (fixed size StringReference)
+      final tag = _stringTable[readUint32()];
+
+      final repository = program.metadata[tag];
+      if (repository != null) {
+        // Read nodeReferences (if any).
+        Map<int, int> offsetToReferenceId;
+        List<Node> referencedNodes;
+        if (referencesLength > 0) {
+          offsetToReferenceId = <int, int>{};
+          _byteOffset = referencesStart;
+          for (var j = 0; j < referencesLength; j++) {
+            final nodeOffset = readUint32();
+            offsetToReferenceId[nodeOffset] = j;
+          }
+          referencedNodes = new List<Node>(referencesLength);
+          containsNodeReferences = true;
+        }
+
+        // Read nodeOffsetToMetadataOffset mapping.
+        final mapping = <int, int>{};
+        _byteOffset = mappingStart;
+        for (var j = 0; j < mappingLength; j++) {
+          final nodeOffset = readUint32();
+          final metadataOffset = readUint32();
+          mapping[nodeOffset] = metadataOffset;
+        }
+
+        _subsections ??= <_MetadataSubsection>[];
+        _subsections.add(new _MetadataSubsection(
+            repository, mapping, offsetToReferenceId, referencedNodes));
+      }
+
+      // Start of the subsection and the end of the previous one.
+      endOffset = mappingStart - 4;
+    }
+
+    return containsNodeReferences;
+  }
+
+  @override
+  void _processPendingMetadataAssociations(Program program) {
+    if (_subsections == null) {
+      return;
+    }
+
+    _associateMetadata(program, _programStartOffset);
+
+    for (var subsection in _subsections) {
+      if (subsection.pending == null) {
+        continue;
+      }
+
+      _referencedNodes = subsection.referencedNodes;
+      for (var i = 0; i < subsection.pending.length; i += 2) {
+        final Node node = subsection.pending[i];
+        final int metadataOffset = subsection.pending[i + 1];
+        subsection.repository.mapping[node] =
+            _readMetadata(subsection.repository, metadataOffset);
+      }
+    }
+  }
+
+  Object _readMetadata(MetadataRepository repository, int offset) {
+    final int savedOffset = _byteOffset;
+    _byteOffset = offset;
+    final metadata = repository.readFromBinary(this);
+    _byteOffset = savedOffset;
+    return metadata;
+  }
+
+  Node _associateMetadata(Node node, int nodeOffset) {
+    if (_subsections == null) {
+      return node;
+    }
+
+    for (var subsection in _subsections) {
+      // First check if there is any metadata associated with this node.
+      final metadataOffset = subsection.mapping[nodeOffset];
+      if (metadataOffset != null) {
+        if (subsection.nodeOffsetToReferenceId == null) {
+          // This subsection does not contain any references to nodes from
+          // inside the payload. In this case we can deserialize metadata
+          // eagerly.
+          subsection.repository.mapping[node] =
+              _readMetadata(subsection.repository, metadataOffset);
+        } else {
+          // Metadata payload might contain references to nodes that
+          // are not yet deserialized. Postpone association of metadata
+          // with this node.
+          subsection.pending ??= <Object>[];
+          subsection.pending..add(node)..add(metadataOffset);
+        }
+      }
+
+      // Check if this node is referenced from this section and update
+      // referencedNodes array if that is the case.
+      if (subsection.nodeOffsetToReferenceId != null) {
+        final id = subsection.nodeOffsetToReferenceId[nodeOffset];
+        if (id != null) {
+          subsection.referencedNodes[id] = node;
+        }
+      }
+    }
+
+    return node;
+  }
+
+  @override
+  DartType readDartType() {
+    final nodeOffset = _byteOffset;
+    final result = super.readDartType();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Library readLibrary(Program program, int endOffset) {
+    final nodeOffset = _byteOffset;
+    final result = super.readLibrary(program, endOffset);
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Typedef readTypedef() {
+    final nodeOffset = _byteOffset;
+    final result = super.readTypedef();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Class readClass(int endOffset) {
+    final nodeOffset = _byteOffset;
+    final result = super.readClass(endOffset);
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Field readField() {
+    final nodeOffset = _byteOffset;
+    final result = super.readField();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Constructor readConstructor() {
+    final nodeOffset = _byteOffset;
+    final result = super.readConstructor();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Procedure readProcedure(int endOffset) {
+    final nodeOffset = _byteOffset;
+    final result = super.readProcedure(endOffset);
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Initializer readInitializer() {
+    final nodeOffset = _byteOffset;
+    final result = super.readInitializer();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  FunctionNode readFunctionNode() {
+    final nodeOffset = _byteOffset;
+    final result = super.readFunctionNode();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Expression readExpression() {
+    final nodeOffset = _byteOffset;
+    final result = super.readExpression();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Arguments readArguments() {
+    final nodeOffset = _byteOffset;
+    final result = super.readArguments();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  NamedExpression readNamedExpression() {
+    final nodeOffset = _byteOffset;
+    final result = super.readNamedExpression();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  VariableDeclaration readVariableDeclaration() {
+    final nodeOffset = _byteOffset;
+    final result = super.readVariableDeclaration();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Statement readStatement() {
+    final nodeOffset = _byteOffset;
+    final result = super.readStatement();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Combinator readCombinator() {
+    final nodeOffset = _byteOffset;
+    final result = super.readCombinator();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  LibraryDependency readLibraryDependency(Library library) {
+    final nodeOffset = _byteOffset;
+    final result = super.readLibraryDependency(library);
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  LibraryPart readLibraryPart(Library library) {
+    final nodeOffset = _byteOffset;
+    final result = super.readLibraryPart(library);
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  void readSwitchCaseInto(SwitchCase caseNode) {
+    _associateMetadata(caseNode, _byteOffset);
+    super.readSwitchCaseInto(caseNode);
+  }
+
+  @override
+  void readTypeParameter(TypeParameter param) {
+    _associateMetadata(param, _byteOffset);
+    super.readTypeParameter(param);
+  }
+
+  @override
+  Supertype readSupertype() {
+    final nodeOffset = _byteOffset;
+    InterfaceType type = super.readDartType();
+    return _associateMetadata(
+        new Supertype.byReference(type.className, type.typeArguments),
+        nodeOffset);
+  }
+
+  @override
+  Name readName() {
+    final nodeOffset = _byteOffset;
+    final result = super.readName();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  int get currentOffset => _byteOffset;
+
+  @override
+  List<int> get bytes => _bytes;
+
+  @override
+  Node readNodeReference() {
+    final id = readUInt();
+    return id == 0 ? null : _referencedNodes[id - 1];
+  }
+}
+
+/// Deserialized MetadataMapping corresponding to the given metadata repository.
+class _MetadataSubsection {
+  /// [MetadataRepository] that can read this subsection.
+  final MetadataRepository repository;
+
+  /// Deserialized mapping from node offsets to metadata offsets.
+  final Map<int, int> mapping;
+
+  /// Deserialized mapping from node offset to node reference ids.
+  final Map<int, int> nodeOffsetToReferenceId;
+
+  /// Array mapping node reference ids to corresponding nodes.
+  /// Will be gradually filled as nodes are deserialized.
+  final List<Node> referencedNodes;
+
+  /// A list of pairs (Node, int metadataOffset) that describes pending
+  /// metadata associations which will be processed once all nodes
+  /// are parsed.
+  List<Object> pending;
+
+  _MetadataSubsection(this.repository, this.mapping,
+      this.nodeOffsetToReferenceId, this.referencedNodes);
 }

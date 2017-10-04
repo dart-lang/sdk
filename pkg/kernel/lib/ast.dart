@@ -4875,6 +4875,11 @@ class Program extends TreeNode {
   /// it to a line:column position in that file.
   final Map<String, Source> uriToSource;
 
+  /// Mapping between string tags and [MetadataRepository] corresponding to
+  /// those tags.
+  final Map<String, MetadataRepository<dynamic>> metadata =
+      <String, MetadataRepository<dynamic>>{};
+
   /// Reference to the main method in one of the libraries.
   Reference mainMethodName;
 
@@ -4933,6 +4938,10 @@ class Program extends TreeNode {
   Location getLocation(String file, int offset) {
     return uriToSource[file]?.getLocation(file, offset);
   }
+
+  void addMetadataRepository(MetadataRepository repository) {
+    metadata[repository.tag] = repository;
+  }
 }
 
 /// A tuple with file, line, and column number, for displaying human-readable
@@ -4945,6 +4954,66 @@ class Location {
   Location(this.file, this.line, this.column);
 
   String toString() => '$file:$line:$column';
+}
+
+abstract class MetadataRepository<T> {
+  /// Unique string tag associated with this repository.
+  String get tag;
+
+  /// Mutable mapping between nodes and their metadata.
+  Map<Node, T> get mapping;
+
+  /// Write the given metadata object into the given [BinarySink].
+  ///
+  /// Note: [metadata] must be an object owned by this repository.
+  void writeToBinary(T metadata, BinarySink sink);
+
+  /// Construct a metadata object from its binary payload read from the
+  /// given [BinarySource].
+  T readFromBinary(BinarySource source);
+
+  /// Method to check whether a node can have metadata attached to it
+  /// or referenced from the metadata payload.
+  ///
+  /// Currently due to binary format specifics Catch and MapEntry nodes
+  /// can't have metadata attached to them.
+  static bool isSupported(Node node) {
+    return !(node is MapEntry || node is Catch);
+  }
+}
+
+abstract class BinarySink {
+  void writeByte(int byte);
+  void writeBytes(List<int> bytes);
+  void writeUInt32(int value);
+  void writeUInt30(int value);
+
+  /// Write List<Byte> into the sink.
+  void writeByteList(List<int> bytes);
+
+  void writeCanonicalNameReference(CanonicalName name);
+  void writeStringReference(String str);
+
+  /// Write a reference to a given node into the sink.
+  ///
+  /// Note: node must not be [MapEntry] because [MapEntry] and [MapEntry.key]
+  /// have the same offset in the binary and can't be distinguished.
+  void writeNodeReference(Node node);
+}
+
+abstract class BinarySource {
+  int get currentOffset;
+  List<int> get bytes;
+
+  int readUInt();
+  int readUint32();
+
+  /// Read List<Byte> from the source.
+  List<int> readByteList();
+
+  CanonicalName readCanonicalNameReference();
+  String readStringReference();
+  Node readNodeReference();
 }
 
 // ------------------------------------------------------------------------

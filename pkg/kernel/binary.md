@@ -47,6 +47,11 @@ type List<T> {
   T[length] items;
 }
 
+type RList<T> {
+  T[length] elements;
+  Uint32 length;
+}
+
 // Untagged pairs.
 type Pair<T0, T1> {
   T0 first;
@@ -119,11 +124,25 @@ type CanonicalName {
 
 type ProgramFile {
   UInt32 magic = 0x90ABCDEF;
-  List<Library> libraries;
+  MetadataPayload[] metadataPayloads;
+  Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
+  RList<MetadataMapping> metadataMappings;
   StringTable strings;
   ProgramIndex programIndex;
+}
+
+// Backend specific metadata section.
+type MetadataPayload {
+  Byte[] opaquePayload;
+}
+
+type MetadataMapping {
+  UInt32 tag;  // StringReference of a fixed size.
+  RList<Pair<UInt32, UInt32>> nodeOffsetToMetadataOffset;
+  RList<UInt32> nodeReferences;  // If metadata payload references nodes
+                              // they are encoded as indices in this array.
 }
 
 // Program index with all fixed-size-32-bit integers.
