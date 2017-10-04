@@ -28,6 +28,9 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:kernel/target/targets.dart'
     show Target, getTarget, TargetFlags, targets;
 
+import 'package:kernel/target/implementation_option.dart'
+    show ImplementationOption, implementationOptions;
+
 class CommandLineProblem {
   final Message message;
 
@@ -101,7 +104,7 @@ class ParsedArguments {
         if (valueSpecification == null) {
           if (value != null) {
             throw new CommandLineProblem.deprecated(
-                "Argument '$argument' doesn't take a value: '$value'.");
+                "Option '$argument' doesn't take a value: '$value'.");
           }
           result.options[argument] = true;
         } else {
@@ -183,6 +186,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--platform": Uri,
   "--sdk": Uri,
   "--target": String,
+  "--target-options": ",",
   "-t": String,
 };
 
@@ -239,8 +243,18 @@ ProcessedOptions analyzeCommandLine(
 
   final String targetName = options["-t"] ?? options["--target"] ?? "vm_fasta";
 
-  final Target target =
-      getTarget(targetName, new TargetFlags(strongMode: strongMode));
+  final List<ImplementationOption> targetOptions =
+      (options["--target-options"] ?? <String>[])
+          .map((String name) =>
+              implementationOptions[name] ??
+              (throw new CommandLineProblem.deprecated(
+                  "--target-options argument not recognized: '$name'.")))
+          .toList();
+
+  final Target target = getTarget(
+      targetName,
+      new TargetFlags(
+          strongMode: strongMode, implementationOptions: targetOptions));
   if (target == null) {
     return throw new CommandLineProblem.deprecated(
         "Target '${targetName}' not recognized. "
