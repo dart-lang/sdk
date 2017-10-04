@@ -72,10 +72,6 @@ DEFINE_FLAG(
     await_is_keyword,
     false,
     "await and yield are treated as proper keywords in synchronous code.");
-DEFINE_FLAG(bool,
-            assert_initializer,
-            true,
-            "Allow asserts in initializer lists.");
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, trace_service);
@@ -2787,7 +2783,7 @@ AstNode* Parser::ParseInitializer(const Class& cls,
                                   GrowableArray<Field*>* initialized_fields) {
   TRACE_PARSER("ParseInitializer");
   const TokenPosition field_pos = TokenPos();
-  if (FLAG_assert_initializer && CurrentToken() == Token::kASSERT) {
+  if (CurrentToken() == Token::kASSERT) {
     return ParseAssertStatement(current_function().is_const());
   }
   if (CurrentToken() == Token::kTHIS) {
@@ -3856,7 +3852,7 @@ void Parser::SkipInitializers() {
       }
       CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
-    } else if (FLAG_assert_initializer && (CurrentToken() == Token::kASSERT)) {
+    } else if (CurrentToken() == Token::kASSERT) {
       ConsumeToken();
       CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
