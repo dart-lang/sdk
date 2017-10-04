@@ -2393,6 +2393,8 @@ class Parser {
     return parseLiteralString(token);
   }
 
+  /// If the given [token] is a semi-colon, return it. Otherwise, report an
+  /// error, insert a synthetic semi-colon, and return the inserted semi-colon.
   Token ensureSemicolon(Token token) {
     // TODO(danrubel): Once all expect(';'...) call sites have been converted
     // to use this method, remove similar semicolon recovery code
@@ -3336,7 +3338,7 @@ class Parser {
     listener.beginExpressionStatement(token);
     token = parseExpression(token);
     listener.endExpressionStatement(token);
-    return expectSemicolon(token);
+    return ensureSemicolon(token).next;
   }
 
   Token skipExpression(Token token) {
