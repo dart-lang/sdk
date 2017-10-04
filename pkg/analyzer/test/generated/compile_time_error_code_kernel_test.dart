@@ -214,28 +214,28 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31001')
   test_invalidConstructorName_notEnclosingClassName_defined() async {
     return super.test_invalidConstructorName_notEnclosingClassName_defined();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31001')
   test_invalidConstructorName_notEnclosingClassName_undefined() async {
     return super.test_invalidConstructorName_notEnclosingClassName_undefined();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30999')
   test_invalidFactoryNameNotAClass_notClassName() async {
     return super.test_invalidFactoryNameNotAClass_notClassName();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30999')
   test_invalidFactoryNameNotAClass_notEnclosingClassName() async {
     return super.test_invalidFactoryNameNotAClass_notEnclosingClassName();
   }
