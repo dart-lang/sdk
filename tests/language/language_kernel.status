@@ -80,8 +80,6 @@ const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluati
 const_syntax_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 constant_expression_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 constant_expression_test/03: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-function_type_parameter2_negative_test: Crash # KernelVM bug: Constant evaluation.
-function_type_parameter_negative_test: Crash # KernelVM bug: Constant evaluation.
 switch_bad_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -152,9 +150,6 @@ named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of c
 regress_29349_test: CompileTimeError # Fasta bug: Parser bug.
 
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
-
-constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
-
 
 syntax_test/none: CompileTimeError # Issue #30176.
 

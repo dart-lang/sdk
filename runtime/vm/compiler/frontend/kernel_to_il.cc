@@ -570,6 +570,18 @@ void TranslationHelper::ReportError(const char* format, ...) {
   UNREACHABLE();
 }
 
+void TranslationHelper::ReportError(const Script& script,
+                                    const TokenPosition position,
+                                    const char* format,
+                                    ...) {
+  va_list args;
+  va_start(args, format);
+  Report::MessageV(Report::kError, script, position, Report::AtLocation, format,
+                   args);
+  va_end(args);
+  UNREACHABLE();
+}
+
 void TranslationHelper::ReportError(const Error& prev_error,
                                     const char* format,
                                     ...) {

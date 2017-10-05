@@ -2385,7 +2385,8 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
         EvaluateNullLiteral();
         break;
       default:
-        UNREACHABLE();
+        H.ReportError(script_, TokenPosition::kNoSource,
+                      "Not a constant expression.");
     }
 
     CacheConstantValue(offset, result_);
@@ -2492,20 +2493,21 @@ void StreamingConstantEvaluator::EvaluateVariableGet(uint8_t payload) {
 }
 
 void StreamingConstantEvaluator::EvaluateGetStringLength(
-    intptr_t expression_offset) {
+    intptr_t expression_offset,
+    TokenPosition position) {
   EvaluateExpression(expression_offset);
   if (result_.IsString()) {
     const String& str = String::Handle(Z, String::RawCast(result_.raw()));
     result_ = Integer::New(str.Length());
   } else {
     H.ReportError(
-        "Constant expressions can only call "
-        "'length' on string constants.");
+        script_, position,
+        "Constant expressions can only call 'length' on string constants.");
   }
 }
 
 void StreamingConstantEvaluator::EvaluatePropertyGet() {
-  builder_->ReadPosition();  // read position.
+  TokenPosition position = builder_->ReadPosition();  // read position.
   builder_->ReadFlags();     // read flags.
   intptr_t expression_offset = builder_->ReaderOffset();
   builder_->SkipExpression();                            // read receiver.
@@ -2513,14 +2515,16 @@ void StreamingConstantEvaluator::EvaluatePropertyGet() {
   builder_->SkipCanonicalNameReference();  // read interface_target_reference.
 
   if (H.StringEquals(name, "length")) {
-    EvaluateGetStringLength(expression_offset);
+    EvaluateGetStringLength(expression_offset, position);
   } else {
-    UNREACHABLE();
+    H.ReportError(
+        script_, position,
+        "Constant expressions can only call 'length' on string constants.");
   }
 }
 
 void StreamingConstantEvaluator::EvaluateDirectPropertyGet() {
-  builder_->ReadPosition();  // read position.
+  TokenPosition position = builder_->ReadPosition();  // read position.
   builder_->ReadFlags();     // read flags.
   intptr_t expression_offset = builder_->ReaderOffset();
   builder_->SkipExpression();  // read receiver.
@@ -2530,14 +2534,16 @@ void StreamingConstantEvaluator::EvaluateDirectPropertyGet() {
   // TODO(vegorov): add check based on the complete canonical name.
   if (H.IsGetter(kernel_name) &&
       H.StringEquals(H.CanonicalNameString(kernel_name), "length")) {
-    EvaluateGetStringLength(expression_offset);
+    EvaluateGetStringLength(expression_offset, position);
   } else {
-    UNREACHABLE();
+    H.ReportError(
+        script_, position,
+        "Constant expressions can only call 'length' on string constants.");
   }
 }
 
 void StreamingConstantEvaluator::EvaluateStaticGet() {
-  builder_->ReadPosition();  // read position.
+  TokenPosition position = builder_->ReadPosition();  // read position.
   NameIndex target =
       builder_->ReadCanonicalNameReference();  // read target_reference.
 
@@ -2562,9 +2568,9 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
       result_ = closure_function.ImplicitStaticClosure();
       result_ = H.Canonicalize(result_);
     } else if (H.IsGetter(target)) {
-      UNIMPLEMENTED();
+      H.ReportError(script_, position, "Not a constant expression.");
     } else {
-      UNIMPLEMENTED();
+      H.ReportError(script_, position, "Not a constant expression.");
     }
   }
 }
@@ -2785,7 +2791,8 @@ void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
 void StreamingConstantEvaluator::EvaluateTypeLiteral() {
   const AbstractType& type = T.BuildType();
   if (type.IsMalformed()) {
-    H.ReportError("Malformed type literal in constant expression.");
+    H.ReportError(script_, TokenPosition::kNoSource,
+                  "Malformed type literal in constant expression.");
   }
   result_ = type.raw();
 }
@@ -2867,8 +2874,8 @@ void StreamingConstantEvaluator::EvaluateBigIntLiteral() {
       H.DartString(builder_->ReadStringReference());  // read string reference.
   result_ = Integer::New(value, Heap::kOld);
   if (result_.IsNull()) {
-    H.ReportError("Integer literal %s is out of range", value.ToCString());
-    UNREACHABLE();
+    H.ReportError(script_, TokenPosition::kNoSource,
+                  "Integer literal %s is out of range", value.ToCString());
   }
   result_ = H.Canonicalize(result_);
 }
@@ -3030,7 +3037,8 @@ const TypeArguments* StreamingConstantEvaluator::TranslateTypeArguments(
         *target_klass, type_count);  // read types.
 
     if (!(type_arguments->IsNull() || type_arguments->IsInstantiated())) {
-      H.ReportError("Type must be constant in const constructor.");
+      H.ReportError(script_, TokenPosition::kNoSource,
+                    "Type must be constant in const constructor.");
     }
   } else if (target.IsFactory() && type_arguments == NULL) {
     // All factories take a type arguments vector as first argument (independent

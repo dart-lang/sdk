@@ -257,7 +257,6 @@ const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
 const_optional_args_negative_test: Fail # Fasta bug: Default parameter values must be const.
 const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_syntax_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
 constructor_redirect2_test/01: MissingCompileTimeError # Fasta bug: Body on redirecting constructor.
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
 covariant_subtyping_test: DartkCrash

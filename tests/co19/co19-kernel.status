@@ -58,7 +58,6 @@ Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
 Language/Expressions/Constants/math_operators_t04: Crash
 Language/Expressions/Constants/math_operators_t05: Crash
-Language/Expressions/Constants/no_other_constant_expressions_t11: Crash
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError

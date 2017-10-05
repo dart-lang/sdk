@@ -366,6 +366,10 @@ class TranslationHelper {
   Type& GetCanonicalType(const Class& klass);
 
   void ReportError(const char* format, ...);
+  void ReportError(const Script& script,
+                   const TokenPosition position,
+                   const char* format,
+                   ...);
   void ReportError(const Error& prev_error, const char* format, ...);
 
  private:

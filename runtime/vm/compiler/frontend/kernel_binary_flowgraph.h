@@ -731,7 +731,8 @@ class StreamingConstantEvaluator {
   void EvaluateBoolLiteral(bool value);
   void EvaluateNullLiteral();
 
-  void EvaluateGetStringLength(intptr_t expression_offset);
+  void EvaluateGetStringLength(intptr_t expression_offset,
+                               TokenPosition position);
 
   const Object& RunFunction(const Function& function,
                             intptr_t argument_count,
