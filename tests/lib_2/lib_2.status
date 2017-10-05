@@ -64,6 +64,7 @@ html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safar
 html/element_types_test/supported_content: Fail
 html/element_types_test/supported_datalist: Fail
 html/element_types_test/supported_shadow: Fail
+html/element_test: Pass, Fail # Issue 21434
 html/mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
 html/media_stream_test: Pass, Fail
 html/rtc_test: Fail
@@ -140,6 +141,7 @@ html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE do
 html/custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 html/deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 html/event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
+html/element_test/click: Fail # IE does not support firing this event.
 html/element_types_test/supported_content: Fail
 html/element_types_test/supported_details: Fail
 html/element_types_test/supported_keygen: Fail
@@ -183,11 +185,13 @@ mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded typ
 mirrors/redirecting_factory_different_type_test/02: RuntimeError
 
 [ $runtime == safarimobilesim ]
+html/element_offset_test/offset: RuntimeError # Issue 18573
 html/element_types_test/supported_meter: RuntimeError # Issue 18573
 html/element_types_test/supported_template: Fail
 html/event_test: RuntimeError # Safarimobilesim does not support WheelEvent
 html/performance_api_test/supported: Fail
 html/notification_test: RuntimeError # Issue 22869
+html/performance_api_test/supported: Fail
 html/wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
 
 [ $runtime == safari ]

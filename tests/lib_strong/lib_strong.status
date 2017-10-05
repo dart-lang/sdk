@@ -31,7 +31,6 @@ html/custom/document_register_basic_test: CompileTimeError # Issue 28969
 html/custom/document_register_type_extensions_test: CompileTimeError # Issue 28969
 html/custom/element_upgrade_test: CompileTimeError # Issue 28969
 html/element_dimensions_test: Skip
-html/element_test: Skip
 html/events_test: Skip
 html/fileapi_test: Skip
 html/filereader_test: Skip

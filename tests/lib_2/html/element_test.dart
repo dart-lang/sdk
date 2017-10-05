@@ -93,7 +93,7 @@ main() {
 
     test('.html table', () {
       // http://developers.whatwg.org/tabular-data.html#tabular-data
-      var node = new Element.html('''
+      TableElement node = new Element.html('''
 <table>
  <caption>Characteristics with positive and negative sides</caption>
  <thead>
@@ -126,7 +126,7 @@ main() {
 
     test('.html caption', () {
       var table = new TableElement();
-      var node = table.createFragment('<caption><p>Table 1.').nodes.single;
+      TableCaptionElement node = table.createFragment('<caption><p>Table 1.').nodes.single;
       expect(
           node,
           predicate(
@@ -138,7 +138,7 @@ main() {
 
     test('.html colgroup', () {
       var table = new TableElement();
-      var node =
+      TableColElement node =
           table.createFragment('<colgroup> <col> <col> <col>').nodes.single;
       expect(
           node, predicate((x) => x is TableColElement, 'is a TableColElement'));
@@ -150,7 +150,7 @@ main() {
     test('.html tbody', () {
       var innerHtml = '<tr><td headers="n r1">Sad</td><td>Happy</td></tr>';
       var table = new TableElement();
-      var node = table.createFragment('<tbody>$innerHtml').nodes.single;
+      TableSectionElement node = table.createFragment('<tbody>$innerHtml').nodes.single;
       expect(
           node,
           predicate(
@@ -165,7 +165,7 @@ main() {
     test('.html thead', () {
       var innerHtml = '<tr><th id="n">Negative</th><th>Positive</th></tr>';
       var table = new TableElement();
-      var node = table.createFragment('<thead>$innerHtml').nodes.single;
+      TableSectionElement node = table.createFragment('<thead>$innerHtml').nodes.single;
       expect(
           node,
           predicate(
@@ -180,7 +180,7 @@ main() {
     test('.html tfoot', () {
       var innerHtml = '<tr><th>percentage</th><td>34.3%</td></tr>';
       var table = new TableElement();
-      var node = table.createFragment('<tfoot>$innerHtml').nodes.single;
+      TableSectionElement node = table.createFragment('<tfoot>$innerHtml').nodes.single;
       expect(
           node,
           predicate(
@@ -196,7 +196,7 @@ main() {
       var table = new TableElement();
       document.body.append(table);
       var tBody = table.createTBody();
-      var node = tBody.createFragment('<tr><td>foo<td>bar').nodes.single;
+      TableRowElement node = tBody.createFragment('<tr><td>foo<td>bar').nodes.single;
       expect(
           node, predicate((x) => x is TableRowElement, 'is a TableRowElement'));
       expect(node.tagName, 'TR');
@@ -209,7 +209,7 @@ main() {
       document.body.append(table);
       var tBody = table.createTBody();
       var tRow = tBody.addRow();
-      var node = tRow.createFragment('<td>foobar').nodes.single;
+      TableCellElement node = tRow.createFragment('<td>foobar').nodes.single;
       expect(node,
           predicate((x) => x is TableCellElement, 'is a TableCellElement'));
       expect(node.tagName, 'TD');
@@ -222,7 +222,7 @@ main() {
       document.body.append(table);
       var tBody = table.createTBody();
       var tRow = tBody.addRow();
-      var node = tRow.createFragment('<th>foobar').nodes.single;
+      TableCellElement node = tRow.createFragment('<th>foobar').nodes.single;
       expect(node,
           predicate((x) => x is TableCellElement, 'is a TableCellElement'));
       expect(node.tagName, 'TH');
@@ -735,7 +735,7 @@ main() {
       ]);
     });
 
-    testUnsupported('sort', () => getQueryAll().sort((a1, a2) => true));
+    testUnsupported('sort', () => getQueryAll().sort((a1, a2) => 0));
 
     testUnsupported('setRange', () {
       getQueryAll().setRange(0, 1, [new BRElement()]);
@@ -903,19 +903,21 @@ main() {
 
       var eventOrder = [];
 
-      a.on['custom_event'].listen((_) {
+      ElementStream aEvent = a.on['custom_event'];
+      aEvent.listen((_) {
         eventOrder.add('a no-capture');
       });
 
-      a.on['custom_event'].capture((_) {
+      aEvent.capture((_) {
         eventOrder.add('a capture');
       });
 
-      b.on['custom_event'].listen((_) {
+      ElementStream bEvent = b.on['custom_event'];
+      bEvent.listen((_) {
         eventOrder.add('b no-capture');
       });
 
-      b.on['custom_event'].capture((_) {
+      bEvent.capture((_) {
         eventOrder.add('b capture');
       });
 
@@ -931,11 +933,11 @@ main() {
   group('ElementList', () {
     // Tests for methods on the DOM class 'NodeList'.
     //
-    // There are two interesting things that are checked here from the viewpoint
-    // of the dart2js implementation of a 'native' class:
+    // There are two interesting things that are validated here from the
+    // viewpoint of the dart2js implementation of a 'native' class:
     //
     //   1. Some methods are implemented from by 'Object' or 'Interceptor';
-    //      some of these tests simply check that a method can be called.
+    //      some of these tests validate that a method can be called.
     //   2. Some methods are implemented by mixins.
 
     ElementList<Element> makeElementList() =>

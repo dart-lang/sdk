@@ -163,6 +163,8 @@ html/element_classes_svg_test: Crash # 'file:*/pkg/compiler/lib/src/common_eleme
 html/element_classes_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/element_constructor_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/element_dimensions_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/element_offset_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/element_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/element_types_constructors1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/element_types_constructors2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/element_types_constructors3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -276,6 +278,21 @@ html/element_classes_svg_test: Crash # NoSuchMethodError: Class 'JMethod' has no
 html/element_classes_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_constructor_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_dimensions_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_offset_test/offset: RuntimeError
+html/element_offset_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_test/ElementList: RuntimeError
+html/element_test/_ElementList: RuntimeError
+html/element_test/attributes: RuntimeError
+html/element_test/children: RuntimeError
+html/element_test/click: RuntimeError
+html/element_test/constructors: RuntimeError
+html/element_test/eventDelegation: RuntimeError
+html/element_test/eventListening: RuntimeError
+html/element_test/functional: RuntimeError
+html/element_test/matches: RuntimeError
+html/element_test/position: RuntimeError
+html/element_test/queryAll: RuntimeError
+html/element_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_types_constructors1_test: RuntimeError
 html/element_types_constructors2_test/constructors: RuntimeError
 html/element_types_constructors2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.

@@ -16,6 +16,7 @@ mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return ty
 mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>
 
 [ $compiler == dart2analyzer && $strong ]
+html/transferables_test: CompileTimeError # Issue 30975
 mirrors/deferred_type_test: CompileTimeError, OK # Deliberately refers to a deferred type in a declaration.
 mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError
@@ -24,7 +25,6 @@ mirrors/mirrors_nsm_test/dart2js: CompileTimeError, OK
 mirrors/mirrors_nsm_test: CompileTimeError, OK
 mirrors/relation_subclass_test: CompileTimeError, OK
 mirrors/repeated_private_anon_mixin_app_test: CompileTimeError, OK # Intentional library name conflict.
-html/transferables_test: CompileTimeError # Issue 30975
 
 [ $compiler == dart2analyzer && !$strong ]
 html/custom/element_upgrade_failure_test: MissingCompileTimeError
