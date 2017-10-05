@@ -670,14 +670,9 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       name = '?';
     } else if (node.type is ir.FunctionType) {
       ir.FunctionType functionType = node.type;
-      if (functionType.typedef != null) {
-        type = elementMap.getTypedefType(functionType.typedef);
-        name = functionType.typedef.name;
-      } else {
-        // TODO(johnniwinther): Remove branch when [KernelAstAdapter] is
-        // removed.
-        name = '?';
-      }
+      assert(functionType.typedef != null);
+      type = elementMap.getTypedefType(functionType.typedef);
+      name = functionType.typedef.name;
     } else {
       return defaultExpression(node);
     }

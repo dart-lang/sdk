@@ -37,7 +37,6 @@ import '../js/js.dart' show js;
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_emitter/sorter.dart' show Sorter;
-import '../kernel/task.dart';
 import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
@@ -362,7 +361,6 @@ class JavaScriptBackend {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
     result.add(patchResolverTask);
-    result.add(kernelTask);
     return result;
   }
 
@@ -395,9 +393,6 @@ class JavaScriptBackend {
 
   /// Codegen support for computing reflectable elements.
   MirrorsCodegenAnalysis _mirrorsCodegenAnalysis;
-
-  /// Builds kernel representation for the program.
-  KernelTask kernelTask;
 
   /// The compiler task responsible for the compilation of constants for both
   /// the frontend and the backend.
@@ -458,7 +453,6 @@ class JavaScriptBackend {
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
-    kernelTask = new KernelTask(compiler);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = new SsaFunctionCompiler(
         this, compiler.measurer, sourceInformationStrategy);

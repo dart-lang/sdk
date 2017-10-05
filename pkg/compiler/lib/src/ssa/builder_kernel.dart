@@ -38,7 +38,6 @@ import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
-import 'kernel_ast_adapter.dart';
 import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
@@ -3852,4 +3851,29 @@ class _ErroneousInitializerVisitor extends ir.Visitor<bool> {
 
   // TODO(sra): We might need to match other expressions that always throw but
   // in a subexpression.
+}
+
+/// Special [JumpHandler] implementation used to handle continue statements
+/// targeting switch cases.
+class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
+  KernelSwitchCaseJumpHandler(GraphBuilder builder, JumpTarget target,
+      ir.SwitchStatement switchStatement, KernelToLocalsMap localsMap)
+      : super(builder, target) {
+    // The switch case indices must match those computed in
+    // [KernelSsaBuilder.buildSwitchCaseConstants].
+    // Switch indices are 1-based so we can bypass the synthetic loop when no
+    // cases match simply by branching on the index (which defaults to null).
+    // TODO
+    int switchIndex = 1;
+    for (ir.SwitchCase switchCase in switchStatement.cases) {
+      JumpTarget continueTarget =
+          localsMap.getJumpTargetForSwitchCase(switchCase);
+      if (continueTarget != null) {
+        targetIndexMap[continueTarget] = switchIndex;
+        assert(builder.jumpTargets[continueTarget] == null);
+        builder.jumpTargets[continueTarget] = this;
+      }
+      switchIndex++;
+    }
+  }
 }
