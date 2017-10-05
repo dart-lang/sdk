@@ -100,11 +100,13 @@ mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wron
 isolate/isolate_current_test: Fail  # please triage
 
 [ $compiler == dart2js && $runtime == ie11 ]
+html/element_types_test: RuntimeError # Issue 29922
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari ]
 html/custom/document_register_basic_test: Pass, Timeout
+html/element_types_test: RuntimeError # Issue 29922
 
 [ $compiler == dart2js && $browser ]
 html/js_typed_interop_lazy_test/01: RuntimeError
@@ -124,6 +126,7 @@ html/mirrors_js_typed_interop_test: Fail # mirrors not supported
 
 [  $compiler == dart2js && $runtime == ff ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
+html/element_types_test: RuntimeError # Issue 29922
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 html/event_customevent_test: SkipByDesign
