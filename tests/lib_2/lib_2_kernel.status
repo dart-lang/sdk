@@ -152,6 +152,11 @@ html/custom_element_method_clash_test: DartkCompileTimeError
 html/custom_element_name_clash_test: DartkCompileTimeError
 html/custom_elements_23127_test: DartkCompileTimeError
 html/custom_elements_test: DartkCompileTimeError
+html/custom_tags_test: DartkCompileTimeError
+html/dart_object_local_storage_test: DartkCompileTimeError
+html/datalistelement_test: DartkCompileTimeError
+html/document_test: DartkCompileTimeError
+html/documentfragment_test: DartkCompileTimeError
 html/js_typed_interop_anonymous2_exp_test: DartkCompileTimeError
 html/js_typed_interop_anonymous2_test: DartkCompileTimeError
 html/js_typed_interop_anonymous_exp_test: DartkCompileTimeError

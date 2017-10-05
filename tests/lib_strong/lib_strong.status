@@ -77,11 +77,11 @@ mirrors/reflected_type_test: Skip
 mirrors/regress_16321_test: Skip
 mirrors/regress_19731_test: Skip
 
-[ $compiler == dart2analyzer && $strong ]
-html/debugger_test: CompileTimeError # Issue 28969
-
 # TODO(29919): HTML tests are not supported on dartdevc in test.dart yet.
 [ $compiler == dartdevc ]
+html/no_linked_scripts_htmltest: Skip # Issue 29919
+html/scripts_htmltest: Skip # Issue 29919
+html/two_scripts_htmltest: Skip # Issue 29919
 html/custom/attribute_changed_callback_test: Crash # Issue 29922
 html/custom/constructor_calls_created_synchronously_test: Crash # Issue 29922
 html/custom/created_callback_test: CompileTimeError # Issue 29922
@@ -99,8 +99,8 @@ html/custom/entered_left_view_test: Crash # Issue 29922
 html/custom/js_custom_test: Crash # Issue 29922
 html/custom/mirrors_test: Crash # Issue 29922
 html/custom/regress_194523002_test: Crash # Issue 29922
-html/deferred_multi_app_htmltest: Skip # Issue 29919
 html/no_linked_scripts_htmltest: Skip # Issue 29919
+html/scripts_htmltest: Skip # Issue 29919
 html/two_scripts_htmltest: Skip # Issue 29919
 
 [ $compiler == dartdevc && $runtime != none ]
