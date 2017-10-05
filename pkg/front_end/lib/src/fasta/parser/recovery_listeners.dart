@@ -80,3 +80,40 @@ class ClassHeaderRecoveryListener extends RecoveryListener {
     super.handleClassImplements(implementsKeyword, interfacesCount);
   }
 }
+
+class ImportRecoveryListener extends RecoveryListener {
+  Token asKeyword;
+  Token deferredKeyword;
+  Token ifKeyword;
+  bool hasCombinator = false;
+
+  ImportRecoveryListener(Listener primaryListener) : super(primaryListener);
+
+  void clear() {
+    asKeyword = null;
+    deferredKeyword = null;
+    ifKeyword = null;
+    hasCombinator = false;
+  }
+
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
+    this.ifKeyword = ifKeyword;
+    super.endConditionalUri(ifKeyword, leftParen, equalSign);
+  }
+
+  void endHide(Token hideKeyword) {
+    this.hasCombinator = true;
+    super.endHide(hideKeyword);
+  }
+
+  void endShow(Token showKeyword) {
+    this.hasCombinator = true;
+    super.endShow(showKeyword);
+  }
+
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    this.deferredKeyword = deferredKeyword;
+    this.asKeyword = asKeyword;
+    super.handleImportPrefix(deferredKeyword, asKeyword);
+  }
+}

@@ -74,7 +74,8 @@ import 'listener.dart' show Listener;
 
 import 'member_kind.dart' show MemberKind;
 
-import 'recovery_listeners.dart' show ClassHeaderRecoveryListener;
+import 'recovery_listeners.dart'
+    show ClassHeaderRecoveryListener, ImportRecoveryListener;
 
 import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 
@@ -409,25 +410,20 @@ class Parser {
     return token;
   }
 
-  Token parseImportPrefixOpt(Token token, bool isRecovery) {
-    Token deferredToken;
-    // When parsing an import directive the first time, isRecovery = false.
-    // In this situation, if `deferred` is not followed by `as`,
-    // then the token does not advance.
-    // This causes the rest of the tests in [parseImport] to fail
-    // and we fall through to recovery mode in [parseImportRecovery].
-    if (optional('deferred', token) &&
-        (optional('as', token.next) || isRecovery)) {
-      deferredToken = token;
-      token = token.next;
-    }
-    if (optional('as', token)) {
+  Token parseImportPrefixOpt(Token token) {
+    if (optional('deferred', token) && optional('as', token.next)) {
+      Token deferredToken = token;
+      Token asKeyword = token.next;
+      token = parseIdentifier(
+          asKeyword.next, IdentifierContext.importPrefixDeclaration);
+      listener.handleImportPrefix(deferredToken, asKeyword);
+    } else if (optional('as', token)) {
       Token asKeyword = token;
       token = parseIdentifier(
           token.next, IdentifierContext.importPrefixDeclaration);
-      listener.handleImportPrefix(deferredToken, asKeyword);
+      listener.handleImportPrefix(null, asKeyword);
     } else {
-      listener.handleImportPrefix(deferredToken, null);
+      listener.handleImportPrefix(null, null);
     }
     return token;
   }
@@ -438,8 +434,9 @@ class Parser {
     listener.beginImport(importKeyword);
     assert(optional('import', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
+    Token start = token;
     token = parseConditionalUris(token);
-    token = parseImportPrefixOpt(token, false);
+    token = parseImportPrefixOpt(token);
     token = parseCombinators(token);
     if (optional(';', token)) {
       listener.endImport(importKeyword, token);
@@ -447,7 +444,7 @@ class Parser {
     } else {
       // Recovery
       listener.endImport(importKeyword, null);
-      return parseImportRecovery(importKeyword, token);
+      return parseImportRecovery(start, token);
     }
   }
 
@@ -455,26 +452,23 @@ class Parser {
   /// where [token] is the import keyword
   /// and [recoveryStart] is the token on which main parsing stopped.
   Token parseImportRecovery(Token token, Token recoveryStart) {
-    Token firstDeferredKeyword;
-    bool hasPrefix = false;
-    bool hasCombinator = false;
+    final primaryListener = listener;
+    final recoveryListener = new ImportRecoveryListener(primaryListener);
 
-    // Determine which clauses have already been parsed.
-    while (token != recoveryStart) {
-      final String value = token.stringValue;
-      if (identical(value, 'deferred')) {
-        firstDeferredKeyword ??= token;
-      } else if (identical(value, 'as')) {
-        hasPrefix = true;
-      } else if (identical(value, 'show') || identical(value, 'hide')) {
-        hasCombinator = true;
-        if (hasPrefix) {
-          token = recoveryStart;
-          break;
-        }
-      }
-      token = token.next;
-    }
+    // Reparse to determine which clauses have already been parsed
+    // but intercept the events so they are not sent to the primary listener
+    listener = recoveryListener;
+    token = parseConditionalUris(token);
+    token = parseImportPrefixOpt(token);
+    token = parseCombinators(token);
+
+    Token firstDeferredKeyword = recoveryListener.deferredKeyword;
+    bool hasPrefix = recoveryListener.asKeyword != null;
+    bool hasCombinator = recoveryListener.hasCombinator;
+
+    // Update the recovery listener to forward subsequent events
+    // to the primary listener
+    recoveryListener.listener = primaryListener;
 
     // Parse additional out-of-order clauses.
     Token semicolon;
@@ -487,9 +481,9 @@ class Parser {
 
       // During recovery, clauses are parsed in the same order
       // and generate the same events as in the parseImport method above.
-      Token previous = token;
+      recoveryListener.clear();
       token = parseConditionalUris(token);
-      if (previous != token) {
+      if (recoveryListener.ifKeyword != null) {
         if (firstDeferredKeyword != null) {
           // TODO(danrubel): report error indicating conditional should
           // be moved before deferred keyword
@@ -502,36 +496,39 @@ class Parser {
         }
       }
 
-      previous = token;
-      token = parseImportPrefixOpt(token, true);
-      if (previous != token && optional('deferred', previous)) {
+      if (optional('deferred', token) && !optional('as', token.next)) {
+        listener.handleImportPrefix(token, null);
+        token = token.next;
+      } else {
+        token = parseImportPrefixOpt(token);
+      }
+      if (recoveryListener.deferredKeyword != null) {
         if (firstDeferredKeyword != null) {
-          reportRecoverableError(previous, fasta.messageDuplicateDeferred);
+          reportRecoverableError(
+              recoveryListener.deferredKeyword, fasta.messageDuplicateDeferred);
         } else {
           if (hasPrefix) {
-            reportRecoverableError(previous, fasta.messageDeferredAfterPrefix);
+            reportRecoverableError(recoveryListener.deferredKeyword,
+                fasta.messageDeferredAfterPrefix);
           }
-          firstDeferredKeyword = previous;
+          firstDeferredKeyword = recoveryListener.deferredKeyword;
         }
-        previous = previous.next;
       }
-      if (previous != token) {
+      if (recoveryListener.asKeyword != null) {
         if (hasPrefix) {
-          reportRecoverableError(previous, fasta.messageDuplicatePrefix);
+          reportRecoverableError(
+              recoveryListener.asKeyword, fasta.messageDuplicatePrefix);
         } else {
           if (hasCombinator) {
             reportRecoverableError(
-                previous, fasta.messagePrefixAfterCombinator);
+                recoveryListener.asKeyword, fasta.messagePrefixAfterCombinator);
           }
           hasPrefix = true;
         }
       }
 
-      previous = token;
       token = parseCombinators(token);
-      if (previous != token) {
-        hasCombinator = true;
-      }
+      hasCombinator = hasCombinator || recoveryListener.hasCombinator;
 
       if (optional(';', token)) {
         semicolon = token;
