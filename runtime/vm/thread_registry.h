@@ -67,7 +67,6 @@ class ThreadRegistry {
   // zones/handles in the API scope :
   // - Dart_RunLoop()
   // - IsolateSaver in Dart_NewNativePort
-  // - Isolate spawn (function/uri) under FLAG_i_like_slow_isolate_spawn
   // Similarly, tracking async_stack_trace requires that we always reschedule
   // on the same thread.
   // We probably need a mechanism to return to the specific thread only
