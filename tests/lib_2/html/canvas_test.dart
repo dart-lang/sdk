@@ -1,7 +1,6 @@
 library CanvasTest;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:test/test.dart';
 import 'dart:html';
 
 main() {
@@ -15,7 +14,6 @@ main() {
 
   context = canvas.context2D;
 
-  useHtmlConfiguration();
   test('CreateImageData', () {
     ImageData image = context.createImageData(canvas.width, canvas.height);
     List<int> data = image.data;

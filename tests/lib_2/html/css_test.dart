@@ -1,12 +1,9 @@
 library CssTest;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:test/test.dart';
 import 'dart:html';
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('supportsPointConversions', () {
     test('supported', () {
       expect(Window.supportsPointConversions, true);

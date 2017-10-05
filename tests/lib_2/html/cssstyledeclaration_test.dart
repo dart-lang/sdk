@@ -4,15 +4,12 @@
 
 library CssStyleDeclarationTest;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:test/test.dart';
 import 'dart:html';
 import 'dart:async';
 import 'utils.dart';
 
 main() {
-  useHtmlConfiguration();
-
   createTestStyle() {
     return new CssStyleDeclaration.css("""
       color: blue;

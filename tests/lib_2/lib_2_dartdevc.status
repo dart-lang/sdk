@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc ]
+html/custom/attribute_changed_callback_test: Crash # Issue 29922
 html/custom/constructor_calls_created_synchronously_test: Crash # Issue 29922
 html/custom/document_register_basic_test: RuntimeError # Issue 29922
 html/custom/document_register_type_extensions_test/construction: Crash # dartdevc compiler crash Issue 30885
@@ -19,23 +20,23 @@ html/custom/js_custom_test: Crash # Issue 29922
 html/custom/mirrors_test: Crash # Issue 29922
 html/custom/regress_194523002_test: Crash # Issue 29922
 html/deferred_multi_app_htmltest: Skip # Issue 29919
+html/no_linked_scripts_htmltest: Skip # Issue 29919
 html/scripts_htmltest: Skip # Issue 29919
+html/transferables_test: CompileTimeError # Issue 30975
+html/two_scripts_htmltest: Skip # Issue 29919
 isolate/*: SkipByDesign  # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 js/null_test: RuntimeError # Issue 30652
 math/double_pow_test: RuntimeError # Issue 29922
 math/low_test: RuntimeError # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
-html/no_linked_scripts_htmltest: Skip # Issue 29919
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 profiler/metrics_num_test: Skip # Because of an int / double type test.
-html/two_scripts_htmltest: Skip # Issue 29919
-html/transferables_test: CompileTimeError # Issue 30975
 
 [ $compiler == dartdevc && $runtime != none ]
 async/async_await_sync_completer_test: RuntimeError # Issue 29922
 async/async_await_zones_test: RuntimeError # Issue 29922
-async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_bad_type_test/implements: RuntimeError # Issue 29922
+async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
 async/slow_consumer_test: Pass, Timeout # Issue 29922
@@ -47,31 +48,30 @@ convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/streamed_conversion_utf8_decode_test: Slow, Pass
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/utf85_test: Slow, Pass
+html/client_rect_test: RuntimeError # Issue 29922
 html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922
 html/custom_elements_23127_test: Skip # Issue 29922
 html/custom_elements_test: Skip # Issue 29922
-html/element_classes_test: RuntimeError # Issue 29922
 html/element_classes_svg_test: RuntimeError # Issue 29922
+html/element_classes_test: RuntimeError # Issue 29922
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode cast failure
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
 html/js_typed_interop_side_cast_exp_test/01: RuntimeError # Requires --experimental-trust-js-interop-type-annotations flag.
-html/js_util_test: RuntimeError # Issue 29922
 html/js_typed_interop_type3_test/*: RuntimeError # Issue 30947
 html/js_typed_interop_type_test: RuntimeError # Issue 30947
+html/js_util_test: RuntimeError # Issue 29922
 html/keyboard_event_test: RuntimeError # Issue 30946
 html/media_stream_test: RuntimeError # Issue 29922
 html/mediasource_test: RuntimeError # Issue 29922
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
+html/webgl_extensions_test: RuntimeError # Issue 31017
 html/webgl_extensions_test: RuntimeError # Issue XXX
 html/websql_test: RuntimeError, Pass # Issue 29922
-math/random_big_test: RuntimeError # Issue 29922
-html/webgl_extensions_test: RuntimeError # Issue 31017
 html/websql_test: RuntimeError, Pass # Issue 29922
-typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
-typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
-typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
+math/random_big_test: RuntimeError # Issue 29922
+math/random_big_test: RuntimeError # Issue 29922
 mirrors/private_types_test: RuntimeError # Issue 29922
 mirrors/reflect_runtime_type_test: RuntimeError # Issue 29922
 mirrors/reflect_uninstantiated_class_test: RuntimeError # Issue 29922
@@ -80,6 +80,9 @@ mirrors/reflected_type_special_types_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typedefs_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typevars_test: RuntimeError # Issue 29922
 mirrors/regress_14304_test: RuntimeError # Issue 29922
+typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
+typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
+typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
 
 [ $strong && $compiler == dartdevc ]
 html/custom/document_register_template_test: Crash # Compiler crash issue ????

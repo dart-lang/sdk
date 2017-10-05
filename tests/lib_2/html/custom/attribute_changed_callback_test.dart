@@ -7,8 +7,7 @@ library attribute_changed_callback_test;
 import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
-import 'package:unittest/html_individual_config.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import '../utils.dart';
 
 class A extends HtmlElement {
@@ -51,8 +50,6 @@ void customElementsTakeRecords() {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   // Adapted from Blink's fast/dom/custom/attribute-changed-callback test.
 
   var registered = false;

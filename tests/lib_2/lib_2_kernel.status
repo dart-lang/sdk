@@ -206,7 +206,20 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash
 
-[ $checked && ($compiler == dartk) ]
+[ $compiler == dartkp && $mode == debug ]
+html/canvas_test: DartkCompileTimeError
+html/canvasrenderingcontext2d_test: DartkCompileTimeError
+html/cdata_test: DartkCompileTimeError
+html/client_rect_test: DartkCompileTimeError
+html/cross_domain_iframe_test: DartkCompileTimeError
+html/crypto_test: DartkCompileTimeError
+html/css_rule_list_test: DartkCompileTimeError
+html/css_test: DartkCompileTimeError
+html/cssstyledeclaration_test: DartkCompileTimeError
+html/custom/attribute_changed_callback_test: DartkCompileTimeError
+mirrors/variable_is_const_test/01: Crash
+
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
 mirrors/invocation_fuzz_test/smi: Crash
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]

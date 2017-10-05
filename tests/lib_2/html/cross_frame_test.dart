@@ -10,7 +10,7 @@ main() {
   var isHistoryBase = predicate((x) => x is HistoryBase, 'is a HistoryBase');
   var isHistory = predicate((x) => x is History, 'is a History');
 
-  final iframe = new IFrameElement();
+  final dynamic iframe = new IFrameElement();
   document.body.append(iframe);
 
   test('window', () {

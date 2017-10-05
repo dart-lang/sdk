@@ -23,13 +23,13 @@ mirrors/redirecting_factory_test: CompileTimeError # Issue 30855
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 async/slow_consumer_test: Pass, Timeout # Issue 22696
-convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
+convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 html/canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
-html/custom_elements_test: Pass, Timeout # Issue 26789
 html/custom_element_method_clash_test: Pass, Timeout # Issue 26789
 html/custom_element_name_clash_test: Pass, Timeout # Issue 26789
+html/custom_elements_test: Pass, Timeout # Issue 26789
 html/request_animation_frame_test: Skip # Times out. Issue 22167
 html/transition_event_test: Skip # Times out. Issue 22167
 
@@ -141,6 +141,8 @@ html/element_animate_test: Fail # Element.animate not supported on these browser
 html/canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
+html/crypto_test/supported: Fail
+html/css_test/supportsPointConversions: Fail
 html/custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 html/deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 html/event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
@@ -154,24 +156,25 @@ html/element_types_shadow_test: Fail
 html/element_types_template_test: Fail
 html/js_util_test/callConstructor: RuntimeError # Issue 26978
 html/localstorage_test: Pass, RuntimeError # Issue 22166
-html/no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 html/media_stream_test: Pass, Fail
 html/mediasource_test: Pass, Fail # Windows 8: Supported: yes, functional: no
+html/no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 html/notification_test: Fail # Notification not supported on IE
 html/postmessage_structured_test: Fail # Does not support the MessageEvent constructor.
 html/request_animation_frame_test: Skip # Times out. Issue 22167
+html/rtc_test: Fail
 html/scripts_htmltest: Skip # Times out on IE.  Issue 21537
 html/serialized_script_value_test: Fail
-html/storage_test: Pass, RuntimeError # Issue 22166
-html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
+html/storage_test: Pass, RuntimeError # Issue 22166
 html/svgelement_test: Fail
 html/text_event_test: RuntimeError # Issue 23437
+html/touchevent_test: Fail # IE does not support TouchEvents
 html/transferables_test: Pass, Fail # Issues 20659.
 html/transition_event_test: Skip # Times out. Issue 22167
-html/two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 html/touchevent_test: Fail # IE does not support TouchEvents
+html/two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 html/websocket_test: Fail # Issue 7875. Closed with "working as intended".
 html/wheelevent_test: RuntimeError # Issue 23437
 html/webgl_1_test: Fail
