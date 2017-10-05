@@ -77,16 +77,6 @@ html/isolates_test: DartkCompileTimeError
 html/js_function_getter_test: DartkCompileTimeError
 html/js_interop_1_test: DartkCompileTimeError
 html/js_test: DartkCompileTimeError
-html/typed_arrays_4_test: DartkCompileTimeError
-html/typed_arrays_5_test: DartkCompileTimeError
-html/typed_arrays_arraybuffer_test: DartkCompileTimeError
-html/typed_arrays_dataview_test: DartkCompileTimeError
-html/typed_arrays_range_checks_test: DartkCompileTimeError
-html/typed_arrays_simd_test: DartkCompileTimeError
-html/typing_test: DartkCompileTimeError
-html/unknownelement_test: DartkCompileTimeError
-html/uri_test: DartkCompileTimeError
-html/url_test: DartkCompileTimeError
 html/websocket_test: DartkCompileTimeError
 html/websql_test: DartkCompileTimeError
 html/wheelevent_test: DartkCompileTimeError

@@ -116,7 +116,6 @@ html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode 
 html/input_element_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 html/isolates_test: RuntimeError # Issue 29922
-html/typing_test: RuntimeError # Issue 29922
 html/websql_test/functional: RuntimeError # Issue 29922
 html/worker_api_test: RuntimeError # Issue 29922
 html/xhr_cross_origin_test/functional: RuntimeError # Issue 29922

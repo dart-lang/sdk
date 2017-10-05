@@ -210,6 +210,16 @@ html/trusted_html_tree_sanitizer_test: Crash # 'file:*/pkg/compiler/lib/src/comm
 html/typed_arrays_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/typed_arrays_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/typed_arrays_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/typed_arrays_4_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/typed_arrays_5_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/typed_arrays_arraybuffer_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/typed_arrays_dataview_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/typed_arrays_range_checks_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/typed_arrays_simd_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/typing_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/unknownelement_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/uri_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/url_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 html/custom/mirrors_2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -292,6 +302,16 @@ html/typed_arrays_1_test/supported: RuntimeError
 html/typed_arrays_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/typed_arrays_2_test: RuntimeError
 html/typed_arrays_3_test: RuntimeError
+html/typed_arrays_4_test: RuntimeError
+html/typed_arrays_5_test: RuntimeError
+html/typed_arrays_arraybuffer_test: RuntimeError
+html/typed_arrays_dataview_test: RuntimeError
+html/typed_arrays_range_checks_test: RuntimeError
+html/typed_arrays_simd_test: RuntimeError
+html/typing_test: RuntimeError
+html/unknownelement_test: RuntimeError
+html/uri_test: RuntimeError
+html/url_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && $csp ]
 html/js_typed_interop_rename_static_test: RuntimeError

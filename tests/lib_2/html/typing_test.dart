@@ -31,7 +31,7 @@ main() {
       counter++;
     }
 
-    // There are no style sheets.
-    expect(counter, 0);
+    // There is one style sheet from the test framework.
+    expect(counter, 1);
   });
 }
