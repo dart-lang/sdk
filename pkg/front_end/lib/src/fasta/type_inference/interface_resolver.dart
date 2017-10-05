@@ -9,8 +9,13 @@ import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
+
+/// Set this flag to `true` to cause debugging information about covariance
+/// checks to be printed to standard output.
+const bool debugCovariance = false;
 
 /// Type of a closure which applies a covariance annotation to a class member.
 ///
@@ -81,6 +86,13 @@ class ForwardingNode extends Procedure {
   /// generated).
   void _computeCovarianceFixes(Substitution substitution,
       Procedure interfaceMember, List<_CovarianceFix> fixes) {
+    if (debugCovariance) {
+      print('Considering covariance fixes for '
+          '${_printProcedure(interfaceMember, enclosingClass)}');
+      for (int i = _start; i < _end; i++) {
+        print('  Candidate: ${_printProcedure(_candidates[i])}');
+      }
+    }
     var class_ = enclosingClass;
     var interfaceFunction = interfaceMember.function;
     var interfacePositionalParameters = interfaceFunction.positionalParameters;
@@ -193,6 +205,10 @@ class ForwardingNode extends Procedure {
         }
       }
     }
+
+    if (debugCovariance && fixes.isNotEmpty) {
+      print('  ${fixes.length} fix(es)');
+    }
   }
 
   void _createForwardingImplIfNeeded(FunctionNode function) {
@@ -301,6 +317,25 @@ class ForwardingNode extends Procedure {
         fileUri: enclosingClass.fileUri)
       ..fileOffset = enclosingClass.fileOffset
       ..parent = enclosingClass;
+  }
+
+  /// Returns a string describing the signature of [procedure], along with the
+  /// class it's in.
+  ///
+  /// Only used if [debugCovariance] is `true`.
+  ///
+  /// If [class_] is provided, it is used instead of [procedure]'s enclosing
+  /// class.
+  String _printProcedure(Procedure procedure, [Class class_]) {
+    class_ ??= procedure.enclosingClass;
+    var buffer = new StringBuffer();
+    procedure.accept(new Printer(buffer));
+    var text = buffer.toString();
+    var newlineIndex = text.indexOf('\n');
+    if (newlineIndex != -1) {
+      text = text.substring(0, newlineIndex);
+    }
+    return '$class_: $text';
   }
 
   /// Determines which inherited member this node resolves to.
