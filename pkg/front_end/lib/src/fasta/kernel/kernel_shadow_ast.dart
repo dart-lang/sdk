@@ -1412,11 +1412,6 @@ abstract class ShadowMember implements Member {
     if (member._accessorNode != null) {
       member._accessorNode.overrides.add(overriddenMember);
     }
-    if (member is ShadowProcedure &&
-        overriddenMember is Procedure &&
-        member._methodNode != null) {
-      member._methodNode.overrides.add(overriddenMember);
-    }
   }
 }
 
@@ -1604,8 +1599,6 @@ class ShadowProcedure extends Procedure implements ShadowMember {
   @override
   AccessorNode _accessorNode;
 
-  MethodNode _methodNode;
-
   @override
   ShadowTypeInferrer _typeInferrer;
 
@@ -1613,8 +1606,8 @@ class ShadowProcedure extends Procedure implements ShadowMember {
 
   ShadowProcedure(Name name, ProcedureKind kind, FunctionNode function,
       this._hasImplicitReturnType,
-      {String fileUri})
-      : super(name, kind, function, fileUri: fileUri);
+      {String fileUri, bool isAbstract: false})
+      : super(name, kind, function, fileUri: fileUri, isAbstract: isAbstract);
 
   @override
   void setInferredType(
@@ -1633,11 +1626,6 @@ class ShadowProcedure extends Procedure implements ShadowMember {
     } else {
       unhandled("setInferredType", "not accessor", fileOffset, Uri.parse(uri));
     }
-  }
-
-  static MethodNode getMethodNode(Procedure procedure) {
-    if (procedure is ShadowProcedure) return procedure._methodNode;
-    return null;
   }
 
   static bool hasImplicitReturnType(ShadowProcedure procedure) {
@@ -2294,13 +2282,6 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
       Uri uri, TypeInferenceListener listener, InterfaceType thisType) {
     return new ShadowTypeInferrer._(
         this, uri.toString(), listener, false, thisType, null);
-  }
-
-  @override
-  MethodNode createMethodNode(ShadowProcedure procedure) {
-    MethodNode methodNode = new MethodNode(procedure);
-    procedure._methodNode = methodNode;
-    return methodNode;
   }
 
   @override

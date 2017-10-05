@@ -142,11 +142,7 @@ inference/generic_methods_basic_downward_inference: Crash
 inference/generic_methods_dart_math_min_max: Crash
 inference/generic_methods_downwards_inference_fold: Crash
 inference/generic_methods_handle_override_of_non_generic_with_generic: Crash
-inference/generic_methods_infer_generic_function_parameter_type2: Fail
-inference/generic_methods_infer_generic_function_parameter_type: Fail
-inference/generic_methods_infer_generic_function_return_type: Fail
 inference/generic_methods_infer_generic_instantiation: Crash
-inference/generic_methods_infer_generic_method_type: Fail
 inference/generic_methods_infer_js_builtin: Fail
 inference/generic_methods_inference_error: Crash
 inference/generic_methods_iterable_and_future: Crash
@@ -355,7 +351,6 @@ inference_new/infer_instance_accessor_ref: Crash
 inference_new/infer_instance_field_ref: Crash
 inference_new/infer_instance_field_ref_circular: Crash
 inference_new/infer_logical: Crash
-inference_new/infer_use_of_void: Fail
 inference_new/multiple_interface_inheritance: Fail # Issue #30547
 inference_new/property_get_toplevel: Crash
 inference_new/strongly_connected_component: Crash

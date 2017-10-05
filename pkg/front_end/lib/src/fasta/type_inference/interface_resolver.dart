@@ -7,6 +7,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/problems.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/text/ast_to_text.dart';
@@ -211,6 +212,37 @@ class ForwardingNode extends Procedure {
     }
   }
 
+  List<FunctionType> _computeMethodOverriddenTypes(Procedure declaredMethod) {
+    var overriddenTypes = <FunctionType>[];
+    var declaredTypeParameters = declaredMethod.function.typeParameters;
+    for (int i = _start + 1; i < _end; i++) {
+      var candidate = _candidates[i];
+      var candidateFunction = candidate.function;
+      if (candidateFunction == null) {
+        // This can happen if there are errors.  Just skip this override.
+      }
+      var substitution = _substitutionFor(candidate);
+      FunctionType overriddenType =
+          substitution.substituteType(candidateFunction.functionType);
+      var overriddenTypeParameters = overriddenType.typeParameters;
+      if (overriddenTypeParameters.length != declaredTypeParameters.length) {
+        // Generic arity mismatch.  Don't do any inference for this method.
+        // TODO(paulberry): report an error.
+        return <FunctionType>[];
+      } else if (overriddenTypeParameters.isNotEmpty) {
+        var substitutionMap = <TypeParameter, DartType>{};
+        for (int i = 0; i < declaredTypeParameters.length; i++) {
+          substitutionMap[overriddenTypeParameters[i]] =
+              new TypeParameterType(declaredTypeParameters[i]);
+        }
+        overriddenType = substituteTypeParams(
+            overriddenType, substitutionMap, declaredTypeParameters);
+      }
+      overriddenTypes.add(overriddenType);
+    }
+    return overriddenTypes;
+  }
+
   void _createForwardingImplIfNeeded(FunctionNode function) {
     if (function.body != null) {
       // There is already an implementation; nothing further needs to be done.
@@ -319,6 +351,82 @@ class ForwardingNode extends Procedure {
       ..parent = enclosingClass;
   }
 
+  void _inferMethodType(Procedure declaredMethod) {
+    // First collect types of overridden methods
+    var overriddenTypes = _computeMethodOverriddenTypes(declaredMethod);
+
+    // Now infer types.
+    DartType matchTypes(Iterable<DartType> types) {
+      var iterator = types.iterator;
+      if (!iterator.moveNext()) {
+        // No overridden types.  Infer `dynamic`.
+        return const DynamicType();
+      }
+      var inferredType = iterator.current;
+      while (iterator.moveNext()) {
+        if (inferredType != iterator.current) {
+          // TODO(paulberry): Types don't match.  Report an error.
+          return const DynamicType();
+        }
+      }
+      return inferredType;
+    }
+
+    if (ShadowProcedure.hasImplicitReturnType(declaredMethod)) {
+      var inferredType =
+          matchTypes(overriddenTypes.map((type) => type.returnType));
+      _interfaceResolver._instrumentation?.record(
+          Uri.parse(enclosingClass.fileUri),
+          declaredMethod.fileOffset,
+          'topType',
+          new InstrumentationValueForType(inferredType));
+      declaredMethod.function.returnType = inferredType;
+    }
+    var positionalParameters = declaredMethod.function.positionalParameters;
+    for (int i = 0; i < positionalParameters.length; i++) {
+      if (ShadowVariableDeclaration
+          .isImplicitlyTyped(positionalParameters[i])) {
+        // Note that if the parameter is not present in the overridden method,
+        // getPositionalParameterType treats it as dynamic.  This is consistent
+        // with the behavior called for in the informal top level type inference
+        // spec, which says:
+        //
+        //     If there is no corresponding parameter position in the overridden
+        //     method to infer from and the signatures are compatible, it is
+        //     treated as dynamic (e.g. overriding a one parameter method with a
+        //     method that takes a second optional parameter).  Note: if there
+        //     is no corresponding parameter position in the overriden method to
+        //     infer from and the signatures are incompatible (e.g. overriding a
+        //     one parameter method with a method that takes a second
+        //     non-optional parameter), the inference result is not defined and
+        //     tools are free to either emit an error, or to defer the error to
+        //     override checking.
+        var inferredType = matchTypes(
+            overriddenTypes.map((type) => getPositionalParameterType(type, i)));
+        _interfaceResolver._instrumentation?.record(
+            Uri.parse(enclosingClass.fileUri),
+            positionalParameters[i].fileOffset,
+            'topType',
+            new InstrumentationValueForType(inferredType));
+        positionalParameters[i].type = inferredType;
+      }
+    }
+    var namedParameters = declaredMethod.function.namedParameters;
+    for (int i = 0; i < namedParameters.length; i++) {
+      if (ShadowVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
+        var name = namedParameters[i].name;
+        var inferredType = matchTypes(
+            overriddenTypes.map((type) => getNamedParameterType(type, name)));
+        _interfaceResolver._instrumentation?.record(
+            Uri.parse(enclosingClass.fileUri),
+            namedParameters[i].fileOffset,
+            'topType',
+            new InstrumentationValueForType(inferredType));
+        namedParameters[i].type = inferredType;
+      }
+    }
+  }
+
   /// Returns a string describing the signature of [procedure], along with the
   /// class it's in.
   ///
@@ -338,13 +446,21 @@ class ForwardingNode extends Procedure {
     return '$class_: $text';
   }
 
-  /// Determines which inherited member this node resolves to.
+  /// Determines which inherited member this node resolves to, and also performs
+  /// type inference.
   Member _resolve() {
     var inheritedMember = _candidates[_start];
     var inheritedMemberSubstitution = Substitution.empty;
     bool isDeclaredInThisClass =
         identical(inheritedMember.enclosingClass, enclosingClass);
-    if (!isDeclaredInThisClass) {
+    if (isDeclaredInThisClass) {
+      if (kind == ProcedureKind.Getter || kind == ProcedureKind.Setter) {
+        // TODO(paulberry): do type inference.
+      } else if (_interfaceResolver.strongMode &&
+          _requiresTypeInference(inheritedMember)) {
+        _inferMethodType(inheritedMember);
+      }
+    } else {
       // If there are multiple inheritance candidates, the inherited member is
       // the member whose type is a subtype of all the others.  We can find it
       // by two passes over the list of members.  For the first pass, we step
@@ -452,6 +568,18 @@ class ForwardingNode extends Procedure {
   /// For testing: get the list of candidates relevant to a given node.
   static List<Procedure> getCandidates(ForwardingNode node) {
     return node._candidates.sublist(node._start, node._end);
+  }
+
+  static bool _requiresTypeInference(Procedure procedure) {
+    if (ShadowProcedure.hasImplicitReturnType(procedure)) return true;
+    var function = procedure.function;
+    for (var parameter in function.positionalParameters) {
+      if (ShadowVariableDeclaration.isImplicitlyTyped(parameter)) return true;
+    }
+    for (var parameter in function.namedParameters) {
+      if (ShadowVariableDeclaration.isImplicitlyTyped(parameter)) return true;
+    }
+    return false;
   }
 }
 
