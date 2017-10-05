@@ -784,6 +784,7 @@ class StreamingFlowGraphBuilder {
         translation_helper_(flow_graph_builder->translation_helper_),
         zone_(flow_graph_builder->zone_),
         reader_(new Reader(data)),
+        script_(parsed_function()->function().script()),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
         relative_kernel_offset_(relative_kernel_offset),
@@ -800,6 +801,7 @@ class StreamingFlowGraphBuilder {
         translation_helper_(*translation_helper),
         zone_(zone),
         reader_(new Reader(buffer, buffer_length)),
+        script_(Script::null()),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
         relative_kernel_offset_(0),
@@ -809,6 +811,7 @@ class StreamingFlowGraphBuilder {
         record_yield_positions_into_(NULL) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
+                            RawScript* script,
                             Zone* zone,
                             intptr_t relative_kernel_offset,
                             const TypedData& data)
@@ -816,6 +819,7 @@ class StreamingFlowGraphBuilder {
         translation_helper_(*translation_helper),
         zone_(zone),
         reader_(new Reader(data)),
+        script_(script),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
         relative_kernel_offset_(relative_kernel_offset),
@@ -1121,10 +1125,13 @@ class StreamingFlowGraphBuilder {
                                bool is_closure,
                                FunctionNodeHelper* function_node_helper);
 
+  RawScript* Script();
+
   FlowGraphBuilder* flow_graph_builder_;
   TranslationHelper& translation_helper_;
   Zone* zone_;
   Reader* reader_;
+  RawScript* script_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;
   intptr_t relative_kernel_offset_;

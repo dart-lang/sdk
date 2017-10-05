@@ -2250,7 +2250,7 @@ RawObject* EvaluateMetadata(const Field& metadata_field) {
         TypedData::Handle(Z, script.kernel_canonical_names()));
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
-        &helper, zone_, metadata_field.kernel_offset(),
+        &helper, metadata_field.Script(), zone_, metadata_field.kernel_offset(),
         TypedData::Handle(Z, metadata_field.kernel_data()));
     return streaming_flow_graph_builder.EvaluateMetadata(0);
   } else {
@@ -2276,7 +2276,7 @@ RawObject* BuildParameterDescriptor(const Function& function) {
         TypedData::Handle(Z, script.kernel_canonical_names()));
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
-        &helper, zone_, function.kernel_offset(),
+        &helper, function.script(), zone_, function.kernel_offset(),
         TypedData::Handle(Z, function.kernel_data()));
     return streaming_flow_graph_builder.BuildParameterDescriptor(0);
   } else {
@@ -2337,8 +2337,8 @@ void ProcessTokenPositionsEntry(const TypedData& data,
     return;
   }
 
-  StreamingFlowGraphBuilder streaming_flow_graph_builder(helper, zone_,
-                                                         kernel_offset, data);
+  StreamingFlowGraphBuilder streaming_flow_graph_builder(
+      helper, script.raw(), zone_, kernel_offset, data);
   streaming_flow_graph_builder.CollectTokenPositionsFor(
       script.kernel_script_index(), entry_script.kernel_script_index(),
       token_positions, yield_positions);

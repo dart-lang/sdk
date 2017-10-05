@@ -563,10 +563,12 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function,
       depth_(0),
       name_index_(0),
       needs_expr_temp_(false),
-      builder_(new StreamingFlowGraphBuilder(&translation_helper_,
-                                             zone_,
-                                             relative_kernel_offset,
-                                             data)),
+      builder_(
+          new StreamingFlowGraphBuilder(&translation_helper_,
+                                        parsed_function->function().script(),
+                                        zone_,
+                                        relative_kernel_offset,
+                                        data)),
       type_translator_(builder_, /*finalize=*/true) {
   Script& script = Script::Handle(Z, parsed_function->function().script());
   H.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
@@ -2278,14 +2280,7 @@ StreamingConstantEvaluator::StreamingConstantEvaluator(
       zone_(builder_->zone_),
       translation_helper_(builder_->translation_helper_),
       type_translator_(builder_->type_translator_),
-      script_(Script::Handle(
-          zone_,
-          // TODO(jensj): This was added to temporarily be able to let the scope
-          // builder have a StreamingFlowGraphBuilder to get access to
-          // reading functions.
-          (builder == NULL || builder_->flow_graph_builder_ == NULL)
-              ? Script::null()
-              : builder_->parsed_function()->function().script())),
+      script_(Script::Handle(zone_, builder_->Script())),
       result_(Instance::Handle(zone_)) {}
 
 bool StreamingConstantEvaluator::IsCached(intptr_t offset) {
@@ -2551,6 +2546,9 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
 
   if (H.IsField(target)) {
     const Field& field = Field::Handle(Z, H.LookupFieldByKernelField(target));
+    if (!field.is_const()) {
+      H.ReportError(script_, position, "Not a constant field.");
+    }
     if (field.StaticValue() == Object::sentinel().raw() ||
         field.StaticValue() == Object::transition_sentinel().raw()) {
       field.EvaluateInitializer();
@@ -7716,6 +7714,10 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       TokenPosition::kNoSource, Closure::context_offset());
 
   return instructions;
+}
+
+RawScript* StreamingFlowGraphBuilder::Script() {
+  return script_;
 }
 
 void StreamingFlowGraphBuilder::SetupFunctionParameters(
