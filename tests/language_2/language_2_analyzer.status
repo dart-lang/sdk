@@ -724,6 +724,15 @@ prefix1_negative_test: fail # Issue 11962
 prefix12_negative_test: fail # Issue 11962
 prefix11_negative_test: fail # Issue 11964
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
+prefix2_negative_test: fail # Issue 11962
+prefix4_negative_test: fail # Issue 11962
+prefix5_negative_test: fail # Issue 11962
+prefix8_negative_test: fail # Issue 11964
+prefix3_negative_test: fail # Issue 12191
+private_member1_negative_test: fail # Issue 14021
+private_member2_negative_test: fail # Issue 14021
+private_member3_negative_test: fail # Issue 14021
+prefix7_negative_test: CompileTimeError
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -807,6 +816,7 @@ string_unicode4_negative_test: CompileTimeError
 string_split_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 vm/lazy_deopt_with_exception*: CompileTimeError
+prefix6_negative_test: CompileTimeError, OK
 void_type_function_types_test/none: CompileTimeError # Issue 30177
 void_type_usage_test/param_as: CompileTimeError # Issue 30177
 void_type_usage_test/param_for: CompileTimeError # Issue 30177
@@ -1117,6 +1127,13 @@ type_variable_scope_test/04: MissingCompileTimeError
 type_variable_scope_test/05: MissingCompileTimeError
 type_variable_scope2_test: MissingCompileTimeError
 typed_selector2_test: MissingCompileTimeError
+private_access_test/01: MissingCompileTimeError
+private_access_test/02: MissingCompileTimeError
+private_access_test/03: MissingCompileTimeError
+private_access_test/04: MissingCompileTimeError
+private_access_test/05: MissingCompileTimeError
+private_access_test/06: MissingCompileTimeError
+prefix23_test/00: MissingCompileTimeError
 unbound_getter_test: MissingCompileTimeError
 unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError

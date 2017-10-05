@@ -13,7 +13,8 @@ class PrivateMain {
   static const _myPrecious = "A Ring";
 
   static accessMyPrivates() {
-    var value = 0;
+    var value;
+    value = 0;
     try {
       value = _myPrecious;
     } catch (e) {
@@ -23,7 +24,8 @@ class PrivateMain {
   }
 
   static accessMyLibPrivates() {
-    var value = 0;
+    var value;
+    value = 0;
     var the_other = new PrivateOther();
     try {
       value = the_other._myPrecious;
@@ -37,10 +39,11 @@ class PrivateMain {
   }
 
   static accessOtherLibPrivates() {
-    var value = 0;
+    var value;
+    value = 0;
     var the_other = new PrivateLib();
     try {
-      value = the_other._myPrecious;
+      value = (the_other as dynamic)._myPrecious;
     } catch (e, trace) {
       print(e);
       print(trace);

@@ -511,6 +511,13 @@ type_variable_scope_test/05: MissingCompileTimeError
 type_variable_scope2_test: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
 typed_selector2_test: MissingCompileTimeError
+private_access_test/01: MissingCompileTimeError
+private_access_test/02: MissingCompileTimeError
+private_access_test/03: MissingCompileTimeError
+private_access_test/04: MissingCompileTimeError
+private_access_test/05: MissingCompileTimeError
+private_access_test/06: MissingCompileTimeError
+prefix23_test/00: MissingCompileTimeError
 unbound_getter_test: MissingCompileTimeError
 unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
