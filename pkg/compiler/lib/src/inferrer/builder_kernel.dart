@@ -12,6 +12,7 @@ import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart';
+import '../js_model/locals.dart' show JumpVisitor;
 import '../kernel/element_map.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -315,6 +316,35 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _locals.seenReturnOrThrow = true;
     saved.mergeDiamondFlow(thenLocals, _locals);
     _locals = saved;
+  }
+
+  @override
+  visitBreakStatement(ir.BreakStatement node) {
+    JumpTarget target = _localsMap.getJumpTargetForBreak(node);
+    _locals.seenBreakOrContinue = true;
+    // Do a deep-copy of the locals, because the code following the
+    // break will change them.
+    if (_localsMap.generateContinueForBreak(node)) {
+      _continuesFor[target].add(new LocalsHandler.deepCopyOf(_locals));
+    } else {
+      _breaksFor[target].add(new LocalsHandler.deepCopyOf(_locals));
+    }
+    return null;
+  }
+
+  @override
+  visitLabeledStatement(ir.LabeledStatement node) {
+    ir.Statement body = node.body;
+    if (JumpVisitor.canBeBreakTarget(body)) {
+      // Loops and switches handle their own labels.
+      visit(body);
+    } else {
+      JumpTarget jumpTarget = _localsMap.getJumpTargetForLabel(node);
+      _setupBreaksAndContinues(jumpTarget);
+      visit(body);
+      _locals.mergeAfterBreaks(_getBreaks(jumpTarget));
+      _clearBreaksAndContinues(jumpTarget);
+    }
   }
 
   @override

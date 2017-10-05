@@ -26,6 +26,7 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
+import '../js_model/locals.dart' show JumpVisitor;
 import '../kernel/element_map.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -1629,11 +1630,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitLabeledStatement(ir.LabeledStatement labeledStatement) {
     ir.Statement body = labeledStatement.body;
-    if (body is ir.WhileStatement ||
-        body is ir.DoStatement ||
-        body is ir.ForStatement ||
-        body is ir.ForInStatement ||
-        body is ir.SwitchStatement) {
+    if (JumpVisitor.canBeBreakTarget(body)) {
       // loops and switches handle breaks on their own
       body.accept(this);
       return;
