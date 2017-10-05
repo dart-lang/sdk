@@ -442,7 +442,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31004')
   test_partOfNonPart() async {
     return super.test_partOfNonPart();
   }
@@ -612,28 +612,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_uriDoesNotExist_import() async {
-    return super.test_uriDoesNotExist_import();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_uriDoesNotExist_import_appears_after_deleting_target() async {
-    return super.test_uriDoesNotExist_import_appears_after_deleting_target();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_uriDoesNotExist_import_disappears_when_fixed() async {
-    return super.test_uriDoesNotExist_import_disappears_when_fixed();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31004')
   test_uriDoesNotExist_part() async {
     return super.test_uriDoesNotExist_part();
   }

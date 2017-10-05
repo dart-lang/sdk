@@ -135,10 +135,13 @@ class KernelContext {
 
       // Remember Kernel libraries required to resynthesize the target.
       var libraryMap = <String, kernel.Library>{};
+      var libraryExistMap = <String, bool>{};
       for (var cycleResult in kernelResult.results) {
         for (var library in cycleResult.kernelLibraries) {
           String uriStr = library.importUri.toString();
           libraryMap[uriStr] = library;
+          FileState file = fsState.getFileForUri(library.importUri);
+          libraryExistMap[uriStr] = file?.exists ?? false;
         }
       }
 
@@ -154,10 +157,11 @@ class KernelContext {
       analysisContext.analysisOptions = analysisOptions;
       analysisContext.declaredVariables.addAll(declaredVariables);
       analysisContext.sourceFactory = sourceFactory.clone();
+      analysisContext.contentCache = new _ContentCacheWrapper(fsState);
 
       // Create the resynthesizer bound to the analysis context.
       var resynthesizer = new KernelResynthesizer(
-          analysisContext, kernelResult.types, libraryMap);
+          analysisContext, kernelResult.types, libraryMap, libraryExistMap);
 
       return new KernelContext._(analysisContext, resynthesizer);
     });
@@ -182,6 +186,45 @@ class _AnalysisTarget extends NoneTarget {
 
   @override
   bool enableNative(Uri uri) => true;
+}
+
+/**
+ * [ContentCache] wrapper around [FileContentOverlay].
+ */
+class _ContentCacheWrapper implements ContentCache {
+  final FileSystemState fsState;
+
+  _ContentCacheWrapper(this.fsState);
+
+  @override
+  void accept(ContentCacheVisitor visitor) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String getContents(Source source) {
+    return _getFileForSource(source).content;
+  }
+
+  @override
+  bool getExists(Source source) {
+    return _getFileForSource(source).exists;
+  }
+
+  @override
+  int getModificationStamp(Source source) {
+    return _getFileForSource(source).exists ? 0 : -1;
+  }
+
+  @override
+  String setContents(Source source, String contents) {
+    throw new UnimplementedError();
+  }
+
+  FileState _getFileForSource(Source source) {
+    String path = source.fullName;
+    return fsState.getFileForPath(path);
+  }
 }
 
 class _FileSystemAdaptor implements FileSystem {

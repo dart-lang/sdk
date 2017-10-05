@@ -28,6 +28,7 @@ class KernelResynthesizer implements ElementResynthesizer {
   final AnalysisContextImpl _analysisContext;
   final kernel.TypeEnvironment _types;
   final Map<String, kernel.Library> _kernelMap;
+  final Map<String, bool> _libraryExistMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
 
   /**
@@ -38,7 +39,8 @@ class KernelResynthesizer implements ElementResynthesizer {
   /// The type provider for this resynthesizer.
   SummaryTypeProvider _typeProvider;
 
-  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap) {
+  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap,
+      this._libraryExistMap) {
     _buildTypeProvider();
     _analysisContext.typeProvider = _typeProvider;
   }
@@ -73,6 +75,10 @@ class KernelResynthesizer implements ElementResynthesizer {
     return _libraryMap.putIfAbsent(uriStr, () {
       var kernel = _kernelMap[uriStr];
       if (kernel == null) return null;
+
+      if (_libraryExistMap[uriStr] != true) {
+        return _newSyntheticLibrary(uriStr);
+      }
 
       var libraryContext =
           new _KernelLibraryResynthesizerContextImpl(this, kernel);
@@ -200,6 +206,24 @@ class KernelResynthesizer implements ElementResynthesizer {
   Source _getSource(String uri) {
     return _sources.putIfAbsent(
         uri, () => _analysisContext.sourceFactory.forUri(uri));
+  }
+
+  LibraryElementImpl _newSyntheticLibrary(String uriStr) {
+    Source librarySource = _getSource(uriStr);
+    if (librarySource == null) return null;
+
+    LibraryElementImpl libraryElement =
+        new LibraryElementImpl(context, '', -1, 0);
+    libraryElement.isSynthetic = true;
+    CompilationUnitElementImpl unitElement =
+        new CompilationUnitElementImpl(librarySource.shortName);
+    libraryElement.definingCompilationUnit = unitElement;
+    unitElement.source = librarySource;
+    unitElement.librarySource = librarySource;
+    libraryElement.createLoadLibraryFunction(_typeProvider);
+    libraryElement.publicNamespace = new Namespace({});
+    libraryElement.exportNamespace = new Namespace({});
+    return libraryElement;
   }
 }
 

@@ -107,10 +107,12 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
     KernelResult kernelResult = await driver.getKernel(testUri);
 
     var libraryMap = <String, kernel.Library>{};
+    var libraryExistMap = <String, bool>{};
     for (var cycleResult in kernelResult.results) {
       for (var library in cycleResult.kernelLibraries) {
         String uriStr = library.importUri.toString();
         libraryMap[uriStr] = library;
+        libraryExistMap[uriStr] = true;
       }
     }
 
@@ -119,8 +121,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       print(_getLibraryText(library));
     }
 
-    var resynthesizer =
-        new KernelResynthesizer(context, kernelResult.types, libraryMap);
+    var resynthesizer = new KernelResynthesizer(
+        context, kernelResult.types, libraryMap, libraryExistMap);
     return resynthesizer.getLibrary(testUriStr);
   }
 
