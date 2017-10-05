@@ -4,21 +4,25 @@
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 async/future_or_strong_test: RuntimeError
+isolate/message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 isolate/compile_time_error_test/01: Skip # Issue 12587
 
 [ $compiler == precompiler ]
 async/stream_timeout_test: RuntimeError
-html/*: SkipByDesign # dart:html not supported on AOT.
-mirrors/*: SkipByDesign # Mirrors not supported on AOT.
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
-html/*: SkipByDesign # HTML not supported.
+html/*: SkipByDesign # dart:html not supported on AOT.
+mirrors/*: SkipByDesign # Mirrors not supported on AOT.
 
 [ $compiler == precompiler || $runtime == flutter ]
 isolate/illegal_msg_function_test: SkipByDesign
 isolate/illegal_msg_mirror_test: SkipByDesign
 isolate/isolate_complex_messages_test: SkipByDesign
+isolate/mandel_isolate_test: SkipByDesign
+isolate/message2_test: SkipByDesign
+isolate/message_test: SkipByDesign
+isolate/mint_maker_test: SkipByDesign
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
 isolate/count_test: SkipByDesign

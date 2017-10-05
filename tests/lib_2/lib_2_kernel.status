@@ -3,6 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartkp ]
+isolate/message3_test/byteBuffer: Crash
+isolate/message3_test/constInstance: Crash
+isolate/message3_test/constList: Crash
+isolate/message3_test/constList_identical: Crash
+isolate/message3_test/constMap: Crash
+isolate/message3_test/fun: Crash
+isolate/message3_test/none: Crash
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
 [ $compiler == dartk || $compiler == dartkp ]
@@ -225,3 +232,4 @@ mirrors/reflected_type_generics_test/02: Pass
 isolate/compile_time_error_test/01: MissingCompileTimeError
 isolate/deferred_in_isolate2_test: Skip # Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Deferred loading kernel issue 28335.
+isolate/message3_test/int32x4: Crash

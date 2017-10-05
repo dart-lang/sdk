@@ -63,6 +63,12 @@ isolate/function_send1_test: SkipByDesign   # Test uses a ".dart" URI.
 isolate/issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
 isolate/issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
 isolate/issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
+isolate/issue_24243_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
+isolate/kill_self_synchronously_test: SkipByDesign #  Unsupported operation: Platform._resolvedExecutable
+isolate/message3_test/constInstance: RuntimeError # Issue 21817
+isolate/message3_test/constList: RuntimeError # Issue 21817
+isolate/message3_test/constList_identical: RuntimeError # Issue 21817
+isolate/message3_test/constMap: RuntimeError  # Issue 21817
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
@@ -105,6 +111,7 @@ html/element_types_datalist_test: Fail # TODO(dart2js-team): Please triage this 
 html/media_stream_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/rtc_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/speechrecognition_test: Fail # TODO(dart2js-team): Please triage this failure.
+isolate/mandel_isolate_test: Pass, Timeout # TODO(kasperl): Please triage.
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
@@ -122,6 +129,7 @@ isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 isolate/error_exit_at_spawn_test: Skip # Issue 23876
 isolate/error_at_spawn_test: Skip # Issue 23876
 isolate/exit_at_spawn_test: Skip # Issue 23876
+isolate/message4_test: Skip # Issue 30247
 
 [ $compiler == dart2js && $fast_startup ]
 html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
@@ -169,6 +177,8 @@ html/element_types_progress_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
 html/element_types_template_test: RuntimeError # Issue 29922
 html/element_types_track_test: RuntimeError # Issue 29922
+html/element_types_test: RuntimeError # Issue 29922
+isolate/message_test: Skip # Issue 12627
 
 [ $compiler == dart2js && $browser ]
 html/js_typed_interop_lazy_test/01: RuntimeError
@@ -557,3 +567,9 @@ isolate/compile_time_error_test/none: Pass, Slow
 
 [ $compiler == dart2js && $runtime == safari ]
 isolate/cross_isolate_message_test: Skip # Issue 12627
+
+[ ($compiler == dart2js && $fast_startup) ]
+isolate/mandel_isolate_test: Fail # mirrors not supported
+isolate/message2_test: Fail # mirrors not supported
+isolate/message_test: Fail # mirrors not supported
+isolate/mint_maker_test: Fail # mirrors not supported
