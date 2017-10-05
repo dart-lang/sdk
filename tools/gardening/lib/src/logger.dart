@@ -12,16 +12,15 @@ abstract class Logger {
 
   Logger(this.level);
 
-  void info(String msg, [Error, StackTrace]);
-  void warning(String msg, [Error, StackTrace]);
-  void error(String msg, [Error, StackTrace]);
-  void debug(String msg, [Error, StackTrace]);
+  void info(String msg, [Error error, StackTrace stackTrace]);
+  void warning(String msg, [Error error, StackTrace stackTrace]);
+  void error(String msg, [Error error, StackTrace stackTrace]);
+  void debug(String msg, [Error error, StackTrace stackTrace]);
 
   void destroy();
 }
 
-String _formatErrorMessage(String msg, Exception error,
-    [StackTrace stackTrace]) {
+String _formatErrorMessage(String msg, Error error, [StackTrace stackTrace]) {
   if (error == null) return msg;
   if (stackTrace == null) return msg + ": $error";
   return msg + ": $error\n$stackTrace";

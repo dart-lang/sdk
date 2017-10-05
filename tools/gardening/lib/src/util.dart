@@ -135,14 +135,42 @@ String sanitizeCategory(String category) {
   return match != null ? match.group(1) : category;
 }
 
+/// Returns a function (dynamic, StackTrace) -> Void, useful for printing
+/// exceptions.
 exceptionPrint(String message) {
-  return (dynamic ex, StackTrace st) {
+  return (dynamic ex, {StackTrace st}) {
     if (message != null) {
       print(message);
     }
     print(ex);
     if (st != null) {
       print(st);
+    } else if (ex is Error) {
+      print(ex.stackTrace);
     }
+  };
+}
+
+/// Zips two iterables to a new list, by calling [f]. [second] has to be at
+/// least the same length as [first].
+Iterable<T> zipWith<T, X, Y>(
+    Iterable<X> first, Iterable<Y> second, T f(X x, Y y)) sync* {
+  var yIterator = second.iterator;
+  for (var x in first) {
+    if (!yIterator.moveNext()) {
+      throw new Exception("second have to be at least the same length of xs.");
+    }
+    yield f(x, yIterator.current);
+  }
+}
+
+typedef T ErrorLogger<T>(e);
+
+/// errorLogger with a return-value, which can be used for onError and
+/// catchError in futures.
+ErrorLogger<T> errorLogger<T>(Logger logger, String message, T returnValue) {
+  return (dynamic e) {
+    logger.error(message, e);
+    return returnValue;
   };
 }
