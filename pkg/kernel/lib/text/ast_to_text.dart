@@ -711,6 +711,9 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isCovariant, 'covariant');
+    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(
+        node.isGenericCovariantInterface, 'generic-covariant-interface');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
@@ -749,7 +752,7 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isAbstract, 'abstract');
-    writeModifier(node.isForwardingStub, 'forwardingStub');
+    writeModifier(node.isForwardingStub, 'forwarding-stub');
     writeWord(procedureKindToString(node.kind));
     if ((node.enclosingClass == null &&
             node.enclosingLibrary.fileUri != node.fileUri) ||
@@ -1453,6 +1456,9 @@ class Printer extends Visitor<Null> {
     if (showOffsets) writeWord("[${node.fileOffset}]");
     writeAnnotationList(node.annotations);
     writeModifier(node.isCovariant, 'covariant');
+    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(
+        node.isGenericCovariantInterface, 'generic-covariant-interface');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     if (node.type != null) {

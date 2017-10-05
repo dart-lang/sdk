@@ -3,19 +3,19 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object> extends core::Object {
-  field self::A::T x = null;
+  generic-covariant-impl generic-covariant-interface field self::A::T x = null;
   default constructor •() → void
     : super core::Object::•()
     ;
 }
 class B<E extends core::Object> extends self::A<self::B::E> {
-  field self::B::E y = null;
+  generic-covariant-impl generic-covariant-interface field self::B::E y = null;
   default constructor •() → void
     : super self::A::•()
     ;
   get x() → self::B::E
     return this.{self::B::y};
-  forwardingStub set x(self::B::E _) → void
+  forwarding-stub set x(generic-covariant-impl generic-covariant-interface self::B::E _) → void
     return super.{self::A::x} = _;
 }
 static method foo() → dynamic {

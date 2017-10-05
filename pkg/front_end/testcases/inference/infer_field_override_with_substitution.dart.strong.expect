@@ -3,16 +3,16 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object> extends core::Object {
-  field core::List<self::A::T> z = null;
+  generic-covariant-impl generic-covariant-interface field core::List<self::A::T> z = null;
   default constructor •() → void
     : super core::Object::•()
     ;
   abstract get x() → core::List<self::A::T>;
-  abstract set y(core::List<self::A::T> value) → void;
+  abstract set y(generic-covariant-impl generic-covariant-interface core::List<self::A::T> value) → void;
 }
 class B extends self::A<core::int> {
   field core::List<core::int> x = null;
-  field core::List<core::int> y = null;
+  generic-covariant-impl field core::List<core::int> y = null;
   field core::List<core::int> z = null;
   default constructor •() → void
     : super self::A::•()

@@ -7,14 +7,14 @@ class C<T extends core::Object> extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  method f(self::C::T x) → void {}
-  method g1(self::C::T x) → void {
+  method f(generic-covariant-impl generic-covariant-interface self::C::T x) → void {}
+  method g1(generic-covariant-impl generic-covariant-interface self::C::T x) → void {
     this.{self::C::f}(x);
   }
-  method g2(self::C::T x) → void {
+  method g2(generic-covariant-impl generic-covariant-interface self::C::T x) → void {
     this.{self::C::f}(x);
   }
-  method g3(self::C<self::C::T> c, self::C::T x) → void {
+  method g3(generic-covariant-impl generic-covariant-interface self::C<self::C::T> c, generic-covariant-impl generic-covariant-interface self::C::T x) → void {
     c.{self::C::f}(x);
   }
   method g4() → (self::C::T) → dynamic
@@ -29,7 +29,7 @@ class E extends self::C<core::num> {
   default constructor •() → void
     : super self::C::•()
     ;
-  method f(covariant core::int x) → void {}
+  method f(covariant generic-covariant-impl core::int x) → void {}
 }
 static method test() → dynamic {
   (core::Object) → dynamic x = new self::D::•().{self::C::g4}() as (core::Object) → dynamic;

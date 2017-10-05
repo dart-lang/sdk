@@ -7,7 +7,7 @@ abstract class Test<T extends core::Object, U extends core::Object> extends core
     : super core::Object::•()
     ;
   abstract operator [](core::String s) → self::Test::T;
-  abstract operator []=(core::String s, self::Test::U v) → void;
+  abstract operator []=(core::String s, generic-covariant-impl generic-covariant-interface self::Test::U v) → void;
 }
 static method getInt() → core::int
   return 0;
