@@ -6,6 +6,7 @@ import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/names.dart' show callName;
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
+import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
@@ -373,8 +374,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         ? receiverType.classNode
         : coreTypes.objectClass;
 
-    var interfaceMember =
-        classHierarchy.getInterfaceMember(classNode, name, setter: setter);
+    var interfaceMember = _getInterfaceMember(classNode, name, setter);
     if (!silent && interfaceMember != null) {
       instrumentation?.record(Uri.parse(uri), fileOffset, 'target',
           new InstrumentationValueForMember(interfaceMember));
@@ -482,7 +482,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (type is FunctionType) {
       return type;
     } else if (followCall && type is InterfaceType) {
-      var member = classHierarchy.getInterfaceMember(type.classNode, callName);
+      var member = _getInterfaceMember(type.classNode, callName, false);
       var callType = member?.getterType;
       if (callType is FunctionType) {
         return callType;
@@ -1120,5 +1120,25 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     for (var namedExpression in arguments.named) {
       callback(namedExpression.name, namedExpression.value);
     }
+  }
+
+  Member _getInterfaceMember(Class class_, Name name, bool setter) {
+    if (class_ is ShadowClass) {
+      var classInferenceInfo = ShadowClass.getClassInferenceInfo(class_);
+      if (classInferenceInfo != null) {
+        var member = ClassHierarchy.findMemberByName(
+            setter
+                ? classInferenceInfo.setters
+                : classInferenceInfo.gettersAndMethods,
+            name);
+        if (member == null) return null;
+        if (member is ForwardingNode) {
+          return member.resolve();
+        } else {
+          return member;
+        }
+      }
+    }
+    return classHierarchy.getInterfaceMember(class_, name, setter: setter);
   }
 }

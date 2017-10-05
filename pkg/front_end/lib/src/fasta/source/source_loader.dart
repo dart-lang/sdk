@@ -523,6 +523,13 @@ class SourceLoader<L> extends Loader<L> {
       ShadowClass.clearClassInferenceInfo(target);
     }
     interfaceResolver = null;
+    // Since finalization of covariance may have added forwarding stubs, we need
+    // to recompute the class hierarchy so that method compilation will properly
+    // target those forwarding stubs.
+    // TODO(paulberry): could we make this unnecessary by not clearing class
+    // inference info?
+    typeInferenceEngine.classHierarchy =
+        hierarchy = new IncrementalClassHierarchy();
     ticker.logMs("Performed top level inference");
   }
 

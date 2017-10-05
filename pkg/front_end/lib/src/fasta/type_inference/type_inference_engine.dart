@@ -169,6 +169,8 @@ enum InferenceState {
 abstract class TypeInferenceEngine {
   ClassHierarchy get classHierarchy;
 
+  void set classHierarchy(ClassHierarchy classHierarchy);
+
   CoreTypes get coreTypes;
 
   TypeSchemaEnvironment get typeSchemaEnvironment;
