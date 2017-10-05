@@ -905,10 +905,6 @@ class Driver implements CommandLineStarter {
     if (newOptions.enableStrictCallChecks != previous.enableStrictCallChecks) {
       return false;
     }
-    if (newOptions.enableAssertInitializer !=
-        previous.enableAssertInitializer) {
-      return false;
-    }
     if (newOptions.showPackageWarnings != previous.showPackageWarnings) {
       return false;
     }
