@@ -20,8 +20,6 @@ final _variables = {
   "compiler": new _Variable((c) => c.compiler.name, Compiler.names),
   "csp": new _Variable.bool((c) => c.isCsp),
   "dart2js_with_kernel": new _Variable.bool((c) => c.useDart2JSWithKernel),
-  "dart2js_with_kernel_in_ssa":
-      new _Variable.bool((c) => c.useDart2JSWithKernelInSsa),
   "fast_startup": new _Variable.bool((c) => c.useFastStartup),
   "enable_asserts": new _Variable.bool((c) => c.useEnableAsserts),
   "host_checked": new _Variable.bool((c) => c.isHostChecked),

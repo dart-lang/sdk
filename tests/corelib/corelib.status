@@ -188,9 +188,6 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow.
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
 
-[ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && $dart2js_with_kernel ]
-regress/4562_test/01: Crash # Issue 27394
-
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError

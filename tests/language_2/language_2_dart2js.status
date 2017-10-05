@@ -701,117 +701,6 @@ typevariable_substitution2_test/02: RuntimeError
 assertion_test: RuntimeError # Issue 12748
 typevariable_substitution2_test/02: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
-abstract_beats_arguments_test: RuntimeError # Issue 27394
-abstract_runtime_error_test/01: RuntimeError # Issue 27394
-abstract_runtime_error_test/02: RuntimeError # Issue 27394
-arithmetic_canonicalization_test: RuntimeError # Issue 27394
-assertion_initializer_const_error_test/01: Crash
-assertion_initializer_const_function_test/01: Crash
-assign_top_method_test/01: Crash # Issue 27394
-async_await_syntax_test/a04b: Crash # Issue 27394
-async_await_syntax_test/a06a: RuntimeError # Issue 27394
-async_await_syntax_test/a07b: Crash # Issue 27394
-async_await_syntax_test/a08b: Crash # Issue 27394
-async_await_syntax_test/b06a: RuntimeError # Issue 27394
-async_await_syntax_test/c06a: RuntimeError # Issue 27394
-async_await_syntax_test/d06a: RuntimeError # Issue 27394
-async_star_pause_test: RuntimeError # Issue 27394
-async_star_regression_fisk_test: RuntimeError # Issue 27394
-async_star_stream_take_test: RuntimeError # Issue 27394
-async_star_take_reyield_test: RuntimeError # Issue 27394
-await_for_test: RuntimeError # Issue 27394
-await_for_use_local_test: RuntimeError # Issue 27394
-black_listed_test/13c: Crash # Issue 27394
-black_listed_test/14c: Crash # Issue 27394
-bootstrap_test: RuntimeError # Issue 27394
-const_qq_test: Crash # Issue 27394
-constants_test/01: Crash
-call_nonexistent_static_test/10: Crash # Issue 27394
-constants_test/01: Crash
-const_qq_test: Crash # Issue 27394
-constructor_named_arguments_test/none: RuntimeError # Issue 27394
-constructor_redirect2_test/02: Crash # Issue 27394
-constructor_redirect2_test/04: Crash # Issue 27394
-covariant_test/10: Crash # Issue 27394
-covariant_test/11: Crash # Issue 27394
-covariant_test/20b: Crash # Issue 27394
-covariant_test/24: Crash # Issue 27394
-deferred_constraints_constants_test/metadata1: Crash # Issue 27394
-deferred_constraints_constants_test/metadata2: Crash # Issue 27394
-deferred_constraints_constants_test/metadata3: Crash # Issue 27394
-deferred_constraints_constants_test/none: Crash # Issue 27394
-deferred_constraints_constants_test/reference_after_load: Crash # Issue 27394
-deferred_constraints_type_annotation_test/as_operation: Crash # Issue 27394
-deferred_inheritance_constraints_test/mixin: Crash # Issue 27394
-deferred_load_constants_test/none: RuntimeError # Issue 27394
-deferred_super_dependency_test/01: Crash # Issue 27394
-enum_mirror_test: Crash # Issue 27394
-generalized_void_syntax_test: Crash # Issue #30176
-generic_field_mixin2_test: Crash # Issue 27394
-generic_field_mixin3_test: Crash # Issue 27394
-generic_field_mixin6_test/01: Crash # Issue 27394
-generic_field_mixin_test: Crash # Issue 27394
-generic_local_functions_test: Crash # Issue 27394
-generic_metadata_test/02: Crash # Issue 27394
-generic_metadata_test/03: Crash # Issue 27394
-generic_methods_generic_function_parameter_test: Crash # Issue 27394
-get_set_syntax_test/00: Crash # Issue 27394
-if_null_assignment_behavior_test/06: RuntimeError # Issue 27394
-if_null_assignment_static_test/01: RuntimeError # Issue 27394
-if_null_assignment_static_test/03: RuntimeError # Issue 27394
-if_null_assignment_static_test/04: RuntimeError # Issue 27394
-if_null_assignment_static_test/05: RuntimeError # Issue 27394
-illegal_initializer_test/01: Crash # Issue 27394
-illegal_initializer_test/02: Crash # Issue 27394
-illegal_initializer_test/03: Crash # Issue 27394
-illegal_initializer_test/04: Crash # Issue 27394
-inference_mixin_field_test: Crash # Issue 27394
-initializing_formal_final_test: RuntimeError # Issue 27394
-inline_super_field_test: Crash # Issue 27394
-instance_creation_in_function_annotation_test: Crash # Issue 27394
-invocation_mirror_test: Crash # Issue 27394
-is_malformed_type_test/94: Crash # Issue 27394
-is_malformed_type_test/96: Crash # Issue 27394
-is_malformed_type_test/98: Crash # Issue 27394
-issue21079_test: Crash # Issue 27394
-issue9602_test: Crash # Issue 27394
-issue_25671a_test/01: Crash # Issue 27394
-issue_25671b_test/01: Crash # Issue 27394
-mixin_proto_test: Crash # Issue 27394
-mixin_regress_11398_test: Crash # Issue 27394
-mixin_super_constructor2_test: Crash # Issue 27394
-mixin_super_constructor_default_test: Crash # Issue 27394
-mixin_super_constructor_named_test/01: Crash # Issue 27394
-mixin_super_constructor_named_test/none: Crash # Issue 27394
-mixin_super_constructor_positionals_test/01: Crash # Issue 27394
-mixin_super_constructor_positionals_test/none: Crash # Issue 27394
-mixin_super_constructor_test: Crash # Issue 27394
-mixin_super_constructor2_test: Crash # Issue 27394
-mixin_super_constructor_default_test: Crash # Issue 27394
-mixin_super_constructor_named_test/01: Crash # Issue 27394
-mixin_super_constructor_named_test/none: Crash # Issue 27394
-mixin_super_constructor_positionals_test/01: Crash # Issue 27394
-mixin_super_constructor_positionals_test/none: Crash # Issue 27394
-mixin_super_constructor_test: Crash # Issue 27394
-mixin_type_parameter5_test: Crash # Issue 27394
-mixin_type_variable_test/02: Crash # Issue 27394
-mixin_type_variable_test/03: Crash # Issue 27394
-mixin_type_variable_test/04: Crash # Issue 27394
-mixin_type_variable_test/05: Crash # Issue 27394
-mixin_type_variable_test/06: Crash # Issue 27394
-mixin_type_variable_test/07: Crash # Issue 27394
-mixin_type_variable_test/08: Crash # Issue 27394
-mixin_typedef_constructor_test: Crash # Issue 27394
-named_parameters_aggregated_test/05: RuntimeError # Issue 27394
-nullaware_opt_test: RuntimeError # Issue 27394
-null_test/none: Crash # Issue 27394
-optional_named_parameters_test/01: MissingRuntimeError # Issue 27394
-optional_named_parameters_test/03: MissingRuntimeError # Issue 27394
-static_setter_get_test/01: Crash # Issue 27394
-static_top_level_test/00: Crash # Issue 27394
-static_top_level_test/04: Crash # Issue 27394
-
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
@@ -837,9 +726,6 @@ mixin_mixin5_test: Fail # Issue 12605
 mixin_mixin6_test: Fail # Issue 12605
 mixin_mixin_bound2_test: RuntimeError # Issue 12605
 mixin_mixin_bound_test: RuntimeError # Issue 12605
-
-[ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
-assertion_initializer_const_function_test/none: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $checked ]
 regress_30339_test: RuntimeError # Issue 26429
@@ -1512,55 +1398,6 @@ generic_test: RuntimeError, OK
 [ $compiler == dart2js && $checked ]
 covariant_subtyping_test: CompileTimeError
 
-[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
-function_type/function_type14_test: Crash # Issue 27394
-function_type/function_type15_test: Crash # Issue 27394
-function_type/function_type20_test: Crash # Issue 27394
-function_type/function_type21_test: Crash # Issue 27394
-function_type/function_type22_test: Crash # Issue 27394
-function_type/function_type23_test: Crash # Issue 27394
-function_type/function_type24_test: Crash # Issue 27394
-function_type/function_type25_test: Crash # Issue 27394
-function_type/function_type26_test: Crash # Issue 27394
-function_type/function_type27_test: Crash # Issue 27394
-function_type/function_type28_test: Crash # Issue 27394
-function_type/function_type29_test: Crash # Issue 27394
-function_type/function_type30_test: Crash # Issue 27394
-function_type/function_type31_test: Crash # Issue 27394
-function_type/function_type32_test: Crash # Issue 27394
-function_type/function_type33_test: Crash # Issue 27394
-function_type/function_type34_test: Crash # Issue 27394
-function_type/function_type35_test: Crash # Issue 27394
-function_type/function_type36_test: Crash # Issue 27394
-function_type/function_type37_test: Crash # Issue 27394
-function_type/function_type38_test: Crash # Issue 27394
-function_type/function_type39_test: Crash # Issue 27394
-function_type/function_type40_test: Crash # Issue 27394
-function_type/function_type41_test: Crash # Issue 27394
-function_type/function_type42_test: Crash # Issue 27394
-function_type/function_type43_test: Crash # Issue 27394
-function_type/function_type44_test: Crash # Issue 27394
-function_type/function_type45_test: Crash # Issue 27394
-function_type/function_type46_test: Crash # Issue 27394
-function_type/function_type47_test: Crash # Issue 27394
-function_type/function_type48_test: Crash # Issue 27394
-function_type/function_type49_test: Crash # Issue 27394
-function_type/function_type50_test: Crash # Issue 27394
-function_type/function_type51_test: Crash # Issue 27394
-function_type/function_type52_test: Crash # Issue 27394
-function_type/function_type53_test: Crash # Issue 27394
-function_type/function_type54_test: Crash # Issue 27394
-function_type/function_type55_test: Crash # Issue 27394
-function_type/function_type62_test: Crash # Issue 27394
-function_type/function_type63_test: Crash # Issue 27394
-function_type/function_type6_test: Crash # Issue 27394
-function_type/function_type7_test: Crash # Issue 27394
-function_type/function_type98_test: Crash # Issue 27394
-function_type/function_type99_test: Crash # Issue 27394
-generic_function_typedef_test/none: Crash # Issue 27394
-generic_function_typedef_test: Crash # Issue 27394
-getter_setter_in_lib_test: Crash # Issue 27394
-
 [ $compiler == dart2js && $runtime == safarimobilesim && !$dart2js_with_kernel ]
 call_through_getter_test: Fail, OK
 
@@ -1589,18 +1426,6 @@ await_future_test: Pass, Timeout # Issue 26735
 
 [ $compiler == dart2js && $system == windows && !$dart2js_with_kernel ]
 string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
-
-[ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && !$dart2js_with_kernel ]
-const_types_test/23: Crash # Issue 27394
-const_types_test/24: Crash # Issue 27394
-const_types_test/25: Crash # Issue 27394
-const_types_test/26: Crash # Issue 27394
-const_types_test/27: Crash # Issue 27394
-const_types_test/28: Crash # Issue 27394
-const_types_test/29: Crash # Issue 27394
-const_types_test/30: Crash # Issue 27394
-const_types_test/41: Crash # Issue 27394
-deferred_global_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $runtime != drt ]
 issue23244_test: RuntimeError # 23244

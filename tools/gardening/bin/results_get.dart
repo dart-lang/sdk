@@ -227,7 +227,7 @@ class GetTestMatrix extends Command {
       print(
           "builder;step;mode;arch;compiler;runtime;checked;strong;hostChecked;"
           "minified;csp;system;vmOptions;useSdk;builderTag;fastStartup;"
-          "dart2JsWithKernel;dart2JsWithKernelInSsa;enableAsserts;hotReload;"
+          "dart2JsWithKernel;enableAsserts;hotReload;"
           "hotReloadRollback;previewDart2;selectors");
       await Future.forEach(buildNumbers.keys, (builder) async {
         // Get steps for this builder and build number.

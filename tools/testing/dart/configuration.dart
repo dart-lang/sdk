@@ -51,7 +51,6 @@ class Configuration {
       this.useFastStartup,
       this.useEnableAsserts,
       this.useDart2JSWithKernel,
-      this.useDart2JSWithKernelInSsa,
       this.writeDebugLog,
       this.writeTestOutcomeLog,
       this.writeResultLog,
@@ -118,7 +117,6 @@ class Configuration {
   final bool useFastStartup;
   final bool useEnableAsserts;
   final bool useDart2JSWithKernel;
-  final bool useDart2JSWithKernelInSsa;
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
   final bool writeResultLog;
@@ -227,7 +225,6 @@ class Configuration {
     if (useFastStartup) args.add("--fast-startup");
     if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
-    if (useDart2JSWithKernelInSsa) args.add("--use-kernel-in-ssa");
     return args;
   }
 
@@ -456,7 +453,6 @@ class Configuration {
         'timeout': timeout,
         'preview_dart_2': previewDart2,
         'dart2js_with_kernel': useDart2JSWithKernel,
-        'dart2js_with_kernel_in_ssa': useDart2JSWithKernelInSsa,
         'enable_asserts': useEnableAsserts,
         'hot_reload': hotReload,
         'hot_reload_rollback': hotReloadRollback,

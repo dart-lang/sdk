@@ -441,14 +441,6 @@ list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 string_trimlr_test/02: RuntimeError, Pass # Uses Unicode 6.2.0 or earlier, issue 30279.
 uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
 
-[ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
-symbol_reserved_word_test/03: Pass # Issue 27394
-symbol_operator_test/03: RuntimeError # Issue 27394
-symbol_reserved_word_test/06: RuntimeError # Issue 27394
-symbol_reserved_word_test/09: RuntimeError # Issue 27394
-symbol_reserved_word_test/12: RuntimeError # Issue 27394
-symbol_test/none: RuntimeError # Issue 27394
-
 [ $compiler == none && $runtime == vm ]
 string_static_test: MissingCompileTimeError
 
