@@ -109,8 +109,6 @@ html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
 html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
-html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
-html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode cast failure
 html/input_element_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 html/isolates_test: RuntimeError # Issue 29922

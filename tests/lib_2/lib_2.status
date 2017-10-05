@@ -189,12 +189,17 @@ html/element_offset_test/offset: RuntimeError # Issue 18573
 html/element_types_test/supported_meter: RuntimeError # Issue 18573
 html/element_types_test/supported_template: Fail
 html/event_test: RuntimeError # Safarimobilesim does not support WheelEvent
+html/indexeddb_1_test/supported: Fail
 html/performance_api_test/supported: Fail
 html/notification_test: RuntimeError # Issue 22869
 html/performance_api_test/supported: Fail
 html/wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
 
 [ $runtime == safari ]
+html/indexeddb_1_test/functional: Skip # Times out. Issue 21433
+html/indexeddb_2_test: RuntimeError # Issue 21433
+html/indexeddb_4_test: RuntimeError # Issue 21433
+html/indexeddb_3_test: Skip # Times out 1 out of 10.
 html/notification_test: Fail # Safari doesn't let us access the fields of the Notification to verify them.
 html/touchevent_test: Fail # Safari does not support TouchEvents
 

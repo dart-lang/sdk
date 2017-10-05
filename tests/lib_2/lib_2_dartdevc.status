@@ -53,6 +53,8 @@ html/custom_elements_23127_test: Skip # Issue 29922
 html/custom_elements_test: Skip # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/element_classes_svg_test: RuntimeError # Issue 29922
+html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
+html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode cast failure
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
 html/js_typed_interop_side_cast_exp_test/01: RuntimeError # Requires --experimental-trust-js-interop-type-annotations flag.
 html/js_util_test: RuntimeError # Issue 29922
@@ -62,6 +64,8 @@ html/keyboard_event_test: RuntimeError # Issue 30946
 html/media_stream_test: RuntimeError # Issue 29922
 html/mediasource_test: RuntimeError # Issue 29922
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
+html/webgl_extensions_test: RuntimeError # Issue XXX
+html/websql_test: RuntimeError, Pass # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
 html/webgl_extensions_test: RuntimeError # Issue 31017
 html/websql_test: RuntimeError, Pass # Issue 29922

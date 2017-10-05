@@ -43,6 +43,10 @@ html/custom/element_upgrade_failure_test: MissingCompileTimeError
 html/custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
 html/custom_elements_test: Pass, Timeout # Issue 26789
 html/debugger_test: CompileTimeError # Issue 30900
+html/indexeddb_1_test/functional: Pass, Timeout # Roll 50 failure
+html/indexeddb_2_test: Pass, Timeout # Roll 50 failure
+html/indexeddb_3_test: Pass, Timeout # Roll 50 failure
+html/indexeddb_4_test: Pass, Timeout # Roll 50 failure
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 html/mirrors_js_typed_interop_test: Pass, Slow
@@ -174,6 +178,10 @@ html/element_types_constructors6_test: Crash # 'file:*/pkg/compiler/lib/src/comm
 html/element_types_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/event_customevent_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/event_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/indexeddb_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/indexeddb_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/indexeddb_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/indexeddb_4_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous2_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -320,6 +328,14 @@ html/element_types_test/supported_track: RuntimeError
 html/element_types_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/event_customevent_test: RuntimeError
 html/event_test: RuntimeError
+html/indexeddb_1_test/dynamic: RuntimeError
+html/indexeddb_1_test/functional: RuntimeError
+html/indexeddb_1_test/supported: RuntimeError
+html/indexeddb_1_test/typed: RuntimeError
+html/indexeddb_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/indexeddb_2_test: RuntimeError
+html/indexeddb_3_test: RuntimeError
+html/indexeddb_4_test: RuntimeError
 html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_anonymous2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_anonymous_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
