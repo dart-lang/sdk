@@ -171,16 +171,7 @@ math/math2_test: RuntimeError
 html/custom/document_register_basic_test: Pass, Timeout
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_datalist_test: RuntimeError # Issue 29922
-html/element_types_details_test: RuntimeError # Issue 29922
-html/element_types_embed_test: RuntimeError # Issue 29922
-html/element_types_keygen_test: RuntimeError # Issue 29922
-html/element_types_meter_test: RuntimeError # Issue 29922
-html/element_types_object_test: RuntimeError # Issue 29922
-html/element_types_output_test: RuntimeError # Issue 29922
-html/element_types_progress_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
-html/element_types_template_test: RuntimeError # Issue 29922
-html/element_types_track_test: RuntimeError # Issue 29922
 html/element_types_test: RuntimeError # Issue 29922
 isolate/message_test: Skip # Issue 12627
 
@@ -203,17 +194,8 @@ html/mirrors_js_typed_interop_test: Fail # mirrors not supported
 [  $compiler == dart2js && $runtime == ff ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/element_types_content_test: RuntimeError # Issue 29922
-html/element_types_datalist_test: RuntimeError # Issue 29922
-html/element_types_details_test: RuntimeError # Issue 29922
-html/element_types_embed_test: RuntimeError # Issue 29922
 html/element_types_keygen_test: RuntimeError # Issue 29922
-html/element_types_meter_test: RuntimeError # Issue 29922
-html/element_types_object_test: RuntimeError # Issue 29922
-html/element_types_output_test: RuntimeError # Issue 29922
-html/element_types_progress_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
-html/element_types_template_test: RuntimeError # Issue 29922
-html/element_types_track_test: RuntimeError # Issue 29922
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 html/event_customevent_test: SkipByDesign
