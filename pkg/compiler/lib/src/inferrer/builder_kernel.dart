@@ -265,9 +265,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   defaultStatement(ir.Statement node) {
-    // TODO(johnniwinther): Make this throw to assert that all statements are
-    // handled.
-    node.visitChildren(this);
+    throw new UnimplementedError(
+        'Unhandled statement: ${node} (${node.runtimeType})');
   }
 
   @override
@@ -329,7 +328,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       _breaksFor[target].add(new LocalsHandler.deepCopyOf(_locals));
     }
-    return null;
   }
 
   @override
@@ -345,6 +343,75 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _locals.mergeAfterBreaks(_getBreaks(jumpTarget));
       _clearBreaksAndContinues(jumpTarget);
     }
+  }
+
+  @override
+  visitSwitchStatement(ir.SwitchStatement node) {
+    visit(node.expression);
+
+    JumpTarget jumpTarget = _localsMap.getJumpTargetForSwitch(node);
+    _setupBreaksAndContinues(jumpTarget);
+
+    List<JumpTarget> continueTargets = <JumpTarget>[];
+    for (ir.SwitchCase switchCase in node.cases) {
+      JumpTarget continueTarget =
+          _localsMap.getJumpTargetForSwitchCase(switchCase);
+      if (continueTarget != null) {
+        continueTargets.add(continueTarget);
+      }
+    }
+    if (continueTargets.isNotEmpty) {
+      continueTargets.forEach(_setupBreaksAndContinues);
+
+      // If the switch statement has a continue, we conservatively
+      // visit all cases and update [locals] until we have reached a
+      // fixed point.
+      bool changed;
+      _locals.startLoop(node);
+      do {
+        changed = false;
+        for (ir.SwitchCase switchCase in node.cases) {
+          LocalsHandler saved = _locals;
+          _locals = new LocalsHandler.from(_locals, switchCase);
+          visit(switchCase);
+          changed = saved.mergeAll([_locals]) || changed;
+          _locals = saved;
+        }
+      } while (changed);
+      _locals.endLoop(node);
+
+      continueTargets.forEach(_clearBreaksAndContinues);
+    } else {
+      LocalsHandler saved = _locals;
+      List<LocalsHandler> localsToMerge = <LocalsHandler>[];
+      bool hasDefaultCase = false;
+
+      for (ir.SwitchCase switchCase in node.cases) {
+        if (switchCase.isDefault) {
+          hasDefaultCase = true;
+        }
+        _locals = new LocalsHandler.from(saved, switchCase);
+        visit(switchCase);
+        localsToMerge.add(_locals);
+      }
+      saved.mergeAfterBreaks(localsToMerge, keepOwnLocals: !hasDefaultCase);
+      _locals = saved;
+    }
+    _clearBreaksAndContinues(jumpTarget);
+  }
+
+  @override
+  visitSwitchCase(ir.SwitchCase node) {
+    visit(node.body);
+  }
+
+  @override
+  visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    JumpTarget target = _localsMap.getJumpTargetForContinueSwitch(node);
+    _locals.seenBreakOrContinue = true;
+    // Do a deep-copy of the locals, because the code following the
+    // break will change them.
+    _continuesFor[target].add(new LocalsHandler.deepCopyOf(_locals));
   }
 
   @override
