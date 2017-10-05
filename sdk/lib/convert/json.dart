@@ -856,7 +856,7 @@ class _JsonStringStringifier extends _JsonStringifier {
    */
   static void printOn(
       object, StringSink output, toEncodable(o), String indent) {
-    var stringifier;
+    _JsonStringifier stringifier;
     if (indent == null) {
       stringifier = new _JsonStringStringifier(output, toEncodable);
     } else {
