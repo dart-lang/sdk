@@ -19,13 +19,23 @@ namespace bin {
 
 static const int kFileNativeFieldIndex = 0;
 
+#if !defined(PRODUCT)
+static bool IsFile(Dart_Handle file_obj) {
+  Dart_Handle file_type = ThrowIfError(
+      DartUtils::GetDartType("dart:io", "_RandomAccessFileOpsImpl"));
+  bool isinstance = false;
+  ThrowIfError(Dart_ObjectIsType(file_obj, file_type, &isinstance));
+  return isinstance;
+}
+#endif
+
 // The file pointer has been passed into Dart as an intptr_t and it is safe
 // to pull it out of Dart as a 64-bit integer, cast it to an intptr_t and
 // from there to a File pointer.
 static File* GetFile(Dart_NativeArguments args) {
   File* file;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
-  ASSERT(Dart_IsInstance(dart_this));
+  DEBUG_ASSERT(IsFile(dart_this));
   Dart_Handle result = Dart_GetNativeInstanceField(
       dart_this, kFileNativeFieldIndex, reinterpret_cast<intptr_t*>(&file));
   ASSERT(!Dart_IsError(result));
@@ -33,6 +43,7 @@ static File* GetFile(Dart_NativeArguments args) {
 }
 
 static void SetFile(Dart_Handle dart_this, intptr_t file_pointer) {
+  DEBUG_ASSERT(IsFile(dart_this));
   Dart_Handle result = Dart_SetNativeInstanceField(
       dart_this, kFileNativeFieldIndex, file_pointer);
   if (Dart_IsError(result)) {
@@ -50,7 +61,7 @@ void FUNCTION_NAME(File_GetPointer)(Dart_NativeArguments args) {
     file->Retain();
   }
   intptr_t file_pointer = reinterpret_cast<intptr_t>(file);
-  Dart_SetReturnValue(args, Dart_NewInteger(file_pointer));
+  Dart_SetIntegerReturnValue(args, file_pointer);
 }
 
 static void ReleaseFile(void* isolate_callback_data,
@@ -85,8 +96,7 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   // 'open' call.
   File* file = File::Open(namespc, filename, file_mode);
   if (file != NULL) {
-    Dart_SetReturnValue(args,
-                        Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
+    Dart_SetIntegerReturnValue(args, reinterpret_cast<intptr_t>(file));
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -97,20 +107,34 @@ void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
   const char* filename =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   bool exists = File::Exists(namespc, filename);
-  Dart_SetReturnValue(args, Dart_NewBoolean(exists));
+  Dart_SetBooleanReturnValue(args, exists);
 }
 
 void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
-  File* file = GetFile(args);
-  ASSERT(file != NULL);
+  // TODO(zra): The bots are hitting a crash in this function, so we include
+  // some checks here that are normally only in a Debug build. When the crash
+  // is gone, this can go back to using GetFile and SetFile.
+  Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
+#if !defined(PRODUCT)
+  if (!IsFile(dart_this)) {
+    Dart_PropagateError(DartUtils::NewInternalError(
+        "File_Close expects the reciever to be a _RandomAccessFileOpsImpl."));
+  }
+#endif
+  File* file;
+  ThrowIfError(Dart_GetNativeInstanceField(dart_this, kFileNativeFieldIndex,
+                                           reinterpret_cast<intptr_t*>(&file)));
+  if (file == NULL) {
+    Dart_SetIntegerReturnValue(args, -1);
+    return;
+  }
   file->Close();
   file->DeleteWeakHandle(Dart_CurrentIsolate());
   file->Release();
 
-  // NULL-out the now potentially dangling pointer.
-  Dart_Handle dart_this = Dart_GetNativeArgument(args, 0);
-  SetFile(dart_this, 0);
-  Dart_SetReturnValue(args, Dart_NewInteger(0));
+  ThrowIfError(
+      Dart_SetNativeInstanceField(dart_this, kFileNativeFieldIndex, 0));
+  Dart_SetIntegerReturnValue(args, 0);
 }
 
 void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
@@ -119,9 +143,9 @@ void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
   uint8_t buffer;
   int64_t bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
   if (bytes_read == 1) {
-    Dart_SetReturnValue(args, Dart_NewInteger(buffer));
+    Dart_SetIntegerReturnValue(args, buffer);
   } else if (bytes_read == 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(-1));
+    Dart_SetIntegerReturnValue(args, -1);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -135,7 +159,7 @@ void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
     uint8_t buffer = static_cast<uint8_t>(byte & 0xff);
     bool success = file->WriteFully(reinterpret_cast<void*>(&buffer), 1);
     if (success) {
-      Dart_SetReturnValue(args, Dart_NewInteger(1));
+      Dart_SetIntegerReturnValue(args, 1);
     } else {
       Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     }
@@ -208,7 +232,7 @@ void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
     if (Dart_IsError(result)) {
       Dart_SetReturnValue(args, result);
     } else {
-      Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
+      Dart_SetIntegerReturnValue(args, bytes_read);
     }
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
@@ -266,7 +290,7 @@ void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
   ASSERT(file != NULL);
   intptr_t return_value = file->Position();
   if (return_value >= 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(return_value));
+    Dart_SetIntegerReturnValue(args, return_value);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -278,7 +302,7 @@ void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
   int64_t position = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &position)) {
     if (file->SetPosition(position)) {
-      Dart_SetReturnValue(args, Dart_True());
+      Dart_SetBooleanReturnValue(args, true);
     } else {
       Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     }
@@ -294,7 +318,7 @@ void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
   int64_t length = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
     if (file->Truncate(length)) {
-      Dart_SetReturnValue(args, Dart_True());
+      Dart_SetBooleanReturnValue(args, true);
     } else {
       Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     }
@@ -309,7 +333,7 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
   ASSERT(file != NULL);
   int64_t return_value = file->Length();
   if (return_value >= 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(return_value));
+    Dart_SetIntegerReturnValue(args, return_value);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -320,7 +344,7 @@ void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
   const char* path = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   int64_t return_value = File::LengthFromPath(namespc, path);
   if (return_value >= 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(return_value));
+    Dart_SetIntegerReturnValue(args, return_value);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -331,8 +355,7 @@ void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
   const char* name = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   int64_t return_value = File::LastModified(namespc, name);
   if (return_value >= 0) {
-    Dart_SetReturnValue(args,
-                        Dart_NewInteger(return_value * kMillisecondsPerSecond));
+    Dart_SetIntegerReturnValue(args, return_value * kMillisecondsPerSecond);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -356,8 +379,7 @@ void FUNCTION_NAME(File_LastAccessed)(Dart_NativeArguments args) {
   const char* name = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   int64_t return_value = File::LastAccessed(namespc, name);
   if (return_value >= 0) {
-    Dart_SetReturnValue(args,
-                        Dart_NewInteger(return_value * kMillisecondsPerSecond));
+    Dart_SetIntegerReturnValue(args, return_value * kMillisecondsPerSecond);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -380,7 +402,7 @@ void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
   File* file = GetFile(args);
   ASSERT(file != NULL);
   if (file->Flush()) {
-    Dart_SetReturnValue(args, Dart_True());
+    Dart_SetBooleanReturnValue(args, true);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -398,7 +420,7 @@ void FUNCTION_NAME(File_Lock)(Dart_NativeArguments args) {
     if ((lock >= File::kLockMin) && (lock <= File::kLockMax) && (start >= 0) &&
         (end == -1 || end > start)) {
       if (file->Lock(static_cast<File::LockType>(lock), start, end)) {
-        Dart_SetReturnValue(args, Dart_True());
+        Dart_SetBooleanReturnValue(args, true);
       } else {
         Dart_SetReturnValue(args, DartUtils::NewDartOSError());
       }
@@ -414,7 +436,7 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
   const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   bool result = File::Create(namespc, str);
   if (result) {
-    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+    Dart_SetBooleanReturnValue(args, result);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -461,7 +483,7 @@ void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
   const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   bool result = File::Delete(namespc, str);
   if (result) {
-    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+    Dart_SetBooleanReturnValue(args, result);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -472,7 +494,7 @@ void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
   const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   bool result = File::DeleteLink(namespc, str);
   if (result) {
-    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+    Dart_SetBooleanReturnValue(args, result);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -486,7 +508,7 @@ void FUNCTION_NAME(File_Rename)(Dart_NativeArguments args) {
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 2));
   bool result = File::Rename(namespc, old_path, new_path);
   if (result) {
-    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+    Dart_SetBooleanReturnValue(args, result);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -500,7 +522,7 @@ void FUNCTION_NAME(File_RenameLink)(Dart_NativeArguments args) {
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 2));
   bool result = File::RenameLink(namespc, old_path, new_path);
   if (result) {
-    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+    Dart_SetBooleanReturnValue(args, result);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -514,7 +536,7 @@ void FUNCTION_NAME(File_Copy)(Dart_NativeArguments args) {
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 2));
   bool result = File::Copy(namespc, old_path, new_path);
   if (result) {
-    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+    Dart_SetBooleanReturnValue(args, result);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -536,7 +558,7 @@ void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
   ASSERT((fd == STDIN_FILENO) || (fd == STDOUT_FILENO) ||
          (fd == STDERR_FILENO));
   File* file = File::OpenStdio(static_cast<int>(fd));
-  Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
+  Dart_SetIntegerReturnValue(args, reinterpret_cast<intptr_t>(file));
 }
 
 void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
@@ -544,7 +566,7 @@ void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
   ASSERT((fd == STDIN_FILENO) || (fd == STDOUT_FILENO) ||
          (fd == STDERR_FILENO));
   File::StdioHandleType type = File::GetStdioHandleType(static_cast<int>(fd));
-  Dart_SetReturnValue(args, Dart_NewInteger(type));
+  Dart_SetIntegerReturnValue(args, type);
 }
 
 void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
@@ -556,7 +578,7 @@ void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
     bool follow_links =
         DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 2));
     File::Type type = File::GetType(namespc, str, follow_links);
-    Dart_SetReturnValue(args, Dart_NewInteger(static_cast<int>(type)));
+    Dart_SetIntegerReturnValue(args, static_cast<int>(type));
   } else {
     Dart_Handle err = DartUtils::NewDartArgumentError(
         "Non-string argument to FileSystemEntity.type");
@@ -615,7 +637,7 @@ void FUNCTION_NAME(File_AreIdentical)(Dart_NativeArguments args) {
     if (result == File::kError) {
       Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     } else {
-      Dart_SetReturnValue(args, Dart_NewBoolean(result == File::kIdentical));
+      Dart_SetBooleanReturnValue(args, result == File::kIdentical);
     }
   } else {
     Dart_Handle err = DartUtils::NewDartArgumentError(
