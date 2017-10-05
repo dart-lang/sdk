@@ -211,6 +211,13 @@ class ForwardingNode extends Procedure {
             setter: kind == ProcedureKind.Setter);
     if (superTarget == null) return;
     procedure.isAbstract = false;
+    if (!procedure.isForwardingStub) {
+      _interfaceResolver._instrumentation?.record(
+          Uri.parse(procedure.fileUri),
+          procedure.fileOffset,
+          'forwardingStub',
+          new InstrumentationValueLiteral('implementation'));
+    }
     var positionalArguments = function.positionalParameters
         .map<Expression>((parameter) => new VariableGet(parameter))
         .toList();
