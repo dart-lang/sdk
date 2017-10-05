@@ -694,6 +694,8 @@ class StreamingConstantEvaluator {
 
   virtual ~StreamingConstantEvaluator() {}
 
+  bool IsCached(intptr_t offset);
+
   Instance& EvaluateExpression(intptr_t offset, bool reset_position = true);
   Instance& EvaluateListLiteral(intptr_t offset, bool reset_position = true);
   Instance& EvaluateMapLiteral(intptr_t offset, bool reset_position = true);
@@ -702,6 +704,7 @@ class StreamingConstantEvaluator {
   Object& EvaluateExpressionSafe(intptr_t offset);
 
  private:
+  bool IsAllowedToEvaluate();
   void EvaluateVariableGet();
   void EvaluateVariableGet(uint8_t payload);
   void EvaluatePropertyGet();
@@ -845,6 +848,8 @@ class StreamingFlowGraphBuilder {
   void ReadUntilFunctionNode();
   StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
                                              const Function& function);
+
+  bool optimizing();
 
   FlowGraph* BuildGraphOfStaticFieldInitializer();
   FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);

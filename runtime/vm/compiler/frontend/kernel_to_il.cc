@@ -602,6 +602,7 @@ FlowGraphBuilder::FlowGraphBuilder(
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     ZoneGrowableArray<intptr_t>* context_level_array,
     InlineExitCollector* exit_collector,
+    bool optimizing,
     intptr_t osr_id,
     intptr_t first_block_id)
     : translation_helper_(Thread::Current()),
@@ -609,6 +610,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       zone_(translation_helper_.zone()),
       kernel_offset_(kernel_offset),
       parsed_function_(parsed_function),
+      optimizing_(optimizing),
       osr_id_(osr_id),
       ic_data_array_(ic_data_array),
       context_level_array_(context_level_array),

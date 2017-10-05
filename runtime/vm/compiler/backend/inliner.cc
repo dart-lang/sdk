@@ -906,7 +906,8 @@ class CallSiteInliner : public ValueObject {
           kernel::FlowGraphBuilder builder(
               parsed_function->function().kernel_offset(), parsed_function,
               *ic_data_array, /* not building var desc */ NULL, exit_collector,
-              Compiler::kNoOSRDeoptId, caller_graph_->max_block_id() + 1);
+              /* optimized = */ true, Compiler::kNoOSRDeoptId,
+              caller_graph_->max_block_id() + 1);
           {
             CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
             callee_graph = builder.BuildGraph();

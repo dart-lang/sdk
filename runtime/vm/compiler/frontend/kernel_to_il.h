@@ -460,6 +460,7 @@ class FlowGraphBuilder {
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    ZoneGrowableArray<intptr_t>* context_level_array,
                    InlineExitCollector* exit_collector,
+                   bool optimizing,
                    intptr_t osr_id,
                    intptr_t first_block_id = 1);
   virtual ~FlowGraphBuilder();
@@ -631,6 +632,7 @@ class FlowGraphBuilder {
   intptr_t kernel_offset_;
 
   ParsedFunction* parsed_function_;
+  const bool optimizing_;
   intptr_t osr_id_;
   const ZoneGrowableArray<const ICData*>& ic_data_array_;
   // Contains (deopt_id, context_level) pairs.

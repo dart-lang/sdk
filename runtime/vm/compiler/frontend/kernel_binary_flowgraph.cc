@@ -2286,9 +2286,14 @@ StreamingConstantEvaluator::StreamingConstantEvaluator(
               : builder_->parsed_function()->function().script())),
       result_(Instance::Handle(zone_)) {}
 
+bool StreamingConstantEvaluator::IsCached(intptr_t offset) {
+  return GetCachedConstant(offset, &result_);
+}
+
 Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
                                                          bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = builder_->ReaderOffset();
     builder_->SetOffset(offset);
     uint8_t payload = 0;
@@ -2394,6 +2399,7 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
 Instance& StreamingConstantEvaluator::EvaluateListLiteral(intptr_t offset,
                                                           bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = builder_->ReaderOffset();
     builder_->SetOffset(offset);
     builder_->ReadTag();  // skip tag.
@@ -2410,6 +2416,7 @@ Instance& StreamingConstantEvaluator::EvaluateListLiteral(intptr_t offset,
 Instance& StreamingConstantEvaluator::EvaluateMapLiteral(intptr_t offset,
                                                          bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = builder_->ReaderOffset();
     builder_->SetOffset(offset);
     builder_->ReadTag();  // skip tag.
@@ -2427,6 +2434,7 @@ Instance& StreamingConstantEvaluator::EvaluateConstructorInvocation(
     intptr_t offset,
     bool reset_position) {
   if (!GetCachedConstant(offset, &result_)) {
+    ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = builder_->ReaderOffset();
     builder_->SetOffset(offset);
     builder_->ReadTag();  // skip tag.
@@ -2451,6 +2459,10 @@ Object& StreamingConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
     thread->clear_sticky_error();
     return error;
   }
+}
+
+bool StreamingConstantEvaluator::IsAllowedToEvaluate() {
+  return builder_->flow_graph_builder_ == NULL || !builder_->optimizing();
 }
 
 void StreamingConstantEvaluator::EvaluateVariableGet() {
@@ -3147,6 +3159,10 @@ StringIndex StreamingFlowGraphBuilder::GetNameFromVariableDeclaration(
   VariableDeclarationHelper helper(this);
   helper.ReadUntilIncluding(VariableDeclarationHelper::kNameIndex);
   return helper.name_index_;
+}
+
+bool StreamingFlowGraphBuilder::optimizing() {
+  return flow_graph_builder_->optimizing_;
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfStaticFieldInitializer() {
@@ -5630,7 +5646,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   ReadFlags();  // read flags.
 
   Tag receiver_tag = PeekTag();  // peek tag for receiver.
-  if (IsNumberLiteral(receiver_tag)) {
+  if (IsNumberLiteral(receiver_tag) &&
+      (!optimizing() || constant_evaluator_.IsCached(offset))) {
     intptr_t before_branch_offset = ReaderOffset();
 
     SkipExpression();  // read receiver (it's just a number literal).
