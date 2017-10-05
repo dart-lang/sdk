@@ -217,6 +217,8 @@ class Heap {
     }
   }
 
+  void ForwardWeakEntries(RawObject* before_object, RawObject* after_object);
+
   // Stats collection.
   void RecordTime(int id, int64_t micros) {
     ASSERT((id >= 0) && (id < GCStats::kTimeEntries));

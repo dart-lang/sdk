@@ -688,6 +688,22 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
   }
 }
 
+void Heap::ForwardWeakEntries(RawObject* before_object,
+                              RawObject* after_object) {
+  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    WeakTable* before_table =
+        GetWeakTable(before_object->IsNewObject() ? Heap::kNew : Heap::kOld,
+                     static_cast<Heap::WeakSelector>(sel));
+    intptr_t entry = before_table->RemoveValue(before_object);
+    if (entry != 0) {
+      WeakTable* after_table =
+          GetWeakTable(after_object->IsNewObject() ? Heap::kNew : Heap::kOld,
+                       static_cast<Heap::WeakSelector>(sel));
+      after_table->SetValue(after_object, entry);
+    }
+  }
+}
+
 #ifndef PRODUCT
 void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
   if (space == kNew) {
