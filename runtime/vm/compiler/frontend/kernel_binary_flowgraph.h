@@ -515,7 +515,7 @@ class StreamingDartTypeTranslator {
 
  private:
   // Can build a malformed type.
-  void BuildTypeInternal();
+  void BuildTypeInternal(bool invalid_as_dynamic = false);
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
   void BuildTypeParameterType();

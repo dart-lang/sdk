@@ -139,8 +139,6 @@ regress_20394_test/01: MissingCompileTimeError # Fasta bug: Illegal access to pr
 
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
 
-malformed_test/none: RuntimeError # Fasta bug: Leads to assertion error in Fasta.
-
 const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: Non-const expression in field initializer.
 
 method_name_test: CompileTimeError # Fasta bug: Parser bug.

@@ -1950,14 +1950,18 @@ AbstractType& StreamingDartTypeTranslator::BuildVariableType() {
   return type;
 }
 
-void StreamingDartTypeTranslator::BuildTypeInternal() {
+void StreamingDartTypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
   Tag tag = builder_->ReadTag();
   switch (tag) {
     case kInvalidType:
-      result_ = ClassFinalizer::NewFinalizedMalformedType(
-          Error::Handle(Z),  // No previous error.
-          Script::Handle(Z, Script::null()), TokenPosition::kNoSource,
-          "[InvalidType] in Kernel IR.");
+      if (invalid_as_dynamic) {
+        result_ = Object::dynamic_type().raw();
+      } else {
+        result_ = ClassFinalizer::NewFinalizedMalformedType(
+            Error::Handle(Z),  // No previous error.
+            Script::Handle(Z, Script::null()), TokenPosition::kNoSource,
+            "[InvalidType] in Kernel IR.");
+      }
       break;
     case kDynamicType:
       result_ = Object::dynamic_type().raw();
@@ -2204,15 +2208,7 @@ const TypeArguments& StreamingDartTypeTranslator::BuildTypeArguments(
   if (!only_dynamic) {
     type_arguments = TypeArguments::New(length);
     for (intptr_t i = 0; i < length; ++i) {
-      BuildTypeInternal();  // read ith type.
-      if (result_.IsMalformed()) {
-        type_arguments = TypeArguments::null();
-        // Skip the rest of the arguments.
-        for (++i; i < length; ++i) {
-          builder_->SkipDartType();
-        }
-        return type_arguments;
-      }
+      BuildTypeInternal(true);  // read ith type.
       type_arguments.SetTypeAt(i, result_);
     }
 
