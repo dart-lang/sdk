@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 class _FilterImpl extends NativeFieldWrapperClass1 implements RawZLibFilter {
   void process(List<int> data, int start, int end) native "Filter_Process";
 

@@ -2,7 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" hide Symbol;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:async" which contains all the imports used
+/// by patches of that library. We plan to change this when we have a shared
+/// front end and simply use parts.
+
+import "dart:_internal" show VMLibraryHooks, patch;
+
+/// These are the additional parts of this patch library:
+// part "deferred_load_patch.dart";
+// part "schedule_microtask_patch.dart";
+// part "timer_patch.dart";
 
 // Equivalent of calling FATAL from C++ code.
 _fatal(msg) native "DartAsync_fatal";

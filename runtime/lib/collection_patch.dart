@@ -2,8 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
-import 'dart:_internal' as internal;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:collection" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:_internal" as internal;
+
+import "dart:_internal" show patch;
+
+import "dart:typed_data" show Uint32List;
+
+/// These are the additional parts of this patch library:
+// part "compact_hash.dart";
 
 @patch
 class HashMap<K, V> {
@@ -433,7 +444,7 @@ class _HashMapEntry {
   _HashMapEntry(this.key, this.value, this.hashCode, this.next);
 }
 
-abstract class _HashMapIterable<E> extends EfficientLengthIterable<E> {
+abstract class _HashMapIterable<E> extends internal.EfficientLengthIterable<E> {
   final HashMap _map;
   _HashMapIterable(this._map);
   int get length => _map.length;

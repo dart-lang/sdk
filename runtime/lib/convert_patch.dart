@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show POWERS_OF_TEN;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:convert" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:_internal" show POWERS_OF_TEN, patch;
+
+import "dart:typed_data" show Uint8List, Uint16List;
+
+/// This patch library has no additional parts.
 
 // JSON conversion.
 

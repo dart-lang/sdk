@@ -2,12 +2,81 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:async";
-import 'dart:convert' show ASCII, JSON;
-import "dart:isolate";
-import "dart:math";
-import "dart:typed_data";
-import 'dart:_internal' as internal;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:core" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:_internal" as internal show Symbol;
+
+import "dart:_internal"
+    show
+        ClassID,
+        CodeUnits,
+        EfficientLengthIterable,
+        FixedLengthListBase,
+        IterableElementError,
+        ListIterator,
+        Lists,
+        POWERS_OF_TEN,
+        SubListIterable,
+        UnmodifiableListBase,
+        is64Bit,
+        makeFixedListUnmodifiable,
+        makeListFixedLength,
+        patch;
+
+import "dart:async" show Completer, Future, Timer;
+
+import "dart:collection"
+    show
+        HashMap,
+        IterableBase,
+        LinkedHashMap,
+        LinkedList,
+        LinkedListEntry,
+        ListBase,
+        Maps,
+        UnmodifiableMapView;
+
+import "dart:convert" show ASCII, Encoding, JSON, LATIN1, UTF8;
+
+import "dart:isolate" show Isolate;
+
+import "dart:math" show Random;
+
+import "dart:typed_data" show Uint8List, Int64List, Uint16List, Uint32List;
+
+/// These are the additional parts of this patch library:
+// part "array.dart";
+// part "array_patch.dart";
+// part "bigint.dart";
+// part "bool_patch.dart";
+// part "date_patch.dart";
+// part "double.dart";
+// part "double_patch.dart";
+// part "errors_patch.dart";
+// part "expando_patch.dart";
+// part "function.dart";
+// part "function_patch.dart";
+// part "growable_array.dart";
+// part "identical_patch.dart";
+// part "immutable_map.dart";
+// part "integers.dart";
+// part "integers_patch.dart";
+// part "invocation_mirror_patch.dart";
+// part "lib_prefix.dart";
+// part "map_patch.dart";
+// part "null_patch.dart";
+// part "object_patch.dart";
+// part "regexp_patch.dart";
+// part "stacktrace.dart";
+// part "stopwatch_patch.dart";
+// part "string_buffer_patch.dart";
+// part "string_patch.dart";
+// part "type_patch.dart";
+// part "uri_patch.dart";
+// part "weak_property.dart";
 
 // The members of this class are cloned and added to each class that
 // represents an enum type.

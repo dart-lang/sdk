@@ -2,9 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" hide Symbol;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:typed_data" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:_internal"
+    show
+        ClassID,
+        CodeUnits,
+        ExpandIterable,
+        IterableElementError,
+        ListMapView,
+        Lists,
+        MappedIterable,
+        MappedIterable,
+        ReversedListIterable,
+        SkipWhileIterable,
+        Sort,
+        SubListIterable,
+        TakeWhileIterable,
+        WhereIterable,
+        patch;
+
 import "dart:collection" show ListBase;
+
 import 'dart:math' show Random;
+
+/// There are no parts in patch library:
 
 @patch
 class ByteData implements TypedData {

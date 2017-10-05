@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 // TODO(srdjan): Use shared array implementation.
 class _List<E> extends FixedLengthListBase<E> {
   factory _List(length) native "List_allocate";

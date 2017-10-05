@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VM-specific implementation of the dart:mirrors library.
-
-import "dart:collection" show UnmodifiableListView, UnmodifiableMapView;
-import "dart:_internal" as internal;
+// part of "mirrors_patch.dart";
 
 var _dirty = false;
 final _emptyList = new UnmodifiableListView([]);

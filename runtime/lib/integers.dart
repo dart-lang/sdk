@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 // This marker interface represents 64-bit integers in the compiler for type
 // propagation and range analysis.  It is implemented by _Smi and _Mint.
 abstract class _int64 implements int {}

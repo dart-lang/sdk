@@ -1,10 +1,10 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Dart core library.
 
-// VM implementation of int.
+// part of "core_patch.dart";
 
+/// VM implementation of int.
 @patch
 class int {
   @patch
@@ -24,7 +24,7 @@ class int {
         return null; // Empty.
       }
     }
-    var smiLimit = internal.is64Bit ? 18 : 9;
+    var smiLimit = is64Bit ? 18 : 9;
     if ((last - ix) >= smiLimit) {
       return null; // May not fit into a Smi.
     }
@@ -109,7 +109,7 @@ class int {
 
   static int _parseRadix(
       String source, int radix, int start, int end, int sign) {
-    int tableIndex = (radix - 2) * 4 + (internal.is64Bit ? 2 : 0);
+    int tableIndex = (radix - 2) * 4 + (is64Bit ? 2 : 0);
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
     if (length <= blockSize) {

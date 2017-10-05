@@ -2,8 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core' hide Symbol;
-import 'dart:typed_data' show Int32List;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:_internal" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:core" hide Symbol;
+
+import "dart:typed_data" show Int32List;
+
+/// These are the additional parts of this patch library:
+// part "class_id_fasta.dart";
+// part "print_patch.dart";
+// part "symbol_patch.dart";
 
 @patch
 List makeListFixedLength(List growableList)
