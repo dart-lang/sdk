@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'logger.dart';
-import 'try.dart';
+import 'util.dart';
 
 typedef Future<String> FetchDataFunction();
 typedef Future<String> WithCacheFunction(FetchDataFunction fetchData,
@@ -26,21 +26,15 @@ CreateCacheFunction initCache(Uri baseUri, [Logger logger]) {
       if (overrideKey != null) {
         key = overrideKey;
       }
-
       if (key == null || key.isEmpty) {
         logger.warning("Key is null or empty - cannot cache result");
       } else {
         // format key
         key = key.replaceAll("/", "_").replaceAll(".", "_");
-
-        Try<CacheResult> readResult = await cache.read(key, duration);
-        if (!readResult.isError && readResult.value.hasResult) {
+        var cacheResult = await cache.read(key, duration);
+        if (cacheResult.hasResult) {
           logger.debug("Found key $key in cache");
-          return readResult.value.result;
-        }
-        if (readResult.isError) {
-          logger.error("Error when reading from cache", readResult.error,
-              readResult.stackTrace);
+          return cacheResult.result;
         }
       }
 
@@ -93,32 +87,35 @@ class Cache {
   }
 
   /// Try reading [path] from cache
-  Future<Try<CacheResult>> read(String path, [Duration duration]) async {
+  Future<CacheResult> read(String path, [Duration duration]) async {
     if (memoryCache.containsKey(path)) {
       logger.debug('Found $path in memory cache');
-      return new Try.from(new CacheResult(memoryCache[path]));
+      return new CacheResult(memoryCache[path]);
     }
 
     File file = new File.fromUri(base.resolve(path));
 
-    if (!(await file.exists())) {
+    if (!await file.exists()) {
       logger.debug('Could not find file $path in file cache');
-      return new Try.from(new CacheResult.noResult());
+      return new CacheResult.noResult();
     }
-
     if (duration != null &&
         new DateTime.now().difference(await file.lastModified()) > duration) {
       logger.debug('File $path was found but the information is too stale,'
           'for the duration: $duration');
-      return new Try.from(new CacheResult.noResult());
+      return new CacheResult.noResult();
     }
 
-    return tryStartAsync(() async {
-      logger.debug('Found $path in file cache');
-      var text = await file.readAsString();
+    logger.debug('Found $path in file cache');
+
+    try {
+      String text = await file.readAsString();
       memoryCache[path] = text;
       return new CacheResult(text);
-    });
+    } catch (error, st) {
+      logger.error("Could not read $path:", error, st);
+      return new CacheResult.noResult();
+    }
   }
 
   /// Store [text] as the cache data for [path].
