@@ -47,6 +47,7 @@ html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # 
 html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 html/mirrors_js_typed_interop_test: Pass, Slow
 html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
+html/websql_test: Pass, Timeout # Roll 50 failure
 isolate/enum_const_test/02: RuntimeError # Issue 21817
 isolate/error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
 isolate/error_exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
@@ -231,6 +232,14 @@ html/typing_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Fa
 html/unknownelement_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/uri_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/url_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/webgl_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/webgl_extensions_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/websocket_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/websql_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/wheelevent_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/window_eq_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/window_mangling_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/window_nosuchmethod_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 html/custom/mirrors_2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -331,6 +340,14 @@ html/typing_test: RuntimeError
 html/unknownelement_test: RuntimeError
 html/uri_test: RuntimeError
 html/url_test: RuntimeError
+html/webgl_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/webgl_extensions_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/websocket_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/websql_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/wheelevent_test: RuntimeError
+html/window_eq_test: RuntimeError
+html/window_mangling_test: RuntimeError
+html/window_nosuchmethod_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && $csp ]
 html/js_typed_interop_rename_static_test: RuntimeError
@@ -370,3 +387,7 @@ html/speechrecognition_test: RuntimeError # Please triage.
 html/svg_test: RuntimeError # Please triage.
 math/math2_test: RuntimeError
 math/math_test: RuntimeError
+
+[  $compiler == dart2js && $runtime == ff ]
+html/webgl_1_test: Pass, Fail   # Issue 8219
+html/websql_test: Fail

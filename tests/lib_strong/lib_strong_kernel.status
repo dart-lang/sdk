@@ -77,12 +77,6 @@ html/isolates_test: DartkCompileTimeError
 html/js_function_getter_test: DartkCompileTimeError
 html/js_interop_1_test: DartkCompileTimeError
 html/js_test: DartkCompileTimeError
-html/websocket_test: DartkCompileTimeError
-html/websql_test: DartkCompileTimeError
-html/wheelevent_test: DartkCompileTimeError
-html/window_eq_test: DartkCompileTimeError
-html/window_mangling_test: DartkCompileTimeError
-html/window_nosuchmethod_test: DartkCompileTimeError
 html/window_test: DartkCompileTimeError
 html/worker_api_test: DartkCompileTimeError
 html/worker_test: DartkCompileTimeError

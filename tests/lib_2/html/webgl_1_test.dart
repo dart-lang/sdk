@@ -12,7 +12,7 @@ import 'package:expect/minitest.dart';
 // Test that WebGL is present in dart:web_gl API
 
 final isRenderingContext = predicate((x) => x is RenderingContext);
-final isContextAttributes = predicate((x) => x is gl.ContextAttributes);
+final isContextAttributes = predicate((x) => x is Map);
 
 main() {
   group('supported', () {
@@ -58,36 +58,36 @@ main() {
 
       test('texImage2D', () {
         var canvas = new CanvasElement();
-        var context = canvas.getContext3d();
+        gl.RenderingContext context = canvas.getContext3d();
         var pixels = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
-        context.texImage2DUntyped(1, 1, 1, 1, 10, 10, 1, 1, pixels);
+        context.texImage2D(1, 1, 1, 1, 10, 10, 1, 1, pixels);
 
         canvas = new CanvasElement();
         document.body.children.add(canvas);
-        var context2 = canvas.getContext('2d');
-        context.texImage2DData(
+        CanvasRenderingContext2D context2 = canvas.getContext('2d');
+        context.texImage2D(
             1, 1, 1, 1, 10, context2.getImageData(10, 10, 10, 10));
 
-        context.texImage2DImage(1, 1, 1, 1, 10, new ImageElement());
-        context.texImage2DCanvas(1, 1, 1, 1, 10, new CanvasElement());
-        context.texImage2DVideo(1, 1, 1, 1, 10, new VideoElement());
+        context.texImage2D(1, 1, 1, 1, 10, new ImageElement());
+        context.texImage2D(1, 1, 1, 1, 10, new CanvasElement());
+        context.texImage2D(1, 1, 1, 1, 10, new VideoElement());
       });
 
       test('texSubImage2D', () {
         var canvas = new CanvasElement();
-        var context = canvas.getContext3d();
+        gl.RenderingContext context = canvas.getContext3d();
         var pixels = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
-        context.texSubImage2DUntyped(1, 1, 1, 1, 10, 10, 1, 1, pixels);
+        context.texSubImage2D(1, 1, 1, 1, 1, 10, 10, 1, pixels);
 
         canvas = new CanvasElement();
         document.body.children.add(canvas);
-        var context2 = canvas.getContext('2d');
-        context.texSubImage2DData(
+        CanvasRenderingContext2D context2 = canvas.getContext('2d');
+        context.texSubImage2D(
             1, 1, 1, 1, 1, 10, context2.getImageData(10, 10, 10, 10));
 
-        context.texSubImage2DImage(1, 1, 1, 1, 1, 10, new ImageElement());
-        context.texSubImage2DCanvas(1, 1, 1, 1, 1, 10, new CanvasElement());
-        context.texSubImage2DVideo(1, 1, 1, 1, 1, 10, new VideoElement());
+        context.texSubImage2D(1, 1, 1, 1, 1, 10, new ImageElement());
+        context.texSubImage2D(1, 1, 1, 1, 1, 10, new CanvasElement());
+        context.texSubImage2D(1, 1, 1, 1, 1, 10, new VideoElement());
       });
 
       test('getContextAttributes', () {
@@ -98,15 +98,15 @@ main() {
         expect(attributes, isNotNull);
         expect(attributes, isContextAttributes);
 
-        expect(attributes.alpha, isBoolean);
-        expect(attributes.antialias, isBoolean);
-        expect(attributes.depth, isBoolean);
-        expect(attributes.premultipliedAlpha, isBoolean);
-        expect(attributes.preserveDrawingBuffer, isBoolean);
-        expect(attributes.stencil, isBoolean);
+        expect(attributes['alpha'], isBoolean);
+        expect(attributes['antialias'], isBoolean);
+        expect(attributes['depth'], isBoolean);
+        expect(attributes['premultipliedAlpha'], isBoolean);
+        expect(attributes['preserveDrawingBuffer'], isBoolean);
+        expect(attributes['stencil'], isBoolean);
       });
     }
   });
 }
 
-Matcher isBoolean = anyOf(isTrue, isFalse);
+final isBoolean = predicate((v) => v == true || v == false);

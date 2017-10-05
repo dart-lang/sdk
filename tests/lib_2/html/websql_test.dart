@@ -3,8 +3,8 @@ library WebDBTest;
 import 'dart:async';
 import 'dart:html';
 import 'dart:web_sql';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+
+import 'package:expect/minitest.dart';
 
 Future<SqlTransaction> transaction(SqlDatabase db) {
   final completer = new Completer<SqlTransaction>.sync();
@@ -78,8 +78,6 @@ Future<SqlResultSet> dropTable(SqlTransaction transaction, String tableName,
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('supported', () {
     test('supported', () {
       expect(SqlDatabase.supported, true);

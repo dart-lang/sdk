@@ -66,6 +66,7 @@ html/media_stream_test: Pass, Fail
 html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
+html/webgl_1_test: Pass, Fail # Issue 8219
 
 [ ($runtime == safari && $builder_tag == mac10_7)|| $runtime == safarimobilesim ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
@@ -155,6 +156,10 @@ html/transferables_test: Pass, Fail # Issues 20659.
 html/transition_event_test: Skip # Times out. Issue 22167
 html/two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 html/touchevent_test: Fail # IE does not support TouchEvents
+html/websocket_test: Fail # Issue 7875. Closed with "working as intended".
+html/wheelevent_test: RuntimeError # Issue 23437
+html/webgl_1_test: Fail
+html/websql_test: Fail
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
@@ -169,6 +174,7 @@ mirrors/redirecting_factory_different_type_test/02: RuntimeError
 [ $runtime == safarimobilesim ]
 html/performance_api_test/supported: Fail
 html/notification_test: RuntimeError # Issue 22869
+html/wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
 
 [ $runtime == safari ]
 html/notification_test: Fail # Safari doesn't let us access the fields of the Notification to verify them.
@@ -177,3 +183,9 @@ html/touchevent_test: Fail # Safari does not support TouchEvents
 [ $runtime == chrome ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/touchevent_test: Fail # Touch events are only supported on touch devices
+
+[$runtime == drt || $runtime == chrome || $runtime == chromeOnAndroid ]
+html/webgl_1_test: Pass, Fail # Issue 8219
+
+[ $runtime == drt ]
+html/webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.
