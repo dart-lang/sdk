@@ -51,6 +51,16 @@ html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922
 html/custom_elements_23127_test: Skip # Issue 29922
 html/custom_elements_test: Skip # Issue 29922
+html/element_classes_svg_test: RuntimeError # Issue 29922
+html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
+html/js_typed_interop_side_cast_exp_test/01: RuntimeError # Requires --experimental-trust-js-interop-type-annotations flag.
+html/js_util_test: RuntimeError # Issue 29922
+html/js_typed_interop_type3_test/*: RuntimeError # Issue 30947
+html/js_typed_interop_type_test: RuntimeError # Issue 30947
+html/keyboard_event_test: RuntimeError # Issue 30946
+html/media_stream_test: RuntimeError # Issue 29922
+html/mediasource_test: RuntimeError # Issue 29922
+html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 math/random_big_test: RuntimeError # Issue 29922
 typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
@@ -63,15 +73,6 @@ mirrors/reflected_type_special_types_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typedefs_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typevars_test: RuntimeError # Issue 29922
 mirrors/regress_14304_test: RuntimeError # Issue 29922
-html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
-html/js_typed_interop_side_cast_exp_test/01: RuntimeError # Requires --experimental-trust-js-interop-type-annotations flag.
-html/js_util_test: RuntimeError # Issue 29922
-html/js_typed_interop_type3_test/*: RuntimeError # Issue 30947
-html/js_typed_interop_type_test: RuntimeError # Issue 30947
-html/keyboard_event_test: RuntimeError # Issue 30946
-html/media_stream_test: RuntimeError # Issue 29922
-html/mediasource_test: RuntimeError # Issue 29922
-html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 
 [ $strong && $compiler == dartdevc ]
 html/custom/document_register_template_test: Crash # Compiler crash issue ????
@@ -83,4 +84,5 @@ math/math2_test: RuntimeError # Issue 29922
 html/svg_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $runtime == chrome ]
+html/element_animate_test/timing_dict: RuntimeError # Issue 29922
 html/touchevent_test: RuntimeError # Issue 29922

@@ -120,6 +120,9 @@ html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not h
 [ $compiler == dart2js && $fast_startup ]
 html/mirrors_js_typed_interop_test: Fail # mirrors not supported
 
+[  $compiler == dart2js && $runtime == ff ]
+html/element_animate_test/timing_dict: RuntimeError # Issue 26730
+
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 html/js_typed_interop_bind_this_test: SkipByDesign
 html/js_typed_interop_callable_object_test: SkipByDesign
@@ -146,6 +149,11 @@ html/dart_object_local_storage_test: Crash # 'file:*/pkg/compiler/lib/src/common
 html/datalistelement_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/document_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/documentfragment_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/dom_constructors_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/domparser_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/element_add_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/element_animate_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/element_classes_svg_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.html/js_typed_interop_anonymous2_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous2_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -234,6 +242,11 @@ html/dart_object_local_storage_test: Crash # NoSuchMethodError: Class 'JMethod' 
 html/datalistelement_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/document_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/documentfragment_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/dom_constructors_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/domparser_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_add_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_animate_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_classes_svg_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_anonymous2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_anonymous_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.

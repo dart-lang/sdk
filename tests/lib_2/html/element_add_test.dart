@@ -6,7 +6,7 @@ import 'dart:html';
 
 import 'package:expect/minitest.dart';
 
-import 'util.dart';
+import 'utils.dart';
 
 main() {
   var isSpanElement = predicate((x) => x is SpanElement, 'is a SpanElemt');

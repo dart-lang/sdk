@@ -58,6 +58,7 @@ convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
+html/element_animate_test: Fail # Element.animate not supported on these browsers.
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 html/mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
@@ -128,6 +129,7 @@ isolate/unresolved_ports_test: Skip # Isolate.spawnUri
 mirrors/native_class_test: Pass, Slow
 
 [ $runtime == ie11 ]
+html/element_animate_test: Fail # Element.animate not supported on these browsers.
 html/canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
@@ -173,4 +175,5 @@ html/notification_test: Fail # Safari doesn't let us access the fields of the No
 html/touchevent_test: Fail # Safari does not support TouchEvents
 
 [ $runtime == chrome ]
+html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/touchevent_test: Fail # Touch events are only supported on touch devices
