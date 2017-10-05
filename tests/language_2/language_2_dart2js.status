@@ -832,10 +832,10 @@ vm/async_await_catch_stacktrace_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
+async_await_syntax_test/a06a: RuntimeError
+async_await_syntax_test/b06a: RuntimeError
+async_await_syntax_test/c06a: RuntimeError
+async_await_syntax_test/d06a: RuntimeError
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
@@ -864,10 +864,6 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-async_await_syntax_test/a06a: RuntimeError
-async_await_syntax_test/b06a: RuntimeError
-async_await_syntax_test/c06a: RuntimeError
-async_await_syntax_test/d06a: RuntimeError
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
@@ -1008,6 +1004,18 @@ internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of 
 invocation_mirror2_test: RuntimeError
 issue21079_test: RuntimeError
 issue_1751477_test: CompileTimeError
+lazy_static8_test: RuntimeError
+left_shift_test: RuntimeError
+list_literal4_test: RuntimeError
+list_literal1_test/01: MissingCompileTimeError
+list_literal4_test/00: MissingCompileTimeError
+list_literal4_test/01: MissingCompileTimeError
+list_literal4_test/03: MissingCompileTimeError
+list_literal4_test/04: MissingCompileTimeError
+list_literal4_test/05: MissingCompileTimeError
+list_literal_syntax_test/01: MissingCompileTimeError
+list_literal_syntax_test/02: MissingCompileTimeError
+list_literal_syntax_test/03: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
@@ -1076,6 +1084,15 @@ override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
+override_inheritance_mixed_test/01: MissingCompileTimeError
+override_inheritance_mixed_test/02: MissingCompileTimeError
+override_inheritance_mixed_test/03: MissingCompileTimeError
+override_inheritance_mixed_test/04: MissingCompileTimeError
+override_inheritance_mixed_test/08: MissingCompileTimeError
+override_inheritance_mixed_test/09: MissingCompileTimeError
+override_method_with_field_test/01: MissingCompileTimeError
+positional_parameters_type_test/01: MissingCompileTimeError
+positional_parameters_type_test/02: MissingCompileTimeError
 type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/js_backend/constant_emitter.dart': Failed assertion: line 287 pos 14: 'type is DynamicType': is not true.
 type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
@@ -1088,26 +1105,15 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
-list_literal4_test: RuntimeError
-override_inheritance_mixed_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/02: MissingCompileTimeError
-override_inheritance_mixed_test/03: MissingCompileTimeError
-override_inheritance_mixed_test/04: MissingCompileTimeError
-override_method_with_field_test/01: MissingCompileTimeError
-lazy_static8_test: RuntimeError
-left_shift_test: RuntimeError
-positional_parameters_type_test/01: MissingCompileTimeError
-positional_parameters_type_test/02: MissingCompileTimeError
-
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
-async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(Stream.T) in (local(Stream.fromIterable#))in j:closure_call(Stream_Stream$fromIterable_closure.call).
+async_await_syntax_test/a06a: RuntimeError
+async_await_syntax_test/b06a: RuntimeError
+async_await_syntax_test/c06a: RuntimeError
+async_await_syntax_test/d06a: RuntimeError
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
@@ -1136,10 +1142,6 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-async_await_syntax_test/a06a: RuntimeError
-async_await_syntax_test/b06a: RuntimeError
-async_await_syntax_test/c06a: RuntimeError
-async_await_syntax_test/d06a: RuntimeError
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
@@ -1287,6 +1289,18 @@ invocation_mirror2_test: RuntimeError
 invocation_mirror_test: RuntimeError
 issue21079_test: RuntimeError
 issue_1751477_test: CompileTimeError
+lazy_static8_test: RuntimeError
+left_shift_test: RuntimeError
+list_literal4_test: RuntimeError
+list_literal1_test/01: MissingCompileTimeError
+list_literal4_test/00: MissingCompileTimeError
+list_literal4_test/01: MissingCompileTimeError
+list_literal4_test/03: MissingCompileTimeError
+list_literal4_test/04: MissingCompileTimeError
+list_literal4_test/05: MissingCompileTimeError
+list_literal_syntax_test/01: MissingCompileTimeError
+list_literal_syntax_test/02: MissingCompileTimeError
+list_literal_syntax_test/03: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
@@ -1357,8 +1371,16 @@ override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
+override_inheritance_mixed_test/01: MissingCompileTimeError
+override_inheritance_mixed_test/02: MissingCompileTimeError
+override_inheritance_mixed_test/03: MissingCompileTimeError
+override_inheritance_mixed_test/04: MissingCompileTimeError
 override_inheritance_mixed_test/08: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
+override_method_with_field_test/01: MissingCompileTimeError
+positional_parameters_type_test/01: MissingCompileTimeError
+positional_parameters_type_test/02: MissingCompileTimeError
+type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
 type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
@@ -1370,16 +1392,6 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
-list_literal4_test: RuntimeError
-lazy_static8_test: RuntimeError
-left_shift_test: RuntimeError
-override_inheritance_mixed_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/02: MissingCompileTimeError
-override_inheritance_mixed_test/03: MissingCompileTimeError
-override_inheritance_mixed_test/04: MissingCompileTimeError
-override_method_with_field_test/01: MissingCompileTimeError
-positional_parameters_type_test/01: MissingCompileTimeError
-positional_parameters_type_test/02: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
