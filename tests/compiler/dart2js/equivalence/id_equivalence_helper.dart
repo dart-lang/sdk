@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/world.dart';
@@ -210,6 +211,10 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
   await for (FileSystemEntity entity in dataDir.list()) {
     String name = entity.uri.pathSegments.last;
     if (args.isNotEmpty && !args.contains(name)) continue;
+    List testOptions = options.toList();
+    if (name.endsWith('_ea.dart')) {
+      testOptions.add(Flags.enableAsserts);
+    }
     print('----------------------------------------------------------------');
     print('Checking ${entity.uri}');
     print('----------------------------------------------------------------');
@@ -219,14 +224,14 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     } else {
       print('--from ast------------------------------------------------------');
       await checkCode(annotatedCode, computeFromAst, compileFromSource,
-          options: options, verbose: verbose);
+          options: testOptions, verbose: verbose);
     }
     if (skipForKernel.contains(name)) {
       print('--skipped for kernel------------------------------------------');
     } else {
       print('--from kernel---------------------------------------------------');
       await checkCode(annotatedCode, computeFromKernel, compileFromDill,
-          options: options,
+          options: testOptions,
           verbose: verbose,
           filterActualData: filterActualData);
     }

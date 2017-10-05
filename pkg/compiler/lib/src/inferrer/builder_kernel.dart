@@ -263,11 +263,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation defaultStatement(ir.Statement node) {
+  defaultStatement(ir.Statement node) {
     // TODO(johnniwinther): Make this throw to assert that all statements are
     // handled.
     node.visitChildren(this);
-    return null;
   }
 
   @override
@@ -276,12 +275,46 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitBlock(ir.Block block) {
+  visitBlock(ir.Block block) {
     for (ir.Statement statement in block.statements) {
       statement.accept(this);
       if (_locals.aborts) break;
     }
-    return null;
+  }
+
+  @override
+  visitExpressionStatement(ir.ExpressionStatement node) {
+    visit(node.expression);
+  }
+
+  @override
+  visitEmptyStatement(ir.EmptyStatement node) {
+    // Nothing to do.
+  }
+
+  @override
+  visitAssertStatement(ir.AssertStatement node) {
+    // Avoid pollution from assert statement unless enabled.
+    if (!_options.enableUserAssertions) {
+      return null;
+    }
+    // TODO(johnniwinther): Should assert be used with --trust-type-annotations?
+    // TODO(johnniwinther): Track reachable for assertions known to fail.
+    List<IsCheck> positiveTests = <IsCheck>[];
+    List<IsCheck> negativeTests = <IsCheck>[];
+    bool simpleCondition =
+        handleCondition(node.condition, positiveTests, negativeTests);
+    LocalsHandler saved = _locals;
+    _locals = new LocalsHandler.from(_locals, node);
+    _updateIsChecks(positiveTests, negativeTests);
+
+    LocalsHandler thenLocals = _locals;
+    _locals = new LocalsHandler.from(saved, node);
+    if (simpleCondition) _updateIsChecks(negativeTests, positiveTests);
+    visit(node.message);
+    _locals.seenReturnOrThrow = true;
+    saved.mergeDiamondFlow(thenLocals, _locals);
+    _locals = saved;
   }
 
   @override
