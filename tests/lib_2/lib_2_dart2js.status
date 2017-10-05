@@ -154,6 +154,9 @@ html/domparser_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart':
 html/element_add_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/element_animate_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/element_classes_svg_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.html/js_typed_interop_anonymous2_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/element_classes_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/element_constructor_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/element_dimensions_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous2_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -247,6 +250,9 @@ html/domparser_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance 
 html/element_add_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_animate_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_classes_svg_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_classes_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_constructor_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_dimensions_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_anonymous2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_anonymous_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -335,6 +341,7 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
+html/element_classes_test: RuntimeError # Issue 30291
 html/media_stream_test: RuntimeError # Please triage.
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/kill_self_synchronously_test: RuntimeError
@@ -345,6 +352,7 @@ convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 2
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 html/custom/document_register_basic_test: Skip # Times out, or unittest times out
+html/element_classes_test: RuntimeError # Issue 27535
 html/messageevent_test: Pass, RuntimeError # Issue 28983
 html/media_stream_test: Fail
 html/request_animation_frame_test: Skip # Async test hangs.
