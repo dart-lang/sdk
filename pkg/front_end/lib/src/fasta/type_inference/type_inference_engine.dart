@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
@@ -34,16 +33,8 @@ import '../messages.dart' show getLocationFromNode;
 
 /// Data structure for tracking dependencies among fields, getters, and setters
 /// that require type inference.
-///
-/// TODO(paulberry): see if it's possible to make this class more lightweight
-/// by changing the API so that the walker is passed to computeDependencies().
-/// (This should allow us to drop the _typeInferenceEngine field).
-class AccessorNode extends dependencyWalker.Node<AccessorNode> {
-  final TypeInferenceEngineImpl _typeInferenceEngine;
-
+class AccessorNode {
   final ShadowMember member;
-
-  bool isImmediatelyEvident = false;
 
   InferenceState state = InferenceState.NotInferredYet;
 
@@ -58,7 +49,7 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
 
   final crossOverrides = <Member>[];
 
-  AccessorNode(this._typeInferenceEngine, this.member);
+  AccessorNode(this.member);
 
   List<Member> get candidateOverrides {
     if (isTrivialSetter) {
@@ -70,7 +61,6 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
     }
   }
 
-  @override
   bool get isEvaluated => state == InferenceState.Inferred;
 
   /// Indicates whether this accessor is a setter for which the only type we
@@ -85,11 +75,6 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
           !ShadowVariableDeclaration.isImplicitlyTyped(parameters[0]);
     }
     return false;
-  }
-
-  @override
-  List<AccessorNode> computeDependencies() {
-    return _typeInferenceEngine.computeAccessorDependencies(this);
   }
 
   @override
@@ -217,29 +202,6 @@ abstract class TypeInferenceEngine {
 /// possible without knowing the identity of the type parameter.  It defers to
 /// abstract methods for everything else.
 abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
-  /// Enables "expanded top level inference", which allows top level inference
-  /// to support all expressions, not just those defined as "immediately
-  /// evident" by https://github.com/dart-lang/sdk/pull/28218.
-  static const bool expandedTopLevelInference = true;
-
-  /// Enables "fused top level inference", which fuses dependency collection and
-  /// type inference of a field into a single step (a dependency is detected at
-  /// the time type inference attempts to read the depended-upon type, and this
-  /// triggers a recursive evaluation of the depended-upon type).
-  ///
-  /// This avoids some unnecessary dependencies, since we now know for sure
-  /// whether a dependency will be needed at the time we evaluate it.
-  ///
-  /// Requires [expandedTopLevelInference] to be `true`.
-  static const bool fusedTopLevelInference = true;
-
-  /// Enables "full top level inference", which allows a top level or static
-  /// field's inferred type to depend on the type of an instance field (provided
-  /// there are no circular dependencies).
-  ///
-  /// Requires [fusedTopLevelInference] to be `true`.
-  static const bool fullTopLevelInference = true;
-
   final Instrumentation instrumentation;
 
   final bool strongMode;
@@ -257,58 +219,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   TypeSchemaEnvironment typeSchemaEnvironment;
 
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
-
-  /// Computes type inference dependencies for the given [accessorNode].
-  List<AccessorNode> computeAccessorDependencies(AccessorNode accessorNode) {
-    // If the accessor's type is going to be determined by inheritance, then its
-    // dependencies are determined by inheritance too.
-    var candidateOverrides = accessorNode.candidateOverrides;
-    if (candidateOverrides.isNotEmpty) {
-      var dependencies = <AccessorNode>[];
-      for (var override in candidateOverrides) {
-        var dep = ShadowMember.getAccessorNode(override);
-        if (dep != null) dependencies.add(dep);
-      }
-      accessorNode.isImmediatelyEvident = true;
-      return dependencies;
-    }
-
-    // Otherwise its dependencies are based on the initializer expression.
-    var member = accessorNode.member;
-    if (member is ShadowField) {
-      if (expandedTopLevelInference) {
-        // In expanded top level inference, we determine the dependencies by
-        // doing a "dry run" of top level inference and recording which static
-        // fields were accessed.
-        var typeInferrer = getMemberTypeInferrer(member);
-        if (typeInferrer == null) {
-          // This can happen when there are errors in the field declaration.
-          return const [];
-        } else {
-          typeInferrer.startDryRun();
-          typeInferrer.listener.dryRunEnter(member.initializer);
-          typeInferrer.inferFieldTopLevel(member, null, true);
-          typeInferrer.listener.dryRunExit(member.initializer);
-          accessorNode.isImmediatelyEvident = true;
-          return typeInferrer.finishDryRun();
-        }
-      } else {
-        // In non-expanded top level inference, we determine the dependencies by
-        // calling `collectDependencies`; as a side effect this flags any
-        // expressions that are not "immediately evident".
-        // TODO(paulberry): get rid of this mode once we are sure we no longer
-        // need it.
-        var collector = new ShadowDependencyCollector();
-        collector.collectDependencies(member.initializer);
-        accessorNode.isImmediatelyEvident = collector.isImmediatelyEvident;
-        return collector.dependencies;
-      }
-    } else {
-      // Member is a getter/setter that doesn't override anything, so we can't
-      // infer a type for it; therefore it has no dependencies.
-      return const [];
-    }
-  }
 
   @override
   void computeFormalSafety(Class cls) {
@@ -406,13 +316,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   @override
   void finishTopLevel() {
     for (var accessorNode in accessorNodes) {
-      if (fusedTopLevelInference) {
-        assert(expandedTopLevelInference);
-        inferAccessorFused(accessorNode, null);
-      } else {
-        if (accessorNode.isEvaluated) continue;
-        new _AccessorWalker().walk(accessorNode);
-      }
+      inferAccessorFused(accessorNode, null);
     }
     for (ShadowVariableDeclaration formal in initializingFormals) {
       try {
@@ -446,14 +350,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         var inferredType = tryInferAccessorByInheritance(accessorNode);
         if (inferredType == null) {
           if (member is ShadowField) {
-            typeInferrer.isImmediatelyEvident = true;
-            inferredType = accessorNode.isImmediatelyEvident
-                ? typeInferrer.inferDeclarationType(
-                    typeInferrer.inferFieldTopLevel(member, null, true))
-                : const DynamicType();
-            if (!typeInferrer.isImmediatelyEvident) {
-              inferredType = const DynamicType();
-            }
+            inferredType = typeInferrer.inferDeclarationType(
+                typeInferrer.inferFieldTopLevel(member, null, true));
           } else {
             inferredType = const DynamicType();
           }
@@ -515,8 +413,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         // Mark the "dependant" accessor (if any) as depending on this one, and
         // invoke accessor inference for this node.
         dependant?.currentDependency = accessorNode;
-        // All accessors are "immediately evident" when doing fused inference.
-        accessorNode.isImmediatelyEvident = true;
         inferAccessor(accessorNode);
         dependant?.currentDependency = null;
         break;
@@ -561,11 +457,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   DartType _computeOverriddenAccessorType(
       Member override, AccessorNode accessorNode) {
-    if (fusedTopLevelInference) {
-      AccessorNode dependency = ShadowMember.getAccessorNode(override);
-      if (dependency != null) {
-        inferAccessorFused(dependency, accessorNode);
-      }
+    AccessorNode dependency = ShadowMember.getAccessorNode(override);
+    if (dependency != null) {
+      inferAccessorFused(dependency, accessorNode);
     }
     DartType overriddenType;
     if (override is Field) {
@@ -611,24 +505,5 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // formal outside of a class declaration).  The error should be reported
     // elsewhere, so just infer `dynamic`.
     return const DynamicType();
-  }
-}
-
-/// Subtype of [dependencyWalker.DependencyWalker] which is specialized to
-/// perform top level type inference.
-class _AccessorWalker extends dependencyWalker.DependencyWalker<AccessorNode> {
-  _AccessorWalker();
-
-  @override
-  void evaluate(AccessorNode f) {
-    f._typeInferenceEngine.inferAccessor(f);
-  }
-
-  @override
-  void evaluateScc(List<AccessorNode> scc) {
-    // Mark every accessor as part of a circularity.
-    for (var f in scc) {
-      f._typeInferenceEngine.inferAccessorCircular(f);
-    }
   }
 }

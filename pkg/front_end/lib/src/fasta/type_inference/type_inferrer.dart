@@ -75,27 +75,6 @@ bool isOverloadableArithmeticOperator(String name) {
       identical(name, '%');
 }
 
-bool _isUserDefinableOperator(String name) {
-  return identical(name, '<') ||
-      identical(name, '>') ||
-      identical(name, '<=') ||
-      identical(name, '>=') ||
-      identical(name, '==') ||
-      identical(name, '-') ||
-      identical(name, '+') ||
-      identical(name, '/') ||
-      identical(name, '~/') ||
-      identical(name, '*') ||
-      identical(name, '%') ||
-      identical(name, '|') ||
-      identical(name, '^') ||
-      identical(name, '&') ||
-      identical(name, '<<') ||
-      identical(name, '>>') ||
-      identical(name, '[]=') ||
-      identical(name, '~');
-}
-
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
 class ClosureContext {
@@ -327,14 +306,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inside a closure.
   ClosureContext closureContext;
 
-  /// When performing top level inference, this boolean is set to `false` if we
-  /// discover that the type of the object is not immediately evident.
-  ///
-  /// Not used when performing local inference.
-  bool isImmediatelyEvident = true;
-
-  List<AccessorNode> _dryRunDependencies;
-
   TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
       this.thisType, this.accessorNode)
       : coreTypes = engine.coreTypes,
@@ -343,10 +314,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel;
-
-  /// Indicates whether we are currently doing a "dry run" in order to collect
-  /// type inference dependencies.
-  bool get isDryRun => _dryRunDependencies != null;
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
@@ -466,14 +433,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       throw unhandled("${propertySet.runtimeType}", "findPropertySetMember",
           propertySet.fileOffset, Uri.parse(uri));
     }
-  }
-
-  /// Ends a dry run started by [startDryRun] and returns the collected
-  /// dependencies.
-  List<AccessorNode> finishDryRun() {
-    var dryRunDependencies = _dryRunDependencies;
-    _dryRunDependencies = null;
-    return dryRunDependencies;
   }
 
   FunctionType getCalleeFunctionType(
@@ -643,7 +602,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
       bool skipTypeArgumentInference: false,
-      bool forceArgumentInference: false,
       bool isConst: false}) {
     var calleeTypeParameters = calleeType.typeParameters;
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
@@ -680,33 +638,25 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
-    if (!isTopLevel ||
-        isOverloadedArithmeticOperator ||
-        TypeInferenceEngineImpl.expandedTopLevelInference) {
-      int i = 0;
-      _forEachArgument(arguments, (name, expression) {
-        DartType formalType = name != null
-            ? getNamedParameterType(calleeType, name)
-            : getPositionalParameterType(calleeType, i++);
-        DartType inferredFormalType = substitution != null
-            ? substitution.substituteType(formalType)
-            : formalType;
-        var expressionType = inferExpression(
-            expression,
-            inferredFormalType,
-            inferenceNeeded ||
-                isOverloadedArithmeticOperator ||
-                forceArgumentInference);
-        if (inferenceNeeded) {
-          formalTypes.add(formalType);
-          actualTypes.add(expressionType);
-        }
-        if (isOverloadedArithmeticOperator) {
-          returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
-              receiverType, expressionType);
-        }
-      });
-    }
+    int i = 0;
+    _forEachArgument(arguments, (name, expression) {
+      DartType formalType = name != null
+          ? getNamedParameterType(calleeType, name)
+          : getPositionalParameterType(calleeType, i++);
+      DartType inferredFormalType = substitution != null
+          ? substitution.substituteType(formalType)
+          : formalType;
+      var expressionType = inferExpression(expression, inferredFormalType,
+          inferenceNeeded || isOverloadedArithmeticOperator);
+      if (inferenceNeeded) {
+        formalTypes.add(formalType);
+        actualTypes.add(expressionType);
+      }
+      if (isOverloadedArithmeticOperator) {
+        returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
+            receiverType, expressionType);
+      }
+    });
     if (inferenceNeeded) {
       typeSchemaEnvironment.inferGenericFunctionOrType(
           returnType,
@@ -933,25 +883,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     var calleeType =
         getCalleeFunctionType(interfaceMember, receiverType, !isImplicitCall);
-    bool forceArgumentInference = false;
-    if (isDryRun) {
-      if (_isUserDefinableOperator(methodName.name)) {
-        // If this is an overloadable arithmetic operator, then type inference
-        // might depend on the RHS, so conservatively assume it does.
-        forceArgumentInference =
-            isOverloadableArithmeticOperator(methodName.name);
-      } else {
-        // If no type arguments were given, then type inference might depend on
-        // the arguments (because the called method might be generic), so
-        // conservatively assume it does.
-        forceArgumentInference = getExplicitTypeArguments(arguments) == null;
-      }
-    }
     var inferredType = inferInvocation(typeContext, typeNeeded, fileOffset,
         calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
-        receiverType: receiverType,
-        forceArgumentInference: forceArgumentInference);
+        receiverType: receiverType);
     listener.methodInvocationExit(
         expression, arguments, isImplicitCall, inferredType);
     return inferredType;
@@ -985,17 +920,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         ((interfaceMember is Procedure &&
                 interfaceMember.kind == ProcedureKind.Getter) ||
             interfaceMember is Field)) {
-      if (TypeInferenceEngineImpl.fullTopLevelInference) {
-        if (interfaceMember is ShadowField) {
-          var accessorNode = ShadowMember.getAccessorNode(interfaceMember);
-          if (accessorNode != null) {
-            engine.inferAccessorFused(accessorNode, this.accessorNode);
-          }
+      if (interfaceMember is ShadowField) {
+        var accessorNode = ShadowMember.getAccessorNode(interfaceMember);
+        if (accessorNode != null) {
+          engine.inferAccessorFused(accessorNode, this.accessorNode);
         }
-      } else {
-        // References to fields and getters can't be relied upon for top level
-        // inference.
-        recordNotImmediatelyEvident(fileOffset);
       }
     }
     if (interfaceMember is Member) {
@@ -1030,21 +959,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement(Statement statement);
 
-  /// Records that the accessor represented by [accessorNode] is a dependency of
-  /// the accessor for which we are currently doing a dry run of type inference.
-  ///
-  /// May only be called if a dry run is in progress.
-  void recordDryRunDependency(AccessorNode accessorNode) {
-    listener.recordDependency(accessorNode);
-    _dryRunDependencies.add(accessorNode);
-  }
-
-  void recordNotImmediatelyEvident(int fileOffset) {
-    assert(isTopLevel);
-    isImmediatelyEvident = false;
-    // TODO(paulberry): report an error.
-  }
-
   /// If the given [type] is a [TypeParameterType], resolve it to its bound.
   DartType resolveTypeParameter(DartType type) {
     DartType resolveOneStep(DartType type) {
@@ -1078,13 +992,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // Tortoise takes one step
       type = resolveOneStep(type);
     }
-  }
-
-  /// Begins a dry run of type inference, in which the goal is to collect the
-  /// dependencies of a given accessor.
-  void startDryRun() {
-    assert(_dryRunDependencies == null);
-    _dryRunDependencies = <AccessorNode>[];
   }
 
   DartType wrapFutureOrType(DartType type) {

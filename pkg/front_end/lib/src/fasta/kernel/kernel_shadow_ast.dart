@@ -19,7 +19,6 @@
 /// with the same kind of root node.
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
-import 'package:front_end/src/fasta/type_inference/dependency_collector.dart';
 import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
@@ -104,11 +103,6 @@ class ShadowAsExpression extends AsExpression implements ShadowExpression {
   ShadowAsExpression(Expression operand, DartType type) : super(operand, type);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -164,12 +158,6 @@ class ShadowAwaitExpression extends AwaitExpression
   ShadowAwaitExpression(Expression operand) : super(operand);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // Inference dependencies are the dependencies of the awaited expression.
-    collector.collectDependencies(operand);
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -202,11 +190,6 @@ class ShadowBlock extends Block implements ShadowStatement {
 /// Concrete shadow object representing a boolean literal in kernel form.
 class ShadowBoolLiteral extends BoolLiteral implements ShadowExpression {
   ShadowBoolLiteral(bool value) : super(value);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
@@ -283,13 +266,6 @@ class ShadowCascadeExpression extends Let implements ShadowExpression {
     assert(nextCascade.variable.initializer is _UnfinishedCascade);
     nextCascade.variable.initializer = expression;
     expression.parent = nextCascade.variable;
-  }
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // The inference dependencies are the inference dependencies of the cascade
-    // target.
-    collector.collectDependencies(variable.initializer);
   }
 
   @override
@@ -407,12 +383,6 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
     return '${runtimeType}(${parts.join(', ')})';
   }
 
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // Assignment expressions are not immediately evident expressions.
-    collector.recordNotImmediatelyEvident(fileOffset);
-  }
-
   List<String> _getToStringParts() {
     List<String> parts = [];
     if (desugared != null) parts.add('desugared=$desugared');
@@ -528,24 +498,13 @@ class ShadowConditionalExpression extends ConditionalExpression
       : super(condition, then, otherwise, null);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // Inference dependencies are the union of the inference dependencies of the
-    // two returned sub-expressions.
-    collector.collectDependencies(then);
-    collector.collectDependencies(otherwise);
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.conditionalExpressionEnter(this, typeContext) ||
             typeNeeded;
-    if (!inferrer.isTopLevel ||
-        TypeInferenceEngineImpl.expandedTopLevelInference) {
-      inferrer.inferExpression(
-          condition, inferrer.coreTypes.boolClass.rawType, false);
-    }
+    inferrer.inferExpression(
+        condition, inferrer.coreTypes.boolClass.rawType, false);
     DartType thenType = inferrer.inferExpression(then, typeContext, true);
     bool useLub = _forceLub || typeContext == null;
     DartType otherwiseType =
@@ -572,11 +531,6 @@ class ShadowConstructorInvocation extends ConstructorInvocation
       Constructor target, this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
@@ -611,44 +565,12 @@ class ShadowContinueSwitchStatement extends ContinueSwitchStatement
   }
 }
 
-/// Concrete implementation of [DependencyCollector] specialized to work with
-/// kernel objects.
-class ShadowDependencyCollector extends DependencyCollectorImpl {
-  @override
-  void collectDependencies(Expression expression) {
-    if (expression is ShadowExpression) {
-      // Use polymorphic dispatch on [KernelExpression] to perform whatever kind
-      // of type inference is correct for this kind of statement.
-      // TODO(paulberry): experiment to see if dynamic dispatch would be better,
-      // so that the type hierarchy will be simpler (which may speed up "is"
-      // checks).
-      expression._collectDependencies(this);
-    } else {
-      // Encountered an expression type for which type inference is not yet
-      // implemented, so just assume the expression does not have an immediately
-      // evident type for now.
-      // TODO(paulberry): once the BodyBuilder uses shadow classes for
-      // everything, this case should no longer be needed.
-      recordNotImmediatelyEvident(expression.fileOffset);
-    }
-  }
-}
-
 /// Shadow object for [DirectMethodInvocation].
 class ShadowDirectMethodInvocation extends DirectMethodInvocation
     implements ShadowExpression {
   ShadowDirectMethodInvocation(
       Expression receiver, Procedure target, Arguments arguments)
       : super(receiver, target, arguments);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // DirectMethodInvocation can only occur as a result of a use of `super`,
-    // and `super` can't appear inside a field initializer.  So this code should
-    // never be reached.
-    unsupported(
-        "DirectMethodInvocation._collectDependencies", fileOffset, null);
-  }
 
   @override
   DartType _inferExpression(
@@ -666,14 +588,6 @@ class ShadowDirectPropertyGet extends DirectPropertyGet
     implements ShadowExpression {
   ShadowDirectPropertyGet(Expression receiver, Member target)
       : super(receiver, target);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // DirectPropertyGet can only occur as a result of a use of `super`, and
-    // `super` can't appear inside a field initializer.  So this code should
-    // never be reached.
-    unsupported("DirectPropertyGet._collectDependencies", fileOffset, null);
-  }
 
   @override
   DartType _inferExpression(
@@ -704,11 +618,6 @@ class ShadowDoubleLiteral extends DoubleLiteral implements ShadowExpression {
   ShadowDoubleLiteral(double value) : super(value);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -723,10 +632,6 @@ class ShadowDoubleLiteral extends DoubleLiteral implements ShadowExpression {
 /// Common base class for shadow objects representing expressions in kernel
 /// form.
 abstract class ShadowExpression implements Expression {
-  /// Collects any dependencies of [expression], and reports errors if the
-  /// expression does not have an immediately evident type.
-  void _collectDependencies(ShadowDependencyCollector collector);
-
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [ShadowExpression] this is.
   DartType _inferExpression(
@@ -756,11 +661,6 @@ class ShadowFactoryConstructorInvocation extends StaticInvocation
       Procedure target, this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
@@ -928,28 +828,6 @@ class ShadowFunctionExpression extends FunctionExpression
   ShadowFunctionExpression(FunctionNode function) : super(function);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    for (ShadowVariableDeclaration parameter in function.positionalParameters) {
-      if (parameter._implicitlyTyped) {
-        collector.recordNotImmediatelyEvident(parameter.fileOffset);
-      }
-    }
-    for (ShadowVariableDeclaration parameter in function.namedParameters) {
-      if (parameter._implicitlyTyped) {
-        collector.recordNotImmediatelyEvident(parameter.fileOffset);
-      }
-    }
-    var body = function.body;
-    if (body is ReturnStatement) {
-      // The inference dependencies are the inference dependencies of the return
-      // expression.
-      collector.collectDependencies(body.expression);
-    } else {
-      collector.recordNotImmediatelyEvident(fileOffset);
-    }
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.functionExpressionEnter(this, typeContext) ||
@@ -979,12 +857,6 @@ class ShadowIfNullExpression extends Let implements ShadowExpression {
 
   /// Returns the expression to the right of `??`.
   Expression get _rhs => body.then;
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // If-null expressions are not immediately evident expressions.
-    collector.recordNotImmediatelyEvident(fileOffset);
-  }
 
   @override
   DartType _inferExpression(
@@ -1104,11 +976,6 @@ class ShadowIntLiteral extends IntLiteral implements ShadowExpression {
   ShadowIntLiteral(int value) : super(value);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -1137,11 +1004,6 @@ class ShadowIsExpression extends IsExpression implements ShadowExpression {
   ShadowIsExpression(Expression operand, DartType type) : super(operand, type);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -1157,11 +1019,6 @@ class ShadowIsExpression extends IsExpression implements ShadowExpression {
 class ShadowIsNotExpression extends Not implements ShadowExpression {
   ShadowIsNotExpression(Expression operand, DartType type, int charOffset)
       : super(new IsExpression(operand, type)..fileOffset = charOffset);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
@@ -1199,13 +1056,6 @@ class ShadowListLiteral extends ListLiteral implements ShadowExpression {
         super(expressions,
             typeArgument: typeArgument ?? const DynamicType(),
             isConst: isConst);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    if (_declaredTypeArgument == null) {
-      expressions.forEach(collector.collectDependencies);
-    }
-  }
 
   @override
   DartType _inferExpression(
@@ -1271,11 +1121,6 @@ class ShadowLogicalExpression extends LogicalExpression
       : super(left, operator, right);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.logicalExpressionEnter(this, typeContext) ||
@@ -1302,17 +1147,6 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
             keyType: keyType ?? const DynamicType(),
             valueType: valueType ?? const DynamicType(),
             isConst: isConst);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    assert((_declaredKeyType == null) == (_declaredValueType == null));
-    if (_declaredKeyType == null) {
-      for (var entry in entries) {
-        collector.collectDependencies(entry.key);
-        collector.collectDependencies(entry.value);
-      }
-    }
-  }
 
   @override
   DartType _inferExpression(
@@ -1428,16 +1262,6 @@ class ShadowMethodInvocation extends MethodInvocation
         super(receiver, name, arguments, interfaceTarget);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // The inference dependencies are the inference dependencies of the
-    // receiver.
-    collector.collectDependencies(receiver);
-    if (isOverloadableArithmeticOperator(name.name)) {
-      collector.collectDependencies(arguments.positional[0]);
-    }
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return inferrer.inferMethodInvocation(
@@ -1460,11 +1284,6 @@ class ShadowNamedFunctionExpression extends Let implements ShadowExpression {
       : super(variable, new VariableGet(variable));
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    collector.collectDependencies(variable.initializer);
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -1482,11 +1301,6 @@ class ShadowNamedFunctionExpression extends Let implements ShadowExpression {
 /// Shadow object for [Not].
 class ShadowNot extends Not implements ShadowExpression {
   ShadowNot(Expression operand) : super(operand);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    collector.collectDependencies(operand);
-  }
 
   @override
   DartType _inferExpression(
@@ -1515,12 +1329,6 @@ class ShadowNullAwareMethodInvocation extends Let implements ShadowExpression {
   ConditionalExpression get body => super.body;
 
   MethodInvocation get _desugaredInvocation => body.otherwise;
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // Null aware expressions are not immediately evident.
-    collector.recordNotImmediatelyEvident(fileOffset);
-  }
 
   @override
   DartType _inferExpression(
@@ -1558,12 +1366,6 @@ class ShadowNullAwarePropertyGet extends Let implements ShadowExpression {
   PropertyGet get _desugaredGet => body.otherwise;
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // Null aware expressions are not immediately evident.
-    collector.recordNotImmediatelyEvident(fileOffset);
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     var inferredType = inferrer.inferPropertyGet(this, variable.initializer,
@@ -1578,11 +1380,6 @@ class ShadowNullAwarePropertyGet extends Let implements ShadowExpression {
 
 /// Concrete shadow object representing a null literal in kernel form.
 class ShadowNullLiteral extends NullLiteral implements ShadowExpression {
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
-
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
@@ -1681,15 +1478,9 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
           ((writeMember is Procedure &&
                   writeMember.kind == ProcedureKind.Setter) ||
               writeMember is Field)) {
-        if (TypeInferenceEngineImpl.fullTopLevelInference) {
-          if (writeMember is ShadowField && writeMember._accessorNode != null) {
-            inferrer.engine.inferAccessorFused(
-                writeMember._accessorNode, inferrer.accessorNode);
-          }
-        } else {
-          // References to fields and setters can't be relied upon for top level
-          // inference.
-          inferrer.recordNotImmediatelyEvident(fileOffset);
+        if (writeMember is ShadowField && writeMember._accessorNode != null) {
+          inferrer.engine.inferAccessorFused(
+              writeMember._accessorNode, inferrer.accessorNode);
         }
       }
     }
@@ -1713,25 +1504,6 @@ class ShadowPropertyGet extends PropertyGet implements ShadowExpression {
   ShadowPropertyGet.byReference(
       Expression receiver, Name name, Reference interfaceTargetReference)
       : super.byReference(receiver, name, interfaceTargetReference);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // A simple or qualified identifier referring to a top level function,
-    // static variable, field, getter; or a static class variable, static getter
-    // or method; or an instance method; has the inferred type of the referent.
-    // - Otherwise, if the identifier has no inferred or annotated type then it
-    //   is an error.
-    // - Note: specifically, references to instance fields and instance getters
-    //   are disallowed here.
-    // - The inference dependency of the identifier is the referent if the
-    //   referent is a candidate for inference.  Otherwise there are no
-    //   inference dependencies.
-
-    // For a property get, the only things we could be looking at are an
-    // instance field, an instance getter, or an instance method.  For the first
-    // two, we disallow them in [_inferExpression].  For the last, there are no
-    // field dependencies.  So we don't need to do anything here.
-  }
 
   @override
   DartType _inferExpression(
@@ -1761,11 +1533,6 @@ class ShadowRedirectingInitializer extends RedirectingInitializer
 
 /// Shadow object for [Rethrow].
 class ShadowRethrow extends Rethrow implements ShadowExpression {
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
-
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
@@ -1828,11 +1595,7 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
       _storeLetType(inferrer, write, writeContext);
       var target = write.target;
       if (target is ShadowField && target._accessorNode != null) {
-        if (inferrer.isDryRun) {
-          inferrer.recordDryRunDependency(target._accessorNode);
-        }
-        if (TypeInferenceEngineImpl.fusedTopLevelInference &&
-            inferrer.isTopLevel) {
+        if (inferrer.isTopLevel) {
           inferrer.engine
               .inferAccessorFused(target._accessorNode, inferrer.accessorNode);
         }
@@ -1850,36 +1613,13 @@ class ShadowStaticGet extends StaticGet implements ShadowExpression {
   ShadowStaticGet(Member target) : super(target);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // A simple or qualified identifier referring to a top level function,
-    // static variable, field, getter; or a static class variable, static getter
-    // or method; or an instance method; has the inferred type of the referent.
-    // - Otherwise, if the identifier has no inferred or annotated type then it
-    //   is an error.
-    // - Note: specifically, references to instance fields and instance getters
-    //   are disallowed here.
-    // - The inference dependency of the identifier is the referent if the
-    //   referent is a candidate for inference.  Otherwise there are no
-    //   inference dependencies.
-    // TODO(paulberry): implement the proper error checking logic.
-    var target = this.target;
-    if (target is ShadowField && target._accessorNode != null) {
-      collector.recordDependency(target._accessorNode);
-    }
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.staticGetEnter(this, typeContext) || typeNeeded;
     var target = this.target;
     if (target is ShadowField && target._accessorNode != null) {
-      if (inferrer.isDryRun) {
-        inferrer.recordDryRunDependency(target._accessorNode);
-      }
-      if (TypeInferenceEngineImpl.fusedTopLevelInference &&
-          inferrer.isTopLevel) {
+      if (inferrer.isTopLevel) {
         inferrer.engine
             .inferAccessorFused(target._accessorNode, inferrer.accessorNode);
       }
@@ -1902,11 +1642,6 @@ class ShadowStaticInvocation extends StaticInvocation
       : super.byReference(targetReference, arguments);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.staticInvocationEnter(this, typeContext) ||
@@ -1923,11 +1658,6 @@ class ShadowStaticInvocation extends StaticInvocation
 class ShadowStringConcatenation extends StringConcatenation
     implements ShadowExpression {
   ShadowStringConcatenation(List<Expression> expressions) : super(expressions);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
@@ -1950,11 +1680,6 @@ class ShadowStringConcatenation extends StringConcatenation
 /// Concrete shadow object representing a string literal in kernel form.
 class ShadowStringLiteral extends StringLiteral implements ShadowExpression {
   ShadowStringLiteral(String value) : super(value);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
@@ -1992,13 +1717,6 @@ class ShadowSuperMethodInvocation extends SuperMethodInvocation
       : super(name, arguments, interfaceTarget);
 
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // Super expressions should never occur in top level type inference.
-    // TODO(paulberry): but could they occur due to invalid code?
-    assert(false);
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     if (interfaceTarget != null) {
@@ -2018,13 +1736,6 @@ class ShadowSuperPropertyGet extends SuperPropertyGet
     implements ShadowExpression {
   ShadowSuperPropertyGet(Name name, [Member interfaceTarget])
       : super(name, interfaceTarget);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // Super expressions should never occur in top level type inference.
-    // TODO(paulberry): but could they occur due to invalid code?
-    assert(false);
-  }
 
   @override
   DartType _inferExpression(
@@ -2057,11 +1768,6 @@ class ShadowSwitchStatement extends SwitchStatement implements ShadowStatement {
 /// Shadow object for [SymbolLiteral].
 class ShadowSymbolLiteral extends SymbolLiteral implements ShadowExpression {
   ShadowSymbolLiteral(String value) : super(value);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
@@ -2110,11 +1816,6 @@ class ShadowSyntheticExpression extends Expression implements ShadowExpression {
 
   @override
   visitChildren(Visitor v) => desugared.visitChildren(v);
-
-  @override
-  _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
@@ -2193,13 +1894,6 @@ class ShadowSyntheticStatement extends Statement implements ShadowStatement {
 /// Shadow object for [ThisExpression].
 class ShadowThisExpression extends ThisExpression implements ShadowExpression {
   @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // Field initializers are not allowed to refer to [this].  But if it
-    // happens, we can still proceed; no additional type inference dependencies
-    // are introduced.
-  }
-
-  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -2214,11 +1908,6 @@ class ShadowThisExpression extends ThisExpression implements ShadowExpression {
 /// Shadow object for [Throw].
 class ShadowThrow extends Throw implements ShadowExpression {
   ShadowThrow(Expression expression) : super(expression);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
@@ -2268,7 +1957,7 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
 
   @override
   AccessorNode createAccessorNode(ShadowMember member) {
-    AccessorNode accessorNode = new AccessorNode(this, member);
+    AccessorNode accessorNode = new AccessorNode(member);
     member._accessorNode = accessorNode;
     return accessorNode;
   }
@@ -2382,11 +2071,6 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
 /// Shadow object for [TypeLiteral].
 class ShadowTypeLiteral extends TypeLiteral implements ShadowExpression {
   ShadowTypeLiteral(DartType type) : super(type);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
@@ -2566,11 +2250,6 @@ class ShadowVariableGet extends VariableGet implements ShadowExpression {
 
   ShadowVariableGet(VariableDeclaration variable, this._fact, this._scope)
       : super(variable);
-
-  @override
-  void _collectDependencies(ShadowDependencyCollector collector) {
-    // No inference dependencies.
-  }
 
   @override
   DartType _inferExpression(
