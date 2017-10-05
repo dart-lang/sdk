@@ -98,12 +98,15 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    * `descriptors.length * (suffixes.length + 1)` tests generated.
    */
   buildTests(String groupName, List<TestDescriptor> descriptors,
-      List<TestSuffix> suffixes) {
+      List<TestSuffix> suffixes,
+      {String head, String tail}) {
     group(groupName, () {
       for (TestDescriptor descriptor in descriptors) {
-        _buildTestForDescriptorAndSuffix(descriptor, TestSuffix.eof);
-        for (TestSuffix suffix in suffixes) {
-          _buildTestForDescriptorAndSuffix(descriptor, suffix);
+        _buildTestForDescriptorAndSuffix(
+            descriptor, TestSuffix.eof, 0, head, tail);
+        for (int i = 0; i < suffixes.length; i++) {
+          _buildTestForDescriptorAndSuffix(
+              descriptor, suffixes[i], i + 1, head, tail);
         }
       }
     });
@@ -112,27 +115,49 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
   /**
    * Build a single test based on the given [descriptor] and [suffix].
    */
-  _buildTestForDescriptorAndSuffix(
-      TestDescriptor descriptor, TestSuffix suffix) {
+  _buildTestForDescriptorAndSuffix(TestDescriptor descriptor, TestSuffix suffix,
+      int suffixIndex, String head, String tail) {
     test('${descriptor.name}_${suffix.name}', () {
-      String invalid;
-      String valid;
-      if (suffix.text.isEmpty) {
-        invalid = descriptor.invalid;
-        valid = descriptor.valid;
-      } else {
-        invalid = '${descriptor.invalid}\n${suffix.text}';
-        valid = '${descriptor.valid}\n${suffix.text}';
+      //
+      // Compose the invalid and valid pieces of code.
+      //
+      StringBuffer invalid = new StringBuffer();
+      StringBuffer valid = new StringBuffer();
+      if (head != null) {
+        invalid.write(head);
+        valid.write(head);
       }
-      if (descriptor.failing) {
+      invalid.write(descriptor.invalid);
+      valid.write(descriptor.valid);
+      if (suffix.text.isNotEmpty) {
+        invalid.write(' ');
+        invalid.write(suffix.text);
+        valid.write(' ');
+        valid.write(suffix.text);
+      }
+      if (tail != null) {
+        invalid.write(tail);
+        valid.write(tail);
+      }
+      //
+      // Run the test.
+      //
+      List<bool> failing = descriptor.failing;
+      if (descriptor.allFailing || (failing != null && failing[suffixIndex])) {
+        bool failed = false;
         try {
-          testRecovery(invalid, descriptor.errorCodes, valid);
-          fail('Expected to fail, but passed');
+          testRecovery(
+              invalid.toString(), descriptor.errorCodes, valid.toString());
+          failed = true;
         } catch (e) {
           // Expected to fail.
         }
+        if (failed) {
+          fail('Expected to fail, but passed');
+        }
       } else {
-        testRecovery(invalid, descriptor.errorCodes, valid);
+        testRecovery(
+            invalid.toString(), descriptor.errorCodes, valid.toString());
       }
     });
   }
@@ -164,15 +189,21 @@ class TestDescriptor {
   final String valid;
 
   /**
-   * A flag indicating whether the test is expected to fail.
+   * A flag indicating whether all of the tests are expected to fail.
    */
-  final bool failing;
+  final bool allFailing;
+
+  /**
+   * A list containing one flag per expected test that indicates whether that
+   * specific test is expected to fail.
+   */
+  final List<bool> failing;
 
   /**
    * Initialize a newly created test descriptor.
    */
   TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,
-      {this.failing: false});
+      {this.allFailing: false, this.failing});
 }
 
 /**
