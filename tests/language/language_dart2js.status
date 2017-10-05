@@ -290,7 +290,6 @@ conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
-const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib1::f() (ShadowStaticInvocation)
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
@@ -638,7 +637,6 @@ conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
-const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib3::f() (ShadowStaticInvocation)
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError

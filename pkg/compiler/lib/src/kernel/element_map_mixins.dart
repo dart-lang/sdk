@@ -839,7 +839,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       if (parameterIndex >= node.function.requiredParameterCount) {
         ConstantExpression defaultValue;
         if (parameter.initializer != null) {
-          defaultValue = parameter.initializer.accept(this);
+          defaultValue = visit(parameter.initializer);
         } else {
           defaultValue = new NullConstantExpression();
         }
@@ -849,7 +849,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       parameterIndex++;
     }
     for (ir.VariableDeclaration parameter in node.function.namedParameters) {
-      ConstantExpression defaultValue = parameter.initializer.accept(this);
+      ConstantExpression defaultValue = visit(parameter.initializer);
       if (defaultValue == null) return null;
       defaultValues[parameter.name] = defaultValue;
     }
@@ -868,7 +868,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       for (ir.Field field in cls.fields) {
         if (field.isStatic) continue;
         if (field.initializer != null) {
-          registerField(field, field.initializer.accept(this));
+          registerField(field, visit(field.initializer));
         }
       }
     }
@@ -876,7 +876,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     ConstructedConstantExpression superConstructorInvocation;
     for (ir.Initializer initializer in node.initializers) {
       if (initializer is ir.FieldInitializer) {
-        registerField(initializer.field, initializer.value.accept(this));
+        registerField(initializer.field, visit(initializer.value));
       } else if (initializer is ir.SuperInitializer) {
         superConstructorInvocation = _computeConstructorInvocation(
             initializer.target, initializer.arguments);
