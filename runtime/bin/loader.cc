@@ -845,9 +845,11 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
     char* part_uri = reinterpret_cast<char*>(malloc(len + 1));
     snprintf(part_uri, len + 1, "%s/%s", library_url_string, url_string);
     Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
+    Dart_Handle result =
+        Dart_LoadSource(library, part_uri_obj, Dart_Null(),
+                        Builtin::PartSource(id, part_uri), 0, 0);
     free(part_uri);
-    return Dart_LoadSource(library, part_uri_obj, Dart_Null(),
-                           Builtin::PartSource(id, url_string), 0, 0);
+    return result;
   }
   // All cases should have been handled above.
   UNREACHABLE();

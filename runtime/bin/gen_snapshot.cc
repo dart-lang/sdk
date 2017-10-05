@@ -653,9 +653,16 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   if (libraryBuiltinId != Builtin::kInvalidLibrary) {
     // Special case for parting sources of a builtin library.
     if (tag == Dart_kSourceTag) {
-      return Dart_LoadSource(library, url, Dart_Null(),
-                             Builtin::PartSource(libraryBuiltinId, url_string),
-                             0, 0);
+      intptr_t len = snprintf(NULL, 0, "%s/%s", library_url_string, url_string);
+      char* patch_filename = reinterpret_cast<char*>(malloc(len + 1));
+      snprintf(patch_filename, len + 1, "%s/%s", library_url_string,
+               url_string);
+      Dart_Handle prefixed_url = Dart_NewStringFromCString(patch_filename);
+      Dart_Handle result = Dart_LoadSource(
+          library, prefixed_url, Dart_Null(),
+          Builtin::PartSource(libraryBuiltinId, patch_filename), 0, 0);
+      free(patch_filename);
+      return result;
     }
     ASSERT(tag == Dart_kImportTag);
     return DartUtils::NewError("Unable to import '%s' ", url_string);
