@@ -75,9 +75,11 @@ class ClassInferenceInfo {
   /// the class's generic parameters, and therefore requires covariant checks.
   IncludesTypeParametersCovariantly needsCheckVisitor;
 
-  final forwardingNodesForGettersAndMethods = <ForwardingNode>[];
+  /// Getters and methods in the class's API.  May include forwarding nodes.
+  final gettersAndMethods = <Member>[];
 
-  final forwardingNodesForSetters = <ForwardingNode>[];
+  /// Setters in the class's API.  May include forwarding nodes.
+  final setters = <Member>[];
 }
 
 /// Concrete shadow object representing a set of invocation arguments.
@@ -339,21 +341,19 @@ class ShadowClass extends Class {
   static ClassInferenceInfo getClassInferenceInfo(ShadowClass class_) =>
       class_._inferenceInfo;
 
-  /// Creates forwarding nodes for this class.
-  void setupForwardingNodes(InterfaceResolver interfaceResolver) {
-    interfaceResolver.createForwardingNodes(
-        this, _inferenceInfo.forwardingNodesForGettersAndMethods, false);
-    interfaceResolver.createForwardingNodes(
-        this, _inferenceInfo.forwardingNodesForSetters, true);
+  /// Creates API members for this class.
+  void setupApiMembers(InterfaceResolver interfaceResolver) {
+    interfaceResolver.createApiMembers(
+        this, _inferenceInfo.gettersAndMethods, false);
+    interfaceResolver.createApiMembers(this, _inferenceInfo.setters, true);
   }
 
   /// Resolves all forwarding nodes for this class, propagates covariance
   /// annotations, and creates forwarding stubs as needed.
   void finalizeCovariance(InterfaceResolver interfaceResolver) {
     interfaceResolver.finalizeCovariance(
-        this, _inferenceInfo.forwardingNodesForGettersAndMethods);
-    interfaceResolver.finalizeCovariance(
-        this, _inferenceInfo.forwardingNodesForSetters);
+        this, _inferenceInfo.gettersAndMethods);
+    interfaceResolver.finalizeCovariance(this, _inferenceInfo.setters);
     interfaceResolver.recordInstrumentation(this);
   }
 }

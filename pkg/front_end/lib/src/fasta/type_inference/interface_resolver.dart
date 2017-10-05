@@ -427,49 +427,45 @@ class InterfaceResolver {
   InterfaceResolver(
       this._typeEnvironment, this._instrumentation, this.strongMode);
 
-  /// Populates [forwardingNodes] with a list of the implemented and inherited
+  /// Populates [apiMembers] with a list of the implemented and inherited
   /// members of the given [class_]'s interface.
   ///
-  /// Each member of the class's interface is represented by a [ForwardingNode]
-  /// object.
+  /// Members of the class's interface that need to be resolved later are
+  /// represented by a [ForwardingNode] object.
   ///
   /// If [setters] is `true`, the list will be populated by setters; otherwise
   /// it will be populated by getters and methods.
-  void createForwardingNodes(
-      Class class_, List<ForwardingNode> forwardingNodes, bool setters) {
-    // First create a list of candidates for inheritance based on the members
-    // declared directly in the class.
-    List<Procedure> candidates = _typeEnvironment.hierarchy
-        .getDeclaredMembers(class_, setters: setters)
-        .map((member) => makeCandidate(member, setters))
-        .toList();
-    // Merge in candidates from superclasses.
-    if (class_.superclass != null) {
-      candidates = _mergeCandidates(candidates, class_.superclass, setters);
-    }
-    for (var supertype in class_.implementedTypes) {
-      candidates = _mergeCandidates(candidates, supertype.classNode, setters);
-    }
+  void createApiMembers(Class class_, List<Member> apiMembers, bool setters) {
+    List<Procedure> candidates = getCandidates(class_, setters);
     // Now create a forwarding node for each unique name.
-    forwardingNodes.length = candidates.length;
+    apiMembers.length = candidates.length;
     int storeIndex = 0;
-    int i = 0;
-    while (i < candidates.length) {
-      var name = candidates[i].name;
-      int j = i + 1;
-      while (j < candidates.length && candidates[j].name == name) {
-        j++;
+    forEachApiMember(candidates, (int start, int end, Name name) {
+      // TODO(paulberry): check for illegal getter/method mixing
+      var kind = candidates[start].kind;
+      var forwardingNode = new ForwardingNode(
+          this, class_, name, kind, candidates, setters, start, end);
+      if (kind == ProcedureKind.Method || kind == ProcedureKind.Operator) {
+        // Methods and operators can be resolved immediately.
+        apiMembers[storeIndex++] = forwardingNode.resolve();
+      } else {
+        // Getters and setters need to be resolved later, as part of type
+        // inference, so just save the forwarding node for now.
+        apiMembers[storeIndex++] = forwardingNode;
       }
-      forwardingNodes[storeIndex++] = new ForwardingNode(
-          this, class_, name, candidates[i].kind, candidates, setters, i, j);
-      i = j;
-    }
-    forwardingNodes.length = storeIndex;
+    });
+    apiMembers.length = storeIndex;
   }
 
-  void finalizeCovariance(Class class_, List<ForwardingNode> forwardingNodes) {
-    for (var node in forwardingNodes) {
-      var resolution = node.resolve();
+  void finalizeCovariance(Class class_, List<Member> apiMembers) {
+    for (int i = 0; i < apiMembers.length; i++) {
+      var member = apiMembers[i];
+      Member resolution;
+      if (member is ForwardingNode) {
+        apiMembers[i] = resolution = member.resolve();
+      } else {
+        resolution = member;
+      }
       if (resolution is Procedure &&
           resolution.isForwardingStub &&
           identical(resolution.enclosingClass, class_)) {
@@ -488,6 +484,28 @@ class InterfaceResolver {
             new InstrumentationValueForForwardingStub(resolution));
       }
     }
+  }
+
+  /// Gets a list of members implemented or potentially inherited by [class_],
+  /// sorted so that members with the same name are contiguous.
+  ///
+  /// If [setters] is `true`, setters are reported; otherwise getters, methods,
+  /// and operators are reported.
+  List<Procedure> getCandidates(Class class_, bool setters) {
+    // First create a list of candidates for inheritance based on the members
+    // declared directly in the class.
+    List<Procedure> candidates = _typeEnvironment.hierarchy
+        .getDeclaredMembers(class_, setters: setters)
+        .map((member) => makeCandidate(member, setters))
+        .toList();
+    // Merge in candidates from superclasses.
+    if (class_.superclass != null) {
+      candidates = _mergeCandidates(candidates, class_.superclass, setters);
+    }
+    for (var supertype in class_.implementedTypes) {
+      candidates = _mergeCandidates(candidates, supertype.classNode, setters);
+    }
+    return candidates;
   }
 
   /// If instrumentation is enabled, records the covariance bits for the given
@@ -594,6 +612,25 @@ class InterfaceResolver {
       if (field.isStatic) continue;
       recordCovariance(field.fileOffset, field.isCovariant,
           field.isGenericCovariantInterface, field.isGenericCovariantImpl);
+    }
+  }
+
+  /// Executes [callback] once for each uniquely named member of [candidates].
+  ///
+  /// The [start] and [end] values passed to [callback] are the start and
+  /// past-the-end indices into [candidates] of a group of members having the
+  /// same name.  The [name] value passed to [callback] is the common name.
+  static void forEachApiMember(List<Procedure> candidates,
+      void callback(int start, int end, Name name)) {
+    int i = 0;
+    while (i < candidates.length) {
+      var name = candidates[i].name;
+      int j = i + 1;
+      while (j < candidates.length && candidates[j].name == name) {
+        j++;
+      }
+      callback(i, j, name);
+      i = j;
     }
   }
 

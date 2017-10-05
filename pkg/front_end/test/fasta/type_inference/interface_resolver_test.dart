@@ -83,11 +83,8 @@ class InterfaceResolverTest {
     return candidates[0];
   }
 
-  List<Procedure> getCandidates(Class class_, bool setters) {
-    var forwardingNodes = getForwardingNodes(class_, setters);
-    expect(forwardingNodes, hasLength(1));
-    return ForwardingNode.getCandidates(forwardingNodes[0]);
-  }
+  List<Procedure> getCandidates(Class class_, bool setters) =>
+      interfaceResolver.getCandidates(class_, setters);
 
   ForwardingNode getForwardingNode(Class class_, bool setter) {
     var forwardingNodes = getForwardingNodes(class_, setter);
@@ -97,7 +94,12 @@ class InterfaceResolverTest {
 
   List<ForwardingNode> getForwardingNodes(Class class_, bool setters) {
     var forwardingNodes = <ForwardingNode>[];
-    interfaceResolver.createForwardingNodes(class_, forwardingNodes, setters);
+    var candidates = getCandidates(class_, setters);
+    InterfaceResolver.forEachApiMember(candidates,
+        (int start, int end, Name name) {
+      forwardingNodes.add(new ForwardingNode(interfaceResolver, class_, name,
+          candidates[start].kind, candidates, setters, start, end));
+    });
     return forwardingNodes;
   }
 

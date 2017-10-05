@@ -139,9 +139,7 @@ class SourceLoader<L> extends Loader<L> {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
         library.addCompileTimeError(
-            error.assertionMessage,
-            token.charOffset,
-            uri);
+            error.assertionMessage, token.charOffset, uri);
       }
       token = token.next;
     }
@@ -499,11 +497,17 @@ class SourceLoader<L> extends Loader<L> {
         library.prepareTopLevelInference(library, null);
       }
     });
-    for (ShadowClass class_ in hierarchy
-        .getOrderedClasses(sourceClasses.map((builder) => builder.target))) {
+    // Note: we need to create a list before iterating, since calling
+    // builder.prepareTopLevelInference causes further class hierarchy queries
+    // to be made which would otherwise result in a concurrent modification
+    // exception.
+    var orderedClasses = hierarchy
+        .getOrderedClasses(sourceClasses.map((builder) => builder.target))
+        .toList();
+    for (ShadowClass class_ in orderedClasses) {
       var builder = ShadowClass.getClassInferenceInfo(class_).builder;
       builder.prepareTopLevelInference(builder.library, builder);
-      class_.setupForwardingNodes(interfaceResolver);
+      class_.setupApiMembers(interfaceResolver);
     }
     ticker.logMs("Prepared top level inference");
   }
