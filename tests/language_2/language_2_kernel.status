@@ -7,19 +7,19 @@
 
 [ $compiler == dartk ]
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
-constructor_duplicate_final_test/01: MissingCompileTimeError
-constructor_duplicate_final_test/02: MissingCompileTimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
+constructor_duplicate_final_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/02: MissingCompileTimeError
+ct_const2_test: Pass, Crash # Flaky
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30931
 generic_function_type_as_type_argument_test/02: Pass # For the wrong reason, issue 30931
 generic_function_type_as_type_argument_test/03: CompileTimeError # Issue 30931
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30208
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
-type_variable_bounds4_test/01: MissingCompileTimeError
-ct_const2_test: Pass, Crash # Flaky
 library_env_test/has_no_mirror_support: RuntimeError
+type_variable_bounds4_test/01: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -238,6 +238,7 @@ assert_initializer_test/46: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/47: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
+async_await_test: RuntimeError
 compile_time_constant_checked_test/02: MissingCompileTimeError
 default_factory2_test/01: Fail
 function_type2_test: RuntimeError

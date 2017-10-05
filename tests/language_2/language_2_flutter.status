@@ -12,6 +12,7 @@ async_await_syntax_test/a05c: CompileTimeError
 async_await_syntax_test/a05e: CompileTimeError
 async_await_syntax_test/d08c: CompileTimeError
 async_await_test: CompileTimeError
+async_await_test: CompileTimeError
 await_backwards_compatibility_test/none: CompileTimeError
 await_for_cancel_test: Skip # Flutter Issue 9110
 await_for_test: Skip # Flutter Issue 9110
@@ -150,8 +151,11 @@ issue21079_test: CompileTimeError
 issue21079_test: CompileTimeError
 issue_25671a_test/01: CompileTimeError
 issue_25671b_test/01: CompileTimeError
-library_env_test/has_no_mirror_support: Pass
 library_env_test/has_mirror_support: RuntimeError, Ok
+library_env_test/has_no_mirror_support: Pass
+list_literal_syntax_test/01: CompileTimeError
+list_literal_syntax_test/02: CompileTimeError
+list_literal_syntax_test/03: CompileTimeError
 many_overridden_no_such_method_test: CompileTimeError
 method_override2_test/01: CompileTimeError
 method_override3_test/00: CompileTimeError
@@ -173,6 +177,7 @@ non_parameterized_factory2_test: CompileTimeError
 non_parameterized_factory_test: CompileTimeError
 null_test/none: CompileTimeError
 on_catch_malformed_type_test: CompileTimeError
+overridden_no_such_method_test: CompileTimeError
 overridden_no_such_method_test: CompileTimeError
 overridden_no_such_method_test: CompileTimeError
 overridden_no_such_method_test: CompileTimeError
@@ -220,6 +225,7 @@ override_inheritance_field_test/53: CompileTimeError
 override_inheritance_field_test/54: CompileTimeError
 override_inheritance_field_test/54: CompileTimeError
 override_inheritance_method_test/04: CompileTimeError
+override_inheritance_method_test/05: CompileTimeError
 override_inheritance_method_test/06: CompileTimeError
 override_inheritance_method_test/11: CompileTimeError
 override_inheritance_method_test/12: CompileTimeError
@@ -231,21 +237,23 @@ override_inheritance_method_test/21: CompileTimeError
 override_inheritance_method_test/27: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
-override_inheritance_method_test/05: CompileTimeError
-override_inheritance_method_test/31: CompileTimeError
-override_inheritance_method_test/33: CompileTimeError
-override_inheritance_method_test/32: CompileTimeError
 override_inheritance_method_test/30: CompileTimeError
-overridden_no_such_method_test: CompileTimeError
+override_inheritance_method_test/31: CompileTimeError
+override_inheritance_method_test/32: CompileTimeError
+override_inheritance_method_test/33: CompileTimeError
+prefix16_test: CompileTimeError
+prefix22_test: CompileTimeError
+private_access_test/03: CompileTimeError
+private_access_test/04: CompileTimeError
 static_initializer_type_error_test: CompileTimeError
 static_initializer_type_error_test: CompileTimeError
 type_parameter_test/none: CompileTimeError
 type_variable_bounds_test/00: CompileTimeError
 type_variable_bounds_test/06: CompileTimeError
 type_variable_bounds_test/07: CompileTimeError
+type_variable_bounds_test/08: CompileTimeError
 type_variable_bounds_test/09: CompileTimeError
 type_variable_bounds_test/10: CompileTimeError
-type_variable_bounds_test/08: CompileTimeError
 type_variable_scope2_test: CompileTimeError
 type_variable_scope_test/00: CompileTimeError
 type_variable_scope_test/01: CompileTimeError
@@ -264,13 +272,6 @@ vm/regress_27201_test: Fail # Flutter Issue 9110
 wrong_number_type_arguments_test/00: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
-private_access_test/03: CompileTimeError
-private_access_test/04: CompileTimeError
-list_literal_syntax_test/03: CompileTimeError
-list_literal_syntax_test/01: CompileTimeError
-list_literal_syntax_test/02: CompileTimeError
-prefix22_test: CompileTimeError
-prefix16_test: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.
