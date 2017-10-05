@@ -39,7 +39,8 @@ class Visitor extends SimpleAstVisitor {
   @override
   visitIfStatement(IfStatement node) {
     Statement elseStatement = node.elseStatement;
-    if (elseStatement is EmptyStatement) {
+    if (elseStatement is EmptyStatement &&
+        !elseStatement.semicolon.isSynthetic) {
       rule.reportLint(elseStatement);
     }
   }
