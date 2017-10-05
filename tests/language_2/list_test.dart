@@ -117,15 +117,11 @@ class ListTest {
     int element = unsorted[2];
     Expect.equals(9, element);
 
-    Expect.throws(
-        () => unsorted[2.1], (e) => e is ArgumentError || e is TypeError);
-
     Expect.throws(() => new List(-1));
     Expect.throws(() => new List(0x7fffffffffffffff));
 
     List list = new List();
-    // We cannot write just 'list.removeLast' due to issue 3769.
-    Expect.throws(() => list.removeLast(), (e) => e is RangeError);
+    Expect.throws(list.removeLast, (e) => e is RangeError);
     Expect.equals(0, list.length);
   }
 }

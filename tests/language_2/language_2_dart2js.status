@@ -630,6 +630,14 @@ type_variable_conflict_test/03: Fail # Issue 13702
 type_variable_conflict_test/04: Fail # Issue 13702
 type_variable_conflict_test/05: Fail # Issue 13702
 type_variable_conflict_test/06: Fail # Issue 13702
+list_literal4_test/00: MissingCompileTimeError
+list_literal4_test/01: MissingCompileTimeError
+list_literal4_test/03: MissingCompileTimeError
+list_literal4_test/04: MissingCompileTimeError
+list_literal4_test/05: MissingCompileTimeError
+list_literal_syntax_test/01: MissingCompileTimeError
+list_literal_syntax_test/02: MissingCompileTimeError
+list_literal_syntax_test/03: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
@@ -806,6 +814,7 @@ static_top_level_test/04: Crash # Issue 27394
 
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
+list_literal1_test/01: MissingCompileTimeError
 
 [ $compiler == dart2js && !$checked && $minified && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
@@ -1187,6 +1196,7 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
+list_literal4_test: RuntimeError
 override_inheritance_mixed_test/01: MissingCompileTimeError
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
@@ -1466,6 +1476,7 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
+list_literal4_test: RuntimeError
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 override_inheritance_mixed_test/01: MissingCompileTimeError

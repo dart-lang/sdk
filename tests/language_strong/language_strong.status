@@ -144,15 +144,6 @@ is_object_test: Skip
 isnot_malformed_type_test: Skip
 issue11724_test: Skip
 issue11793_test: Skip
-list_double_index_in_loop2_test: Skip
-list_double_index_in_loop_test: Skip
-list_literal1_test: Skip
-list_literal2_negative_test: Skip
-list_literal4_test: Skip
-list_literal_negative_test: Skip
-list_literal_syntax_test: Skip
-list_literal_test: Skip
-list_test: Skip
 literal_unary_plus_test: Skip
 local_function2_test: Skip
 local_function3_test: Skip
@@ -382,7 +373,6 @@ instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
 instanceof2_test: RuntimeError # Issue 29920
 instanceof4_test/01: RuntimeError # Issue 29920
 instanceof4_test/none: RuntimeError # Issue 29920
-list_is_test: RuntimeError # Issue 29920
 main_test/03: MissingRuntimeError # Issue 29920
 mint_arithmetic_test: RuntimeError # Issue 29920
 nan_identical_test: RuntimeError # Issue 29920

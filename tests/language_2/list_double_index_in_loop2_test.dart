@@ -19,7 +19,7 @@ foo(a) {
     // t's desired type is conflicting. Once it is used as array receiver. And
     // once as integer. The backward propagation thus can't decide.
     // The forward declaration, however, will assign type num.
-    var t = 0 + tata();
+    dynamic t = 0 + tata();
     i = t;
     if (!bar()) t[0];
   } else {

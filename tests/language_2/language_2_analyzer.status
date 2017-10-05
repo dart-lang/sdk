@@ -160,6 +160,7 @@ if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 is_not_class2_test/*: MissingCompileTimeError
 library_ambiguous_test/04: MissingCompileTimeError
+list_literal1_test/01: MissingCompileTimeError
 method_override2_test/00: MissingCompileTimeError
 method_override2_test/01: MissingCompileTimeError
 method_override2_test/02: MissingCompileTimeError
@@ -708,6 +709,8 @@ override_field_method1_negative_test: CompileTimeError
 override_field_method2_negative_test: CompileTimeError
 override_field_method4_negative_test: CompileTimeError
 override_field_method5_negative_test: CompileTimeError
+list_literal2_negative_test: CompileTimeError
+list_literal_negative_test: CompileTimeError
 map_literal_negative_test: CompileTimeError
 parameter_initializer1_negative_test: CompileTimeError
 parameter_initializer2_negative_test: CompileTimeError
@@ -927,6 +930,14 @@ if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
+list_literal4_test/00: MissingCompileTimeError
+list_literal4_test/01: MissingCompileTimeError
+list_literal4_test/03: MissingCompileTimeError
+list_literal4_test/04: MissingCompileTimeError
+list_literal4_test/05: MissingCompileTimeError
+list_literal_syntax_test/01: MissingCompileTimeError
+list_literal_syntax_test/02: MissingCompileTimeError
+list_literal_syntax_test/03: MissingCompileTimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError

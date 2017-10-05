@@ -12,7 +12,7 @@ bar() => true;
 // combined with 'integer' (i = 0) was narrowed to 'integer'. As a result no
 // check was inserted for the list access.
 foo(a) {
-  var i = 0;
+  num i = 0;
   while (true) {
     if (i > 1) return a[i];
     if (bar()) {

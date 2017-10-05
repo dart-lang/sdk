@@ -243,6 +243,15 @@ least_upper_bound_test/03: MissingCompileTimeError
 least_upper_bound_test/04: MissingCompileTimeError
 least_upper_bound_test/10: MissingCompileTimeError
 least_upper_bound_test/19: MissingCompileTimeError
+list_literal1_test/01: MissingCompileTimeError
+list_literal4_test/00: MissingCompileTimeError
+list_literal4_test/01: MissingCompileTimeError
+list_literal4_test/03: MissingCompileTimeError
+list_literal4_test/04: MissingCompileTimeError
+list_literal4_test/05: MissingCompileTimeError
+list_literal_syntax_test/01: MissingCompileTimeError
+list_literal_syntax_test/02: MissingCompileTimeError
+list_literal_syntax_test/03: MissingCompileTimeError
 least_upper_bound_test/20: MissingCompileTimeError
 least_upper_bound_test/23: MissingCompileTimeError
 least_upper_bound_test/24: MissingCompileTimeError

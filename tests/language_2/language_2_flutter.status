@@ -264,6 +264,9 @@ vm/regress_27201_test: Fail # Flutter Issue 9110
 wrong_number_type_arguments_test/00: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
+list_literal_syntax_test/03: CompileTimeError
+list_literal_syntax_test/01: CompileTimeError
+list_literal_syntax_test/02: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

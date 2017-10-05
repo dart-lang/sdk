@@ -240,6 +240,7 @@ assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 compile_time_constant_checked_test/02: MissingCompileTimeError
 default_factory2_test/01: Fail
 function_type2_test: RuntimeError
+list_literal1_test/01: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
 type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/none: RuntimeError

@@ -24,7 +24,7 @@ class ListLiteralTest {
     var d = m[2] - m[1];
     Expect.equals(1, d);
 
-    var e2 = [5.1, -55, 555, 5555][2];
+    dynamic e2 = [5.1, -55, 555, 5555][2];
     Expect.equals(555, e2);
 
     e2 = <num>[5.1, -55, 555, 5555][2];
@@ -33,11 +33,11 @@ class ListLiteralTest {
     e2 = const <num>[5.1, -55, 555, 5555][2];
     Expect.equals(555, e2);
 
-    e2 = const [
+    e2 = (const [
       5.1,
       const <num>[-55, 555],
       5555
-    ][1][1];
+    ][1] as dynamic)[1];
     Expect.equals(555, e2);
 
     Expect.equals(0, [].length);
