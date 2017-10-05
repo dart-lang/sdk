@@ -77,7 +77,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "@1.0.7",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "@v0.13.0+3",
+  "dartdoc_tag" : "@v0.14.1",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@1.0.0",
   "glob_tag": "@1.1.5",
