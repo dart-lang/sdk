@@ -487,7 +487,7 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('no lints for non-lib/ sources', () async {
+      test('lint lib/ sources and non-lib/ sources', () async {
         var packagesFilePath = new File('.packages').absolute.path;
         await dartlint.main([
           '--packages',
@@ -499,8 +499,23 @@ defineTests() {
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
-              'lib/a.dart 1:8 [lint] Document all public members.',
-              '2 files analyzed, 1 issue found'
+              'lib/a.dart 7:16 [lint] Document all public members',
+              'lib/a.dart 15:11 [lint] Document all public members',
+              'lib/a.dart 19:16 [lint] Document all public members',
+              'lib/a.dart 22:3 [lint] Document all public members',
+              'lib/a.dart 23:5 [lint] Document all public members',
+              'lib/a.dart 25:7 [lint] Document all public members',
+              'lib/a.dart 27:7 [lint] Document all public members',
+              'lib/a.dart 35:3 [lint] Document all public members',
+              'lib/a.dart 37:3 [lint] Document all public members',
+              'lib/a.dart 45:9 [lint] Document all public members',
+              'lib/a.dart 53:14 [lint] Document all public members',
+              'lib/a.dart 59:6 [lint] Document all public members',
+              'lib/a.dart 61:3 [lint] Document all public members',
+              'lib/a.dart 80:1 [lint] Document all public members',
+              'lib/a.dart 85:5 [lint] Document all public members',
+              'lib/a.dart 89:5 [lint] Document all public members',
+              '3 files analyzed, 16 issues found'
             ]));
       });
     });
