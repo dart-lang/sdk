@@ -220,3 +220,8 @@ js/null_test: CompileTimeError
 mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
+
+[ ($compiler == dartk || $compiler == dartkp) ]
+isolate/compile_time_error_test/01: MissingCompileTimeError
+isolate/deferred_in_isolate2_test: Skip # Deferred loading kernel issue 28335.
+isolate/deferred_in_isolate_test: Skip # Deferred loading kernel issue 28335.
