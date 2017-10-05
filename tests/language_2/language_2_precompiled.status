@@ -555,6 +555,7 @@ unresolved_top_level_var_test: MissingCompileTimeError
 vm/reflect_core_vm_test: SkipByDesign
 vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers
+runtime_type_function_test: RuntimeError
 void_block_return_test/00: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError

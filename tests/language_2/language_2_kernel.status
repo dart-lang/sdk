@@ -164,6 +164,7 @@ issue_1751477_test: RuntimeError
 type_literal_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
+runtime_type_function_test: RuntimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]

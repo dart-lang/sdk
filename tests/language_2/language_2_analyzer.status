@@ -718,6 +718,8 @@ parameter_initializer3_negative_test: CompileTimeError
 parameter_initializer4_negative_test: CompileTimeError
 parameter_initializer6_negative_test: CompileTimeError
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
+script1_negative_test: CompileTimeError
+script2_negative_test: CompileTimeError
 prefix1_negative_test: fail # Issue 11962
 prefix12_negative_test: fail # Issue 11962
 prefix11_negative_test: fail # Issue 11964

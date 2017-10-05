@@ -243,9 +243,6 @@ regress_23051_test: Skip
 regress_23408_test: Skip
 return_type_test: Skip
 rewrite_implicit_this_test: Skip
-scope_variable_test: Skip
-script1_negative_test: Skip
-script2_negative_test: Skip
 setter4_test: Skip
 setter_declaration2_negative_test: Skip
 setter_declaration_negative_test: Skip
