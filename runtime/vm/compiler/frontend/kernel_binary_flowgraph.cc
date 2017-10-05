@@ -644,11 +644,11 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
 
       intptr_t pos = 0;
       if (function.IsClosureFunction()) {
-        LocalVariable* variable = MakeVariable(
+        LocalVariable* closure_parameter = MakeVariable(
             TokenPosition::kNoSource, TokenPosition::kNoSource,
             Symbols::ClosureParameter(), AbstractType::dynamic_type());
-        variable->set_is_forced_stack();
-        scope_->InsertParameterAt(pos++, variable);
+        closure_parameter->set_is_forced_stack();
+        scope_->InsertParameterAt(pos++, closure_parameter);
       } else if (!function.is_static()) {
         // We use [is_static] instead of [IsStaticFunction] because the latter
         // returns `false` for constructors.
@@ -1632,23 +1632,29 @@ void StreamingScopeBuilder::VisitTypeParameterType() {
     function = function.parent_function();
   }
 
+  // The index here is the index identifying the type parameter binding site
+  // inside the DILL file, which uses a different indexing system than the VM
+  // uses for its 'TypeParameter's internally. This index includes both class
+  // and function type parameters.
+
+  intptr_t index = builder_->ReadUInt();  // read index for parameter.
+
   if (function.IsFactory()) {
     // The type argument vector is passed as the very first argument to the
     // factory constructor function.
     HandleSpecialLoad(&result_->type_arguments_variable,
                       Symbols::TypeArgumentsParameter());
-  } else if (!function.IsGeneric()) {
-    // TODO(30455): Kernel generic methods undone. Currently we only support
-    // generic toplevel methods. For no special load needs to be prepared for
-    // these, because the 'LocalVariable' for the type arguments is set on the
-    // 'ParsedFunction' directly. So we do nothing for generic methods.
-
-    // The type argument vector is stored on the
-    // instance object. We therefore need to capture `this`.
-    HandleSpecialLoad(&result_->this_variable, Symbols::This());
+  } else {
+    // If the type parameter is a parameter to this or an enclosing function, we
+    // can read it directly from the function type arguments vector later.
+    // Otherwise, the type arguments vector we need is stored on the instance
+    // object, so we need to capture 'this'.
+    Class& parent_class = Class::Handle(Z, function.Owner());
+    if (index < parent_class.NumTypeParameters()) {
+      HandleSpecialLoad(&result_->this_variable, Symbols::This());
+    }
   }
 
-  builder_->ReadUInt();              // read index for parameter.
   builder_->SkipOptionalDartType();  // read bound bound.
 }
 
@@ -7691,13 +7697,12 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         Closure::instantiator_type_arguments_offset());
   }
 
-  // The function signature can have uninstantiated function type parameters.
-  if (!function.HasInstantiatedSignature(kFunctions)) {
-    instructions += LoadLocal(closure);
-    instructions += LoadFunctionTypeArguments();
-    instructions += flow_graph_builder_->StoreInstanceField(
-        TokenPosition::kNoSource, Closure::function_type_arguments_offset());
-  }
+  // TODO(30455): We only need to save these if the closure uses any captured
+  // type parameters.
+  instructions += LoadLocal(closure);
+  instructions += LoadFunctionTypeArguments();
+  instructions += flow_graph_builder_->StoreInstanceField(
+      TokenPosition::kNoSource, Closure::function_type_arguments_offset());
 
   // Store the function and the context in the closure.
   instructions += LoadLocal(closure);

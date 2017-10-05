@@ -135,6 +135,7 @@ class ParsedFunction : public ZoneAllocated {
     ASSERT(instantiator != NULL);
     instantiator_ = instantiator;
   }
+
   LocalVariable* function_type_arguments() const {
     return function_type_arguments_;
   }

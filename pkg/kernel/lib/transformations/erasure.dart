@@ -37,7 +37,7 @@ class Erasure extends Transformer {
 
   // A set of type parameters which don't need to be substituted for their
   // bounds because the runtime is able to substitute them correctly at runtime.
-  Set<TypeParameter> usableTypeParameters = null;
+  Set<TypeParameter> usableTypeParameters = new Set<TypeParameter>();
 
   void transform(Program program) {
     program.accept(this);
@@ -83,8 +83,7 @@ class Erasure extends Transformer {
 
     var temporarySubstitution =
         Substitution.filtered(Substitution.fromMap(substitution), (parameter) {
-      return (usableTypeParameters == null ||
-          !usableTypeParameters.contains(parameter));
+      return !usableTypeParameters.contains(parameter);
     });
 
     type = temporarySubstitution.substituteType(type);
@@ -140,19 +139,12 @@ class Erasure extends Transformer {
       }
     }
 
-    // Type parameters which are defined on a method or top-level function can
-    // be used if they're not captured.
-    var save = null;
     if (node.parent.parent is Library || node.parent.parent is Class) {
-      usableTypeParameters = new Set<TypeParameter>.from(node.typeParameters);
-    } else {
-      save = usableTypeParameters;
-      usableTypeParameters = null;
+      usableTypeParameters.addAll(node.typeParameters);
     }
 
     node.transformChildren(this);
-    if (save != null) usableTypeParameters = save;
-
+    usableTypeParameters.removeAll(node.typeParameters);
     node.typeParameters.forEach(substitution.remove);
     return node;
   }

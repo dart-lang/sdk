@@ -807,13 +807,36 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
   return instructions;
 }
 
-// TODO(30455): Kernel generic methods undone. This seems to work for static
-// top-level functions, but probably needs to be revisited when generic methods
-// are fully supported in kernel.
+// This function is responsible for pushing a type arguments vector which
+// contains all type arguments of enclosing functions prepended to the type
+// arguments of the current function.
+//
+// TODO(30455): Kernel generic methods undone. This doesn't work for generic
+// closures.
 Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
   Fragment instructions;
-  ASSERT(parsed_function_->function_type_arguments() != NULL);
-  instructions += LoadLocal(parsed_function_->function_type_arguments());
+  if (!FLAG_reify_generic_functions) {
+    instructions += NullConstant();
+    return instructions;
+  }
+
+  const Function& function = parsed_function_->function();
+
+  if (function.IsClosureFunction() /* TODO(30455): && !function.IsGeneric()*/) {
+    LocalScope* scope = parsed_function_->node_sequence()->scope();
+    LocalVariable* closure = scope->VariableAt(0);
+    ASSERT(closure != NULL);
+    instructions += LoadLocal(closure);
+    instructions += LoadField(Closure::function_type_arguments_offset());
+
+  } else if (function.IsGeneric()) {
+    ASSERT(parsed_function_->function_type_arguments() != NULL);
+    instructions += LoadLocal(parsed_function_->function_type_arguments());
+
+  } else {
+    instructions += NullConstant();
+  }
+
   return instructions;
 }
 
