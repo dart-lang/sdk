@@ -30,18 +30,18 @@ class ClosingLabelsComputerTest extends AbstractContextTest {
   test_adjacentLinesExcluded() async {
     String content = """
 void myMethod() {
-  return new Thing(1,
-    2);
+  return /*1*/new Thing(1,
+    2)/*1:Thing*/;
 }
 """;
 
     var labels = await _computeElements(content);
-    _compareLabels(labels, content, expectedLabelCount: 0);
+    _compareLabels(labels, content, expectedLabelCount: 1);
   }
 
   /// When constructors span many like this, the node's start position is on the first line
   /// of the expression and not where the opening paren is, so this test ensures we
-  /// dont end up with lots of unwanted labels on each line here.
+  /// don't end up with lots of unwanted labels on each line here.
   test_chainedConstructorOverManyLines() async {
     String content = """
 main() {
@@ -57,7 +57,7 @@ main() {
 
   /// When chaining methods like this, the node's start position is on the first line
   /// of the expression and not where the opening paren is, so this test ensures we
-  /// dont end up with lots of unwanted labels on each line here.
+  /// don't end up with lots of unwanted labels on each line here.
   test_chainedMethodsOverManyLines() async {
     String content = """
 List<ClosingLabel> compute() {
@@ -155,14 +155,14 @@ main() {
       /*2*/new Bar(
           labels,
           /*3*/new Padding(
-              /*4*/new ClosingLabel(expectedStart, expectedLength, expectedLabel)/*4:ClosingLabel*/)/*3:Padding*/)/*2:Bar*/;
+              new ClosingLabel(expectedStart, expectedLength, expectedLabel))/*3:Padding*/)/*2:Bar*/;
     })/*1:Foo*/;
   }
 }
   """;
 
     var labels = await _computeElements(content);
-    _compareLabels(labels, content, expectedLabelCount: 4);
+    _compareLabels(labels, content, expectedLabelCount: 3);
   }
 
   test_multipleNested() async {

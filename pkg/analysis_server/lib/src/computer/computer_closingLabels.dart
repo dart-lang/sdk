@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 class DartUnitClosingLabelsComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
-  final Map<int, List<_ClosingLabelWithLineCount>> _closingLabelsByEndLine = {};
+  final List<ClosingLabel> _closingLabels = [];
 
   DartUnitClosingLabelsComputer(this._lineInfo, this._unit);
 
@@ -25,19 +25,8 @@ class DartUnitClosingLabelsComputer {
    */
   List<ClosingLabel> compute() {
     _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
-    return _closingLabelsByEndLine.values
-        .where((l) => l.any((cl) => cl.spannedLines >= 2))
-        .expand((cls) => cls)
-        .map((clwlc) => clwlc.label)
-        .toList();
+    return _closingLabels;
   }
-}
-
-class _ClosingLabelWithLineCount {
-  final ClosingLabel label;
-  final int spannedLines;
-
-  _ClosingLabelWithLineCount(this.label, this.spannedLines);
 }
 
 /**
@@ -102,14 +91,15 @@ class _DartUnitClosingLabelsComputerVisitor
         computer._lineInfo.getLocation(checkLinesUsing.offset);
     final LineInfo_Location end =
         computer._lineInfo.getLocation(checkLinesUsing.end - 1);
+
+    int spannedLines = end.lineNumber - start.lineNumber;
+    if (spannedLines < 1) {
+      return;
+    }
+
     final ClosingLabel closingLabel =
         new ClosingLabel(node.offset, node.length, label);
-    final _ClosingLabelWithLineCount labelWithSpan =
-        new _ClosingLabelWithLineCount(
-            closingLabel, end.lineNumber - start.lineNumber);
 
-    computer._closingLabelsByEndLine
-        .putIfAbsent(end.lineNumber, () => <_ClosingLabelWithLineCount>[])
-        .add(labelWithSpan);
+    computer._closingLabels.add(closingLabel);
   }
 }
