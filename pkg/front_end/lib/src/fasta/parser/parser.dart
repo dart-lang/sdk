@@ -21,6 +21,7 @@ import '../../scanner/token.dart'
         Keyword,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
+        SimpleToken,
         SyntheticKeywordToken,
         SyntheticStringToken,
         SyntheticToken,
@@ -2094,7 +2095,12 @@ class Parser {
       } while (optional(',', token));
       Token next = token.next;
       if (identical(token.stringValue, '>>')) {
+        // TODO(brianwilkerson) This doesn't fix the token stream to include the
+        // newly created tokens. That should be fixed when this functionality is
+        // moved into the TokenStreamRewriter.
+        Token gtgt = token;
         token = new Token(TokenType.GT, token.charOffset);
+        (token as SimpleToken).precedingComments = gtgt.precedingComments;
         token.next = new Token(TokenType.GT, token.charOffset + 1);
         token.next.next = next;
       }

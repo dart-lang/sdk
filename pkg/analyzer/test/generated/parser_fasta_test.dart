@@ -4113,22 +4113,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseTypeArgumentList_nested_withComment_double() {
-    // TODO(brianwilkerson) Does not capture comment when splitting '>>' into
-    // two tokens.
-    super.test_parseTypeArgumentList_nested_withComment_double();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeArgumentList_nested_withComment_tripple() {
-    // TODO(brianwilkerson) Does not capture comment when splitting '>>' into
-    // two tokens.
-    super.test_parseTypeArgumentList_nested_withComment_tripple();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
     super.test_parseTypeParameterList_parameterizedWithTrailingEquals();
   }
