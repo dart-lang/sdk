@@ -48,7 +48,6 @@ convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/streamed_conversion_utf8_decode_test: Slow, Pass
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/utf85_test: Slow, Pass
-html/client_rect_test: RuntimeError # Issue 29922
 html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922
 html/custom_elements_23127_test: Skip # Issue 29922
@@ -97,3 +96,6 @@ math/math2_test: RuntimeError # Issue 29922
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
 html/element_types_keygen_test: RuntimeError # Issue 29055
 html/touchevent_test: RuntimeError # Issue 29922
+
+[ $compiler == dartdevc && $runtime != none && $system != macos ]
+html/client_rect_test: RuntimeError # Issue 29922, Issue 31019
