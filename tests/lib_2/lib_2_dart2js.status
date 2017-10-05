@@ -172,7 +172,6 @@ html/custom/document_register_basic_test: Pass, Timeout
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_datalist_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
-html/element_types_test: RuntimeError # Issue 29922
 isolate/message_test: Skip # Issue 12627
 
 [ $compiler == dart2js && $browser ]
