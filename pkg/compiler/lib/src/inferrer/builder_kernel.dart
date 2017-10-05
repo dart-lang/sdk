@@ -258,9 +258,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation defaultExpression(ir.Expression node) {
-    // TODO(johnniwinther): Make this throw to assert that all expressions are
-    // handled.
-    return _types.dynamicType;
+    throw new UnimplementedError(
+        'Unhandled expression: ${node} (${node.runtimeType})');
   }
 
   @override
@@ -1079,6 +1078,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitRethrow(ir.Rethrow node) {
+    _locals.seenReturnOrThrow = true;
+    return _types.nonNullEmpty();
+  }
+
+  @override
   TypeInformation visitSuperPropertyGet(ir.SuperPropertyGet node) {
     // TODO(redemption): Track exposure of `this`.
     MemberEntity member = _elementMap.getSuperMember(
@@ -1113,6 +1118,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       return handleClosureCall(node, selector, mask, member, arguments);
     }
+  }
+
+  @override
+  TypeInformation visitAsExpression(ir.AsExpression node) {
+    TypeInformation operandType = visit(node.operand);
+    return _types.narrowType(operandType, _elementMap.getDartType(node.type));
   }
 }
 

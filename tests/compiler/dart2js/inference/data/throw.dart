@@ -7,6 +7,7 @@ main() {
   unconditionalThrow();
   conditionalThrow();
   conditionalThrowReturn();
+  unconditionalRethrow();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,4 +46,17 @@ _conditionalThrowReturn(/*[exact=JSBool]*/ o) {
 conditionalThrowReturn() {
   _conditionalThrowReturn(true);
   _conditionalThrowReturn(false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Method that rethrows unconditionally.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: unconditionalRethrow:[null]*/
+unconditionalRethrow() {
+  try {
+    throw 'foo';
+  } catch (e) {
+    rethrow;
+  }
 }
