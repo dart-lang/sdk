@@ -575,8 +575,7 @@ abstract class Compiler {
         _reporter.reportSuppressedMessagesSummary();
 
         if (compilationFailed) {
-          if (!options.generateCodeWithCompileTimeErrors ||
-              options.useKernelInSsa) {
+          if (!options.generateCodeWithCompileTimeErrors) {
             return;
           }
           if (mainFunction == null) return;

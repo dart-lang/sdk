@@ -8,7 +8,6 @@ import '../common/names.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/types.dart' show InterfaceType;
 import '../elements/entities.dart';
-import '../options.dart';
 import '../universe/selector.dart';
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
@@ -89,10 +88,9 @@ class BackendImpact {
 
 /// The JavaScript backend dependencies for various features.
 class BackendImpacts {
-  final CompilerOptions _options;
   final CommonElements _commonElements;
 
-  BackendImpacts(this._options, this._commonElements);
+  BackendImpacts(this._commonElements);
 
   BackendImpact _getRuntimeTypeArgument;
 
@@ -202,35 +200,14 @@ class BackendImpacts {
   BackendImpact _throwNoSuchMethod;
 
   BackendImpact get throwNoSuchMethod {
-    return _throwNoSuchMethod ??= new BackendImpact(
-        instantiatedClasses: _options.useKernelInSsa
-            ? [
-                _commonElements.symbolImplementationClass,
-              ]
-            : [],
-        staticUses: _options.useKernelInSsa
-            ? [
-                _commonElements.genericNoSuchMethod,
-                _commonElements.unresolvedConstructorError,
-                _commonElements.unresolvedStaticMethodError,
-                _commonElements.unresolvedStaticGetterError,
-                _commonElements.unresolvedStaticSetterError,
-                _commonElements.unresolvedTopLevelMethodError,
-                _commonElements.unresolvedTopLevelGetterError,
-                _commonElements.unresolvedTopLevelSetterError,
-                _commonElements.symbolConstructorTarget,
-              ]
-            : [
-                _commonElements.throwNoSuchMethod,
-              ],
-        otherImpacts: [
-          // Also register the types of the arguments passed to this method.
-          _needsList(
-              'Needed to encode the arguments for throw NoSuchMethodError.'),
-          _needsString(
-              'Needed to encode the name for throw NoSuchMethodError.'),
-          mapLiteralClass, // noSuchMethod helpers are passed a Map.
-        ]);
+    return _throwNoSuchMethod ??= new BackendImpact(staticUses: [
+      _commonElements.throwNoSuchMethod,
+    ], otherImpacts: [
+      // Also register the types of the arguments passed to this method.
+      _needsList('Needed to encode the arguments for throw NoSuchMethodError.'),
+      _needsString('Needed to encode the name for throw NoSuchMethodError.'),
+      mapLiteralClass, // noSuchMethod helpers are passed a Map.
+    ]);
   }
 
   BackendImpact _stringValues;
@@ -286,21 +263,12 @@ class BackendImpacts {
   BackendImpact _throwRuntimeError;
 
   BackendImpact get throwRuntimeError {
-    return _throwRuntimeError ??= new BackendImpact(
-        staticUses: _options.useKernelInSsa
-            ? [
-                // TODO(sra): Refactor impacts so that we know which of these
-                // are called.
-                _commonElements.malformedTypeError,
-                _commonElements.throwRuntimeError,
-              ]
-            : [
-                _commonElements.throwRuntimeError,
-              ],
-        otherImpacts: [
-          // Also register the types of the arguments passed to this method.
-          stringValues
-        ]);
+    return _throwRuntimeError ??= new BackendImpact(staticUses: [
+      _commonElements.throwRuntimeError,
+    ], otherImpacts: [
+      // Also register the types of the arguments passed to this method.
+      stringValues
+    ]);
   }
 
   BackendImpact _throwUnsupportedError;
@@ -504,14 +472,9 @@ class BackendImpacts {
   BackendImpact _malformedTypeCheck;
 
   BackendImpact get malformedTypeCheck {
-    return _malformedTypeCheck ??= new BackendImpact(
-        staticUses: _options.useKernelInSsa
-            ? [
-                _commonElements.malformedTypeError,
-              ]
-            : [
-                _commonElements.throwTypeError,
-              ]);
+    return _malformedTypeCheck ??= new BackendImpact(staticUses: [
+      _commonElements.throwTypeError,
+    ]);
   }
 
   BackendImpact _genericTypeCheck;

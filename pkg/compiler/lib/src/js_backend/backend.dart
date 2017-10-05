@@ -437,8 +437,7 @@ class JavaScriptBackend {
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
       bool useMultiSourceInfo: false,
-      bool useNewSourceInfo: false,
-      bool useKernelInSsa: false})
+      bool useNewSourceInfo: false})
       : optimizerHints = new OptimizerHintsForTests(
             compiler.frontendStrategy.elementEnvironment,
             compiler.frontendStrategy.commonElements),
@@ -700,8 +699,7 @@ class JavaScriptBackend {
     NativeBasicData nativeBasicData = compiler.frontendStrategy.nativeBasicData;
     RuntimeTypesNeedBuilder rtiNeedBuilder =
         compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, commonElements);
+    BackendImpacts impacts = new BackendImpacts(commonElements);
     TypeVariableResolutionAnalysis typeVariableResolutionAnalysis =
         new TypeVariableResolutionAnalysis(
             compiler.frontendStrategy.elementEnvironment,
@@ -761,8 +759,7 @@ class JavaScriptBackend {
             mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
             _nativeResolutionEnqueuer,
-            compiler.deferredLoadTask,
-            kernelTask),
+            compiler.deferredLoadTask),
         compiler.frontendStrategy.createResolutionWorldBuilder(
             nativeBasicData,
             _nativeDataBuilder,
@@ -782,8 +779,7 @@ class JavaScriptBackend {
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, commonElements);
+    BackendImpacts impacts = new BackendImpacts(commonElements);
     _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
         closedWorld.elementEnvironment, this, commonElements, mirrorsData);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
@@ -977,8 +973,7 @@ class JavaScriptBackend {
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, closedWorld.commonElements);
+    BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
     _rti = new RuntimeTypesImpl(
         closedWorld.elementEnvironment, closedWorld.dartTypes);
     _codegenImpactTransformer = new CodegenImpactTransformer(

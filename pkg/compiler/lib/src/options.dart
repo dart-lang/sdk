@@ -199,15 +199,11 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to generate code compliant with content security policy (CSP).
   final bool useContentSecurityPolicy;
 
-  /// Whether to use kernel internally as part of compilation.
-  final bool useKernelInSsa;
-
   /// Preview the unified front-end and compilation from kernel.
   ///
   /// When enabled the compiler will use the unified front-end to compile
   /// sources to kernel, and then continue compilation from the kernel
-  /// representation. Setting this flag will implicitly set [useKernelInSsa] to
-  /// true as well.
+  /// representation.
   ///
   /// When this flag is on, the compiler also acccepts reading .dill files from
   /// disk. The compiler reads the sources differently depending on the
@@ -326,7 +322,6 @@ class CompilerOptions implements DiagnosticOptions {
         trustTypeAnnotations: _hasOption(options, Flags.trustTypeAnnotations),
         useContentSecurityPolicy:
             _hasOption(options, Flags.useContentSecurityPolicy),
-        useKernelInSsa: _hasOption(options, Flags.useKernelInSsa),
         useKernel: _hasOption(options, Flags.useKernel),
         useFrequencyNamer:
             !_hasOption(options, Flags.noFrequencyBasedMinification),
@@ -389,7 +384,6 @@ class CompilerOptions implements DiagnosticOptions {
       bool trustPrimitives: false,
       bool trustTypeAnnotations: false,
       bool useContentSecurityPolicy: false,
-      bool useKernelInSsa: false,
       bool useKernel: false,
       bool useFrequencyNamer: true,
       bool useMultiSourceInfo: false,
@@ -464,7 +458,6 @@ class CompilerOptions implements DiagnosticOptions {
         trustPrimitives: trustPrimitives,
         trustTypeAnnotations: trustTypeAnnotations,
         useContentSecurityPolicy: useContentSecurityPolicy,
-        useKernelInSsa: useKernelInSsa || useKernel,
         useKernel: useKernel,
         useFrequencyNamer: useFrequencyNamer,
         useMultiSourceInfo: useMultiSourceInfo,
@@ -516,7 +509,6 @@ class CompilerOptions implements DiagnosticOptions {
       this.trustPrimitives: false,
       this.trustTypeAnnotations: false,
       this.useContentSecurityPolicy: false,
-      this.useKernelInSsa: false,
       this.useKernel: false,
       this.useFrequencyNamer: false,
       this.useMultiSourceInfo: false,
@@ -576,7 +568,6 @@ class CompilerOptions implements DiagnosticOptions {
       trustPrimitives,
       trustTypeAnnotations,
       useContentSecurityPolicy,
-      useKernelInSsa,
       useKernel,
       useFrequencyNamer,
       useMultiSourceInfo,
@@ -646,7 +637,6 @@ class CompilerOptions implements DiagnosticOptions {
             trustTypeAnnotations ?? options.trustTypeAnnotations,
         useContentSecurityPolicy:
             useContentSecurityPolicy ?? options.useContentSecurityPolicy,
-        useKernelInSsa: useKernelInSsa ?? options.useKernelInSsa,
         useKernel: useKernel ?? options.useKernel,
         useFrequencyNamer: useFrequencyNamer ?? options.useFrequencyNamer,
         useMultiSourceInfo: useMultiSourceInfo ?? options.useMultiSourceInfo,

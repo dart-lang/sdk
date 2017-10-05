@@ -335,7 +335,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
-    new OptionHandler(Flags.useKernelInSsa, passThrough),
     new OptionHandler(Flags.useKernel, setUseKernel),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
