@@ -88,5 +88,4 @@ html/svg_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $runtime == chrome ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
-html/element_types_test: RuntimeError # Issue 29922
 html/touchevent_test: RuntimeError # Issue 29922
