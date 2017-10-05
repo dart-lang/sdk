@@ -4183,6 +4183,9 @@ class VariableDeclaration extends Statement {
   }
 
   void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
     annotations.add(annotation..parent = this);
   }
 
@@ -4797,6 +4800,9 @@ class TypeParameter extends TreeNode {
   }
 
   void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
     annotations.add(annotation..parent = this);
   }
 
