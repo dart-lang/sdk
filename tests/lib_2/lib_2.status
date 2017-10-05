@@ -61,9 +61,9 @@ typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies 
 html/element_animate_test: Fail # Element.animate not supported on these browsers.
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
-html/element_types_test/supported_content: Fail
-html/element_types_test/supported_datalist: Fail
-html/element_types_test/supported_shadow: Fail
+html/element_types_content_test: Fail
+html/element_types_details_test: Fail
+html/element_types_shadow_test: Fail
 html/element_test: Pass, Fail # Issue 21434
 html/mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
 html/media_stream_test: Pass, Fail
@@ -142,13 +142,13 @@ html/custom/document_register_type_extensions_test/single-parameter: Fail # Issu
 html/deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 html/event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
 html/element_test/click: Fail # IE does not support firing this event.
-html/element_types_test/supported_content: Fail
-html/element_types_test/supported_details: Fail
-html/element_types_test/supported_keygen: Fail
-html/element_types_test/supported_meter: Fail
-html/element_types_test/supported_output: Fail
-html/element_types_test/supported_shadow: Fail
-html/element_types_test/supported_template: Fail
+html/element_types_content_test: Fail
+html/element_types_details_test: Fail
+html/element_types_keygen_test: Fail
+html/element_types_meter_test: Fail
+html/element_types_output_test: Fail
+html/element_types_shadow_test: Fail
+html/element_types_template_test: Fail
 html/js_util_test/callConstructor: RuntimeError # Issue 26978
 html/localstorage_test: Pass, RuntimeError # Issue 22166
 html/no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
@@ -186,8 +186,8 @@ mirrors/redirecting_factory_different_type_test/02: RuntimeError
 
 [ $runtime == safarimobilesim ]
 html/element_offset_test/offset: RuntimeError # Issue 18573
-html/element_types_test/supported_meter: RuntimeError # Issue 18573
-html/element_types_test/supported_template: Fail
+html/element_types_meter_test: RuntimeError # Issue 18573
+html/element_types_template_test: Fail
 html/event_test: RuntimeError # Safarimobilesim does not support WheelEvent
 html/indexeddb_1_test/supported: Fail
 html/performance_api_test/supported: Fail

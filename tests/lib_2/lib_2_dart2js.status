@@ -79,7 +79,7 @@ convert/utf85_test: Pass, Slow # Issue 12029.
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # TODO(dart2js-team): Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # TODO(dart2js-team): Please triage this failure.
 html/canvasrenderingcontext2d_test/fillText: Fail # TODO(dart2js-team): Please triage this failure.
-html/element_types_test/supported_datalist: Fail # TODO(dart2js-team): Please triage this failure.
+html/element_types_datalist_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/media_stream_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/rtc_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/speechrecognition_test: Fail # TODO(dart2js-team): Please triage this failure.
@@ -104,13 +104,35 @@ mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wron
 isolate/isolate_current_test: Fail  # please triage
 
 [ $compiler == dart2js && $runtime == ie11 ]
-html/element_types_test: RuntimeError # Issue 29922
+html/element_types_content_test: RuntimeError # Issue 29922
+html/element_types_datalist_test: RuntimeError # Issue 29922
+html/element_types_details_test: RuntimeError # Issue 29922
+html/element_types_embed_test: RuntimeError # Issue 29922
+html/element_types_keygen_test: RuntimeError # Issue 29922
+html/element_types_meter_test: RuntimeError # Issue 29922
+html/element_types_object_test: RuntimeError # Issue 29922
+html/element_types_output_test: RuntimeError # Issue 29922
+html/element_types_progress_test: RuntimeError # Issue 29922
+html/element_types_shadow_test: RuntimeError # Issue 29922
+html/element_types_template_test: RuntimeError # Issue 29922
+html/element_types_track_test: RuntimeError # Issue 29922
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari ]
 html/custom/document_register_basic_test: Pass, Timeout
-html/element_types_test: RuntimeError # Issue 29922
+html/element_types_content_test: RuntimeError # Issue 29922
+html/element_types_datalist_test: RuntimeError # Issue 29922
+html/element_types_details_test: RuntimeError # Issue 29922
+html/element_types_embed_test: RuntimeError # Issue 29922
+html/element_types_keygen_test: RuntimeError # Issue 29922
+html/element_types_meter_test: RuntimeError # Issue 29922
+html/element_types_object_test: RuntimeError # Issue 29922
+html/element_types_output_test: RuntimeError # Issue 29922
+html/element_types_progress_test: RuntimeError # Issue 29922
+html/element_types_shadow_test: RuntimeError # Issue 29922
+html/element_types_template_test: RuntimeError # Issue 29922
+html/element_types_track_test: RuntimeError # Issue 29922
 
 [ $compiler == dart2js && $browser ]
 html/js_typed_interop_lazy_test/01: RuntimeError
@@ -130,7 +152,18 @@ html/mirrors_js_typed_interop_test: Fail # mirrors not supported
 
 [  $compiler == dart2js && $runtime == ff ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
-html/element_types_test: RuntimeError # Issue 29922
+html/element_types_content_test: RuntimeError # Issue 29922
+html/element_types_datalist_test: RuntimeError # Issue 29922
+html/element_types_details_test: RuntimeError # Issue 29922
+html/element_types_embed_test: RuntimeError # Issue 29922
+html/element_types_keygen_test: RuntimeError # Issue 29922
+html/element_types_meter_test: RuntimeError # Issue 29922
+html/element_types_object_test: RuntimeError # Issue 29922
+html/element_types_output_test: RuntimeError # Issue 29922
+html/element_types_progress_test: RuntimeError # Issue 29922
+html/element_types_shadow_test: RuntimeError # Issue 29922
+html/element_types_template_test: RuntimeError # Issue 29922
+html/element_types_track_test: RuntimeError # Issue 29922
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 html/event_customevent_test: SkipByDesign
@@ -175,7 +208,18 @@ html/element_types_constructors3_test: Crash # 'file:*/pkg/compiler/lib/src/comm
 html/element_types_constructors4_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/element_types_constructors5_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/element_types_constructors6_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/element_types_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/element_types_content_test: Crash
+html/element_types_datalist_test: Crash
+html/element_types_details_test: Crash
+html/element_types_embed_test: Crash
+html/element_types_keygen_test: Crash
+html/element_types_meter_test: Crash
+html/element_types_object_test: Crash
+html/element_types_output_test: Crash
+html/element_types_progress_test: Crash
+html/element_types_shadow_test: Crash
+html/element_types_template_test: Crash
+html/element_types_track_test: Crash
 html/event_customevent_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/event_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -313,19 +357,18 @@ html/element_types_constructors5_test: Crash # NoSuchMethodError: Class 'JMethod
 html/element_types_constructors6_test/constructors: RuntimeError
 html/element_types_constructors6_test/ul: RuntimeError
 html/element_types_constructors6_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_types_test/supported_content: RuntimeError
-html/element_types_test/supported_datalist: RuntimeError
-html/element_types_test/supported_details: RuntimeError
-html/element_types_test/supported_embed: RuntimeError
-html/element_types_test/supported_keygen: RuntimeError
-html/element_types_test/supported_meter: RuntimeError
-html/element_types_test/supported_object: RuntimeError
-html/element_types_test/supported_output: RuntimeError
-html/element_types_test/supported_progress: RuntimeError
-html/element_types_test/supported_shadow: RuntimeError
-html/element_types_test/supported_template: RuntimeError
-html/element_types_test/supported_track: RuntimeError
-html/element_types_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_types_content_test: RuntimeError # Issue 29922
+html/element_types_datalist_test: RuntimeError # Issue 29922
+html/element_types_details_test: RuntimeError # Issue 29922
+html/element_types_embed_test: RuntimeError # Issue 29922
+html/element_types_keygen_test: RuntimeError # Issue 29922
+html/element_types_meter_test: RuntimeError # Issue 29922
+html/element_types_object_test: RuntimeError # Issue 29922
+html/element_types_output_test: RuntimeError # Issue 29922
+html/element_types_progress_test: RuntimeError # Issue 29922
+html/element_types_shadow_test: RuntimeError # Issue 29922
+html/element_types_template_test: RuntimeError # Issue 29922
+html/element_types_track_test: RuntimeError # Issue 29922
 html/event_customevent_test: RuntimeError
 html/event_test: RuntimeError
 html/indexeddb_1_test/dynamic: RuntimeError
@@ -433,7 +476,7 @@ convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 2
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 html/element_classes_test: RuntimeError # Issue 30291
-html/element_types_test/supported_keygen: RuntimeError # Issue 29055
+html/element_types_keygen_test: RuntimeError # Issue 29055
 html/media_stream_test: RuntimeError # Please triage.
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/kill_self_synchronously_test: RuntimeError
@@ -464,8 +507,8 @@ math/math2_test: RuntimeError
 math/math_test: RuntimeError
 
 [  $compiler == dart2js && $runtime == ff ]
-html/element_types_test/supported_content: Pass, RuntimeError # Issue 28983
-html/element_types_test/supported_shadow: Pass, RuntimeError # Issue 28983
-html/element_types_test/supported_keygen: Fail
+html/element_types_content_test:  Pass, RuntimeError # Issue 28983
+html/element_types_keygen_test: Fail
+html/element_types_shadow_test:  Pass, RuntimeError # Issue 28983
 html/webgl_1_test: Pass, Fail   # Issue 8219
 html/websql_test: Fail
