@@ -44,15 +44,6 @@ html/element_classes_test: DartkCompileTimeError
 html/element_constructor_1_test: DartkCompileTimeError
 html/element_dimensions_test: DartkCompileTimeError
 html/element_offset_test: DartkCompileTimeError
-html/element_types_constructors1_test: DartkCompileTimeError
-html/element_types_constructors2_test: DartkCompileTimeError
-html/element_types_constructors3_test: DartkCompileTimeError
-html/element_types_constructors4_test: DartkCompileTimeError
-html/element_types_constructors5_test: DartkCompileTimeError
-html/element_types_constructors6_test: DartkCompileTimeError
-html/element_types_test: DartkCompileTimeError
-html/event_customevent_test: DartkCompileTimeError
-html/event_test: DartkCompileTimeError
 html/exceptions_test: DartkCompileTimeError
 html/filteredelementlist_test: DartkCompileTimeError
 html/fontface_test: DartkCompileTimeError
