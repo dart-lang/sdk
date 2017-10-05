@@ -1598,6 +1598,9 @@ class Printer extends Visitor<Null> {
   }
 
   visitTypeParameter(TypeParameter node) {
+    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(
+        node.isGenericCovariantInterface, 'generic-covariant-interface');
     writeAnnotationList(node.annotations);
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
