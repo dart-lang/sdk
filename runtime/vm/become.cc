@@ -73,8 +73,11 @@ static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
 
 class ForwardPointersVisitor : public ObjectPointerVisitor {
  public:
-  explicit ForwardPointersVisitor(Isolate* isolate)
-      : ObjectPointerVisitor(isolate), visiting_object_(NULL), count_(0) {}
+  explicit ForwardPointersVisitor(Thread* thread)
+      : ObjectPointerVisitor(thread->isolate()),
+        thread_(thread),
+        visiting_object_(NULL),
+        count_(0) {}
 
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** p = first; p <= last; p++) {
@@ -91,11 +94,19 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
     }
   }
 
-  void VisitingObject(RawObject* obj) { visiting_object_ = obj; }
+  void VisitingObject(RawObject* obj) {
+    visiting_object_ = obj;
+    if ((obj != NULL) && obj->IsRemembered()) {
+      ASSERT(!obj->IsForwardingCorpse());
+      ASSERT(!obj->IsFreeListElement());
+      thread_->StoreBufferAddObjectGC(obj);
+    }
+  }
 
   intptr_t count() const { return count_; }
 
  private:
+  Thread* thread_;
   RawObject* visiting_object_;
   intptr_t count_;
 
@@ -265,8 +276,12 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   {
     // Follow forwarding pointers.
 
+    // Clear the store buffer; will be rebuilt as we forward the heap.
+    isolate->PrepareForGC();  // Have all threads flush their store buffers.
+    isolate->store_buffer()->Reset();  // Drop all store buffers.
+
     // C++ pointers
-    ForwardPointersVisitor pointer_visitor(isolate);
+    ForwardPointersVisitor pointer_visitor(thread);
     isolate->VisitObjectPointers(&pointer_visitor, true);
 
     // Weak persistent handles.

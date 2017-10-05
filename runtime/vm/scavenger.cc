@@ -537,11 +537,7 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     total_count += count;
     while (!pending->IsEmpty()) {
       RawObject* raw_object = pending->Pop();
-      if (raw_object->IsForwardingCorpse()) {
-        // A source object in a become was a remembered object, but we do
-        // not visit the store buffer during become to remove it.
-        continue;
-      }
+      ASSERT(!raw_object->IsForwardingCorpse());
       ASSERT(raw_object->IsRemembered());
       raw_object->ClearRememberedBit();
       visitor->VisitingOldObject(raw_object);
