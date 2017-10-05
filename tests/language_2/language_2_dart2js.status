@@ -312,6 +312,10 @@ optional_named_parameters_test/06: MissingCompileTimeError
 optional_named_parameters_test/07: MissingCompileTimeError
 optional_named_parameters_test/08: MissingCompileTimeError
 optional_named_parameters_test/09: MissingCompileTimeError
+prefix16_test/00: MissingCompileTimeError
+prefix16_test/01: MissingCompileTimeError
+prefix22_test/00: MissingCompileTimeError
+prefix23_test/00: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
@@ -624,6 +628,8 @@ left_shift_test: RuntimeError # Issue 1533
 numbers_test: RuntimeError, OK # Issue 1533
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
+positional_parameters_type_test/01: MissingCompileTimeError
+positional_parameters_type_test/02: MissingCompileTimeError
 type_variable_conflict_test/01: Fail # Issue 13702
 type_variable_conflict_test/02: Fail # Issue 13702
 type_variable_conflict_test/03: Fail # Issue 13702
@@ -1090,6 +1096,8 @@ override_inheritance_mixed_test/04: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
+positional_parameters_type_test/01: MissingCompileTimeError
+positional_parameters_type_test/02: MissingCompileTimeError
 
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
@@ -1370,6 +1378,8 @@ override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
 override_inheritance_mixed_test/04: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
+positional_parameters_type_test/01: MissingCompileTimeError
+positional_parameters_type_test/02: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash

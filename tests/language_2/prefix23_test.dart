@@ -10,7 +10,9 @@ library Prefix23Test.dart;
 import "library12.dart" as lib12;
 
 class myClass {
-  lib12.Library13 fld; // //# static type warning
+  final
+      lib12.Library13  //# 00: compile-time error
+      fld = null;
 }
 
 main() {}

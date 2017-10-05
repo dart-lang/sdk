@@ -253,6 +253,7 @@ overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMir
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out
 list_is_test: RuntimeError # Issue 29920
+prefix10_negative_test: Skip # Issue 29920
 lazy_static3_test: RuntimeError # Issue 30852
 lazy_static8_test: RuntimeError # Issue 30852
 left_shift_test: RuntimeError # Ints and doubles are unified.

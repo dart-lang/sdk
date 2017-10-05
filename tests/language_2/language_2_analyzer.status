@@ -718,6 +718,10 @@ parameter_initializer3_negative_test: CompileTimeError
 parameter_initializer4_negative_test: CompileTimeError
 parameter_initializer6_negative_test: CompileTimeError
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
+prefix1_negative_test: fail # Issue 11962
+prefix12_negative_test: fail # Issue 11962
+prefix11_negative_test: fail # Issue 11964
+part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -789,6 +793,9 @@ override_inheritance_method_test/29: CompileTimeError
 override_inheritance_no_such_method_test/13: MissingCompileTimeError
 parameter_initializer_test: CompileTimeError
 parser_quirks_test: CompileTimeError
+prefix13_negative_test: CompileTimeError, OK
+prefix15_negative_test: CompileTimeError, OK
+prefix18_negative_test: CompileTimeError, OK
 regress_30339_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 string_unicode1_negative_test: CompileTimeError
@@ -991,6 +998,15 @@ named_parameters_test/10: MissingCompileTimeError
 named_parameters_type_test/01: MissingCompileTimeError
 named_parameters_type_test/02: MissingCompileTimeError
 named_parameters_type_test/03: MissingCompileTimeError
+positional_parameters_type_test/01: MissingCompileTimeError
+positional_parameters_type_test/02: MissingCompileTimeError
+prefix13_negative_test: CompileTimeError, OK
+prefix15_negative_test: CompileTimeError, OK
+prefix16_test/00: MissingCompileTimeError
+prefix16_test/01: MissingCompileTimeError
+prefix18_negative_test: CompileTimeError, OK
+prefix22_test/00: MissingCompileTimeError
+prefix23_test/00: MissingCompileTimeError
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
 string_no_operator_test/02: MissingCompileTimeError

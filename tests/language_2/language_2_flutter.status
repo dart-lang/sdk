@@ -267,6 +267,8 @@ wrong_number_type_arguments_test/02: CompileTimeError
 list_literal_syntax_test/03: CompileTimeError
 list_literal_syntax_test/01: CompileTimeError
 list_literal_syntax_test/02: CompileTimeError
+prefix22_test: CompileTimeError
+prefix16_test: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

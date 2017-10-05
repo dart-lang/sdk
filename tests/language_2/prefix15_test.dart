@@ -11,9 +11,10 @@ import "library12.dart" as lib12;
 
 typedef T myFunc<T>(T param);
 
-class myInterface<T> implements lib12.Library12Interface {
+class myInterface<T extends lib12.Library12>
+    implements lib12.Library12Interface {
   myInterface(T this.myfld);
-  T addObjects(T value1, T value2) {
+  T addObjects(covariant T value1, covariant T value2) {
     myfld.fld = (value1.fld + value2.fld + myfld.fld);
     return myfld;
   }
@@ -28,7 +29,8 @@ class myClass2<T> {
 }
 
 main() {
-  var o = new myClass2<lib12.Library12>(new lib12.Library12(100));
+  var o;
+  o = new myClass2<lib12.Library12>(new lib12.Library12(100));
   myFunc<lib12.Library12> func = o.func;
   Expect.equals(2, func(new lib12.Library12(10)).func());
   Expect.equals(10, func(new lib12.Library12(10)).fld);

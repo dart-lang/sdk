@@ -44,7 +44,8 @@ class myClass2 {
 }
 
 main() {
-  var o = myClass.func1();
+  var o;
+  o = myClass.func1();
   Expect.equals(2, o.func());
   o = new myClass(10);
   Expect.equals(10, o.fld);

@@ -198,18 +198,6 @@ no_such_method_empty_selector_test: Skip
 no_such_method_mock_test: Skip
 no_such_method_negative_test: Skip
 no_such_method_test: Skip
-positional_parameters_type_test: Skip
-prefix11_negative_test: Skip
-prefix12_negative_test: Skip
-prefix13_negative_test: Skip
-prefix14_test: Skip
-prefix15_negative_test: Skip
-prefix15_test: Skip
-prefix16_test: Skip
-prefix18_negative_test: Skip
-prefix1_negative_test: Skip
-prefix22_test: Skip
-prefix23_test: Skip
 prefix2_negative_test: Skip
 prefix3_negative_test: Skip
 prefix4_negative_test: Skip
@@ -393,7 +381,6 @@ truncdiv_test: RuntimeError # Issue 29920
 # failures of _negative_tests). Remove "Skip" once we have the DDC travis bot
 # running on test.dart, OR when we fix dartanalyzer/dartdevc CommandOutput
 # classes to invert negative test status in the same way our other tools do.
-prefix10_negative_test: Skip # Issue 29920
 
 [ $compiler == dartdevc && $system == windows ]
 raw_string_test: RuntimeError # Issue 30336

@@ -446,6 +446,9 @@ vm/integer_type_propagation_test: Crash
 vm/optimized_stacktrace_test: Crash
 vm/regress_27671_test: Crash
 vm/type_vm_test: Crash
+positional_parameters_type_test/01: Crash
+positional_parameters_type_test/02: Crash
+positional_parameters_type_test/none: Crash
 
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError
