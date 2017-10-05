@@ -1016,7 +1016,6 @@ issue21079_test: RuntimeError
 issue_1751477_test: CompileTimeError
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
-list_literal4_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
@@ -1301,7 +1300,6 @@ issue21079_test: RuntimeError
 issue_1751477_test: CompileTimeError
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
-list_literal4_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
