@@ -14,8 +14,6 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'package:kernel/target/vmcc.dart' show VmClosureConvertedTarget;
 
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
-    show computeDartVm, computePatchedSdk;
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show
         Compile,
@@ -74,9 +72,9 @@ enum Environment {
 
 Future<TestContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  Uri sdk = await computePatchedSdk();
-  Uri vm = computeDartVm(sdk);
-  Uri platform = sdk.resolve('platform.dill');
+  Uri vm = Uri.base.resolve(Platform.resolvedExecutable);
+  Uri sdk = vm.resolve("patched_sdk/");
+  Uri platform = vm.resolve("vm_platform.dill");
   bool updateExpectations = environment["updateExpectations"] == "true";
   return new TestContext(vm, platform, sdk, updateExpectations);
 }

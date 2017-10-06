@@ -477,7 +477,7 @@ class ProcessedOptions {
       // Infer based on the sdkRoot, but only when `compileSdk` is false,
       // otherwise the default intent was to compile the sdk from sources and
       // not to load an sdk summary file.
-      _sdkSummary = root?.resolve('outline.dill');
+      _sdkSummary = root?.resolve("vm_outline.dill");
     }
 
     if (_raw.librariesSpecificationUri != null) {

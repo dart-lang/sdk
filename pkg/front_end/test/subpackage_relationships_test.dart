@@ -155,7 +155,6 @@ final subpackageRules = {
   ]),
   'lib/src/testing': new SubpackageRules(allowedDependencies: [
     'lib',
-    'lib/src/fasta/testing',
   ]),
 };
 

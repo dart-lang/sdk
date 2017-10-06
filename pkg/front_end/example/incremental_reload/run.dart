@@ -31,8 +31,9 @@
 ///   * On another terminal (terminal B), start the program on the VM, with the
 ///   service-protocol enabled and provide the precompiled platform libraries:
 ///
+/// TODO(ahe): This documentation is out of date.
 /// ```
-///    out/ReleaseX64/dart --enable-vm-service --platform=out/ReleaseX64/patched_sdk/platform.dill out.dill
+///    out/ReleaseX64/dart --enable-vm-service --platform=out/ReleaseX64/platform.dill out.dill
 /// ```
 ///
 ///   * Modify the orginal program

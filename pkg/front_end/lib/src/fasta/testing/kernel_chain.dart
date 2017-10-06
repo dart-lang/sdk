@@ -9,7 +9,7 @@ library fasta.testing.kernel_chain;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show Directory, File, IOSink;
+import 'dart:io' show Directory, File, IOSink, Platform;
 
 import 'dart:typed_data' show Uint8List;
 
@@ -40,8 +40,6 @@ import 'package:front_end/front_end.dart';
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
-import 'patched_sdk_location.dart' show computePatchedSdk;
 
 class Print extends Step<Program, Program, ChainContext> {
   const Print();
@@ -199,7 +197,7 @@ class Compile extends Step<TestDescription, Program, CompileContext> {
       result ??= fail(null, error.message);
     }
 
-    Uri sdk = await computePatchedSdk();
+    Uri sdk = Uri.base.resolve("sdk/");
     var options = new CompilerOptions()
       ..sdkRoot = sdk
       ..compileSdk = true
@@ -212,7 +210,11 @@ class Compile extends Step<TestDescription, Program, CompileContext> {
       // ensures that if target defines extra libraries that those get included
       // too.
     } else {
-      options.linkedDependencies = [sdk.resolve('platform.dill')];
+      options.linkedDependencies = [
+        Uri.base
+            .resolve(Platform.resolvedExecutable)
+            .resolve('vm_platform.dill')
+      ];
     }
     Program p = await kernelForProgram(description.uri, options);
     return result ??= pass(p);

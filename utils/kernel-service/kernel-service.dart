@@ -159,10 +159,9 @@ Future _processLoadRequest(request) async {
       ? Uri.base.resolveUri(new Uri.file(request[3]))
       : Uri.base
           .resolveUri(new Uri.file(Platform.resolvedExecutable))
-          .resolveUri(new Uri.directory("patched_sdk"))
-          // TODO(sigmund): use outline.dill when the mixin transformer is
+          // TODO(sigmund): use vm_outline.dill when the mixin transformer is
           // modular.
-          .resolve('platform.dill');
+          .resolve('vm_platform.dill');
 
   final bool incremental = request[4];
 
@@ -198,7 +197,7 @@ Future _processLoadRequest(request) async {
       // shouldn't print those messages again here.
       result = new CompilationResult.errors(compiler.errors);
     } else {
-      // We serialize the program excluding platform.dill because the VM has
+      // We serialize the program excluding vm_platform.dill because the VM has
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to
       // decide what to exclude.

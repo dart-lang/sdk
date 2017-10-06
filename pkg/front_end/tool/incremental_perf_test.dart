@@ -18,7 +18,7 @@ main() async {
     sdkOutline = dir.resolve('../lib/_internal/vm_outline.dill');
   } else {
     // TODO(sigmund): switch to outline.dill (issue #29881)
-    sdkOutline = dir.resolve('patched_sdk/platform.dill');
+    sdkOutline = dir.resolve('vm_platform.dill');
   }
 
   var tmp = Directory.systemTemp.createTempSync();

@@ -473,13 +473,23 @@ template("generate_vm_patched_sdk") {
     concatenation_target_names += [ ":concatenate_${name}_patch" ]
   }
 
+  patched_sdk_dir = "patched_sdk"
+
+  other_outputs = [
+    # Instead of listing all outputs we list those consumed by
+    # other BUILD rules.
+    "$root_out_dir/${patched_sdk_dir}/lib/libraries.json",
+    "$root_out_dir/${patched_sdk_dir}/lib/vmservice_libraries.json",
+  ]
+
   # Build the patched sdk out of the concatenated patches and the special
   # libraries.
   generate_patched_sdk(target_name) {
     mode = "vm"
     deps = concatenation_target_names
     input_patches_dir = "$target_gen_dir/patches"
-    patched_sdk_dir = "patched_sdk"
+    patched_sdk_dir = patched_sdk_dir
+    outputs = other_outputs
   }
 }
 
@@ -550,5 +560,66 @@ generate_vm_patched_sdk("patched_sdk") {
       io_runtime_sources,
       "../bin",
     ],
+  ]
+}
+
+action("compile_platform") {
+  script = "../../tools/compile_platform.py"
+
+  sources = [
+    "$root_out_dir/patched_sdk/lib/libraries.json",
+  ]
+
+  outputs = [
+    "$root_out_dir/vm_platform.dill",
+    "$root_out_dir/vm_outline.dill",
+  ]
+
+  inputs = []
+
+  deps = [
+    ":patched_sdk",
+  ]
+
+  depfile = "$root_out_dir/vm_platform.dill.d"
+
+  args = [ "dart:core" ] + rebase_path(sources, root_build_dir) +
+         rebase_path(outputs, root_build_dir)
+}
+
+action("compile_vmservice") {
+  script = "../../tools/compile_platform.py"
+
+  sources = [
+    "../../sdk/lib/vmservice_libraries.json",
+  ]
+
+  outputs = [
+    "$root_out_dir/vmservice_io.dill",
+    "$root_out_dir/vmservice_io_outline.dill",
+  ]
+
+  inputs = [
+    "$root_out_dir/vm_platform.dill",
+  ]
+
+  deps = [
+    ":compile_platform",
+  ]
+
+  depfile = "$root_out_dir/vmservice_io.dill.d"
+
+  args = [
+           "--platform=" +
+               rebase_path("$root_out_dir/vm_platform.dill", root_build_dir),
+           "dart:vmservice_io",
+         ] + rebase_path(sources, root_build_dir) +
+         rebase_path(outputs, root_build_dir)
+}
+
+group("kernel_platform_files") {
+  public_deps = [
+    ":compile_platform",
+    ":compile_vmservice",
   ]
 }

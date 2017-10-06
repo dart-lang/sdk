@@ -143,7 +143,10 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     var args = <String>[];
     if (useDfe) {
       args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
-      args.add('--kernel-binaries=${buildDir}/patched_sdk');
+      args.add('--kernel-binaries=' +
+          (_useSdk
+              ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
+              : '${buildDir}'));
       if (_isDebug) {
         // Temporarily disable background compilation to avoid flaky crashes
         // (see http://dartbug.com/30016 for details).
@@ -553,7 +556,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
         args.add('--dfe=utils/kernel-service/kernel-service.dart');
       }
       // TODO(dartbug.com/30480): avoid using additional kernel binaries
-      args.add('--kernel-binaries=${buildDir}/patched_sdk');
+      args.add('--kernel-binaries=' +
+          (_useSdk
+              ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
+              : '${buildDir}'));
     }
 
     args.add("--snapshot-kind=app-aot");

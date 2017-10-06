@@ -71,7 +71,7 @@ main() {
     var vmArgs = [
       '--enable-vm-service=0', // Note: use 0 to avoid port collisions.
       '--pause_isolates_on_start',
-      '--kernel-binaries=${sdkRoot.toFilePath()}',
+      '--kernel-binaries=${dartVm.resolve(".").toFilePath()}',
       outputUri.toFilePath()
     ];
     vmArgs.add('$reloadCount');

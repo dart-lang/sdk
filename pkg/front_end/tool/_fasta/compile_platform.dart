@@ -6,7 +6,11 @@ library fasta.compile_platform;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show exitCode, File;
+import 'dart:io' show File, Platform, exitCode;
+
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
+
+import 'package:kernel/target/targets.dart' show TargetFlags, targets;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -20,11 +24,16 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:front_end/src/kernel_generator_impl.dart'
     show generateKernelInternal;
 
+import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
+
+import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
+
 import 'command_line.dart' show withGlobalOptions;
 
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 Future main(List<String> arguments) async {
+  targets["dart2js"] = (TargetFlags flags) => new Dart2jsTarget(flags);
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
       print("\n");
@@ -43,11 +52,8 @@ Future main(List<String> arguments) async {
 Future compilePlatform(List<String> arguments) async {
   await withGlobalOptions("compile_platform", arguments, false,
       (CompilerContext c, List<String> restArguments) {
-    c.options.inputs.add(Uri.parse('dart:core'));
-    // Note: the patchedSdk argument is already stored in c.options.sdkRoot.
-    Uri fullOutput = Uri.base.resolveUri(new Uri.file(restArguments[1]));
-    Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments[2]));
-    return compilePlatformInternal(c, fullOutput, outlineOutput);
+    Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments.last));
+    return compilePlatformInternal(c, c.options.output, outlineOutput);
   });
 }
 
@@ -64,6 +70,7 @@ Future compilePlatformInternal(
   var result =
       await generateKernelInternal(buildSummary: true, buildProgram: true);
   if (result == null) {
+    exitCode = 1;
     // Note: an error should have been reported by now.
     print('The platform .dill files were not created.');
     return;
@@ -71,5 +78,48 @@ Future compilePlatformInternal(
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
   await writeProgramToFile(result.program, fullOutput);
+
   c.options.ticker.logMs("Wrote program to ${fullOutput.toFilePath()}");
+
+  List<Uri> deps = result.deps.toList();
+  deps.addAll(await getDependencies(Platform.script,
+      platform: outlineOutput, target: c.options.target));
+  await writeDepsFile(
+      fullOutput, new File(new File.fromUri(fullOutput).path + ".d").uri, deps);
+}
+
+Future writeDepsFile(
+    Uri output, Uri depsFile, Iterable<Uri> allDependencies) async {
+  if (allDependencies.isEmpty) return;
+  String toRelativeFilePath(Uri uri) {
+    // Ninja expects to find file names relative to the current working
+    // directory. We've tried making them relative to the deps file, but that
+    // doesn't work for downstream projects. Making them absolute also
+    // doesn't work.
+    //
+    // We can test if it works by running ninja twice, for example:
+    //
+    //     ninja -C xcodebuild/ReleaseX64 -d explain compile_platform
+    //     ninja -C xcodebuild/ReleaseX64 -d explain compile_platform
+    //
+    // The second time, ninja should say:
+    //
+    //     ninja: Entering directory `xcodebuild/ReleaseX64'
+    //     ninja: no work to do.
+    //
+    // It's broken if it says something like this:
+    //
+    //     ninja explain: expected depfile 'vm_platform.dill.d' to mention 'vm_platform.dill', got '/.../xcodebuild/ReleaseX64/vm_platform.dill'
+    return Uri.parse(relativizeUri(uri, base: Uri.base)).toFilePath();
+  }
+
+  StringBuffer sb = new StringBuffer();
+  sb.write(toRelativeFilePath(output));
+  sb.write(":");
+  for (Uri uri in allDependencies) {
+    sb.write(" \\\n  ");
+    sb.write(toRelativeFilePath(uri));
+  }
+  sb.writeln();
+  await new File.fromUri(depsFile).writeAsString("$sb");
 }

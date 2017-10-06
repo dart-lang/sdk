@@ -4,7 +4,7 @@
 
 library test.kernel.closures.suite;
 
-import 'dart:io' show File;
+import 'dart:io' show File, Platform;
 
 import 'dart:async' show Future;
 
@@ -29,9 +29,6 @@ import 'package:front_end/src/fasta/testing/kernel_chain.dart'
 
 import 'package:kernel/transformations/closure_conversion.dart'
     as closure_conversion;
-
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
-    show computePatchedSdk, computeDartVm;
 
 const String STRONG_MODE = " strong mode ";
 
@@ -101,8 +98,7 @@ class Run extends Step<Uri, int, ClosureConversionContext> {
   Future<Result<int>> run(Uri uri, ClosureConversionContext context) async {
     final File generated = new File.fromUri(uri);
     try {
-      Uri sdk = await computePatchedSdk();
-      Uri vm = computeDartVm(sdk);
+      Uri vm = Uri.base.resolve(Platform.resolvedExecutable);
       final StdioProcess process = await StdioProcess.run(vm.toFilePath(), [
         "--reify",
         "--reify_generic_functions",

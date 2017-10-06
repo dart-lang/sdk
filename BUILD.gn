@@ -43,7 +43,6 @@ group("runtime") {
     "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
-    "runtime/vm:patched_sdk",
   ]
 }
 
@@ -54,6 +53,7 @@ group("runtime_kernel") {
   }
   deps = [
     ":runtime",
+    "runtime/vm:kernel_platform_files($dart_host_toolchain)",
 
     # TODO(rmacnak): Link this into 'dart'.
     "utils/kernel-service:kernel-service",
@@ -65,7 +65,6 @@ group("runtime_precompiled") {
     "runtime/bin:dart_bootstrap($dart_host_toolchain)",
     "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:process_test",
-    "runtime/vm:patched_sdk",
   ]
 }
 

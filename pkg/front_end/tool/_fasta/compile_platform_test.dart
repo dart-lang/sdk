@@ -5,6 +5,7 @@
 library fasta.test.compile_platform_test;
 
 import 'dart:async';
+
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
@@ -13,21 +14,22 @@ import 'package:expect/expect.dart';
 
 import 'compile_platform.dart' show compilePlatform;
 
-main(List<String> arguments) async {
-  await asyncTest(() async {
+main(List<String> arguments) {
+  asyncTest(() async {
     await withTemporaryDirectory("compile_platform_test_", (Uri tmp) async {
-      String patchedSdk = Uri.base
+      String librariesJson = Uri.base
           .resolveUri(new Uri.file(Platform.resolvedExecutable))
-          .resolve("patched_sdk")
+          .resolve("patched_sdk/lib/libraries.json")
           .toFilePath();
       // This first invocation should succeed.
       await compilePlatform(<String>[
         "-v",
-        patchedSdk,
+        "dart:core",
+        librariesJson,
         tmp.resolve("platform.dill").toFilePath(),
         tmp.resolve("platform-outline.dill").toFilePath(),
       ]);
-      print("Successfully compiled $patchedSdk.\n\n");
+      print("Successfully compiled $librariesJson.\n\n");
 
       try {
         // This invocation is expected to throw an exception for now. Patching
@@ -37,7 +39,8 @@ main(List<String> arguments) async {
         // instead of importing its main entry point.
         await compilePlatform(<String>[
           "-v",
-          "sdk/",
+          "dart:core",
+          "sdk/lib/libraries.json",
           tmp.resolve("platform.dill").toFilePath(),
           tmp.resolve("platform-outline.dill").toFilePath(),
         ]);
@@ -45,6 +48,7 @@ main(List<String> arguments) async {
         Expect.isTrue(
             e.startsWith("Class '_InvocationMirror' not found in library "));
         print("Failed as expected: $e");
+        exitCode = 0;
         return;
       }
       Expect.fail("Test didn't throw expected exception.");

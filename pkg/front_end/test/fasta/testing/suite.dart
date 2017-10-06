@@ -6,7 +6,7 @@ library fasta.testing.suite;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File;
+import 'dart:io' show File, Platform;
 
 import 'dart:convert' show JSON;
 
@@ -18,8 +18,6 @@ import 'package:front_end/src/base/libraries_specification.dart'
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
-    show computeDartVm, computePatchedSdk;
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 
 import 'package:kernel/ast.dart' show Library, Program;
@@ -138,9 +136,9 @@ class FastaContext extends ChainContext {
 
   Future ensurePlatformUris() async {
     if (sdk == null) {
-      sdk = await computePatchedSdk();
-      platformUri = sdk.resolve('platform.dill');
-      outlineUri = sdk.resolve('outline.dill');
+      sdk = Uri.base.resolve(Platform.resolvedExecutable).resolve(".");
+      platformUri = sdk.resolve("vm_platform.dill");
+      outlineUri = sdk.resolve("vm_outline.dill");
     }
   }
 
@@ -155,8 +153,8 @@ class FastaContext extends ChainContext {
 
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) async {
-    Uri sdk = await computePatchedSdk();
-    Uri vm = computeDartVm(sdk);
+    Uri sdk = Uri.base.resolve("sdk/");
+    Uri vm = Uri.base.resolve(Platform.resolvedExecutable);
     Uri packages = Uri.base.resolve(".packages");
     var options = new ProcessedOptions(new CompilerOptions()
       ..sdkRoot = sdk
