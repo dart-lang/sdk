@@ -29,8 +29,8 @@ main(List<String> args) {
         await compareData(
             uri, const {}, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
             options: [stopAfterTypeInference]);
-      } catch (e) {
-        print('Failed: $e');
+      } catch (e, s) {
+        print('Failed: $e\n$s');
       }
     }
   });

@@ -28,7 +28,6 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
             compiler.progress,
             compiler.reporter,
             compiler.outputProvider,
-            compiler.backend.optimizerHints,
             closedWorld,
             closedWorldRefiner,
             compiler.backend.mirrorsData,

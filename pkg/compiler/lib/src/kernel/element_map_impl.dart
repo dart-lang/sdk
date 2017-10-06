@@ -1337,6 +1337,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   ClassEntity getSuperClass(ClassEntity cls,
       {bool skipUnnamedMixinApplications: false}) {
+    assert(elementMap.checkFamily(cls));
     ClassEntity superclass = elementMap._getSuperType(cls)?.element;
     if (skipUnnamedMixinApplications) {
       while (superclass != null &&
@@ -1439,12 +1440,14 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   Iterable<ConstantValue> getLibraryMetadata(covariant IndexedLibrary library) {
+    assert(elementMap.checkFamily(library));
     LibraryData libraryData = elementMap._libraries.getData(library);
     return libraryData.getMetadata(elementMap);
   }
 
   @override
   Iterable<ConstantValue> getClassMetadata(covariant IndexedClass cls) {
+    assert(elementMap.checkFamily(cls));
     ClassData classData = elementMap._classes.getData(cls);
     return classData.getMetadata(elementMap);
   }
@@ -1459,6 +1462,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   Iterable<ConstantValue> getMemberMetadata(covariant IndexedMember member,
       {bool includeParameterMetadata: false}) {
     // TODO(redemption): Support includeParameterMetadata.
+    assert(elementMap.checkFamily(member));
     MemberData memberData = elementMap._members.getData(member);
     return memberData.getMetadata(elementMap);
   }
@@ -1471,6 +1475,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   bool isEnumClass(ClassEntity cls) {
+    assert(elementMap.checkFamily(cls));
     ClassData classData = elementMap._classes.getData(cls);
     return classData.isEnumClass;
   }
@@ -2076,12 +2081,12 @@ class JsKernelToElementMap extends KernelToElementMapBase
     return function;
   }*/
 
-  @override
+  /*@override
   ConstructorEntity _getConstructor(ir.Member node) {
     ConstructorEntity constructor = _constructorMap[node];
     assert(constructor != null, "No constructor entity for $node");
     return constructor;
-  }
+  }*/
 
   FunctionEntity getConstructorBody(ir.Constructor node) {
     ConstructorEntity constructor = getConstructor(node);

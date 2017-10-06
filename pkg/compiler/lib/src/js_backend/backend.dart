@@ -53,7 +53,7 @@ import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
-import 'annotations.dart';
+import 'annotations.dart' as optimizerHints;
 import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'backend_usage.dart';
@@ -322,8 +322,6 @@ class JavaScriptBackend {
   /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
 
-  final OptimizerHintsForTests optimizerHints;
-
   FunctionCompiler functionCompiler;
 
   CodeEmitterTask emitter;
@@ -433,10 +431,7 @@ class JavaScriptBackend {
       bool useStartupEmitter: false,
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false})
-      : optimizerHints = new OptimizerHintsForTests(
-            compiler.frontendStrategy.elementEnvironment,
-            compiler.frontendStrategy.commonElements),
-        this.sourceInformationStrategy =
+      : this.sourceInformationStrategy =
             compiler.backendStrategy.sourceInformationStrategy,
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler) {
@@ -1025,7 +1020,8 @@ class JavaScriptBackend {
     }
 
     if (element.isFunction || element.isConstructor) {
-      if (optimizerHints.noInline(element)) {
+      if (optimizerHints.noInline(
+          elementEnvironment, commonElements, element)) {
         inlineCache.markAsNonInlinable(element);
       }
     }

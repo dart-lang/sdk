@@ -14,7 +14,7 @@ import '../elements/elements.dart'
     show ConstructorElement, Elements, MemberElement, ParameterElement;
 import '../elements/entities.dart';
 import '../elements/names.dart';
-import '../js_backend/annotations.dart';
+import '../js_backend/annotations.dart' as optimizerHints;
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../native/behavior.dart' as native;
@@ -58,7 +58,6 @@ abstract class InferrerEngine<T> {
   CompilerOptions get options;
   ClosedWorld get closedWorld;
   ClosedWorldRefiner get closedWorldRefiner;
-  OptimizerHintsForTests get optimizerHints;
   DiagnosticReporter get reporter;
   CommonMasks get commonMasks => closedWorld.commonMasks;
   CommonElements get commonElements => closedWorld.commonElements;
@@ -239,6 +238,13 @@ abstract class InferrerEngine<T> {
   /// backend calls, but the optimizations don't see those calls.
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function);
+
+  /// Returns `true` if parameter and returns types should be trusted for
+  /// [member].
+  bool trustTypeAnnotations(MemberEntity member);
+
+  /// Returns `true` if inference of parameter types is disabled for [member].
+  bool assumeDynamic(MemberEntity member);
 }
 
 abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
@@ -260,7 +266,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   final Progress progress;
   final DiagnosticReporter reporter;
   final CompilerOutput _compilerOutput;
-  final OptimizerHintsForTests optimizerHints;
 
   /// The [ClosedWorld] on which inference reasoning is based.
   final ClosedWorld closedWorld;
@@ -289,7 +294,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       this.progress,
       this.reporter,
       this._compilerOutput,
-      this.optimizerHints,
       this.closedWorld,
       this.closedWorldRefiner,
       this.mirrorsData,
@@ -1155,6 +1159,18 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       FunctionEntity function) {
     return !closedWorld.backendUsage.isFunctionUsedByBackend(function) &&
         !mirrorsData.isMemberAccessibleByReflection(function);
+  }
+
+  @override
+  bool trustTypeAnnotations(MemberEntity member) {
+    return optimizerHints.trustTypeAnnotations(
+        closedWorld.elementEnvironment, commonElements, member);
+  }
+
+  @override
+  bool assumeDynamic(MemberEntity member) {
+    return optimizerHints.assumeDynamic(
+        closedWorld.elementEnvironment, commonElements, member);
   }
 
   // Sorts the resolved elements by size. We do this for this inferrer

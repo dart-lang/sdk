@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/js_backend/js_backend.dart';
+import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'type_mask_test_helper.dart';
@@ -55,7 +55,6 @@ main() {
     ClosedWorld closedWorld =
         compiler.resolutionWorldBuilder.closedWorldForTesting;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
-    JavaScriptBackend backend = compiler.backend;
     Expect.isNotNull(closedWorld.commonElements.expectNoInlineClass,
         'NoInlineClass is unresolved.');
     Expect.isNotNull(closedWorld.commonElements.expectTrustTypeAnnotationsClass,
@@ -87,15 +86,20 @@ main() {
           compiler.frontendStrategy.elementEnvironment.mainLibrary;
       MethodElement method = mainApp.find(name);
       Expect.isNotNull(method);
-      Expect.equals(expectNoInline, backend.optimizerHints.noInline(method),
+      Expect.equals(
+          expectNoInline,
+          optimizerHints.noInline(closedWorld.elementEnvironment,
+              closedWorld.commonElements, method),
           "Unexpected annotation of @NoInline on '$method'.");
       Expect.equals(
           expectTrustTypeAnnotations,
-          backend.optimizerHints.trustTypeAnnotations(method),
+          optimizerHints.trustTypeAnnotations(closedWorld.elementEnvironment,
+              closedWorld.commonElements, method),
           "Unexpected annotation of @TrustTypeAnnotations on '$method'.");
       Expect.equals(
           expectAssumeDynamic,
-          backend.optimizerHints.assumeDynamic(method),
+          optimizerHints.assumeDynamic(closedWorld.elementEnvironment,
+              closedWorld.commonElements, method),
           "Unexpected annotation of @AssumeDynamic on '$method'.");
       TypesInferrer inferrer = compiler.globalInference.typesInferrerInternal;
       if (expectTrustTypeAnnotations && expectedParameterType != null) {
