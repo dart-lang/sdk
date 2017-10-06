@@ -4,7 +4,7 @@
 
 // Test that a static type inferrer takes [noSuchMethod] into account.
 
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 import "package:expect/expect.dart";
 

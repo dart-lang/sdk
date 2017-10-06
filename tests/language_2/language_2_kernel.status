@@ -166,6 +166,7 @@ type_parameter_test/05: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
+no_main_test/01: DartkCrash
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -468,6 +469,7 @@ language_2/least_upper_bound_expansive_test/none: CompileTimeError
 duplicate_export_negative_test: Fail # Issue 6134
 example_constructor_test: Fail, OK
 field_initialization_order_test: Fail, OK
+no_main_test/01: Skip
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 cyclic_type_variable_test/01: Crash

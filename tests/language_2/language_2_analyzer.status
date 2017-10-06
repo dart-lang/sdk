@@ -210,6 +210,11 @@ named_parameters2_test: MissingCompileTimeError
 named_parameters3_test: MissingCompileTimeError
 named_parameters4_test: MissingCompileTimeError
 named_parameters_aggregated_test/05: MissingCompileTimeError
+new_expression_type_args_test/00: MissingCompileTimeError
+new_expression_type_args_test/01: MissingCompileTimeError
+new_expression_type_args_test/02: MissingCompileTimeError
+new_prefix_test/01: MissingCompileTimeError
+no_such_constructor_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
@@ -491,6 +496,12 @@ named_parameters2_test: MissingCompileTimeError
 named_parameters3_test: MissingCompileTimeError
 named_parameters4_test: MissingCompileTimeError
 named_parameters_aggregated_test/05: MissingCompileTimeError
+new_expression_type_args_test/00: MissingCompileTimeError
+new_expression_type_args_test/01: MissingCompileTimeError
+new_expression_type_args_test/02: MissingCompileTimeError
+new_prefix_test/01: MissingCompileTimeError
+no_such_constructor_test/01: MissingCompileTimeError
+no_such_method_dispatcher_test: Pass
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
@@ -712,6 +723,12 @@ override_field_method5_negative_test: CompileTimeError
 list_literal2_negative_test: CompileTimeError
 list_literal_negative_test: CompileTimeError
 map_literal_negative_test: CompileTimeError
+new_expression1_negative_test: CompileTimeError
+new_expression2_negative_test: CompileTimeError
+new_expression3_negative_test: CompileTimeError
+non_const_super_negative_test: CompileTimeError
+no_such_constructor2_test: StaticWarning
+no_main_test/01: Fail # Issue 20030
 parameter_initializer1_negative_test: CompileTimeError
 parameter_initializer2_negative_test: CompileTimeError
 parameter_initializer3_negative_test: CompileTimeError
@@ -1164,6 +1181,8 @@ generic_methods_simple_is_expression_test: CompileTimeError # Issue 29070
 generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
 generic_methods_type_expression_test: CompileTimeError # Incorrectly disallows type parameter in "is" test.
 instantiate_type_variable_test/01: CompileTimeError
+no_main_test/01: MissingStaticWarning # Issue 28823
+no_such_method_negative_test: CompileTimeError
 string_interpolate_test: CompileTimeError
 
 [$compiler == dart2analyzer]

@@ -323,6 +323,13 @@ named_parameters_test/10: MissingCompileTimeError
 named_parameters_type_test/01: MissingCompileTimeError
 named_parameters_type_test/02: MissingCompileTimeError
 named_parameters_type_test/03: MissingCompileTimeError
+new_expression_type_args_test/00: MissingCompileTimeError
+new_expression_type_args_test/01: MissingCompileTimeError
+new_expression_type_args_test/02: MissingCompileTimeError
+new_prefix_test/01: MissingCompileTimeError
+no_such_constructor_test/01: MissingCompileTimeError
+no_such_method_mock_test: RuntimeError
+no_such_method_test: SkipByDesign
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
@@ -730,6 +737,7 @@ mixin_mixin6_test: Skip
 mixin_mixin_bound2_test: Skip
 mixin_mixin_type_arguments_test: Skip
 mixin_super_2_test: Skip
+no_such_method_dispatcher_test: Skip  # Uses new Symbol()
 
 [ $runtime == dart_precompiled || $mode == product ]
 vm/causal_async_exception_stack_test: SkipByDesign

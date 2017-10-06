@@ -26,7 +26,6 @@ inferrer_closure_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 main_not_a_function_test/01: DartkCrash
 mixin_generic_test: RuntimeError
-no_main_test/01: DartkCrash
 recursive_generic_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_22443_test: RuntimeError

@@ -12,7 +12,7 @@ class A {
 // Keep that list empty to make the inferrer infer an empty element
 // type.
 var a = [];
-var b = [new A(), new Object()];
+var b = [new A(), new Object() as dynamic];
 
 main() {
   // The following [hashCode] call will create a selector whose

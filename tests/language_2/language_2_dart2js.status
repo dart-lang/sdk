@@ -220,34 +220,6 @@ initializing_formal_type_test: MissingCompileTimeError
 interface_test/00: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: CompileTimeError
-method_name_test: Pass
-method_override2_test/none: Pass
-method_override2_test/*: MissingCompileTimeError
-method_override3_test/none: Pass
-method_override3_test/*: MissingCompileTimeError
-method_override4_test/none: Pass
-method_override4_test/*: MissingCompileTimeError
-method_override5_test/none: Pass
-method_override5_test/*: MissingCompileTimeError
-method_override6_test/none: Pass
-method_override6_test/*: MissingCompileTimeError
-method_override7_test/03: MissingCompileTimeError
-method_override8_test/03: MissingCompileTimeError
-mixin_super_bound_test/01: MissingCompileTimeError
-mixin_super_bound_test/02: MissingCompileTimeError
-mixin_supertype_subclass_test/01: CompileTimeError
-mixin_supertype_subclass_test/03: CompileTimeError
-mixin_supertype_subclass_test/04: CompileTimeError
-mixin_supertype_subclass_test/none: CompileTimeError
-mixin_type_parameters_errors_test/01: MissingCompileTimeError
-mixin_type_parameters_errors_test/02: MissingCompileTimeError
-mixin_type_parameters_errors_test/03: MissingCompileTimeError
-mixin_type_parameters_errors_test/04: MissingCompileTimeError
-mixin_type_parameters_errors_test/05: MissingCompileTimeError
-mixin_type_parameters_mixin_extends_test: RuntimeError
-mixin_type_parameters_mixin_test: RuntimeError
-mixin_type_parameters_super_extends_test: RuntimeError
-
 least_upper_bound_test/03: MissingCompileTimeError
 least_upper_bound_test/04: MissingCompileTimeError
 least_upper_bound_test/10: MissingCompileTimeError
@@ -275,6 +247,40 @@ library_ambiguous_test/01: MissingCompileTimeError
 library_ambiguous_test/02: MissingCompileTimeError
 library_ambiguous_test/03: MissingCompileTimeError
 library_ambiguous_test/04: MissingCompileTimeError
+method_name_test: Pass
+method_override2_test/none: Pass
+method_override2_test/*: MissingCompileTimeError
+method_override3_test/none: Pass
+method_override3_test/*: MissingCompileTimeError
+method_override4_test/none: Pass
+method_override4_test/*: MissingCompileTimeError
+method_override5_test/none: Pass
+method_override5_test/*: MissingCompileTimeError
+method_override6_test/none: Pass
+method_override6_test/*: MissingCompileTimeError
+method_override7_test/03: MissingCompileTimeError
+method_override8_test/03: MissingCompileTimeError
+mixin_super_bound_test/01: MissingCompileTimeError
+mixin_super_bound_test/02: MissingCompileTimeError
+mixin_supertype_subclass_test/01: CompileTimeError
+mixin_supertype_subclass_test/03: CompileTimeError
+mixin_supertype_subclass_test/04: CompileTimeError
+mixin_supertype_subclass_test/none: CompileTimeError
+mixin_type_parameters_errors_test/01: MissingCompileTimeError
+mixin_type_parameters_errors_test/02: MissingCompileTimeError
+mixin_type_parameters_errors_test/03: MissingCompileTimeError
+mixin_type_parameters_errors_test/04: MissingCompileTimeError
+mixin_type_parameters_errors_test/05: MissingCompileTimeError
+mixin_type_parameters_mixin_extends_test: RuntimeError
+mixin_type_parameters_mixin_test: RuntimeError
+mixin_type_parameters_super_extends_test: RuntimeError
+new_expression_type_args_test/00: MissingCompileTimeError
+new_expression_type_args_test/01: MissingCompileTimeError
+new_expression_type_args_test/02: MissingCompileTimeError
+new_prefix_test/01: MissingCompileTimeError
+no_such_constructor_test/01: MissingCompileTimeError
+no_such_method_mock_test: RuntimeError
+
 
 # The following tests are supposed to fail.
 # In testing-mode, dart2js supports all dart:X libraries (because it
@@ -631,11 +637,13 @@ multiline_newline_test/04r: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
 multiline_newline_test/none: RuntimeError # Issue 23888
+
 number_identity2_test: RuntimeError # Issue 12596
 left_shift_test: RuntimeError # Issue 1533
 numbers_test: RuntimeError, OK # Issue 1533
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
+nan_identical_test: Fail # Issue 11551
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 type_variable_conflict_test/01: Fail # Issue 13702
@@ -1080,6 +1088,9 @@ multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
+nan_identical_test: RuntimeError
+nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
+no_main_test/01: CompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
 not_enough_positional_arguments_test/05: MissingCompileTimeError
@@ -1371,6 +1382,9 @@ multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
+nan_identical_test: RuntimeError
+nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
+no_main_test/01: CompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
 not_enough_positional_arguments_test/05: MissingCompileTimeError
@@ -1450,6 +1464,7 @@ library_env_test/has_mirror_support: Fail # mirrors not supported
 library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
 issue21079_test: Fail # mirrors not supported
 many_overridden_no_such_method_test: Fail # mirrors not supported
+no_such_method_test: Fail # mirrors not supported
 null_test/0*: Pass # mirrors not supported, fails for the wrong reason
 null_test/none: Fail # mirrors not supported
 overridden_no_such_method_test: Fail # mirrors not supported

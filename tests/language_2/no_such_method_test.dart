@@ -26,7 +26,7 @@ class NoSuchMethodTest {
   }
 
   static testMain() {
-    var obj = new NoSuchMethodTest();
+    var obj = new NoSuchMethodTest() as dynamic;
     Expect.equals(199, obj.moo(b: 99)); // obj.NoSuchMethod called here.
   }
 }

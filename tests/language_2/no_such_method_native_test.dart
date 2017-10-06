@@ -23,7 +23,7 @@ expectNSME(Object d) {
 }
 
 main() {
-  dynamic c = new C();
+  dynamic c = new C() as dynamic;
   Expect.equals(42, c.foobar(123));
   Expect.equals(invocation.memberName, #foobar);
   Expect.listEquals(invocation.positionalArguments, [123]);

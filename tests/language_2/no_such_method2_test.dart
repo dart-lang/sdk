@@ -21,13 +21,27 @@ class You extends Hey {
   noSuchMethod(x) => x.isGetter;
 }
 
-class FakeInvocationMirror implements Invocation {
+class FakeInvocationMirror extends Invocation {
   final bool isGetter = false;
+  @override
+  bool get isMethod => false;
+
+  @override
+  bool get isSetter => false;
+
+  @override
+  Symbol get memberName => null;
+
+  @override
+  Map<Symbol, dynamic> get namedArguments => {};
+
+  @override
+  List get positionalArguments => [];
 }
 
 main() {
   var x = new Hey();
   Expect.isTrue(x.foo() is FakeInvocationMirror);
-  var y = [new You()];
+  var y = [new You() as dynamic];
   Expect.isTrue(y[0].bar);
 }

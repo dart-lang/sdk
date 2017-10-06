@@ -11,5 +11,5 @@ class NewExpressionNegativeTest {
  }
 
 main() {
-  NewExpression1NegativeTest.testMain();
+  NewExpressionNegativeTest.testMain();
 }

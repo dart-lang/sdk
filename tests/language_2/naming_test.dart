@@ -63,35 +63,35 @@ class with$I extends debugger$C {
     return new with$I(1, 2);
   }
   with$I(x, y)
-      : super(x),
-        this.y = y + 11 {}
+      : this.y = y + 11,
+        super(x) {}
   with$I.I(x, y)
-      : super.C(x),
-        this.y = y + 12 {}
+      : this.y = y + 12,
+        super.C(x) {}
   with$I.C(x, y)
-      : super.C$C(x),
-        this.y = y + 13 {}
+      : this.y = y + 13,
+        super.C$C(x){}
   with$I.I$C(x, y)
-      : super.C$I(x),
-        this.y = y + 14 {}
+      : this.y = y + 14,
+        super.C$I(x) {}
   with$I.C$C(x, y)
-      : super(x),
-        this.y = y + 15 {}
+      : this.y = y + 15,
+        super(x) {}
   with$I.C$C$C(x, y)
-      : super.C(x),
-        this.y = y + 16 {}
+      : this.y = y + 16,
+        super.C(x) {}
   with$I.$C$I(x, y)
-      : super.C$C(x),
-        this.y = y + 17 {}
+      :this.y = y + 17,
+        super.C$C(x) {}
   with$I.$$I$C(x, y)
-      : super.C$I(x),
-        this.y = y + 18 {}
+      :this.y = y + 18,
+        super.C$I(x) {}
   with$I.$(x, y)
-      : super(x),
-        this.y = y + 19 {}
+      : this.y = y + 19,
+        super(x) {}
   with$I.$$(x, y)
-      : super.C(x),
-        this.y = y + 20 {}
+      : this.y = y + 20,
+        super.C(x) {}
 }
 
 class with$C extends debugger$C$C {
@@ -101,35 +101,35 @@ class with$C extends debugger$C$C {
     return new with$C(1, 2);
   }
   with$C(x, y)
-      : super(x),
-        this.y = y + 21 {}
+      : this.y = y + 21,
+        super(x) {}
   with$C.I(x, y)
-      : super.C(x),
-        this.y = y + 22 {}
+      : this.y = y + 22,
+        super.C(x) {}
   with$C.C(x, y)
-      : super.C$C(x),
-        this.y = y + 23 {}
+      : this.y = y + 23,
+        super.C$C(x) {}
   with$C.I$C(x, y)
-      : super.C$I(x),
-        this.y = y + 24 {}
+      : this.y = y + 24,
+        super.C$I(x) {}
   with$C.C$C(x, y)
-      : super(x),
-        this.y = y + 25 {}
+      : this.y = y + 25,
+        super(x) {}
   with$C.C$C$C(x, y)
-      : super.C(x),
-        this.y = y + 26 {}
+      : this.y = y + 26,
+        super.C(x) {}
   with$C.$C$I(x, y)
-      : super.C$C(x),
-        this.y = y + 27 {}
+      : this.y = y + 27,
+        super.C$C(x) {}
   with$C.$$I$C(x, y)
-      : super.C$I(x),
-        this.y = y + 28 {}
+      : this.y = y + 28,
+        super.C$I(x) {}
   with$C.$(x, y)
-      : super(x),
-        this.y = y + 29 {}
+      : this.y = y + 29,
+        super(x) {}
   with$C.$$(x, y)
-      : super.C(x),
-        this.y = y + 30 {}
+      : this.y = y + 30,
+        super.C(x) {}
 }
 
 class with$I$C extends debugger$C$C {
@@ -139,35 +139,35 @@ class with$I$C extends debugger$C$C {
     return new with$I$C(1, 2);
   }
   with$I$C(x, y)
-      : super(x),
-        this.y = y + 31 {}
+      : this.y = y + 31,
+        super(x) {}
   with$I$C.I(x, y)
-      : super.C(x),
-        this.y = y + 32 {}
+      : this.y = y + 32,
+        super.C(x) {}
   with$I$C.C(x, y)
-      : super.C$C(x),
-        this.y = y + 33 {}
+      : this.y = y + 33,
+        super.C$C(x) {}
   with$I$C.I$C(x, y)
-      : super.C$I(x),
-        this.y = y + 34 {}
+      : this.y = y + 34,
+        super.C$I(x) {}
   with$I$C.C$C(x, y)
-      : super(x),
-        this.y = y + 35 {}
+      : this.y = y + 35,
+        super(x) {}
   with$I$C.C$C$C(x, y)
-      : super.C(x),
-        this.y = y + 36 {}
+      : this.y = y + 36,
+        super.C(x) {}
   with$I$C.$C$I(x, y)
-      : super.C$C(x),
-        this.y = y + 37 {}
+      : this.y = y + 37,
+        super.C$C(x) {}
   with$I$C.$$I$C(x, y)
-      : super.C$I(x),
-        this.y = y + 38 {}
+      : this.y = y + 38,
+        super.C$I(x) {}
   with$I$C.$(x, y)
-      : super(x),
-        this.y = y + 39 {}
+      : this.y = y + 39,
+        super(x) {}
   with$I$C.$$(x, y)
-      : super.C(x),
-        this.y = y + 40 {}
+      : this.y = y + 40,
+        super.C(x) {}
 }
 
 class Tata {
@@ -184,8 +184,8 @@ class Toto extends Tata {
   var __PROTO__;
 
   Toto()
-      : super(),
-        this.__PROTO__ = 0 {}
+      : this.__PROTO__ = 0,
+        super() {}
 
   prototype$() {
     return 10;
@@ -430,7 +430,7 @@ class NamingTest {
   }
 
   static void testFactoryMangling() {
-    var o = new debugger.F();
+    var o = new debugger.F() as dynamic;
     Expect.equals(2, o.x);
     o = new debugger$C.F();
     Expect.equals(6, o.x);
@@ -517,7 +517,7 @@ class Naming2Test {
   set foo(x) {}
 
   static void main(args) {
-    var a = new Naming2Test();
+    var a = new Naming2Test() as dynamic;
     Expect.throws(
         () => a.foo(2),
         // We check for both exceptions because the exact exception to

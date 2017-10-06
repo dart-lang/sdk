@@ -1,7 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 
@@ -37,12 +37,12 @@ class C {
 }
 
 main() {
-  var a = new A();
+  var a = new A() as dynamic;
   for (var i = 0; i < 20; ++i) Expect.equals(123, a.foo());
   Expect.throws(() => (a.foo)());
   Expect.equals("123", (a.foo).toString());
 
-  var b = new B();
+  var b = new B() as dynamic;
   for (var i = 0; i < 20; ++i) {
     Expect.equals(2, b.bar(1));
     Expect.equals(123, b.bar());
@@ -55,7 +55,7 @@ main() {
   }
 
   // Test named and positional arguments.
-  var c = new C(1, 2, [100], {"n1": 101, "n2": 102});
+  var c = new C(1, 2, [100], {"n1": 101, "n2": 102}) as dynamic;
   for (var i = 0; i < 20; ++i) {
     Expect.equals(123, c.bar(100, n1: 101, n2: 102));
     Expect.equals(123, c.bar(100, n2: 102, n1: 101));

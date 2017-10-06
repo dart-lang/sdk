@@ -29,7 +29,7 @@ main() {
   var a = new A();
   var a2 = new A2();
   var b = new B();
-  var list = [a, a2, b];
+  var list = <dynamic>[a, a2, b];
   for (int i = 0; i < list.length; i++) {
     var proto = list[i].__PROTO__;
     var constructor = list[i].constructor;

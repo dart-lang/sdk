@@ -6,10 +6,10 @@ class NewExpressionNegativeTest {
    NewExpressionNegativeTest() { }
 
    static void testMain() {
-     new NewExpressionNegativeTest(;
+     new NewExpressionNegativeTest(...;
    }
  }
 
 main() {
-  NewExpression2NegativeTest.testMain();
+  NewExpressionNegativeTest.testMain();
 }

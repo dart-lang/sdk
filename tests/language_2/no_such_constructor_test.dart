@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 class A {
   A();
 }
 
 main() {
-  new A(42); //# 01: static type warning, runtime error
+  new A(42); //# 01: compile-time error
 }

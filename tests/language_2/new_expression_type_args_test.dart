@@ -5,12 +5,12 @@
 // Tests showing errors using type-arguments in new expressions:
 class A<T> {
   // Can't instantiate type parameter (within static or instance method).
-  m1() => new T(); //        //# 00: static type warning, runtime error
-  static m2() => new T(); // //# 01: static type warning, runtime error
+  m1() => new T(); //        //# 00: compile-time error
+  static m2() => new T(); // //# 01: compile-time error
 
   // OK when used within instance method, but not in static method.
   m3() => new A<T>();
-  static m4() => new A<T>(); //# 02: static type warning
+  static m4() => new A<T>(); //# 02: compile-time error
 }
 
 main() {
