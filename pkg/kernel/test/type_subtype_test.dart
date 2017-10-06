@@ -181,6 +181,7 @@ class TestCase {
 class MockSubtypeTester extends SubtypeTester {
   ClassHierarchy hierarchy;
   InterfaceType objectType;
+  InterfaceType nullType;
   InterfaceType rawFunctionType;
   Class futureClass;
   Class futureOrClass;
@@ -190,13 +191,20 @@ class MockSubtypeTester extends SubtypeTester {
   InterfaceType futureType(DartType type) =>
       new InterfaceType(futureClass, [type]);
 
-  MockSubtypeTester(this.hierarchy, this.objectType, this.rawFunctionType,
-      this.futureClass, this.futureOrClass, this.environment);
+  MockSubtypeTester(
+      this.hierarchy,
+      this.objectType,
+      this.nullType,
+      this.rawFunctionType,
+      this.futureClass,
+      this.futureOrClass,
+      this.environment);
 }
 
 MockSubtypeTester makeSubtypeTester(Map<String, List<String>> testcase) {
   LazyTypeEnvironment environment = new LazyTypeEnvironment();
   Class objectClass = environment.lookup('Object');
+  Class nullClass = environment.lookup('Null');
   Class functionClass = environment.lookup('Function');
   Class futureClass = environment.lookup('Future');
   Class futureOrClass = environment.lookup('FutureOr');
@@ -216,8 +224,14 @@ MockSubtypeTester makeSubtypeTester(Map<String, List<String>> testcase) {
     }
   }
   var hierarchy = new IncrementalClassHierarchy();
-  return new MockSubtypeTester(hierarchy, objectClass.rawType,
-      functionClass.rawType, futureClass, futureOrClass, environment);
+  return new MockSubtypeTester(
+      hierarchy,
+      objectClass.rawType,
+      nullClass.rawType,
+      functionClass.rawType,
+      futureClass,
+      futureOrClass,
+      environment);
 }
 
 main() {
