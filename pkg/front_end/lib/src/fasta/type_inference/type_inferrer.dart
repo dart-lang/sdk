@@ -297,17 +297,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final InterfaceType thisType;
 
-  /// The [AccessorNode] whose type will be type inferred using this
-  /// [TypeInferrerImpl], or `null` if this [TypeInferrerImpl] will be used to
-  /// infer types outside the scope of top level type inference.
-  final AccessorNode accessorNode;
-
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   ClosureContext closureContext;
 
-  TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
-      this.thisType, this.accessorNode)
+  TypeInferrerImpl(
+      this.engine, this.uri, this.listener, bool topLevel, this.thisType)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
@@ -923,7 +918,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       if (interfaceMember is ShadowField) {
         var accessorNode = ShadowMember.getAccessorNode(interfaceMember);
         if (accessorNode != null) {
-          engine.inferAccessorFused(accessorNode, this.accessorNode);
+          engine.inferAccessorFused(accessorNode);
         }
       }
     }

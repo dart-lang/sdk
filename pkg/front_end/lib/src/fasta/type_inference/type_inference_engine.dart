@@ -218,6 +218,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   TypeSchemaEnvironment typeSchemaEnvironment;
 
+  AccessorNode _currentAccessorNode;
+
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
 
   @override
@@ -316,7 +318,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   @override
   void finishTopLevel() {
     for (var accessorNode in accessorNodes) {
-      inferAccessorFused(accessorNode, null);
+      inferAccessorFused(accessorNode);
     }
     for (ShadowVariableDeclaration formal in initializingFormals) {
       try {
@@ -392,7 +394,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 
   /// Performs fused type inference on the given [accessorNode].
-  void inferAccessorFused(AccessorNode accessorNode, AccessorNode dependant) {
+  void inferAccessorFused(AccessorNode accessorNode) {
     switch (accessorNode.state) {
       case InferenceState.Inferred:
         // Already inferred.  Nothing to do.
@@ -410,11 +412,15 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         }
         break;
       case InferenceState.NotInferredYet:
-        // Mark the "dependant" accessor (if any) as depending on this one, and
+        // Mark _currentAccesorNode (if any) as depending on this one, and
         // invoke accessor inference for this node.
-        dependant?.currentDependency = accessorNode;
+        var oldAccessorNode = _currentAccessorNode;
+        oldAccessorNode?.currentDependency = accessorNode;
+        _currentAccessorNode = accessorNode;
         inferAccessor(accessorNode);
-        dependant?.currentDependency = null;
+        assert(identical(_currentAccessorNode, accessorNode));
+        oldAccessorNode?.currentDependency = null;
+        _currentAccessorNode = oldAccessorNode;
         break;
     }
   }
@@ -442,8 +448,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   DartType tryInferAccessorByInheritance(AccessorNode accessorNode) {
     DartType inferredType;
     for (var override in accessorNode.candidateOverrides) {
-      var nextInferredType =
-          _computeOverriddenAccessorType(override, accessorNode);
+      var nextInferredType = _computeOverriddenAccessorType(
+          override, accessorNode.member.enclosingClass);
       if (inferredType == null) {
         inferredType = nextInferredType;
       } else if (inferredType != nextInferredType) {
@@ -455,11 +461,10 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     return inferredType;
   }
 
-  DartType _computeOverriddenAccessorType(
-      Member override, AccessorNode accessorNode) {
+  DartType _computeOverriddenAccessorType(Member override, Class thisClass) {
     AccessorNode dependency = ShadowMember.getAccessorNode(override);
     if (dependency != null) {
-      inferAccessorFused(dependency, accessorNode);
+      inferAccessorFused(dependency);
     }
     DartType overriddenType;
     if (override is Field) {
@@ -482,7 +487,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
     var superclass = override.enclosingClass;
     if (superclass.typeParameters.isEmpty) return overriddenType;
-    var thisClass = accessorNode.member.enclosingClass;
     var superclassInstantiation = classHierarchy
         .getClassAsInstanceOf(thisClass, superclass)
         .asInterfaceType;

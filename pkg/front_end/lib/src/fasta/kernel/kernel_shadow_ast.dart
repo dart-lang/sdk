@@ -1479,8 +1479,7 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
                   writeMember.kind == ProcedureKind.Setter) ||
               writeMember is Field)) {
         if (writeMember is ShadowField && writeMember._accessorNode != null) {
-          inferrer.engine.inferAccessorFused(
-              writeMember._accessorNode, inferrer.accessorNode);
+          inferrer.engine.inferAccessorFused(writeMember._accessorNode);
         }
       }
     }
@@ -1596,8 +1595,7 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
       var target = write.target;
       if (target is ShadowField && target._accessorNode != null) {
         if (inferrer.isTopLevel) {
-          inferrer.engine
-              .inferAccessorFused(target._accessorNode, inferrer.accessorNode);
+          inferrer.engine.inferAccessorFused(target._accessorNode);
         }
       }
     }
@@ -1620,8 +1618,7 @@ class ShadowStaticGet extends StaticGet implements ShadowExpression {
     var target = this.target;
     if (target is ShadowField && target._accessorNode != null) {
       if (inferrer.isTopLevel) {
-        inferrer.engine
-            .inferAccessorFused(target._accessorNode, inferrer.accessorNode);
+        inferrer.engine.inferAccessorFused(target._accessorNode);
       }
     }
     var inferredType = typeNeeded ? target.getterType : null;
@@ -1970,14 +1967,14 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
   ShadowTypeInferrer createLocalTypeInferrer(
       Uri uri, TypeInferenceListener listener, InterfaceType thisType) {
     return new ShadowTypeInferrer._(
-        this, uri.toString(), listener, false, thisType, null);
+        this, uri.toString(), listener, false, thisType);
   }
 
   @override
   ShadowTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
       InterfaceType thisType, ShadowMember member) {
     return member._typeInferrer = new ShadowTypeInferrer._(
-        this, member.fileUri, listener, true, thisType, member._accessorNode);
+        this, member.fileUri, listener, true, thisType);
   }
 
   @override
@@ -1992,15 +1989,10 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
   final typePromoter;
 
-  ShadowTypeInferrer._(
-      ShadowTypeInferenceEngine engine,
-      String uri,
-      TypeInferenceListener listener,
-      bool topLevel,
-      InterfaceType thisType,
-      AccessorNode accessorNode)
+  ShadowTypeInferrer._(ShadowTypeInferenceEngine engine, String uri,
+      TypeInferenceListener listener, bool topLevel, InterfaceType thisType)
       : typePromoter = new ShadowTypePromoter(engine.typeSchemaEnvironment),
-        super(engine, uri, listener, topLevel, thisType, accessorNode);
+        super(engine, uri, listener, topLevel, thisType);
 
   @override
   Expression getFieldInitializer(ShadowField field) {
