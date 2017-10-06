@@ -630,6 +630,29 @@ class StringToken extends SimpleToken {
 }
 
 /**
+ * A synthetic begin token.
+ */
+class SyntheticBeginToken extends BeginToken {
+  /**
+   * Initialize a newly created token to have the given [type] at the given
+   * [offset].
+   */
+  SyntheticBeginToken(TokenType type, int offset,
+      [CommentToken precedingComment])
+      : super(type, offset, precedingComment);
+
+  @override
+  Token copy() =>
+      new SyntheticBeginToken(type, offset, copyComments(precedingComments));
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  int get length => 0;
+}
+
+/**
  * A synthetic keyword token.
  */
 class SyntheticKeywordToken extends KeywordToken {
