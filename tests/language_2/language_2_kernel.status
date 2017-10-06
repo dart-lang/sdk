@@ -19,6 +19,8 @@ generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 library_env_test/has_no_mirror_support: RuntimeError
+regress_29784_test/01: MissingCompileTimeError
+regress_29784_test/02: MissingCompileTimeError
 type_variable_bounds4_test/01: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm ]

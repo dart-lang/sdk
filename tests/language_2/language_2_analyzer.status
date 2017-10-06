@@ -1189,3 +1189,4 @@ string_interpolate_test: CompileTimeError
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30929
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30929
+regress_29784_test/02: MissingCompileTimeError # Issue 29784

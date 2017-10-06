@@ -2784,7 +2784,12 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   TRACE_PARSER("ParseInitializer");
   const TokenPosition field_pos = TokenPos();
   if (CurrentToken() == Token::kASSERT) {
-    return ParseAssertStatement(current_function().is_const());
+    // Function literals are allowed in assertion initializer.
+    // "this" must not be accessible in assertion initializer.
+    receiver->set_invisible(true);
+    AstNode* init_assert = ParseAssertStatement(current_function().is_const());
+    receiver->set_invisible(false);
+    return init_assert;
   }
   if (CurrentToken() == Token::kTHIS) {
     ConsumeToken();
