@@ -2217,10 +2217,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
   int _nameEnd;
 
   /**
-   * True if this constructor has been found by constant evaluation to be free
-   * of redirect cycles, and is thus safe to evaluate.
+   * For every constructor we initially set this flag to `true`, and then
+   * set it to `false` during computing constant values if we detect that it
+   * is a part of a cycle.
    */
-  bool _isCycleFree = false;
+  bool _isCycleFree = true;
 
   /**
    * Initialize a newly created constructor element to have the given [name] and

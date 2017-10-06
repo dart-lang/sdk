@@ -739,6 +739,9 @@ class _ConstantWalker extends DependencyWalker<_ConstantNode> {
   void evaluateScc(List<_ConstantNode> scc) {
     var constantsInCycle = scc.map((node) => node.constant);
     for (_ConstantNode node in scc) {
+      if (node.constant is ConstructorElementImpl) {
+        (node.constant as ConstructorElementImpl).isCycleFree = false;
+      }
       evaluationEngine.generateCycleError(constantsInCycle, node.constant);
       node.isEvaluated = true;
     }

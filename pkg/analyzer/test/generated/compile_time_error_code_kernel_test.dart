@@ -477,14 +477,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_recursiveCompileTimeConstant_initializer_after_toplevel_var() async {
-    return super
-        .test_recursiveCompileTimeConstant_initializer_after_toplevel_var();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_recursiveConstructorRedirect() async {
     return super.test_recursiveConstructorRedirect();

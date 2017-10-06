@@ -2079,7 +2079,11 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
       for (int i = 0; i < length; i++) {
         WorkItem workItem = dependencyCycle[i];
         if (workItem.descriptor == DESCRIPTOR) {
-          constantsInCycle.add(workItem.target);
+          AnalysisTarget target = workItem.target;
+          constantsInCycle.add(target);
+          if (target is ConstructorElementImpl) {
+            target.isCycleFree = false;
+          }
         }
       }
       assert(constantsInCycle.isNotEmpty);
