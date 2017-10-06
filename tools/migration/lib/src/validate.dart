@@ -4,7 +4,6 @@
 
 import 'log.dart';
 
-final _unittestPattern = "package:unittest";
 final _checkedPattern = new RegExp(r"\bchecked\b");
 final _abstractErrorPattern =
     new RegExp(r"\bAbstractClassInstantiationError\b");
@@ -19,7 +18,6 @@ void validateFile(String path, String source, [List<String> todos]) {
     if (todos != null) todos.add(todo);
   }
 
-  check(_unittestPattern, "uses the unittest package", "Migrate off unittest.");
   check(_checkedPattern, 'mentions "checked"',
       'Fix code that mentions "checked" mode.');
   check(_abstractErrorPattern, 'mentions "AbstractClassInstantiationError"',
