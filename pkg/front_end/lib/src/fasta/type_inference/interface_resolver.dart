@@ -13,6 +13,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 /// Set this flag to `true` to cause debugging information about covariance
 /// checks to be printed to standard output.
@@ -304,6 +305,7 @@ class ForwardingNode extends Procedure {
         break;
     }
     function.body = new ReturnStatement(superCall)..parent = function;
+    procedure.transformerFlags |= TransformerFlag.superCalls;
   }
 
   /// Creates a forwarding stub based on the given [target].

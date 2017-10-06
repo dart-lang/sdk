@@ -6,16 +6,22 @@ library fasta.verifier;
 
 import 'package:kernel/ast.dart'
     show
-        InvalidExpression,
-        InvalidStatement,
-        InvalidInitializer,
         Class,
         ExpressionStatement,
         Field,
+        InvalidExpression,
+        InvalidInitializer,
+        InvalidStatement,
         Library,
+        Member,
         Procedure,
         Program,
+        SuperMethodInvocation,
+        SuperPropertyGet,
+        SuperPropertySet,
         TreeNode;
+
+import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 import 'package:kernel/verifier.dart' show VerifyingVisitor;
 
@@ -68,6 +74,26 @@ class FastaVerifyingVisitor extends VerifyingVisitor
       }
       return fileUri;
     }
+  }
+
+  void checkSuperInvocation(TreeNode node) {
+    var containingMember = getContainingMember(node);
+    if (containingMember == null) {
+      problem(node, 'Super call outside of any member');
+    } else {
+      if (containingMember.transformerFlags & TransformerFlag.superCalls == 0) {
+        problem(
+            node, 'Super call in a member lacking TransformerFlag.superCalls');
+      }
+    }
+  }
+
+  Member getContainingMember(TreeNode node) {
+    while (node != null) {
+      if (node is Member) return node;
+      node = node.parent;
+    }
+    return null;
   }
 
   @override
@@ -133,5 +159,23 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   visitUnknownType(UnknownType node) {
     // Note: we can't pass [node] to [problem] because it's not a [TreeNode].
     problem(null, "Unexpected appearance of the unknown type.");
+  }
+
+  @override
+  visitSuperMethodInvocation(SuperMethodInvocation node) {
+    checkSuperInvocation(node);
+    super.visitSuperMethodInvocation(node);
+  }
+
+  @override
+  visitSuperPropertyGet(SuperPropertyGet node) {
+    checkSuperInvocation(node);
+    super.visitSuperPropertyGet(node);
+  }
+
+  @override
+  visitSuperPropertySet(SuperPropertySet node) {
+    checkSuperInvocation(node);
+    super.visitSuperPropertySet(node);
   }
 }
