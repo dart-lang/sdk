@@ -298,6 +298,8 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     var covariantParams = getSuperclassCovariantParameters(node);
     void emitStubFor(DartType returnType, String name,
         List<ParameterElement> parameters, String accessorType) {
+      String closer = '';
+      var previousParameterKind = ParameterKind.REQUIRED;
       var paramDescrs = <String>[];
       for (var param in parameters) {
         var covariances = <String>[];
@@ -311,9 +313,23 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         var covariance = 'covariance=(${covariances.join(', ')})';
         var typeDescr = _typeToString(param.type);
         var paramName = accessorType == 'set' ? 'value' : param.name;
-        // TODO(paulberry): if necessary, support other parameter kinds
-        assert(param.parameterKind == ParameterKind.REQUIRED);
-        paramDescrs.add('$covariance $typeDescr $paramName');
+        var paramDescr = '$covariance $typeDescr $paramName';
+        if (param.parameterKind != previousParameterKind) {
+          String opener;
+          if (param.parameterKind == ParameterKind.POSITIONAL) {
+            opener = '[';
+            closer = ']';
+          } else {
+            opener = '{';
+            closer = '}';
+          }
+          paramDescr = opener + paramDescr;
+          previousParameterKind = param.parameterKind;
+        }
+        paramDescrs.add(paramDescr);
+      }
+      if (closer.isNotEmpty) {
+        paramDescrs[paramDescrs.length - 1] += closer;
       }
       var returnTypeDescr = _typeToString(returnType);
       var stubParts = [returnTypeDescr];

@@ -448,6 +448,7 @@ runtime_checks/covariant_keyword_setter_inherited_by_field: Crash
 runtime_checks/covariant_setter: Crash
 runtime_checks/dynamic_invocation_of_getter: Crash
 runtime_checks/field_forwarding_stub_generic_covariant: Crash
+runtime_checks/forwarding_stub_with_default_values: Crash
 runtime_checks/generic_covariance_inheritance_setter_field: Crash
 runtime_checks/generic_vs_explicit_covariance: Crash
 runtime_checks_new/derived_class_typed: Fail
