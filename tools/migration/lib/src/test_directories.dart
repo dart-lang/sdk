@@ -13,7 +13,6 @@ const oneRootDirs = const [
   "isolate",
   "language",
   "lib",
-  "standalone"
 ];
 
 const strongRootDirs = const [
@@ -22,7 +21,11 @@ const strongRootDirs = const [
   "lib_strong",
 ];
 
-const twoRootDirs = const ["corelib_2", "language_2", "lib_2", "standalone_2"];
+const twoRootDirs = const [
+  "corelib_2",
+  "language_2",
+  "lib_2",
+];
 
 final fromRootDirs = oneRootDirs.toList()..addAll(strongRootDirs);
 
@@ -35,7 +38,6 @@ final _directories = [
       "isolate", p.join("lib_strong", "isolate"), p.join("lib_2", "isolate")),
   new _Directory("language", "language_strong", "language_2"),
   new _Directory("lib", "lib_strong", "lib_2"),
-  new _Directory("standalone", "", "standalone_2"),
 ];
 
 /// Maps a Dart 1.0 or DDC root directory to its resulting migration Dart 2.0

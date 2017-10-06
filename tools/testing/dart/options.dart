@@ -12,7 +12,6 @@ import 'utils.dart';
 const _defaultTestSelectors = const [
   'samples',
   'standalone',
-  'standalone_2',
   'corelib',
   'corelib_2',
   'co19',
