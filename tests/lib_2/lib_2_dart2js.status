@@ -31,6 +31,7 @@ async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Iss
 async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.
 isolate/pause_test: Fail, OK  # non-zero timer not supported.
+isolate/timer_isolate_test: Fail, OK # Needs Timer to run.
 
 [ $compiler == dart2js ]
 async/future_or_bad_type_test: MissingCompileTimeError
@@ -73,6 +74,8 @@ isolate/message3_test/constMap: RuntimeError  # Issue 21817
 isolate/non_fatal_exception_in_timer_callback_test: Skip # Issue 23876
 isolate/spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
 isolate/spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
+isolate/spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
+isolate/spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
@@ -120,6 +123,7 @@ html/media_stream_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/rtc_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/speechrecognition_test: Fail # TODO(dart2js-team): Please triage this failure.
 isolate/mandel_isolate_test: Pass, Timeout # TODO(kasperl): Please triage.
+isolate/unresolved_ports_test: Pass, Timeout # Issue 15610
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
@@ -572,3 +576,11 @@ isolate/spawn_function_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
+
+[ $compiler == dart2js && $jscl ]
+isolate/spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
+
+[ ($compiler == dart2js && $fast_startup) ]
+isolate/stacktrace_message_test: Fail # mirrors not supported
+isolate/static_function_test: Fail # mirrors not supported
+isolate/unresolved_ports_test: Fail # mirrors not supported

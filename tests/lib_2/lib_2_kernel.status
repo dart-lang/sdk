@@ -11,6 +11,7 @@ isolate/message3_test/constMap: Crash
 isolate/message3_test/fun: Crash
 isolate/message3_test/none: Crash
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
+isolate/typed_message_test: Crash
 
 [ $compiler == dartk || $compiler == dartkp ]
 async/future_or_strong_test: RuntimeError
@@ -226,6 +227,7 @@ mirrors/invocation_fuzz_test/smi: Crash
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
 
 [ $compiler == dartk && $runtime == vm ]
@@ -248,3 +250,4 @@ isolate/deferred_in_isolate_test: Skip # Deferred loading kernel issue 28335.
 isolate/message3_test/int32x4: Crash
 isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_function_custom_class_test: Pass, Timeout
+isolate/spawn_uri_nested_vm_test: Pass, Timeout

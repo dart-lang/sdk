@@ -20,7 +20,7 @@ import "dart:mirrors";
  *       // the usual test.
  *     }
  *
- * Remember to import unittest using the URI `package:inittest/unittest.dart`.
+ * Remember to import unittest using the URI `package:unittest/unittest.dart`.
  * Otherwise it won't be sharing the `unittestConfiguration` with this library,
  * and the override set below won't work.
  *

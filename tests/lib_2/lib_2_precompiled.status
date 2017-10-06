@@ -33,6 +33,9 @@ isolate/raw_port_test: SkipByDesign
 isolate/request_reply_test: SkipByDesign
 isolate/spawn_function_custom_class_test: SkipByDesign
 isolate/spawn_function_test: SkipByDesign
+isolate/stacktrace_message_test: SkipByDesign
+isolate/static_function_test: SkipByDesign
+isolate/unresolved_ports_test: SkipByDesign
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
 

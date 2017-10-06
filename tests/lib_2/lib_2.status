@@ -3,11 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ !$strong ]
+isolate/isolate_import_test/01: MissingCompileTimeError
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
-isolate/isolate_import_test/01: MissingCompileTimeError
 
 [ !$strong && $compiler != dartdevc && $checked ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
@@ -42,6 +42,7 @@ async/stream_transformer_test: Pass, Fail # Closure identity
 isolate/function_send_test: Pass, Fail # Closure identity
 isolate/issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 isolate/message3_test/fun: Pass, Fail # Closure identity
+isolate/spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
@@ -211,9 +212,9 @@ html/webgl_extensions_test: Skip # webgl does not work properly on DRT, which is
 isolate/checked_test: Skip # Unsupported.
 
 [ $csp ]
+isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
+isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
-isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
-isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 
 [ $mode == product ]
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
@@ -224,3 +225,6 @@ isolate/package_config_test: SkipByDesign  # Uses Isolate.packageConfig
 isolate/package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
 isolate/scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 isolate/spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
+
+[ $jscl ]
+isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
