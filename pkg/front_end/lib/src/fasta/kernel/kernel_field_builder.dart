@@ -4,6 +4,9 @@
 
 library fasta.kernel_field_builder;
 
+import 'package:front_end/src/base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueForType;
+
 import 'package:kernel/ast.dart'
     show DartType, Expression, Field, Name, NullLiteral;
 
@@ -111,6 +114,14 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
         bodyBuilder.checkEmpty(token.charOffset);
         initializer = expression;
       }
+    }
+  }
+
+  @override
+  void instrumentTopLevelInference(Instrumentation instrumentation) {
+    if (isEligibleForInference) {
+      instrumentation.record(Uri.parse(field.fileUri), field.fileOffset,
+          'topType', new InstrumentationValueForType(field.type));
     }
   }
 

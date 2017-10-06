@@ -693,8 +693,6 @@ class ShadowField extends Field implements ShadowMember {
   @override
   void setInferredType(
       TypeInferenceEngineImpl engine, String uri, DartType inferredType) {
-    engine.instrumentation?.record(Uri.parse(uri), fileOffset, 'topType',
-        new InstrumentationValueForType(inferredType));
     type = inferredType;
   }
 }
@@ -1411,14 +1409,9 @@ class ShadowProcedure extends Procedure implements ShadowMember {
       TypeInferenceEngineImpl engine, String uri, DartType inferredType) {
     if (isSetter) {
       if (function.positionalParameters.length > 0) {
-        var parameter = function.positionalParameters[0];
-        engine.instrumentation?.record(Uri.parse(uri), parameter.fileOffset,
-            'topType', new InstrumentationValueForType(inferredType));
-        parameter.type = inferredType;
+        function.positionalParameters[0].type = inferredType;
       }
     } else if (isGetter) {
-      engine.instrumentation?.record(Uri.parse(uri), fileOffset, 'topType',
-          new InstrumentationValueForType(inferredType));
       function.returnType = inferredType;
     } else {
       unhandled("setInferredType", "not accessor", fileOffset, Uri.parse(uri));
@@ -1433,10 +1426,7 @@ class ShadowProcedure extends Procedure implements ShadowMember {
       ShadowProcedure procedure, TypeInferenceEngineImpl engine, String uri) {
     assert(procedure.isSetter);
     if (procedure._hasImplicitReturnType) {
-      var inferredType = const VoidType();
-      engine.instrumentation?.record(Uri.parse(uri), procedure.fileOffset,
-          'topType', new InstrumentationValueForType(inferredType));
-      procedure.function?.returnType = inferredType;
+      procedure.function?.returnType = const VoidType();
     }
   }
 }

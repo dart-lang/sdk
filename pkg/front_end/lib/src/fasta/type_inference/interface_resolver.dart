@@ -375,14 +375,8 @@ class ForwardingNode extends Procedure {
     }
 
     if (ShadowProcedure.hasImplicitReturnType(declaredMethod)) {
-      var inferredType =
+      declaredMethod.function.returnType =
           matchTypes(overriddenTypes.map((type) => type.returnType));
-      _interfaceResolver._instrumentation?.record(
-          Uri.parse(enclosingClass.fileUri),
-          declaredMethod.fileOffset,
-          'topType',
-          new InstrumentationValueForType(inferredType));
-      declaredMethod.function.returnType = inferredType;
     }
     var positionalParameters = declaredMethod.function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
@@ -403,28 +397,16 @@ class ForwardingNode extends Procedure {
         //     non-optional parameter), the inference result is not defined and
         //     tools are free to either emit an error, or to defer the error to
         //     override checking.
-        var inferredType = matchTypes(
+        positionalParameters[i].type = matchTypes(
             overriddenTypes.map((type) => getPositionalParameterType(type, i)));
-        _interfaceResolver._instrumentation?.record(
-            Uri.parse(enclosingClass.fileUri),
-            positionalParameters[i].fileOffset,
-            'topType',
-            new InstrumentationValueForType(inferredType));
-        positionalParameters[i].type = inferredType;
       }
     }
     var namedParameters = declaredMethod.function.namedParameters;
     for (int i = 0; i < namedParameters.length; i++) {
       if (ShadowVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
         var name = namedParameters[i].name;
-        var inferredType = matchTypes(
+        namedParameters[i].type = matchTypes(
             overriddenTypes.map((type) => getNamedParameterType(type, name)));
-        _interfaceResolver._instrumentation?.record(
-            Uri.parse(enclosingClass.fileUri),
-            namedParameters[i].fileOffset,
-            'topType',
-            new InstrumentationValueForType(inferredType));
-        namedParameters[i].type = inferredType;
       }
     }
   }

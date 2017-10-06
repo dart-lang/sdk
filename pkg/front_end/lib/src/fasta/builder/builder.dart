@@ -4,6 +4,8 @@
 
 library fasta.builder;
 
+import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
+
 import '../problems.dart' show unhandled, unsupported;
 
 export 'class_builder.dart' show ClassBuilder;
@@ -143,4 +145,6 @@ abstract class Builder {
 
   void prepareTopLevelInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {}
+
+  void instrumentTopLevelInference(Instrumentation instrumentation) {}
 }

@@ -8,7 +8,8 @@ import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
-import '../../base/instrumentation.dart' show InstrumentationValueLiteral;
+import '../../base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueLiteral;
 
 import '../../scanner/token.dart' show Token;
 
@@ -578,6 +579,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         return;
       }
       member.prepareTopLevelInference(library, currentClass);
+    });
+  }
+
+  @override
+  void instrumentTopLevelInference(Instrumentation instrumentation) {
+    forEach((String name, Builder member) {
+      member.instrumentTopLevelInference(instrumentation);
     });
   }
 

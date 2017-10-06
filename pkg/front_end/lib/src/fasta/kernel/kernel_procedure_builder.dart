@@ -4,6 +4,9 @@
 
 library fasta.kernel_procedure_builder;
 
+import 'package:front_end/src/base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueForType;
+
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
     show TypeInferrer;
 
@@ -298,6 +301,31 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       var listener = new TypeInferenceListener();
       typeInferenceEngine.createTopLevelTypeInferrer(
           listener, procedure.enclosingClass?.thisType, procedure);
+    }
+  }
+
+  @override
+  void instrumentTopLevelInference(Instrumentation instrumentation) {
+    if (isEligibleForTopLevelInference) {
+      if (returnType == null) {
+        instrumentation.record(
+            Uri.parse(procedure.fileUri),
+            procedure.fileOffset,
+            'topType',
+            new InstrumentationValueForType(procedure.function.returnType));
+      }
+      if (formals != null) {
+        for (var formal in formals) {
+          if (formal.type == null) {
+            VariableDeclaration formalTarget = formal.target;
+            instrumentation.record(
+                Uri.parse(procedure.fileUri),
+                formalTarget.fileOffset,
+                'topType',
+                new InstrumentationValueForType(formalTarget.type));
+          }
+        }
+      }
     }
   }
 }

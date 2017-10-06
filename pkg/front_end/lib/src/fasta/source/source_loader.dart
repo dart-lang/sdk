@@ -522,6 +522,13 @@ class SourceLoader<L> extends Loader<L> {
       target.finalizeCovariance(interfaceResolver);
       ShadowClass.clearClassInferenceInfo(target);
     }
+    if (instrumentation != null) {
+      builders.forEach((Uri uri, LibraryBuilder library) {
+        if (library is SourceLibraryBuilder) {
+          library.instrumentTopLevelInference(instrumentation);
+        }
+      });
+    }
     interfaceResolver = null;
     // Since finalization of covariance may have added forwarding stubs, we need
     // to recompute the class hierarchy so that method compilation will properly
