@@ -70,7 +70,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       DiagnosticReporter reporter,
       Measurer measurer) {
     return new KernelLibraryLoaderTask(_options.platformConfigUri.resolve("."),
-        _options.packageConfig, _elementMap, compilerInput, reporter, measurer);
+        _options.packageConfig, _elementMap, compilerInput, reporter, measurer,
+        verbose: _options.verbose);
   }
 
   @override

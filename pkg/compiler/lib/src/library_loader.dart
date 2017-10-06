@@ -834,10 +834,13 @@ class KernelLibraryLoaderTask extends CompilerTask
   /// result of loading a program.
   final KernelToElementMapForImpactImpl _elementMap;
 
+  final bool verbose;
+
   List<LibraryEntity> _allLoadedLibraries;
 
   KernelLibraryLoaderTask(this.sdkRoot, this._packageConfig, this._elementMap,
-      this.compilerInput, this.reporter, Measurer measurer)
+      this.compilerInput, this.reporter, Measurer measurer,
+      {this.verbose: false})
       : _allLoadedLibraries = new List<LibraryEntity>(),
         super(measurer);
 
@@ -857,6 +860,7 @@ class KernelLibraryLoaderTask extends CompilerTask
         new BinaryBuilder(input.data).readProgram(program);
       } else {
         var options = new fe.CompilerOptions()
+          ..verbose = verbose
           ..fileSystem = new CompilerFileSystem(compilerInput)
           ..target = new Dart2jsTarget(new TargetFlags())
           ..linkedDependencies = [
