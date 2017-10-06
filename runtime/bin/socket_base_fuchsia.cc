@@ -11,7 +11,7 @@
 // ioctl in netconfig.h.
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
-#include <garnet/go/src/netstack/apps/include/netconfig.h>
+#include <lib/netstack/c/netconfig.h>
 #include <ifaddrs.h>      // NOLINT
 #include <net/if.h>       // NOLINT
 #include <netinet/tcp.h>  // NOLINT
