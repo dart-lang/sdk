@@ -645,26 +645,41 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitForInStatement(ir.ForInStatement node) {
-    TypeInformation expressionType = visit(node.iterable);
-    Selector iteratorSelector = Selectors.iterator;
-    TypeMask iteratorMask = _memberData.typeOfIterator(node);
-    Selector currentSelector = Selectors.current;
-    TypeMask currentMask = _memberData.typeOfIteratorCurrent(node);
-    Selector moveNextSelector = Selectors.moveNext;
-    TypeMask moveNextMask = _memberData.typeOfIteratorMoveNext(node);
+    TypeMask currentMask;
+    TypeMask moveNextMask;
+    TypeInformation iteratorType;
+    if (node.isAsync) {
+      TypeInformation expressionType = visit(node.iterable);
 
-    TypeInformation iteratorType = handleDynamicInvoke(
+      currentMask = _memberData.typeOfIteratorCurrent(node);
+      moveNextMask = _memberData.typeOfIteratorMoveNext(node);
+
+      ConstructorEntity constructor =
+          _closedWorld.commonElements.streamIteratorConstructor;
+
+      /// Synthesize a call to the [StreamIterator] constructor.
+      iteratorType = handleStaticInvoke(node, null, null, constructor,
+          new ArgumentsTypes([expressionType], null));
+    } else {
+      TypeInformation expressionType = visit(node.iterable);
+      Selector iteratorSelector = Selectors.iterator;
+      TypeMask iteratorMask = _memberData.typeOfIterator(node);
+      currentMask = _memberData.typeOfIteratorCurrent(node);
+      moveNextMask = _memberData.typeOfIteratorMoveNext(node);
+
+      iteratorType = handleDynamicInvoke(CallType.forIn, node, iteratorSelector,
+          iteratorMask, expressionType, new ArgumentsTypes.empty());
+    }
+
+    handleDynamicInvoke(CallType.forIn, node, Selectors.moveNext, moveNextMask,
+        iteratorType, new ArgumentsTypes.empty());
+    TypeInformation currentType = handleDynamicInvoke(
         CallType.forIn,
         node,
-        iteratorSelector,
-        iteratorMask,
-        expressionType,
+        Selectors.current,
+        currentMask,
+        iteratorType,
         new ArgumentsTypes.empty());
-
-    handleDynamicInvoke(CallType.forIn, node, moveNextSelector, moveNextMask,
-        iteratorType, new ArgumentsTypes.empty());
-    TypeInformation currentType = handleDynamicInvoke(CallType.forIn, node,
-        currentSelector, currentMask, iteratorType, new ArgumentsTypes.empty());
 
     Local variable = _localsMap.getLocalVariable(node.variable);
     DartType variableType = _localsMap.getLocalType(_elementMap, variable);
@@ -1254,6 +1269,18 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitAsExpression(ir.AsExpression node) {
     TypeInformation operandType = visit(node.operand);
     return _types.narrowType(operandType, _elementMap.getDartType(node.type));
+  }
+
+  @override
+  TypeInformation visitAwaitExpression(ir.AwaitExpression node) {
+    TypeInformation futureType = visit(node.operand);
+    return _inferrer.registerAwait(node, futureType);
+  }
+
+  @override
+  TypeInformation visitYieldStatement(ir.YieldStatement node) {
+    TypeInformation operandType = visit(node.expression);
+    return _inferrer.registerYield(node, operandType);
   }
 }
 
