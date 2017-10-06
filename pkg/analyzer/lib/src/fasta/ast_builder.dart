@@ -237,8 +237,8 @@ class AstBuilder extends ScopeListener {
     } else if (context == IdentifierContext.enumValueDeclaration) {
       // TODO(paulberry): analyzer's ASTs allow for enumerated values to have
       // metadata, but the spec doesn't permit it.
-      List<Annotation> metadata;
-      Comment comment = _toAnalyzerComment(token.precedingComments);
+      List<Annotation> metadata = null;
+      Comment comment = _findComment(metadata, token);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       push(identifier);
@@ -554,7 +554,8 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata,
+        variables[0].beginToken ?? type?.beginToken ?? modifiers.beginToken);
     push(ast.variableDeclarationStatement(
         ast.variableDeclarationList(
             comment, metadata, keyword, type, variables),
@@ -863,8 +864,9 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     Token covariantKeyword = modifiers?.covariantKeyword;
-    pop(); // TODO(paulberry): Metadata.
-    Comment comment = pop();
+    List<Annotation> metadata = pop(); // TODO(paulberry): Metadata.
+    Comment comment = _findComment(metadata,
+        thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
 
     FormalParameter node;
     if (typeOrFunctionTypedParameter is FunctionTypedFormalParameter) {
@@ -1163,7 +1165,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token externalKeyword = modifiers?.externalKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
     if (getOrSet != null && optional('get', getOrSet)) {
       parameters = null;
     }
@@ -1186,7 +1188,6 @@ class AstBuilder extends ScopeListener {
   void handleInvalidTopLevelDeclaration(Token endToken) {
     debugEvent("InvalidTopLevelDeclaration");
     pop(); // metadata star
-    pop(); // comments
     // TODO(danrubel): consider creating a AST node
     // representing the invalid declaration to better support code completion,
     // quick fixes, etc, rather than discarding the metadata and token
@@ -1232,7 +1233,7 @@ class AstBuilder extends ScopeListener {
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     assert(metadata == null); // TODO(paulberry): fix.
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, importKeyword);
 
     directives.add(ast.importDirective(
         comment,
@@ -1278,7 +1279,7 @@ class AstBuilder extends ScopeListener {
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     assert(metadata == null);
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, exportKeyword);
     directives.add(ast.exportDirective(comment, metadata, exportKeyword, uri,
         configurations, combinators, semicolon));
   }
@@ -1412,7 +1413,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, classKeyword);
     // leftBracket, members, and rightBracket are set in [endClassBody].
     ClassDeclaration classDeclaration = ast.classDeclaration(
       comment,
@@ -1494,7 +1495,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.classTypeAlias(
         comment,
         metadata,
@@ -1523,7 +1524,7 @@ class AstBuilder extends ScopeListener {
     List<SimpleIdentifier> libraryName = pop();
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, libraryKeyword);
     directives.add(ast.libraryDirective(
         comment, metadata, libraryKeyword, name, semicolon));
   }
@@ -1561,7 +1562,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("Part");
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, partKeyword);
     directives
         .add(ast.partDirective(comment, metadata, partKeyword, uri, semicolon));
   }
@@ -1579,7 +1580,7 @@ class AstBuilder extends ScopeListener {
       name = ast.libraryIdentifier(libraryNameOrUri);
     }
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, partKeyword);
     directives.add(ast.partOfDirective(
         comment, metadata, partKeyword, ofKeyword, uri, name, semicolon));
   }
@@ -1628,7 +1629,7 @@ class AstBuilder extends ScopeListener {
     ConstructorName constructorName = pop();
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
 
     // Decompose the preliminary ConstructorName into the type name and
     // the actual constructor name.
@@ -1710,7 +1711,7 @@ class AstBuilder extends ScopeListener {
     var variableList =
         ast.variableDeclarationList(null, null, keyword, type, variables);
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.topLevelVariableDeclaration(
         comment, metadata, variableList, endToken));
   }
@@ -1725,7 +1726,7 @@ class AstBuilder extends ScopeListener {
     TypeAnnotation bound = pop();
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, name.beginToken);
     push(ast.typeParameter(comment, metadata, name, extendsOrSuper, bound));
   }
 
@@ -1749,7 +1750,7 @@ class AstBuilder extends ScopeListener {
     TypeAnnotation returnType = pop();
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
 
     void constructor(
         SimpleIdentifier returnType, Token period, SimpleIdentifier name) {
@@ -1824,7 +1825,7 @@ class AstBuilder extends ScopeListener {
       SimpleIdentifier name = pop();
       TypeAnnotation returnType = pop();
       List<Annotation> metadata = pop();
-      Comment comment = pop();
+      Comment comment = _findComment(metadata, typedefKeyword);
       declarations.add(ast.functionTypeAlias(comment, metadata, typedefKeyword,
           returnType, name, typeParameters, parameters, endToken));
     } else {
@@ -1832,7 +1833,7 @@ class AstBuilder extends ScopeListener {
       TypeParameterList templateParameters = pop();
       SimpleIdentifier name = pop();
       List<Annotation> metadata = pop();
-      Comment comment = pop();
+      Comment comment = _findComment(metadata, typedefKeyword);
       if (type is! GenericFunctionType) {
         // TODO(paulberry) Generate an error and recover (better than
         // this).
@@ -1849,7 +1850,7 @@ class AstBuilder extends ScopeListener {
     List<EnumConstantDeclaration> constants = popList(count);
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, enumKeyword);
     declarations.add(ast.enumDeclaration(comment, metadata, enumKeyword, name,
         leftBrace, constants, leftBrace?.endGroup));
   }
@@ -1871,7 +1872,7 @@ class AstBuilder extends ScopeListener {
         null, null, modifiers?.finalConstOrVarKeyword, type, variables);
     Token covariantKeyword = modifiers?.covariantKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
     push(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
@@ -1897,11 +1898,6 @@ class AstBuilder extends ScopeListener {
   @override
   void beginMetadataStar(Token token) {
     debugEvent("beginMetadataStar");
-    if (token.precedingComments != null) {
-      push(_toAnalyzerComment(token.precedingComments));
-    } else {
-      push(NullValue.Comments);
-    }
   }
 
   @override
@@ -1931,17 +1927,56 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  Comment _toAnalyzerComment(Token comments) {
-    if (comments == null) return null;
+  Comment _findComment(List<Annotation> metadata, Token tokenAfterMetadata) {
+    Token commentsOnNext = tokenAfterMetadata?.precedingComments;
+    if (commentsOnNext != null) {
+      Comment comment = _parseDocumentationCommentOpt(commentsOnNext);
+      if (comment != null) {
+        return comment;
+      }
+    }
+    if (metadata != null) {
+      for (Annotation annotation in metadata) {
+        Token commentsBeforeAnnotation =
+            annotation.beginToken.precedingComments;
+        if (commentsBeforeAnnotation != null) {
+          Comment comment =
+              _parseDocumentationCommentOpt(commentsBeforeAnnotation);
+          if (comment != null) {
+            return comment;
+          }
+        }
+      }
+    }
+    return null;
+  }
 
-    // This is temporary placeholder code to get tests to pass.
-    // TODO(paulberry): after analyzer and fasta token representations are
-    // unified, refactor the code in analyzer's parser that handles
-    // documentation comments so that it is reusable, and reuse it here.
-    // See Parser.parseCommentAndMetadata
-    var tokens = <Token>[comments];
-    var references = <CommentReference>[];
-    return ast.documentationComment(tokens, references);
+  /**
+   * Parse a documentation comment. Return the documentation comment that was
+   * parsed, or `null` if there was no comment.
+   */
+  Comment _parseDocumentationCommentOpt(CommentToken commentToken) {
+    List<Token> tokens = <Token>[];
+    while (commentToken != null) {
+      if (commentToken.lexeme.startsWith('/**') ||
+          commentToken.lexeme.startsWith('///')) {
+        if (tokens.isNotEmpty) {
+          if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
+            if (tokens[0].type != TokenType.SINGLE_LINE_COMMENT) {
+              tokens.clear();
+            }
+          } else {
+            tokens.clear();
+          }
+        }
+        tokens.add(commentToken);
+      }
+      commentToken = commentToken.next;
+    }
+    // TODO(brianwilkerson) Use the code in analyzer's parser to parse the
+    // references inside the comment.
+    List<CommentReference> references = <CommentReference>[];
+    return tokens.isEmpty ? null : ast.documentationComment(tokens, references);
   }
 
   @override
@@ -2352,5 +2387,26 @@ class _Modifiers {
         unhandled("$s", "modifier", token.charOffset, null);
       }
     }
+  }
+
+  /// Return the token that is lexically first.
+  Token get beginToken {
+    Token firstToken = null;
+    for (Token token in [
+      abstractKeyword,
+      externalKeyword,
+      finalConstOrVarKeyword,
+      staticKeyword,
+      covariantKeyword
+    ]) {
+      if (firstToken == null) {
+        firstToken = token;
+      } else if (token != null) {
+        if (token.offset < firstToken.offset) {
+          firstToken = token;
+        }
+      }
+    }
+    return firstToken;
   }
 }

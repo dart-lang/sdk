@@ -5555,17 +5555,11 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken {
-    NodeList<Annotation> metadata = this.metadata;
-    if (!metadata.isEmpty) {
-      return metadata.beginToken;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword;
-    } else if (_returnType != null) {
-      return _returnType.beginToken;
-    }
-    return identifier.beginToken;
-  }
+  Token get beginToken =>
+      this.metadata.beginToken ??
+      covariantKeyword ??
+      _returnType?.beginToken ??
+      identifier?.beginToken;
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
