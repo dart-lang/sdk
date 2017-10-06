@@ -15,8 +15,8 @@ import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/resolution/access_semantics.dart';
 import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
-import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
+import '../annotated_code_helper.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
@@ -37,36 +37,18 @@ main(List<String> args) {
         print('Checking ${entity.uri}');
         String annotatedCode =
             await new File.fromUri(entity.uri).readAsString();
-        IdData data1 = await computeData(
-            annotatedCode, computeAstMemberData, compileFromSource,
+        AnnotatedCode code =
+            new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd);
+        // Pretend this is a dart2js_native test to allow use of 'native'
+        // keyword and import of private libraries.
+        Uri entryPoint =
+            Uri.parse('memory:sdk/tests/compiler/dart2js_native/main.dart');
+        Map<String, String> memorySourceFiles = {
+          entryPoint.path: code.sourceCode
+        };
+        await compareData(entryPoint, memorySourceFiles, computeAstMemberData,
+            computeIrMemberData,
             options: [Flags.disableTypeInference, stopAfterTypeInference]);
-        IdData data2 = await computeData(
-            annotatedCode, computeIrMemberData, compileFromDill,
-            options: [Flags.disableTypeInference, stopAfterTypeInference]);
-        data1.actualMap.forEach((Id id, ActualData actualData1) {
-          IdValue value1 = actualData1.value;
-          IdValue value2 = data2.actualMap[id]?.value;
-          if (value1 != value2) {
-            reportHere(data1.compiler.reporter, actualData1.sourceSpan,
-                '$id: from source:${value1},from dill:${value2}');
-            print('--annotations diff----------------------------------------');
-            print(data1.computeDiffCodeFor(data2));
-            print('----------------------------------------------------------');
-          }
-          Expect.equals(value1, value2, 'Value mismatch for $id');
-        });
-        data2.actualMap.forEach((Id id, ActualData actualData2) {
-          IdValue value2 = actualData2.value;
-          IdValue value1 = data1.actualMap[id]?.value;
-          if (value1 != value2) {
-            reportHere(data2.compiler.reporter, actualData2.sourceSpan,
-                '$id: from source:${value1},from dill:${value2}');
-            print('--annotations diff----------------------------------------');
-            print(data1.computeDiffCodeFor(data2));
-            print('----------------------------------------------------------');
-          }
-          Expect.equals(value1, value2, 'Value mismatch for $id');
-        });
       }
     }
   });

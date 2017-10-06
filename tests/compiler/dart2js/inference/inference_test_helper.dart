@@ -75,13 +75,13 @@ class TypeMaskAstComputer extends AstDataExtractor
   @override
   String computeElementValue(Id id, AstElement element) {
     if (element.isParameter) {
-      ParameterElement parameter = element;
+      ParameterElement parameter = element.implementation;
       return getParameterValue(parameter);
     } else if (element.isLocal && element.isFunction) {
       LocalFunctionElement localFunction = element;
       return getMemberValue(localFunction.callMethod);
     } else {
-      MemberElement member = element;
+      MemberElement member = element.declaration;
       return getMemberValue(member);
     }
   }
