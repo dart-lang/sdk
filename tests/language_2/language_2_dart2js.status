@@ -1125,7 +1125,9 @@ async_await_syntax_test/a06a: RuntimeError
 async_await_syntax_test/b06a: RuntimeError
 async_await_syntax_test/c06a: RuntimeError
 async_await_syntax_test/d06a: RuntimeError
-async_await_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
+async_await_test/none: RuntimeError
+async_await_test/02: RuntimeError
+async_await_test/03: RuntimeError
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
