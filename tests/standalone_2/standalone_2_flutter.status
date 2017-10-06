@@ -1,0 +1,93 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $runtime == flutter ]
+io/raw_datagram_socket_test: Crash # Flutter Issue 9115
+io/process_check_arguments_test: RuntimeError # Flutter Issue 9115
+io/process_working_directory_test: RuntimeError # Flutter Issue 9115
+io/process_run_output_test: RuntimeError # Flutter Issue 9115
+io/process_run_test: RuntimeError # Flutter Issue 9115
+io/process_sync_test: RuntimeError # Flutter Issue 9115
+io/test_extension_test: RuntimeError # Flutter Issue 9115
+io/test_extension_test: RuntimeError # Flutter Issue 9115
+io/test_extension_fail_test: RuntimeError # Flutter Issue 9115
+io/test_extension_fail_test: RuntimeError # Flutter Issue 9115
+oom_error_stacktrace_test: RuntimeError # Flutter Issue 9115
+io/raw_socket_cross_process_test: RuntimeError # Flutter Issue 9115
+io/process_exit_test: RuntimeError # Flutter Issue 9115
+io/uri_platform_test: RuntimeError # Flutter Issue 9115
+io/dart_std_io_pipe_test: RuntimeError # Flutter Issue 9115
+io/platform_test: RuntimeError # Flutter Issue 9115
+io/process_stderr_test: RuntimeError # Flutter Issue 9115
+io/process_segfault_test: RuntimeError # Flutter Issue 9115
+io/addlatexhash_test: RuntimeError # Flutter Issue 9115
+io/http_server_response_test: Skip # Flaky  # Flutter Issue 9115
+io/process_stdout_test: RuntimeError # Flutter Issue 9115
+io/http_cross_process_test: RuntimeError # Flutter Issue 9115
+io/process_set_exit_code_test: RuntimeError # Flutter Issue 9115
+io/stdin_sync_test: RuntimeError # Flutter Issue 9115
+io/raw_server_socket_cancel_test: RuntimeError # Flutter Issue 9115
+io/socket_cross_process_test: RuntimeError # Flutter Issue 9115
+io/arguments_test: RuntimeError # Flutter Issue 9115
+io/code_collection_test: RuntimeError # Flutter Issue 9115
+io/http_client_stays_alive_test: RuntimeError # Flutter Issue 9115
+io/locale_name_test: RuntimeError # Flutter Issue 9115
+out_of_memory_test: RuntimeError # Flutter Issue 9115
+io/process_pid_test: Skip # Timeout Flutter Issue 9115
+io/socket_info_ipv4_test: Skip # Timeout Flutter Issue 9115
+io/file_test: Skip # Timeout Flutter Issue 9115
+io/named_pipe_script_test: Skip # Timeout Flutter Issue 9115
+io/print_sync_test: Skip # Timeout Flutter Issue 9115
+io/file_uri_test: Skip # Timeout Flutter Issue 9115
+io/file_lock_test: Skip # Timeout Flutter Issue 9115
+io/socket_info_ipv6_test: Skip # Timeout Flutter Issue 9115
+io/stdio_implicit_close_test: Skip # Timeout Flutter Issue 9115
+io/process_environment_test: Skip # Timeout Flutter Issue 9115
+io/secure_socket_renegotiate_test: Skip # Timeout Flutter Issue 9115
+io/process_kill_test: Skip # Timeout Flutter Issue 9115
+io/directory_uri_test: Skip # Timeout Flutter Issue 9115
+io/raw_socket_test: Skip # Timeout Flutter Issue 9115
+io/http_connection_close_test: Skip # Timeout Flutter Issue 9115
+io/https_unauthorized_test: Skip # Timeout Flutter Issue 9115
+io/file_system_watcher_test: Skip # Timeout Flutter Issue 9115
+io/secure_unauthorized_test: Skip # Timeout Flutter Issue 9115
+io/secure_socket_bad_data_test: Skip # Timeout Flutter Issue 9115
+io/link_uri_test: Skip # Timeout Flutter Issue 9115
+io/file_stream_test: Skip # Timeout Flutter Issue 9115
+io/regress_7191_test: Skip # Timeout Flutter Issue 9115
+io/http_server_close_response_after_error_test: Skip #  Flutter Issue 9115Timeout
+io/signals_test: Skip # Timeout Flutter Issue 9115
+io/process_non_ascii_test: Skip # Timeout Flutter Issue 9115
+io/https_client_certificate_test: Skip # Timeout Flutter Issue 9115
+io/socket_finalizer_test: Skip # Timeout Flutter Issue 9115
+io/process_shell_test: Skip # Timeout Flutter Issue 9115
+io/file_blocking_lock_test: Skip # Timeout Flutter Issue 9115
+io/socket_invalid_arguments_test: Skip # Timeout Flutter Issue 9115
+io/process_detached_test: Skip # Timeout Flutter Issue 9115
+io/platform_resolved_executable_test/00: Skip # Timeout Flutter Issue 9115
+io/platform_resolved_executable_test/01: Skip # Timeout Flutter Issue 9115
+io/platform_resolved_executable_test/02: Skip # Timeout Flutter Issue 9115
+io/platform_resolved_executable_test/03: Skip # Timeout Flutter Issue 9115
+io/platform_resolved_executable_test/04: Skip # Timeout Flutter Issue 9115
+io/platform_resolved_executable_test/05: Skip # Timeout Flutter Issue 9115
+http_launch_test: Skip # Timeout Flutter Issue 9115
+dart_developer_disabled_env_test: RuntimeError # Flutter Issue 9115
+package/scenarios/packages_file_in_parent/sub/packages_file_in_parent_test: Fail # Unable to parse package files Flutter Issue 9115
+package/package1_test: Fail # Unable to parse package files Flutter Issue 9115
+package/scenarios/packages_option_only/packages_option_only_test: Fail # Unable to parse package files Flutter Issue 9115
+package/scenarios/invalid/invalid_package_name_test: Fail # Unable to parse package files Flutter Issue 9115
+package/scenarios/invalid/same_package_twice_test: Fail # Unable to parse package files Flutter Issue 9115
+package/scenarios/packages_file_only/packages_file_only_test: Fail # Unable to parse package files Flutter Issue 9115
+package/scenarios/packages_dir_only/packages_dir_only_test: Fail # Unable to parse package files Flutter Issue 9115
+package/scenarios/both_dir_and_file/prefers_packages_file_test: Fail # Unable to parse package files Flutter Issue 9115
+package/package_test: Fail # Unable to parse package files Flutter Issue 9115
+io/process_run_output_test: Fail # Unable to parse package files Flutter Issue 9115
+io/dependency_graph_test: CompileTimeError # Imports dart:mirrors
+io/skipping_dart2js_compilations_test: CompileTimeError # Uses mirrors
+io/test_harness_analyzer_test: CompileTimeError # Uses mirrors
+io/test_runner_test: CompileTimeError # Uses mirrors
+io/addlatexhash_test: RuntimeError # Issue 9115
+http_launch_test: Skip # Issue 9115
+dart_developer_disabled_env_test: RuntimeError # Issue 9115
+dart_developer_disabled_env_test: RuntimeError # Issue 9115
