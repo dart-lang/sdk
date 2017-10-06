@@ -246,3 +246,5 @@ isolate/compile_time_error_test/01: MissingCompileTimeError
 isolate/deferred_in_isolate2_test: Skip # Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Deferred loading kernel issue 28335.
 isolate/message3_test/int32x4: Crash
+isolate/ping_pause_test: Pass, Timeout
+isolate/spawn_function_custom_class_test: Pass, Timeout

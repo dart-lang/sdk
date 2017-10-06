@@ -30,6 +30,7 @@ async/zone_empty_description2_test: RuntimeError # Timer interface not supported
 async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.
+isolate/pause_test: Fail, OK  # non-zero timer not supported.
 
 [ $compiler == dart2js ]
 async/future_or_bad_type_test: MissingCompileTimeError
@@ -69,6 +70,9 @@ isolate/message3_test/constInstance: RuntimeError # Issue 21817
 isolate/message3_test/constList: RuntimeError # Issue 21817
 isolate/message3_test/constList_identical: RuntimeError # Issue 21817
 isolate/message3_test/constMap: RuntimeError  # Issue 21817
+isolate/non_fatal_exception_in_timer_callback_test: Skip # Issue 23876
+isolate/spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
+isolate/spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
@@ -537,7 +541,7 @@ html/svg_test: RuntimeError # Please triage.
 math/math2_test: RuntimeError
 math/math_test: RuntimeError
 
-[  $compiler == dart2js && $runtime == ff ]
+[ $compiler == dart2js && $runtime == ff ]
 html/element_types_content_test:  Pass, RuntimeError # Issue 28983
 html/element_types_keygen_test: Fail
 html/element_types_shadow_test:  Pass, RuntimeError # Issue 28983
@@ -558,6 +562,13 @@ isolate/mandel_isolate_test: Fail # mirrors not supported
 isolate/message2_test: Fail # mirrors not supported
 isolate/message_test: Fail # mirrors not supported
 isolate/mint_maker_test: Fail # mirrors not supported
+isolate/nested_spawn2_test: Fail # mirrors not supported
+isolate/nested_spawn_test: Fail # mirrors not supported
+isolate/raw_port_test: Fail # mirrors not supported
+isolate/remote_unittest_helper: Fail # mirrors not supported
+isolate/request_reply_test: Fail # mirrors not supported
+isolate/spawn_function_custom_class_test: Fail # mirrors not supported
+isolate/spawn_function_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support

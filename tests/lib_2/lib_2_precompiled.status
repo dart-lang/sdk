@@ -4,9 +4,11 @@
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 async/future_or_strong_test: RuntimeError
-isolate/message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
-mirrors/symbol_validation_test: RuntimeError # Issue 13596
 isolate/compile_time_error_test/01: Skip # Issue 12587
+isolate/message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
+isolate/ping_pause_test: Skip     # Resolve test issues
+isolate/ping_test: Skip           # Resolve test issues
+mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 [ $compiler == precompiler ]
 async/stream_timeout_test: RuntimeError
@@ -16,6 +18,8 @@ html/*: SkipByDesign # dart:html not supported on AOT.
 mirrors/*: SkipByDesign # Mirrors not supported on AOT.
 
 [ $compiler == precompiler || $runtime == flutter ]
+isolate/count_test: SkipByDesign
+isolate/cross_isolate_message_test: SkipByDesign
 isolate/illegal_msg_function_test: SkipByDesign
 isolate/illegal_msg_mirror_test: SkipByDesign
 isolate/isolate_complex_messages_test: SkipByDesign
@@ -23,10 +27,14 @@ isolate/mandel_isolate_test: SkipByDesign
 isolate/message2_test: SkipByDesign
 isolate/message_test: SkipByDesign
 isolate/mint_maker_test: SkipByDesign
+isolate/nested_spawn2_test: SkipByDesign
+isolate/nested_spawn_test: SkipByDesign
+isolate/raw_port_test: SkipByDesign
+isolate/request_reply_test: SkipByDesign
+isolate/spawn_function_custom_class_test: SkipByDesign
+isolate/spawn_function_test: SkipByDesign
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
-isolate/count_test: SkipByDesign
-isolate/cross_isolate_message_test: SkipByDesign
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) ]
 async/timer_regress22626_test: Pass, RuntimeError # Issue 28254

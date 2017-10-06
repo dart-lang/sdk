@@ -217,3 +217,10 @@ isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written i
 
 [ $mode == product ]
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
+
+[ $compiler != none || $runtime != vm ]
+isolate/package_root_test: SkipByDesign  # Uses Isolate.packageRoot
+isolate/package_config_test: SkipByDesign  # Uses Isolate.packageConfig
+isolate/package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
+isolate/scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
+isolate/spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
