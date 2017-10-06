@@ -3366,6 +3366,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     List<HInstruction> arguments =
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
     ConstructorEntity constructor = _elementMap.getConstructor(target);
+    if (commonElements.isSymbolConstructor(constructor)) {
+      constructor = commonElements.symbolValidatedConstructor;
+    }
     ClassEntity cls = constructor.enclosingClass;
     if (closedWorld.rtiNeed.classNeedsRti(cls)) {
       _addTypeArguments(arguments, invocation.arguments);

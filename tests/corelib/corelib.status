@@ -319,16 +319,12 @@ queue_test: RuntimeError
 regexp/regexp_kde_test: RuntimeError
 regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
-symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError # Issue 27394
 symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError # Issue 27394
 symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError # Issue 27394
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError # Issue 27394
+symbol_reserved_word_test/03: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply3_test: RuntimeError
@@ -372,12 +368,9 @@ string_base_vm_test: RuntimeError
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError # Issue 27394
 symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError # Issue 27394
 symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError # Issue 27394
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError # Issue 27394
+symbol_reserved_word_test/03: RuntimeError
 
