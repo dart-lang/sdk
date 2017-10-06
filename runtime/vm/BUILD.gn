@@ -587,6 +587,33 @@ action("compile_platform") {
          rebase_path(outputs, root_build_dir)
 }
 
+action("compile_strong_platform") {
+  script = "../../tools/compile_platform.py"
+
+  sources = [
+    "$root_out_dir/patched_sdk/lib/libraries.json",
+  ]
+
+  outputs = [
+    "$root_out_dir/vm_platform_strong.dill",
+    "$root_out_dir/vm_outline_strong.dill",
+  ]
+
+  inputs = []
+
+  deps = [
+    ":patched_sdk",
+  ]
+
+  depfile = "$root_out_dir/vm_platform_strong.dill.d"
+
+  args = [
+           "--strong-mode",
+           "dart:core",
+         ] + rebase_path(sources, root_build_dir) +
+         rebase_path(outputs, root_build_dir)
+}
+
 action("compile_vmservice") {
   script = "../../tools/compile_platform.py"
 
@@ -620,6 +647,7 @@ action("compile_vmservice") {
 group("kernel_platform_files") {
   public_deps = [
     ":compile_platform",
+    ":compile_strong_platform",
     ":compile_vmservice",
   ]
 }

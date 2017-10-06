@@ -6,12 +6,6 @@ import "dart:async" as asy;
 abstract class MyStream<T extends core::Object> extends asy::Stream<self::MyStream::T> {
   static factory •<T extends core::Object>() → self::MyStream<self::MyStream::•::T>
     return null;
-  forwarding-stub method pipe(generic-covariant-impl generic-covariant-interface asy::StreamConsumer<self::MyStream::T> streamConsumer) → asy::Future<dynamic>
-    return super.{asy::Stream::pipe}(streamConsumer);
-  forwarding-stub method transform<S extends core::Object>(generic-covariant-impl generic-covariant-interface asy::StreamTransformer<self::MyStream::T, self::MyStream::transform::S> streamTransformer) → asy::Stream<self::MyStream::transform::S>
-    return super.{asy::Stream::transform}<self::MyStream::transform::S>(streamTransformer);
-  forwarding-stub method reduce(generic-covariant-impl generic-covariant-interface (self::MyStream::T, self::MyStream::T) → self::MyStream::T combine) → asy::Future<self::MyStream::T>
-    return super.{asy::Stream::reduce}(combine);
 }
 static method foo() → asy::Stream<core::List<core::int>> async* {
   yield<core::int>[];

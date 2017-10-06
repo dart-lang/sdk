@@ -96,6 +96,7 @@ class FastaContext extends ChainContext {
   final UriTranslatorImpl uriTranslator;
   final List<Step> steps;
   final Uri vm;
+  final bool strongMode;
   final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
   Uri sdk;
   Uri platformUri;
@@ -107,7 +108,7 @@ class FastaContext extends ChainContext {
 
   FastaContext(
       this.vm,
-      bool strongMode,
+      this.strongMode,
       bool updateExpectations,
       bool updateComments,
       bool skipVm,
@@ -138,7 +139,8 @@ class FastaContext extends ChainContext {
     if (sdk == null) {
       sdk = Uri.base.resolve(Platform.resolvedExecutable).resolve(".");
       platformUri = sdk.resolve("vm_platform.dill");
-      outlineUri = sdk.resolve("vm_outline.dill");
+      outlineUri = sdk
+          .resolve(strongMode ? 'vm_outline_strong.dill' : 'vm_outline.dill');
     }
   }
 
