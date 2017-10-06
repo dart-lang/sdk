@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -21,9 +22,11 @@ https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
 
 """
 
+
 def path(uri_path):
   args = [ os.path.dirname(__file__), ".." ] + uri_path.split("/")
   return os.path.normpath(os.path.join(*args))
+
 
 def main():
   verbose = False
@@ -59,6 +62,7 @@ def main():
   if verbose:
     print "Running:", " ".join(arguments)
   return subprocess.call(arguments)
+
 
 if __name__ == "__main__":
   sys.exit(main())
