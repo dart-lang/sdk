@@ -2663,7 +2663,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement result = new ShadowForInStatement(
         variable, expression, body, declaresVariable,
         isAsync: awaitToken != null)
-      ..fileOffset = forToken.charOffset
+      ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
       ..bodyOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
