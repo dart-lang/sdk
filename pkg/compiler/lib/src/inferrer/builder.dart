@@ -2790,7 +2790,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         Element element = elements[receiver];
         if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
           TypeInformation refinedType = types.refineReceiver(
-              selector, mask, receiverType, send.isConditional);
+              selector, mask, receiverType,
+              isConditional: send.isConditional);
           LocalElement local = element;
           locals.update(local, refinedType, node, local.type);
         }

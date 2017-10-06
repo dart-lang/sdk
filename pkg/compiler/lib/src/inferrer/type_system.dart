@@ -289,8 +289,9 @@ class TypeSystem<T> {
    * conditional send (e.g.  `a?.selector`), in which case the returned type may
    * be null.
    */
-  TypeInformation refineReceiver(Selector selector, TypeMask mask,
-      TypeInformation receiver, bool isConditional) {
+  TypeInformation refineReceiver(
+      Selector selector, TypeMask mask, TypeInformation receiver,
+      {bool isConditional}) {
     if (receiver.type.isExact) return receiver;
     TypeMask otherType = closedWorld.computeReceiverType(selector, mask);
     // Conditional sends (a?.b) can still narrow the possible types of `a`,

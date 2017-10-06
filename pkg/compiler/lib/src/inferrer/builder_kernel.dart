@@ -606,7 +606,25 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           _analyzedMember, callType, node, selector, mask);
     }
 
-    // TODO(johnniwinther): Refine receiver on non-captured locals.
+    Local local;
+    if (node is ir.MethodInvocation && node.receiver is ir.VariableGet) {
+      ir.VariableGet get = node.receiver;
+      local = _localsMap.getLocalVariable(get.variable);
+    } else if (node is ir.PropertyGet && node.receiver is ir.VariableGet) {
+      ir.VariableGet get = node.receiver;
+      local = _localsMap.getLocalVariable(get.variable);
+    } else if (node is ir.PropertySet && node.receiver is ir.VariableGet) {
+      ir.VariableGet get = node.receiver;
+      local = _localsMap.getLocalVariable(get.variable);
+    }
+
+    if (local != null) {
+      // TODO(redemption): Exclude non-captured locals.
+      TypeInformation refinedType = _types
+          .refineReceiver(selector, mask, receiverType, isConditional: false);
+      DartType type = _localsMap.getLocalType(_elementMap, local);
+      _locals.update(local, refinedType, node, type);
+    }
 
     return _inferrer.registerCalledSelector(callType, node, selector, mask,
         receiverType, _analyzedMember, arguments, _sideEffects,
@@ -848,8 +866,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
-    // TODO(redemption): Use `node.interfaceTarget` to narrow the receiver type
-    // for --trust-type-annotations/strong-mode.
+    // TODO(johnniwinther): Use `node.interfaceTarget` to narrow the receiver
+    // type for --trust-type-annotations/strong-mode.
     return handleDynamicGet(node, selector, mask, receiverType);
   }
 
