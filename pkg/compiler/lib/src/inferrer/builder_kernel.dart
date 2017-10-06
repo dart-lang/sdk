@@ -606,24 +606,29 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           _analyzedMember, callType, node, selector, mask);
     }
 
-    Local local;
+    ir.VariableDeclaration variable;
     if (node is ir.MethodInvocation && node.receiver is ir.VariableGet) {
       ir.VariableGet get = node.receiver;
-      local = _localsMap.getLocalVariable(get.variable);
+      variable = get.variable;
     } else if (node is ir.PropertyGet && node.receiver is ir.VariableGet) {
       ir.VariableGet get = node.receiver;
-      local = _localsMap.getLocalVariable(get.variable);
+      variable = get.variable;
     } else if (node is ir.PropertySet && node.receiver is ir.VariableGet) {
       ir.VariableGet get = node.receiver;
-      local = _localsMap.getLocalVariable(get.variable);
+      variable = get.variable;
     }
 
-    if (local != null) {
-      // TODO(redemption): Exclude non-captured locals.
+    if (variable != null) {
+      // TODO(redemption): Exclude captured locals.
+      Local local = _localsMap.getLocalVariable(variable);
       TypeInformation refinedType = _types
           .refineReceiver(selector, mask, receiverType, isConditional: false);
       DartType type = _localsMap.getLocalType(_elementMap, local);
       _locals.update(local, refinedType, node, type);
+      List<Refinement> refinements = _localRefinementMap[variable];
+      if (refinements != null) {
+        refinements.add(new Refinement(selector, mask));
+      }
     }
 
     return _inferrer.registerCalledSelector(callType, node, selector, mask,
@@ -655,10 +660,58 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         callType, node, selector, mask, receiverType, arguments);
   }
 
+  /// Map from synthesized variables created for non-null operations to observed
+  /// refinements. This is used to refine locals in cases like:
+  ///
+  ///     local?.method()
+  ///
+  /// which in kernel is encoded as
+  ///
+  ///     let #t1 = local in #t1 == null ? null : #1.method()
+  ///
+  Map<ir.VariableDeclaration, List<Refinement>> _localRefinementMap =
+      <ir.VariableDeclaration, List<Refinement>>{};
+
   @override
   TypeInformation visitLet(ir.Let node) {
+    ir.VariableDeclaration alias;
+    ir.Expression body = node.body;
+    if (node.variable.name == null &&
+        node.variable.isFinal &&
+        node.variable.initializer is ir.VariableGet &&
+        body is ir.ConditionalExpression &&
+        body.condition is ir.MethodInvocation &&
+        body.then is ir.NullLiteral) {
+      ir.VariableGet get = node.variable.initializer;
+      ir.MethodInvocation invocation = body.condition;
+      ir.Expression receiver = invocation.receiver;
+      if (invocation.name.name == '==' &&
+          receiver is ir.VariableGet &&
+          receiver.variable == node.variable &&
+          invocation.arguments.positional.single is ir.NullLiteral) {
+        // We have
+        //   let #t1 = local in #1 == null ? null : e
+        alias = get.variable;
+        _localRefinementMap[node.variable] = <Refinement>[];
+      }
+    }
     visit(node.variable);
-    return visit(node.body);
+    TypeInformation type = visit(body);
+    if (alias != null) {
+      List<Refinement> refinements = _localRefinementMap.remove(node.variable);
+      if (refinements.isNotEmpty) {
+        Local local = _localsMap.getLocalVariable(alias);
+        DartType type = _localsMap.getLocalType(_elementMap, local);
+        TypeInformation localType = _locals.use(local);
+        for (Refinement refinement in refinements) {
+          localType = _types.refineReceiver(
+              refinement.selector, refinement.mask, localType,
+              isConditional: true);
+          _locals.update(local, localType, node, type);
+        }
+      }
+    }
+    return type;
   }
 
   @override
@@ -1310,4 +1363,11 @@ class IsCheck {
   IsCheck(this.node, this.local, this.type);
 
   String toString() => 'IsCheck($local,$type)';
+}
+
+class Refinement {
+  final Selector selector;
+  final TypeMask mask;
+
+  Refinement(this.selector, this.mask);
 }

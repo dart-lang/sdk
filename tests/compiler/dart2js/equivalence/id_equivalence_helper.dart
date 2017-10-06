@@ -238,7 +238,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     String annotatedCode = await new File.fromUri(entity.uri).readAsString();
     AnnotatedCode code =
         new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd);
-    Map<Id, IdValue> expectedMap = computeExpectedMap(code);
+    List<Map<Id, IdValue>> expectedMaps = computeExpectedMap(code);
     Map<String, String> memorySourceFiles = {entryPoint.path: code.sourceCode};
 
     if (skipforAst.contains(name)) {
@@ -248,7 +248,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       CompiledData compiledData1 = await computeData(
           entryPoint, memorySourceFiles, computeFromAst, compileFromSource,
           options: testOptions, verbose: verbose);
-      await checkCode(code, expectedMap, compiledData1);
+      await checkCode(code, expectedMaps[0], compiledData1);
     }
     if (skipForKernel.contains(name)) {
       print('--skipped for kernel------------------------------------------');
@@ -257,7 +257,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       CompiledData compiledData2 = await computeData(
           entryPoint, memorySourceFiles, computeFromKernel, compileFromDill,
           options: testOptions, verbose: verbose);
-      await checkCode(code, expectedMap, compiledData2,
+      await checkCode(code, expectedMaps[1], compiledData2,
           filterActualData: filterActualData);
     }
   }
@@ -360,16 +360,38 @@ Spannable computeSpannable(
   throw new UnsupportedError('Unsupported id $id.');
 }
 
-/// Compute the expectancy map from [code].
-Map<Id, IdValue> computeExpectedMap(AnnotatedCode code) {
-  Map<Id, IdValue> map = <Id, IdValue>{};
+const String astMarker = 'ast.';
+const String kernelMarker = 'kernel.';
+
+/// Compute two expectancy maps from [code]; one corresponding to the old
+/// implementation, one for the new implementation.
+///
+/// If an annotation starts with 'ast.' it is only expected for the old
+/// implementation and if it starts with 'kernel.' it is only expected for the
+/// new implementation. Otherwise it is expected for both implementations.
+///
+/// Most nodes have the same and expectations should match this by using
+/// annotations without prefixes.
+List<Map<Id, IdValue>> computeExpectedMap(AnnotatedCode code) {
+  List<Map<Id, IdValue>> maps = [<Id, IdValue>{}, <Id, IdValue>{}];
   for (Annotation annotation in code.annotations) {
-    IdValue idValue = IdValue.decode(annotation.offset, annotation.text);
-    Expect.isFalse(map.containsKey(idValue.id),
-        "Duplicate annotations for ${idValue.id}.");
-    map[idValue.id] = idValue;
+    List<Map<Id, IdValue>> activeMaps = maps;
+    String text = annotation.text;
+    if (text.startsWith(astMarker)) {
+      text = text.substring(astMarker.length);
+      activeMaps = [maps[0]];
+    } else if (text.startsWith(kernelMarker)) {
+      text = text.substring(kernelMarker.length);
+      activeMaps = [maps[1]];
+    }
+    IdValue idValue = IdValue.decode(annotation.offset, text);
+    for (Map<Id, IdValue> map in activeMaps) {
+      Expect.isFalse(map.containsKey(idValue.id),
+          "Duplicate annotations for ${idValue.id}.");
+      map[idValue.id] = idValue;
+    }
   }
-  return map;
+  return maps;
 }
 
 Future compareData(

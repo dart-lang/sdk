@@ -223,6 +223,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
     switch (access.kind) {
       case AccessKind.THIS_PROPERTY:
       case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
       case AccessKind.LOCAL_VARIABLE:
       case AccessKind.FINAL_LOCAL_VARIABLE:
       case AccessKind.LOCAL_FUNCTION:
@@ -579,6 +580,10 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
         receiver.variable.parent is ir.FunctionDeclaration) {
       // This is an invocation of a named local function.
       computeForNode(node, createInvokeId(node.receiver));
+    } else if (node.name.name == '==' &&
+        receiver is ir.VariableGet &&
+        receiver.variable.name == null) {
+      // This is a desugared `?.`.
     } else {
       computeForNode(node, createInvokeId(node));
       super.visitMethodInvocation(node);

@@ -141,6 +141,7 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
             return sendStructure.semantics.element.name;
           case AccessKind.THIS_PROPERTY:
           case AccessKind.DYNAMIC_PROPERTY:
+          case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
             DynamicAccess access = sendStructure.semantics;
             return access.name.text;
           default:

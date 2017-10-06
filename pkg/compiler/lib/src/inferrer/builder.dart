@@ -2796,6 +2796,11 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           locals.update(local, refinedType, node, local.type);
         }
       }
+      // TODO(johnniwinther): Enable this to improve precision of conditional
+      // access.
+      /*if (isConditional) {
+      receiverType = types.narrowNotNull(receiverType);
+      }*/
     }
 
     return inferrer.registerCalledSelector(callType, node, selector, mask,

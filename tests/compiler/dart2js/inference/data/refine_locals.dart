@@ -108,6 +108,15 @@ _refineToEmptySet(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
   return o;
 }
 
+/*element: _refineToClass1InvokeIfNotNull:[null]*/
+_refineToClass1InvokeIfNotNull(
+    /*Union of [[exact=Class2], [null|exact=Class1]]*/ o) {
+  o?. /*ast.invoke: Union of [[exact=Class2], [null|exact=Class1]]*/ /*kernel.invoke: Union of [[exact=Class1], [exact=Class2]]*/ method1();
+  o?. /*ast.invoke: [null|exact=Class1]*/ /*kernel.invoke: [exact=Class1]*/ method0();
+  o?. /*ast.invoke: [null|exact=Class1]*/ /*kernel.invoke: [exact=Class1]*/ method2();
+  return o;
+}
+
 // TODO(redemption): Test conditional access.
 
 /*element: refineToClass:[null]*/
@@ -132,4 +141,8 @@ refineToClass() {
   _refineToClass2Set(new Class2());
   _refineToEmptySet(new Class1());
   _refineToEmptySet(new Class2());
+
+  _refineToClass1InvokeIfNotNull(null);
+  _refineToClass1InvokeIfNotNull(new Class1());
+  _refineToClass1InvokeIfNotNull(new Class2());
 }
