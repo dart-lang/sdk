@@ -65,17 +65,21 @@ void main(List<String> arguments) {
   }
 
   if (!isTravis) {
-    compileModule('unittest',
-        deps: ['matcher', 'path', 'stack_trace'],
-        libs: ['html_config', 'html_individual_config', 'html_enhanced_config'],
-        unsafeForceCompile: true);
+    compileModule('unittest', deps: [
+      'matcher',
+      'path',
+      'stack_trace'
+    ], libs: [
+      'html_config',
+      'html_individual_config',
+      'html_enhanced_config'
+    ]);
   }
 }
 
 /// Compiles a [module] with a single matching ".dart" library and additional
 /// [libs] and [deps] on other modules.
-void compileModule(String module,
-    {List<String> libs, List<String> deps, bool unsafeForceCompile: false}) {
+void compileModule(String module, {List<String> libs, List<String> deps}) {
   var sdkSummary = p.join(scriptDirectory, "../lib/sdk/ddc_sdk.sum");
   var args = [
     '--dart-sdk-summary=$sdkSummary',
@@ -97,10 +101,6 @@ void compileModule(String module,
     for (var dep in deps) {
       args.add('-s${outputDirectory}/$dep.sum');
     }
-  }
-
-  if (unsafeForceCompile) {
-    args.add('--unsafe-force-compile');
   }
 
   // TODO(rnystrom): Hack. DDC has its own forked copy of async_helper that
