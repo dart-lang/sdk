@@ -2638,6 +2638,7 @@ class FixProcessor {
     // add these fields
     List<FieldElement> fields =
         ErrorVerifier.computeNotInitializedFields(constructor);
+    fields.retainWhere((FieldElement field) => field.isFinal);
     // prepare new parameters code
     fields.sort((a, b) => a.nameOffset - b.nameOffset);
     String fieldParametersCode =

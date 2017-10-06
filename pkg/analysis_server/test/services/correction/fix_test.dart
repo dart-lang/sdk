@@ -268,6 +268,25 @@ class Test {
 ''');
   }
 
+  test_addFieldFormalParameters_notAllFinal() async {
+    await resolveTestUnit('''
+class Test {
+  final int a;
+  int b;
+  final int c;
+  Test();
+}
+''');
+    await assertHasFix(DartFixKind.ADD_FIELD_FORMAL_PARAMETERS, '''
+class Test {
+  final int a;
+  int b;
+  final int c;
+  Test(this.a, this.c);
+}
+''');
+  }
+
   test_addMissingParameter_function_positional_hasNamed() async {
     await resolveTestUnit('''
 test({int a}) {}
