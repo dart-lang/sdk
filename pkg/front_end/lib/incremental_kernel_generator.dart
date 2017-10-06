@@ -111,6 +111,13 @@ abstract class IncrementalKernelGenerator {
   /// the "current program state" is kept unchanged.
   void rejectLastDelta();
 
+  /// Notify the generator that the client wants to reset the "current program
+  /// state" to nothing, so that the next invocation of [computeDelta] will
+  /// include all the program libraries.  Neither [acceptLastDelta] nor
+  /// [rejectLastDelta] are allowed after this method until the next
+  /// [computeDelta] invocation.
+  void reset();
+
   /// Creates an [IncrementalKernelGenerator] which is prepared to generate
   /// kernel representations of the program whose main library is in the given
   /// [entryPoint].
