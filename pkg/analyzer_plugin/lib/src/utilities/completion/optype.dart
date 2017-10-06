@@ -742,7 +742,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
           List<ParameterElement> parameters = element.parameters;
           ParameterElement parameterElement = parameters.firstWhere((e) {
             if (e is DefaultFieldFormalParameterElementImpl) {
-              return e.field.name == node.name.label.name;
+              return e.field?.name == node.name.label.name;
             }
             return e.parameterKind == ParameterKind.NAMED &&
                 e.name == node.name.label.name;
