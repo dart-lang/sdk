@@ -72,6 +72,12 @@ DEFINE_FLAG(
     await_is_keyword,
     false,
     "await and yield are treated as proper keywords in synchronous code.");
+// TODO(zra): Remove the assert_initializer flag once all references to it
+// from flutter and fuchsia scripts are deleted. Flag is a no-op (always on).
+DEFINE_FLAG(bool,
+            assert_initializer,
+            true,
+            "Allow asserts in initializer lists.");
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, trace_service);
