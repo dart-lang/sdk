@@ -4596,6 +4596,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // and not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
     DartType mapType = literal.staticType;
+    if (mapType == null) {
+      // This is known to happen when the literal is the default value in an
+      // optional parameter in a generic function type alias.
+      return;
+    }
     assert(mapType is InterfaceTypeImpl);
 
     List<DartType> typeArguments = (mapType as InterfaceTypeImpl).typeArguments;

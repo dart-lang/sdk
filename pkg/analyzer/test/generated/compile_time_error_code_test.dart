@@ -1662,7 +1662,33 @@ f() {
     verify([source]);
   }
 
-  test_defaultValueInFunctionTypeAlias() async {
+  test_defaultValueInFunctionTypeAlias_new_named() async {
+    Source source = addSource('''
+typedef F = int Function({Map<String, String> m: const {}});
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE]);
+    verify([source]);
+  }
+
+  test_defaultValueInFunctionTypeAlias_new_positional() async {
+    Source source = addSource('''
+typedef F = int Function([Map<String, String> m = const {}]);
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE]);
+    verify([source]);
+  }
+
+  test_defaultValueInFunctionTypeAlias_old_named() async {
+    Source source = addSource("typedef F([x = 0]);");
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
+    verify([source]);
+  }
+
+  test_defaultValueInFunctionTypeAlias_old_positional() async {
     Source source = addSource("typedef F([x = 0]);");
     await computeAnalysisResult(source);
     assertErrors(
