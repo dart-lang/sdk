@@ -40,6 +40,8 @@ async_return_types_test/nestedFuture: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
 async_return_types_test/wrongTypeParameter: MissingCompileTimeError
+async_star_test/01: CompileTimeError # Issue 2238.
+async_star_test/02: RuntimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError
@@ -816,3 +818,4 @@ vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
 
 [$runtime == vm && $compiler == none && $system == fuchsia]
 async_await_test: RuntimeError
+async_star_test: RuntimeError

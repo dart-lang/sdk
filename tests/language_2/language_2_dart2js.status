@@ -538,6 +538,7 @@ vm/*: SkipByDesign # Tests for the VM.
 minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
 
 [ $compiler == dart2js && $runtime != none ]
+async_star_test/02: RuntimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
@@ -854,6 +855,7 @@ async_await_syntax_test/a06a: RuntimeError
 async_await_syntax_test/b06a: RuntimeError
 async_await_syntax_test/c06a: RuntimeError
 async_await_syntax_test/d06a: RuntimeError
+async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
@@ -863,6 +865,7 @@ async_star_pause_test: RuntimeError
 async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: RuntimeError
 async_star_take_reyield_test: RuntimeError
+async_star_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 await_exceptions_test: RuntimeError
 await_for_test: RuntimeError
 await_for_use_local_test: RuntimeError
@@ -1125,7 +1128,6 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
-async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 
@@ -1431,6 +1433,14 @@ async_star_await_pauses_test: RuntimeError # Need triage
 async_star_no_cancel2_test: RuntimeError # Need triage
 async_star_no_cancel_test: RuntimeError # Need triage
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
+
+[ $compiler == dart2js && $runtime == jsshell ]
+async_star_test/01: RuntimeError
+async_star_test/02: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
 
 [ $compiler == dart2js && $checked && !$dart2js_with_kernel ]
 async_return_types_test/nestedFuture: Fail # Issue 26429

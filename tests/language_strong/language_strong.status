@@ -298,12 +298,6 @@ export_private_test/01: MissingCompileTimeError # Issue 29920
 
 [ $compiler == dartdevc && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
-async_star_test/01: RuntimeError # Issue 28969
-async_star_test/02: RuntimeError # Issue 28969
-async_star_test/03: RuntimeError # Issue 28969
-async_star_test/04: RuntimeError # Issue 28969
-async_star_test/05: RuntimeError # Issue 28969
-async_star_test/none: RuntimeError # Issue 28969
 asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
 bit_operations_test/01: RuntimeError # No bigints on web.
 bit_operations_test/02: RuntimeError # No bigints on web.

@@ -178,6 +178,12 @@ void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 assertion_test: RuntimeError # Issue 30326
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
 async_star_pause_test: RuntimeError
+async_star_test/01: RuntimeError
+async_star_test/02: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test/01: RuntimeError # No bigints on web.
 bit_operations_test/02: RuntimeError # No bigints on web.
@@ -244,8 +250,12 @@ invocation_mirror_test: RuntimeError
 issue21159_test: RuntimeError # Issue 30701
 issue23244_test: RuntimeError # Issue 29920
 label_test: RuntimeError # Issue 30675
-modulo_test: RuntimeError # Ints and doubles are unified.
+lazy_static3_test: RuntimeError # Issue 30852
+lazy_static8_test: RuntimeError # Issue 30852
+left_shift_test: RuntimeError # Ints and doubles are unified.
+list_is_test: RuntimeError # Issue 29920
 many_overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
+modulo_test: RuntimeError # Ints and doubles are unified.
 named_parameter_clash_test: RuntimeError # Issue 29920
 named_parameters_default_eq_test/none: RuntimeError
 nan_identical_test: RuntimeError # Issue 29920
@@ -254,10 +264,6 @@ null_test/mirrors: RuntimeError # Uses mirrors.
 number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
 overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
+prefix10_negative_test: Skip # Issue 29920
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out
-list_is_test: RuntimeError # Issue 29920
-prefix10_negative_test: Skip # Issue 29920
-lazy_static3_test: RuntimeError # Issue 30852
-lazy_static8_test: RuntimeError # Issue 30852
-left_shift_test: RuntimeError # Ints and doubles are unified.

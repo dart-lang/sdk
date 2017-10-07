@@ -3,6 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk && $runtime == vm ]
+async_await_test/02: DartkCompileTimeError
+async_await_test/03: DartkCompileTimeError
+async_await_test/none: DartkCompileTimeError
 async_star_test/01: DartkCompileTimeError
 async_star_test/02: DartkCompileTimeError
 async_star_test/03: DartkCompileTimeError

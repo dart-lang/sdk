@@ -488,3 +488,6 @@ vm/regress_29145_test: Skip # Issue 29145
 
 [ $compiler == dartk && $mode == debug ]
 deopt_inlined_function_lazy_test: Skip
+
+[ $compiler == dartkp || $compiler == dartk ]
+async_star_test/01: Pass

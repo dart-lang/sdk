@@ -709,6 +709,8 @@ vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 
 [ $compiler == precompiler ]
+async_star_test/01: CompileTimeError # Issue 2238.
+async_star_test/02: RuntimeError
 deferred_global_test: Fail
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
