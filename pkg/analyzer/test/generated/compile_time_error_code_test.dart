@@ -1667,7 +1667,10 @@ f() {
 typedef F = int Function({Map<String, String> m: const {}});
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE]);
+    assertErrors(source, [
+      ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+      StrongModeCode.INVALID_CAST_LITERAL_MAP
+    ]);
     verify([source]);
   }
 
@@ -1676,7 +1679,10 @@ typedef F = int Function({Map<String, String> m: const {}});
 typedef F = int Function([Map<String, String> m = const {}]);
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE]);
+    assertErrors(source, [
+      ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+      StrongModeCode.INVALID_CAST_LITERAL_MAP
+    ]);
     verify([source]);
   }
 
