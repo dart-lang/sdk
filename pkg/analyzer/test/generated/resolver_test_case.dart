@@ -662,8 +662,8 @@ class ResolverTestCase extends EngineTestCase {
     if (options != null && packages != null) {
       fail('Only packages or options can be specified.');
     }
+    options ??= defaultAnalysisOptions;
     if (enableNewAnalysisDriver) {
-      options ??= defaultAnalysisOptions;
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
         ..context.analysisOptions = options;
 

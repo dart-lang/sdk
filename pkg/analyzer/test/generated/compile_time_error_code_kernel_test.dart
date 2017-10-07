@@ -58,6 +58,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31031')
+  test_conflictingGetterAndMethod_method_getter() async {
+    return super.test_conflictingGetterAndMethod_method_getter();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_constConstructor_redirect_generic() async {
     return super.test_constConstructor_redirect_generic();
@@ -395,13 +402,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_nonConstantAnnotationConstructor_named() async {
     return super.test_nonConstantAnnotationConstructor_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonConstantDefaultValueFromDeferredLibrary_nested() async {
-    return super.test_nonConstantDefaultValueFromDeferredLibrary_nested();
   }
 
   @override

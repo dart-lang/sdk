@@ -19,11 +19,85 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompileTimeErrorCodeTest);
+    defineReflectiveTests(CompileTimeErrorCodeSpecTest);
   });
 }
 
 @reflectiveTest
+class CompileTimeErrorCodeSpecTest extends ResolverTestCase {
+  test_constWithTypeParameters_direct() async {
+    Source source = addSource(r'''
+class A<T> {
+  static const V = const A<T>();
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    ]);
+    verify([source]);
+  }
+
+  test_constWithTypeParameters_indirect() async {
+    Source source = addSource(r'''
+class A<T> {
+  static const V = const A<List<T>>();
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    ]);
+    verify([source]);
+  }
+
+  test_invalidTypeArgumentInConstList() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <E>[];
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+    verify([source]);
+  }
+
+  test_invalidTypeArgumentInConstMap() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <String, E>{};
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+    verify([source]);
+  }
+
+  test_mixinOfDisallowedClass_classTypeAlias_String_num() async {
+    Source source = addSource(r'''
+class A {}
+class C = A with String, num;''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+      CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
+    verify([source]);
+  }
+}
+
+@reflectiveTest
 class CompileTimeErrorCodeTest extends ResolverTestCase {
+  @override
+  AnalysisOptions get defaultAnalysisOptions =>
+      new AnalysisOptionsImpl()..strongMode = true;
+
   fail_awaitInWrongContext_sync() async {
     // This test requires better error recovery than we currently have. In
     // particular, we need to be able to distinguish between an await expression
@@ -267,16 +341,13 @@ f() async {
 
   test_async_used_as_identifier_in_argument_label() async {
     Source source = addSource('''
-@proxy
-class C {}
-f() async {
-  new C().g(async: 0);
+f(c) async {
+  c.g(async: 0);
 }
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
-    // Note: we don't call verify([source]) because verify() doesn't understand
-    // about @proxy.
+    verify([source]);
   }
 
   test_async_used_as_identifier_in_async_method() async {
@@ -685,8 +756,8 @@ f() {
 class IntWrapper {
   final int value;
   const IntWrapper(this.value);
-  bool operator ==(IntWrapper x) {
-    return value == x.value;
+  bool operator ==(Object x) {
+    return x is IntWrapper && x.value == value;
   }
   get hashCode => value;
 }
@@ -1300,7 +1371,7 @@ f(p) {
     // caused two errors to be reported.
     Source source = addSource(r'''
 class Foo {
-  final field = [];
+  final field = 0;
   foo([int x = field]) {}
 }
 ''');
@@ -1561,34 +1632,6 @@ void f() {
     await computeAnalysisResult(source2);
     assertErrors(source2, [CompileTimeErrorCode.CONST_WITH_NON_TYPE]);
     verify([source1]);
-  }
-
-  test_constWithTypeParameters_direct() async {
-    Source source = addSource(r'''
-class A<T> {
-  static const V = const A<T>();
-  const A();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
-    verify([source]);
-  }
-
-  test_constWithTypeParameters_indirect() async {
-    Source source = addSource(r'''
-class A<T> {
-  static const V = const A<List<T>>();
-  const A();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
-    verify([source]);
   }
 
   test_constWithUndefinedConstructor() async {
@@ -3527,32 +3570,6 @@ class B extends A {
     verify([source]);
   }
 
-  test_invalidTypeArgumentInConstList() async {
-    Source source = addSource(r'''
-class A<E> {
-  m() {
-    return const <E>[];
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
-    verify([source]);
-  }
-
-  test_invalidTypeArgumentInConstMap() async {
-    Source source = addSource(r'''
-class A<E> {
-  m() {
-    return const <String, E>{};
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
-    verify([source]);
-  }
-
   test_invalidUri_export() async {
     Source source = addSource("export 'ht:';");
     await computeAnalysisResult(source);
@@ -3985,18 +4002,6 @@ class C = A with String;''');
     verify([source]);
   }
 
-  test_mixinOfDisallowedClass_classTypeAlias_String_num() async {
-    Source source = addSource(r'''
-class A {}
-class C = A with String, num;''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-      CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
-    verify([source]);
-  }
-
   test_mixinOfEnum() async {
     Source source = addSource(r'''
 enum E { ONE }
@@ -4078,7 +4083,10 @@ class B extends A {
   B() : super(), super() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS]);
+    assertErrors(source, [
+      CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS,
+      StrongModeCode.INVALID_SUPER_INVOCATION
+    ]);
     verify([source]);
   }
 
@@ -5408,10 +5416,19 @@ class A {
 const x = y + 1;
 const y = x + 1;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
-      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT
-    ]);
+    if (!enableNewAnalysisDriver || enableKernelDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        StrongModeCode.TOP_LEVEL_CYCLE,
+        StrongModeCode.TOP_LEVEL_CYCLE,
+      ]);
+    }
     verify([source]);
   }
 
@@ -5434,8 +5451,16 @@ class C {
 const x = x;
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
+    if (!enableNewAnalysisDriver || enableKernelDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        StrongModeCode.TOP_LEVEL_CYCLE
+      ]);
+    }
     verify([source]);
   }
 
@@ -6085,8 +6110,10 @@ class B {
   B.name() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR]);
+    assertErrors(source, [
+      CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+      StrongModeCode.INVALID_SUPER_INVOCATION
+    ]);
     verify([source]);
   }
 
@@ -6242,7 +6269,7 @@ typedef A B();''');
   }
 
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
-    Source source = addSource("typedef A<T extends A>();");
+    Source source = addSource("typedef A<T extends A<int>>();");
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
