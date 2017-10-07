@@ -138,11 +138,13 @@ isolate/kill_self_synchronously_test: RuntimeError
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
 [ $compiler == dart2js && $runtime != d8 ]
-html/js_extend_class_test: RuntimeError
 isolate/error_exit_at_spawn_test: Skip # Issue 23876
 isolate/error_at_spawn_test: Skip # Issue 23876
 isolate/exit_at_spawn_test: Skip # Issue 23876
 isolate/message4_test: Skip # Issue 30247
+
+[ $compiler == dart2js && ($runtime != d8 && $runtime != jsshell) ]
+html/js_extend_class_test: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]
 html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
