@@ -138,6 +138,7 @@ isolate/kill_self_synchronously_test: RuntimeError
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
 [ $compiler == dart2js && $runtime != d8 ]
+html/js_extend_class_test: RuntimeError
 isolate/error_exit_at_spawn_test: Skip # Issue 23876
 isolate/error_at_spawn_test: Skip # Issue 23876
 isolate/exit_at_spawn_test: Skip # Issue 23876
@@ -217,6 +218,9 @@ html/js_typed_interop_window_property_test: SkipByDesign
 html/js_util_test: SkipByDesign
 html/mirrors_js_typed_interop_test: SkipByDesign
 html/postmessage_structured_test: SkipByDesign
+html/js_array_test: SkipByDesign
+html/js_function_getter_test: SkipByDesign
+html/js_dart_to_string_test: SkipByDesign
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 html/custom/mirrors_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -265,6 +269,16 @@ html/indexeddb_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart
 html/indexeddb_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_4_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/isolates_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_array_test: CompileTimeError
+html/js_array_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_dart_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_dispatch_property_test: CompileTimeError
+html/js_dispatch_property_test: CompileTimeError
+html/js_dispatch_property_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_dispatch_property_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_function_getter_test/call getter as function: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_function_getter_test: CompileTimeError
 html/js_typed_interop_anonymous2_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_anonymous_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -418,6 +432,13 @@ html/indexeddb_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instanc
 html/indexeddb_2_test: RuntimeError
 html/indexeddb_3_test: RuntimeError
 html/indexeddb_4_test: RuntimeError
+html/isolates_test: RuntimeError
+html/js_array_test: RuntimeError
+html/js_dart_to_string_test: RuntimeError
+html/js_dispatch_property_test: RuntimeError
+html/js_dispatch_property_test: RuntimeError
+html/js_function_getter_test/call getter as function: RuntimeError
+html/js_function_getter_test: CompileTimeError
 html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_anonymous2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_anonymous_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.

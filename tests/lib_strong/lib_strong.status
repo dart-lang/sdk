@@ -117,7 +117,6 @@ html/element_classes_test: RuntimeError # Issue 29922
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode cast failure
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
-html/isolates_test: RuntimeError # Issue 29922
 html/worker_api_test: RuntimeError # Issue 29922
 html/xhr_cross_origin_test/functional: RuntimeError # Issue 29922
 html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure

@@ -56,6 +56,7 @@ html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode cast failure
+html/isolates_test: RuntimeError # Issue 29922
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
 html/js_typed_interop_side_cast_exp_test/01: RuntimeError # Requires --experimental-trust-js-interop-type-annotations flag.
 html/js_typed_interop_type3_test/*: RuntimeError # Issue 30947
@@ -66,10 +67,6 @@ html/media_stream_test: RuntimeError # Issue 29922
 html/mediasource_test: RuntimeError # Issue 29922
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 html/webgl_extensions_test: RuntimeError # Issue 31017
-html/webgl_extensions_test: RuntimeError # Issue XXX
-html/websql_test: RuntimeError, Pass # Issue 29922
-html/websql_test: RuntimeError, Pass # Issue 29922
-math/random_big_test: RuntimeError # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
 mirrors/private_types_test: RuntimeError # Issue 29922
 mirrors/reflect_runtime_type_test: RuntimeError # Issue 29922
@@ -95,6 +92,7 @@ math/math2_test: RuntimeError # Issue 29922
 [ $compiler == dartdevc && $runtime == chrome ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
 html/element_types_keygen_test: RuntimeError # Issue 29055
+html/js_dispatch_property_test: Skip # Timeout Issue 31030
 html/touchevent_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $runtime != none && $system != macos ]

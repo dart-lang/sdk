@@ -60,8 +60,6 @@ html/indexeddb_5_test: DartkCompileTimeError
 html/input_element_test: DartkCompileTimeError
 html/instance_of_test: DartkCompileTimeError
 html/interactive_test: DartkCompileTimeError
-html/isolates_test: DartkCompileTimeError
-html/js_function_getter_test: DartkCompileTimeError
 html/js_interop_1_test: DartkCompileTimeError
 html/js_test: DartkCompileTimeError
 html/window_test: DartkCompileTimeError
