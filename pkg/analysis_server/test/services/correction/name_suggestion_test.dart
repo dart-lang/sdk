@@ -102,6 +102,19 @@ main() {
         unorderedEquals(['s']));
   }
 
+  test_forExpression_indexExpression_endsWithE() async {
+    await resolveTestUnit('''
+main() {
+  var topNodes = [0, 1, 2];
+  print(topNodes[0]);
+}
+''');
+    var excluded = new Set<String>.from([]);
+    var expr = findNodeAtString('topNodes[0]').parent;
+    var names = getVariableNameSuggestionsForExpression(null, expr, excluded);
+    expect(names, unorderedEquals(['topNode', 'node', 'object']));
+  }
+
   test_forExpression_instanceCreation() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
