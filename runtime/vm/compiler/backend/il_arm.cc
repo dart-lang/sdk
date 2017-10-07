@@ -4134,44 +4134,94 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
 }
 
-DEFINE_BACKEND(BinaryFloat32x4Op,
-               (QRegister result, QRegister left, QRegister right)) {
-  switch (instr->op_kind()) {
-    case Token::kADD:
+// SIMD
+
+#define DEFINE_EMIT(Name, Args)                                                \
+  static void Emit##Name(FlowGraphCompiler* compiler, SimdOpInstr* instr,      \
+                         PP_APPLY(PP_UNPACK, Args))
+
+DEFINE_EMIT(Simd32x4BinaryOp,
+            (QRegister result, QRegister left, QRegister right)) {
+  switch (instr->kind()) {
+    case SimdOpInstr::kFloat32x4Add:
       __ vaddqs(result, left, right);
       break;
-    case Token::kSUB:
+    case SimdOpInstr::kFloat32x4Sub:
       __ vsubqs(result, left, right);
       break;
-    case Token::kMUL:
+    case SimdOpInstr::kFloat32x4Mul:
       __ vmulqs(result, left, right);
       break;
-    case Token::kDIV:
+    case SimdOpInstr::kFloat32x4Div:
       __ Vdivqs(result, left, right);
+      break;
+    case SimdOpInstr::kFloat32x4Equal:
+      __ vceqqs(result, left, right);
+      break;
+    case SimdOpInstr::kFloat32x4NotEqual:
+      __ vceqqs(result, left, right);
+      // Invert the result.
+      __ vmvnq(result, result);
+      break;
+    case SimdOpInstr::kFloat32x4GreaterThan:
+      __ vcgtqs(result, left, right);
+      break;
+    case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
+      __ vcgeqs(result, left, right);
+      break;
+    case SimdOpInstr::kFloat32x4LessThan:
+      __ vcgtqs(result, right, left);
+      break;
+    case SimdOpInstr::kFloat32x4LessThanOrEqual:
+      __ vcgeqs(result, right, left);
+      break;
+    case SimdOpInstr::kFloat32x4Min:
+      __ vminqs(result, left, right);
+      break;
+    case SimdOpInstr::kFloat32x4Max:
+      __ vmaxqs(result, left, right);
+      break;
+    case SimdOpInstr::kFloat32x4Scale:
+      __ vcvtsd(STMP, EvenDRegisterOf(left));
+      __ vdup(kWord, result, DTMP, 0);
+      __ vmulqs(result, result, right);
+      break;
+    case SimdOpInstr::kInt32x4BitAnd:
+      __ vandq(result, left, right);
+      break;
+    case SimdOpInstr::kInt32x4BitOr:
+      __ vorrq(result, left, right);
+      break;
+    case SimdOpInstr::kInt32x4BitXor:
+      __ veorq(result, left, right);
+      break;
+    case SimdOpInstr::kInt32x4Add:
+      __ vaddqi(kWord, result, left, right);
+      break;
+    case SimdOpInstr::kInt32x4Sub:
+      __ vsubqi(kWord, result, left, right);
       break;
     default:
       UNREACHABLE();
   }
 }
 
-DEFINE_BACKEND(BinaryFloat64x2Op,
-               (QRegisterView result,
-                QRegisterView left,
-                QRegisterView right)) {
-  switch (instr->op_kind()) {
-    case Token::kADD:
+DEFINE_EMIT(Float64x2BinaryOp,
+            (QRegisterView result, QRegisterView left, QRegisterView right)) {
+  switch (instr->kind()) {
+    case SimdOpInstr::kFloat64x2Add:
       __ vaddd(result.d(0), left.d(0), right.d(0));
       __ vaddd(result.d(1), left.d(1), right.d(1));
       break;
-    case Token::kSUB:
+    case SimdOpInstr::kFloat64x2Sub:
       __ vsubd(result.d(0), left.d(0), right.d(0));
       __ vsubd(result.d(1), left.d(1), right.d(1));
       break;
-    case Token::kMUL:
+    case SimdOpInstr::kFloat64x2Mul:
       __ vmuld(result.d(0), left.d(0), right.d(0));
       __ vmuld(result.d(1), left.d(1), right.d(1));
       break;
-    case Token::kDIV:
+    case SimdOpInstr::kFloat64x2Div:
       __ vdivd(result.d(0), left.d(0), right.d(0));
       __ vdivd(result.d(1), left.d(1), right.d(1));
       break;
@@ -4181,26 +4231,27 @@ DEFINE_BACKEND(BinaryFloat64x2Op,
 }
 
 // Low (< Q7) Q registers are needed for the vcvtds and vmovs instructions.
-DEFINE_BACKEND(Simd32x4Shuffle,
-               (FixedQRegisterView<Q6> result, FixedQRegisterView<Q5> value)) {
+// TODO(dartbug.com/30953) support register range constraints in the regalloc.
+DEFINE_EMIT(Simd32x4Shuffle,
+            (FixedQRegisterView<Q6> result, FixedQRegisterView<Q5> value)) {
   // For some cases the vdup instruction requires fewer
   // instructions. For arbitrary shuffles, use vtbl.
 
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kFloat32x4ShuffleX:
+  switch (instr->kind()) {
+    case SimdOpInstr::kFloat32x4ShuffleX:
       __ vcvtds(result.d(0), value.s(0));
       break;
-    case MethodRecognizer::kFloat32x4ShuffleY:
+    case SimdOpInstr::kFloat32x4ShuffleY:
       __ vcvtds(result.d(0), value.s(1));
       break;
-    case MethodRecognizer::kFloat32x4ShuffleZ:
+    case SimdOpInstr::kFloat32x4ShuffleZ:
       __ vcvtds(result.d(0), value.s(2));
       break;
-    case MethodRecognizer::kFloat32x4ShuffleW:
+    case SimdOpInstr::kFloat32x4ShuffleW:
       __ vcvtds(result.d(0), value.s(3));
       break;
-    case MethodRecognizer::kInt32x4Shuffle:
-    case MethodRecognizer::kFloat32x4Shuffle:
+    case SimdOpInstr::kInt32x4Shuffle:
+    case SimdOpInstr::kFloat32x4Shuffle: {
       if (instr->mask() == 0x00) {
         __ vdup(kWord, result, value.d(0), 0);
       } else if (instr->mask() == 0x55) {
@@ -4220,34 +4271,27 @@ DEFINE_BACKEND(Simd32x4Shuffle,
         }
       }
       break;
+    }
     default:
       UNREACHABLE();
   }
 }
 
-// Low (< Q7) Q registers are needed for the vcvtds and vmovs instructions.
-DEFINE_BACKEND(Simd32x4ShuffleMix,
-               (FixedQRegisterView<Q6> result,
-                FixedQRegisterView<Q4> left,
-                FixedQRegisterView<Q5> right)) {
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kFloat32x4ShuffleMix:
-    case MethodRecognizer::kInt32x4ShuffleMix:
-      // TODO(zra): Investigate better instruction sequences for shuffle masks.
-      __ vmovs(result.s(0), left.s((instr->mask() >> 0) & 0x3));
-      __ vmovs(result.s(1), left.s((instr->mask() >> 2) & 0x3));
-      __ vmovs(result.s(2), right.s((instr->mask() >> 4) & 0x3));
-      __ vmovs(result.s(3), right.s((instr->mask() >> 6) & 0x3));
-      break;
-    default:
-      UNREACHABLE();
-  }
+// TODO(dartbug.com/30953) support register range constraints in the regalloc.
+DEFINE_EMIT(Simd32x4ShuffleMix,
+            (FixedQRegisterView<Q6> result,
+             FixedQRegisterView<Q4> left,
+             FixedQRegisterView<Q5> right)) {
+  // TODO(zra): Investigate better instruction sequences for shuffle masks.
+  __ vmovs(result.s(0), left.s((instr->mask() >> 0) & 0x3));
+  __ vmovs(result.s(1), left.s((instr->mask() >> 2) & 0x3));
+  __ vmovs(result.s(2), right.s((instr->mask() >> 4) & 0x3));
+  __ vmovs(result.s(3), right.s((instr->mask() >> 6) & 0x3));
 }
 
-DEFINE_BACKEND(Simd32x4GetSignMask,
-               (Register out,
-                FixedQRegisterView<Q5> value,
-                Temp<Register> temp)) {
+// TODO(dartbug.com/30953) support register range constraints in the regalloc.
+DEFINE_EMIT(Simd32x4GetSignMask,
+            (Register out, FixedQRegisterView<Q5> value, Temp<Register> temp)) {
   // X lane.
   __ vmovrs(out, value.s(0));
   __ Lsr(out, out, Operand(31));
@@ -4263,28 +4307,27 @@ DEFINE_BACKEND(Simd32x4GetSignMask,
   __ vmovrs(temp, value.s(3));
   __ Lsr(temp, temp, Operand(31));
   __ orr(out, out, Operand(temp, LSL, 3));
-  // Tag.
-  __ SmiTag(out);
 }
 
 // Low (< 7) Q registers are needed for the vcvtsd instruction.
-DEFINE_BACKEND(Float32x4Constructor,
-               (FixedQRegisterView<Q6> r,
-                QRegisterView q0,
-                QRegisterView q1,
-                QRegisterView q2,
-                QRegisterView q3)) {
-  __ vcvtsd(r.s(0), q0.d(0));
-  __ vcvtsd(r.s(1), q1.d(0));
-  __ vcvtsd(r.s(2), q2.d(0));
-  __ vcvtsd(r.s(3), q3.d(0));
+// TODO(dartbug.com/30953) support register range constraints in the regalloc.
+DEFINE_EMIT(Float32x4Constructor,
+            (FixedQRegisterView<Q6> out,
+             QRegisterView q0,
+             QRegisterView q1,
+             QRegisterView q2,
+             QRegisterView q3)) {
+  __ vcvtsd(out.s(0), q0.d(0));
+  __ vcvtsd(out.s(1), q1.d(0));
+  __ vcvtsd(out.s(2), q2.d(0));
+  __ vcvtsd(out.s(3), q3.d(0));
 }
 
-DEFINE_BACKEND(Float32x4Zero, (QRegister q)) {
-  __ veorq(q, q, q);
+DEFINE_EMIT(Float32x4Zero, (QRegister out)) {
+  __ veorq(out, out, out);
 }
 
-DEFINE_BACKEND(Float32x4Splat, (QRegister result, QRegisterView value)) {
+DEFINE_EMIT(Float32x4Splat, (QRegister result, QRegisterView value)) {
   // Convert to Float32.
   __ vcvtsd(STMP, value.d(0));
 
@@ -4292,59 +4335,23 @@ DEFINE_BACKEND(Float32x4Splat, (QRegister result, QRegisterView value)) {
   __ vdup(kWord, result, DTMP, 0);
 }
 
-DEFINE_BACKEND(Float32x4Comparison,
-               (QRegister result, QRegister left, QRegister right)) {
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kFloat32x4Equal:
-      __ vceqqs(result, left, right);
-      break;
-    case MethodRecognizer::kFloat32x4NotEqual:
-      __ vceqqs(result, left, right);
-      // Invert the result.
-      __ vmvnq(result, result);
-      break;
-    case MethodRecognizer::kFloat32x4GreaterThan:
-      __ vcgtqs(result, left, right);
-      break;
-    case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
-      __ vcgeqs(result, left, right);
-      break;
-    case MethodRecognizer::kFloat32x4LessThan:
-      __ vcgtqs(result, right, left);
-      break;
-    case MethodRecognizer::kFloat32x4LessThanOrEqual:
-      __ vcgeqs(result, right, left);
-      break;
-
-    default:
-      UNREACHABLE();
-  }
+DEFINE_EMIT(Float32x4Sqrt,
+            (QRegister result, QRegister left, Temp<QRegister> temp)) {
+  __ Vsqrtqs(result, left, temp);
 }
 
-DEFINE_BACKEND(Float32x4MinMax,
-               (QRegister result, QRegister left, QRegister right)) {
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kFloat32x4Min:
-      __ vminqs(result, left, right);
+DEFINE_EMIT(Float32x4Unary, (QRegister result, QRegister left)) {
+  switch (instr->kind()) {
+    case SimdOpInstr::kFloat32x4Negate:
+      __ vnegqs(result, left);
       break;
-    case MethodRecognizer::kFloat32x4Max:
-      __ vmaxqs(result, left, right);
+    case SimdOpInstr::kFloat32x4Abs:
+      __ vabsqs(result, left);
       break;
-    default:
-      UNREACHABLE();
-  }
-}
-
-DEFINE_BACKEND(Float32x4Sqrt,
-               (QRegister result, QRegister left, Temp<QRegister> temp)) {
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kFloat32x4Sqrt:
-      __ Vsqrtqs(result, left, temp);
-      break;
-    case MethodRecognizer::kFloat32x4Reciprocal:
+    case SimdOpInstr::kFloat32x4Reciprocal:
       __ Vreciprocalqs(result, left);
       break;
-    case MethodRecognizer::kFloat32x4ReciprocalSqrt:
+    case SimdOpInstr::kFloat32x4ReciprocalSqrt:
       __ VreciprocalSqrtqs(result, left);
       break;
     default:
@@ -4352,33 +4359,13 @@ DEFINE_BACKEND(Float32x4Sqrt,
   }
 }
 
-DEFINE_BACKEND(Float32x4Scale,
-               (QRegister result, QRegisterView left, QRegister right)) {
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kFloat32x4Scale:
-      __ vcvtsd(STMP, left.d(0));
-      __ vdup(kWord, result, DTMP, 0);
-      __ vmulqs(result, result, right);
-      break;
-    default:
-      UNREACHABLE();
-  }
+DEFINE_EMIT(Simd32x4ToSimd32x4Convertion, (SameAsFirstInput, QRegister left)) {
+  // TODO(dartbug.com/30949) these operations are essentially nop and should
+  // not generate any code. They should be removed from the graph before
+  // code generation.
 }
 
-DEFINE_BACKEND(Float32x4ZeroArg, (QRegister result, QRegister left)) {
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kFloat32x4Negate:
-      __ vnegqs(result, left);
-      break;
-    case MethodRecognizer::kFloat32x4Absolute:
-      __ vabsqs(result, left);
-      break;
-    default:
-      UNREACHABLE();
-  }
-}
-
-DEFINE_BACKEND(
+DEFINE_EMIT(
     Float32x4Clamp,
     (QRegister result, QRegister left, QRegister lower, QRegister upper)) {
   __ vminqs(result, left, upper);
@@ -4386,24 +4373,24 @@ DEFINE_BACKEND(
 }
 
 // Low (< 7) Q registers are needed for the vmovs instruction.
-DEFINE_BACKEND(Float32x4With,
-               (FixedQRegisterView<Q6> result,
-                QRegisterView replacement,
-                QRegister value)) {
+// TODO(dartbug.com/30953) support register range constraints in the regalloc.
+DEFINE_EMIT(Float32x4With,
+            (FixedQRegisterView<Q6> result,
+             QRegisterView replacement,
+             QRegister value)) {
   __ vcvtsd(STMP, replacement.d(0));
   __ vmovq(result, value);
-
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kFloat32x4WithX:
+  switch (instr->kind()) {
+    case SimdOpInstr::kFloat32x4WithX:
       __ vmovs(result.s(0), STMP);
       break;
-    case MethodRecognizer::kFloat32x4WithY:
+    case SimdOpInstr::kFloat32x4WithY:
       __ vmovs(result.s(1), STMP);
       break;
-    case MethodRecognizer::kFloat32x4WithZ:
+    case SimdOpInstr::kFloat32x4WithZ:
       __ vmovs(result.s(2), STMP);
       break;
-    case MethodRecognizer::kFloat32x4WithW:
+    case SimdOpInstr::kFloat32x4WithW:
       __ vmovs(result.s(3), STMP);
       break;
     default:
@@ -4411,16 +4398,12 @@ DEFINE_BACKEND(Float32x4With,
   }
 }
 
-DEFINE_BACKEND(Float32x4ToInt32x4, (SameAsFirstInput, QRegister value)) {
-  // Nothing to do.
-}
-
-DEFINE_BACKEND(Simd64x2Shuffle, (QRegisterView result, QRegisterView value)) {
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kFloat64x2GetX:
+DEFINE_EMIT(Simd64x2Shuffle, (QRegisterView result, QRegisterView value)) {
+  switch (instr->kind()) {
+    case SimdOpInstr::kFloat64x2GetX:
       __ vmovd(result.d(0), value.d(0));
       break;
-    case MethodRecognizer::kFloat64x2GetY:
+    case SimdOpInstr::kFloat64x2GetY:
       __ vmovd(result.d(0), value.d(1));
       break;
     default:
@@ -4428,26 +4411,25 @@ DEFINE_BACKEND(Simd64x2Shuffle, (QRegisterView result, QRegisterView value)) {
   }
 }
 
-DEFINE_BACKEND(Float64x2Zero, (QRegister q)) {
+DEFINE_EMIT(Float64x2Zero, (QRegister q)) {
   __ veorq(q, q, q);
 }
 
-DEFINE_BACKEND(Float64x2Splat, (QRegisterView result, QRegisterView value)) {
+DEFINE_EMIT(Float64x2Splat, (QRegisterView result, QRegisterView value)) {
   // Splat across all lanes.
   __ vmovd(result.d(0), value.d(0));
   __ vmovd(result.d(1), value.d(0));
 }
 
-DEFINE_BACKEND(Float64x2Constructor,
-               (QRegisterView r, QRegisterView q0, QRegisterView q1)) {
+DEFINE_EMIT(Float64x2Constructor,
+            (QRegisterView r, QRegisterView q0, QRegisterView q1)) {
   __ vmovd(r.d(0), q0.d(0));
   __ vmovd(r.d(1), q1.d(0));
 }
 
 // Low (< 7) Q registers are needed for the vcvtsd instruction.
-DEFINE_BACKEND(Float64x2ToFloat32x4,
-               (FixedQRegisterView<Q6> r, QRegisterView q)) {
-  // Zero register.
+// TODO(dartbug.com/30953) support register range constraints in the regalloc.
+DEFINE_EMIT(Float64x2ToFloat32x4, (FixedQRegisterView<Q6> r, QRegisterView q)) {
   __ veorq(r, r, r);
   // Set X lane.
   __ vcvtsd(r.s(0), q.d(0));
@@ -4456,93 +4438,60 @@ DEFINE_BACKEND(Float64x2ToFloat32x4,
 }
 
 // Low (< 7) Q registers are needed for the vcvtsd instruction.
-DEFINE_BACKEND(Float32x4ToFloat64x2,
-               (FixedQRegisterView<Q6> r, QRegisterView q)) {
+// TODO(dartbug.com/30953) support register range constraints in the regalloc.
+DEFINE_EMIT(Float32x4ToFloat64x2, (FixedQRegisterView<Q6> r, QRegisterView q)) {
   // Set X.
   __ vcvtds(r.d(0), q.s(0));
   // Set Y.
   __ vcvtds(r.d(1), q.s(1));
 }
 
-LocationSummary* Float64x2ZeroArgInstr::MakeLocationSummary(Zone* zone,
-                                                            bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-
-  if (representation() == kTagged) {
-    ASSERT(op_kind() == MethodRecognizer::kFloat64x2GetSignMask);
-    // Grabbing the S components means we need a low (< 7) Q.
-    summary->set_in(0, Location::FpuRegisterLocation(Q6));
-    summary->set_out(0, Location::RequiresRegister());
-  } else {
-    summary->set_in(0, Location::RequiresFpuRegister());
-    summary->set_out(0, Location::RequiresFpuRegister());
-  }
-  return summary;
+// Grabbing the S components means we need a low (< 7) Q.
+// TODO(dartbug.com/30953) support register range constraints in the regalloc.
+DEFINE_EMIT(Float64x2GetSignMask,
+            (Register out, FixedQRegisterView<Q6> value)) {
+  // Upper 32-bits of X lane.
+  __ vmovrs(out, value.s(1));
+  __ Lsr(out, out, Operand(31));
+  // Upper 32-bits of Y lane.
+  __ vmovrs(TMP, value.s(3));
+  __ Lsr(TMP, TMP, Operand(31));
+  __ orr(out, out, Operand(TMP, LSL, 1));
 }
 
-void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const QRegister q = locs()->in(0).fpu_reg();
-
-  if (op_kind() == MethodRecognizer::kFloat64x2GetSignMask) {
-    const DRegister dvalue0 = EvenDRegisterOf(q);
-    const DRegister dvalue1 = OddDRegisterOf(q);
-
-    const Register out = locs()->out(0).reg();
-
-    // Upper 32-bits of X lane.
-    __ vmovrs(out, OddSRegisterOf(dvalue0));
-    __ Lsr(out, out, Operand(31));
-    // Upper 32-bits of Y lane.
-    __ vmovrs(TMP, OddSRegisterOf(dvalue1));
-    __ Lsr(TMP, TMP, Operand(31));
-    __ orr(out, out, Operand(TMP, LSL, 1));
-    // Tag.
-    __ SmiTag(out);
-    return;
-  }
-  ASSERT(representation() == kUnboxedFloat64x2);
-  const QRegister r = locs()->out(0).fpu_reg();
-
-  const DRegister dvalue0 = EvenDRegisterOf(q);
-  const DRegister dvalue1 = OddDRegisterOf(q);
-  const DRegister dresult0 = EvenDRegisterOf(r);
-  const DRegister dresult1 = OddDRegisterOf(r);
-
-  switch (op_kind()) {
-    case MethodRecognizer::kFloat64x2Negate:
-      __ vnegd(dresult0, dvalue0);
-      __ vnegd(dresult1, dvalue1);
+DEFINE_EMIT(Float64x2Unary, (QRegisterView result, QRegisterView value)) {
+  switch (instr->kind()) {
+    case SimdOpInstr::kFloat64x2Negate:
+      __ vnegd(result.d(0), value.d(0));
+      __ vnegd(result.d(1), value.d(1));
       break;
-    case MethodRecognizer::kFloat64x2Abs:
-      __ vabsd(dresult0, dvalue0);
-      __ vabsd(dresult1, dvalue1);
+    case SimdOpInstr::kFloat64x2Abs:
+      __ vabsd(result.d(0), value.d(0));
+      __ vabsd(result.d(1), value.d(1));
       break;
-    case MethodRecognizer::kFloat64x2Sqrt:
-      __ vsqrtd(dresult0, dvalue0);
-      __ vsqrtd(dresult1, dvalue1);
+    case SimdOpInstr::kFloat64x2Sqrt:
+      __ vsqrtd(result.d(0), value.d(0));
+      __ vsqrtd(result.d(1), value.d(1));
       break;
     default:
       UNREACHABLE();
   }
 }
 
-DEFINE_BACKEND(Float64x2OneArg,
-               (SameAsFirstInput, QRegisterView left, QRegisterView right)) {
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kFloat64x2Scale:
+DEFINE_EMIT(Float64x2Binary,
+            (SameAsFirstInput, QRegisterView left, QRegisterView right)) {
+  switch (instr->kind()) {
+    case SimdOpInstr::kFloat64x2Scale:
       __ vmuld(left.d(0), left.d(0), right.d(0));
       __ vmuld(left.d(1), left.d(1), right.d(0));
       break;
-    case MethodRecognizer::kFloat64x2WithX:
+    case SimdOpInstr::kFloat64x2WithX:
       __ vmovd(left.d(0), right.d(0));
       break;
-    case MethodRecognizer::kFloat64x2WithY:
+    case SimdOpInstr::kFloat64x2WithY:
       __ vmovd(left.d(1), right.d(0));
       break;
-    case MethodRecognizer::kFloat64x2Min: {
+    case SimdOpInstr::kFloat64x2Min: {
       // X lane.
       __ vcmpd(left.d(0), right.d(0));
       __ vmstat();
@@ -4553,7 +4502,7 @@ DEFINE_BACKEND(Float64x2OneArg,
       __ vmovd(left.d(1), right.d(1), GE);
       break;
     }
-    case MethodRecognizer::kFloat64x2Max: {
+    case SimdOpInstr::kFloat64x2Max: {
       // X lane.
       __ vcmpd(left.d(0), right.d(0));
       __ vmstat();
@@ -4569,24 +4518,24 @@ DEFINE_BACKEND(Float64x2OneArg,
   }
 }
 
-DEFINE_BACKEND(Int32x4Constructor,
-               (QRegisterView result,
-                Register v0,
-                Register v1,
-                Register v2,
-                Register v3)) {
+DEFINE_EMIT(Int32x4Constructor,
+            (QRegisterView result,
+             Register v0,
+             Register v1,
+             Register v2,
+             Register v3)) {
   __ veorq(result, result, result);
   __ vmovdrr(result.d(0), v0, v1);
   __ vmovdrr(result.d(1), v2, v3);
 }
 
-DEFINE_BACKEND(Int32x4BoolConstructor,
-               (QRegisterView result,
-                Register v0,
-                Register v1,
-                Register v2,
-                Register v3,
-                Temp<Register> temp)) {
+DEFINE_EMIT(Int32x4BoolConstructor,
+            (QRegisterView result,
+             Register v0,
+             Register v1,
+             Register v2,
+             Register v3,
+             Temp<Register> temp)) {
   __ veorq(result, result, result);
   __ LoadImmediate(temp, 0xffffffff);
 
@@ -4605,19 +4554,19 @@ DEFINE_BACKEND(Int32x4BoolConstructor,
 }
 
 // Low (< 7) Q registers are needed for the vmovrs instruction.
-DEFINE_BACKEND(Int32x4GetFlag,
-               (Register result, FixedQRegisterView<Q6> value)) {
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kInt32x4GetFlagX:
+// TODO(dartbug.com/30953) support register range constraints in the regalloc.
+DEFINE_EMIT(Int32x4GetFlag, (Register result, FixedQRegisterView<Q6> value)) {
+  switch (instr->kind()) {
+    case SimdOpInstr::kInt32x4GetFlagX:
       __ vmovrs(result, value.s(0));
       break;
-    case MethodRecognizer::kInt32x4GetFlagY:
+    case SimdOpInstr::kInt32x4GetFlagY:
       __ vmovrs(result, value.s(1));
       break;
-    case MethodRecognizer::kInt32x4GetFlagZ:
+    case SimdOpInstr::kInt32x4GetFlagZ:
       __ vmovrs(result, value.s(2));
       break;
-    case MethodRecognizer::kInt32x4GetFlagW:
+    case SimdOpInstr::kInt32x4GetFlagW:
       __ vmovrs(result, value.s(3));
       break;
     default:
@@ -4629,12 +4578,12 @@ DEFINE_BACKEND(Int32x4GetFlag,
   __ LoadObject(result, Bool::False(), EQ);
 }
 
-DEFINE_BACKEND(Int32x4Select,
-               (QRegister out,
-                QRegister mask,
-                QRegister trueValue,
-                QRegister falseValue,
-                Temp<QRegister> temp)) {
+DEFINE_EMIT(Int32x4Select,
+            (QRegister out,
+             QRegister mask,
+             QRegister trueValue,
+             QRegister falseValue,
+             Temp<QRegister> temp)) {
   // Copy mask.
   __ vmovq(temp, mask);
   // Invert it.
@@ -4647,24 +4596,23 @@ DEFINE_BACKEND(Int32x4Select,
   __ vorrq(out, mask, temp);
 }
 
-DEFINE_BACKEND(Int32x4SetFlag,
-               (QRegisterView result, QRegister mask, Register flag)) {
+DEFINE_EMIT(Int32x4WithFlag,
+            (QRegisterView result, QRegister mask, Register flag)) {
   __ vmovq(result, mask);
-
   __ CompareObject(flag, Bool::True());
   __ LoadImmediate(TMP, 0xffffffff, EQ);
   __ LoadImmediate(TMP, 0, NE);
-  switch (instr->op_kind()) {
-    case MethodRecognizer::kInt32x4WithFlagX:
+  switch (instr->kind()) {
+    case SimdOpInstr::kInt32x4WithFlagX:
       __ vmovdr(result.d(0), 0, TMP);
       break;
-    case MethodRecognizer::kInt32x4WithFlagY:
+    case SimdOpInstr::kInt32x4WithFlagY:
       __ vmovdr(result.d(0), 1, TMP);
       break;
-    case MethodRecognizer::kInt32x4WithFlagZ:
+    case SimdOpInstr::kInt32x4WithFlagZ:
       __ vmovdr(result.d(1), 0, TMP);
       break;
-    case MethodRecognizer::kInt32x4WithFlagW:
+    case SimdOpInstr::kInt32x4WithFlagW:
       __ vmovdr(result.d(1), 1, TMP);
       break;
     default:
@@ -4672,32 +4620,137 @@ DEFINE_BACKEND(Int32x4SetFlag,
   }
 }
 
-DEFINE_BACKEND(Int32x4ToFloat32x4, (SameAsFirstInput, QRegister value)) {
-  // Nothing to do.
+// Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
+// format:
+//
+//     CASE(OpA) CASE(OpB) ____(Emitter) - Emitter is used to emit OpA and OpB.
+//     SIMPLE(OpA) - Emitter with name OpA is used to emit OpA.
+//
+#define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
+  CASE(Float32x4Add)                                                           \
+  CASE(Float32x4Sub)                                                           \
+  CASE(Float32x4Mul)                                                           \
+  CASE(Float32x4Div)                                                           \
+  CASE(Float32x4Equal)                                                         \
+  CASE(Float32x4NotEqual)                                                      \
+  CASE(Float32x4GreaterThan)                                                   \
+  CASE(Float32x4GreaterThanOrEqual)                                            \
+  CASE(Float32x4LessThan)                                                      \
+  CASE(Float32x4LessThanOrEqual)                                               \
+  CASE(Float32x4Min)                                                           \
+  CASE(Float32x4Max)                                                           \
+  CASE(Float32x4Scale)                                                         \
+  CASE(Int32x4BitAnd)                                                          \
+  CASE(Int32x4BitOr)                                                           \
+  CASE(Int32x4BitXor)                                                          \
+  CASE(Int32x4Add)                                                             \
+  CASE(Int32x4Sub)                                                             \
+  ____(Simd32x4BinaryOp)                                                       \
+  CASE(Float64x2Add)                                                           \
+  CASE(Float64x2Sub)                                                           \
+  CASE(Float64x2Mul)                                                           \
+  CASE(Float64x2Div)                                                           \
+  ____(Float64x2BinaryOp)                                                      \
+  CASE(Float32x4ShuffleX)                                                      \
+  CASE(Float32x4ShuffleY)                                                      \
+  CASE(Float32x4ShuffleZ)                                                      \
+  CASE(Float32x4ShuffleW)                                                      \
+  CASE(Int32x4Shuffle)                                                         \
+  CASE(Float32x4Shuffle)                                                       \
+  ____(Simd32x4Shuffle)                                                        \
+  CASE(Float32x4ShuffleMix)                                                    \
+  CASE(Int32x4ShuffleMix)                                                      \
+  ____(Simd32x4ShuffleMix)                                                     \
+  CASE(Float32x4GetSignMask)                                                   \
+  CASE(Int32x4GetSignMask)                                                     \
+  ____(Simd32x4GetSignMask)                                                    \
+  SIMPLE(Float32x4Constructor)                                                 \
+  SIMPLE(Float32x4Zero)                                                        \
+  SIMPLE(Float32x4Splat)                                                       \
+  SIMPLE(Float32x4Sqrt)                                                        \
+  CASE(Float32x4Negate)                                                        \
+  CASE(Float32x4Abs)                                                           \
+  CASE(Float32x4Reciprocal)                                                    \
+  CASE(Float32x4ReciprocalSqrt)                                                \
+  ____(Float32x4Unary)                                                         \
+  CASE(Float32x4ToInt32x4)                                                     \
+  CASE(Int32x4ToFloat32x4)                                                     \
+  ____(Simd32x4ToSimd32x4Convertion)                                           \
+  SIMPLE(Float32x4Clamp)                                                       \
+  CASE(Float32x4WithX)                                                         \
+  CASE(Float32x4WithY)                                                         \
+  CASE(Float32x4WithZ)                                                         \
+  CASE(Float32x4WithW)                                                         \
+  ____(Float32x4With)                                                          \
+  CASE(Float64x2GetX)                                                          \
+  CASE(Float64x2GetY)                                                          \
+  ____(Simd64x2Shuffle)                                                        \
+  SIMPLE(Float64x2Zero)                                                        \
+  SIMPLE(Float64x2Splat)                                                       \
+  SIMPLE(Float64x2Constructor)                                                 \
+  SIMPLE(Float64x2ToFloat32x4)                                                 \
+  SIMPLE(Float32x4ToFloat64x2)                                                 \
+  SIMPLE(Float64x2GetSignMask)                                                 \
+  CASE(Float64x2Negate)                                                        \
+  CASE(Float64x2Abs)                                                           \
+  CASE(Float64x2Sqrt)                                                          \
+  ____(Float64x2Unary)                                                         \
+  CASE(Float64x2Scale)                                                         \
+  CASE(Float64x2WithX)                                                         \
+  CASE(Float64x2WithY)                                                         \
+  CASE(Float64x2Min)                                                           \
+  CASE(Float64x2Max)                                                           \
+  ____(Float64x2Binary)                                                        \
+  SIMPLE(Int32x4Constructor)                                                   \
+  SIMPLE(Int32x4BoolConstructor)                                               \
+  CASE(Int32x4GetFlagX)                                                        \
+  CASE(Int32x4GetFlagY)                                                        \
+  CASE(Int32x4GetFlagZ)                                                        \
+  CASE(Int32x4GetFlagW)                                                        \
+  ____(Int32x4GetFlag)                                                         \
+  SIMPLE(Int32x4Select)                                                        \
+  CASE(Int32x4WithFlagX)                                                       \
+  CASE(Int32x4WithFlagY)                                                       \
+  CASE(Int32x4WithFlagZ)                                                       \
+  CASE(Int32x4WithFlagW)                                                       \
+  ____(Int32x4WithFlag)
+
+LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  switch (kind()) {
+#define CASE(Name) case k##Name:
+#define EMIT(Name)                                                             \
+  return MakeLocationSummaryFromEmitter(zone, this, &Emit##Name);
+#define SIMPLE(Name) CASE(Name) EMIT(Name)
+    SIMD_OP_VARIANTS(CASE, EMIT, SIMPLE)
+#undef CASE
+#undef EMIT
+#undef SIMPLE
+    case kIllegalSimdOp:
+      UNREACHABLE();
+      break;
+  }
+  UNREACHABLE();
+  return NULL;
 }
 
-DEFINE_BACKEND(BinaryInt32x4Op,
-               (QRegister result, QRegister left, QRegister right)) {
-  switch (instr->op_kind()) {
-    case Token::kBIT_AND:
-      __ vandq(result, left, right);
-      break;
-    case Token::kBIT_OR:
-      __ vorrq(result, left, right);
-      break;
-    case Token::kBIT_XOR:
-      __ veorq(result, left, right);
-      break;
-    case Token::kADD:
-      __ vaddqi(kWord, result, left, right);
-      break;
-    case Token::kSUB:
-      __ vsubqi(kWord, result, left, right);
-      break;
-    default:
+void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  switch (kind()) {
+#define CASE(Name) case k##Name:
+#define EMIT(Name)                                                             \
+  InvokeEmitter(compiler, this, &Emit##Name);                                  \
+  break;
+#define SIMPLE(Name) CASE(Name) EMIT(Name)
+    SIMD_OP_VARIANTS(CASE, EMIT, SIMPLE)
+#undef CASE
+#undef EMIT
+#undef SIMPLE
+    case kIllegalSimdOp:
       UNREACHABLE();
+      break;
   }
 }
+
+#undef DEFINE_EMIT
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {

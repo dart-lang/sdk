@@ -289,6 +289,22 @@ static intptr_t CidForRepresentation(Representation rep) {
   }
 }
 
+static Representation RepresentationForCid(intptr_t cid) {
+  switch (cid) {
+    case kDoubleCid:
+      return kUnboxedDouble;
+    case kFloat32x4Cid:
+      return kUnboxedFloat32x4;
+    case kInt32x4Cid:
+      return kUnboxedInt32x4;
+    case kFloat64x2Cid:
+      return kUnboxedFloat64x2;
+    default:
+      UNREACHABLE();
+      return kNoRepresentation;
+  }
+}
+
 // Notes about the graph intrinsics:
 //
 // IR instructions which would jump to a deoptimization sequence on failure
@@ -721,8 +737,10 @@ bool Intrinsifier::Build_ExternalTwoByteStringCodeUnitAt(
   return BuildCodeUnitAt(flow_graph, kExternalTwoByteStringCid);
 }
 
-static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
+static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
   if (!FlowGraphCompiler::SupportsUnboxedSimd128()) return false;
+
+  const Representation rep = RepresentationForCid(cid);
 
   Zone* zone = flow_graph->zone();
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -732,36 +750,35 @@ static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
   Definition* right = builder.AddParameter(1);
   Definition* left = builder.AddParameter(2);
 
-  Cids* value_check = Cids::CreateMonomorphic(zone, kFloat32x4Cid);
+  Cids* value_check = Cids::CreateMonomorphic(zone, cid);
   // Check argument. Receiver (left) is known to be a Float32x4.
   builder.AddInstruction(new CheckClassInstr(
       new Value(right), Thread::kNoDeoptId, *value_check, builder.TokenPos()));
-  Definition* left_simd =
-      builder.AddUnboxInstr(kUnboxedFloat32x4, new Value(left),
-                            /* is_checked = */ true);
+  Definition* left_simd = builder.AddUnboxInstr(rep, new Value(left),
+                                                /* is_checked = */ true);
 
-  Definition* right_simd =
-      builder.AddUnboxInstr(kUnboxedFloat32x4, new Value(right),
-                            /* is_checked = */ true);
+  Definition* right_simd = builder.AddUnboxInstr(rep, new Value(right),
+                                                 /* is_checked = */ true);
 
-  Definition* unboxed_result = builder.AddDefinition(new BinaryFloat32x4OpInstr(
-      kind, new Value(left_simd), new Value(right_simd), Thread::kNoDeoptId));
-  Definition* result = builder.AddDefinition(
-      BoxInstr::Create(kUnboxedFloat32x4, new Value(unboxed_result)));
+  Definition* unboxed_result = builder.AddDefinition(SimdOpInstr::Create(
+      SimdOpInstr::KindForOperator(cid, kind), new Value(left_simd),
+      new Value(right_simd), Thread::kNoDeoptId));
+  Definition* result =
+      builder.AddDefinition(BoxInstr::Create(rep, new Value(unboxed_result)));
   builder.AddIntrinsicReturn(new Value(result));
   return true;
 }
 
 bool Intrinsifier::Build_Float32x4Mul(FlowGraph* flow_graph) {
-  return BuildBinaryFloat32x4Op(flow_graph, Token::kMUL);
+  return BuildSimdOp(flow_graph, kFloat32x4Cid, Token::kMUL);
 }
 
 bool Intrinsifier::Build_Float32x4Sub(FlowGraph* flow_graph) {
-  return BuildBinaryFloat32x4Op(flow_graph, Token::kSUB);
+  return BuildSimdOp(flow_graph, kFloat32x4Cid, Token::kSUB);
 }
 
 bool Intrinsifier::Build_Float32x4Add(FlowGraph* flow_graph) {
-  return BuildBinaryFloat32x4Op(flow_graph, Token::kADD);
+  return BuildSimdOp(flow_graph, kFloat32x4Cid, Token::kADD);
 }
 
 static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
@@ -780,8 +797,8 @@ static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
       builder.AddUnboxInstr(kUnboxedFloat32x4, new Value(receiver),
                             /* is_checked = */ true);
 
-  Definition* unboxed_result = builder.AddDefinition(new Simd32x4ShuffleInstr(
-      kind, new Value(unboxed_receiver), 0, Thread::kNoDeoptId));
+  Definition* unboxed_result = builder.AddDefinition(SimdOpInstr::Create(
+      kind, new Value(unboxed_receiver), Thread::kNoDeoptId));
 
   Definition* result = builder.AddDefinition(
       BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
