@@ -5,7 +5,7 @@
 // test w/ `pub run test -N public_member_api_docs`
 
 abstract class A //LINT
-{
+    {
 
   /// Zapp.
   int get zapp => 0;
@@ -25,7 +25,7 @@ abstract class A //LINT
   int x; //LINT
   int _y; //OK
   int z, //LINT
-     _z; //OK
+      _z; //OK
   /// Doc.
   a() {
     inner() => null; //OK
@@ -87,7 +87,7 @@ int g; //LINT
 int _h; //OK
 
 int gg, //LINT
-   _gg; //OK
+    _gg; //OK
 
 /// ZZ.
 class ZZ {

@@ -6,8 +6,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
+import 'package:path/path.dart' as path;
 
 const desc = r'Document all public members.';
 
@@ -59,6 +62,12 @@ documented getters have corresponding undocumented setters. In this case the
 setters inherit the docs from the getters.
 ''';
 
+// TODO(devoncarew): This lint is very slow - we should profile and optimize it.
+
+// TODO(devoncarew): Longer term, this lint could benefit from being more aware
+// of the actual API surface area of a package - including that defined by
+// exports - and linting against that.
+
 class PublicMemberApiDocs extends LintRule {
   PublicMemberApiDocs()
       : super(
@@ -68,14 +77,16 @@ class PublicMemberApiDocs extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  AstVisitor getVisitor() => new _Visitor(this);
 }
 
-class Visitor extends GeneralizingAstVisitor {
+class _Visitor extends GeneralizingAstVisitor {
   InheritanceManager manager;
+  bool isInLibFolder;
 
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   bool check(Declaration node) {
     if (node.documentationComment == null && !isOverridingMember(node)) {
@@ -101,11 +112,34 @@ class Visitor extends GeneralizingAstVisitor {
   bool isOverridingMember(Declaration node) =>
       getOverriddenMember(node.element) != null;
 
+  /// Return true if the given node is declared in a compilation unit that is in
+  /// a `lib/` folder.
+  bool _isDefinedInLib(CompilationUnit compilationUnit) {
+    Uri uri = compilationUnit?.element?.source?.uri;
+
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    File file = resourceProvider.getFile(uri.toFilePath());
+    Folder folder = file.parent;
+
+    // Look for a pubspec.yaml file.
+    while (folder != null) {
+      if (folder.getChildAssumingFile('pubspec.yaml').exists) {
+        // Determine if this file is a child of the lib/ folder.
+        String relPath = file.path.substring(folder.path.length + 1);
+        return path.split(relPath).first == 'lib';
+      }
+
+      folder = folder.parent;
+    }
+
+    return false;
+  }
+
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    if (isPrivate(node.name)) {
-      return;
-    }
+    if (!isInLibFolder) return;
+
+    if (isPrivate(node.name)) return;
 
     check(node);
 
@@ -142,7 +176,7 @@ class Visitor extends GeneralizingAstVisitor {
     for (MethodDeclaration setter in setters.values) {
       MethodDeclaration getter = getters[setter.name.name];
       if (getter == null) {
-        //Look for an inherited getter.
+        // Look for an inherited getter.
         ExecutableElement getter =
             manager.lookupMember(node.element, setter.name.name);
         if (getter is PropertyAccessorElement) {
@@ -162,6 +196,8 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
+    if (!isInLibFolder) return;
+
     if (!isPrivate(node.name)) {
       check(node);
     }
@@ -169,6 +205,10 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitCompilationUnit(CompilationUnit node) {
+    // Ignore this compilation unit if its not in the lib/ folder.
+    isInLibFolder = _isDefinedInLib(node);
+    if (!isInLibFolder) return;
+
     LibraryElement library = node == null
         ? null
         : resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
@@ -222,6 +262,8 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (!isInLibFolder) return;
+
     if (!inPrivateMember(node) && !isPrivate(node.name)) {
       check(node);
     }
@@ -229,6 +271,8 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    if (!isInLibFolder) return;
+
     if (!inPrivateMember(node) && !isPrivate(node.name)) {
       check(node);
     }
@@ -236,6 +280,8 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitEnumDeclaration(EnumDeclaration node) {
+    if (!isInLibFolder) return;
+
     if (!isPrivate(node.name)) {
       check(node);
     }
@@ -243,6 +289,8 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitFieldDeclaration(FieldDeclaration node) {
+    if (!isInLibFolder) return;
+
     if (!inPrivateMember(node)) {
       for (VariableDeclaration field in node.fields.variables) {
         if (!isPrivate(field.name)) {
@@ -254,6 +302,8 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
+    if (!isInLibFolder) return;
+
     if (!isPrivate(node.name)) {
       check(node);
     }
@@ -261,6 +311,8 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (!isInLibFolder) return;
+
     for (VariableDeclaration decl in node.variables.variables) {
       if (!isPrivate(decl.name)) {
         check(decl);

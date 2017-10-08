@@ -83,7 +83,8 @@ defineTests() {
       test('no warnings due to bad canonicalization', () async {
         var packagesFilePath =
             new File('test/_data/p4/_packages').absolute.path;
-        await dartlint.runLinter(['--packages', packagesFilePath, 'test/_data/p4'],
+        await dartlint.runLinter(
+            ['--packages', packagesFilePath, 'test/_data/p4'],
             new LinterOptions([]));
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));
@@ -468,6 +469,54 @@ defineTests() {
             collectingOut.trim(),
             stringContainsInOrder(
                 ['D.c2(a)', '1 file analyzed, 1 issue found, in']));
+      });
+    });
+
+    group('public_member_api_docs', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('lint lib/ sources and non-lib/ sources', () async {
+        var packagesFilePath = new File('.packages').absolute.path;
+        await dartlint.main([
+          '--packages',
+          packagesFilePath,
+          'test/_data/public_member_api_docs',
+          '--rules=public_member_api_docs'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              'a.dart 7:16 [lint] Document all public members',
+              'a.dart 15:11 [lint] Document all public members',
+              'a.dart 19:16 [lint] Document all public members',
+              'a.dart 22:3 [lint] Document all public members',
+              'a.dart 23:5 [lint] Document all public members',
+              'a.dart 25:7 [lint] Document all public members',
+              'a.dart 27:7 [lint] Document all public members',
+              'a.dart 35:3 [lint] Document all public members',
+              'a.dart 37:3 [lint] Document all public members',
+              'a.dart 45:9 [lint] Document all public members',
+              'a.dart 53:14 [lint] Document all public members',
+              'a.dart 59:6 [lint] Document all public members',
+              'a.dart 61:3 [lint] Document all public members',
+              'a.dart 80:1 [lint] Document all public members',
+              'a.dart 85:5 [lint] Document all public members',
+              'a.dart 89:5 [lint] Document all public members',
+              '3 files analyzed, 16 issues found'
+            ]));
       });
     });
 

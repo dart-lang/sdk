@@ -36,7 +36,7 @@ final String ruleDir = p.join('test', 'rules');
 
 /// Rule tests
 defineRuleTests() {
-  //TODO: if ruleDir cannot be found print message to set CWD to project root
+  // TODO: if ruleDir cannot be found print message to set CWD to project root
   group('rule', () {
     group('dart', () {
       for (var entry in new Directory(ruleDir).listSync()) {
