@@ -2460,7 +2460,8 @@ Object& StreamingConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
 }
 
 bool StreamingConstantEvaluator::IsAllowedToEvaluate() {
-  return builder_->flow_graph_builder_ == NULL || !builder_->optimizing();
+  return FLAG_precompiled_mode || builder_->flow_graph_builder_ == NULL ||
+         !builder_->optimizing();
 }
 
 void StreamingConstantEvaluator::EvaluateVariableGet() {
