@@ -226,6 +226,26 @@ main(p) {
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 
+  test_forExpression_inBuildMethod() async {
+    await resolveTestUnit('''
+class A {
+  void build() {
+    List l = new List();
+  }
+}
+''');
+    var excluded = new Set<String>.from([]);
+    var expr = findNodeAtString('new List');
+    expect(
+        getVariableNameSuggestionsForExpression(null, expr, excluded,
+            isMethod: false),
+        unorderedEquals(['list']));
+    expect(
+        getVariableNameSuggestionsForExpression(null, expr, excluded,
+            isMethod: true),
+        unorderedEquals(['buildList']));
+  }
+
   test_forExpression_methodInvocation_noPrefix() async {
     await resolveTestUnit('''
 main(p) {

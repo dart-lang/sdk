@@ -516,6 +516,26 @@ int res() => 1 + 2;
 ''');
   }
 
+  test_long_expression() {
+    addTestFile('''
+main() {
+  print(1 +
+    2);
+}
+''');
+    _setOffsetLengthForString('1 +\n    2');
+    return assertSuccessfulRefactoring(_computeChange, '''
+main() {
+  print(res());
+}
+
+int res() {
+  return 1 +
+  2;
+}
+''');
+  }
+
   test_expression_hasParameters() {
     addTestFile('''
 main() {

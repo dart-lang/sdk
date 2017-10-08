@@ -29,15 +29,31 @@ List<String> getCamelWordCombinations(String name) {
  * Returns possible names for a variable with the given expected type and
  * expression assigned.
  */
-List<String> getVariableNameSuggestionsForExpression(DartType expectedType,
-    Expression assignedExpression, Set<String> excluded) {
+List<String> getVariableNameSuggestionsForExpression(
+    DartType expectedType, Expression assignedExpression, Set<String> excluded,
+    {bool isMethod: false}) {
+  String prefix;
+
+  if (isMethod) {
+    // If we're in a build() method, use 'build' as the name prefix.
+    MethodDeclaration method =
+        assignedExpression.getAncestor((n) => n is MethodDeclaration);
+    if (method != null) {
+      String enclosingName = method.name?.name;
+      if (enclosingName != null && enclosingName.startsWith('build')) {
+        prefix = 'build';
+      }
+    }
+  }
+
   Set<String> res = new Set();
   // use expression
   if (assignedExpression != null) {
     String nameFromExpression = _getBaseNameFromExpression(assignedExpression);
     if (nameFromExpression != null) {
       nameFromExpression = removeStart(nameFromExpression, '_');
-      _addAll(excluded, res, getCamelWordCombinations(nameFromExpression));
+      _addAll(excluded, res, getCamelWordCombinations(nameFromExpression),
+          prefix: prefix);
     }
     String nameFromParent =
         _getBaseNameFromLocationInParent(assignedExpression);
@@ -101,7 +117,8 @@ List<String> getVariableNameSuggestionsForText(
 /**
  * Adds [toAdd] items which are not excluded.
  */
-void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd) {
+void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd,
+    {String prefix}) {
   for (String item in toAdd) {
     // add name based on "item", but not "excluded"
     for (int suffix = 1;; suffix++) {
@@ -112,7 +129,7 @@ void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd) {
       }
       // add once found not excluded
       if (!excluded.contains(name)) {
-        result.add(name);
+        result.add(prefix == null ? name : '$prefix${capitalize(name)}');
         break;
       }
     }

@@ -1445,7 +1445,7 @@ class AssistProcessor {
     List<Statement> innerThenStatements = getStatements(innerThenStatement);
     SourceRange lineRanges = utils.getLinesRangeStatements(innerThenStatements);
     String oldSource = utils.getRangeText(lineRanges);
-    String newSource = utils.indentSourceLeftRight(oldSource, false);
+    String newSource = utils.indentSourceLeftRight(oldSource);
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -1509,7 +1509,7 @@ class AssistProcessor {
     SourceRange lineRanges =
         utils.getLinesRangeStatements(targetThenStatements);
     String oldSource = utils.getRangeText(lineRanges);
-    String newSource = utils.indentSourceLeftRight(oldSource, false);
+    String newSource = utils.indentSourceLeftRight(oldSource);
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
