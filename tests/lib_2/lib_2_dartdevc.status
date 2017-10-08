@@ -32,6 +32,10 @@ math/random_big_test: RuntimeError # Issue 29922
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 profiler/metrics_num_test: Skip # Because of an int / double type test.
 
+[ $compiler == dartdevc && $system == linux ]
+html/interactive_media_test: RuntimeError
+html/interactive_geolocation_test: Skip # Requires allowing geo location.
+
 [ $compiler == dartdevc && $runtime != none ]
 async/async_await_sync_completer_test: RuntimeError # Issue 29922
 async/async_await_zones_test: RuntimeError # Issue 29922
@@ -56,6 +60,7 @@ html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode cast failure
+html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 html/isolates_test: RuntimeError # Issue 29922
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
 html/js_typed_interop_side_cast_exp_test/01: RuntimeError # Requires --experimental-trust-js-interop-type-annotations flag.

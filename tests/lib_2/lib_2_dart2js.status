@@ -49,6 +49,7 @@ html/indexeddb_1_test/functional: Pass, Timeout # Roll 50 failure
 html/indexeddb_2_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_3_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_4_test: Pass, Timeout # Roll 50 failure
+html/indexeddb_5_test: Pass, Timeout # Roll 50 failure
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
@@ -118,7 +119,8 @@ html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # TODO(
 html/canvasrenderingcontext2d_test/fillText: Fail # TODO(dart2js-team): Please triage this failure.
 html/crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.
 html/element_types_datalist_test: Fail # TODO(dart2js-team): Please triage this failure.
-html/element_types_test/supported_datalist: Fail # TODO(dart2js-team): Please triage this failure.
+html/input_element_test/supported_datetime-local: Pass, Slow # TODO(dart2js-team): Please triage this failure.
+html/input_element_test/supported_week: Fail # TODO(dart2js-team): Please triage this failure.
 html/media_stream_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/rtc_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/speechrecognition_test: Fail # TODO(dart2js-team): Please triage this failure.
@@ -138,6 +140,7 @@ isolate/kill_self_synchronously_test: RuntimeError
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
 [ $compiler == dart2js && $runtime != d8 ]
+html/input_element_attributes_test: RuntimeError
 isolate/error_exit_at_spawn_test: Skip # Issue 23876
 isolate/error_at_spawn_test: Skip # Issue 23876
 isolate/exit_at_spawn_test: Skip # Issue 23876
@@ -145,6 +148,9 @@ isolate/message4_test: Skip # Issue 30247
 
 [ $compiler == dart2js && ($runtime != d8 && $runtime != jsshell) ]
 html/js_extend_class_test: RuntimeError
+
+[ $compiler == dart2js && $runtime != d8 && $system == linux ]
+html/interactive_media_test: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]
 html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
@@ -206,6 +212,13 @@ html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_keygen_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
+html/input_element_test/supported_date: Fail
+html/input_element_test/supported_datetime-local: Fail
+html/input_element_test/supported_month: Fail
+html/input_element_test/supported_time: Fail
+html/input_element_test/supported_week: Fail
+html/element_types_template_test: RuntimeError # Issue 29922
+html/element_types_track_test: RuntimeError # Issue 29922
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 html/event_customevent_test: SkipByDesign
@@ -271,6 +284,9 @@ html/indexeddb_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart
 html/indexeddb_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_4_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/indexeddb_5_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/input_element_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/instance_of_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/isolates_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_array_test: CompileTimeError
 html/js_array_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
@@ -434,6 +450,21 @@ html/indexeddb_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instanc
 html/indexeddb_2_test: RuntimeError
 html/indexeddb_3_test: RuntimeError
 html/indexeddb_4_test: RuntimeError
+html/indexeddb_5_test: RuntimeError
+html/input_element_test/constructors: RuntimeError
+html/input_element_test/supported_date: RuntimeError
+html/input_element_test/supported_datetime-local: RuntimeError
+html/input_element_test/supported_email: RuntimeError
+html/input_element_test/supported_month: RuntimeError
+html/input_element_test/supported_number: RuntimeError
+html/input_element_test/supported_range: RuntimeError
+html/input_element_test/supported_search: RuntimeError
+html/input_element_test/supported_tel: RuntimeError
+html/input_element_test/supported_time: RuntimeError
+html/input_element_test/supported_url: RuntimeError
+html/input_element_test/supported_week: RuntimeError
+html/input_element_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/instance_of_test: RuntimeError
 html/isolates_test: RuntimeError
 html/js_array_test: RuntimeError
 html/js_dart_to_string_test: RuntimeError
@@ -607,3 +638,6 @@ isolate/spawn_uri_test: SkipByDesign # Loading another file is not supported in 
 isolate/stacktrace_message_test: Fail # mirrors not supported
 isolate/static_function_test: Fail # mirrors not supported
 isolate/unresolved_ports_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $system == linux ]
+html/interactive_geolocation_test: Skip # Requires allowing geo location.

@@ -56,10 +56,10 @@ html/history_test: DartkCompileTimeError
 html/htmlcollection_test: DartkCompileTimeError
 html/htmlelement_test: DartkCompileTimeError
 html/htmloptionscollection_test: DartkCompileTimeError
-html/indexeddb_5_test: DartkCompileTimeError
-html/input_element_test: DartkCompileTimeError
-html/instance_of_test: DartkCompileTimeError
-html/interactive_test: DartkCompileTimeError
+html/indexeddb_1_test: DartkCompileTimeError
+html/indexeddb_2_test: DartkCompileTimeError
+html/indexeddb_3_test: DartkCompileTimeError
+html/indexeddb_4_test: DartkCompileTimeError
 html/js_interop_1_test: DartkCompileTimeError
 html/js_test: DartkCompileTimeError
 html/window_test: DartkCompileTimeError

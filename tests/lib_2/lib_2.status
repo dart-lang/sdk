@@ -145,6 +145,12 @@ html/custom/document_register_type_extensions_test/single-parameter: Fail # Issu
 html/deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 html/event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
 html/element_test/click: Fail # IE does not support firing this event.
+html/indexeddb_5_test: Fail # Issue 12893
+html/input_element_test/supported_date: Fail
+html/input_element_test/supported_datetime-local: Fail
+html/input_element_test/supported_month: Fail
+html/input_element_test/supported_time: Fail
+html/input_element_test/supported_week: Fail
 html/js_util_test/callConstructor: RuntimeError # Issue 26978
 html/localstorage_test: Pass, RuntimeError # Issue 22166
 html/media_stream_test: Pass, Fail
@@ -166,10 +172,10 @@ html/transferables_test: Pass, Fail # Issues 20659.
 html/transition_event_test: Skip # Times out. Issue 22167
 html/touchevent_test: Fail # IE does not support TouchEvents
 html/two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
-html/websocket_test: Fail # Issue 7875. Closed with "working as intended".
-html/wheelevent_test: RuntimeError # Issue 23437
 html/webgl_1_test: Fail
+html/websocket_test: Fail # Issue 7875. Closed with "working as intended".
 html/websql_test: Fail
+html/wheelevent_test: RuntimeError # Issue 23437
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
@@ -193,8 +199,14 @@ html/wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
 [ $runtime == safari ]
 html/indexeddb_1_test/functional: Skip # Times out. Issue 21433
 html/indexeddb_2_test: RuntimeError # Issue 21433
-html/indexeddb_4_test: RuntimeError # Issue 21433
 html/indexeddb_3_test: Skip # Times out 1 out of 10.
+html/indexeddb_4_test: RuntimeError # Issue 21433
+html/indexeddb_5_test: RuntimeError # Issue 21433
+html/input_element_test/supported_month: RuntimeError
+html/input_element_test/supported_time: RuntimeError
+html/input_element_test/supported_week: RuntimeError
+html/input_element_test/supported_date: Fail
+html/input_element_test/supported_datetime-local: Fail
 html/notification_test: Fail # Safari doesn't let us access the fields of the Notification to verify them.
 html/touchevent_test: Fail # Safari does not support TouchEvents
 
