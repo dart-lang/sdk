@@ -13,6 +13,8 @@ main() {
   promotedOrIfThen();
   promotedOrIfThenElse();
   promotedNotOrIfThenElse();
+  promotedNotNotIfThen();
+  promotedParenNotIfThenElse();
 
   nullIfThen();
   nullIfThenElse();
@@ -232,6 +234,51 @@ _promotedNotOrIfThenElse(
 promotedNotOrIfThenElse() {
   _promotedNotOrIfThenElse(0, true);
   _promotedNotOrIfThenElse(new Class9(), false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Test if-then statement with doubly negated is-test
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Class10.:[exact=Class10]*/
+class Class10 {}
+
+/*element: _promotedNotNotIfThen:[null]*/
+_promotedNotNotIfThen(/*Union of [[exact=Class10], [exact=JSUInt31]]*/ o) {
+  if (!(o is! Class10)) {
+    o. /*ast.invoke: Union of [[exact=Class10], [exact=JSUInt31]]*/ /*kernel.invoke: [exact=Class10]*/ toString();
+  }
+}
+
+/*element: promotedNotNotIfThen:[null]*/
+promotedNotNotIfThen() {
+  _promotedNotNotIfThen(0);
+  _promotedNotNotIfThen(new Class10());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Test if-then-else statement with negated is-test in parentheses
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Class11.:[exact=Class11]*/
+class Class11 {}
+
+/*element: _promotedParenNotIfThenElse:[null]*/
+_promotedParenNotIfThenElse(
+    /*Union of [[exact=Class11], [exact=JSUInt31]]*/ o) {
+  if (!(o is Class11)) {
+    // TODO(johnniwinther): Use negative type knowledge to show that the
+    // receiver must be [exact=JSUInt31].
+    o. /*invoke: Union of [[exact=Class11], [exact=JSUInt31]]*/ toString();
+  } else {
+    o. /*ast.invoke: Union of [[exact=Class11], [exact=JSUInt31]]*/ /*kernel.invoke: [exact=Class11]*/ toString();
+  }
+}
+
+/*element: promotedParenNotIfThenElse:[null]*/
+promotedParenNotIfThenElse() {
+  _promotedParenNotIfThenElse(0);
+  _promotedParenNotIfThenElse(new Class11());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
