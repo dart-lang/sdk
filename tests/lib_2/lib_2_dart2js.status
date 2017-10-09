@@ -215,7 +215,6 @@ html/input_element_datetime_test: Fail
 html/input_element_month_test: Fail
 html/input_element_time_test: Fail
 html/input_element_week_test: Fail
-html/element_types_template_test: RuntimeError # Issue 29922
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 html/event_customevent_test: SkipByDesign
