@@ -50,7 +50,7 @@ deferred/deferred_mirrors2_lazy: Fail # mirrors not supported
 deferred/deferred_mirrors2_lib3: Fail # mirrors not supported
 deferred/deferred_mirrors2_test: Fail # mirrors not supported
 deferred/reflect_multiple_annotations_test: CompileTimeError # mirrors not supported
-deferred/reflect_multiple_default_arg: CompileTimeError # mirrors not supported
+deferred/reflect_multiple_default_arg_test: CompileTimeError # mirrors not supported
 inference_nsm_mirrors_test: Fail # mirrors not supported
 invalid_annotation2_test/none: Fail # mirrors not supported
 invalid_annotation2_test/01: Pass # mirrors not supported, passes for the wrong reason
@@ -94,6 +94,8 @@ to_string_test: Fail # Issue 7179.
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 code_motion_exception_test: Skip  # Requires unminified operator names.
 mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
+deferred/reflect_multiple_annotations_test: Fail
+deferred/reflect_multiple_default_arg_test: Fail
 
 
 [ $compiler == dart2js && $runtime == safari ]
@@ -151,6 +153,9 @@ deferred/deferred_mirrors1_test: CompileTimeError
 deferred/deferred_mirrors2_test: RuntimeError
 deferred/deferred_overlapping_test: CompileTimeError
 deferred/interface_type_variable_test: CompileTimeError
+deferred/multiple_default_arg_test: CompileTimeError
+deferred/reflect_multiple_annotations_test: CompileTimeError
+deferred/reflect_multiple_default_arg_test: CompileTimeError
 deferred/uninstantiated_type_variable_test: CompileTimeError
 deferred_custom_loader_test: CompileTimeError
 deferred_fail_and_retry_test: CompileTimeError
@@ -208,6 +213,9 @@ deferred/deferred_mirrors1_test: CompileTimeError
 deferred/deferred_mirrors2_test: RuntimeError
 deferred/deferred_overlapping_test: CompileTimeError
 deferred/interface_type_variable_test: CompileTimeError
+deferred/multiple_default_arg_test: CompileTimeError
+deferred/reflect_multiple_annotations_test: CompileTimeError
+deferred/reflect_multiple_default_arg_test: CompileTimeError
 deferred/uninstantiated_type_variable_test: CompileTimeError
 deferred_custom_loader_test: CompileTimeError
 deferred_fail_and_retry_test: CompileTimeError
