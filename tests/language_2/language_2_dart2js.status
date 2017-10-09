@@ -1007,10 +1007,6 @@ getter_override_test/02: MissingCompileTimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/06: RuntimeError
-if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/03: RuntimeError
-if_null_assignment_static_test/05: RuntimeError
 if_null_precedence_test/none: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
@@ -1116,6 +1112,8 @@ override_inheritance_mixed_test/09: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
+regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
+regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ko).
 type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/js_backend/constant_emitter.dart': Failed assertion: line 287 pos 14: 'type is DynamicType': is not true.
 type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
@@ -1130,7 +1128,6 @@ type_parameter_test/none: Crash # Assertion failure: Runtime type information no
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -1138,9 +1135,9 @@ async_await_syntax_test/a06a: RuntimeError
 async_await_syntax_test/b06a: RuntimeError
 async_await_syntax_test/c06a: RuntimeError
 async_await_syntax_test/d06a: RuntimeError
-async_await_test/none: RuntimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
+async_await_test/none: RuntimeError
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
@@ -1150,11 +1147,11 @@ async_star_pause_test: RuntimeError
 async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: RuntimeError
 async_star_take_reyield_test: RuntimeError
-async_star_test/none: RuntimeError
 async_star_test/01: RuntimeError
 async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
 await_exceptions_test: RuntimeError
 await_for_test: RuntimeError
 await_for_use_local_test: RuntimeError
@@ -1303,10 +1300,6 @@ getter_override_test/02: MissingCompileTimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/06: RuntimeError
-if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/03: RuntimeError
-if_null_assignment_static_test/05: RuntimeError
 if_null_precedence_test/none: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
@@ -1430,6 +1423,7 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
+
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
 typedef_is_test: Crash

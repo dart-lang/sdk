@@ -2394,6 +2394,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _elementMap.getMember(propertySet.interfaceTarget),
           <HInstruction>[value]);
     }
+    pop();
+    stack.add(value);
   }
 
   @override

@@ -602,8 +602,6 @@ stacktrace_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_getter_setter_test: RuntimeError
-super_setter_interceptor_test: RuntimeError
 super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
@@ -966,8 +964,6 @@ stacktrace_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
-super_getter_setter_test: RuntimeError
-super_setter_interceptor_test: RuntimeError
 super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
