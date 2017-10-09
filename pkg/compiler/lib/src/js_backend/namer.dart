@@ -584,6 +584,7 @@ class Namer {
 
   NativeData get _nativeData => _closedWorld.nativeData;
 
+  String get deferredMetadataName => 'deferredMetadata';
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';

@@ -1368,9 +1368,10 @@ class FragmentEmitter {
       return new js.Property(js.string(global), metadata);
     }
 
-    metadataGlobals.add(createGlobal(program.metadata, METADATA));
-    js.Expression types =
-        program.metadataTypesForOutputUnit(program.mainFragment.outputUnit);
+    var mainUnit = program.mainFragment.outputUnit;
+    js.Expression metadata = program.metadataForOutputUnit(mainUnit);
+    metadataGlobals.add(createGlobal(metadata, METADATA));
+    js.Expression types = program.metadataTypesForOutputUnit(mainUnit);
     metadataGlobals.add(createGlobal(types, TYPES));
 
     return metadataGlobals;

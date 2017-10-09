@@ -49,6 +49,8 @@ deferred/deferred_mirrors1_test: Fail # mirrors not supported
 deferred/deferred_mirrors2_lazy: Fail # mirrors not supported
 deferred/deferred_mirrors2_lib3: Fail # mirrors not supported
 deferred/deferred_mirrors2_test: Fail # mirrors not supported
+deferred/reflect_multiple_annotations_test: CompileTimeError # mirrors not supported
+deferred/reflect_multiple_default_arg: CompileTimeError # mirrors not supported
 inference_nsm_mirrors_test: Fail # mirrors not supported
 invalid_annotation2_test/none: Fail # mirrors not supported
 invalid_annotation2_test/01: Pass # mirrors not supported, passes for the wrong reason

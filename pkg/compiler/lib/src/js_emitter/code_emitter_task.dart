@@ -165,7 +165,6 @@ class CodeEmitterTask extends CompilerTask {
       metadataCollector = new MetadataCollector(
           compiler.options,
           compiler.reporter,
-          compiler.deferredLoadTask,
           _emitter,
           backend.constants,
           backend.typeVariableCodegenAnalysis,

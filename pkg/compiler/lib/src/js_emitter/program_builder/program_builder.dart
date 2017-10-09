@@ -685,6 +685,7 @@ class ProgramBuilder {
         _types,
         _closedWorld,
         _closureDataLookup,
+        _deferredLoadTask,
         _task,
         _namer,
         _nativeData,
@@ -966,7 +967,7 @@ class ProgramBuilder {
       js.Expression thisAccess = js.js(r'this.$receiver');
       return _rtiEncoder.getSignatureEncoding(_task.emitter, type, thisAccess);
     } else {
-      return _task.metadataCollector.reifyTypeForOutputUnit(type, outputUnit);
+      return _task.metadataCollector.reifyType(type, outputUnit);
     }
   }
 

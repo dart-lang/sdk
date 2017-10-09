@@ -993,7 +993,8 @@ void checkEmitterPrograms(
     Program program1, Program program2, TestStrategy strategy) {
   checkLists(program1.fragments, program2.fragments, 'fragments',
       (a, b) => a.outputFileName == b.outputFileName,
-      onSameElement: (a, b) => checkEmitterFragments(a, b, strategy));
+      onSameElement: (a, b) =>
+          checkEmitterFragments(program1, program2, a, b, strategy));
   checkLists(
       program1.holders, program2.holders, 'holders', (a, b) => a.name == b.name,
       onSameElement: checkEmitterHolders);
@@ -1023,11 +1024,9 @@ void checkEmitterPrograms(
       program2.typeToInterceptorMap,
       areJsNodesEquivalent,
       js.nodeToString);
-  check(program1, program2, 'metadata', program1.metadata, program2.metadata,
-      areJsNodesEquivalent, js.nodeToString);
 }
 
-void checkEmitterFragments(
+void checkEmitterFragments(Program program1, Program program2,
     Fragment fragment1, Fragment fragment2, TestStrategy strategy) {
   // TODO(johnniwinther): Check outputUnit.
   checkLists(fragment1.libraries, fragment2.libraries, 'libraries',
@@ -1053,6 +1052,24 @@ void checkEmitterFragments(
   } else if (fragment1 is DeferredFragment && fragment2 is DeferredFragment) {
     check(fragment1, fragment2, 'name', fragment1.name, fragment2.name);
   }
+
+  check(
+      program1,
+      program2,
+      'metadataForOutputUnit',
+      program1.metadataForOutputUnit(fragment1.outputUnit),
+      program2.metadataForOutputUnit(fragment2.outputUnit),
+      areJsNodesEquivalent,
+      js.nodeToString);
+
+  check(
+      program1,
+      program2,
+      'metadataTypesForOutputUnit',
+      program1.metadataTypesForOutputUnit(fragment1.outputUnit),
+      program2.metadataTypesForOutputUnit(fragment2.outputUnit),
+      areJsNodesEquivalent,
+      js.nodeToString);
 }
 
 void checkEmitterLibraries(
