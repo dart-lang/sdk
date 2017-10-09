@@ -144,6 +144,7 @@ closure_capture2_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
+deferred/default_arg_is_tearoff_test:  CompileTimeError
 deferred/deferred_class_test: CompileTimeError
 deferred/deferred_constant2_test: CompileTimeError
 deferred/deferred_constant3_test: CompileTimeError
@@ -204,6 +205,7 @@ unconditional_dartio_import_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
+deferred/default_arg_is_tearoff_test:  CompileTimeError
 deferred/deferred_class_test: CompileTimeError
 deferred/deferred_constant2_test: CompileTimeError
 deferred/deferred_constant3_test: CompileTimeError
