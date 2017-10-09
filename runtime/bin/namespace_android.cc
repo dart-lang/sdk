@@ -26,7 +26,7 @@ class NamespaceImpl {
   }
 
   explicit NamespaceImpl(const char* path)
-      : rootfd_(TEMP_FAILURE_RETRY(open64(path, O_DIRECTORY))),
+      : rootfd_(TEMP_FAILURE_RETRY(open(path, O_DIRECTORY))),
         cwd_(strdup("/")) {
     ASSERT(rootfd_ > 0);
     cwdfd_ = dup(rootfd_);
@@ -46,7 +46,7 @@ class NamespaceImpl {
   bool SetCwd(Namespace* namespc, const char* new_path) {
     NamespaceScope ns(namespc, new_path);
     const intptr_t new_cwdfd =
-        TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_DIRECTORY));
+        TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_DIRECTORY));
     if (new_cwdfd < 0) {
       return false;
     }
