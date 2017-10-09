@@ -59,9 +59,6 @@ Future compilePlatform(List<String> arguments) async {
 
 Future compilePlatformInternal(
     CompilerContext c, Uri fullOutput, Uri outlineOutput) async {
-  if (c.options.strongMode) {
-    print("Note: strong mode support is preliminary and may not work.");
-  }
   if (c.options.verbose) {
     print("Generating outline of ${c.options.sdkRoot} into $outlineOutput");
     print("Compiling ${c.options.sdkRoot} to $fullOutput");
