@@ -47,5 +47,5 @@ ArgParser _argParser = new ArgParser()
 
 String _defaultPlatform = Uri
     .parse(Platform.resolvedExecutable)
-    .resolve('patched_dart2js_sdk/platform.dill')
+    .resolve('dart2js_platform.dill')
     .toString();
