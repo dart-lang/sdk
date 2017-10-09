@@ -183,7 +183,7 @@ Future _main(List<String> argv) async {
   deps.addAll(await getDependencies(Platform.script,
       sdk: sdkDir, packages: packages, platform: platformForDeps));
   await writeDepsFile(
-      outDirUri, Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);
+      librariesJson, Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);
 }
 
 /// Generates an outline.dill and platform.dill file containing the result of
