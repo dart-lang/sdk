@@ -89,7 +89,11 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
   }
   if (buildUriList.isEmpty) {
     for (String url in args) {
-      buildUriList.add(updateWithCommit(new BuildUri.fromUrl(url)));
+      try {
+        buildUriList.add(updateWithCommit(new BuildUri.fromUrl(url)));
+      } catch (e) {
+        print("'$url' is not a valid build bot url: $e");
+      }
     }
   }
 

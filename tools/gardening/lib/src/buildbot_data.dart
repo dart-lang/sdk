@@ -502,6 +502,18 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     ],
   ),
   const BuildGroup(
+    groupName: 'ddc',
+    subgroups: const <BuildSubgroup>[
+      const BuildSubgroup(shardNames: const <String>[
+        'ddc-linux-release-be',
+        'ddc-mac-release-be',
+        'ddc-win-release-be',
+      ], testSteps: const <String>[
+        'ddc tests',
+      ]),
+    ],
+  ),
+  const BuildGroup(
     groupName: 'dartium-inc',
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
