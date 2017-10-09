@@ -4,6 +4,8 @@
 
 #include "bin/file.h"
 
+#include <stdio.h>
+
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/embedded_dart_io.h"
@@ -644,6 +646,88 @@ void FUNCTION_NAME(File_AreIdentical)(Dart_NativeArguments args) {
         "Non-string argument to FileSystemEntity.identical");
     Dart_SetReturnValue(args, err);
   }
+}
+
+#define IS_SEPARATOR(c) ((c) == '/' || (c) == 0)
+
+// Checks that if we increment this index forward, we'll still have enough space
+// for a null terminator within PATH_MAX bytes.
+#define CHECK_CAN_INCREMENT(i)                                                 \
+  if ((i) + 1 >= outlen) {                                                     \
+    return -1;                                                                 \
+  }
+
+intptr_t File::CleanUnixPath(const char* in, char* out, intptr_t outlen) {
+  if (in[0] == 0) {
+    snprintf(out, outlen, ".");
+    return 1;
+  }
+
+  const bool rooted = (in[0] == '/');
+  intptr_t in_index = 0;   // Index of the next byte to read.
+  intptr_t out_index = 0;  // Index of the next byte to write.
+
+  if (rooted) {
+    out[out_index++] = '/';
+    in_index++;
+  }
+  // The output index at which '..' cannot be cleaned further.
+  intptr_t dotdot = out_index;
+
+  while (in[in_index] != 0) {
+    if (in[in_index] == '/') {
+      // 1. Reduce multiple slashes to a single slash.
+      CHECK_CAN_INCREMENT(in_index);
+      in_index++;
+    } else if ((in[in_index] == '.') && IS_SEPARATOR(in[in_index + 1])) {
+      // 2. Eliminate . path name elements (the current directory).
+      CHECK_CAN_INCREMENT(in_index);
+      in_index++;
+    } else if ((in[in_index] == '.') && (in[in_index + 1] == '.') &&
+               IS_SEPARATOR(in[in_index + 2])) {
+      CHECK_CAN_INCREMENT(in_index + 1);
+      in_index += 2;
+      if (out_index > dotdot) {
+        // 3. Eliminate .. path elements (the parent directory) and the element
+        // that precedes them.
+        out_index--;
+        while ((out_index > dotdot) && (out[out_index] != '/')) {
+          out_index--;
+        }
+      } else if (rooted) {
+        // 4. Eliminate .. elements that begin a rooted path, that is, replace
+        // /.. by / at the beginning of a path.
+        continue;
+      } else if (!rooted) {
+        if (out_index > 0) {
+          out[out_index++] = '/';
+        }
+        // 5. Leave intact .. elements that begin a non-rooted path.
+        out[out_index++] = '.';
+        out[out_index++] = '.';
+        dotdot = out_index;
+      }
+    } else {
+      if ((rooted && out_index != 1) || (!rooted && out_index != 0)) {
+        // Add '/' before normal path component, for non-root components.
+        out[out_index++] = '/';
+      }
+
+      while (!IS_SEPARATOR(in[in_index])) {
+        CHECK_CAN_INCREMENT(in_index);
+        out[out_index++] = in[in_index++];
+      }
+    }
+  }
+
+  if (out_index == 0) {
+    snprintf(out, outlen, ".");
+    return 1;
+  }
+
+  // Append null character.
+  out[out_index] = 0;
+  return out_index;
 }
 
 static int64_t CObjectInt32OrInt64ToInt64(CObject* cobject) {

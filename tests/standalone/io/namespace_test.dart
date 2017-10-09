@@ -4,6 +4,7 @@
 
 import "dart:async";
 import "dart:io";
+import "dart:isolate";
 
 import "package:expect/expect.dart";
 
@@ -92,6 +93,15 @@ void doTestSync() {
   // stat.
   FileStat dirstat = dir2.statSync();
   Expect.equals(FileSystemEntityType.DIRECTORY, dirstat.type);
+  // current.
+  Expect.isNotNull(Directory.current);
+  Expect.equals(Directory.current.path, (new Directory("/")).path);
+  Directory.current = "/dir1";
+  Expect.isNotNull(Directory.current);
+  Expect.equals(Directory.current.path, (new Directory("/dir1")).path);
+  Directory.current = "/";
+  Expect.isNotNull(Directory.current);
+  Expect.equals(Directory.current.path, (new Directory("/")).path);
 }
 
 doTestAsync() async {
@@ -180,6 +190,27 @@ doTestAsync() async {
   Expect.equals(FileSystemEntityType.DIRECTORY, dirstat.type);
 }
 
+isolateTestFn(msg) {
+  SendPort sp = msg;
+  bool gotRoot = Directory.current.path == "/";
+  Directory.current = "/dir1/dir2";
+  bool didChange = Directory.current.path == "/dir1/dir2";
+  sp.send(gotRoot && didChange);
+}
+
+// Check that Isolates can have different cwds.
+doIsolateTest() async {
+  Directory.current = "/dir1";
+  ReceivePort rp = new ReceivePort();
+  Isolate isolate =
+      await Isolate.spawn(isolateTestFn, rp.sendPort, paused: true);
+  isolate.resume(isolate.pauseCapability);
+
+  bool isolateSuccess = await rp.first;
+  Expect.isTrue(isolateSuccess);
+  Expect.equals(Directory.current.path, "/dir1");
+}
+
 List<String> packageOptions() {
   if (Platform.packageRoot != null) {
     return <String>["--package-root=${Platform.packageRoot}"];
@@ -226,6 +257,7 @@ main(List<String> arguments) async {
   if (arguments.contains("--run")) {
     doTestSync();
     await doTestAsync();
+    await doIsolateTest();
   } else {
     setupTest();
   }
