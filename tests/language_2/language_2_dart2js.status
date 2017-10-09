@@ -1150,6 +1150,11 @@ async_star_pause_test: RuntimeError
 async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: RuntimeError
 async_star_take_reyield_test: RuntimeError
+async_star_test/none: RuntimeError
+async_star_test/01: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
 await_exceptions_test: RuntimeError
 await_for_test: RuntimeError
 await_for_use_local_test: RuntimeError
@@ -1387,6 +1392,7 @@ named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
+no_such_method_native_test: RuntimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
 not_enough_positional_arguments_test/05: MissingCompileTimeError
@@ -1409,6 +1415,8 @@ override_inheritance_mixed_test/09: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
+regress_29784_test/01: Crash # Issue 29784
+regress_29784_test/02: Crash # Issue 29784
 symbol_conflict_test: RuntimeError
 type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
 type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
