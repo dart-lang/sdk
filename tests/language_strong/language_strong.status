@@ -77,27 +77,6 @@ duplicate_constructor_test: Skip
 duplicate_export_negative_test: Skip
 duplicate_implements_test: Skip
 duplicate_interface_negative_test: Skip
-export_ambiguous_main_negative_test: Skip
-extend_type_parameter2_negative_test: Skip
-extend_type_parameter_negative_test: Skip
-external_test: Skip
-f_bounded_quantification2_test: Skip
-f_bounded_quantification4_test: Skip
-f_bounded_quantification5_test: Skip
-f_bounded_quantification_test: Skip
-factory1_test: Skip
-factory2_negative_test: Skip
-factory2_test: Skip
-factory3_negative_test: Skip
-factory3_test: Skip
-factory4_test: Skip
-factory5_test: Skip
-factory_implementation_test: Skip
-factory_negative_test: Skip
-factory_redirection2_test: Skip
-factory_redirection3_cyclic_test: Skip
-factory_redirection_test: Skip
-factory_return_type_checked_test: Skip
 field_override2_test: Skip
 field_override3_test: Skip
 field_override4_test: Skip
@@ -293,7 +272,6 @@ try_catch5_test: StaticWarning # Issue 28823
 [ $compiler == dartdevc ]
 regress_23089_test: CompileTimeError # Issue 29920
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
-export_private_test/01: MissingCompileTimeError # Issue 29920
 
 [ $compiler == dartdevc && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
@@ -311,8 +289,6 @@ dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly s
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?
 double_int_to_string_test: RuntimeError # Issue 29920
 execute_finally6_test: RuntimeError # Issue 29920
-expect_test: RuntimeError # Issue 29920
-f_bounded_quantification3_test: RuntimeError # Issue 29920
 field_optimization3_test: RuntimeError # Issue 29920
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920

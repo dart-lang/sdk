@@ -280,7 +280,59 @@ new_expression_type_args_test/02: MissingCompileTimeError
 new_prefix_test/01: MissingCompileTimeError
 no_such_constructor_test/01: MissingCompileTimeError
 no_such_method_mock_test: RuntimeError
-
+least_upper_bound_test/03: MissingCompileTimeError
+least_upper_bound_test/04: MissingCompileTimeError
+least_upper_bound_test/10: MissingCompileTimeError
+least_upper_bound_test/19: MissingCompileTimeError
+least_upper_bound_test/20: MissingCompileTimeError
+least_upper_bound_test/23: MissingCompileTimeError
+least_upper_bound_test/24: MissingCompileTimeError
+least_upper_bound_test/29: MissingCompileTimeError
+least_upper_bound_test/30: MissingCompileTimeError
+least_upper_bound_test/32: MissingCompileTimeError
+least_upper_bound_expansive_test/01: MissingCompileTimeError
+least_upper_bound_expansive_test/02: MissingCompileTimeError
+least_upper_bound_expansive_test/03: MissingCompileTimeError
+least_upper_bound_expansive_test/04: MissingCompileTimeError
+least_upper_bound_expansive_test/05: MissingCompileTimeError
+least_upper_bound_expansive_test/06: MissingCompileTimeError
+least_upper_bound_expansive_test/07: MissingCompileTimeError
+least_upper_bound_expansive_test/08: MissingCompileTimeError
+least_upper_bound_expansive_test/09: MissingCompileTimeError
+least_upper_bound_expansive_test/10: MissingCompileTimeError
+least_upper_bound_expansive_test/11: MissingCompileTimeError
+least_upper_bound_expansive_test/12: MissingCompileTimeError
+library_ambiguous_test/00: MissingCompileTimeError
+library_ambiguous_test/01: MissingCompileTimeError
+library_ambiguous_test/02: MissingCompileTimeError
+library_ambiguous_test/03: MissingCompileTimeError
+library_ambiguous_test/04: MissingCompileTimeError
+external_test/21: CompileTimeError
+external_test/24: CompileTimeError
+f_bounded_quantification_test/01: MissingCompileTimeError
+f_bounded_quantification_test/02: MissingCompileTimeError
+factory1_test/00: MissingCompileTimeError
+factory1_test/01: MissingCompileTimeError
+factory2_test/03: MissingCompileTimeError
+factory2_test/none: MissingCompileTimeError
+factory3_test/none: MissingCompileTimeError
+factory4_test/00: MissingCompileTimeError
+factory5_test/00: MissingCompileTimeError
+factory6_test/00: MissingCompileTimeError
+factory_redirection_test/01: MissingCompileTimeError
+factory_redirection_test/02: MissingCompileTimeError
+factory_redirection_test/03: MissingCompileTimeError
+factory_redirection_test/05: MissingCompileTimeError
+factory_redirection_test/06: MissingCompileTimeError
+factory_redirection_test/08: MissingCompileTimeError
+factory_redirection_test/09: MissingCompileTimeError
+factory_redirection_test/10: MissingCompileTimeError
+factory_redirection_test/11: MissingCompileTimeError
+factory_redirection_test/12: MissingCompileTimeError
+factory_redirection_test/13: MissingCompileTimeError
+factory_redirection_test/14: MissingCompileTimeError
+factory_redirection_test/none: MissingCompileTimeError
+factory_return_type_checked_test/00: MissingCompileTimeError
 
 # The following tests are supposed to fail.
 # In testing-mode, dart2js supports all dart:X libraries (because it
@@ -662,6 +714,10 @@ list_literal4_test/05: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
+external_test/10: CompileTimeError # Issue 12887
+external_test/13: CompileTimeError # Issue 12887
+external_test/20: CompileTimeError # Issue 12887
+expect_test: RuntimeError, OK # Issue 13080
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
@@ -732,6 +788,7 @@ list_literal1_test/01: MissingCompileTimeError
 
 [ $compiler == dart2js && !$checked && $minified && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
+f_bounded_quantification5_test: Fail, OK # Issue 12605
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 mixin_mixin2_test: RuntimeError
@@ -754,6 +811,7 @@ mixin_mixin_bound_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js && $runtime == d8 && $checked ]
 regress_30339_test: RuntimeError # Issue 26429
+factory_implementation_test/00: Fail
 
 [ $compiler == dart2js && $runtime == drt && $checked ]
 regress_30339_test: RuntimeError # Issue 30393
@@ -1126,6 +1184,11 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
+expect_test: RuntimeError
+external_test/10: MissingRuntimeError
+external_test/13: MissingRuntimeError
+external_test/20: MissingRuntimeError
+factory_redirection_test/07: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1423,6 +1486,13 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
+expect_test: RuntimeError
+external_test/10: MissingRuntimeError
+external_test/13: MissingRuntimeError
+external_test/20: MissingRuntimeError
+f_bounded_quantification4_test: RuntimeError
+f_bounded_quantification5_test: RuntimeError
+factory_redirection_test/07: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
@@ -1517,4 +1587,5 @@ round_test: Fail, OK # Common JavaScript engine Math.round bug.
 round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && $minified && ! $dart2js_with_kernel ]
+f_bounded_quantification4_test: Fail, Pass # Issue 12605
 symbol_conflict_test: RuntimeError # Issue 23857

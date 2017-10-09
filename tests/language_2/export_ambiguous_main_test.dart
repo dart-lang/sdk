@@ -3,4 +3,4 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'export_ambiguous_main_a.dart';
-export 'export_ambiguous_main_b.dart';
+export 'export_ambiguous_main_b.dart'; /*@compile-error=unspecified*/

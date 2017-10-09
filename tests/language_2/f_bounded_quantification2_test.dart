@@ -4,7 +4,7 @@
 
 // Test for F-Bounded Quantification. Regression test for issue 9291.
 
-class Entities<T extends ConceptEntity<T>> implements EntitiesApi<T> {}
+class Entities<T extends ConceptEntity<T>> implements EntitiesApi {}
 
 class ConceptEntity<T extends ConceptEntity<T>> implements EntityApi {}
 
@@ -16,5 +16,4 @@ class Concept extends ConceptEntity<Concept> {}
 
 main() {
   new ConceptEntity<Concept>();
-  new ConceptEntity<ConceptEntity>();
 }

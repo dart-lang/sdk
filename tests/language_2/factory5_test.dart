@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test compile time error for factories with parameterized types.
-
 abstract class Link<T> {
-  factory Link.create() = LinkFactory<T>.create;
+  factory Link.create() = LinkFactory<T>.create; //# 00: compile-time error
 }
 
-class LinkFactory {
-  //   Compile time error: should be LinkFactory<T> to match abstract class above
-  factory Link.create() {
+class LinkFactory<T> {
+  factory LinkFactory.create() {
     return null;
   }
+  factory LinkFactory.Foo() = Foo<T>; //# 00: compile-time error
 }
 
 main() {
-  var a = new Link<int>.create();
+  new Link<int>.create(); //# 00: continued
 }

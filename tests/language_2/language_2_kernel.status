@@ -250,6 +250,12 @@ map_literal1_test/01: MissingCompileTimeError
 type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/none: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
+factory_redirection_test/08: Fail
+factory_redirection_test/09: Fail
+factory_redirection_test/10: Fail
+factory_redirection_test/12: Fail
+factory_redirection_test/13: Fail
+factory_redirection_test/14: Fail
 
 [ $compiler == dartk || $compiler == dartkp ]
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -416,6 +422,10 @@ vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading k
 vm/type_vm_test: RuntimeError # Fasta bug: Bad position information in stack trace.
 library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
+external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
+external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
+external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
+factory_redirection_test/07: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError
@@ -453,6 +463,8 @@ vm/type_vm_test: Crash
 positional_parameters_type_test/01: Crash
 positional_parameters_type_test/02: Crash
 positional_parameters_type_test/none: Crash
+factory3_test: Crash
+export_double_same_main_test: Crash # Issue 29895
 
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError
@@ -491,3 +503,6 @@ deopt_inlined_function_lazy_test: Skip
 
 [ $compiler == dartkp || $compiler == dartk ]
 async_star_test/01: Pass
+
+[ $compiler == dartkp && $mode == debug ]
+external_test/13: Crash

@@ -574,6 +574,32 @@ void_block_return_test/00: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 library_env_test/has_mirror_support: RuntimeError, OK
+export_ambiguous_main_test: Crash
+f_bounded_quantification_test/01: MissingCompileTimeError
+f_bounded_quantification_test/02: MissingCompileTimeError
+factory1_test/00: MissingCompileTimeError
+factory1_test/01: MissingCompileTimeError
+factory2_test/03: MissingCompileTimeError
+factory2_test/none: MissingCompileTimeError
+factory3_test/none: MissingCompileTimeError
+factory4_test/00: MissingCompileTimeError
+factory5_test/00: MissingCompileTimeError
+factory6_test/00: MissingCompileTimeError
+factory_redirection_test/01: MissingCompileTimeError
+factory_redirection_test/02: MissingCompileTimeError
+factory_redirection_test/03: MissingCompileTimeError
+factory_redirection_test/05: MissingCompileTimeError
+factory_redirection_test/06: MissingCompileTimeError
+factory_redirection_test/08: MissingCompileTimeError
+factory_redirection_test/09: MissingCompileTimeError
+factory_redirection_test/10: MissingCompileTimeError
+factory_redirection_test/11: MissingCompileTimeError
+factory_redirection_test/12: MissingCompileTimeError
+factory_redirection_test/13: MissingCompileTimeError
+factory_redirection_test/14: MissingCompileTimeError
+factory_redirection_test/none: MissingCompileTimeError
+factory_return_type_checked_test/00: MissingCompileTimeError
+
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
@@ -634,6 +660,8 @@ function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
 vm/regress_27671_test: Skip # Unsupported
 vm/optimized_stacktrace_test: Skip # Issue 30198
+export_double_same_main_test: Skip # Issue 29895
+export_ambiguous_main_negative_test: Skip # Issue 29895
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $checked ]
 assertion_initializer_const_error2_test/cc01: Pass
@@ -690,6 +718,7 @@ generic_methods_recursive_bound_test/03: Crash, Pass
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
+export_ambiguous_main_negative_test: Fail # Issue 14763
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 generic_functions_test: Pass # Issue 25869
@@ -740,6 +769,8 @@ mixin_mixin_bound2_test: Skip
 mixin_mixin_type_arguments_test: Skip
 mixin_super_2_test: Skip
 no_such_method_dispatcher_test: Skip  # Uses new Symbol()
+f_bounded_quantification4_test: Skip
+f_bounded_quantification5_test: Skip
 
 [ $runtime == dart_precompiled || $mode == product ]
 vm/causal_async_exception_stack_test: SkipByDesign

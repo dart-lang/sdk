@@ -12,6 +12,7 @@ class Foo {
 
   Foo() : x = 0;
 
+  // fields can't be declared external
   external var x01; // //# 01: compile-time error
   external int x02; // //# 02: compile-time error
 
@@ -23,10 +24,10 @@ class Foo {
   int external f16(); // //# 16: compile-time error
 
   external Foo.n20(val); // //# 20: runtime error
-  external Foo.n21(val) : x = 1; // //# 21: compile-time error
+  external Foo.n21(val) : x = 1; // //# 21: runtime error
   external Foo.n22(val) { x = 1; } // //# 22: compile-time error
   external factory Foo.n23(val) => new Foo(); // //# 23: compile-time error
-  external Foo.n24(this.x); // //# 24: compile-time error
+  external Foo.n24(this.x); // //# 24: runtime error
   external factory Foo.n25(val) = Bar; // //# 25: compile-time error
 }
 

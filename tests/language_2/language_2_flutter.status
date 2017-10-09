@@ -274,6 +274,19 @@ wrong_number_type_arguments_test/01: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
 new_expression_type_args_test/02: CompileTimeError
 no_such_method_test: CompileTimeError
+private_access_test/03: CompileTimeError
+private_access_test/04: CompileTimeError
+list_literal_syntax_test/03: CompileTimeError
+list_literal_syntax_test/01: CompileTimeError
+list_literal_syntax_test/02: CompileTimeError
+prefix22_test: CompileTimeError
+prefix16_test: CompileTimeError
+factory6_test/00: CompileTimeError
+factory4_test: CompileTimeError
+factory2_test: CompileTimeError
+f_bounded_quantification_test/01: CompileTimeError
+f_bounded_quantification_test/02: CompileTimeError
+f_bounded_quantification5_test: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

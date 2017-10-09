@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test for F-Bounded Quantification.
-
 import "package:expect/expect.dart";
 
-class A<T extends B<T>> {}
-
-class B<T> extends A<T> {}
+class A {
+  factory A() => 42; //# 00: compile-time error
+}
 
 main() {
-  Expect.equals("B<B>", new B<B>().runtimeType.toString());
+  Expect.throws(() => new A()); //# 00: continued
 }

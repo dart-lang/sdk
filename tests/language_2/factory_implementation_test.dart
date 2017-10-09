@@ -8,40 +8,30 @@ abstract class A {
   factory A(int x, int y) = B;
 }
 
-abstract class X {
-  factory X(int x, int y) = B.X;
-}
-
-class XImpl implements X {
-  final int x;
-  final int y;
-  XImpl(this.x, this.y);
-}
-
 class B implements A {
   final int x;
   final int y;
 
   B(this.x, this.y);
-  // This factory will never be invoked.
-  // TODO(ahe): Is this a compile time error?
+
+  // This factory should never be invoked.
   factory B.A(int a, int b) {
     return new B(0, 0);
   }
 
   factory B.X(int a, int b) {
-    return new XImpl(a * 10, b * 10);
+    return new B(a * 10, b * 10);
   }
 }
 
 main() {
-  var a = new A(1, 2);
+  var a = new B(1, 2);
   // Check that constructor B is invoked and not factory B.A.
   Expect.equals(1, a.x);
   Expect.equals(2, a.y);
 
-  var x = new X(11, 22); // //# 00: dynamic type error
+  var x = new B.X(11, 22);
   // Check that factory is invoked.
-  Expect.equals(110, x.x); // //# 00: continued
-  Expect.equals(220, x.y); // //# 00: continued
+  Expect.equals(110, x.x);
+  Expect.equals(220, x.y);
 }

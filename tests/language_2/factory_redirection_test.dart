@@ -13,11 +13,11 @@ class A<T> {
     return new B<Set>();
   }
 
-  factory A.test01() = T; // //# 01: runtime error
+  factory A.test01() = T; // //# 01: compile-time error
 
-  factory A.test02() = dynamic; // //# 02: runtime error
+  factory A.test02() = dynamic; // //# 02: compile-time error
 
-  factory A.test03() = Undefined; // //# 03: runtime error
+  factory A.test03() = Undefined; // //# 03: compile-time error
 
   factory A.test04() = C.test04; // //# 04: compile-time error
 
@@ -35,17 +35,17 @@ class B<T> extends A<T> {
 
   factory B.test04() = A.test04; // //# 04: continued
 
-  factory B.test05(int incompatible) = A<T>.factory; // //# 05: runtime error
+  factory B.test05(int incompatible) = A<T>.factory; // //# 05: compile-time error
 
-  factory B.test05(int incompatible) = A<T>.factory; // //# 06: runtime error
+  factory B.test05(int incompatible) = A<T>.factory; // //# 06: compile-time error
 }
 
 class C<K, V> extends B<V> {
   C();
 
-  factory C.A() = A<V>;
+  factory C.A() = A<V>; // //# none: compile-time error
 
-  factory C.A_factory() = A<V>.factory;
+  factory C.A_factory() = A<V>.factory;  // //# none: compile-time error
 
   const factory C.B_constant(V x) = B<V>.A_constant;
 
@@ -67,11 +67,11 @@ main() {
   Expect.isTrue(new A<List>() is A<List>);
   Expect.isTrue(new A<bool>.constant(true).x);
   Expect.isTrue(new A<Set>.factory() is B<Set>);
-  Expect.isTrue(new B<List>.A() is A<List>); // //# 08: dynamic type error
-  Expect.isFalse(new B<List>.A() is A<Set>); // //# 09: dynamic type error
-  Expect.isTrue(new B<bool>.A_constant(true).x); // //# 10: dynamic type error
-  Expect.isTrue(new B<List>.A_factory() is B<Set>); // //# 11: dynamic type error
-  Expect.isTrue(new C<String, num>.A() is A<num>); // //# 12: dynamic type error
-  Expect.isTrue(new C<String, num>.A_factory() is B<Set>); // //# 13: dynamic type error
-  Expect.isTrue(new C<String, bool>.B_constant(true).x); // //# 14: dynamic type error
+  Expect.isTrue(new B<List>.A() is A<List>); // //# 08: compile-time error
+  Expect.isFalse(new B<List>.A() is A<Set>); // //# 09: compile-time error
+  Expect.isTrue(new B<bool>.A_constant(true).x); // //# 10: compile-time error
+  Expect.isTrue(new B<List>.A_factory() is B<Set>); // //# 11: compile-time error
+  Expect.isTrue(new C<String, num>.A() is A<num>); // //# 12: compile-time error
+  Expect.isTrue(new C<String, num>.A_factory() is B<Set>); // //# 13: compile-time error
+  Expect.isTrue(new C<String, bool>.B_constant(true).x); // //# 14: compile-time error
 }

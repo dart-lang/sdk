@@ -19,9 +19,6 @@ conditional_import_string_test: DartkCompileTimeError
 conditional_import_test: DartkCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_locals_test: RuntimeError
-export_double_same_main_test: DartkCrash
-export_main_test: DartkCrash
-f_bounded_equality_test: RuntimeError
 first_class_types_test: RuntimeError
 function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError

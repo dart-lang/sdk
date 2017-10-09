@@ -6,14 +6,14 @@
 class A<T> {
   A() {}
   factory A.factory() {
-    return new A<String>();
+    return new A<String>(); // //# 00: compile-time error
   }
 }
 
 class B<T> extends A<T> {
   B() {}
   factory B.factory() {
-    return new B<String>();
+    return new B<String>(); // //# 01: compile-time error
   }
 }
 

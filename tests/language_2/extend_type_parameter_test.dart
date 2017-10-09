@@ -4,8 +4,10 @@
 
 // Extending a type parameter is not allowed.
 
-abstract class A<T> extends T {}
+abstract class A<T> extends T {} // //# 00: compile-time error
+class A<T> extends T {} // //# 01: compile-time error
 
 main() {
-  A a = new A();
+  A a = new A(); // //# 00: compile-time error
+  A a = new A(); // //# 01: continued
 }

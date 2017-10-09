@@ -551,6 +551,31 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+f_bounded_quantification_test/01: MissingCompileTimeError
+f_bounded_quantification_test/02: MissingCompileTimeError
+factory1_test/00: MissingCompileTimeError
+factory1_test/01: MissingCompileTimeError
+factory2_test/03: MissingCompileTimeError
+factory2_test/none: MissingCompileTimeError
+factory3_test/none: MissingCompileTimeError
+factory4_test/00: MissingCompileTimeError
+factory5_test/00: MissingCompileTimeError
+factory6_test/00: MissingCompileTimeError
+factory_redirection_test/01: MissingCompileTimeError
+factory_redirection_test/02: MissingCompileTimeError
+factory_redirection_test/03: MissingCompileTimeError
+factory_redirection_test/05: MissingCompileTimeError
+factory_redirection_test/06: MissingCompileTimeError
+factory_redirection_test/08: MissingCompileTimeError
+factory_redirection_test/09: MissingCompileTimeError
+factory_redirection_test/10: MissingCompileTimeError
+factory_redirection_test/11: MissingCompileTimeError
+factory_redirection_test/12: MissingCompileTimeError
+factory_redirection_test/13: MissingCompileTimeError
+factory_redirection_test/14: MissingCompileTimeError
+factory_redirection_test/none: MissingCompileTimeError
+factory_return_type_checked_test/00: MissingCompileTimeError
+export_ambiguous_main_test: MissingCompileTimeError
 
 [ $runtime == vm ]
 assertion_test: RuntimeError # Issue 30326
@@ -719,6 +744,7 @@ function_subtype_typearg2_test: RuntimeError
 function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type_alias2_test: RuntimeError
+factory_implementation_test/00: Fail
 
 # The VM and does not implement the Dart 2.0 runtime checks yet unless
 # --checked is explicitly passed).
@@ -777,6 +803,7 @@ constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 const_native_factory_test: MissingCompileTimeError
 generic_function_bounds_test: CompileTimeError
+export_ambiguous_main_test: Pass
 
 [ $compiler == none && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError

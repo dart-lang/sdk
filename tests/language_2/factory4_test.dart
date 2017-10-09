@@ -3,16 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class Link<T> {
-  factory Link.create() = LinkFactory<T>.create;
+  factory Link.create() = LinkFactory.create; //# 00: compile-time error
 }
 
-class LinkFactory<T> {
+class A<T> {}
+
+class LinkFactory<T> extends A<T> {
   factory LinkFactory.create() {
     return null;
   }
-  factory LinkFactory.Foo() = Foo<T>; // //# 00: static type warning
 }
 
 main() {
-  var a = new Link<int>.create();
+  new Link<int>.create(); //# 00: continued
 }
