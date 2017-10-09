@@ -66,6 +66,7 @@ html/element_animate_test: Fail # Element.animate not supported on these browser
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 html/element_test: Pass, Fail # Issue 21434
+html/gamepad_test: Fail # Safari does not support Navigator.getGamepads()
 html/mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
 html/media_stream_test: Pass, Fail
 html/rtc_test: Fail
@@ -145,6 +146,8 @@ html/custom/document_register_type_extensions_test/single-parameter: Fail # Issu
 html/deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 html/event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
 html/element_test/click: Fail # IE does not support firing this event.
+html/gamepad_test: Fail # IE does not support Navigator.getGamepads()
+html/history_hash_change_test: Fail
 html/indexeddb_5_test: Fail # Issue 12893
 html/input_element_date_test: Fail
 html/input_element_datetime_test: Fail

@@ -49,13 +49,6 @@ html/filteredelementlist_test: DartkCompileTimeError
 html/fontface_test: DartkCompileTimeError
 html/form_data_test: DartkCompileTimeError
 html/form_element_test: DartkCompileTimeError
-html/geolocation_test: DartkCompileTimeError
-html/hidden_dom_1_test: DartkCompileTimeError
-html/hidden_dom_2_test: DartkCompileTimeError
-html/history_test: DartkCompileTimeError
-html/htmlcollection_test: DartkCompileTimeError
-html/htmlelement_test: DartkCompileTimeError
-html/htmloptionscollection_test: DartkCompileTimeError
 html/indexeddb_1_test: DartkCompileTimeError
 html/indexeddb_2_test: DartkCompileTimeError
 html/indexeddb_3_test: DartkCompileTimeError

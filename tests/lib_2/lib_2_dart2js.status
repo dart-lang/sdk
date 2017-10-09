@@ -140,6 +140,8 @@ isolate/kill_self_synchronously_test: RuntimeError
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
 [ $compiler == dart2js && $runtime != d8 ]
+html/input_element_attributes_test: RuntimeError
+html/html_mock_test: RuntimeError # Issue 31038
 isolate/error_exit_at_spawn_test: Skip # Issue 23876
 isolate/error_at_spawn_test: Skip # Issue 23876
 isolate/exit_at_spawn_test: Skip # Issue 23876
@@ -276,6 +278,14 @@ html/element_types_template_test: Crash
 html/element_types_track_test: Crash
 html/event_customevent_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/event_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/gamepad_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/geolocation_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/hidden_dom_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/hidden_dom_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/history_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/htmlcollection_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/htmlelement_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/htmloptionscollection_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -437,6 +447,17 @@ html/element_types_template_test: RuntimeError # Issue 29922
 html/element_types_track_test: RuntimeError # Issue 29922
 html/event_customevent_test: RuntimeError
 html/event_test: RuntimeError
+html/gamepad_test: RuntimeError
+html/geolocation_test: RuntimeError
+html/hidden_dom_1_test: RuntimeError
+html/hidden_dom_2_test: RuntimeError
+html/history_test/history: RuntimeError
+html/history_test/supported_HashChangeEvent: RuntimeError
+html/history_test/supported_state: RuntimeError
+html/history_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/htmlcollection_test: RuntimeError
+html/htmlelement_test: RuntimeError
+html/htmloptionscollection_test: RuntimeError
 html/indexeddb_1_test/dynamic: RuntimeError
 html/indexeddb_1_test/functional: RuntimeError
 html/indexeddb_1_test/supported: RuntimeError
@@ -635,3 +656,6 @@ isolate/unresolved_ports_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
+
+[  $compiler == dart2js && $runtime == ff ]
+html/history_test/history: Skip # Issue 22050
