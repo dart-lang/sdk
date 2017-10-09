@@ -160,6 +160,8 @@
   `void f() => ++x;`.
 
 * A new function-type syntax has been added to the language.
+  **Warning**: *In Dart 1.24, this feature is incomplete, and not stable in the Analyzer.*
+
   Intuitively, the type of a function can be constructed by textually replacing
   the function's name with `Function` in its declaration. For instance, the
   type of `void foo() {}` would be `void Function()`. The new syntax may be used
