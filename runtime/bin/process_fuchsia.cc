@@ -270,7 +270,7 @@ class ExitCodeHandler {
       ASSERT((result == -1) || (result == sizeof(exit_code_fd)));
       if ((result == -1) && (errno != EPIPE)) {
         int err = errno;
-        Log::PrintErr("Failed to write exit code for process %ld: errno=%d\n",
+        Log::PrintErr("Failed to write exit code for process %d: errno=%d\n",
                       process, err);
       }
       LOG_INFO("ExitCodeHandler thread wrote %ld bytes to fd %ld\n", result,

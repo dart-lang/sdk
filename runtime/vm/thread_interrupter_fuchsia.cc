@@ -125,7 +125,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
     // Get a handle on the target thread.
     const zx_koid_t target_thread_koid = os_thread->id();
     if (FLAG_trace_thread_interrupter) {
-      OS::PrintErr("ThreadInterrupter: interrupting thread with koid=%d\n",
+      OS::PrintErr("ThreadInterrupter: interrupting thread with koid=%ld\n",
                    target_thread_koid);
     }
     zx_handle_t target_thread_handle;

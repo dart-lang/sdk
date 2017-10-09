@@ -682,7 +682,7 @@ static inline void StoreUnaligned(T* ptr, T value) {
 #endif  // defined(TEMP_FAILURE_RETRY)
 #endif  // !defined(HOST_OS_WINDOWS)
 
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS)
+#if __GNUC__
 // Tell the compiler to do printf format string checking if the
 // compiler supports it; see the 'format' attribute in
 // <http://gcc.gnu.org/onlinedocs/gcc-4.3.0/gcc/Function-Attributes.html>.
