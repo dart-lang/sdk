@@ -34,10 +34,12 @@ no_lazy_dispatchers_test: SkipByDesign
 [ $system == windows ]
 io/skipping_dart2js_compilations_test: Skip # Issue 19551.
 verbose_gc_to_bmu_test: Skip
-io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 io/process_sync_test: Pass, Timeout # Issue 24596
 io/sleep_test: Pass, Fail # Issue 25757
 io/socket_info_ipv6_test : Skip
+
+[ $system == windows && $compiler != dart2analyzer ]
+io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 
 [ $compiler == app_jit ]
 io/test_extension_test: Skip # Platform.executable
