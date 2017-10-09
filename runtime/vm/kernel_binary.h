@@ -289,17 +289,11 @@ class Reader {
   const uint8_t* raw_buffer() { return raw_buffer_; }
   void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
 
-  TypedData& CopyDataToVMHeap(Zone* zone,
-                              intptr_t from_byte,
-                              intptr_t to_byte) {
-    intptr_t size = to_byte - from_byte;
-    TypedData& data = TypedData::Handle(
-        zone, TypedData::New(kTypedDataUint8ArrayCid, size, Heap::kOld));
-    {
-      NoSafepointScope no_safepoint;
-      memmove(data.DataAddr(0), buffer() + from_byte, size);
-    }
-    return data;
+  void CopyDataToVMHeap(const TypedData& typed_data,
+                        intptr_t offset,
+                        intptr_t size) {
+    NoSafepointScope no_safepoint;
+    memmove(typed_data.DataAddr(0), buffer() + offset, size);
   }
 
   uint8_t* CopyDataIntoZone(Zone* zone, intptr_t offset, intptr_t length) {

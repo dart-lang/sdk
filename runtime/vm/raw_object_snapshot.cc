@@ -520,7 +520,8 @@ RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &cls, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(cls, cls.raw()->from(), cls.raw()->to(), kAsReference);
+  READ_OBJECT_FIELDS(cls, cls.raw()->from(), cls.raw()->to_snapshot(kind),
+                     kAsReference);
 
   return cls.raw();
 }
@@ -540,7 +541,7 @@ void RawPatchClass::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitPointers(from(), to_snapshot(kind));
 }
 
 RawClosure* Closure::ReadFrom(SnapshotReader* reader,
@@ -890,8 +891,6 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(ptr()->owner_, kAsReference);
   // Write out the type.
   writer->WriteObjectImpl(ptr()->type_, kAsReference);
-  // Write out the kernel_data.
-  writer->WriteObjectImpl(ptr()->kernel_data_, kAsReference);
   // Write out the initial static value or field offset.
   if (Field::StaticBit::decode(ptr()->kind_bits_)) {
     if (Field::ConstBit::decode(ptr()->kind_bits_)) {
@@ -1126,7 +1125,8 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     // Set all the object fields.
     // TODO(5411462): Need to assert No GC can happen here, even though
     // allocations may happen.
-    intptr_t num_flds = (library.raw()->to_snapshot() - library.raw()->from());
+    intptr_t num_flds =
+        library.raw()->to_snapshot(kind) - library.raw()->from();
     for (intptr_t i = 0; i <= num_flds; i++) {
       (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
       library.StorePointer((library.raw()->from() + i),
@@ -1181,7 +1181,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     // snapshot and will be rebuilt lazily.
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer, kAsReference);
-    visitor.VisitPointers(from(), to_snapshot());
+    visitor.VisitPointers(from(), to_snapshot(kind));
   }
 }
 

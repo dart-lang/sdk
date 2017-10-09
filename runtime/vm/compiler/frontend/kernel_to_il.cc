@@ -1644,10 +1644,11 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   if (function.IsConstructorClosureFunction()) return NULL;
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      this, function.kernel_offset(),
-      TypedData::Handle(Z, function.kernel_data()));
+      this, TypedData::Handle(Z, function.KernelData()),
+      function.KernelDataProgramOffset());
   streaming_flow_graph_builder_ = &streaming_flow_graph_builder;
-  FlowGraph* result = streaming_flow_graph_builder_->BuildGraph(0);
+  FlowGraph* result =
+      streaming_flow_graph_builder_->BuildGraph(function.kernel_offset());
   streaming_flow_graph_builder_ = NULL;
   return result;
 }
@@ -2250,9 +2251,11 @@ RawObject* EvaluateMetadata(const Field& metadata_field) {
         TypedData::Handle(Z, script.kernel_canonical_names()));
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
-        &helper, metadata_field.Script(), zone_, metadata_field.kernel_offset(),
-        TypedData::Handle(Z, metadata_field.kernel_data()));
-    return streaming_flow_graph_builder.EvaluateMetadata(0);
+        &helper, metadata_field.Script(), zone_,
+        TypedData::Handle(Z, metadata_field.KernelData()),
+        metadata_field.KernelDataProgramOffset());
+    return streaming_flow_graph_builder.EvaluateMetadata(
+        metadata_field.kernel_offset());
   } else {
     Thread* thread = Thread::Current();
     Error& error = Error::Handle();
@@ -2276,9 +2279,11 @@ RawObject* BuildParameterDescriptor(const Function& function) {
         TypedData::Handle(Z, script.kernel_canonical_names()));
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
-        &helper, function.script(), zone_, function.kernel_offset(),
-        TypedData::Handle(Z, function.kernel_data()));
-    return streaming_flow_graph_builder.BuildParameterDescriptor(0);
+        &helper, function.script(), zone_,
+        TypedData::Handle(Z, function.KernelData()),
+        function.KernelDataProgramOffset());
+    return streaming_flow_graph_builder.BuildParameterDescriptor(
+        function.kernel_offset());
   } else {
     Thread* thread = Thread::Current();
     Error& error = Error::Handle();
@@ -2324,24 +2329,26 @@ static RawArray* AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
   return array_object.raw();
 }
 
-void ProcessTokenPositionsEntry(const TypedData& data,
-                                const Script& script,
-                                const Script& entry_script,
-                                intptr_t kernel_offset,
-                                Zone* zone_,
-                                TranslationHelper* helper,
-                                GrowableArray<intptr_t>* token_positions,
-                                GrowableArray<intptr_t>* yield_positions) {
+static void ProcessTokenPositionsEntry(
+    const TypedData& data,
+    const Script& script,
+    const Script& entry_script,
+    intptr_t kernel_offset,
+    intptr_t data_kernel_offset,
+    Zone* zone_,
+    TranslationHelper* helper,
+    GrowableArray<intptr_t>* token_positions,
+    GrowableArray<intptr_t>* yield_positions) {
   if (data.IsNull() ||
       script.kernel_string_offsets() != entry_script.kernel_string_offsets()) {
     return;
   }
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      helper, script.raw(), zone_, kernel_offset, data);
+      helper, script.raw(), zone_, data, data_kernel_offset);
   streaming_flow_graph_builder.CollectTokenPositionsFor(
       script.kernel_script_index(), entry_script.kernel_script_index(),
-      token_positions, yield_positions);
+      kernel_offset, token_positions, yield_positions);
 }
 
 void CollectTokenPositionsFor(const Script& const_script) {
@@ -2381,36 +2388,48 @@ void CollectTokenPositionsFor(const Script& const_script) {
         Field& field = Field::Handle(Z);
         for (intptr_t i = 0; i < array.Length(); ++i) {
           field ^= array.At(i);
-          data = field.kernel_data();
+          if (field.kernel_offset() <= 0) {
+            // Skip artificially injected fields.
+            continue;
+          }
+          data = field.KernelData();
           entry_script = field.Script();
-          ProcessTokenPositionsEntry(data, script, entry_script,
-                                     field.kernel_offset(), zone_, &helper,
-                                     &token_positions, &yield_positions);
+          ProcessTokenPositionsEntry(
+              data, script, entry_script, field.kernel_offset(),
+              field.KernelDataProgramOffset(), zone_, &helper, &token_positions,
+              &yield_positions);
         }
         array = klass.functions();
         Function& function = Function::Handle(Z);
         for (intptr_t i = 0; i < array.Length(); ++i) {
           function ^= array.At(i);
-          data = function.kernel_data();
+          data = function.KernelData();
           entry_script = function.script();
-          ProcessTokenPositionsEntry(data, script, entry_script,
-                                     function.kernel_offset(), zone_, &helper,
-                                     &token_positions, &yield_positions);
+          ProcessTokenPositionsEntry(
+              data, script, entry_script, function.kernel_offset(),
+              function.KernelDataProgramOffset(), zone_, &helper,
+              &token_positions, &yield_positions);
         }
       } else if (entry.IsFunction()) {
         const Function& function = Function::Cast(entry);
-        data = function.kernel_data();
+        data = function.KernelData();
         entry_script = function.script();
         ProcessTokenPositionsEntry(data, script, entry_script,
-                                   function.kernel_offset(), zone_, &helper,
-                                   &token_positions, &yield_positions);
+                                   function.kernel_offset(),
+                                   function.KernelDataProgramOffset(), zone_,
+                                   &helper, &token_positions, &yield_positions);
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
-        data = field.kernel_data();
+        if (field.kernel_offset() <= 0) {
+          // Skip artificially injected fields.
+          continue;
+        }
+        data = field.KernelData();
         entry_script = field.Script();
         ProcessTokenPositionsEntry(data, script, entry_script,
-                                   field.kernel_offset(), zone_, &helper,
-                                   &token_positions, &yield_positions);
+                                   field.kernel_offset(),
+                                   field.KernelDataProgramOffset(), zone_,
+                                   &helper, &token_positions, &yield_positions);
       }
     }
   }

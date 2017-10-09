@@ -796,7 +796,28 @@ class RawPatchClass : public RawObject {
   RawClass* patched_class_;
   RawClass* origin_class_;
   RawScript* script_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->script_); }
+  RawTypedData* library_kernel_data_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->library_kernel_data_);
+  }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kFullAOT:
+        return reinterpret_cast<RawObject**>(&ptr()->script_);
+      case Snapshot::kFull:
+      case Snapshot::kFullJIT:
+      case Snapshot::kScript:
+        return reinterpret_cast<RawObject**>(&ptr()->library_kernel_data_);
+      case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
+  }
+
+  intptr_t library_kernel_offset_;
 
   friend class Function;
 };
@@ -852,15 +873,13 @@ class RawFunction : public RawObject {
   RawArray* parameter_names_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawObject* data_;  // Additional data specific to the function kind.
-  RawTypedData* kernel_data_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->data_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
       case Snapshot::kScript:
-        return reinterpret_cast<RawObject**>(&ptr()->kernel_data_);
+        return reinterpret_cast<RawObject**>(&ptr()->data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -962,7 +981,6 @@ class RawField : public RawObject {
   RawObject* owner_;  // Class or patch class or mixin class
                       // where this field is defined or original field.
   RawAbstractType* type_;
-  RawTypedData* kernel_data_;
   union {
     RawInstance* static_value_;  // Value for static fields.
     RawSmi* offset_;             // Offset in words for instance fields.
@@ -1114,8 +1132,22 @@ class RawLibrary : public RawObject {
   RawArray* imports_;        // List of Namespaces imported without prefix.
   RawArray* exports_;        // List of re-exported Namespaces.
   RawInstance* load_error_;  // Error iff load_state_ == kLoadError.
-  RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->load_error_);
+  RawTypedData* kernel_data_;
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kFullAOT:
+        return reinterpret_cast<RawObject**>(&ptr()->load_error_);
+      case Snapshot::kFull:
+      case Snapshot::kFullJIT:
+      case Snapshot::kScript:
+        return reinterpret_cast<RawObject**>(&ptr()->kernel_data_);
+      case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
   }
   RawArray* resolved_names_;  // Cache of resolved names in library scope.
   RawArray* exported_names_;  // Cache of exported names by library.
@@ -1127,6 +1159,8 @@ class RawLibrary : public RawObject {
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
   classid_t index_;       // Library id number.
+  intptr_t kernel_offset_;  // Offset of this library's kernel data in the
+                            // overall kernel program.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.
   bool corelib_imported_;

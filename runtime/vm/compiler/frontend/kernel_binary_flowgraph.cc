@@ -550,12 +550,9 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
   }
 }
 
-StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function,
-                                             intptr_t relative_kernel_offset,
-                                             const TypedData& data)
+StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
     : result_(NULL),
       parsed_function_(parsed_function),
-      relative_kernel_offset_(relative_kernel_offset),
       translation_helper_(Thread::Current()),
       zone_(translation_helper_.zone()),
       current_function_scope_(NULL),
@@ -563,12 +560,12 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function,
       depth_(0),
       name_index_(0),
       needs_expr_temp_(false),
-      builder_(
-          new StreamingFlowGraphBuilder(&translation_helper_,
-                                        parsed_function->function().script(),
-                                        zone_,
-                                        relative_kernel_offset,
-                                        data)),
+      builder_(new StreamingFlowGraphBuilder(
+          &translation_helper_,
+          parsed_function->function().script(),
+          zone_,
+          TypedData::Handle(Z, parsed_function->function().KernelData()),
+          parsed_function->function().KernelDataProgramOffset())),
       type_translator_(builder_, /*finalize=*/true) {
   Script& script = Script::Handle(Z, parsed_function->function().script());
   H.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
@@ -591,8 +588,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
 
   // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
   // e.g. for type translation.
-  const Class& klass =
-      Class::Handle(zone_, parsed_function_->function().Owner());
+  const Class& klass = Class::Handle(zone_, function.Owner());
 
   Function& outermost_function = Function::Handle(Z);
   builder_->DiscoverEnclosingElements(Z, function, &outermost_function);
@@ -625,7 +621,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   parsed_function_->SetNodeSequence(
       new SequenceNode(TokenPosition::kNoSource, scope_));
 
-  builder_->SetOffset(0);
+  builder_->SetOffset(function.kernel_offset());
 
   FunctionNodeHelper function_node_helper(builder_);
 
@@ -672,21 +668,20 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
             class_field ^= class_fields.At(i);
             if (!class_field.is_static()) {
               TypedData& kernel_data =
-                  TypedData::Handle(Z, class_field.kernel_data());
+                  TypedData::Handle(Z, class_field.KernelData());
               ASSERT(!kernel_data.IsNull());
-              AlternativeReadingScope alt(builder_->reader_, &kernel_data, 0);
-              intptr_t saved_relative_kernel_offset_ = relative_kernel_offset_;
-              relative_kernel_offset_ = class_field.kernel_offset();
+              intptr_t field_offset = class_field.kernel_offset();
+              AlternativeReadingScope alt(builder_->reader_, &kernel_data,
+                                          field_offset);
               FieldHelper field_helper(builder_);
               field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
               Tag initializer_tag =
                   builder_->ReadTag();  // read first part of initializer.
               if (initializer_tag == kSomething) {
-                EnterScope(class_field.kernel_offset());
+                EnterScope(field_offset);
                 VisitExpression();  // read initializer.
                 ExitScope(field_helper.position_, field_helper.end_position_);
               }
-              relative_kernel_offset_ = saved_relative_kernel_offset_;
             }
           }
         }
@@ -706,7 +701,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
       // will forward the call to the real function.
       //     -> see BuildGraphOfImplicitClosureFunction
       if (!function.IsImplicitClosureFunction()) {
-        builder_->SetOffset(0);
+        builder_->SetOffset(function.kernel_offset());
         first_body_token_position_ = TokenPosition::kNoSource;
         VisitNode();
 
@@ -828,19 +823,17 @@ void StreamingScopeBuilder::VisitConstructor() {
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        TypedData& kernel_data =
-            TypedData::Handle(Z, class_field.kernel_data());
+        TypedData& kernel_data = TypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
-        AlternativeReadingScope alt(builder_->reader_, &kernel_data, 0);
-        intptr_t saved_relative_kernel_offset_ = relative_kernel_offset_;
-        relative_kernel_offset_ = class_field.kernel_offset();
+        intptr_t field_offset = class_field.kernel_offset();
+        AlternativeReadingScope alt(builder_->reader_, &kernel_data,
+                                    field_offset);
         FieldHelper field_helper(builder_);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         Tag initializer_tag = builder_->ReadTag();
         if (initializer_tag == kSomething) {
           VisitExpression();  // read initializer.
         }
-        relative_kernel_offset_ = saved_relative_kernel_offset_;
       }
     }
   }
@@ -1162,7 +1155,7 @@ void StreamingScopeBuilder::VisitExpression() {
       intptr_t offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
 
-      EnterScope(relative_kernel_offset_ + offset);
+      EnterScope(offset);
 
       VisitVariableDeclaration();  // read variable declaration.
       VisitExpression();           // read expression.
@@ -1233,7 +1226,7 @@ void StreamingScopeBuilder::VisitStatement() {
       intptr_t offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
 
-      EnterScope(relative_kernel_offset_ + offset);
+      EnterScope(offset);
 
       intptr_t list_length =
           builder_->ReadListLength();  // read number of statements.
@@ -1295,7 +1288,7 @@ void StreamingScopeBuilder::VisitStatement() {
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
 
       ++depth_.loop_;
-      EnterScope(relative_kernel_offset_ + offset);
+      EnterScope(offset);
 
       TokenPosition position = builder_->ReadPosition();  // read position.
       intptr_t list_length =
@@ -1338,7 +1331,7 @@ void StreamingScopeBuilder::VisitStatement() {
       ++depth_.for_in_;
       AddIteratorVariable();
       ++depth_.loop_;
-      EnterScope(relative_kernel_offset_ + start_offset);
+      EnterScope(start_offset);
 
       {
         AlternativeReadingScope alt(builder_->reader_, offset);
@@ -1417,7 +1410,7 @@ void StreamingScopeBuilder::VisitStatement() {
         PositionScope scope(builder_->reader_);
         intptr_t offset = builder_->ReaderOffset();  // Catch has no tag.
 
-        EnterScope(relative_kernel_offset_ + offset);
+        EnterScope(offset);
 
         VisitDartType();            // Read the guard.
         tag = builder_->ReadTag();  // read first part of exception.
@@ -1545,7 +1538,7 @@ void StreamingScopeBuilder::VisitVariableDeclaration() {
     variable->set_is_final();
   }
   scope_->AddVariable(variable);
-  result_->locals.Insert(relative_kernel_offset_ + kernel_offset_no_tag,
+  result_->locals.Insert(builder_->data_program_offset_ + kernel_offset_no_tag,
                          variable);
 }
 
@@ -1673,11 +1666,11 @@ void StreamingScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
       current_function_async_marker_;
   DepthState saved_depth_state = depth_;
   depth_ = DepthState(depth_.function_ + 1);
-  EnterScope(relative_kernel_offset_ + parent_kernel_offset);
+  EnterScope(parent_kernel_offset);
   current_function_scope_ = scope_;
   current_function_async_marker_ = function_node_helper.async_marker_;
   if (depth_.function_ == 1) {
-    FunctionScope function_scope = {relative_kernel_offset_ + offset, scope_};
+    FunctionScope function_scope = {offset, scope_};
     result_->function_scopes.Add(function_scope);
   }
 
@@ -1740,7 +1733,8 @@ void StreamingScopeBuilder::AddVariableDeclarationParameter(intptr_t pos) {
     variable->set_is_forced_stack();
   }
   scope_->InsertParameterAt(pos, variable);
-  result_->locals.Insert(relative_kernel_offset_ + kernel_offset, variable);
+  result_->locals.Insert(builder_->data_program_offset_ + kernel_offset,
+                         variable);
 
   // The default value may contain 'let' bindings for which the constant
   // evaluator needs scope bindings.
@@ -1847,7 +1841,8 @@ void StreamingScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
     // name and add it to the variable map to simplify later lookup.
     ASSERT(current_function_scope_->parent() != NULL);
     StringIndex var_name = builder_->GetNameFromVariableDeclaration(
-        declaration_binary_offset, parsed_function_->function());
+        declaration_binary_offset - builder_->data_program_offset_,
+        parsed_function_->function());
 
     const String& name = H.DartSymbol(var_name);
     variable = current_function_scope_->parent()->LookupVariable(name, true);
@@ -2388,6 +2383,11 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
 
     CacheConstantValue(offset, result_);
     if (reset_position) builder_->SetOffset(original_offset);
+  } else {
+    if (!reset_position) {
+      builder_->SetOffset(offset);
+      builder_->SkipExpression();
+    }
   }
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
@@ -2853,7 +2853,7 @@ void StreamingConstantEvaluator::EvaluateMapLiteralInternal() {
 
 void StreamingConstantEvaluator::EvaluateLet() {
   intptr_t kernel_position =
-      builder_->ReaderOffset() + builder_->relative_kernel_offset_;
+      builder_->ReaderOffset() + builder_->data_program_offset_;
   LocalVariable* local = builder_->LookupVariable(kernel_position);
 
   // read variable declaration.
@@ -3072,8 +3072,8 @@ bool StreamingConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
     return false;
   }
   KernelConstantsMap constants(script_.compile_time_constants());
-  *value ^= constants.GetOrNull(
-      kernel_offset + builder_->relative_kernel_offset_, &is_present);
+  *value ^= constants.GetOrNull(kernel_offset + builder_->data_program_offset_,
+                                &is_present);
   // Mutator compiler thread may add constants while background compiler
   // is running, and thus change the value of 'compile_time_constants';
   // do not assert that 'compile_time_constants' has not changed.
@@ -3104,8 +3104,8 @@ void StreamingConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
     script_.set_compile_time_constants(array);
   }
   KernelConstantsMap constants(script_.compile_time_constants());
-  constants.InsertNewOrGetValue(
-      kernel_offset + builder_->relative_kernel_offset_, value);
+  constants.InsertNewOrGetValue(kernel_offset + builder_->data_program_offset_,
+                                value);
   script_.set_compile_time_constants(constants.Release());
 }
 
@@ -3149,22 +3149,11 @@ void StreamingFlowGraphBuilder::ReadUntilFunctionNode() {
 StringIndex StreamingFlowGraphBuilder::GetNameFromVariableDeclaration(
     intptr_t kernel_offset,
     const Function& function) {
-  Function& function_or_parent = Function::Handle(Z, function.raw());
-  intptr_t function_start_relative =
-      function_or_parent.kernel_offset() - kernel_offset;
-  while (function_start_relative > 0) {
-    function_or_parent = function_or_parent.parent_function();
-    function_start_relative =
-        function_or_parent.kernel_offset() - kernel_offset;
-  }
-  TypedData& kernel_data =
-      TypedData::Handle(Z, function_or_parent.kernel_data());
+  TypedData& kernel_data = TypedData::Handle(Z, function.KernelData());
   ASSERT(!kernel_data.IsNull());
 
   // Temporarily go to the variable declaration, read the name.
-  AlternativeReadingScope alt(
-      reader_, &kernel_data,
-      kernel_offset - function_or_parent.kernel_offset());
+  AlternativeReadingScope alt(reader_, &kernel_data, kernel_offset);
   VariableDeclarationHelper helper(this);
   helper.ReadUntilIncluding(VariableDeclarationHelper::kNameIndex);
   return helper.name_index_;
@@ -3397,22 +3386,19 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        TypedData& kernel_data =
-            TypedData::Handle(Z, class_field.kernel_data());
+        TypedData& kernel_data = TypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
-        AlternativeReadingScope alt(reader_, &kernel_data, 0);
-        intptr_t saved_relative_kernel_offset_ = relative_kernel_offset_;
-        relative_kernel_offset_ = class_field.kernel_offset();
+        intptr_t field_offset = class_field.kernel_offset();
+        AlternativeReadingScope alt(reader_, &kernel_data, field_offset);
         FieldHelper field_helper(this);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         Tag initializer_tag = ReadTag();  // read first part of initializer.
         if (initializer_tag == kSomething) {
-          EnterScope(class_field.kernel_offset());
+          EnterScope(field_offset);
           instructions += BuildFieldInitializer(
               field_helper.canonical_name_);  // read initializer.
-          ExitScope(class_field.kernel_offset());
+          ExitScope(field_offset);
         }
-        relative_kernel_offset_ = saved_relative_kernel_offset_;
       }
     }
   }
@@ -3506,7 +3492,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           // (This is strictly speaking not what one should do in terms of the
           //  specification but that is how it is currently implemented.)
           LocalVariable* variable =
-              LookupVariable(ReaderOffset() + relative_kernel_offset_);
+              LookupVariable(ReaderOffset() + data_program_offset_);
 
           // Variable declaration
           VariableDeclarationHelper helper(this);
@@ -3559,7 +3545,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   intptr_t positional_argument_count = ReadListLength();
   for (intptr_t i = 0; i < positional_argument_count; ++i) {
     body += LoadLocal(LookupVariable(
-        ReaderOffset() + relative_kernel_offset_));  // ith variable offset.
+        ReaderOffset() + data_program_offset_));  // ith variable offset.
     body += PushArgument();
     SkipVariableDeclaration();  // read ith variable.
   }
@@ -3571,8 +3557,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     argument_names = Array::New(named_argument_count);
     for (intptr_t i = 0; i < named_argument_count; ++i) {
       // ith variable offset.
-      body +=
-          LoadLocal(LookupVariable(ReaderOffset() + relative_kernel_offset_));
+      body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
       body += PushArgument();
 
       // read ith variable.
@@ -3699,7 +3684,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     AlternativeReadingScope alt(reader_);
     intptr_t list_length = ReadListLength();  // read number of positionals.
     if (list_length > 0) {
-      first_parameter_offset = ReaderOffset() + relative_kernel_offset_;
+      first_parameter_offset = ReaderOffset() + data_program_offset_;
     }
   }
   // Current position: About to read list of positionals.
@@ -3743,10 +3728,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     intptr_t list_length = ReadListLength();
     for (intptr_t i = 0; i < list_length; ++i) {
       // ith variable offset.
+      body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
       body +=
-          LoadLocal(LookupVariable(ReaderOffset() + relative_kernel_offset_));
-      body += CheckVariableTypeInCheckedMode(ReaderOffset() +
-                                             relative_kernel_offset_);
+          CheckVariableTypeInCheckedMode(ReaderOffset() + data_program_offset_);
       body += Drop();
       SkipVariableDeclaration();  // read ith variable.
     }
@@ -3755,10 +3739,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     list_length = ReadListLength();
     for (intptr_t i = 0; i < list_length; ++i) {
       // ith variable offset.
+      body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
       body +=
-          LoadLocal(LookupVariable(ReaderOffset() + relative_kernel_offset_));
-      body += CheckVariableTypeInCheckedMode(ReaderOffset() +
-                                             relative_kernel_offset_);
+          CheckVariableTypeInCheckedMode(ReaderOffset() + data_program_offset_);
       body += Drop();
       SkipVariableDeclaration();  // read ith variable.
     }
@@ -3936,7 +3919,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   // e.g. for type translation.
   const Class& klass =
       Class::Handle(zone_, parsed_function()->function().Owner());
-
   Function& outermost_function = Function::Handle(Z);
   DiscoverEnclosingElements(Z, function, &outermost_function);
 
@@ -6643,7 +6625,7 @@ Fragment StreamingFlowGraphBuilder::BuildBlock() {
 
   Fragment instructions;
 
-  instructions += EnterScope(offset + relative_kernel_offset_);
+  instructions += EnterScope(offset);
   intptr_t list_length = ReadListLength();  // read number of statements.
   for (intptr_t i = 0; i < list_length; ++i) {
     if (instructions.is_open()) {
@@ -6652,7 +6634,7 @@ Fragment StreamingFlowGraphBuilder::BuildBlock() {
       SkipStatement();  // read ith statement.
     }
   }
-  instructions += ExitScope(offset + relative_kernel_offset_);
+  instructions += ExitScope(offset);
 
   return instructions;
 }
@@ -6833,7 +6815,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
   loop_depth_inc();
 
   bool new_context = false;
-  declarations += EnterScope(offset + relative_kernel_offset_, &new_context);
+  declarations += EnterScope(offset, &new_context);
 
   intptr_t list_length = ReadListLength();  // read number of variables.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -6881,7 +6863,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 
   Fragment loop(declarations.entry, loop_exit);
 
-  loop += ExitScope(offset + relative_kernel_offset_);
+  loop += ExitScope(offset);
 
   loop_depth_dec();
 
@@ -6893,7 +6875,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
 
   ReadPosition();                                // read position.
   TokenPosition body_position = ReadPosition();  // read body position.
-  intptr_t variable_kernel_position = ReaderOffset() + relative_kernel_offset_;
+  intptr_t variable_kernel_position = ReaderOffset() + data_program_offset_;
   SkipVariableDeclaration();  // read variable.
 
   TokenPosition iterable_position = TokenPosition::kNoSource;
@@ -6920,7 +6902,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
   condition += BranchIfTrue(&body_entry, &loop_exit, false);
 
   Fragment body(body_entry);
-  body += EnterScope(offset + relative_kernel_offset_);
+  body += EnterScope(offset);
   body += LoadLocal(iterator);
   body += PushArgument();
   const String& current_getter =
@@ -6930,7 +6912,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
                      LookupVariable(variable_kernel_position));
   body += Drop();
   body += BuildStatement();  // read body.
-  body += ExitScope(offset + relative_kernel_offset_);
+  body += ExitScope(offset);
 
   if (body.is_open()) {
     JoinEntryInstr* join = BuildJoinEntry();
@@ -7278,15 +7260,14 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
       handler_types.SetAt(i, Object::dynamic_type());
     }
 
-    Fragment catch_handler_body =
-        EnterScope(catch_offset + relative_kernel_offset_);
+    Fragment catch_handler_body = EnterScope(catch_offset);
 
     tag = ReadTag();  // read first part of exception.
     if (tag == kSomething) {
       catch_handler_body += LoadLocal(CurrentException());
       catch_handler_body +=
           StoreLocal(TokenPosition::kNoSource,
-                     LookupVariable(ReaderOffset() + relative_kernel_offset_));
+                     LookupVariable(ReaderOffset() + data_program_offset_));
       catch_handler_body += Drop();
       SkipVariableDeclaration();  // read exception.
     }
@@ -7296,7 +7277,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
       catch_handler_body += LoadLocal(CurrentStackTrace());
       catch_handler_body +=
           StoreLocal(TokenPosition::kNoSource,
-                     LookupVariable(ReaderOffset() + relative_kernel_offset_));
+                     LookupVariable(ReaderOffset() + data_program_offset_));
       catch_handler_body += Drop();
       SkipVariableDeclaration();  // read stack trace.
     }
@@ -7309,7 +7290,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
 
       // Note: ExitScope adjusts context_depth_ so even if catch_handler_body
       // is closed we still need to execute ExitScope for its side effect.
-      catch_handler_body += ExitScope(catch_offset + relative_kernel_offset_);
+      catch_handler_body += ExitScope(catch_offset);
       if (catch_handler_body.is_open()) {
         catch_handler_body += Goto(after_try);
       }
@@ -7531,7 +7512,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
-  intptr_t kernel_position_no_tag = ReaderOffset() + relative_kernel_offset_;
+  intptr_t kernel_position_no_tag = ReaderOffset() + data_program_offset_;
   LocalVariable* variable = LookupVariable(kernel_position_no_tag);
 
   VariableDeclarationHelper helper(this);
@@ -7571,7 +7552,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionDeclaration() {
   TokenPosition position = ReadPosition();  // read position.
-  intptr_t variable_offset = ReaderOffset() + relative_kernel_offset_;
+  intptr_t variable_offset = ReaderOffset() + data_program_offset_;
 
   // read variable declaration.
   VariableDeclarationHelper helper(this);
@@ -7587,7 +7568,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionDeclaration() {
 Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     TokenPosition parent_position,
     StringIndex name_index) {
-  intptr_t offset = ReaderOffset() + relative_kernel_offset_;
+  intptr_t offset = ReaderOffset();
 
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.ReadUntilExcluding(
@@ -7663,9 +7644,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
                               true,   // is_closure
                               &function_node_helper);
       function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
-      TypedData& kernel_data = reader_->CopyDataToVMHeap(
-          Z, offset - relative_kernel_offset_, ReaderOffset());
-      function.set_kernel_data(kernel_data);
 
       // Finalize function type.
       Type& signature_type = Type::Handle(Z, function.SignatureType());
@@ -7899,12 +7877,15 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
 void StreamingFlowGraphBuilder::CollectTokenPositionsFor(
     intptr_t script_index,
     intptr_t initial_script_index,
+    intptr_t kernel_offset,
     GrowableArray<intptr_t>* record_token_positions_in,
     GrowableArray<intptr_t>* record_yield_positions_in) {
   record_token_positions_into_ = record_token_positions_in;
   record_yield_positions_into_ = record_yield_positions_in;
   record_for_script_id_ = script_index;
   current_script_id_ = initial_script_index;
+
+  SetOffset(kernel_offset);
 
   const Tag tag = PeekTag();
   if (tag == kProcedure) {

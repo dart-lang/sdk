@@ -1648,7 +1648,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           getter.set_result_type(type);
           getter.set_is_debuggable(false);
           getter.set_kernel_offset(field.kernel_offset());
-          getter.set_kernel_data(TypedData::Handle(zone, field.kernel_data()));
           cls.AddFunction(getter);
           field.SetStaticValue(Object::sentinel(), true);
         }

@@ -1589,6 +1589,17 @@ class PatchClass : public Object {
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
   RawClass* origin_class() const { return raw_ptr()->origin_class_; }
   RawScript* script() const { return raw_ptr()->script_; }
+  RawTypedData* library_kernel_data() const {
+    return raw_ptr()->library_kernel_data_;
+  }
+  void set_library_kernel_data(const TypedData& data) const;
+
+  intptr_t library_kernel_offset() const {
+    return raw_ptr()->library_kernel_offset_;
+  }
+  void set_library_kernel_offset(intptr_t offset) const {
+    StoreNonPointer(&raw_ptr()->library_kernel_offset_, offset);
+  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawPatchClass));
@@ -2410,8 +2421,9 @@ class Function : public Object {
     set_optimized_call_site_count(value);
   }
 
-  RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
-  void set_kernel_data(const TypedData& data) const;
+  intptr_t KernelDataProgramOffset() const;
+
+  RawTypedData* KernelData() const;
 
   bool IsOptimizable() const;
   void SetIsOptimizable(bool value) const;
@@ -2985,14 +2997,15 @@ class Field : public Object {
 #endif
   }
 
-  void set_kernel_offset(intptr_t kernel_offset) const {
+  void set_kernel_offset(intptr_t offset) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    StoreNonPointer(&raw_ptr()->kernel_offset_, kernel_offset);
+    StoreNonPointer(&raw_ptr()->kernel_offset_, offset);
 #endif
   }
 
-  RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
-  void set_kernel_data(const TypedData& data) const;
+  RawTypedData* KernelData() const;
+
+  intptr_t KernelDataProgramOffset() const;
 
   inline intptr_t Offset() const;
   // Called during class finalization.
@@ -3652,16 +3665,13 @@ class Library : public Object {
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset = 0,
-                        const TypedData* kernel_data = NULL) const;
+                        intptr_t kernel_offset = 0) const;
   void AddFieldMetadata(const Field& field,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset = 0,
-                        const TypedData* kernel_data = NULL) const;
+                        intptr_t kernel_offset = 0) const;
   void AddFunctionMetadata(const Function& func,
                            TokenPosition token_pos,
-                           intptr_t kernel_offset = 0,
-                           const TypedData* kernel_data = NULL) const;
+                           intptr_t kernel_offset = 0) const;
   void AddLibraryMetadata(const Object& tl_owner,
                           TokenPosition token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
@@ -3733,6 +3743,14 @@ class Library : public Object {
   bool IsCoreLibrary() const { return raw() == CoreLibrary(); }
 
   inline intptr_t UrlHash() const;
+
+  RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
+  void set_kernel_data(const TypedData& data) const;
+
+  intptr_t kernel_offset() const { return raw_ptr()->kernel_offset_; }
+  void set_kernel_offset(intptr_t offset) {
+    StoreNonPointer(&raw_ptr()->kernel_offset_, offset);
+  }
 
   static RawLibrary* LookupLibrary(Thread* thread, const String& url);
   static RawLibrary* GetLibrary(intptr_t index);
@@ -3839,8 +3857,7 @@ class Library : public Object {
   void AddMetadata(const Object& owner,
                    const String& name,
                    TokenPosition token_pos,
-                   intptr_t kernel_offset = 0,
-                   const TypedData* kernel_data = NULL) const;
+                   intptr_t kernel_offset = 0) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 

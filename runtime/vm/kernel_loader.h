@@ -128,8 +128,7 @@ class KernelLoader {
 
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
-                              FieldHelper* field_helper,
-                              intptr_t field_offset);
+                              FieldHelper* field_helper);
 
   void SetupFieldAccessorFunction(const Class& klass, const Function& function);
 
@@ -148,6 +147,8 @@ class KernelLoader {
   Array& scripts_;
   Array& patch_classes_;
   ActiveClass active_class_;
+  intptr_t library_kernel_offset_;
+  TypedData& library_kernel_data_;
   BuildingTranslationHelper translation_helper_;
   StreamingFlowGraphBuilder builder_;
 

@@ -430,7 +430,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
     objects_.Add(cls);
 
     RawObject** from = cls->from();
-    RawObject** to = cls->to();
+    RawObject** to = cls->to_snapshot(s->kind());
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
@@ -451,10 +451,12 @@ class PatchClassSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       RawPatchClass* cls = objects_[i];
       RawObject** from = cls->from();
-      RawObject** to = cls->to();
+      RawObject** to = cls->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
+
+      s->Write<int32_t>(cls->ptr()->library_kernel_offset_);
     }
   }
 
@@ -487,10 +489,16 @@ class PatchClassDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(cls, kPatchClassCid,
                                      PatchClass::InstanceSize(), is_vm_object);
       RawObject** from = cls->from();
+      RawObject** to_snapshot = cls->to_snapshot(d->kind());
       RawObject** to = cls->to();
-      for (RawObject** p = from; p <= to; p++) {
+      for (RawObject** p = from; p <= to_snapshot; p++) {
         *p = d->ReadRef();
       }
+      for (RawObject** p = to_snapshot + 1; p <= to; p++) {
+        *p = Object::null();
+      }
+
+      cls->ptr()->library_kernel_offset_ = d->Read<int32_t>();
     }
   }
 };
@@ -940,7 +948,6 @@ class FieldSerializationCluster : public SerializationCluster {
     s->Push(field->ptr()->name_);
     s->Push(field->ptr()->owner_);
     s->Push(field->ptr()->type_);
-    s->Push(field->ptr()->kernel_data_);
     // Write out the initial static value or field offset.
     if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
       if (kind == Snapshot::kFullAOT) {
@@ -991,7 +998,6 @@ class FieldSerializationCluster : public SerializationCluster {
       s->WriteRef(field->ptr()->name_);
       s->WriteRef(field->ptr()->owner_);
       s->WriteRef(field->ptr()->type_);
-      s->WriteRef(field->ptr()->kernel_data_);
       // Write out the initial static value or field offset.
       if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
         if (kind == Snapshot::kFullAOT) {
@@ -1366,7 +1372,7 @@ class LibrarySerializationCluster : public SerializationCluster {
     objects_.Add(lib);
 
     RawObject** from = lib->from();
-    RawObject** to = lib->to_snapshot();
+    RawObject** to = lib->to_snapshot(s->kind());
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
@@ -1387,12 +1393,13 @@ class LibrarySerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       RawLibrary* lib = objects_[i];
       RawObject** from = lib->from();
-      RawObject** to = lib->to_snapshot();
+      RawObject** to = lib->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
 
       s->Write<int32_t>(lib->ptr()->index_);
+      s->Write<int32_t>(lib->ptr()->kernel_offset_);
       s->Write<uint16_t>(lib->ptr()->num_imports_);
       s->Write<int8_t>(lib->ptr()->load_state_);
       s->Write<bool>(lib->ptr()->corelib_imported_);
@@ -1429,7 +1436,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(lib, kLibraryCid, Library::InstanceSize(),
                                      is_vm_object);
       RawObject** from = lib->from();
-      RawObject** to_snapshot = lib->to_snapshot();
+      RawObject** to_snapshot = lib->to_snapshot(d->kind());
       RawObject** to = lib->to();
       for (RawObject** p = from; p <= to_snapshot; p++) {
         *p = d->ReadRef();
@@ -1441,6 +1448,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->ptr()->native_entry_resolver_ = NULL;
       lib->ptr()->native_entry_symbol_resolver_ = NULL;
       lib->ptr()->index_ = d->Read<int32_t>();
+      lib->ptr()->kernel_offset_ = d->Read<int32_t>();
       lib->ptr()->num_imports_ = d->Read<uint16_t>();
       lib->ptr()->load_state_ = d->Read<int8_t>();
       lib->ptr()->corelib_imported_ = d->Read<bool>();

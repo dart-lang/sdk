@@ -2764,7 +2764,6 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_parameter_names(Object::extractor_parameter_names());
   extractor.set_result_type(Object::dynamic_type());
   extractor.set_kernel_offset(kernel_offset());
-  extractor.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
@@ -5234,6 +5233,10 @@ void PatchClass::set_script(const Script& value) const {
   StorePointer(&raw_ptr()->script_, value.raw());
 }
 
+void PatchClass::set_library_kernel_data(const TypedData& data) const {
+  StorePointer(&raw_ptr()->library_kernel_data_, data.raw());
+}
+
 intptr_t Function::Hash() const {
   return String::HashRawSymbol(name());
 }
@@ -5992,10 +5995,6 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
                                   : -num_optional_parameters);
 }
 
-void Function::set_kernel_data(const TypedData& data) const {
-  StorePointer(&raw_ptr()->kernel_data_, data.raw());
-}
-
 bool Function::IsOptimizable() const {
   if (FLAG_precompiled_mode) {
     return true;
@@ -6720,7 +6719,6 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_inlining_depth(0);
   clone.set_optimized_call_site_count(0);
   clone.set_kernel_offset(kernel_offset());
-  clone.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
@@ -6905,7 +6903,6 @@ RawFunction* Function::ImplicitClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
   closure_function.set_kernel_offset(kernel_offset());
-  closure_function.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
@@ -7063,7 +7060,6 @@ RawFunction* Function::ConvertedClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
   closure_function.set_kernel_offset(kernel_offset());
-  closure_function.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
@@ -7341,6 +7337,38 @@ RawScript* Function::script() const {
   }
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).script();
+}
+
+RawTypedData* Function::KernelData() const {
+  if (IsClosureFunction()) {
+    Function& parent = Function::Handle(parent_function());
+    ASSERT(!parent.IsNull());
+    return parent.KernelData();
+  }
+
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    Library& lib = Library::Handle(Class::Cast(obj).library());
+    return lib.kernel_data();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).library_kernel_data();
+}
+
+intptr_t Function::KernelDataProgramOffset() const {
+  if (IsClosureFunction()) {
+    Function& parent = Function::Handle(parent_function());
+    ASSERT(!parent.IsNull());
+    return parent.KernelDataProgramOffset();
+  }
+
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    Library& lib = Library::Handle(Class::Cast(obj).library());
+    return lib.kernel_offset();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).library_kernel_offset();
 }
 
 bool Function::HasOptimizedCode() const {
@@ -7798,10 +7826,6 @@ void Field::set_name(const String& value) const {
   StorePointer(&raw_ptr()->name_, value.raw());
 }
 
-void Field::set_kernel_data(const TypedData& data) const {
-  StorePointer(&raw_ptr()->kernel_data_, data.raw());
-}
-
 RawObject* Field::RawOwner() const {
   if (IsOriginal()) {
     return raw_ptr()->owner_;
@@ -7846,6 +7870,26 @@ RawScript* Field::Script() const {
   }
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).script();
+}
+
+RawTypedData* Field::KernelData() const {
+  const Object& obj = Object::Handle(this->raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    Library& library = Library::Handle(Class::Cast(obj).library());
+    return library.kernel_data();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).library_kernel_data();
+}
+
+intptr_t Field::KernelDataProgramOffset() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    Library& lib = Library::Handle(Class::Cast(obj).library());
+    return lib.kernel_offset();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).library_kernel_offset();
 }
 
 // Called at finalization time
@@ -9891,6 +9935,10 @@ void Library::set_url(const String& name) const {
   StorePointer(&raw_ptr()->url_, name.raw());
 }
 
+void Library::set_kernel_data(const TypedData& data) const {
+  StorePointer(&raw_ptr()->kernel_data_, data.raw());
+}
+
 void Library::SetName(const String& name) const {
   // Only set name once.
   ASSERT(!Loaded());
@@ -10063,8 +10111,7 @@ static RawString* MakeTypeParameterMetaName(Thread* thread,
 void Library::AddMetadata(const Object& owner,
                           const String& name,
                           TokenPosition token_pos,
-                          intptr_t kernel_offset,
-                          const TypedData* kernel_data) const {
+                          intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
@@ -10078,9 +10125,6 @@ void Library::AddMetadata(const Object& owner,
   field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
   field.set_kernel_offset(kernel_offset);
-  if (kernel_data != NULL) {
-    field.set_kernel_data(*kernel_data);
-  }
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(zone, this->metadata());
   metadata.Add(field, Heap::kOld);
@@ -10089,37 +10133,34 @@ void Library::AddMetadata(const Object& owner,
 void Library::AddClassMetadata(const Class& cls,
                                const Object& tl_owner,
                                TokenPosition token_pos,
-                               intptr_t kernel_offset,
-                               const TypedData* kernel_data) const {
+                               intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
   AddMetadata(tl_owner,
               String::Handle(zone, MakeClassMetaName(thread, zone, cls)),
-              token_pos, kernel_offset, kernel_data);
+              token_pos, kernel_offset);
 }
 
 void Library::AddFieldMetadata(const Field& field,
                                TokenPosition token_pos,
-                               intptr_t kernel_offset,
-                               const TypedData* kernel_data) const {
+                               intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, field.RawOwner()),
               String::Handle(zone, MakeFieldMetaName(thread, zone, field)),
-              token_pos, kernel_offset, kernel_data);
+              token_pos, kernel_offset);
 }
 
 void Library::AddFunctionMetadata(const Function& func,
                                   TokenPosition token_pos,
-                                  intptr_t kernel_offset,
-                                  const TypedData* kernel_data) const {
+                                  intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, func.RawOwner()),
               String::Handle(zone, MakeFunctionMetaName(thread, zone, func)),
-              token_pos, kernel_offset, kernel_data);
+              token_pos, kernel_offset);
 }
 
 void Library::AddTypeParameterMetadata(const TypeParameter& param,

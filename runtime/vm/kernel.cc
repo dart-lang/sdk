@@ -20,9 +20,10 @@ bool FieldHasFunctionLiteralInitializer(const Field& field,
       Thread::Current(), script.kernel_string_offsets(),
       script.kernel_string_data(), script.kernel_canonical_names());
 
-  StreamingFlowGraphBuilder builder(
-      &translation_helper, field.Script(), zone, field.kernel_offset(),
-      TypedData::Handle(zone, field.kernel_data()));
+  StreamingFlowGraphBuilder builder(&translation_helper, field.Script(), zone,
+                                    TypedData::Handle(zone, field.KernelData()),
+                                    field.KernelDataProgramOffset());
+  builder.SetOffset(field.kernel_offset());
   kernel::FieldHelper field_helper(&builder);
   field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
   return field_helper.FieldHasFunctionLiteralInitializer(start, end);

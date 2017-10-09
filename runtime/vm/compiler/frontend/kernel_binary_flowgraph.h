@@ -561,9 +561,7 @@ class StreamingDartTypeTranslator {
 
 class StreamingScopeBuilder {
  public:
-  StreamingScopeBuilder(ParsedFunction* parsed_function,
-                        intptr_t relative_kernel_offset,
-                        const TypedData& data);
+  explicit StreamingScopeBuilder(ParsedFunction* parsed_function);
 
   virtual ~StreamingScopeBuilder();
 
@@ -648,7 +646,6 @@ class StreamingScopeBuilder {
 
   ScopeBuildingResult* result_;
   ParsedFunction* parsed_function_;
-  intptr_t relative_kernel_offset_;
 
   ActiveClass active_class_;
 
@@ -778,8 +775,8 @@ class StreamingConstantEvaluator {
 class StreamingFlowGraphBuilder {
  public:
   StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            intptr_t relative_kernel_offset,
-                            const TypedData& data)
+                            const TypedData& data,
+                            intptr_t data_program_offset)
       : flow_graph_builder_(flow_graph_builder),
         translation_helper_(flow_graph_builder->translation_helper_),
         zone_(flow_graph_builder->zone_),
@@ -787,7 +784,7 @@ class StreamingFlowGraphBuilder {
         script_(parsed_function()->function().script()),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
-        relative_kernel_offset_(relative_kernel_offset),
+        data_program_offset_(data_program_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -795,16 +792,17 @@ class StreamingFlowGraphBuilder {
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             Zone* zone,
-                            const uint8_t* buffer,
-                            intptr_t buffer_length)
+                            const uint8_t* data_buffer,
+                            intptr_t buffer_length,
+                            intptr_t data_program_offset)
       : flow_graph_builder_(NULL),
         translation_helper_(*translation_helper),
         zone_(zone),
-        reader_(new Reader(buffer, buffer_length)),
+        reader_(new Reader(data_buffer, buffer_length)),
         script_(Script::null()),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
-        relative_kernel_offset_(0),
+        data_program_offset_(data_program_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -813,8 +811,8 @@ class StreamingFlowGraphBuilder {
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             RawScript* script,
                             Zone* zone,
-                            intptr_t relative_kernel_offset,
-                            const TypedData& data)
+                            const TypedData& data,
+                            intptr_t data_program_offset)
       : flow_graph_builder_(NULL),
         translation_helper_(*translation_helper),
         zone_(zone),
@@ -822,7 +820,7 @@ class StreamingFlowGraphBuilder {
         script_(script),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
-        relative_kernel_offset_(relative_kernel_offset),
+        data_program_offset_(data_program_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -838,12 +836,14 @@ class StreamingFlowGraphBuilder {
   void CollectTokenPositionsFor(
       intptr_t script_index,
       intptr_t initial_script_index,
+      intptr_t kernel_offset,
       GrowableArray<intptr_t>* record_token_positions_in,
       GrowableArray<intptr_t>* record_yield_positions_in);
   intptr_t SourceTableSize();
   String& SourceTableUriFor(intptr_t index);
   String& GetSourceFor(intptr_t index);
   Array& GetLineStartsFor(intptr_t index);
+  void SetOffset(intptr_t offset);
 
  private:
   void DiscoverEnclosingElements(Zone* zone,
@@ -870,7 +870,6 @@ class StreamingFlowGraphBuilder {
   Fragment BuildStatement();
 
   intptr_t ReaderOffset();
-  void SetOffset(intptr_t offset);
   void SkipBytes(intptr_t skip);
   bool ReadBool();
   uint8_t ReadByte();
@@ -1134,7 +1133,13 @@ class StreamingFlowGraphBuilder {
   RawScript* script_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;
-  intptr_t relative_kernel_offset_;
+  // Some items like variables are specified in the kernel binary as
+  // absolute offsets (as in, offsets within the whole kernel program)
+  // of their declaration nodes. Hence, to cache and/or access them
+  // uniquely from within a function's kernel data, we need to
+  // add/subtract the offset of the kernel data in the over all
+  // kernel program.
+  intptr_t data_program_offset_;
   intptr_t current_script_id_;
   intptr_t record_for_script_id_;
   GrowableArray<intptr_t>* record_token_positions_into_;
