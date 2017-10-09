@@ -265,5 +265,6 @@ number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
 overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 prefix10_negative_test: Skip # Issue 29920
+switch_try_catch_test: RuntimeError # Issue 29920
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out

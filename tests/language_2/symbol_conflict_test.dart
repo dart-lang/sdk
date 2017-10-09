@@ -13,7 +13,7 @@ class A {
 }
 
 main() {
-  var a = new A();
+  var a = new A() as dynamic;
   a.foo = 23;
   a.foo;
   a.bar;

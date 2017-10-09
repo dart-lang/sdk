@@ -242,7 +242,6 @@ switch7_negative_test: Skip
 switch_bad_case_test: Skip
 switch_case_test: Skip
 switch_fallthru_test: Skip
-symbol_conflict_test: Skip
 symbol_literal_test: Skip
 sync_generator1_test: Skip
 sync_generator2_test: Skip
@@ -331,7 +330,6 @@ stack_overflow_test: RuntimeError # Issue 29920
 stacktrace_test: RuntimeError # Issue 29920
 switch_label2_test: RuntimeError # Issue 29920
 switch_label_test: RuntimeError # Issue 29920
-switch_try_catch_test: RuntimeError # Issue 29920
 truncdiv_test: RuntimeError # Issue 29920
 
 # This test does not generate the expected compile time error, but it also does

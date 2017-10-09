@@ -1409,6 +1409,7 @@ override_inheritance_mixed_test/09: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
+symbol_conflict_test: RuntimeError
 type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
 type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
@@ -1512,3 +1513,6 @@ round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && $runtime == ff ]
 round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
+
+[ $compiler == dart2js && $minified && ! $dart2js_with_kernel ]
+symbol_conflict_test: RuntimeError # Issue 23857
