@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'buildbucket_api.dart';
 
 /// Get builds from Gerrit with a [changeNumber] and [patchSet].
-Future<List<BuildBucketBuild>> buildsFromDartReview(
+Future<List<BuildBucketBuild>> buildsFromGerrit(
     int changeNumber, int patchset) {
   var api = new BuildBucketApi();
   var result = api.search("buildset:patch/gerrit/dart-review.googlesource.com/"
@@ -23,6 +23,9 @@ Future<List<BuildBucketBuild>> buildsFromSwarmingTaskId(String swarmingTaskId) {
 }
 
 List<BuildBucketBuild> _buildsFromJson(Map json) {
+  if (json == null || !json.containsKey("builds")) {
+    return null;
+  }
   return json["builds"].map((build) {
     var tags = build["tags"];
     return new BuildBucketBuild(

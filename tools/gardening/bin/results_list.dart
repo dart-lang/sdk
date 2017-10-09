@@ -51,7 +51,6 @@ models.Configuration getConfigurationFromArguments(ArgResults argResults) {
       argResults["fast-startup"],
       0,
       argResults["dart2js-with-kernel"],
-      argResults["dart2js-with-kernel-in-ssa"],
       argResults["enable-asserts"],
       argResults["hot-reload"],
       argResults["hot-reload-rollback"],

@@ -4,6 +4,8 @@
 
 /// [Configuration] holds information about a specific configuration, parsed
 /// from a JSON result.log file.
+/// TODO(mkroghj): Needs a shared package to keep information in sync with
+/// test.py.
 class Configuration {
   final String mode;
   final String arch;
@@ -77,7 +79,7 @@ class Configuration {
 
   /// Returns the arguments needed for running test.py with the arguments
   /// corresponding to this configuration.
-  List<String> toArgs() {
+  List<String> toArgs({includeSelectors: true}) {
     var args = [
       _stringToArg("mode", mode),
       _stringToArg("arch", arch),
@@ -99,7 +101,7 @@ class Configuration {
       _boolToArg("hot-reload-rollback", hotReloadRollback),
       _boolToArg("preview-dart-2", previewDart2)
     ].where((x) => x != null).toList();
-    if (selectors != null && selectors.length > 0) {
+    if (includeSelectors && selectors != null && selectors.length > 0) {
       args.addAll(selectors);
     }
     return args;
@@ -138,14 +140,19 @@ class Result {
   String configuration;
   final String name;
   final String result;
+  final bool flaky;
+  final bool negative;
+  final List<String> testExpectations;
   final List<Command> commands;
 
-  Result(this.configuration, this.name, this.result, this.commands);
+  Result(this.configuration, this.name, this.result, this.flaky, this.negative,
+      this.testExpectations, this.commands);
 
   static Result getFromJson(dynamic json) {
     var commands = json["commands"].map((x) => Command.getFromJson(x)).toList();
-    return new Result(
-        json["configuration"], json["name"], json["result"], commands);
+    var testExpectations = json["test_expectation"];
+    return new Result(json["configuration"], json["name"], json["result"],
+        json["flaky"], json["negative"], testExpectations, commands);
   }
 }
 
@@ -192,5 +199,37 @@ class TestResult {
   List<Result> get results {
     return _results ??=
         this.jsonObject["results"].map((x) => Result.getFromJson(x)).toList();
+  }
+
+  /// Combines multiple test-results into a single test-result, potentially by
+  /// giving new names to later configurations.
+  void combineWith(Iterable<TestResult> results) {
+    results.forEach((tr) {
+      Map<String, String> translatedConfigurations = {};
+      for (var confKey in tr.configurations.keys) {
+        var newKey = _findExistingConfiguration(
+            tr.configurations[confKey], this.configurations);
+        newKey ??= "conf${this.configurations.length + 1}";
+        translatedConfigurations[confKey] = newKey;
+        this.configurations[newKey] = tr.configurations[confKey];
+      }
+      this.results.addAll(tr.results.map((res) {
+        res.configuration = translatedConfigurations[res.configuration];
+        return res;
+      }));
+    });
+  }
+
+  /// Finds an existing configuration based on the arguments passed to test.py.
+  String _findExistingConfiguration(Configuration configurationToFind,
+      Map<String, Configuration> existingConfigurations) {
+    String thisArgs = configurationToFind.toArgs().join();
+    for (var confKey in existingConfigurations.keys) {
+      String confArgs = existingConfigurations[confKey].toArgs().join();
+      if (confArgs == thisArgs) {
+        return confKey;
+      }
+    }
+    return null;
   }
 }
