@@ -25,6 +25,7 @@ html/no_linked_scripts_htmltest: Skip # Issue 29919
 html/scripts_htmltest: Skip # Issue 29919
 html/transferables_test: CompileTimeError # Issue 30975
 html/two_scripts_htmltest: Skip # Issue 29919
+html/websql_test: Pass, RuntimeError # Issue 31036
 isolate/*: SkipByDesign  # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 js/null_test: RuntimeError # Issue 30652
 math/double_pow_test: RuntimeError # Issue 29922
