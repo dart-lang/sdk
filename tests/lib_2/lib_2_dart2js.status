@@ -150,9 +150,6 @@ html/input_element_attributes_test: RuntimeError
 html/interactive_media_test: RuntimeError
 html/js_extend_class_test: RuntimeError
 
-[ $compiler == dart2js && $runtime != d8 && $system == linux ]
-html/interactive_media_test: RuntimeError
-
 [ $compiler == dart2js && $fast_startup ]
 html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
 html/custom/document_register_basic_test: Pass, Slow, RuntimeError # Slow and sometimes times out
