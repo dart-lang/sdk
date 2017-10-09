@@ -141,13 +141,13 @@ isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
 [ $compiler == dart2js && $runtime != d8 ]
 html/input_element_attributes_test: RuntimeError
-html/html_mock_test: RuntimeError # Issue 31038
 isolate/error_exit_at_spawn_test: Skip # Issue 23876
 isolate/error_at_spawn_test: Skip # Issue 23876
 isolate/exit_at_spawn_test: Skip # Issue 23876
 isolate/message4_test: Skip # Issue 30247
 
 [ $compiler == dart2js && ($runtime != d8 && $runtime != jsshell) ]
+html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
 html/interactive_media_test: RuntimeError
 html/js_extend_class_test: RuntimeError
