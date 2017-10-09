@@ -52,6 +52,7 @@ regress_26031_test: Skip # Platform.resolvedExecutable
 [ $system == android ]
 io/process_exit_test: Skip # Issue 29578
 io/process_path_test: Skip # Issue 26376
+io/process_segfault_test: Skip # Issue 26376
 io/file_test: Skip # Issue 26376
 io/process_path_environment_test: Skip # Issue 26376
 io/file_system_watcher_test: Skip # Issue 26376
