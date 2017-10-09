@@ -146,11 +146,11 @@ html/deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 html/event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
 html/element_test/click: Fail # IE does not support firing this event.
 html/indexeddb_5_test: Fail # Issue 12893
-html/input_element_test/supported_date: Fail
-html/input_element_test/supported_datetime-local: Fail
-html/input_element_test/supported_month: Fail
-html/input_element_test/supported_time: Fail
-html/input_element_test/supported_week: Fail
+html/input_element_date_test: Fail
+html/input_element_datetime_test: Fail
+html/input_element_month_test: Fail
+html/input_element_time_test: Fail
+html/input_element_week_test: Fail
 html/js_util_test/callConstructor: RuntimeError # Issue 26978
 html/localstorage_test: Pass, RuntimeError # Issue 22166
 html/media_stream_test: Pass, Fail
@@ -202,11 +202,11 @@ html/indexeddb_2_test: RuntimeError # Issue 21433
 html/indexeddb_3_test: Skip # Times out 1 out of 10.
 html/indexeddb_4_test: RuntimeError # Issue 21433
 html/indexeddb_5_test: RuntimeError # Issue 21433
-html/input_element_test/supported_month: RuntimeError
-html/input_element_test/supported_time: RuntimeError
-html/input_element_test/supported_week: RuntimeError
-html/input_element_test/supported_date: Fail
-html/input_element_test/supported_datetime-local: Fail
+html/input_element_month_test: RuntimeError
+html/input_element_time_test: RuntimeError
+html/input_element_week_test: RuntimeError
+html/input_element_date_test: Fail
+html/input_element_datetime_test: Fail
 html/notification_test: Fail # Safari doesn't let us access the fields of the Notification to verify them.
 html/touchevent_test: Fail # Safari does not support TouchEvents
 

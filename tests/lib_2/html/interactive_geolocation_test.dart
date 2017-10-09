@@ -13,24 +13,22 @@ import 'utils.dart';
 main() {
   useHtmlIndividualConfiguration();
 
-  group('GeoLocation', () {
-    test('getCurrentPosition', () {
-      return window.navigator.geolocation.getCurrentPosition().then((position) {
-        expect(position.coords.latitude, isNotNull);
-        expect(position.coords.longitude, isNotNull);
-        expect(position.coords.accuracy, isNotNull);
-      });
+  test('getCurrentPosition', () {
+    return window.navigator.geolocation.getCurrentPosition().then((position) {
+      expect(position.coords.latitude, isNotNull);
+      expect(position.coords.longitude, isNotNull);
+      expect(position.coords.accuracy, isNotNull);
     });
+  });
 
-    test('watchPosition', () {
-      return window.navigator.geolocation
-          .watchPosition()
-          .first
-          .then((position) {
-        expect(position.coords.latitude, isNotNull);
-        expect(position.coords.longitude, isNotNull);
-        expect(position.coords.accuracy, isNotNull);
-      });
+  test('watchPosition', () {
+    return window.navigator.geolocation
+        .watchPosition()
+        .first
+        .then((position) {
+      expect(position.coords.latitude, isNotNull);
+      expect(position.coords.longitude, isNotNull);
+      expect(position.coords.accuracy, isNotNull);
     });
   });
 }
