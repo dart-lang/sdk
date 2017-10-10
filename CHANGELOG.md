@@ -24,16 +24,18 @@
     methods are now supported on iOS and OSX.
   * Deprecated `SecurityContext.alpnSupported` as ALPN is now supported on all
     platforms.
-  * Added 'timeout' parameter to 'Socket.connect', 'RawSocket.connect',
-    'SecureSocket.connect' and 'RawSecureSocket.connect. If a connection attempt
-    takes longer than the duration specified in 'timeout', a 'SocketException'
-    will be thrown. Note: if the duration specified in 'timeout' is greater than
-    the system level timeout duration, a timeout may occur sooner than specified
-    in 'timeout'.
+  * Added a `timeout` parameter to `Socket.connect`, `RawSocket.connect`,
+    `SecureSocket.connect` and `RawSecureSocket.connect`. If a connection attempt
+    takes longer than the duration specified in `timeout`, a `SocketException`
+    will be thrown. Note: if the duration specified in `timeout` is greater than
+    the OS level timeout, a timeout may occur sooner than specified in
+    `timeout`.
   * Added `Platform.operatingSystemVersion` that gives a platform-specific
     String describing the version of the operating system.
   * Added `RawZLibFilter` for low-level access to compression and
-    decompression.
+    decompression routines.
+  * Added `IoOverrides` and `HttpOverrides` to aid in writing tests that wish to
+    mock varios `dart:io` objects.
 
 * `dart:core`
   * The `Uri` class now correctly handles paths while running on Node.js on
