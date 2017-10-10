@@ -99,6 +99,11 @@ profiler/metrics_num_test: Skip # Because of an int / double type test.
 typed_data/int32x4_bigint_test: RuntimeError # Issue 1533
 typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
+html/fileapi_directory_reader_test: Pass, Timeout # Roll 50 failure
+html/fileapi_entry_test: Pass, Timeout # Roll 50 failure
+html/fileapi_file_entry_test: Pass, Timeout # Roll 50 failure
+html/fileapi_directory_test: Pass, Timeout # Roll 50 failure
+html/fileapi_file_test: Pass, Timeout # Roll 50 failure
 
 [ $compiler == dart2js ]
 async/future_or_strong_test: RuntimeError
@@ -138,6 +143,10 @@ convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 2
 isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && ( $runtime == d8 || $runtime == jsshell ) ]
+html/fileapi_entry_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
+html/fileapi_file_entry_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
+html/fileapi_directory_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
+html/fileapi_file_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
 [ $compiler == dart2js && $runtime != d8 ]
@@ -147,6 +156,7 @@ isolate/exit_at_spawn_test: Skip # Issue 23876
 isolate/message4_test: Skip # Issue 30247
 
 [ $compiler == dart2js && ($runtime != d8 && $runtime != jsshell) ]
+html/fontface_loaded_test: RuntimeError
 html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
 html/interactive_media_test: RuntimeError
@@ -198,6 +208,7 @@ html/js_typed_interop_lazy_test/01: RuntimeError
 html/private_extension_member_test: RuntimeError
 isolate/isolate_stress_test: Pass, Slow # Issue 10697
 js/null_test: RuntimeError # Issue 30652
+html/fontface_loaded_test: Fail # Support for promises.
 
 [ $compiler == dart2js && $csp && $browser ]
 html/custom/element_upgrade_test: Fail # Issue 17298
@@ -205,6 +216,7 @@ html/custom/js_custom_test: Fail # Issue 14643
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
+html/fontface_test: Fail # Fontface not supported on these.
 
 [ $compiler == dart2js && $fast_startup ]
 html/mirrors_js_typed_interop_test: Fail # mirrors not supported
@@ -282,6 +294,13 @@ html/element_types_template_test: Crash
 html/element_types_track_test: Crash
 html/event_customevent_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/event_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/exceptions_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/filereader_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/filteredelementlist_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/fontface_loaded_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/fontface_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/form_data_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/form_element_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/gamepad_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/geolocation_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/hidden_dom_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -462,6 +481,22 @@ html/element_types_template_test: RuntimeError # Issue 29922
 html/element_types_track_test: RuntimeError # Issue 29922
 html/event_customevent_test: RuntimeError
 html/event_test: RuntimeError
+html/exceptions_test: RuntimeError
+html/fileapi_directory_reader_test: RuntimeError
+html/fileapi_entry_test: RuntimeError
+html/fileapi_file_entry_test: RuntimeError
+html/fileapi_directory_test: RuntimeError
+html/fileapi_file_test: RuntimeError
+html/fileapi_supported_test: RuntimeError
+html/fileapi_supported_test: RuntimeError
+html/filereader_test: RuntimeError
+html/filteredelementlist_test: RuntimeError
+html/fontface_loaded_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/fontface_test: RuntimeError
+html/form_data_test/functional: RuntimeError
+html/form_data_test/supported: RuntimeError
+html/form_data_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/form_element_test: RuntimeError
 html/gamepad_test: RuntimeError
 html/geolocation_test: RuntimeError
 html/hidden_dom_1_test: RuntimeError
@@ -624,6 +659,9 @@ html/element_types_keygen_test: RuntimeError # Issue 29055
 html/media_stream_test: RuntimeError # Please triage.
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/kill_self_synchronously_test: RuntimeError
+html/fileapi_entry_test: Pass, Fail # TODO(dart2js-team): Please triage this failure.
+html/fileapi_directory_test: Fail # TODO(dart2js-team): Please triage this failure.
+html/fileapi_file_test: Fail # TODO(dart2js-team): Please triage this failure.
 
 [ $compiler == dart2js && $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
@@ -695,3 +733,6 @@ html/interactive_geolocation_test: Skip # Requires allowing geo location.
 
 [  $compiler == dart2js && $runtime == ff ]
 html/history_test/history: Skip # Issue 22050
+
+[  $compiler == dart2js && $runtime == ff ]
+html/fileapi_supported_throws_test: Fail

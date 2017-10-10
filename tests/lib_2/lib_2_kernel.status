@@ -203,6 +203,11 @@ mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
+html/exceptions_test: DartkCompileTimeError
+html/filteredelementlist_test: DartkCompileTimeError
+html/fontface_test: DartkCompileTimeError
+html/form_data_test: DartkCompileTimeError
+html/form_element_test: DartkCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash

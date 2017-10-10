@@ -32,9 +32,6 @@ html/custom/document_register_type_extensions_test: CompileTimeError # Issue 289
 html/custom/element_upgrade_test: CompileTimeError # Issue 28969
 html/element_dimensions_test: Skip
 html/events_test: Skip
-html/fileapi_test: Skip
-html/filereader_test: Skip
-html/fontface_loaded_test: Skip
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
 html/wrapping_collections_test: Skip
 mirrors/circular_factory_redirection_test: Skip

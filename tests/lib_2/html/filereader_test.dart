@@ -34,7 +34,7 @@ main() {
   test('readDataUrl', () {
     var reader = new FileReader();
     reader.onLoad.listen(expectAsync((event) {
-      var result = reader.result;
+      String result = reader.result;
       expect(result is String, isTrue);
       expect(result.startsWith('data:'), isTrue);
     }));

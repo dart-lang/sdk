@@ -34,7 +34,7 @@ main() {
 
   test('document fonts - temporary', () {
     var atLeastOneFont = false;
-    var loaded = [];
+    var loaded = <Future>[];
     document.fonts.forEach((FontFace fontFace, _, __) {
       atLeastOneFont = true;
       Future f1 = fontFace.loaded;
