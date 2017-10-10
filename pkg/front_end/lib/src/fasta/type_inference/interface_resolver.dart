@@ -841,5 +841,11 @@ class SyntheticAccessor extends Procedure {
       Name name, ProcedureKind kind, FunctionNode function, this._field)
       : super(name, kind, function);
 
+  @override
+  int get fileOffset => _field.fileOffset;
+
+  @override
+  String get fileUri => _field.fileUri;
+
   static getField(SyntheticAccessor accessor) => accessor._field;
 }
