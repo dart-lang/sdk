@@ -171,13 +171,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypedParameter() async {
-    return super.test_genericFunctionTypedParameter();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_getterAndMethodWithSameName() async {
     return super.test_getterAndMethodWithSameName();

@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'strong_mode_driver_test.dart';
+import 'strong_mode_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,11 +14,22 @@ main() {
   });
 }
 
+/// Tests marked with this annotations fail because we either have not triaged
+/// them, or know that this is an analyzer problem.
+const potentialAnalyzerProblem = const Object();
+
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
+}
+
 @reflectiveTest
-class StrongModeLocalInferenceTest_Kernel
-    extends StrongModeLocalInferenceTest_Driver {
+class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   @override
   bool get enableKernelDriver => true;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   @override
   @failingTest
@@ -59,9 +70,19 @@ class StrongModeLocalInferenceTest_Kernel
 
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test_Kernel
-    extends StrongModeStaticTypeAnalyzer2Test_Driver {
+    extends StrongModeStaticTypeAnalyzer2Test {
   @override
   bool get enableKernelDriver => true;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31059')
+  test_genericMethod_functionExpressionInvocation_explicit() async {
+    return super.test_genericMethod_functionExpressionInvocation_explicit();
+  }
 
   @override
   @failingTest
@@ -120,7 +141,10 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
 @reflectiveTest
 class StrongModeTypePropagationTest_Kernel
-    extends StrongModeTypePropagationTest_Driver {
+    extends StrongModeTypePropagationTest {
   @override
   bool get enableKernelDriver => true;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

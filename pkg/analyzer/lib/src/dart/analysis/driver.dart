@@ -1185,7 +1185,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 kernelContext.isLibraryUri,
                 kernelContext.analysisContext,
                 kernelContext.resynthesizer,
-                library);
+                library,
+                enableKernelDriver: true);
           } else {
             libraryContext = await _createLibraryContext(library);
             analyzer = new LibraryAnalyzer(

@@ -26,6 +26,8 @@ import 'package:analyzer/src/generated/resolver.dart';
  * any more complete than a [COMPILATION_UNIT_ELEMENT].
  */
 class DeclarationResolver extends RecursiveAstVisitor<Object> {
+  final bool _enableKernelDriver;
+
   /**
    * The compilation unit containing the AST nodes being visited.
    */
@@ -36,6 +38,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    * element model.
    */
   ElementWalker _walker;
+
+  DeclarationResolver({bool enableKernelDriver: false})
+      : _enableKernelDriver = enableKernelDriver;
 
   /**
    * Resolve the declarations within the given compilation [unit] to the
@@ -439,7 +444,8 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitTypeParameter(TypeParameter node) {
-    if (node.parent.parent is FunctionTypedFormalParameter) {
+    if (node.parent.parent is FunctionTypedFormalParameter &&
+        !_enableKernelDriver) {
       // Work around dartbug.com/28515.
       // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
       var element = new TypeParameterElementImpl.forNode(node.name);

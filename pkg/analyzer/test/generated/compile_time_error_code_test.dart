@@ -2593,7 +2593,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
     var expectedErrorCodes = <ErrorCode>[
       CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
     ];
-    if (enableNewAnalysisDriver) {
+    if (enableNewAnalysisDriver && !enableKernelDriver) {
       // Due to dartbug.com/28515, some additional errors appear when using the
       // new analysis driver.
       expectedErrorCodes.addAll([
