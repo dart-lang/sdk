@@ -1183,6 +1183,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleInvalidStatement(Token token, Message message) {
+    listener?.handleInvalidStatement(token, message);
+  }
+
+  @override
   void handleScript(Token token) {
     listener?.handleScript(token);
   }

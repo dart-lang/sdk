@@ -93,7 +93,6 @@ rasta/unresolved_recovery: Fail
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError
 regress/issue_29982: RuntimeError
-regress/issue_29983: Crash # Issue 29983.
 
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.

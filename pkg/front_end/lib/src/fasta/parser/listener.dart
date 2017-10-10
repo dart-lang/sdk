@@ -1165,6 +1165,14 @@ class Listener {
     recoverableErrors.add(new ParserError.fromTokens(token, token, message));
   }
 
+  /// Signals to the listener that the previous statement contained a semantic
+  /// error (described by the given [message]). This method can also be called
+  /// after [handleExpressionFunctionBody], in which case it signals that the
+  /// implicit return statement of the function contained a semantic error.
+  void handleInvalidStatement(Token token, Message message) {
+    handleRecoverableError(token, message);
+  }
+
   void handleScript(Token token) {
     logEvent("Script");
   }

@@ -2,8 +2,12 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29983.dart:6:10: Error: 'sync*' and 'async*' can't return a value.\n  return missing;\n         ^"]/* from null */;
 static method f() → dynamic sync* {
-  return throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#missing, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
+  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_29983.dart:7:3: Error: 'sync*' and 'async*' can't return a value.\n  return missing;\n  ^"));
+}
+static method g() → dynamic sync* 
+  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: 'sync*' and 'async*' can't return a value.\ng() sync* => dummy;\n             ^"));
+static method h() → dynamic sync* {
+  () → core::String => "return".call();
 }
 static method main() → dynamic {}

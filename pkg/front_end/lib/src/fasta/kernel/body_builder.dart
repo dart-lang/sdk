@@ -3125,6 +3125,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void handleInvalidStatement(Token token, Message message) {
+    Statement statement = pop();
+    push(wrapInCompileTimeErrorStatement(statement, message));
+  }
+
+  @override
   Expression deprecated_buildCompileTimeError(String error,
       [int charOffset = -1]) {
     return buildCompileTimeError(
@@ -3134,10 +3140,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression buildCompileTimeError(Message message, int charOffset,
       {LocatedMessage context}) {
-    // TODO(ahe): This method should be passed the erroneous expression, wrap
-    // it in a class (TBD) from which the erroneous expression can be easily
-    // extracted. Similar for statements and initializers. See also [issue
-    // 29717](https://github.com/dart-lang/sdk/issues/29717)
     library.addCompileTimeError(message, charOffset, uri,
         wasHandled: true, context: context);
     return new ShadowSyntheticExpression(library.loader
@@ -3146,6 +3148,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   Expression wrapInCompileTimeError(Expression expression, Message message) {
+    // TODO(askesc): Produce explicit error expression wrapping the original.
+    // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     return new Let(
         new VariableDeclaration.forValue(expression)
           ..fileOffset = expression.fileOffset,
@@ -3180,6 +3184,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       [int charOffset = -1]) {
     return new ShadowExpressionStatement(
         deprecated_buildCompileTimeError(error, charOffset));
+  }
+
+  Statement buildCompileTimeErrorStatement(Message message, int charOffset,
+      {LocatedMessage context}) {
+    return new ShadowExpressionStatement(
+        buildCompileTimeError(message, charOffset, context: context));
+  }
+
+  Statement wrapInCompileTimeErrorStatement(Statement statement,
+      Message message) {
+    // TODO(askesc): Produce explicit error statement wrapping the original.
+    // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
+    return buildCompileTimeErrorStatement(message, statement.fileOffset);
   }
 
   @override

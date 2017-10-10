@@ -3222,6 +3222,10 @@ class Parser {
       } else {
         listener.handleExpressionFunctionBody(begin, null);
       }
+      if (inGenerator) {
+        listener.handleInvalidStatement(
+            token, fasta.messageGeneratorReturnsValue);
+      }
       return token;
     } else if (optional('=', token)) {
       Token begin = token;
@@ -3303,9 +3307,7 @@ class Parser {
       }
     }
     listener.handleAsyncModifier(async, star);
-    if (inGenerator && optional('=>', token)) {
-      reportRecoverableError(token, fasta.messageGeneratorReturnsValue);
-    } else if (!inPlainSync && optional(';', token)) {
+    if (!inPlainSync && optional(';', token)) {
       reportRecoverableError(token, fasta.messageAbstractNotSync);
     }
     return token;
@@ -3415,10 +3417,11 @@ class Parser {
       listener.endReturnStatement(false, begin, token);
     } else {
       token = parseExpression(token);
-      if (inGenerator) {
-        reportRecoverableError(begin.next, fasta.messageGeneratorReturnsValue);
-      }
       listener.endReturnStatement(true, begin, token);
+      if (inGenerator) {
+        listener.handleInvalidStatement(
+            token, fasta.messageGeneratorReturnsValue);
+      }
     }
     return expectSemicolon(token);
   }
