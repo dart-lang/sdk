@@ -1902,8 +1902,11 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   bool isNativeMethod(covariant KFunction function) {
     if (!native.maybeEnableNative(function.library.canonicalUri)) return false;
     ir.Member node = elementMap._members.getData(function).definition.node;
-    return node.isExternal &&
-        !elementMap.isForeignLibrary(node.enclosingLibrary);
+    return node.annotations.any((ir.Expression expression) {
+      return expression is ir.ConstructorInvocation &&
+          elementMap.getInterfaceType(expression.constructedType) ==
+              commonElements.externalNameType;
+    });
   }
 
   @override

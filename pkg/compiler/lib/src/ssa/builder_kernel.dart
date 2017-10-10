@@ -3145,14 +3145,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void _pushStaticInvocation(
       MemberEntity target, List<HInstruction> arguments, TypeMask typeMask) {
-    HInvokeStatic instruction = new HInvokeStatic(target, arguments, typeMask,
-        targetCanThrow: !closedWorld.getCannotThrow(target));
-    if (currentImplicitInstantiations.isNotEmpty) {
-      instruction.instantiatedTypes =
-          new List<InterfaceType>.from(currentImplicitInstantiations);
-    }
-    instruction.sideEffects = closedWorld.getSideEffectsOfElement(target);
+    var instruction;
+    if (closedWorld.nativeData.isJsInteropMember(target)) {
+      instruction = _invokeJsInteropFunction(target, arguments);
+    } else {
+      instruction = new HInvokeStatic(target, arguments, typeMask,
+          targetCanThrow: !closedWorld.getCannotThrow(target));
 
+      if (currentImplicitInstantiations.isNotEmpty) {
+        instruction.instantiatedTypes =
+            new List<InterfaceType>.from(currentImplicitInstantiations);
+      }
+      instruction.sideEffects = closedWorld.getSideEffectsOfElement(target);
+    }
     push(instruction);
   }
 
@@ -3182,6 +3187,106 @@ class KernelSsaGraphBuilder extends ir.Visitor
       push(new HInvokeDynamicMethod(
           selector, mask, inputs, type, isIntercepted));
     }
+  }
+
+  HForeignCode _invokeJsInteropFunction(
+      FunctionEntity element, List<HInstruction> arguments) {
+    assert(closedWorld.nativeData.isJsInteropMember(element));
+    nativeEmitter.nativeMethods.add(element);
+
+    if (element is ConstructorEntity &&
+        element.isFactoryConstructor &&
+        nativeData.isAnonymousJsInteropClass(element.enclosingClass)) {
+      // Factory constructor that is syntactic sugar for creating a JavaScript
+      // object literal.
+      ConstructorEntity constructor = element;
+      ParameterStructure params = constructor.parameterStructure;
+      int i = 0;
+      int positions = 0;
+      var filteredArguments = <HInstruction>[];
+      var parameterNameMap = new Map<String, js.Expression>();
+      params.namedParameters.forEach((String parameterName) {
+        // TODO(jacobr): consider throwing if parameter names do not match
+        // names of properties in the class.
+        HInstruction argument = arguments[i];
+        if (argument != null) {
+          filteredArguments.add(argument);
+          var jsName = nativeData.computeUnescapedJSInteropName(parameterName);
+          parameterNameMap[jsName] = new js.InterpolatedExpression(positions++);
+        }
+        i++;
+      });
+      var codeTemplate =
+          new js.Template(null, js.objectLiteral(parameterNameMap));
+
+      var nativeBehavior = new native.NativeBehavior()
+        ..codeTemplate = codeTemplate;
+      if (options.trustJSInteropTypeAnnotations) {
+        InterfaceType thisType = _elementMap.elementEnvironment
+            .getThisType(constructor.enclosingClass);
+        nativeBehavior.typesReturned.add(thisType);
+      }
+      // TODO(efortuna): Source information.
+      return new HForeignCode(
+          codeTemplate, commonMasks.dynamicType, filteredArguments,
+          nativeBehavior: nativeBehavior);
+    }
+
+    var target = new HForeignCode(
+        js.js.parseForeignJS("${nativeData.getFixedBackendMethodPath(element)}."
+            "${nativeData.getFixedBackendName(element)}"),
+        commonMasks.dynamicType,
+        <HInstruction>[]);
+    add(target);
+    // Strip off trailing arguments that were not specified.
+    // we could assert that the trailing arguments are all null.
+    // TODO(jacobr): rewrite named arguments to an object literal matching
+    // the factory constructor case.
+    arguments = arguments.where((arg) => arg != null).toList();
+    var inputs = <HInstruction>[target]..addAll(arguments);
+
+    var nativeBehavior = new native.NativeBehavior()
+      ..sideEffects.setAllSideEffects();
+
+    DartType type = element is ConstructorEntity
+        ? _elementMap.elementEnvironment.getThisType(element.enclosingClass)
+        : _elementMap.elementEnvironment.getFunctionType(element).returnType;
+    // Native behavior effects here are similar to native/behavior.dart.
+    // The return type is dynamic if we don't trust js-interop type
+    // declarations.
+    nativeBehavior.typesReturned.add(
+        options.trustJSInteropTypeAnnotations ? type : const DynamicType());
+
+    // The allocation effects include the declared type if it is native (which
+    // includes js interop types).
+    if (type is InterfaceType && nativeData.isNativeClass(type.element)) {
+      nativeBehavior.typesInstantiated.add(type);
+    }
+
+    // It also includes any other JS interop type if we don't trust the
+    // annotation or if is declared too broad.
+    if (!options.trustJSInteropTypeAnnotations ||
+        type == commonElements.objectType ||
+        type is DynamicType) {
+      nativeBehavior.typesInstantiated.add(_elementMap.elementEnvironment
+          .getThisType(commonElements.jsJavaScriptObjectClass));
+    }
+
+    String template;
+    if (element.isGetter) {
+      template = '#';
+    } else if (element.isSetter) {
+      template = '# = #';
+    } else {
+      var args = new List.filled(arguments.length, '#').join(',');
+      template = element.isConstructor ? "new #($args)" : "#($args)";
+    }
+    js.Template codeTemplate = js.js.parseForeignJS(template);
+    nativeBehavior.codeTemplate = codeTemplate;
+
+    // TODO(efortuna): Add source information.
+    return new HForeignCode(codeTemplate, commonMasks.dynamicType, inputs,
+        nativeBehavior: nativeBehavior);
   }
 
   @override

@@ -351,7 +351,6 @@ custom/entered_left_view_test: Crash # 'file:*/pkg/compiler/lib/src/common_eleme
 custom/js_custom_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 custom/mirrors_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 custom/mirrors_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-custom/regress_194523002_test: RuntimeError
 custom_element_method_clash_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 custom_element_name_clash_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 custom_elements_23127_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -450,14 +449,6 @@ js_typed_interop_test/static_method_tearoff_1: Crash # FileSystemException(uri=f
 js_typed_interop_test/static_method_tearoff_2: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 js_typed_interop_test/type check: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 js_typed_interop_test: CompileTimeError
-js_typed_interop_type1_test/01: RuntimeError
-js_typed_interop_type1_test/none: RuntimeError
-js_typed_interop_type2_test/01: RuntimeError
-js_typed_interop_type2_test/none: RuntimeError
-js_typed_interop_type3_test/01: RuntimeError
-js_typed_interop_type3_test/02: RuntimeError
-js_typed_interop_type3_test/none: RuntimeError
-js_typed_interop_type_test: RuntimeError
 js_typed_interop_window_property_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 js_util_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 keyboard_event_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -780,9 +771,6 @@ js_typed_interop_type1_test/01: RuntimeError
 js_typed_interop_type1_test/none: RuntimeError
 js_typed_interop_type2_test/01: RuntimeError
 js_typed_interop_type2_test/none: RuntimeError
-js_typed_interop_type3_test/01: RuntimeError
-js_typed_interop_type3_test/02: RuntimeError
-js_typed_interop_type3_test/none: RuntimeError
 js_typed_interop_type_test: RuntimeError
 js_typed_interop_window_property_test/bind this: RuntimeError
 js_typed_interop_window_property_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -939,7 +927,9 @@ websocket_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance gette
 websql_test/functional: RuntimeError
 websql_test/supported: RuntimeError
 websql_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-wheelevent_test: RuntimeError
+js_test/JsObject.fromBrowserObject(): RuntimeError
+js_test/JsObject.jsify(): RuntimeError
+js_util_test/js_util.jsify(): RuntimeError
 window_eq_test: RuntimeError
 window_mangling_test: RuntimeError
 window_nosuchmethod_test: RuntimeError

@@ -1063,6 +1063,12 @@ class CommonElements {
   ClassEntity get symbolImplementationClass =>
       _symbolImplementationClass ??= _findClass(internalLibrary, 'Symbol');
 
+  /// Used to annotate items that have the keyword "native".
+  ClassEntity _externalNameClass;
+  ClassEntity get externalNameClass =>
+      _externalNameClass ??= _findClass(internalLibrary, 'ExternalName');
+  InterfaceType get externalNameType => _getRawType(externalNameClass);
+
   final Selector symbolValidatedConstructorSelector =
       new Selector.call(const PublicName('validated'), CallStructure.ONE_ARG);
 
