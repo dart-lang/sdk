@@ -550,6 +550,205 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
   }
 }
 
+MetadataHelper::MetadataHelper(StreamingFlowGraphBuilder* builder)
+    : builder_(builder),
+      translation_helper_(builder->translation_helper_),
+      mappings_offset_(0),
+      mappings_num_(0),
+      last_node_offset_(0),
+      last_mapping_index_(0) {}
+
+void MetadataHelper::SetMetadataMappings(intptr_t mappings_offset,
+                                         intptr_t mappings_num) {
+  ASSERT((mappings_offset_ == 0) && (mappings_num_ == 0));
+  ASSERT((mappings_offset != 0) && (mappings_num != 0));
+  mappings_offset_ = mappings_offset;
+  mappings_num_ = mappings_num;
+
+#ifdef DEBUG
+  // Verify that node offsets are sorted.
+  {
+    Reader reader(H.metadata_mappings());
+    reader.set_offset(mappings_offset);
+
+    intptr_t prev_node_offset = 0;
+    for (intptr_t i = 0; i < mappings_num; ++i) {
+      intptr_t node_offset = reader.ReadUInt32();
+      intptr_t md_offset = reader.ReadUInt32();
+
+      ASSERT((node_offset > 0) && (md_offset > 0));
+      ASSERT(node_offset > prev_node_offset);
+      prev_node_offset = node_offset;
+    }
+  }
+#endif  // DEBUG
+
+  last_node_offset_ = builder_->data_program_offset_ +
+                      builder_->parsed_function()->function().kernel_offset();
+  last_mapping_index_ = FindMetadataMapping(last_node_offset_);
+}
+
+intptr_t MetadataHelper::FindMetadataMapping(intptr_t node_offset) {
+  const intptr_t kUInt32Size = 4;
+  ASSERT(mappings_num_ > 0);
+
+  Reader reader(H.metadata_mappings());
+
+  intptr_t left = 0;
+  intptr_t right = mappings_num_ - 1;
+  while (left < right) {
+    intptr_t mid = ((right - left) / 2) + left;
+    intptr_t mid_node_offset =
+        reader.ReadUInt32At(mappings_offset_ + mid * 2 * kUInt32Size);
+
+    if (node_offset < mid_node_offset) {
+      right = mid - 1;
+    } else if (node_offset > mid_node_offset) {
+      left = mid + 1;
+    } else {
+      return mid;  // Exact match found.
+    }
+  }
+  ASSERT((0 <= left) && (left <= mappings_num_));
+
+  // Approximate match is found. Make sure it has an offset greater or equal
+  // to the given node offset.
+  if (left < mappings_num_) {
+    intptr_t found_node_offset =
+        reader.ReadUInt32At(mappings_offset_ + left * 2 * kUInt32Size);
+
+    if (found_node_offset < node_offset) {
+      ++left;
+    }
+  }
+  ASSERT((left == mappings_num_) ||
+         static_cast<intptr_t>(reader.ReadUInt32At(
+             mappings_offset_ + left * 2 * kUInt32Size)) >= node_offset);
+
+  return left;
+}
+
+intptr_t MetadataHelper::GetNextMetadataPayloadOffset(intptr_t node_offset) {
+  builder_->EnsureMetadataIsScanned();
+
+  if (mappings_num_ == 0) {
+    return -1;  // No metadata.
+  }
+
+  node_offset += builder_->data_program_offset_;
+
+  // Nodes are parsed in linear order most of the time, so do the search
+  // only if looking back.
+  if (node_offset < last_node_offset_) {
+    last_mapping_index_ = FindMetadataMapping(node_offset);
+  }
+
+  intptr_t index = last_mapping_index_;
+  intptr_t mapping_node_offset = 0;
+  intptr_t mapping_md_offset = 0;
+
+  Reader reader(H.metadata_mappings());
+  const intptr_t kUInt32Size = 4;
+  reader.set_offset(mappings_offset_ + index * 2 * kUInt32Size);
+
+  for (; index < mappings_num_; ++index) {
+    mapping_node_offset = reader.ReadUInt32();
+    mapping_md_offset = reader.ReadUInt32();
+
+    if (mapping_node_offset >= node_offset) {
+      break;
+    }
+  }
+
+  last_mapping_index_ = index;
+  last_node_offset_ = node_offset;
+
+  if ((index < mappings_num_) && (mapping_node_offset == node_offset)) {
+    ASSERT(mapping_md_offset > 0);
+    return mapping_md_offset;
+  } else {
+    return -1;
+  }
+}
+
+bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
+                                            NameIndex* target_name,
+                                            bool* check_receiver_for_null) {
+  intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return false;
+  }
+
+  AlternativeReadingScope alt(builder_->reader_, &H.metadata_payloads(),
+                              md_offset - MetadataPayloadOffset);
+
+  *target_name = builder_->ReadCanonicalNameReference();
+  *check_receiver_for_null = builder_->ReadBool();
+  return true;
+}
+
+DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForPropertyGet(
+    intptr_t node_offset) {
+  NameIndex kernel_name;
+  bool check_receiver_for_null = false;
+  if (!ReadMetadata(node_offset, &kernel_name, &check_receiver_for_null)) {
+    return DirectCallMetadata(Function::null_function(), false);
+  }
+
+  if (H.IsProcedure(kernel_name) && !H.IsGetter(kernel_name)) {
+    // Tear-off. Use method extractor as direct call target.
+    const String& method_name = H.DartMethodName(kernel_name);
+    const Function& target_method = Function::ZoneHandle(
+        builder_->zone_,
+        builder_->LookupMethodByMember(kernel_name, method_name));
+    const String& getter_name = H.DartGetterName(kernel_name);
+    return DirectCallMetadata(
+        Function::ZoneHandle(builder_->zone_,
+                             target_method.GetMethodExtractor(getter_name)),
+        check_receiver_for_null);
+  } else {
+    const String& getter_name = H.DartGetterName(kernel_name);
+    const Function& target = Function::ZoneHandle(
+        builder_->zone_,
+        builder_->LookupMethodByMember(kernel_name, getter_name));
+    ASSERT(target.IsGetterFunction() || target.IsImplicitGetterFunction());
+    return DirectCallMetadata(target, check_receiver_for_null);
+  }
+}
+
+DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForPropertySet(
+    intptr_t node_offset) {
+  NameIndex kernel_name;
+  bool check_receiver_for_null = false;
+  if (!ReadMetadata(node_offset, &kernel_name, &check_receiver_for_null)) {
+    return DirectCallMetadata(Function::null_function(), false);
+  }
+
+  const String& method_name = H.DartSetterName(kernel_name);
+  const Function& target = Function::ZoneHandle(
+      builder_->zone_,
+      builder_->LookupMethodByMember(kernel_name, method_name));
+  ASSERT(target.IsSetterFunction() || target.IsImplicitSetterFunction());
+
+  return DirectCallMetadata(target, check_receiver_for_null);
+}
+
+DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
+    intptr_t node_offset) {
+  NameIndex kernel_name;
+  bool check_receiver_for_null = false;
+  if (!ReadMetadata(node_offset, &kernel_name, &check_receiver_for_null)) {
+    return DirectCallMetadata(Function::null_function(), false);
+  }
+
+  const String& method_name = H.DartProcedureName(kernel_name);
+  const Function& target = Function::ZoneHandle(
+      builder_->zone_,
+      builder_->LookupMethodByMember(kernel_name, method_name));
+
+  return DirectCallMetadata(target, check_receiver_for_null);
+}
+
 StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
     : result_(NULL),
       parsed_function_(parsed_function),
@@ -568,9 +767,7 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
           parsed_function->function().KernelDataProgramOffset())),
       type_translator_(builder_, /*finalize=*/true) {
   Script& script = Script::Handle(Z, parsed_function->function().script());
-  H.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
-  H.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-  H.SetCanonicalNames(TypedData::Handle(Z, script.kernel_canonical_names()));
+  H.InitFromScript(script);
   type_translator_.active_class_ = &active_class_;
 }
 
@@ -5030,6 +5227,11 @@ Fragment StreamingFlowGraphBuilder::LoadStaticField() {
   return flow_graph_builder_->LoadStaticField();
 }
 
+Fragment StreamingFlowGraphBuilder::CheckNull(TokenPosition position,
+                                              LocalVariable* receiver) {
+  return flow_graph_builder_->CheckNull(position, receiver);
+}
+
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
                                                intptr_t argument_count,
@@ -5217,6 +5419,11 @@ Fragment StreamingFlowGraphBuilder::Drop() {
   return flow_graph_builder_->Drop();
 }
 
+Fragment StreamingFlowGraphBuilder::DropTempsPreserveTop(
+    intptr_t num_temps_to_drop) {
+  return flow_graph_builder_->DropTempsPreserveTop(num_temps_to_drop);
+}
+
 Fragment StreamingFlowGraphBuilder::NullConstant() {
   return flow_graph_builder_->NullConstant();
 }
@@ -5401,18 +5608,30 @@ Fragment StreamingFlowGraphBuilder::BuildVariableSet(uint8_t payload,
 }
 
 Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
-  TokenPosition position = ReadPosition();  // read position.
+  const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
+  const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
+
+  const DirectCallMetadata direct_call =
+      direct_call_metadata_helper_.GetDirectTargetForPropertyGet(offset);
 
   ReadFlags();  // read flags
 
   Fragment instructions = BuildExpression();  // read receiver.
+
+  LocalVariable* receiver = NULL;
+  if (direct_call.check_receiver_for_null_) {
+    // Duplicate receiver for CheckNull before it is consumed by PushArgument.
+    receiver = MakeTemporary();
+    instructions += LoadLocal(receiver);
+  }
+
   instructions += PushArgument();
 
   const String& getter_name = ReadNameAsGetterName();  // read name.
 
   const Function* interface_target = &Function::null_function();
-  NameIndex itarget_name =
+  const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
   if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
       (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
@@ -5421,21 +5640,50 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
     ASSERT(getter_name.raw() == interface_target->name());
   }
 
-  const intptr_t kTypeArgsLen = 0;
-  const intptr_t kNumArgsChecked = 1;
-  return instructions + InstanceCall(position, getter_name, Token::kGET,
-                                     kTypeArgsLen, 1, Array::null_array(),
-                                     kNumArgsChecked, *interface_target);
+  if (direct_call.check_receiver_for_null_) {
+    instructions += CheckNull(TokenPosition::kNoSource, receiver);
+  }
+
+  if (!direct_call.target_.IsNull()) {
+    ASSERT(FLAG_precompiled_mode);
+    instructions +=
+        StaticCall(position, direct_call.target_, 1, ICData::kNoRebind);
+  } else {
+    const intptr_t kTypeArgsLen = 0;
+    const intptr_t kNumArgsChecked = 1;
+    instructions +=
+        InstanceCall(position, getter_name, Token::kGET, kTypeArgsLen, 1,
+                     Array::null_array(), kNumArgsChecked, *interface_target);
+  }
+
+  if (direct_call.check_receiver_for_null_) {
+    instructions += DropTempsPreserveTop(1);  // Drop receiver, preserve result.
+  }
+
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
+  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
+
+  const DirectCallMetadata direct_call =
+      direct_call_metadata_helper_.GetDirectTargetForPropertySet(offset);
+
   Fragment instructions(NullConstant());
   LocalVariable* variable = MakeTemporary();
 
-  TokenPosition position = ReadPosition();  // read position.
+  const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
   instructions += BuildExpression();  // read receiver.
+
+  LocalVariable* receiver = NULL;
+  if (direct_call.check_receiver_for_null_) {
+    // Duplicate receiver for CheckNull before it is consumed by PushArgument.
+    receiver = MakeTemporary();
+    instructions += LoadLocal(receiver);
+  }
+
   instructions += PushArgument();
 
   const String& setter_name = ReadNameAsSetterName();  // read name.
@@ -5445,7 +5693,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   instructions += PushArgument();
 
   const Function* interface_target = &Function::null_function();
-  NameIndex itarget_name =
+  const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
   if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name)) {
     interface_target = &Function::ZoneHandle(
@@ -5453,24 +5701,40 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
     ASSERT(setter_name.raw() == interface_target->name());
   }
 
-  const intptr_t kTypeArgsLen = 0;
-  const intptr_t kNumArgsChecked = 1;
-  instructions +=
-      InstanceCall(position, setter_name, Token::kSET, kTypeArgsLen, 2,
-                   Array::null_array(), kNumArgsChecked, *interface_target);
+  if (direct_call.check_receiver_for_null_) {
+    instructions += CheckNull(position, receiver);
+  }
 
-  return instructions + Drop();
+  if (!direct_call.target_.IsNull()) {
+    ASSERT(FLAG_precompiled_mode);
+    instructions +=
+        StaticCall(position, direct_call.target_, 2, ICData::kNoRebind);
+  } else {
+    const intptr_t kTypeArgsLen = 0;
+    const intptr_t kNumArgsChecked = 1;
+    instructions +=
+        InstanceCall(position, setter_name, Token::kSET, kTypeArgsLen, 2,
+                     Array::null_array(), kNumArgsChecked, *interface_target);
+  }
+
+  instructions += Drop();  // Drop result of the setter invocation.
+
+  if (direct_call.check_receiver_for_null_) {
+    instructions += Drop();  // Drop receiver.
+  }
+
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
-  TokenPosition position = ReadPosition();  // read position.
+  const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
   ReadFlags();  // read flags.
 
-  Tag receiver_tag = PeekTag();               // peek tag for receiver.
+  const Tag receiver_tag = PeekTag();         // peek tag for receiver.
   Fragment instructions = BuildExpression();  // read receiver.
-  NameIndex kernel_name =
+  const NameIndex kernel_name =
       ReadCanonicalNameReference();  // read target_reference.
 
   Function& target = Function::ZoneHandle(Z);
@@ -5513,7 +5777,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
-  TokenPosition position = ReadPosition();  // read position.
+  const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
   Fragment instructions(NullConstant());
@@ -5522,7 +5786,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
   instructions += BuildExpression();  // read receiver.
   instructions += PushArgument();
 
-  NameIndex target_reference =
+  const NameIndex target_reference =
       ReadCanonicalNameReference();  // read target_reference.
   const String& method_name = H.DartSetterName(target_reference);
   const Function& target = Function::ZoneHandle(
@@ -5630,16 +5894,19 @@ static bool IsNumberLiteral(Tag tag) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
-  intptr_t offset = ReaderOffset() - 1;     // Include the tag.
-  TokenPosition position = ReadPosition();  // read position.
+  const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
+  const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
+
+  const DirectCallMetadata direct_call =
+      direct_call_metadata_helper_.GetDirectTargetForMethodInvocation(offset);
 
   ReadFlags();  // read flags.
 
-  Tag receiver_tag = PeekTag();  // peek tag for receiver.
+  const Tag receiver_tag = PeekTag();  // peek tag for receiver.
   if (IsNumberLiteral(receiver_tag) &&
       (!optimizing() || constant_evaluator_.IsCached(offset))) {
-    intptr_t before_branch_offset = ReaderOffset();
+    const intptr_t before_branch_offset = ReaderOffset();
 
     SkipExpression();  // read receiver (it's just a number literal).
 
@@ -5707,6 +5974,13 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
            StrictCompare(strict_cmp_kind, /*number_check = */ true);
   }
 
+  LocalVariable* receiver = NULL;
+  if (direct_call.check_receiver_for_null_) {
+    // Duplicate receiver for CheckNull before it is consumed by PushArgument.
+    receiver = MakeTemporary();
+    instructions += LoadLocal(receiver);
+  }
+
   instructions += PushArgument();  // push receiver as argument.
 
   Array& argument_names = Array::ZoneHandle(Z);
@@ -5724,19 +5998,37 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   const Function* interface_target = &Function::null_function();
-  NameIndex itarget_name =
+  const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
   if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
       !H.IsField(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z,
         LookupMethodByMember(itarget_name, H.DartProcedureName(itarget_name)));
-    ASSERT(name.raw() == interface_target->name());
+    ASSERT((name.raw() == interface_target->name()) ||
+           (interface_target->IsGetterFunction() &&
+            Field::GetterSymbol(name) == interface_target->name()));
   }
 
-  instructions +=
-      InstanceCall(position, name, token_kind, type_args_len, argument_count,
-                   argument_names, checked_argument_count, *interface_target);
+  if (direct_call.check_receiver_for_null_) {
+    instructions += CheckNull(position, receiver);
+  }
+
+  if (!direct_call.target_.IsNull()) {
+    ASSERT(FLAG_precompiled_mode);
+    instructions +=
+        StaticCall(position, direct_call.target_, argument_count,
+                   argument_names, ICData::kNoRebind, type_args_len);
+  } else {
+    instructions +=
+        InstanceCall(position, name, token_kind, type_args_len, argument_count,
+                     argument_names, checked_argument_count, *interface_target);
+  }
+
+  if (direct_call.check_receiver_for_null_) {
+    instructions += DropTempsPreserveTop(1);  // Drop receiver, preserve result.
+  }
+
   // Later optimization passes assume that result of a x.[]=(...) call is not
   // used. We must guarantee this invariant because violation will lead to an
   // illegal IL once we replace x.[]=(...) with a sequence that does not
@@ -7972,6 +8264,56 @@ Array& StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {
     previous_line_start = line_start;
   }
   return array_object;
+}
+
+void StreamingFlowGraphBuilder::EnsureMetadataIsScanned() {
+  // Scan metadata mappings only once.
+  if (metadata_scanned_) {
+    return;
+  }
+  metadata_scanned_ = true;
+
+  const intptr_t kUInt32Size = 4;
+  Reader reader(H.metadata_mappings());
+
+  // Scan through metadata mappings in reverse direction.
+
+  // Read metadataMappings length.
+  intptr_t offset = reader.size() - kUInt32Size;
+  uint32_t metadata_num = reader.ReadUInt32At(offset);
+
+  if (metadata_num == 0) {
+    ASSERT(H.metadata_mappings().LengthInBytes() == kUInt32Size);
+    return;
+  }
+
+  // Read metadataMappings elements.
+  for (uint32_t i = 0; i < metadata_num; ++i) {
+    // Read nodeReferences length.
+    offset -= kUInt32Size;
+    uint32_t node_references_num = reader.ReadUInt32At(offset);
+
+    // Skip nodeReferences and read nodeOffsetToMetadataOffset length.
+    offset -= node_references_num * kUInt32Size + kUInt32Size;
+    uint32_t mappings_num = reader.ReadUInt32At(offset);
+
+    // Skip nodeOffsetToMetadataOffset and read tag.
+    offset -= mappings_num * 2 * kUInt32Size + kUInt32Size;
+    StringIndex tag = StringIndex(reader.ReadUInt32At(offset));
+
+    // Check recognized metadata
+    if (H.StringEquals(tag, DirectCallMetadataHelper::tag())) {
+      ASSERT(node_references_num == 0);
+
+      if (mappings_num > 0) {
+        if (!FLAG_precompiled_mode) {
+          FATAL("DirectCallMetadata is allowed in precompiled mode only");
+        }
+        direct_call_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
+                                                         mappings_num);
+      }
+    }
+  }
 }
 
 }  // namespace kernel

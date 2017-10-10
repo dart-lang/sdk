@@ -90,20 +90,16 @@ TranslationHelper::TranslationHelper(Thread* thread)
       allocation_space_(thread->IsMutatorThread() ? Heap::kNew : Heap::kOld),
       string_offsets_(TypedData::Handle(Z)),
       string_data_(TypedData::Handle(Z)),
-      canonical_names_(TypedData::Handle(Z)) {}
+      canonical_names_(TypedData::Handle(Z)),
+      metadata_payloads_(TypedData::Handle(Z)),
+      metadata_mappings_(TypedData::Handle(Z)) {}
 
-TranslationHelper::TranslationHelper(Thread* thread,
-                                     RawTypedData* string_offsets,
-                                     RawTypedData* string_data,
-                                     RawTypedData* canonical_names)
-    : thread_(thread),
-      zone_(thread->zone()),
-      isolate_(thread->isolate()),
-      allocation_space_(Heap::kNew),
-      string_offsets_(TypedData::Handle(Z, string_offsets)),
-      string_data_(TypedData::Handle(Z, string_data)),
-      canonical_names_(TypedData::Handle(Z, canonical_names)) {
-  ASSERT(thread->IsMutatorThread());
+void TranslationHelper::InitFromScript(const Script& script) {
+  SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
+  SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
+  SetCanonicalNames(TypedData::Handle(Z, script.kernel_canonical_names()));
+  SetMetadataPayloads(TypedData::Handle(Z, script.kernel_metadata_payloads()));
+  SetMetadataMappings(TypedData::Handle(Z, script.kernel_metadata_mappings()));
 }
 
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
@@ -119,6 +115,18 @@ void TranslationHelper::SetStringData(const TypedData& string_data) {
 void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
   ASSERT(canonical_names_.IsNull());
   canonical_names_ = canonical_names.raw();
+}
+
+void TranslationHelper::SetMetadataPayloads(
+    const TypedData& metadata_payloads) {
+  ASSERT(metadata_payloads_.IsNull());
+  metadata_payloads_ = metadata_payloads.raw();
+}
+
+void TranslationHelper::SetMetadataMappings(
+    const TypedData& metadata_mappings) {
+  ASSERT(metadata_mappings_.IsNull());
+  metadata_mappings_ = metadata_mappings.raw();
 }
 
 intptr_t TranslationHelper::StringOffset(StringIndex index) const {
@@ -646,9 +654,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       catch_block_(NULL),
       streaming_flow_graph_builder_(NULL) {
   Script& script = Script::Handle(Z, parsed_function->function().script());
-  H.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
-  H.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-  H.SetCanonicalNames(TypedData::Handle(Z, script.kernel_canonical_names()));
+  H.InitFromScript(script);
 }
 
 FlowGraphBuilder::~FlowGraphBuilder() {}
@@ -1290,6 +1296,24 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
   return instructions.closed();
 }
 
+Fragment FlowGraphBuilder::CheckNull(TokenPosition position,
+                                     LocalVariable* receiver) {
+  Fragment instructions = LoadLocal(receiver);
+
+  CheckNullInstr* check_null =
+      new (Z) CheckNullInstr(Pop(), GetNextDeoptId(), position);
+
+  instructions <<= check_null;
+
+  // Null out receiver to make sure it is not saved into the frame before
+  // doing the call.
+  instructions += NullConstant();
+  instructions += StoreLocal(TokenPosition::kNoSource, receiver);
+  instructions += Drop();
+
+  return instructions;
+}
+
 Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Function& target,
                                       intptr_t argument_count,
@@ -1628,6 +1652,19 @@ Fragment FlowGraphBuilder::Drop() {
 
   Pop();
   return instructions;
+}
+
+Fragment FlowGraphBuilder::DropTempsPreserveTop(intptr_t num_temps_to_drop) {
+  Value* top = Pop();
+
+  for (intptr_t i = 0; i < num_temps_to_drop; ++i) {
+    Pop();
+  }
+
+  DropTempsInstr* drop_temps = new (Z) DropTempsInstr(num_temps_to_drop, top);
+  Push(drop_temps);
+
+  return Fragment(drop_temps);
 }
 
 void FlowGraphBuilder::InlineBailout(const char* reason) {
@@ -2244,11 +2281,7 @@ RawObject* EvaluateMetadata(const Field& metadata_field) {
     Zone* zone_ = thread->zone();
     TranslationHelper helper(thread);
     Script& script = Script::Handle(Z, metadata_field.Script());
-    helper.SetStringOffsets(
-        TypedData::Handle(Z, script.kernel_string_offsets()));
-    helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-    helper.SetCanonicalNames(
-        TypedData::Handle(Z, script.kernel_canonical_names()));
+    helper.InitFromScript(script);
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
         &helper, metadata_field.Script(), zone_,
@@ -2272,11 +2305,7 @@ RawObject* BuildParameterDescriptor(const Function& function) {
     Zone* zone_ = thread->zone();
     TranslationHelper helper(thread);
     Script& script = Script::Handle(Z, function.script());
-    helper.SetStringOffsets(
-        TypedData::Handle(Z, script.kernel_string_offsets()));
-    helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-    helper.SetCanonicalNames(
-        TypedData::Handle(Z, script.kernel_canonical_names()));
+    helper.InitFromScript(script);
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
         &helper, function.script(), zone_,
@@ -2356,10 +2385,7 @@ void CollectTokenPositionsFor(const Script& const_script) {
   Zone* zone_ = thread->zone();
   Script& script = Script::Handle(Z, const_script.raw());
   TranslationHelper helper(thread);
-  helper.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
-  helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-  helper.SetCanonicalNames(
-      TypedData::Handle(Z, script.kernel_canonical_names()));
+  helper.InitFromScript(script);
 
   GrowableArray<intptr_t> token_positions(10);
   GrowableArray<intptr_t> yield_positions(1);

@@ -135,6 +135,7 @@ enum Tag {
 static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
 static const int SourceTableFieldCountFromFirstLibraryOffset = 3;
+static const int MetadataPayloadOffset = 4;  // Right after 'magic'.
 
 class Reader {
  public:
@@ -158,12 +159,17 @@ class Reader {
     return result;
   }
 
+  uint32_t ReadUInt32At(intptr_t offset) {
+    set_offset(offset);
+    return ReadUInt32();
+  }
+
   uint32_t ReadFromIndexNoReset(intptr_t end_offset,
                                 intptr_t fields_before,
                                 intptr_t list_size,
                                 intptr_t list_index) {
-    set_offset(end_offset - (fields_before + list_size - list_index) * 4);
-    return ReadUInt32();
+    return ReadUInt32At(end_offset -
+                        (fields_before + list_size - list_index) * 4);
   }
 
   uint32_t ReadUInt32() {

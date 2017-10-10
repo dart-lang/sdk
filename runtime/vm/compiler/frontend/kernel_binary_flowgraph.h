@@ -489,6 +489,59 @@ class LibraryDependencyHelper {
   intptr_t next_read_;
 };
 
+// Base class for helpers accessing metadata of a certain kind.
+// Assumes that metadata is accessed in linear order.
+class MetadataHelper {
+ public:
+  explicit MetadataHelper(StreamingFlowGraphBuilder* builder);
+
+  void SetMetadataMappings(intptr_t mappings_offset, intptr_t mappings_num);
+
+ protected:
+  // Look for metadata mapping with node offset greater or equal than the given.
+  intptr_t FindMetadataMapping(intptr_t node_offset);
+
+  // Return offset of the metadata payload corresponding to the given node,
+  // or -1 if there is no metadata.
+  // Assumes metadata is accesses for nodes in linear order most of the time.
+  intptr_t GetNextMetadataPayloadOffset(intptr_t node_offset);
+
+  StreamingFlowGraphBuilder* builder_;
+  TranslationHelper& translation_helper_;
+
+ private:
+  intptr_t mappings_offset_;
+  intptr_t mappings_num_;
+  intptr_t last_node_offset_;
+  intptr_t last_mapping_index_;
+};
+
+struct DirectCallMetadata {
+  DirectCallMetadata(const Function& target, bool check_receiver_for_null)
+      : target_(target), check_receiver_for_null_(check_receiver_for_null) {}
+
+  const Function& target_;
+  const bool check_receiver_for_null_;
+};
+
+// Helper class which provides access to direct call metadata.
+class DirectCallMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.direct-call.metadata"; }
+
+  explicit DirectCallMetadataHelper(StreamingFlowGraphBuilder* builder)
+      : MetadataHelper(builder) {}
+
+  DirectCallMetadata GetDirectTargetForPropertyGet(intptr_t node_offset);
+  DirectCallMetadata GetDirectTargetForPropertySet(intptr_t node_offset);
+  DirectCallMetadata GetDirectTargetForMethodInvocation(intptr_t node_offset);
+
+ private:
+  bool ReadMetadata(intptr_t node_offset,
+                    NameIndex* target_name,
+                    bool* check_receiver_for_null);
+};
+
 class StreamingDartTypeTranslator {
  public:
   StreamingDartTypeTranslator(StreamingFlowGraphBuilder* builder,
@@ -788,7 +841,9 @@ class StreamingFlowGraphBuilder {
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL) {}
+        record_yield_positions_into_(NULL),
+        direct_call_metadata_helper_(this),
+        metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             Zone* zone,
@@ -806,7 +861,9 @@ class StreamingFlowGraphBuilder {
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL) {}
+        record_yield_positions_into_(NULL),
+        direct_call_metadata_helper_(this),
+        metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             RawScript* script,
@@ -824,7 +881,9 @@ class StreamingFlowGraphBuilder {
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL) {}
+        record_yield_positions_into_(NULL),
+        direct_call_metadata_helper_(this),
+        metadata_scanned_(false) {}
 
   ~StreamingFlowGraphBuilder() { delete reader_; }
 
@@ -966,6 +1025,7 @@ class StreamingFlowGraphBuilder {
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
   Fragment LoadStaticField();
+  Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
@@ -1029,6 +1089,10 @@ class StreamingFlowGraphBuilder {
                            bool needs_stacktrace);
   Fragment TryCatch(int try_handler_index);
   Fragment Drop();
+
+  // Drop given number of temps from the stack but preserve top of the stack.
+  Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
+
   Fragment NullConstant();
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
@@ -1126,6 +1190,10 @@ class StreamingFlowGraphBuilder {
 
   RawScript* Script();
 
+  // Scan through metadata mappings section and cache offsets for recognized
+  // metadata kinds.
+  void EnsureMetadataIsScanned();
+
   FlowGraphBuilder* flow_graph_builder_;
   TranslationHelper& translation_helper_;
   Zone* zone_;
@@ -1144,6 +1212,8 @@ class StreamingFlowGraphBuilder {
   intptr_t record_for_script_id_;
   GrowableArray<intptr_t>* record_token_positions_into_;
   GrowableArray<intptr_t>* record_yield_positions_into_;
+  DirectCallMetadataHelper direct_call_metadata_helper_;
+  bool metadata_scanned_;
 
   friend class StreamingConstantEvaluator;
   friend class StreamingDartTypeTranslator;
@@ -1155,6 +1225,8 @@ class StreamingFlowGraphBuilder {
   friend class ClassHelper;
   friend class LibraryHelper;
   friend class LibraryDependencyHelper;
+  friend class MetadataHelper;
+  friend class DirectCallMetadataHelper;
   friend class ConstructorHelper;
   friend class SimpleExpressionConverter;
   friend class KernelLoader;

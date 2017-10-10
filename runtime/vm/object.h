@@ -3446,6 +3446,16 @@ class Script : public Object {
   }
   void set_kernel_canonical_names(const TypedData& names) const;
 
+  RawTypedData* kernel_metadata_payloads() const {
+    return raw_ptr()->kernel_metadata_payloads_;
+  }
+  void set_kernel_metadata_payloads(const TypedData& metadata_payloads) const;
+
+  RawTypedData* kernel_metadata_mappings() const {
+    return raw_ptr()->kernel_metadata_mappings_;
+  }
+  void set_kernel_metadata_mappings(const TypedData& metadata_mappings) const;
+
   RawTokenStream* tokens() const {
     ASSERT(kind() != RawScript::kKernelTag);
     return raw_ptr()->tokens_;

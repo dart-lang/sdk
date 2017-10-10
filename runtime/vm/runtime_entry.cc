@@ -172,13 +172,15 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
 DEFINE_RUNTIME_ENTRY(NullError, 0) {
   // TODO(dartbug.com/30480): Fill in arguments of NoSuchMethodError.
 
+  const String& member_name = String::Handle(String::New("???"));
+
   const Smi& invocation_type =
       Smi::Handle(Smi::New(InvocationMirror::EncodeType(
           InvocationMirror::kDynamic, InvocationMirror::kMethod)));
 
-  const Array& args = Array::Handle(Array::New(7));
+  const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, /* instance */ Object::null_object());
-  args.SetAt(1, /* member_name */ Object::null_object());
+  args.SetAt(1, member_name);
   args.SetAt(2, invocation_type);
   args.SetAt(3, /* func_type_args */ Object::null_object());
   args.SetAt(4, /* func_args */ Object::null_object());

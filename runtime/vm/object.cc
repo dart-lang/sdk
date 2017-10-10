@@ -9167,6 +9167,16 @@ void Script::set_kernel_canonical_names(const TypedData& names) const {
   StorePointer(&raw_ptr()->kernel_canonical_names_, names.raw());
 }
 
+void Script::set_kernel_metadata_payloads(
+    const TypedData& metadata_payloads) const {
+  StorePointer(&raw_ptr()->kernel_metadata_payloads_, metadata_payloads.raw());
+}
+
+void Script::set_kernel_metadata_mappings(
+    const TypedData& metadata_mappings) const {
+  StorePointer(&raw_ptr()->kernel_metadata_mappings_, metadata_mappings.raw());
+}
+
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& info =

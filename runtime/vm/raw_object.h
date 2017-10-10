@@ -1080,9 +1080,13 @@ class RawScript : public RawObject {
   RawArray* line_starts_;
   RawArray* debug_positions_;
   RawArray* yield_positions_;
+  // TODO(alexmarkov): Extract kernel-specific fields to a separate
+  // RawKernelData class and share its instances among the scripts.
   RawTypedData* kernel_string_offsets_;
   RawTypedData* kernel_string_data_;
   RawTypedData* kernel_canonical_names_;
+  RawTypedData* kernel_metadata_payloads_;
+  RawTypedData* kernel_metadata_mappings_;
   RawTokenStream* tokens_;
   RawString* source_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }

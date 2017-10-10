@@ -255,12 +255,9 @@ class TranslationHelper {
  public:
   explicit TranslationHelper(Thread* thread);
 
-  TranslationHelper(Thread* thread,
-                    RawTypedData* string_offsets,
-                    RawTypedData* string_data,
-                    RawTypedData* canonical_names);
-
   virtual ~TranslationHelper() {}
+
+  void InitFromScript(const Script& script);
 
   Thread* thread() { return thread_; }
 
@@ -279,6 +276,12 @@ class TranslationHelper {
 
   const TypedData& canonical_names() { return canonical_names_; }
   void SetCanonicalNames(const TypedData& canonical_names);
+
+  const TypedData& metadata_payloads() { return metadata_payloads_; }
+  void SetMetadataPayloads(const TypedData& metadata_payloads);
+
+  const TypedData& metadata_mappings() { return metadata_mappings_; }
+  void SetMetadataMappings(const TypedData& metadata_mappings);
 
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;
@@ -389,6 +392,8 @@ class TranslationHelper {
   TypedData& string_offsets_;
   TypedData& string_data_;
   TypedData& canonical_names_;
+  TypedData& metadata_payloads_;
+  TypedData& metadata_mappings_;
 };
 
 struct FunctionScope {
@@ -561,6 +566,7 @@ class FlowGraphBuilder {
   Fragment NativeCall(const String* name, const Function* function);
   Fragment PushArgument();
   Fragment Return(TokenPosition position);
+  Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
@@ -624,6 +630,9 @@ class FlowGraphBuilder {
   void Push(Definition* definition);
   Value* Pop();
   Fragment Drop();
+
+  // Drop given number of temps from the stack but preserve top of the stack.
+  Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
 
   bool IsInlining() { return exit_collector_ != NULL; }
 

@@ -172,9 +172,40 @@ KernelLoader::KernelLoader(Program* program)
     names.SetUint32(i << 2, reader.ReadUInt());
   }
 
+  // Metadata mappings immediately follow names table.
+  const intptr_t metadata_mappings_start = reader.offset();
+
+  // Copy metadata payloads into the VM's heap
+  // TODO(alexmarkov): add more info to program index instead of guessing
+  // the end of metadata payloads by offsets of the libraries.
+  intptr_t metadata_payloads_end = program->source_table_offset();
+  for (intptr_t i = 0; i < program->library_count(); ++i) {
+    metadata_payloads_end =
+        Utils::Minimum(metadata_payloads_end, library_offset(i));
+  }
+  ASSERT(metadata_payloads_end >= MetadataPayloadOffset);
+  const intptr_t metadata_payloads_size =
+      metadata_payloads_end - MetadataPayloadOffset;
+  TypedData& metadata_payloads =
+      TypedData::Handle(Z, TypedData::New(kTypedDataUint8ArrayCid,
+                                          metadata_payloads_size, Heap::kOld));
+  reader.CopyDataToVMHeap(metadata_payloads, MetadataPayloadOffset,
+                          metadata_payloads_size);
+
+  // Copy metadata mappings into the VM's heap
+  const intptr_t metadata_mappings_size =
+      program->string_table_offset() - metadata_mappings_start;
+  TypedData& metadata_mappings =
+      TypedData::Handle(Z, TypedData::New(kTypedDataUint8ArrayCid,
+                                          metadata_mappings_size, Heap::kOld));
+  reader.CopyDataToVMHeap(metadata_mappings, metadata_mappings_start,
+                          metadata_mappings_size);
+
   H.SetStringOffsets(offsets);
   H.SetStringData(data);
   H.SetCanonicalNames(names);
+  H.SetMetadataPayloads(metadata_payloads);
+  H.SetMetadataMappings(metadata_mappings);
 }
 
 Object& KernelLoader::LoadProgram() {
@@ -916,6 +947,8 @@ Script& KernelLoader::ScriptAt(intptr_t index, StringIndex import_uri) {
     script.set_kernel_string_offsets(H.string_offsets());
     script.set_kernel_string_data(H.string_data());
     script.set_kernel_canonical_names(H.canonical_names());
+    script.set_kernel_metadata_mappings(H.metadata_mappings());
+    script.set_kernel_metadata_payloads(H.metadata_payloads());
     scripts_.SetAt(index, script);
 
     script.set_line_starts(builder_.GetLineStartsFor(index));

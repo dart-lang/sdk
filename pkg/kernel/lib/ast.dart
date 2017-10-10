@@ -5011,6 +5011,7 @@ abstract class BinarySource {
   int get currentOffset;
   List<int> get bytes;
 
+  int readByte();
   int readUInt();
   int readUint32();
 
