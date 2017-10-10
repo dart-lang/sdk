@@ -8,6 +8,7 @@ import 'code_order_test.dart' as code_order;
 import 'extra_code_test.dart' as extra_code;
 import 'missing_code_test.dart' as missing_code;
 import 'paired_tokens_test.dart' as paired_tokens;
+import 'partial_code/test_all.dart' as partial_code;
 
 main() {
   defineReflectiveSuite(() {
@@ -15,5 +16,6 @@ main() {
     extra_code.main();
     missing_code.main();
     paired_tokens.main();
+    partial_code.main();
   }, name: 'recovery');
 }
