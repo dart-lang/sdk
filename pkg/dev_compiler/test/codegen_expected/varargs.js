@@ -3,8 +3,9 @@ define(['dart_sdk'], function(dart_sdk) {
   const core = dart_sdk.core;
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
-  const varargs = Object.create(null);
-  const src__varargs = Object.create(null);
+  const _root = Object.create(null);
+  const varargs = Object.create(_root);
+  const src__varargs = Object.create(_root);
   let dynamicAnddynamicTodynamic = () => (dynamicAnddynamicTodynamic = dart.constFn(dart.fnType(dart.dynamic, [dart.dynamic, dart.dynamic])))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.fnType(dart.dynamic, [dart.dynamic])))();
   varargs.varargsTest = function(x, ...others) {

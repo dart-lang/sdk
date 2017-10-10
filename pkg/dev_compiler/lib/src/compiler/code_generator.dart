@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/constant.dart' show DartObjectImpl;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
@@ -2967,6 +2968,15 @@ class CodeGenerator extends Object
     var element = accessor;
     if (accessor is PropertyAccessorElement) element = accessor.variable;
 
+    // Directly emit constants.
+    if (element is VariableElement && element.isStatic && element.isConst) {
+      var val = element.computeConstantValue();
+      var result = _emitDartObject(val);
+      if (result != null) {
+        return result;
+      }
+    }
+
     // type literal
     if (element is TypeDefiningElement) {
       _declareBeforeUse(element);
@@ -4370,49 +4380,61 @@ class CodeGenerator extends Object
     return args.single;
   }
 
+  /// If the constant [value] is primitive, directly emit the
+  /// corresponding JavaScript.  Otherwise, return null.
+  JS.Expression _emitDartObject(DartObjectImpl value,
+      {bool handleUnknown: false}) {
+    if (value == null || value.isNull) {
+      return new JS.LiteralNull();
+    }
+    // Handle unknown value: when the declared variable wasn't found, and no
+    // explicit default value was passed either.
+    // TODO(jmesserly): ideally Analyzer would simply resolve this to the
+    // default value that is specified in the SDK. Instead we implement that
+    // here. `bool.fromEnvironment` defaults to `false`, the others to `null`:
+    // https://api.dartlang.org/stable/1.20.1/dart-core/bool/bool.fromEnvironment.html
+    if (value.isUnknown) {
+      if (!handleUnknown) {
+        return null;
+      } else {
+        return value.type == types.boolType
+            ? js.boolean(false)
+            : new JS.LiteralNull();
+      }
+    }
+    if (value.type == types.boolType) {
+      var boolValue = value.toBoolValue();
+      return js.boolean(boolValue);
+    }
+    if (value.type == types.intType) {
+      var intValue = value.toIntValue();
+      return js.number(intValue);
+    }
+    if (value.type == types.stringType) {
+      var stringValue = value.toStringValue();
+      return js.escapedString(stringValue);
+    }
+    return null;
+  }
+
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
     var element = resolutionMap.staticElementForConstructorReference(node);
     var constructor = node.constructorName;
     var name = constructor.name;
-    var type = constructor.type.type;
     if (node.isConst &&
         element?.name == 'fromEnvironment' &&
         element.library.isDartCore) {
       var value = node.accept(_constants.constantVisitor);
 
-      if (value == null || value.isNull) {
-        return new JS.LiteralNull();
-      }
-      // Handle unknown value: when the declared variable wasn't found, and no
-      // explicit default value was passed either.
-      // TODO(jmesserly): ideally Analyzer would simply resolve this to the
-      // default value that is specified in the SDK. Instead we implement that
-      // here. `bool.fromEnvironment` defaults to `false`, the others to `null`:
-      // https://api.dartlang.org/stable/1.20.1/dart-core/bool/bool.fromEnvironment.html
-      if (value.isUnknown) {
-        return type == types.boolType
-            ? js.boolean(false)
-            : new JS.LiteralNull();
-      }
-      if (value.type == types.boolType) {
-        var boolValue = value.toBoolValue();
-        return boolValue != null ? js.boolean(boolValue) : new JS.LiteralNull();
-      }
-      if (value.type == types.intType) {
-        var intValue = value.toIntValue();
-        return intValue != null ? js.number(intValue) : new JS.LiteralNull();
-      }
-      if (value.type == types.stringType) {
-        var stringValue = value.toStringValue();
-        return stringValue != null
-            ? js.escapedString(stringValue)
-            : new JS.LiteralNull();
+      var result = _emitDartObject(value, handleUnknown: true);
+      if (result != null) {
+        return result;
       }
       throw new StateError('failed to evaluate $node');
     }
     return _emitInstanceCreationExpression(
-        element, type, name, node.argumentList, node.isConst);
+        element, constructor.type.type, name, node.argumentList, node.isConst);
   }
 
   bool isPrimitiveType(DartType t) => typeRep.isPrimitive(t);
