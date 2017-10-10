@@ -49,7 +49,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       int charOffset,
       this.initializerTokenForInference,
       this.hasInitializer)
-      : field = new ShadowField(null, fileUri: compilationUnit?.relativeFileUri)
+      : field = new ShadowField(null, type == null,
+            fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset
           ..documentationComment = documentationComment,
         super(name, modifiers, compilationUnit, charOffset);

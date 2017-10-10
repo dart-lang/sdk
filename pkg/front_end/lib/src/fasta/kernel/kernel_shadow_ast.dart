@@ -688,13 +688,18 @@ class ShadowField extends Field implements ShadowMember {
   @override
   ShadowTypeInferrer _typeInferrer;
 
-  ShadowField(Name name, {String fileUri}) : super(name, fileUri: fileUri) {}
+  final bool _isImplicitlyTyped;
+
+  ShadowField(Name name, this._isImplicitlyTyped, {String fileUri})
+      : super(name, fileUri: fileUri) {}
 
   @override
   void setInferredType(
       TypeInferenceEngineImpl engine, String uri, DartType inferredType) {
     type = inferredType;
   }
+
+  static bool isImplicitlyTyped(ShadowField field) => field._isImplicitlyTyped;
 }
 
 /// Concrete shadow object representing a field initializer in kernel form.
