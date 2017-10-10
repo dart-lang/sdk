@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test('cross_domain_iframe', () {

@@ -7,7 +7,9 @@ library attribute_changed_callback_test;
 import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
-import 'package:test/test.dart';
+
+import 'package:unittest/unittest.dart';
+
 import '../utils.dart';
 
 class A extends HtmlElement {

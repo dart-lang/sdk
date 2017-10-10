@@ -5,7 +5,8 @@
 library test.html.util;
 
 import 'dart:html';
-import 'package:test/test.dart';
+
+import 'package:unittest/unittest.dart';
 
 void expectUnsupported(f) => expect(f, throwsUnsupportedError);
 

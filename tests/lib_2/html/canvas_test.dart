@@ -1,7 +1,8 @@
 library CanvasTest;
 
-import 'package:test/test.dart';
 import 'dart:html';
+
+import 'package:unittest/unittest.dart';
 
 main() {
   CanvasElement canvas;

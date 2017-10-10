@@ -47,7 +47,10 @@ async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
 async/slow_consumer_test: Pass, Timeout # Issue 29922
+async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError # Issue 29922
+async/stream_join_test: RuntimeError
+async/stream_subscription_as_future_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by DDC/dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/json_utf8_chunk_test: Slow, Pass
@@ -55,6 +58,7 @@ convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/streamed_conversion_utf8_decode_test: Slow, Pass
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/utf85_test: Slow, Pass
+html/custom/created_callback_test: RuntimeError
 html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922
 html/custom_elements_23127_test: Skip # Issue 29922

@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
+import 'package:unittest/unittest.dart';
 
 /**
  * Verifies that [actual] has the same graph structure as [expected].

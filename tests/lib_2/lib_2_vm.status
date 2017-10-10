@@ -47,7 +47,6 @@ mirrors/library_uri_package_test: RuntimeError
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 
 [ $runtime == vm ]
-async/stream_timeout_test: RuntimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: SkipByDesign # dart:html not supported on VM.
 js/datetime_roundtrip_test: CompileTimeError

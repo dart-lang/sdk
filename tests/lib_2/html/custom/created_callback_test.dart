@@ -4,9 +4,10 @@
 
 library created_callback_test;
 
-import 'package:test/test.dart';
 import 'dart:html';
 import 'dart:js' as js;
+
+import 'package:unittest/unittest.dart';
 
 import 'utils.dart';
 

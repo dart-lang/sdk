@@ -6,7 +6,8 @@
 library stream_subscription_cancel;
 
 import 'dart:async';
-import 'package:test/test.dart';
+
+import 'package:unittest/unittest.dart';
 
 void main() {
   test('subscription.cancel', () {

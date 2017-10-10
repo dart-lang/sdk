@@ -5,7 +5,8 @@
 library timer_test;
 
 import 'dart:async';
-import 'package:test/test.dart';
+
+import 'package:unittest/unittest.dart';
 
 const int STARTTIMEOUT = 1050;
 const int DECREASE = 200;

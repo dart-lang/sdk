@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:test/test.dart';
+
+import 'package:unittest/unittest.dart';
 
 main() {
   test("timer isActive test", () {
