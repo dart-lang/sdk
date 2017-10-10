@@ -564,6 +564,9 @@ class ForwardingNode extends Procedure {
   }
 
   static bool _requiresTypeInference(Procedure procedure) {
+    if (procedure is SyntheticAccessor) {
+      return ShadowField.isImplicitlyTyped(procedure._field);
+    }
     if (ShadowProcedure.hasImplicitReturnType(procedure)) return true;
     var function = procedure.function;
     for (var parameter in function.positionalParameters) {
