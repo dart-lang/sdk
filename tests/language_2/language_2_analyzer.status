@@ -305,6 +305,8 @@ override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/02: MissingCompileTimeError
 parser_quirks_test: StaticWarning
 part2_test/01: MissingCompileTimeError
+static_field1_test/01: MissingCompileTimeError
+static_field1a_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -645,6 +647,8 @@ override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/02: MissingCompileTimeError
 parser_quirks_test: StaticWarning
 part2_test/01: MissingCompileTimeError
+static_field1_test/01: MissingCompileTimeError
+static_field1a_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -863,6 +867,7 @@ final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
+static_call_wrong_argument_count_negative_test: fail # Issue 12156
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626

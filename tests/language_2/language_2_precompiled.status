@@ -433,6 +433,8 @@ regress_22936_test: MissingCompileTimeError
 regress_23089_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
 regress_26133_test: MissingCompileTimeError
+static_field1_test/01: MissingCompileTimeError
+static_field1a_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -812,6 +814,8 @@ mixin_super_2_test: Skip
 no_such_method_dispatcher_test: Skip  # Uses new Symbol()
 f_bounded_quantification4_test: Skip
 f_bounded_quantification5_test: Skip
+stacktrace_rethrow_error_test: Skip
+stacktrace_rethrow_nonerror_test: Skip
 
 [ $runtime == dart_precompiled || $mode == product ]
 vm/causal_async_exception_stack_test: SkipByDesign

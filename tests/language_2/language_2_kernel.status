@@ -164,6 +164,8 @@ initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 issue_1751477_test: RuntimeError
 no_main_test/01: DartkCrash
+static_field1_test/01: MissingCompileTimeError
+static_field1a_test/01: MissingCompileTimeError
 type_literal_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError

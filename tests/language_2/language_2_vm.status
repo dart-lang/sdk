@@ -420,6 +420,8 @@ regress_23089_test: MissingCompileTimeError
 regress_23408_test: RuntimeError
 regress_27572_test: MissingCompileTimeError
 regress_26133_test: MissingCompileTimeError
+static_field1_test/01: MissingCompileTimeError
+static_field1a_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -428,6 +430,8 @@ static_field_test/01: MissingCompileTimeError
 static_field_test/02: MissingCompileTimeError
 static_field_test/03: MissingCompileTimeError
 static_field_test/04: MissingCompileTimeError
+static_field1_test/01: MissingCompileTimeError
+static_field1a_test/01: MissingCompileTimeError
 static_final_field2_test/01: MissingCompileTimeError
 static_getter_no_setter1_test/01: MissingCompileTimeError
 static_getter_no_setter2_test/01: MissingCompileTimeError
