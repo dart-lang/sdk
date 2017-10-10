@@ -247,6 +247,7 @@ private_access_test/03: CompileTimeError
 private_access_test/04: CompileTimeError
 static_initializer_type_error_test: CompileTimeError
 static_initializer_type_error_test: CompileTimeError
+try_catch_syntax_test/08: CompileTimeError
 type_parameter_test/none: CompileTimeError
 type_variable_bounds_test/00: CompileTimeError
 type_variable_bounds_test/06: CompileTimeError

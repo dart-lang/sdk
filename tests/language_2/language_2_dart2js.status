@@ -489,6 +489,8 @@ super_bound_closure_test/01: MissingCompileTimeError
 try_catch_on_syntax_test/07: MissingCompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
+try_catch_syntax_test/08: MissingCompileTimeError
+type_checks_in_factory_method_test/01: MissingCompileTimeError
 type_promotion_parameter_test/01: MissingCompileTimeError
 type_promotion_parameter_test/02: MissingCompileTimeError
 type_promotion_parameter_test/03: MissingCompileTimeError
@@ -792,8 +794,10 @@ typevariable_substitution2_test/02: RuntimeError
 [ $compiler == dart2js && !$checked && !$enable_asserts && !$dart2js_with_kernel && $runtime != none ]
 assertion_test: RuntimeError # Issue 12748
 typevariable_substitution2_test/02: RuntimeError
-
 runtime_type_function_test: Pass, RuntimeError # Issue 27394
+
+
+
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
@@ -1184,6 +1188,7 @@ positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ko).
+try_catch_test/01: MissingCompileTimeError
 type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/js_backend/constant_emitter.dart': Failed assertion: line 287 pos 14: 'type is DynamicType': is not true.
 type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
@@ -1492,6 +1497,7 @@ positional_parameters_type_test/02: MissingCompileTimeError
 regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: Crash # Issue 29784
 symbol_conflict_test: RuntimeError
+try_catch_test/01: MissingCompileTimeError
 type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
 type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
@@ -1554,6 +1560,10 @@ regress_26133_test: RuntimeError # Issue 26429
 bool_check_test: RuntimeError # Issue 29647
 bool_condition_check_test: RuntimeError
 generic_test: RuntimeError, OK
+
+[ $compiler == dart2js && !$checked ]
+type_argument_in_super_type_test: RuntimeError
+type_check_const_function_typedef2_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $checked ]
 covariant_subtyping_test: CompileTimeError

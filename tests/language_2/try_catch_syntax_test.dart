@@ -31,7 +31,7 @@ testIllegalFinally() {
 
 testIllegalCatch() {
   try { } catch () { } //             //# 07: compile-time error
-  try { } on MammaMia catch (e) { } //# 08: static type warning
+  try { } on MammaMia catch (e) { } //# 08: compile-time error
   try { } catch (var e) { } //        //# 09: compile-time error
   try { } catch (final e) { } //      //# 10: compile-time error
   try { } catch (int e) { } //        //# 11: compile-time error

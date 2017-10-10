@@ -163,12 +163,12 @@ if_null_precedence_test/none: RuntimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 issue_1751477_test: RuntimeError
+no_main_test/01: DartkCrash
 type_literal_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
-no_main_test/01: DartkCrash
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -463,6 +463,7 @@ generic_function_bounds_test: CompileTimeError
 named_parameters_type_test/01: Crash
 named_parameters_type_test/02: Crash
 named_parameters_type_test/03: Crash
+type_checks_in_factory_method_test: Crash
 vm/integer_type_propagation_test: Crash
 vm/optimized_stacktrace_test: Crash
 vm/regress_27671_test: Crash

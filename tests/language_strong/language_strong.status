@@ -231,6 +231,7 @@ top_level_getter_no_setter2_test: Skip
 toplevel_collision1_test: Skip
 toplevel_collision2_test: Skip
 transitive_private_library_access_test: Skip
+try_catch_on_syntax_test: Skip
 try_catch_syntax_test: Skip
 try_catch_test: Skip
 type_argument_in_super_type_test: Skip

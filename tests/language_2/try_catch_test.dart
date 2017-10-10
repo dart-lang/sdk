@@ -127,7 +127,7 @@ class TryCatchTest {
   }
 
   static void test9() {
-    var e = 6;
+    dynamic e = 6;
     try {
       throw "up";
     } on String {

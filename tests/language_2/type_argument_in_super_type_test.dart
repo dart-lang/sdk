@@ -20,15 +20,5 @@ class B extends A<C> {
 main() {
   B b = new B();
   Expect.equals(b.field, b.foo());
-  bool isCheckedMode = false;
-  try {
-    String a = 42;
-  } catch (e) {
-    isCheckedMode = true;
-  }
-  if (isCheckedMode) {
-    Expect.throws(b.bar, (e) => e is TypeError);
-  } else {
-    Expect.equals(b.field, b.bar());
-  }
+  Expect.throws(b.bar, (e) => e is TypeError);
 }

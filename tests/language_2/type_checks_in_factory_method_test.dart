@@ -21,7 +21,7 @@ class Bar<T> implements Foo<T> {
       print(" String=$isString");
     };
 
-    func("Hello World!"); // If T is not String, dynamic type checks should fail
+    func("Hello World!"); //# 01: compile-time error
     return new Bar<T>();
   }
 }
@@ -37,5 +37,5 @@ main() {
   } on TypeError catch (e) {
     gotError = true;
   }
-  Expect.equals(true, gotError);
+  Expect.equals(false, gotError);
 }

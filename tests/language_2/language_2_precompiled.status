@@ -470,6 +470,7 @@ super_bound_closure_test/01: MissingCompileTimeError
 try_catch_on_syntax_test/07: MissingCompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
+try_catch_syntax_test/08: MissingCompileTimeError
 type_literal_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 type_promotion_parameter_test/01: MissingCompileTimeError
@@ -527,6 +528,7 @@ type_promotion_parameter_test/52: MissingCompileTimeError
 type_promotion_parameter_test/54: MissingCompileTimeError
 type_promotion_parameter_test/55: MissingCompileTimeError
 type_promotion_parameter_test/56: MissingCompileTimeError
+type_checks_in_factory_method_test/01: MissingCompileTimeError
 type_variable_bounds_test/00: MissingCompileTimeError
 type_variable_bounds_test/01: MissingCompileTimeError
 type_variable_bounds_test/02: MissingCompileTimeError
@@ -708,6 +710,8 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 generic_field_mixin6_test/none: RuntimeError
+type_argument_in_super_type_test: RuntimeError
+type_check_const_function_typedef2_test: MissingCompileTimeError
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 async_star_regression_2238_test: CompileTimeError, RuntimeError

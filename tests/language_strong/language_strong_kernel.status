@@ -33,4 +33,3 @@ reify_typevar_static_test/00: MissingCompileTimeError
 reify_typevar_test: RuntimeError
 setter_no_getter_test/01: Crash # VM does not support BottomType
 sync_generator3_test/test2: RuntimeError
-type_error_test: RuntimeError # Throws CastError instead of TypeError
