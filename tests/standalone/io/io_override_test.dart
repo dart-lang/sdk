@@ -23,6 +23,8 @@ class DirectoryMock extends FileSystemEntity implements Directory {
   void createSync({bool recursive: false}) {}
   Future<Directory> createTemp([String prefix]) => null;
   Directory createTempSync([String prefix]) => null;
+  Future<bool> exists() => null;
+  bool existsSync() => false;
   Future<String> resolveSymbolicLinks() => null;
   String resolveSymbolicLinksSync() => null;
   Future<Directory> rename(String newPath) => null;
@@ -49,6 +51,8 @@ class FileMock extends FileSystemEntity implements File {
   File renameSync(String newPath) => null;
   Future<File> copy(String newPath) => null;
   File copySync(String newPath) => null;
+  Future<bool> exists() => null;
+  bool existsSync() => false;
   Future<int> length() => null;
   int lengthSync() => null;
   File get absolute => null;
@@ -88,12 +92,12 @@ class FileMock extends FileSystemEntity implements File {
 }
 
 class FileStatMock implements FileStat {
-  final DateTime changed;
-  final DateTime modified;
-  final DateTime accessed;
-  final FileSystemEntityType type;
-  final int mode;
-  final int size;
+  final DateTime changed = null;
+  final DateTime modified = null;
+  final DateTime accessed = null;
+  final FileSystemEntityType type = null;
+  final int mode = null;
+  final int size = null;
 
   FileStatMock();
 
@@ -132,6 +136,8 @@ class FileSystemWatcherMock {
 }
 
 class LinkMock extends FileSystemEntity implements Link {
+  String get path => "/mocklink";
+
   LinkMock(String path);
 
   static createLink(String path) => new LinkMock(path);
@@ -140,6 +146,8 @@ class LinkMock extends FileSystemEntity implements Link {
   void createSync(String target, {bool recursive: false}) {}
   void updateSync(String target) {}
   Future<Link> update(String target) => null;
+  Future<bool> exists() => null;
+  bool existsSync() => false;
   Future<String> resolveSymbolicLinks() => null;
   String resolveSymbolicLinksSync() => null;
   Future<Link> rename(String newPath) => null;
