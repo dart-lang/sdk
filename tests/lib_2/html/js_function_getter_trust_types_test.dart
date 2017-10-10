@@ -55,18 +55,16 @@ main() {
 
   useHtmlIndividualConfiguration();
 
-  group('trust types', () {
-    test('static nonFunctionStatic', () {
-      expect(() => foo.bar.nonFunctionStatic(), throws);
-      expect(() => foo.bar.nonFunctionStatic(0), throws);
-      expect(() => foo.bar.nonFunctionStatic(0, 0), throws);
-      expect(() => foo.bar.nonFunctionStatic(0, 0, 0, 0, 0, 0), throws);
-    });
+  test('static nonFunctionStatic', () {
+    expect(() => foo.bar.nonFunctionStatic(), throws);
+    expect(() => foo.bar.nonFunctionStatic(0), throws);
+    expect(() => foo.bar.nonFunctionStatic(0, 0), throws);
+    expect(() => foo.bar.nonFunctionStatic(0, 0, 0, 0, 0, 0), throws);
+  });
 
-    test('typedef function', () {
-      expect(() => foo.bar.add(4), throws);
-      expect(() => foo.bar.add(4, 5, 10), throws);
-      expect(foo.bar.add(4, 5), equals(9));
-    });
+  test('typedef function', () {
+    expect(() => foo.bar.add(4), throws);
+    expect(() => foo.bar.add(4, 5, 10), throws);
+    expect(foo.bar.add(4, 5), equals(9));
   });
 }

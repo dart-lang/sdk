@@ -14,6 +14,7 @@ mirrors/mirrors_nsm_test: StaticWarning, OK
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'
 mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>
+html/js_function_getter_trust_types_test: skip # dart2js specific flags.
 
 [ $compiler == dart2analyzer && $strong ]
 html/transferables_test: CompileTimeError # Issue 30975

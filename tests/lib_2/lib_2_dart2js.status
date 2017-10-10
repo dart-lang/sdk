@@ -110,6 +110,7 @@ async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
+html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # TODO(dart2js-team): Please triage this failure.
@@ -150,6 +151,8 @@ html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
 html/interactive_media_test: RuntimeError
 html/js_extend_class_test: RuntimeError
+html/js_interop_constructor_name_error1_test: Fail # Issue 26838
+html/js_interop_constructor_name_error2_test: Fail # Issue 26838
 
 [ $compiler == dart2js && $fast_startup ]
 html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
@@ -233,6 +236,8 @@ html/postmessage_structured_test: SkipByDesign
 html/js_array_test: SkipByDesign
 html/js_function_getter_test: SkipByDesign
 html/js_dart_to_string_test: SkipByDesign
+html/js_interop_1_test: SkipByDesign
+html/js_function_getter_trust_types_test: SkipByDesign
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 html/custom/mirrors_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -383,6 +388,17 @@ html/wheelevent_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart'
 html/window_eq_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/window_mangling_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/window_nosuchmethod_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_function_getter_trust_types_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_function_getter_trust_types_test: CompileTimeError
+html/js_interop_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_interop_constructor_name_method_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_interop_constructor_name_method_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_interop_constructor_name_error1_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_interop_constructor_name_error1_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_interop_constructor_name_error2_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_interop_constructor_name_error2_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_interop_constructor_name_div_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_interop_constructor_name_div_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 html/custom/mirrors_2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -572,6 +588,27 @@ html/wheelevent_test: RuntimeError
 html/window_eq_test: RuntimeError
 html/window_mangling_test: RuntimeError
 html/window_nosuchmethod_test: RuntimeError
+html/js_function_getter_trust_types_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'isObject'.
+html/js_function_getter_trust_types_test: CompileTimeError
+html/js_interop_1_test: RuntimeError
+html/js_interop_constructor_name_method_test: RuntimeError
+html/js_interop_constructor_name_method_test: RuntimeError
+html/js_interop_constructor_name_div_test: RuntimeError
+html/js_interop_constructor_name_div_test: RuntimeError
+html/js_dart_js_test: RuntimeError
+html/js_dart_functions_tests: RuntimeError
+html/js_caching_test: RuntimeError
+html/js_javascript_function_test: RuntimeError
+html/js_jsarray_test: RuntimeError
+html/js_jsfunc_callmethod_test: RuntimeError
+html/js_browser_test: RuntimeError
+html/js_jsify_test: RuntimeError
+html/js_jsobject_test: RuntimeError
+html/js_caching_test: RuntimeError
+html/js_context_test: RuntimeError
+html/js_identity_test: RuntimeError
+html/js_jsobject_test: RuntimeError
+html/js_transferrables_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && $csp ]
 html/js_typed_interop_rename_static_test: RuntimeError

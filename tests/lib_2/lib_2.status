@@ -154,6 +154,7 @@ html/input_element_datetime_test: Fail
 html/input_element_month_test: Fail
 html/input_element_time_test: Fail
 html/input_element_week_test: Fail
+html/js_transferrables_test: RuntimeError # Issue 14246
 html/js_util_test/callConstructor: RuntimeError # Issue 26978
 html/localstorage_test: Pass, RuntimeError # Issue 22166
 html/media_stream_test: Pass, Fail
