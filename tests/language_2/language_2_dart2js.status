@@ -342,7 +342,6 @@ field_override_test/01: MissingCompileTimeError
 field_override_test/02: MissingCompileTimeError
 field_override_test/none: MissingCompileTimeError
 field_type_check_test/01: MissingCompileTimeError
-final_field_override_test: RuntimeError
 final_for_in_variable_test: MissingCompileTimeError
 final_param_test: MissingCompileTimeError
 final_super_field_set_test: MissingCompileTimeError
@@ -948,6 +947,7 @@ function_type_alias2_test: RuntimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
+final_field_override_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1600,6 +1600,10 @@ field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
 
 [ $compiler == dart2js && $runtime == chrome ]
+field_override_optimization_test: RuntimeError
+field_type_check2_test/01: MissingRuntimeError
+
+[ $compiler == dart2js && $runtime == d8 && !$checked]
 field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
 
