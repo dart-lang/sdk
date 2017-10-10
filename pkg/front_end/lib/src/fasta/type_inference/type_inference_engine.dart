@@ -33,23 +33,16 @@ import '../messages.dart' show getLocationFromNode;
 
 /// Data structure for tracking dependencies among fields, getters, and setters
 /// that require type inference.
-class AccessorNode {
+class AccessorNode extends InferenceNode {
+  final TypeInferenceEngineImpl _typeInferenceEngine;
+
   final ShadowMember member;
-
-  InferenceState state = InferenceState.NotInferredYet;
-
-  /// If [state] is [InferenceState.Inferring], and type inference for this
-  /// accessor is waiting on type inference of some other accessor, the accessor
-  /// that is being waited on.
-  ///
-  /// Otherwise `null`.
-  AccessorNode currentDependency;
 
   final overrides = <Member>[];
 
   final crossOverrides = <Member>[];
 
-  AccessorNode(this.member);
+  AccessorNode(this._typeInferenceEngine, this.member);
 
   List<Member> get candidateOverrides {
     if (isTrivialSetter) {
@@ -60,8 +53,6 @@ class AccessorNode {
       return crossOverrides;
     }
   }
-
-  bool get isEvaluated => state == InferenceState.Inferred;
 
   /// Indicates whether this accessor is a setter for which the only type we
   /// have to infer is its return type.
@@ -75,6 +66,44 @@ class AccessorNode {
           !ShadowVariableDeclaration.isImplicitlyTyped(parameters[0]);
     }
     return false;
+  }
+
+  @override
+  void resolveInternal() {
+    var member = this.member;
+    if (_typeInferenceEngine.strongMode) {
+      var typeInferrer = _typeInferenceEngine.getMemberTypeInferrer(member);
+      if (member is ShadowProcedure && member.isSetter) {
+        ShadowProcedure.inferSetterReturnType(
+            member, _typeInferenceEngine, typeInferrer.uri);
+      }
+      if (!isTrivialSetter) {
+        var inferredType =
+            _typeInferenceEngine.tryInferAccessorByInheritance(this);
+        if (inferredType == null) {
+          if (member is ShadowField) {
+            inferredType = typeInferrer.inferDeclarationType(
+                typeInferrer.inferFieldTopLevel(member, null, true));
+          } else {
+            inferredType = const DynamicType();
+          }
+        }
+        if (isCircular) {
+          // TODO(paulberry): report the appropriate error.
+          inferredType = const DynamicType();
+        }
+        member.setInferredType(
+            _typeInferenceEngine, typeInferrer.uri, inferredType);
+      }
+    }
+    // TODO(paulberry): if type != null, then check that the type of the
+    // initializer is assignable to it.
+    // TODO(paulberry): the following is a hack so that outlines don't contain
+    // initializers.  But it means that we rebuild the initializers when doing
+    // a full compile.  There should be a better way.
+    if (member is ShadowField) {
+      member.initializer = null;
+    }
   }
 
   @override
@@ -130,19 +159,65 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
   }
 }
 
-/// Enum tracking the type inference state of an accessor or method.
-enum InferenceState {
-  /// The accessor or method's type has not been inferred yet.
-  NotInferredYet,
+/// Base class for tracking dependencies during top level type inference.
+///
+/// Fields, accessors, and methods can have their types inferred in a variety of
+/// ways; there will a derived class for each kind of inference.
+abstract class InferenceNode {
+  /// The node currently being evaluated, or `null` if no node is being
+  /// evaluated.
+  static InferenceNode _currentNode;
 
-  /// Type inference is in progress for the accessor or method.
+  /// Indicates whether the type inference corresponding to this node has been
+  /// completed.
+  bool _isResolved = false;
+
+  /// Indicates whether this node participates in a circularity.
+  bool _isCircular = false;
+
+  /// If this node is currently being evaluated, and its evaluation caused a
+  /// recursive call to another node's [resolve] method, a pointer to the latter
+  /// node; otherwise `null`.
+  InferenceNode _nextNode;
+
+  /// Indicates whether this node participates in a circularity.
   ///
-  /// This means that code is currently on the stack which is attempting to
-  /// determine the type of the accessor or method.
-  Inferring,
+  /// This may be called at the end of [resolveInternal] to check whether a
+  /// circularity was detected during evaluation.
+  bool get isCircular => _isCircular;
 
-  /// The accessor or method's type has been inferred.
-  Inferred
+  /// Evaluates this node, properly accounting for circularities.
+  void resolve() {
+    if (_isResolved) return;
+    if (_nextNode != null || identical(_currentNode, this)) {
+      // An accessor depends on itself (possibly by way of intermediate
+      // accessors).  Mark all accessors involved as circular.
+      var node = this;
+      do {
+        node._isCircular = true;
+        node._isResolved = true;
+        node = node._nextNode;
+      } while (node != null);
+    } else {
+      var previousNode = _currentNode;
+      assert(previousNode?._nextNode == null);
+      _currentNode = this;
+      previousNode?._nextNode = this;
+      resolveInternal();
+      assert(identical(_currentNode, this));
+      previousNode?._nextNode = null;
+      _currentNode = previousNode;
+      _isResolved = true;
+    }
+  }
+
+  /// Evaluates this node, possibly by making recursive calls to the [resolve]
+  /// method of this node or other nodes.
+  ///
+  /// Circularity detection is handled by [resolve], which calls this method.
+  /// Once this method has made all recursive calls to [resolve], it may use
+  /// [isCircular] to detect whether a circularity has occurred.
+  void resolveInternal();
 }
 
 /// Keeps track of the global state for the type inference that occurs outside
@@ -222,8 +297,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   ClassHierarchy classHierarchy;
 
   TypeSchemaEnvironment typeSchemaEnvironment;
-
-  AccessorNode _currentAccessorNode;
 
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
 
@@ -323,7 +396,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   @override
   void finishTopLevelFields() {
     for (var accessorNode in accessorNodes) {
-      inferAccessorFused(accessorNode);
+      accessorNode.resolve();
     }
   }
 
@@ -346,93 +419,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// Retrieve the [TypeInferrer] for the given [member], which was created by
   /// a previous call to [createTopLevelTypeInferrer].
   TypeInferrerImpl getMemberTypeInferrer(ShadowMember member);
-
-  /// Performs type inference on the given [accessorNode].
-  void inferAccessor(AccessorNode accessorNode) {
-    assert(accessorNode.state == InferenceState.NotInferredYet);
-    accessorNode.state = InferenceState.Inferring;
-    var member = accessorNode.member;
-    if (strongMode) {
-      var typeInferrer = getMemberTypeInferrer(member);
-      if (member is ShadowProcedure && member.isSetter) {
-        ShadowProcedure.inferSetterReturnType(member, this, typeInferrer.uri);
-      }
-      if (!accessorNode.isTrivialSetter) {
-        var inferredType = tryInferAccessorByInheritance(accessorNode);
-        if (inferredType == null) {
-          if (member is ShadowField) {
-            inferredType = typeInferrer.inferDeclarationType(
-                typeInferrer.inferFieldTopLevel(member, null, true));
-          } else {
-            inferredType = const DynamicType();
-          }
-        }
-        if (accessorNode.state == InferenceState.Inferred) {
-          // A circularity must have been detected; at the time it was detected,
-          // inference for this node was completed.
-          return;
-        }
-        member.setInferredType(this, typeInferrer.uri, inferredType);
-      }
-    }
-    accessorNode.state = InferenceState.Inferred;
-    // TODO(paulberry): if type != null, then check that the type of the
-    // initializer is assignable to it.
-    // TODO(paulberry): the following is a hack so that outlines don't contain
-    // initializers.  But it means that we rebuild the initializers when doing
-    // a full compile.  There should be a better way.
-    if (member is ShadowField) {
-      member.initializer = null;
-    }
-  }
-
-  /// Makes a note that the given [accessorNode] is part of a circularity, so
-  /// its type can't be inferred.
-  void inferAccessorCircular(AccessorNode accessorNode) {
-    var member = accessorNode.member;
-    // TODO(paulberry): report the appropriate error.
-    var uri = getMemberTypeInferrer(member).uri;
-    accessorNode.state = InferenceState.Inferred;
-    member.setInferredType(this, uri, const DynamicType());
-    // TODO(paulberry): the following is a hack so that outlines don't contain
-    // initializers.  But it means that we rebuild the initializers when doing
-    // a full compile.  There should be a better way.
-    if (member is ShadowField) {
-      member.initializer = null;
-    }
-  }
-
-  /// Performs fused type inference on the given [accessorNode].
-  void inferAccessorFused(AccessorNode accessorNode) {
-    switch (accessorNode.state) {
-      case InferenceState.Inferred:
-        // Already inferred.  Nothing to do.
-        break;
-      case InferenceState.Inferring:
-        // An accessor depends on itself (possibly by way of intermediate
-        // accessors).  Mark all accessors involved as circular and infer a type
-        // of `dynamic` for them.
-        var node = accessorNode;
-        while (node != null) {
-          var nextNode = node.currentDependency;
-          inferAccessorCircular(node);
-          node.currentDependency = null;
-          node = nextNode;
-        }
-        break;
-      case InferenceState.NotInferredYet:
-        // Mark _currentAccesorNode (if any) as depending on this one, and
-        // invoke accessor inference for this node.
-        var oldAccessorNode = _currentAccessorNode;
-        oldAccessorNode?.currentDependency = accessorNode;
-        _currentAccessorNode = accessorNode;
-        inferAccessor(accessorNode);
-        assert(identical(_currentAccessorNode, accessorNode));
-        oldAccessorNode?.currentDependency = null;
-        _currentAccessorNode = oldAccessorNode;
-        break;
-    }
-  }
 
   @override
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
@@ -471,9 +457,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 
   DartType _computeOverriddenAccessorType(Member override, Class thisClass) {
-    AccessorNode dependency = ShadowMember.getAccessorNode(override);
+    AccessorNode dependency = ShadowMember.getInferenceNode(override);
     if (dependency != null) {
-      inferAccessorFused(dependency);
+      dependency.resolve();
     }
     DartType overriddenType;
     if (override is Field) {

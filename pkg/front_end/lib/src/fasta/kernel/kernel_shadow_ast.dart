@@ -312,13 +312,13 @@ class ShadowClass extends Class {
             procedures: procedures,
             fields: fields);
 
-  static void clearClassInferenceInfo(ShadowClass class_) {
-    class_._inferenceInfo = null;
-  }
-
-  static ClassInferenceInfo getClassInferenceInfo(Class class_) {
-    if (class_ is ShadowClass) return class_._inferenceInfo;
-    return null;
+  /// Resolves all forwarding nodes for this class, propagates covariance
+  /// annotations, and creates forwarding stubs as needed.
+  void finalizeCovariance(InterfaceResolver interfaceResolver) {
+    interfaceResolver.finalizeCovariance(
+        this, _inferenceInfo.gettersAndMethods);
+    interfaceResolver.finalizeCovariance(this, _inferenceInfo.setters);
+    interfaceResolver.recordInstrumentation(this);
   }
 
   /// Creates API members for this class.
@@ -328,13 +328,13 @@ class ShadowClass extends Class {
     interfaceResolver.createApiMembers(this, _inferenceInfo.setters, true);
   }
 
-  /// Resolves all forwarding nodes for this class, propagates covariance
-  /// annotations, and creates forwarding stubs as needed.
-  void finalizeCovariance(InterfaceResolver interfaceResolver) {
-    interfaceResolver.finalizeCovariance(
-        this, _inferenceInfo.gettersAndMethods);
-    interfaceResolver.finalizeCovariance(this, _inferenceInfo.setters);
-    interfaceResolver.recordInstrumentation(this);
+  static void clearClassInferenceInfo(ShadowClass class_) {
+    class_._inferenceInfo = null;
+  }
+
+  static ClassInferenceInfo getClassInferenceInfo(Class class_) {
+    if (class_ is ShadowClass) return class_._inferenceInfo;
+    return null;
   }
 
   /// Initializes the class inference information associated with the given
@@ -1244,7 +1244,7 @@ abstract class ShadowMember implements Member {
   void setInferredType(
       TypeInferenceEngineImpl engine, String uri, DartType inferredType);
 
-  static AccessorNode getAccessorNode(Member member) {
+  static AccessorNode getInferenceNode(Member member) {
     if (member is ShadowMember) return member._accessorNode;
     return null;
   }
@@ -1485,7 +1485,7 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
                   writeMember.kind == ProcedureKind.Setter) ||
               writeMember is Field)) {
         if (writeMember is ShadowField && writeMember._accessorNode != null) {
-          inferrer.engine.inferAccessorFused(writeMember._accessorNode);
+          writeMember._accessorNode.resolve();
         }
       }
     }
@@ -1601,7 +1601,7 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
       var target = write.target;
       if (target is ShadowField && target._accessorNode != null) {
         if (inferrer.isTopLevel) {
-          inferrer.engine.inferAccessorFused(target._accessorNode);
+          target._accessorNode.resolve();
         }
       }
     }
@@ -1624,7 +1624,7 @@ class ShadowStaticGet extends StaticGet implements ShadowExpression {
     var target = this.target;
     if (target is ShadowField && target._accessorNode != null) {
       if (inferrer.isTopLevel) {
-        inferrer.engine.inferAccessorFused(target._accessorNode);
+        target._accessorNode.resolve();
       }
     }
     var inferredType = typeNeeded ? target.getterType : null;
@@ -1960,7 +1960,7 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
 
   @override
   AccessorNode createAccessorNode(ShadowMember member) {
-    AccessorNode accessorNode = new AccessorNode(member);
+    AccessorNode accessorNode = new AccessorNode(this, member);
     member._accessorNode = accessorNode;
     return accessorNode;
   }

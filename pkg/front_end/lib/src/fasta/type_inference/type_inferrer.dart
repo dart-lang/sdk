@@ -916,10 +916,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
                 interfaceMember.kind == ProcedureKind.Getter) ||
             interfaceMember is Field)) {
       if (interfaceMember is ShadowField) {
-        var accessorNode = ShadowMember.getAccessorNode(interfaceMember);
-        if (accessorNode != null) {
-          engine.inferAccessorFused(accessorNode);
-        }
+        var accessorNode = ShadowMember.getInferenceNode(interfaceMember);
+        accessorNode?.resolve();
       }
     }
     if (interfaceMember is Member) {
