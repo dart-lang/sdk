@@ -19,7 +19,6 @@ main() {
   } catch (e) {
     caughtIt = true;
   }
-  ;
   D.loadLibrary().then((_) {
     foo();
     Expect.isTrue(caughtIt);

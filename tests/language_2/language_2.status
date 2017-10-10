@@ -58,6 +58,8 @@ issue_22780_test/01: Pass, Crash # Issue 29094
 issue_1751477_test: Crash # Requires deferred libraries
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 vm/optimized_stacktrace_test: Pass, Slow
+regress_23408_test: Crash # Requires deferred libraries
+regress_22443_test: Crash # Requires deferred libraries
 
 [ $checked && ! $strong ]
 type_parameter_test/05: Pass

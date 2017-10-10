@@ -102,6 +102,11 @@ parameter_initializer_test: CompileTimeError
 parser_quirks_test: CompileTimeError
 part_refers_to_core_library_test/01: Crash
 export_private_test/01: MissingCompileTimeError # Issue 29920
+regress_22443_test: RuntimeError
+regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
+regress_23408_test: CompileTimeError
+regress_25568_test: RuntimeError
+regress_27617_test/1: MissingCompileTimeError
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626

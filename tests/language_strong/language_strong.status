@@ -184,10 +184,6 @@ regress_20394_test: Skip
 regress_21793_test: Skip
 regress_21912_test: Skip
 regress_22438_test: Skip
-regress_22936_test: Skip
-regress_23038_test: Skip
-regress_23051_test: Skip
-regress_23408_test: Skip
 return_type_test: Skip
 rewrite_implicit_this_test: Skip
 setter4_test: Skip
@@ -263,14 +259,12 @@ internal_library_test/02: MissingStaticWarning # Issue 28823
 main_not_a_function_test/01: MissingStaticWarning # Issue 28823
 main_test/03: MissingStaticWarning # Issue 28823
 no_main_test/01: MissingStaticWarning # Issue 28823
-regress_23089_test: CompileTimeError # Issue 28823
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
 super_setter_test: StaticWarning # Issue 28823
 try_catch4_test: StaticWarning # Issue 28823
 try_catch5_test: StaticWarning # Issue 28823
 
 [ $compiler == dartdevc ]
-regress_23089_test: CompileTimeError # Issue 29920
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 
 [ $compiler == dartdevc && $runtime != none ]
@@ -300,7 +294,6 @@ mint_arithmetic_test: RuntimeError # Issue 29920
 nan_identical_test: RuntimeError # Issue 29920
 nested_switch_label_test: RuntimeError # Issue 29920
 regress_16640_test: RuntimeError # Issue 29920
-regress_22443_test: RuntimeError # Issue 29920
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920
 stack_overflow_test: RuntimeError # Issue 29920
 stacktrace_test: RuntimeError # Issue 29920

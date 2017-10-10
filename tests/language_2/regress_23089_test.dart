@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class IPeer<C extends IP2PClient> {}
+// Test doesn't cover http://dartbug.com/23089 anymore.
+// Generic bounds now must be fully instantiated. This means that the
+// cycle is not possible anymore.
+
+abstract class IPeer<C extends IP2PClient /*@compile-error=unspecified*/ > {}
 
 abstract class IPeerRoom<P extends IPeer, C extends IP2PClient> {}
 

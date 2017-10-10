@@ -429,6 +429,10 @@ prefix16_test/00: MissingCompileTimeError
 prefix16_test/01: MissingCompileTimeError
 prefix22_test/00: MissingCompileTimeError
 prefix23_test/00: MissingCompileTimeError
+regress_22936_test: MissingCompileTimeError
+regress_23089_test: MissingCompileTimeError
+regress_27572_test: MissingCompileTimeError
+regress_26133_test: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -574,6 +578,7 @@ void_block_return_test/00: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 library_env_test/has_mirror_support: RuntimeError, OK
+regress_28255_test: SkipByDesign
 export_ambiguous_main_test: Crash
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
@@ -744,6 +749,7 @@ deferred_global_test: Fail
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 vm/regress_27201_test: Fail
+regress_23408_test: RuntimeError
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 deferred_load_constants_test/02: Fail

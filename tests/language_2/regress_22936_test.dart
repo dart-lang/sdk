@@ -16,8 +16,7 @@ foo() {
 main() {
   final x = null;
   try {
-    x = //   //# 01: static type warning
-    foo();
+    x = /*@compile-error=unspecified*/ foo();
   } on NoSuchMethodError {}
   Expect.isTrue(fooCalled);
 }

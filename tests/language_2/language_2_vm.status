@@ -415,6 +415,11 @@ prefix16_test/00: MissingCompileTimeError
 prefix16_test/01: MissingCompileTimeError
 prefix22_test/00: MissingCompileTimeError
 prefix23_test/00: MissingCompileTimeError
+regress_22936_test: MissingCompileTimeError
+regress_23089_test: MissingCompileTimeError
+regress_23408_test: RuntimeError
+regress_27572_test: MissingCompileTimeError
+regress_26133_test: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -814,6 +819,7 @@ type_parameter_test/05: MissingCompileTimeError
 [ $compiler == app_jit && $runtime == vm ]
 generic_methods_reuse_type_variables_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
+regress_23408_test: Crash
 
 [ $compiler == app_jit && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError

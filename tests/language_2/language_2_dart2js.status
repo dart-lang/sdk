@@ -447,6 +447,11 @@ override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/02: MissingCompileTimeError
 part2_test/01: MissingCompileTimeError
+regress_26133_test: MissingCompileTimeError
+regress_22936_test: MissingCompileTimeError
+regress_23089_test: MissingCompileTimeError
+regress_23408_test: RuntimeError
+regress_27572_test: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -714,6 +719,8 @@ list_literal4_test/05: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
+regress_22976_test: CompileTimeError # Issue 23132
+regress_24283_test: RuntimeError # Issue 1533
 external_test/10: CompileTimeError # Issue 12887
 external_test/13: CompileTimeError # Issue 12887
 external_test/20: CompileTimeError # Issue 12887
@@ -1189,6 +1196,18 @@ external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 factory_redirection_test/07: MissingCompileTimeError
+regress_22443_test: CompileTimeError
+regress_22976_test/01: CompileTimeError
+regress_22976_test/02: CompileTimeError
+regress_22976_test/none: CompileTimeError
+regress_23408_test: CompileTimeError
+regress_23996_test: RuntimeError
+regress_24283_test: RuntimeError
+regress_27572_test: RuntimeError
+regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
+regress_28217_test/01: MissingCompileTimeError
+regress_28217_test/none: MissingCompileTimeError
+regress_28255_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1493,6 +1512,16 @@ external_test/20: MissingRuntimeError
 f_bounded_quantification4_test: RuntimeError
 f_bounded_quantification5_test: RuntimeError
 factory_redirection_test/07: MissingCompileTimeError
+regress_22443_test: CompileTimeError
+regress_22976_test: CompileTimeError
+regress_23408_test: CompileTimeError
+regress_23996_test: RuntimeError
+regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
+regress_27572_test: RuntimeError
+regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
+regress_28217_test/01: MissingCompileTimeError
+regress_28217_test/none: MissingCompileTimeError
+regress_28255_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
@@ -1509,6 +1538,7 @@ async_star_await_pauses_test: RuntimeError # Need triage
 async_star_no_cancel2_test: RuntimeError # Need triage
 async_star_no_cancel_test: RuntimeError # Need triage
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
+regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 
 [ $compiler == dart2js && $runtime == jsshell ]
 async_star_test/01: RuntimeError
@@ -1523,6 +1553,7 @@ async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 covariant_subtyping_test: CompileTimeError
 default_factory2_test/01: Fail # Issue 14121
+regress_26133_test: RuntimeError # Issue 26429
 
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
 bool_check_test: RuntimeError # Issue 29647
@@ -1555,6 +1586,7 @@ null_test/0*: Pass # mirrors not supported, fails for the wrong reason
 null_test/none: Fail # mirrors not supported
 overridden_no_such_method_test: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
+regress_28255_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos && !$dart2js_with_kernel ]
 await_future_test: Pass, Timeout # Issue 26735
@@ -1592,3 +1624,9 @@ round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round
 [ $compiler == dart2js && $minified && ! $dart2js_with_kernel ]
 f_bounded_quantification4_test: Fail, Pass # Issue 12605
 symbol_conflict_test: RuntimeError # Issue 23857
+
+[ $compiler == dart2js && $host_checked && !$dart2js_with_kernel ]
+regress_26855_test/1: Crash # Issue 26867
+regress_26855_test/2: Crash # Issue 26867
+regress_26855_test/3: Crash # Issue 26867
+regress_26855_test/4: Crash # Issue 26867

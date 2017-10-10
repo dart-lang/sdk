@@ -9,7 +9,7 @@ main() {
 }
 
 class A { //                                 //# 01: continued
-  // Note the trailing ' in the next line. //# 01: continued
+  // Note the trailing ' in the next line.   //# 01: continued
   get foo => bar();' //                      //# 01: continued
-/// 01: continued
+  //                                         //# 01: continued
   String bar( //                             //# 01: continued
