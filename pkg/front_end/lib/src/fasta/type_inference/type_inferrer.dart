@@ -1034,11 +1034,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
                 : classInferenceInfo.gettersAndMethods,
             name);
         if (member == null) return null;
-        if (member is ForwardingNode) {
-          return member.resolve();
-        } else {
-          return member;
-        }
+        member = member is ForwardingNode ? member.resolve() : member;
+        member = member is SyntheticAccessor
+            ? SyntheticAccessor.getField(member)
+            : member;
+        return member;
       }
     }
     return classHierarchy.getInterfaceMember(class_, name, setter: setter);

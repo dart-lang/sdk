@@ -11,9 +11,9 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 /// Set this flag to `true` to cause debugging information about covariance
 /// checks to be printed to standard output.
@@ -437,6 +437,7 @@ class ForwardingNode extends Procedure {
     var inheritedMemberSubstitution = Substitution.empty;
     bool isDeclaredInThisClass =
         identical(inheritedMember.enclosingClass, enclosingClass);
+    _resolveInheritedCandidates();
     if (isDeclaredInThisClass) {
       if (kind == ProcedureKind.Getter || kind == ProcedureKind.Setter) {
         // TODO(paulberry): do type inference.
@@ -520,9 +521,17 @@ class ForwardingNode extends Procedure {
               setterParameter.isGenericCovariantInterface;
           field.isGenericCovariantImpl = setterParameter.isGenericCovariantImpl;
         }
-        return field;
-      } else {
-        return inheritedMember;
+      }
+      return inheritedMember;
+    }
+  }
+
+  void _resolveInheritedCandidates() {
+    for (int i = _start; i < _end; i++) {
+      var candidate = _candidates[i];
+      if (identical(candidate.enclosingClass, enclosingClass)) continue;
+      if (candidate is ForwardingNode) {
+        _candidates[i] = candidate.resolve();
       }
     }
   }
@@ -831,4 +840,6 @@ class SyntheticAccessor extends Procedure {
   SyntheticAccessor(
       Name name, ProcedureKind kind, FunctionNode function, this._field)
       : super(name, kind, function);
+
+  static getField(SyntheticAccessor accessor) => accessor._field;
 }

@@ -599,8 +599,8 @@ class InterfaceResolverTest {
     var field = makeField(type: new TypeParameterType(typeParameter));
     var class_ = makeClass(typeParameters: [typeParameter], fields: [field]);
     var node = getForwardingNode(class_, true);
-    var resolvedField = node.resolve();
-    expect(resolvedField, same(field));
+    var resolvedAccessor = node.resolve() as SyntheticAccessor;
+    expect(SyntheticAccessor.getField(resolvedAccessor), same(field));
     expect(field.isGenericCovariantImpl, isTrue);
     expect(field.isGenericCovariantInterface, isTrue);
     expect(field.isCovariant, isFalse);
@@ -613,8 +613,8 @@ class InterfaceResolverTest {
     var b = makeClass(
         name: 'B', implementedTypes: [a.asThisSupertype], fields: [fieldB]);
     var node = getForwardingNode(b, true);
-    var resolvedField = node.resolve();
-    expect(resolvedField, same(fieldB));
+    var resolvedAccessor = node.resolve() as SyntheticAccessor;
+    expect(SyntheticAccessor.getField(resolvedAccessor), same(fieldB));
     expect(fieldB.isGenericCovariantImpl, isFalse);
     expect(fieldB.isGenericCovariantInterface, isFalse);
     expect(fieldB.isCovariant, isTrue);
@@ -634,8 +634,8 @@ class InterfaceResolverTest {
       fieldB
     ]);
     var node = getForwardingNode(b, true);
-    var resolvedField = node.resolve();
-    expect(resolvedField, same(fieldB));
+    var resolvedAccessor = node.resolve() as SyntheticAccessor;
+    expect(SyntheticAccessor.getField(resolvedAccessor), same(fieldB));
     expect(fieldB.isGenericCovariantImpl, isTrue);
     expect(fieldB.isGenericCovariantInterface, isFalse);
     expect(fieldB.isCovariant, isFalse);
@@ -833,7 +833,8 @@ class InterfaceResolverTest {
     var a = makeClass(name: 'A', fields: [field]);
     var b = makeClass(name: 'B', supertype: a.asThisSupertype);
     var node = getForwardingNode(b, false);
-    expect(node.resolve(), same(field));
+    var accessor = node.resolve() as SyntheticAccessor;
+    expect(SyntheticAccessor.getField(accessor), same(field));
   }
 
   void test_resolve_first() {
