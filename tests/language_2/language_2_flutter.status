@@ -274,6 +274,7 @@ wrong_number_type_arguments_test/01: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
 new_expression_type_args_test/02: CompileTimeError
 no_such_method_test: CompileTimeError
+try_catch_on_syntax_test/07: CompileTimeError
 regress_28255_test: CompileTimeError
 regress_23408_test: CompileTimeError
 private_access_test/03: CompileTimeError

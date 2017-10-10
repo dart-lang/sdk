@@ -803,6 +803,8 @@ private_member1_negative_test: fail # Issue 14021
 private_member2_negative_test: fail # Issue 14021
 private_member3_negative_test: fail # Issue 14021
 prefix7_negative_test: CompileTimeError
+try_catch_on_syntax_test/10: MissingCompileTimeError
+try_catch_on_syntax_test/11: MissingCompileTimeError
 regress_27617_test/1: MissingCompileTimeError
 regress_23408_test: Skip # don't care about the static warning.
 
@@ -1115,6 +1117,7 @@ string_no_operator_test/16: MissingCompileTimeError
 string_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
+try_catch_on_syntax_test/07: MissingCompileTimeError
 type_promotion_parameter_test/01: MissingCompileTimeError
 type_promotion_parameter_test/02: MissingCompileTimeError
 type_promotion_parameter_test/03: MissingCompileTimeError

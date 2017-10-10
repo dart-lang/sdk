@@ -467,6 +467,9 @@ string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+try_catch_on_syntax_test/07: MissingCompileTimeError
+try_catch_on_syntax_test/10: MissingCompileTimeError
+try_catch_on_syntax_test/11: MissingCompileTimeError
 type_literal_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 type_promotion_parameter_test/01: MissingCompileTimeError

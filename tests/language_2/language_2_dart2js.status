@@ -486,6 +486,9 @@ string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+try_catch_on_syntax_test/07: MissingCompileTimeError
+try_catch_on_syntax_test/10: MissingCompileTimeError
+try_catch_on_syntax_test/11: MissingCompileTimeError
 type_promotion_parameter_test/01: MissingCompileTimeError
 type_promotion_parameter_test/02: MissingCompileTimeError
 type_promotion_parameter_test/03: MissingCompileTimeError
@@ -719,6 +722,8 @@ list_literal4_test/05: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
+try_catch_on_syntax_test/10: Fail # Issue 19823
+try_catch_on_syntax_test/11: Fail # Issue 19823
 regress_22976_test: CompileTimeError # Issue 23132
 regress_24283_test: RuntimeError # Issue 1533
 external_test/10: CompileTimeError # Issue 12887

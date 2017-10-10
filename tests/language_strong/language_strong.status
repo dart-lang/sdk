@@ -231,7 +231,6 @@ top_level_getter_no_setter2_test: Skip
 toplevel_collision1_test: Skip
 toplevel_collision2_test: Skip
 transitive_private_library_access_test: Skip
-try_catch_on_syntax_test: Skip
 try_catch_syntax_test: Skip
 try_catch_test: Skip
 type_argument_in_super_type_test: Skip
@@ -261,8 +260,6 @@ main_test/03: MissingStaticWarning # Issue 28823
 no_main_test/01: MissingStaticWarning # Issue 28823
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
 super_setter_test: StaticWarning # Issue 28823
-try_catch4_test: StaticWarning # Issue 28823
-try_catch5_test: StaticWarning # Issue 28823
 
 [ $compiler == dartdevc ]
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920

@@ -27,7 +27,7 @@ void test1() {
   } on MyException catch (e) {
     foo = 3;
   }
-  on UndefinedClass //# 07: static type warning
+  on UndefinedClass //# 07: compile-time error
   catch (e) {
     foo = 4;
   }
@@ -39,8 +39,8 @@ testFinal() {
     throw "catch this!";
   } catch (e, s) {
     // Test that the error and stack trace variables are final.
-      e = null; // //# 10: runtime error
-      s = null; // //# 11: runtime error
+      e = null; // //# 10: compile-time error
+      s = null; // //# 11: compile-time error
   }
 }
 
