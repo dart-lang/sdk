@@ -18,15 +18,11 @@ abstract class ClosureAnnotator {
   JS.TypeRef emitTypeRef(DartType type);
 
   // TODO(ochafik): Handle destructured params when Closure supports it.
-  ClosureAnnotation closureAnnotationFor(
-      JS.Node node, AstNode original, Element e, String namedArgsMapName) {
-    String comment;
-    if (original is AnnotatedNode && original.documentationComment != null) {
-      comment = original.documentationComment.toSource();
-    }
+  ClosureAnnotation closureAnnotationFor(JS.Node node, AnnotatedNode original,
+      Element e, String namedArgsMapName) {
     // Note: Dart and Closure privacy are not compatible: don't set `isPrivate: e.isPrivate`.
     return new ClosureAnnotation(
-        comment: comment,
+        comment: original?.documentationComment?.toSource(),
         // Note: we don't set isConst here because Closure's constness and
         // Dart's are not really compatible.
         isFinal: e is VariableElement && (e.isFinal || e.isConst),

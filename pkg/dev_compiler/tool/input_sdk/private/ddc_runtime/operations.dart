@@ -627,6 +627,11 @@ throw_(obj) {
   JS('', 'throw #', obj);
 }
 
+@JSExportName('rethrow')
+rethrow_(obj) {
+  JS('', 'throw #', obj);
+}
+
 // This is a utility function: it is only intended to be called from dev
 // tools.
 stackPrint(exception) {
