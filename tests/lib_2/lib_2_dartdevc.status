@@ -102,5 +102,8 @@ html/element_types_keygen_test: RuntimeError # Issue 29055
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
 html/touchevent_test: RuntimeError # Issue 29922
 
-[ $compiler == dartdevc && $runtime != none && $system != macos ]
-html/client_rect_test: RuntimeError # Issue 29922, Issue 31019
+[ $compiler == dartdevc && $runtime != none ]
+html/client_rect_test: RuntimeError # Issue 29922, seems to be a reified type problem with DOMClientRect
+
+[ $compiler == dartdevc && $runtime != none && $system == macos ]
+html/client_rect_test: Pass, RuntimeError # Issue 31019
