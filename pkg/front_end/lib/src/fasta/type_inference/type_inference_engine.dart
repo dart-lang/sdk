@@ -469,8 +469,11 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
       // inferred first.
       if (override.isGetter) {
         overriddenType = override.getterType;
-      } else {
+      } else if (override.isSetter) {
         overriddenType = override.setterType;
+      } else {
+        // Illegal override; will be reported elsewhere.
+        overriddenType = const DynamicType();
       }
     } else {
       dynamic parent = override.parent;

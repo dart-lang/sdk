@@ -58,13 +58,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31031')
-  test_conflictingGetterAndMethod_method_getter() async {
-    return super.test_conflictingGetterAndMethod_method_getter();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_constConstructor_redirect_generic() async {
     return super.test_constConstructor_redirect_generic();
