@@ -11,7 +11,6 @@ isolate/ping_test: Skip           # Resolve test issues
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 [ $compiler == precompiler ]
-async/stream_timeout_test: RuntimeError
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 html/*: SkipByDesign # dart:html not supported on AOT.

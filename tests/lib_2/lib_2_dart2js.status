@@ -200,6 +200,9 @@ math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari ]
+html/custom/attribute_changed_callback_test: Pass, Timeout
+html/custom/constructor_calls_created_synchronously_test: Pass, Timeout
+html/custom/created_callback_test: Pass, Timeout
 html/custom/document_register_basic_test: Pass, Timeout
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_datalist_test: RuntimeError # Issue 29922
@@ -224,7 +227,8 @@ html/fontface_test: Fail # Fontface not supported on these.
 [ $compiler == dart2js && $fast_startup ]
 html/mirrors_js_typed_interop_test: Fail # mirrors not supported
 
-[  $compiler == dart2js && $runtime == ff ]
+[ $compiler == dart2js && $runtime == ff ]
+html/custom/constructor_calls_created_synchronously_test: Pass, Timeout
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_keygen_test: RuntimeError # Issue 29922
