@@ -20,23 +20,25 @@ class Super {
 class Sub extends Super {
   Sub() : super();
 
-  A field;
+  // Invalid override. The type of 'Sub.field' ('() → A') isn't a subtype of
+  // 'Super.field' ('() → B1').
+  A field; // //# 00: compile-time error
 }
 
 class SubSub extends Super {
   SubSub() : super();
 
   // B2 not assignable to B1
-  B2 field; // //# 01: static type warning
+  B2 field; // //# 01: compile-time error
 }
 
 main() {
   SubSub val1 = new SubSub();
-  val1.field = new B2(); //# 02: static type warning, dynamic type error
+  val1.field = new B2(); //# 02: compile-time error
   Expect.equals(true, val1.field is B2); //# 02: continued
 
   Sub val2 = new Sub();
-  val2.field = new A();
+  val2.field = new A(); //# none: compile-time error
   Expect.equals(true, val2.field is A);
   Expect.equals(false, val2.field is B1);
   Expect.equals(false, val2.field is B2);

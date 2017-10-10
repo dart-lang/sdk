@@ -48,16 +48,16 @@ main() {
   Expect.equals((D).runtimeType, (D).runtimeType.runtimeType);
 
   // Test that operator calls on class literals go to Type.
-  Expect.throws(() => C = 1, (e) => e is NoSuchMethodError); //# 03: static type warning
-  Expect.throws(() => C++, (e) => e is NoSuchMethodError); //# 04: static type warning
-  Expect.throws(() => C + 1, (e) => e is NoSuchMethodError); //# 05: static type warning
-  Expect.throws(() => C[2], (e) => e is NoSuchMethodError); //# 06: static type warning
-  Expect.throws(() => C[2] = 'hest', (e) => e is NoSuchMethodError); //# 07: static type warning
-  Expect.throws(() => dynamic = 1, (e) => e is NoSuchMethodError); //# 08: static type warning
-  Expect.throws(() => dynamic++, (e) => e is NoSuchMethodError); //# 09: static type warning
-  Expect.throws(() => dynamic + 1, (e) => e is NoSuchMethodError); //# 10: static type warning
-  Expect.throws(() => dynamic[2], (e) => e is NoSuchMethodError); //# 11: static type warning
-  Expect.throws(() => dynamic[2] = 'hest', (e) => e is NoSuchMethodError); //# 12: static type warning
+  Expect.throws(() => C = 1, (e) => e is NoSuchMethodError); //# 03: compile-time error
+  Expect.throws(() => C++, (e) => e is NoSuchMethodError); //# 04: compile-time error
+  Expect.throws(() => C + 1, (e) => e is NoSuchMethodError); //# 05: compile-time error
+  Expect.throws(() => C[2], (e) => e is NoSuchMethodError); //# 06: compile-time error
+  Expect.throws(() => C[2] = 'hest', (e) => e is NoSuchMethodError); //# 07: compile-time error
+  Expect.throws(() => dynamic = 1, (e) => e is NoSuchMethodError); //# 08: compile-time error
+  Expect.throws(() => dynamic++, (e) => e is NoSuchMethodError); //# 09: compile-time error
+  Expect.throws(() => dynamic + 1, (e) => e is NoSuchMethodError); //# 10: compile-time error
+  Expect.throws(() => dynamic[2], (e) => e is NoSuchMethodError); //# 11: compile-time error
+  Expect.throws(() => dynamic[2] = 'hest', (e) => e is NoSuchMethodError); //# 12: compile-time error
 
   Expect.equals((dynamic).toString(), 'dynamic');
 }

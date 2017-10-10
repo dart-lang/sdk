@@ -41,9 +41,6 @@ class MixedFields extends OneField {
   MixedFields.c1()
       : c = new Mark('cc'),
         super();
-  MixedFields.c2()
-      : super(),
-        c = new Mark('cc');
 }
 
 String run(callback) {
@@ -60,5 +57,4 @@ main() {
   Expect.equals('b.c.d.a.', run(() => new MixedFields()));
   Expect.equals('b.c.d.cc.a.', run(() => new MixedFields.c0()));
   Expect.equals('b.c.d.cc.a.', run(() => new MixedFields.c1()));
-  Expect.equals('b.c.d.a.cc.', run(() => new MixedFields.c2()));
 }

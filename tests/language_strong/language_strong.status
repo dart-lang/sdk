@@ -91,6 +91,27 @@ final_super_field_set_test: Skip
 final_syntax_test: Skip
 final_variable_assignment_test: Skip
 first_class_types_literals_test: Skip
+export_ambiguous_main_negative_test: Skip
+extend_type_parameter2_negative_test: Skip
+extend_type_parameter_negative_test: Skip
+external_test: Skip
+f_bounded_quantification2_test: Skip
+f_bounded_quantification4_test: Skip
+f_bounded_quantification5_test: Skip
+f_bounded_quantification_test: Skip
+factory1_test: Skip
+factory2_negative_test: Skip
+factory2_test: Skip
+factory3_negative_test: Skip
+factory3_test: Skip
+factory4_test: Skip
+factory5_test: Skip
+factory_implementation_test: Skip
+factory_negative_test: Skip
+factory_redirection2_test: Skip
+factory_redirection3_cyclic_test: Skip
+factory_redirection_test: Skip
+factory_return_type_checked_test: Skip
 function_literals2_test: Skip
 function_literals_test: Skip
 function_malformed_result_type_test: Skip
@@ -283,6 +304,8 @@ double_int_to_string_test: RuntimeError # Issue 29920
 execute_finally6_test: RuntimeError # Issue 29920
 field_optimization3_test: RuntimeError # Issue 29920
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
+expect_test: RuntimeError # Issue 29920
+f_bounded_quantification3_test: RuntimeError # Issue 29920
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
 instanceof2_test: RuntimeError # Issue 29920
 instanceof4_test/01: RuntimeError # Issue 29920

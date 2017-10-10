@@ -612,7 +612,32 @@ factory_redirection_test/13: MissingCompileTimeError
 factory_redirection_test/14: MissingCompileTimeError
 factory_redirection_test/none: MissingCompileTimeError
 factory_return_type_checked_test/00: MissingCompileTimeError
-
+field_override2_test: MissingCompileTimeError
+field_override_optimization_test: RuntimeError
+field_override_test/00: MissingCompileTimeError
+field_override_test/01: MissingCompileTimeError
+field_override_test/02: MissingCompileTimeError
+field_override_test/none: MissingCompileTimeError
+field_type_check2_test/01: MissingRuntimeError
+field_type_check_test/01: MissingCompileTimeError
+final_for_in_variable_test: MissingCompileTimeError
+final_param_test: MissingCompileTimeError
+final_super_field_set_test: MissingCompileTimeError
+final_syntax_test/10: MissingCompileTimeError
+final_variable_assignment_test/01: MissingCompileTimeError
+final_variable_assignment_test/02: MissingCompileTimeError
+final_variable_assignment_test/03: MissingCompileTimeError
+final_variable_assignment_test/04: MissingCompileTimeError
+first_class_types_literals_test/03: MissingCompileTimeError
+first_class_types_literals_test/04: MissingCompileTimeError
+first_class_types_literals_test/05: MissingCompileTimeError
+first_class_types_literals_test/06: MissingCompileTimeError
+first_class_types_literals_test/07: MissingCompileTimeError
+first_class_types_literals_test/08: MissingCompileTimeError
+first_class_types_literals_test/09: MissingCompileTimeError
+first_class_types_literals_test/10: MissingCompileTimeError
+first_class_types_literals_test/11: MissingCompileTimeError
+first_class_types_literals_test/12: MissingCompileTimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError

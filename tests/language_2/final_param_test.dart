@@ -5,7 +5,7 @@
 
 class A {
   static void test(final x) {
-    x = 2; // //# 01: static type warning, runtime error
+    x = 2; /*@compile-error=unspecified*/
   }
 }
 

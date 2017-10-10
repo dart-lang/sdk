@@ -6,8 +6,8 @@
 
 main() {
   final x = 30;
-  x = 0; //   //# 01: static type warning, runtime error
-  x += 1; //  //# 02: static type warning, runtime error
-  ++x; //     //# 03: static type warning, runtime error
-  x++; //     //# 04: static type warning, runtime error
+  x = 0; //   //# 01: compile-time error
+  x += 1; //  //# 02: compile-time error
+  ++x; //     //# 03: compile-time error
+  x++; //     //# 04: compile-time error
 }

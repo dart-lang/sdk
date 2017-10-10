@@ -8,7 +8,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  final a = [42];
+  final a = [42]; /*@compile-error=unspecified*/
   foo() => a[0];
 }
 

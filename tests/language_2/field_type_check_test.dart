@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-main() {
-  for (final i in [1, 2, 3]) {
-    i = 4; //# 01: static type warning, runtime error
-  }
+class A {
+  int e;
+}
+
+int main() {
+  new A().e = "String"; //# 01: compile-time error
 }

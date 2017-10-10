@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A {
-  int e;
-}
+import "package:expect/expect.dart";
 
-int main() {
-  new A().e = "String"; //# 01: static type warning, dynamic type error
+final F0 = 42;
+const C0 = F0; /*@compile-error=unspecified*/
+
+main() {
+  Expect.equals(42, F0);
+  Expect.equals(42, C0);
 }

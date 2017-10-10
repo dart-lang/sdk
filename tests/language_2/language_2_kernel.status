@@ -433,6 +433,8 @@ regress_23408_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kern
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/none: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
+final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29900
+final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29900
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError
@@ -473,6 +475,7 @@ positional_parameters_type_test/02: Crash
 positional_parameters_type_test/none: Crash
 factory3_test: Crash
 export_double_same_main_test: Crash # Issue 29895
+final_syntax_test/09: Crash
 
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError
@@ -517,3 +520,4 @@ regress_22728_test: Fail # Dartk Issue 28498
 
 [ $compiler == dartkp && $mode == debug ]
 external_test/13: Crash
+final_syntax_test/09: Crash

@@ -107,6 +107,12 @@ regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_23408_test: CompileTimeError
 regress_25568_test: RuntimeError
 regress_27617_test/1: MissingCompileTimeError
+field_wierd_name_test: Crash
+final_field_initialization_order_test: RuntimeError # Issue 31058
+final_syntax_test/01: MissingCompileTimeError
+final_syntax_test/02: MissingCompileTimeError
+final_syntax_test/03: MissingCompileTimeError
+final_syntax_test/04: MissingCompileTimeError
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -285,3 +291,5 @@ left_shift_test: RuntimeError # Ints and doubles are unified.
 expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 truncdiv_test: RuntimeError # Issue 29920
+field_optimization3_test: RuntimeError # Issue 29920
+first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
