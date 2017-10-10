@@ -21,6 +21,12 @@ checkImplements(object, String name) {
     cls = cls.superclass.superclass.mixin;
   }
 
+  // The VM implements String through an intermediate abstract
+  // class.
+  if (cls.superinterfaces.isEmpty && object is String) {
+    cls = cls.superclass;
+  }
+
   List<ClassMirror> superinterfaces = cls.superinterfaces;
   String symName = 's($name)';
   for (ClassMirror superinterface in superinterfaces) {
