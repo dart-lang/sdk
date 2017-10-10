@@ -35,5 +35,6 @@ class FlutterTarget extends VmTarget {
 
         // Required for flutter.
         'dart:ui',
+        'dart:vmservice_sky',
       ];
 }
