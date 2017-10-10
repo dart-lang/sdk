@@ -73,10 +73,6 @@ class AccessorNode extends InferenceNode {
     var member = this.member;
     if (_typeInferenceEngine.strongMode) {
       var typeInferrer = _typeInferenceEngine.getMemberTypeInferrer(member);
-      if (member is ShadowProcedure && member.isSetter) {
-        ShadowProcedure.inferSetterReturnType(
-            member, _typeInferenceEngine, typeInferrer.uri);
-      }
       if (!isTrivialSetter) {
         var inferredType =
             _typeInferenceEngine.tryInferAccessorByInheritance(this);

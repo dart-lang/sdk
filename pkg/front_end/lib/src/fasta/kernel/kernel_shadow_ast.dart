@@ -1437,14 +1437,6 @@ class ShadowProcedure extends Procedure implements ShadowMember {
   static bool hasImplicitReturnType(ShadowProcedure procedure) {
     return procedure._hasImplicitReturnType;
   }
-
-  static void inferSetterReturnType(
-      ShadowProcedure procedure, TypeInferenceEngineImpl engine, String uri) {
-    assert(procedure.isSetter);
-    if (procedure._hasImplicitReturnType) {
-      procedure.function?.returnType = const VoidType();
-    }
-  }
 }
 
 /// Concrete shadow object representing an assignment to a property.

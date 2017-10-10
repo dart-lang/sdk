@@ -266,8 +266,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
           if (formal.type == null) return true;
         }
       }
-    } else {
-      if (isSetter && returnType == null) return true;
     }
     return false;
   }
@@ -288,6 +286,9 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     if (isEligibleForTopLevelInference) {
       library.loader.typeInferenceEngine.recordMember(procedure);
     }
+    if (library.loader.target.strongMode && isSetter && returnType == null) {
+      procedure.function.returnType = const VoidType();
+    }
     return procedure;
   }
 
@@ -306,14 +307,15 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
 
   @override
   void instrumentTopLevelInference(Instrumentation instrumentation) {
+    bool isEligibleForTopLevelInference = this.isEligibleForTopLevelInference;
+    if ((isEligibleForTopLevelInference || isSetter) && returnType == null) {
+      instrumentation.record(
+          Uri.parse(procedure.fileUri),
+          procedure.fileOffset,
+          'topType',
+          new InstrumentationValueForType(procedure.function.returnType));
+    }
     if (isEligibleForTopLevelInference) {
-      if (returnType == null) {
-        instrumentation.record(
-            Uri.parse(procedure.fileUri),
-            procedure.fileOffset,
-            'topType',
-            new InstrumentationValueForType(procedure.function.returnType));
-      }
       if (formals != null) {
         for (var formal in formals) {
           if (formal.type == null) {
