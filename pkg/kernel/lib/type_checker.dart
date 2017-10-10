@@ -16,15 +16,18 @@ import 'type_environment.dart';
 abstract class TypeChecker {
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
+  final bool ignoreSdk;
   TypeEnvironment environment;
 
-  TypeChecker(this.coreTypes, this.hierarchy) {
-    environment = new TypeEnvironment(coreTypes, hierarchy);
+  TypeChecker(this.coreTypes, this.hierarchy,
+      {bool strongMode: false, this.ignoreSdk: true}) {
+    environment =
+        new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
   }
 
   void checkProgram(Program program) {
     for (var library in program.libraries) {
-      if (library.importUri.scheme == 'dart') continue;
+      if (ignoreSdk && library.importUri.scheme == 'dart') continue;
       for (var class_ in library.classes) {
         hierarchy.forEachOverridePair(class_,
             (Member ownMember, Member superMember, bool isSetter) {
@@ -34,7 +37,7 @@ abstract class TypeChecker {
     }
     var visitor = new TypeCheckingVisitor(this, environment);
     for (var library in program.libraries) {
-      if (library.importUri.scheme == 'dart') continue;
+      if (ignoreSdk && library.importUri.scheme == 'dart') continue;
       for (var class_ in library.classes) {
         environment.thisType = class_.thisType;
         for (var field in class_.fields) {
@@ -69,6 +72,7 @@ abstract class TypeChecker {
     return substitution.substituteType(member.setterType, contravariant: true);
   }
 
+  /// Check that [ownMember] of [host] can override [superMember].
   void checkOverride(
       Class host, Member ownMember, Member superMember, bool isSetter) {
     if (isSetter) {

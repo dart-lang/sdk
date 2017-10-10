@@ -187,6 +187,13 @@ class Printer extends Visitor<Null> {
         showExternal = parent.showExternal,
         showOffsets = parent.showOffsets;
 
+  bool shouldHighlight(Node node) {
+    return false;
+  }
+
+  void startHighlight(Node node) {}
+  void endHighlight(Node node) {}
+
   String getLibraryName(Library node) {
     return node.name ?? syntheticNames.nameLibrary(node);
   }
@@ -413,10 +420,20 @@ class Printer extends Visitor<Null> {
     if (node == null) {
       writeSymbol("<Null>");
     } else {
+      final highlight = shouldHighlight(node);
+      if (highlight) {
+        startHighlight(node);
+      }
+
       if (showOffsets && node is TreeNode) {
         writeWord("[${node.fileOffset}]");
       }
+
       node.accept(this);
+
+      if (highlight) {
+        endHighlight(node);
+      }
     }
   }
 
@@ -666,7 +683,14 @@ class Printer extends Visitor<Null> {
   }
 
   void writeVariableReference(VariableDeclaration variable) {
+    final highlight = shouldHighlight(variable);
+    if (highlight) {
+      startHighlight(variable);
+    }
     writeWord(getVariableReference(variable));
+    if (highlight) {
+      endHighlight(variable);
+    }
   }
 
   void writeTypeParameterReference(TypeParameter node) {
@@ -674,6 +698,10 @@ class Printer extends Visitor<Null> {
   }
 
   void writeExpression(Expression node, [int minimumPrecedence]) {
+    final highlight = shouldHighlight(node);
+    if (highlight) {
+      startHighlight(node);
+    }
     if (showOffsets) writeWord("[${node.fileOffset}]");
     bool needsParenteses = false;
     if (minimumPrecedence != null && getPrecedence(node) < minimumPrecedence) {
@@ -683,6 +711,9 @@ class Printer extends Visitor<Null> {
     writeNode(node);
     if (needsParenteses) {
       writeSymbol(')');
+    }
+    if (highlight) {
+      endHighlight(node);
     }
   }
 
