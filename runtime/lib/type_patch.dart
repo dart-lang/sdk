@@ -12,7 +12,9 @@ abstract class _AbstractType implements Type {
 }
 
 // Equivalent of RawType.
-class _Type extends _AbstractType {}
+class _Type extends _AbstractType {
+  int get hashCode native "Type_getHashCode";
+}
 
 // Equivalent of RawTypeRef.
 class _TypeRef extends _AbstractType {}

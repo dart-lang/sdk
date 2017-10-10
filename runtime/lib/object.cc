@@ -264,6 +264,14 @@ DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
   return type.UserVisibleName();
 }
 
+DEFINE_NATIVE_ENTRY(Type_getHashCode, 1) {
+  const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
+  intptr_t hash_val = type.Hash();
+  ASSERT(hash_val > 0);
+  ASSERT(Smi::IsValid(hash_val));
+  return Smi::New(hash_val);
+}
+
 DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));

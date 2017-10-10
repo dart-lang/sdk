@@ -5947,6 +5947,7 @@ class Type : public AbstractType {
   static intptr_t type_class_id_offset() {
     return OFFSET_OF(RawType, type_class_id_);
   }
+  static intptr_t hash_offset() { return OFFSET_OF(RawType, hash_); }
   virtual bool IsFinalized() const {
     return (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
            (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);

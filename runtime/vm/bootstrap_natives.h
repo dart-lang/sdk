@@ -29,6 +29,7 @@ namespace dart {
   V(Closure_computeHash, 1)                                                    \
   V(Closure_clone, 1)                                                          \
   V(AbstractType_toString, 1)                                                  \
+  V(Type_getHashCode, 1)                                                       \
   V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \
   V(Integer_bitOrFromInteger, 2)                                               \

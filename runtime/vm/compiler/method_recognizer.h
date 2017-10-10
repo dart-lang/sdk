@@ -189,6 +189,7 @@ namespace dart {
     0x604ec475)                                                                \
   V(_OneByteString, ==, OneByteString_equality, Bool, 0x4719e83f)              \
   V(_TwoByteString, ==, TwoByteString_equality, Bool, 0x4719e83f)              \
+  V(_Type, get:hashCode, Type_getHashCode, Smi, 0x18d0dde0)                    \
   V(::, _getHash, Object_getHash, Smi, 0x2827856d)                             \
   V(::, _setHash, Object_setHash, Object, 0x302d1fe8)                          \
 
