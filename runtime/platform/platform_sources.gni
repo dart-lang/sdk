@@ -19,6 +19,7 @@ platform_sources = [
   "hashmap.h",
   "inttypes_support_win.h",
   "memory_sanitizer.h",
+  "safe_stack.h",
   "signal_blocker.h",
   "text_buffer.cc",
   "text_buffer.h",
