@@ -7454,7 +7454,7 @@ LayoutTests/fast/events/scroll-during-zoom-change_t01: Skip # Times out. Please 
 LayoutTests/fast/events/scroll-event-does-not-bubble_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/selectstart-prevent-selectall_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/submit-reset-nested-bubble_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/events/wheelevent-constructor_t01: RuntimeError # Issue 23437
 LayoutTests/fast/eventsource/eventsource-attribute-listeners_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/eventsource/eventsource-constructor_t01: RuntimeError # Please triage this failure
