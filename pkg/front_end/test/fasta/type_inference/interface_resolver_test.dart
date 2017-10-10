@@ -582,6 +582,7 @@ class InterfaceResolverTest {
     var class_ =
         makeClass(typeParameters: [typeParameter], procedures: [method]);
     var node = getForwardingNode(class_, false);
+    ShadowClass.setBuilder(class_, null);
     var resolvedMethod = node.resolve();
     expect(resolvedMethod, same(method));
     expect(u.isGenericCovariantImpl, isTrue);
@@ -599,6 +600,7 @@ class InterfaceResolverTest {
     var field = makeField(type: new TypeParameterType(typeParameter));
     var class_ = makeClass(typeParameters: [typeParameter], fields: [field]);
     var node = getForwardingNode(class_, true);
+    ShadowClass.setBuilder(class_, null);
     var resolvedAccessor = node.resolve() as SyntheticAccessor;
     expect(SyntheticAccessor.getField(resolvedAccessor), same(field));
     expect(field.isGenericCovariantImpl, isTrue);

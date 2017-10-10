@@ -68,7 +68,7 @@ List<DartType> getExplicitTypeArguments(Arguments arguments) {
 /// Information associated with a class during type inference.
 class ClassInferenceInfo {
   /// The builder associated with this class.
-  SourceClassBuilder builder;
+  final SourceClassBuilder builder;
 
   /// The visitor for determining if a given type makes covariant use of one of
   /// the class's generic parameters, and therefore requires covariant checks.
@@ -79,6 +79,8 @@ class ClassInferenceInfo {
 
   /// Setters in the class's API.  May include forwarding nodes.
   final setters = <Member>[];
+
+  ClassInferenceInfo(this.builder);
 }
 
 /// Concrete shadow object representing a set of invocation arguments.
@@ -291,7 +293,7 @@ class ShadowCascadeExpression extends Let implements ShadowExpression {
 
 /// Shadow object representing a class in kernel form.
 class ShadowClass extends Class {
-  var _inferenceInfo = new ClassInferenceInfo();
+  ClassInferenceInfo _inferenceInfo;
 
   ShadowClass(
       {String name,
@@ -314,8 +316,10 @@ class ShadowClass extends Class {
     class_._inferenceInfo = null;
   }
 
-  static ClassInferenceInfo getClassInferenceInfo(ShadowClass class_) =>
-      class_._inferenceInfo;
+  static ClassInferenceInfo getClassInferenceInfo(Class class_) {
+    if (class_ is ShadowClass) return class_._inferenceInfo;
+    return null;
+  }
 
   /// Creates API members for this class.
   void setupApiMembers(InterfaceResolver interfaceResolver) {
@@ -331,6 +335,13 @@ class ShadowClass extends Class {
         this, _inferenceInfo.gettersAndMethods);
     interfaceResolver.finalizeCovariance(this, _inferenceInfo.setters);
     interfaceResolver.recordInstrumentation(this);
+  }
+
+  /// Initializes the class inference information associated with the given
+  /// [class_], starting with the fact that it is associated with the given
+  /// [builder].
+  static void setBuilder(ShadowClass class_, SourceClassBuilder builder) {
+    class_._inferenceInfo = new ClassInferenceInfo(builder);
   }
 }
 
