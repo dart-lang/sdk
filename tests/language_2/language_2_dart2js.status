@@ -1498,6 +1498,9 @@ factory_redirection_test/07: MissingCompileTimeError
 inline_super_field_test: Crash
 typedef_is_test: Crash
 
+[ $compiler == dart2js && !$dart2js_with_kernel && $minified && $checked ]
+f_bounded_quantification5_test: RuntimeError # Issue 31053
+
 [ $compiler == dart2js && !$dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 
