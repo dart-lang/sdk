@@ -9,13 +9,5 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 main() {
-  bool exceptionCaught = false;
-  try {
-    // Attempt to access something in 'dart:_internal'.
-    return ClassID.GetID(4);
-    Expect.fail("Should have thrown an exception");
-  } catch (e) {
-    exceptionCaught = true;
-  }
-  Expect.isTrue(exceptionCaught);
+  ClassID.GetID(4); /*@compile-error=unspecified*/
 }

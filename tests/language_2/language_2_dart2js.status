@@ -333,6 +333,9 @@ factory_redirection_test/13: MissingCompileTimeError
 factory_redirection_test/14: MissingCompileTimeError
 factory_redirection_test/none: MissingCompileTimeError
 factory_return_type_checked_test/00: MissingCompileTimeError
+top_level_getter_no_setter1_test: MissingCompileTimeError
+top_level_getter_no_setter2_test: MissingCompileTimeError
+transitive_private_library_access_test: MissingCompileTimeError
 
 # The following tests are supposed to fail.
 # In testing-mode, dart2js supports all dart:X libraries (because it
@@ -732,6 +735,7 @@ external_test/10: CompileTimeError # Issue 12887
 external_test/13: CompileTimeError # Issue 12887
 external_test/20: CompileTimeError # Issue 12887
 expect_test: RuntimeError, OK # Issue 13080
+truncdiv_test: RuntimeError # Issue 15246
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
@@ -1218,6 +1222,7 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
+truncdiv_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1526,6 +1531,9 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
+top_level_getter_no_setter1_test/01: RuntimeError
+top_level_getter_no_setter2_test/01: RuntimeError
+truncdiv_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash

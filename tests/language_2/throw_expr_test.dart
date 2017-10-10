@@ -61,7 +61,7 @@ void test3() {
     Expect.equals("up", e);
   }
 
-  var x = 10;
+  dynamic x = 10;
   try {
     foo(x = 12, throw 7);
   } catch (e) {

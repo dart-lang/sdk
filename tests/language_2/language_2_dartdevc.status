@@ -284,3 +284,4 @@ lazy_static8_test: RuntimeError # Issue 30852
 left_shift_test: RuntimeError # Ints and doubles are unified.
 expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
+truncdiv_test: RuntimeError # Issue 29920

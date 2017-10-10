@@ -1118,6 +1118,9 @@ string_no_operator_test/16: MissingCompileTimeError
 string_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
+top_level_getter_no_setter1_test: MissingCompileTimeError
+top_level_getter_no_setter2_test: MissingCompileTimeError
+transitive_private_library_access_test: MissingCompileTimeError
 try_catch_on_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/08: MissingCompileTimeError
 type_checks_in_factory_method_test/01: MissingCompileTimeError

@@ -297,7 +297,6 @@ stack_overflow_test: RuntimeError # Issue 29920
 stacktrace_test: RuntimeError # Issue 29920
 switch_label2_test: RuntimeError # Issue 29920
 switch_label_test: RuntimeError # Issue 29920
-truncdiv_test: RuntimeError # Issue 29920
 
 # This test does not generate the expected compile time error, but it also does
 # not behave correctly at runtime. We cannot record this as "Fail" without
