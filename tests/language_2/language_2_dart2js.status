@@ -800,7 +800,6 @@ list_literal1_test/01: MissingCompileTimeError
 
 [ $compiler == dart2js && !$checked && $minified && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
-f_bounded_quantification5_test: Fail, OK # Issue 12605
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 mixin_mixin2_test: RuntimeError
@@ -809,17 +808,18 @@ mixin_mixin_type_arguments_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 
-[ $compiler == dart2js && $minified && !$dart2js_with_kernel ]
-cyclic_type2_test: Fail # Issue 12605
-cyclic_type_test/0*: Fail # Issue 12605
-generic_closure_test: Fail # Issue 12605
-mixin_mixin2_test: Fail # Issue 12605
-mixin_mixin3_test: Fail # Issue 12605
-mixin_mixin4_test: Fail # Issue 12605
-mixin_mixin5_test: Fail # Issue 12605
-mixin_mixin6_test: Fail # Issue 12605
-mixin_mixin_bound2_test: RuntimeError # Issue 12605
-mixin_mixin_bound_test: RuntimeError # Issue 12605
+[ $compiler == dart2js && $minified ]
+cyclic_type2_test: RuntimeError # Issue 31054
+cyclic_type_test/0*: RuntimeError # Issue 31054
+f_bounded_quantification5_test: RuntimeError # Issue 31054, 31053
+generic_closure_test: RuntimeError # Issue 31054
+mixin_mixin2_test: RuntimeError # Issue 31054
+mixin_mixin3_test: RuntimeError # Issue 31054
+mixin_mixin4_test: RuntimeError # Issue 31054
+mixin_mixin5_test: RuntimeError # Issue 31054
+mixin_mixin6_test: RuntimeError # Issue 31054
+mixin_mixin_bound2_test: RuntimeError # Issue 31054
+mixin_mixin_bound_test: RuntimeError # Issue 31054
 
 [ $compiler == dart2js && $runtime == d8 && $checked ]
 regress_30339_test: RuntimeError # Issue 26429
@@ -1284,12 +1284,6 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
-cyclic_type2_test: RuntimeError
-cyclic_type_test/00: RuntimeError
-cyclic_type_test/01: RuntimeError
-cyclic_type_test/02: RuntimeError
-cyclic_type_test/03: RuntimeError
-cyclic_type_test/04: RuntimeError
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
@@ -1515,7 +1509,6 @@ external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 f_bounded_quantification4_test: RuntimeError
-f_bounded_quantification5_test: RuntimeError
 factory_redirection_test/07: MissingCompileTimeError
 regress_22443_test: CompileTimeError
 regress_22976_test: CompileTimeError
@@ -1531,9 +1524,6 @@ regress_28255_test: RuntimeError
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
 typedef_is_test: Crash
-
-[ $compiler == dart2js && !$dart2js_with_kernel && $minified && $checked ]
-f_bounded_quantification5_test: RuntimeError # Issue 31053
 
 [ $compiler == dart2js && !$dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
