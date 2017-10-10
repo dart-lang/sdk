@@ -10,8 +10,6 @@ import '../core_types.dart' show CoreTypes;
 
 import '../class_hierarchy.dart' show ClosedWorldClassHierarchy;
 
-import '../visitor.dart' show Transformer;
-
 /// Performs whole-program optimizations for Dart VM precompiler.
 /// Assumes strong mode and closed world.
 Program transformProgram(CoreTypes coreTypes, Program program) {
