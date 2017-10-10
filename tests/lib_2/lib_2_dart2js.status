@@ -7,31 +7,47 @@ async/catch_errors12_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors13_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors14_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors15_test: Fail # Timer interface not supported: Issue 7728.
-async/catch_errors8_test: Fail # Timer interface not supported: Issue 7728.
-async/catch_errors22_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/catch_errors18_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors19_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors20_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors22_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/catch_errors28_test: Fail # Timer interface not supported: Issue 7728.
-async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/catch_errors8_test: Fail # Timer interface not supported: Issue 7728.
 async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
+async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/multiple_timer_test: RuntimeError,OK # Needs Timer to run.
+async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
+async/schedule_microtask3_test: RuntimeError
+async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.
 async/slow_consumer2_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/slow_consumer3_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/slow_consumer_test: RuntimeError # Timer interface not supported; Issue 7728.
-async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
-async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
-async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.
-async/schedule_microtask3_test: RuntimeError
+async/stream_controller_async_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_controller_test: Fail # Timer interface not supported: Issue 7728.
-async/stream_subscription_cancel_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_from_iterable_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_periodic2_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_periodic3_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_periodic4_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_periodic5_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_periodic6_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_periodic_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_state_nonzero_timer_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_subscription_cancel_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_take_test: Fail # Timer interface not supported: Issue 7728.
+async/stream_timeout_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/stream_transformation_broadcast_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/timer_cancel1_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/timer_cancel2_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/timer_cancel_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/timer_isActive_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/timer_regress22626_test: RuntimeError # Non-zero timers not supported; Issue 7728.
-async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
-async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Issue 7728.
-async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/timer_repeat_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/timer_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.
+async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
 isolate/pause_test: Fail, OK  # non-zero timer not supported.
 isolate/timer_isolate_test: Fail, OK # Needs Timer to run.
 
