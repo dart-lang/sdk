@@ -99,10 +99,6 @@ unbalanced_brace_test: Skip # Not yet supported.
 unsigned_right_shift_test: Skip # Not yet supported (but this will be OK!).
 unsupported_operators_test: Skip # Not yet supported.
 variable_declaration_metadata_test: Skip # Not yet supported.
-
-# Tests using generic methods.
-generic_methods_unused_parameter_test: Skip # Not yet supported.
-generic_methods_named_parameters_test: Skip # Not yet supported.
 generic_function_typedef2_test: Skip # Not yet supported.
 
 # Tests using assert in initializer list.

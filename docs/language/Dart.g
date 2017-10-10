@@ -25,14 +25,22 @@ import java.util.Stack;
 }
 
 @parser::members {
-  public static String filePath = null;
-  public static boolean filePathHasBeenPrinted = true;
+  private String filePath = null;
+  private boolean errorHasOccurred = false;
+
+  /** Parse library, return true if success, false if errors occurred. */
+  public boolean parseLibrary(String filePath) throws RecognitionException {
+    this.filePath = filePath;
+    errorHasOccurred = false;
+    libraryDefinition();
+    return !errorHasOccurred;
+  }
 
   // Grammar debugging friendly output, 'The Definitive ANTLR Reference', p247.
   public String getErrorMessage(RecognitionException e, String[] tokenNames) {
     List stack = getRuleInvocationStack(e, this.getClass().getName());
     String msg = null;
-    if ( e instanceof NoViableAltException ) {
+    if (e instanceof NoViableAltException) {
       NoViableAltException nvae = (NoViableAltException)e;
       msg = "no viable alt; token=" + e.token +
           " (decision=" + nvae.decisionNumber +
@@ -42,9 +50,9 @@ import java.util.Stack;
     else {
       msg = super.getErrorMessage(e, tokenNames);
     }
-    if (!filePathHasBeenPrinted) {
-      filePathHasBeenPrinted = true;
-      System.err.println(">>> Parse error in " + filePath + ":");
+    if (!errorHasOccurred) {
+      errorHasOccurred = true;
+      System.err.println("Parse error in " + filePath + ":");
     }
     return stack + " " + msg;
   }
