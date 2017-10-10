@@ -684,10 +684,14 @@ class InterfaceResolver {
   /// If [setters] is true, setters are retrieved; otherwise getters and methods
   /// are retrieved.
   List<Member> _getInterfaceMembers(Class class_, bool setters) {
-    // TODO(paulberry): if class_ is being compiled from source, retrieve its
-    // forwarding nodes.
-    return _typeEnvironment.hierarchy
-        .getInterfaceMembers(class_, setters: setters);
+    // If class_ is being compiled from source, retrieve its forwarding nodes.
+    var inferenceInfo = ShadowClass.getClassInferenceInfo(class_);
+    if (inferenceInfo != null) {
+      return setters ? inferenceInfo.setters : inferenceInfo.gettersAndMethods;
+    } else {
+      return _typeEnvironment.hierarchy
+          .getInterfaceMembers(class_, setters: setters);
+    }
   }
 
   /// Merges together the list of interface inheritance candidates in

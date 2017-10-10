@@ -13,7 +13,7 @@ abstract class A<T extends core::Object> extends core::Object {
 class B extends self::A<core::int> {
   field core::List<core::int> x = null;
   generic-covariant-impl field core::List<core::int> y = null;
-  field core::List<core::int> z = null;
+  generic-covariant-impl field core::List<core::int> z = null;
   default constructor •() → void
     : super self::A::•()
     ;

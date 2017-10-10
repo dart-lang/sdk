@@ -19,10 +19,6 @@ class B<S extends core::Object, T extends core::Object> extends self::A<self::B:
   constructor named(self::B::S y, self::B::T x) → void
     : super self::A::named(x, y)
     ;
-  forwarding-stub set y(generic-covariant-impl generic-covariant-interface self::B::S _) → void
-    return super.{self::A::y} = _;
-  forwarding-stub set x(generic-covariant-impl generic-covariant-interface self::B::T _) → void
-    return super.{self::A::x} = _;
 }
 class C<S extends core::Object> extends self::B<self::C::S, self::C::S> {
   constructor •(self::C::S a) → void
@@ -31,10 +27,6 @@ class C<S extends core::Object> extends self::B<self::C::S, self::C::S> {
   constructor named(self::C::S a) → void
     : super self::B::named(a, a)
     ;
-  forwarding-stub set y(generic-covariant-impl generic-covariant-interface self::C::S _) → void
-    return super.{self::A::y} = _;
-  forwarding-stub set x(generic-covariant-impl generic-covariant-interface self::C::S _) → void
-    return super.{self::A::x} = _;
 }
 class D<S extends core::Object, T extends core::Object> extends self::B<self::D::T, core::int> {
   constructor •(self::D::T a) → void
@@ -43,17 +35,13 @@ class D<S extends core::Object, T extends core::Object> extends self::B<self::D:
   constructor named(self::D::T a) → void
     : super self::B::named(a, 3)
     ;
-  forwarding-stub set y(generic-covariant-impl generic-covariant-interface self::D::T _) → void
-    return super.{self::A::y} = _;
+  forwarding-stub set x(core::int _) → void
+    return super.{self::A::x} = _;
 }
 class E<S extends core::Object, T extends core::Object> extends self::A<self::C<self::E::S>, self::E::T> {
   constructor •(self::E::T a) → void
     : super self::A::•(null, a)
     ;
-  forwarding-stub set y(generic-covariant-impl generic-covariant-interface self::E::T _) → void
-    return super.{self::A::y} = _;
-  forwarding-stub set x(generic-covariant-impl generic-covariant-interface self::C<self::E::S> _) → void
-    return super.{self::A::x} = _;
 }
 class F<S extends core::Object, T extends core::Object> extends self::A<self::F::S, self::F::T> {
   constructor •(self::F::S x, self::F::T y, {core::List<self::F::S> a = null, core::List<self::F::T> b = null}) → void
@@ -62,10 +50,6 @@ class F<S extends core::Object, T extends core::Object> extends self::A<self::F:
   constructor named(self::F::S x, self::F::T y, [self::F::S a = null, self::F::T b = null]) → void
     : super self::A::•(a, b)
     ;
-  forwarding-stub set y(generic-covariant-impl generic-covariant-interface self::F::T _) → void
-    return super.{self::A::y} = _;
-  forwarding-stub set x(generic-covariant-impl generic-covariant-interface self::F::S _) → void
-    return super.{self::A::x} = _;
 }
 static method main() → void {
   {
