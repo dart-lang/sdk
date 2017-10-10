@@ -1472,14 +1472,6 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     Member writeMember;
     if (write != null) {
       writeMember = inferrer.findPropertySetMember(receiverType, write);
-      if (inferrer.isTopLevel &&
-          ((writeMember is Procedure &&
-                  writeMember.kind == ProcedureKind.Setter) ||
-              writeMember is Field)) {
-        if (writeMember is ShadowField && writeMember._accessorNode != null) {
-          writeMember._accessorNode.resolve();
-        }
-      }
     }
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member when

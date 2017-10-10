@@ -911,15 +911,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     propertyName ??= desugaredGet.name;
     var interfaceMember =
         findInterfaceMember(receiverType, propertyName, fileOffset);
-    if (isTopLevel &&
-        ((interfaceMember is Procedure &&
-                interfaceMember.kind == ProcedureKind.Getter) ||
-            interfaceMember is Field)) {
-      if (interfaceMember is ShadowField) {
-        var accessorNode = ShadowMember.getInferenceNode(interfaceMember);
-        accessorNode?.resolve();
-      }
-    }
     if (interfaceMember is Member) {
       desugaredGet?.interfaceTarget = interfaceMember;
     }
@@ -1036,6 +1027,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         member = member is SyntheticAccessor
             ? SyntheticAccessor.getField(member)
             : member;
+        if (member is ShadowMember) {
+          ShadowMember.getInferenceNode(member)?.resolve();
+        }
         return member;
       }
     }
