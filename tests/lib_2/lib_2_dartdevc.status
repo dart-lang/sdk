@@ -112,3 +112,4 @@ html/client_rect_test: RuntimeError # Issue 29922, seems to be a reified type pr
 
 [ $compiler == dartdevc && $runtime != none && $system == macos ]
 html/client_rect_test: Pass, RuntimeError # Issue 31019
+html/css_test: Pass, RuntimeError # Issue 31019
