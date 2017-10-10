@@ -260,7 +260,10 @@ abstract class NullableTypeInference {
     if (type != null && isPrimitiveType(type)) {
       return false;
     }
-    if (expr is MethodInvocation && _isNonNullMethodInvocation(expr)) {
+    if (expr is MethodInvocation &&
+        (expr.operator?.type != TokenType.QUESTION_PERIOD ||
+            !_isNullable(expr.target, localIsNullable)) &&
+        _isNonNullMethodInvocation(expr)) {
       return false;
     }
 

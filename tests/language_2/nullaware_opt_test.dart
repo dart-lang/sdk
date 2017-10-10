@@ -86,6 +86,9 @@ test3() {
   var func = n?.add;
   var result = func ?? 1;
   Expect.equals(result, 1);
+
+  String x = null;
+  Expect.equals(x?.split(',') ?? 'hello', 'hello');
 }
 
 main() {

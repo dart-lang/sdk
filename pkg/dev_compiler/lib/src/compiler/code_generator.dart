@@ -3574,7 +3574,7 @@ class CodeGenerator extends Object
       return _callHelper('loadLibrary()');
     }
 
-    if (node.operator?.lexeme == '?.') {
+    if (node.operator?.lexeme == '?.' && isNullable(node.target)) {
       return _emitNullSafe(node);
     }
 
@@ -5062,7 +5062,7 @@ class CodeGenerator extends Object
 
   @override
   visitPropertyAccess(PropertyAccess node) {
-    if (node.operator.lexeme == '?.') {
+    if (node.operator.lexeme == '?.' && isNullable(node.target)) {
       return _emitNullSafe(node);
     }
     return _emitAccess(_getTarget(node), node.propertyName, node.staticType);
