@@ -496,7 +496,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   Type get runtimeType => String;
 
   @notNull
-  int get length => JS('int', r'#.length', this);
+  final int length;
 
   @notNull
   String operator [](@nullCheck int index) {
