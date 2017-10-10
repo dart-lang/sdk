@@ -516,12 +516,13 @@ class SourceLoader<L> extends Loader<L> {
   /// visit fields and top level variables in topologically-sorted order and
   /// assign their types.
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
-    typeInferenceEngine.finishTopLevel();
+    typeInferenceEngine.finishTopLevelFields();
     for (var builder in sourceClasses) {
       ShadowClass target = builder.target;
       target.finalizeCovariance(interfaceResolver);
       ShadowClass.clearClassInferenceInfo(target);
     }
+    typeInferenceEngine.finishTopLevelInitializingFormals();
     if (instrumentation != null) {
       builders.forEach((Uri uri, LibraryBuilder library) {
         if (library is SourceLibraryBuilder) {

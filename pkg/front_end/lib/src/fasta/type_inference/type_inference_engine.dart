@@ -181,7 +181,12 @@ abstract class TypeInferenceEngine {
   /// Performs the second phase of top level initializer inference, which is to
   /// visit all accessors and top level variables that were passed to
   /// [recordAccessor] in topologically-sorted order and assign their types.
-  void finishTopLevel();
+  void finishTopLevelFields();
+
+  /// Performs the third phase of top level inference, which is to visit all
+  /// initializing formals and infer their types (if necessary) from the
+  /// corresponding fields.
+  void finishTopLevelInitializingFormals();
 
   /// Gets ready to do top level type inference for the program having the given
   /// [hierarchy], using the given [coreTypes].
@@ -316,10 +321,14 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   AccessorNode createAccessorNode(ShadowMember member);
 
   @override
-  void finishTopLevel() {
+  void finishTopLevelFields() {
     for (var accessorNode in accessorNodes) {
       inferAccessorFused(accessorNode);
     }
+  }
+
+  @override
+  void finishTopLevelInitializingFormals() {
     for (ShadowVariableDeclaration formal in initializingFormals) {
       try {
         formal.type = _inferInitializingFormalType(formal);
