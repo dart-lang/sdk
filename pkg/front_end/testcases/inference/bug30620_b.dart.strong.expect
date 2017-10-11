@@ -1,0 +1,15 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::String foo;
+  constructor •(core::String foo) → void
+    : self::A::foo = foo, super core::Object::•()
+    ;
+  operator ==(core::Object other) → core::bool
+    return other is self::A && other{self::A}.{self::A::foo}.{core::String::==}(this.{self::A::foo}) && other{self::A}.{self::A::foo}.{core::String::==}(this.{self::A::foo});
+}
+static method main() → dynamic {
+  core::print(new self::A::•("hello").{self::A::==}(new self::A::•("hello")));
+}

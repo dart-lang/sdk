@@ -46,6 +46,8 @@ inference/block_bodied_lambdas_returns: Crash
 inference/block_bodied_lambdas_void_context: Crash
 inference/bug30251: Crash
 inference/bug30620: Crash
+inference/bug30620_b: Crash
+inference/bug30620_c: Crash
 inference/bug30624: Crash
 inference/call_corner_cases: Crash
 inference/complex_predecrement: Crash
@@ -288,6 +290,7 @@ inference/overloaded_int_operators: Crash
 inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash
 inference/promote_bounds: Crash
+inference/promote_from_logical_rhs: Crash
 inference/promotion_subtype_check: Crash
 inference/propagate_inference_to_field_in_class: Crash
 inference/propagate_inference_to_field_in_class_dynamic_warnings: Crash

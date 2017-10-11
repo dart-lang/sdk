@@ -886,10 +886,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void doLogicalExpression(Token token) {
-    typePromoter.exitLogicalExpression();
     Expression argument = popForValue();
     Expression receiver = popForValue();
-    push(new ShadowLogicalExpression(receiver, token.stringValue, argument));
+    var logicalExpression =
+        new ShadowLogicalExpression(receiver, token.stringValue, argument);
+    typePromoter.exitLogicalExpression(argument, logicalExpression);
+    push(logicalExpression);
   }
 
   /// Handle `a ?? b`.
@@ -3192,8 +3194,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         buildCompileTimeError(message, charOffset, context: context));
   }
 
-  Statement wrapInCompileTimeErrorStatement(Statement statement,
-      Message message) {
+  Statement wrapInCompileTimeErrorStatement(
+      Statement statement, Message message) {
     // TODO(askesc): Produce explicit error statement wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     return buildCompileTimeErrorStatement(message, statement.fileOffset);
