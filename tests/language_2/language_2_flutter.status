@@ -278,6 +278,15 @@ no_such_method_test: CompileTimeError
 try_catch_on_syntax_test/07: CompileTimeError
 regress_28255_test: CompileTimeError
 regress_23408_test: CompileTimeError
+malformed_test/none: CompileTimeError
+malbounded_type_test_test/02: CompileTimeError
+malformed_type_test: CompileTimeError
+malformed_inheritance_test/02: CompileTimeError
+malformed_inheritance_test/04: CompileTimeError
+malformed_inheritance_test/06: CompileTimeError
+malformed2_test/00: CompileTimeError
+malbounded_type_literal_test: CompileTimeError
+malbounded_type_cast_test: CompileTimeError
 private_access_test/03: CompileTimeError
 private_access_test/04: CompileTimeError
 list_literal_syntax_test/03: CompileTimeError

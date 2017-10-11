@@ -6,7 +6,9 @@ import 'package:expect/expect.dart';
 
 class Super<T extends num> {}
 
-class Malbounded extends Super<String> {}
+class Malbounded extends Super
+    <String>  //# 00: compile-time error
+    {}
 
 main() {
   Type t = Malbounded;

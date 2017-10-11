@@ -153,15 +153,6 @@ malbounded_instantiation_test: Skip
 malbounded_redirecting_factory2_test: Skip
 malbounded_redirecting_factory_test: Skip
 malbounded_type_cast2_test: Skip
-malbounded_type_cast_test: Skip
-malbounded_type_literal_test: Skip
-malbounded_type_test2_test: Skip
-malbounded_type_test_test: Skip
-malformed2_test: Skip
-malformed_bound_test: Skip
-malformed_inheritance_test: Skip
-malformed_test: Skip
-malformed_type_test: Skip
 missing_const_constructor_test: Skip
 missing_part_of_tag_test: Skip
 mixin_black_listed_test: Skip
