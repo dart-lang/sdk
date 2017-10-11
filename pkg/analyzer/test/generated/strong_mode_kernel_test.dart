@@ -33,24 +33,28 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_covarianceChecks_returnFunction() async {
     return super.test_covarianceChecks_returnFunction();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_generic_partial() async {
     return super.test_generic_partial();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_instanceCreation() async {
     return super.test_instanceCreation();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_redirectingConstructor_propagation() async {
     return super.test_redirectingConstructor_propagation();
   }
@@ -74,54 +78,63 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_recursion() async {
     return super.test_instantiateToBounds_class_error_recursion();
   }
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_recursion_self() async {
     return super.test_instantiateToBounds_class_error_recursion_self();
   }
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_recursion_self2() async {
     return super.test_instantiateToBounds_class_error_recursion_self2();
   }
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_typedef() async {
     return super.test_instantiateToBounds_class_error_typedef();
   }
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
     return super.test_instantiateToBounds_class_ok_implicitDynamic_multi();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_class_ok_referenceOther_after() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_after();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_class_ok_referenceOther_after2() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_after2();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_class_ok_referenceOther_before() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_before();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_class_ok_referenceOther_multi() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_multi();
   }
