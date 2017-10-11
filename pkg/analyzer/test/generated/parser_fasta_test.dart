@@ -3671,13 +3671,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_assignableSelector() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_assignableSelector();
-  }
-
-  @override
-  @failingTest
   void test_classTypeAlias_withBody() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_classTypeAlias_withBody();

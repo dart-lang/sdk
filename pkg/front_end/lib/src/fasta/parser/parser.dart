@@ -3546,6 +3546,7 @@ class Parser {
 
   int expressionDepth = 0;
   Token parseExpression(Token token) {
+    firstToken ??= token;
     if (expressionDepth++ > 500) {
       // This happens in degenerate programs, for example, with a lot of nested
       // list literals. This is provoked by, for example, the language test
@@ -3614,6 +3615,20 @@ class Parser {
               (identical(type, TokenType.MINUS_MINUS))) {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
+          } else if (identical(type, TokenType.INDEX)) {
+            // Recovery
+            // TODO(brianwilkerson) This doesn't remove the old index operator
+            // from the token stream because we don't have a reference to the
+            // token before the index operator. That should be fixed when this
+            // functionality is moved into the TokenStreamRewriter.
+            Token index = token;
+            token = new BeginToken(TokenType.OPEN_SQUARE_BRACKET,
+                index.charOffset, index.precedingComments);
+            token.next =
+                new Token(TokenType.CLOSE_SQUARE_BRACKET, index.charOffset + 1);
+            token.next.next = index.next;
+            index.next = token;
+            token = parseArgumentOrIndexStar(token);
           } else {
             token = reportUnexpectedToken(token).next;
           }

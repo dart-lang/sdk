@@ -1232,7 +1232,7 @@ class TokenType {
       const TokenType('#', 'HASH', NO_PRECEDENCE, HASH_TOKEN);
 
   static const TokenType INDEX = const TokenType(
-      '[]', 'INDEX', NO_PRECEDENCE, INDEX_TOKEN,
+      '[]', 'INDEX', POSTFIX_PRECEDENCE, INDEX_TOKEN,
       isOperator: true, isUserDefinableOperator: true);
 
   static const TokenType INDEX_EQ = const TokenType(
