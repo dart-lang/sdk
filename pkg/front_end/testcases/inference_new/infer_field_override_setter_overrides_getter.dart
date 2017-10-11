@@ -16,7 +16,7 @@ abstract class B extends A {
 // The getter in B doesn't screen the setter in A, so inference sees two
 // different types and gives an error.
 class C extends B {
-  var /*@topType=dynamic*/ x;
+  var /*@topType=num*/ x;
 }
 
 main() {}

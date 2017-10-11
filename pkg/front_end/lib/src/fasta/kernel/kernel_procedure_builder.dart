@@ -283,9 +283,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
     }
-    if (isEligibleForTopLevelInference) {
-      library.loader.typeInferenceEngine.recordMember(procedure);
-    }
     if (library.loader.target.strongMode && isSetter && returnType == null) {
       procedure.function.returnType = const VoidType();
     }

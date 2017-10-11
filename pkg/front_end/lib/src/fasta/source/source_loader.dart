@@ -489,6 +489,7 @@ class SourceLoader<L> extends Loader<L> {
   void prepareTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     interfaceResolver = new InterfaceResolver(
+        typeInferenceEngine,
         typeInferenceEngine.typeSchemaEnvironment,
         instrumentation,
         target.strongMode);

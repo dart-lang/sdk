@@ -6,13 +6,18 @@ abstract class A extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  abstract get x() → core::int;
-  abstract set x(core::double value) → void;
+  abstract set x(core::num value) → void;
 }
-class B extends self::A {
-  field dynamic x = null;
+abstract class B extends self::A {
   default constructor •() → void
     : super self::A::•()
+    ;
+  abstract get x() → core::int;
+}
+class C extends self::B {
+  field core::int x = null;
+  default constructor •() → void
+    : super self::B::•()
     ;
 }
 static method main() → dynamic {}

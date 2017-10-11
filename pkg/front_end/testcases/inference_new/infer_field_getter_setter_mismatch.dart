@@ -6,17 +6,14 @@
 library test;
 
 abstract class A {
-  void set x(num value);
-}
-
-abstract class B extends A {
   int get x;
+  void set x(double value);
 }
 
-// The getter in B doesn't screen the setter in A, so inference sees two
-// different types and gives an error.
-class C extends B {
-  var /*@topType=dynamic*/ x;
+// Type inference should fail here since the getter and setter for x don't
+// match.
+class B extends A {
+  var /*@topType=int*/ x;
 }
 
 main() {}

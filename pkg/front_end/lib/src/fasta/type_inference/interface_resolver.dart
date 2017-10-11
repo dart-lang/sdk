@@ -538,14 +538,16 @@ class ForwardingNode extends Procedure {
 /// infer covariance annotations, and to create forwarwding stubs when necessary
 /// to meet covariance requirements.
 class InterfaceResolver {
+  final TypeInferenceEngineImpl _typeInferenceEngine;
+
   final TypeEnvironment _typeEnvironment;
 
   final Instrumentation _instrumentation;
 
   final bool strongMode;
 
-  InterfaceResolver(
-      this._typeEnvironment, this._instrumentation, this.strongMode);
+  InterfaceResolver(this._typeInferenceEngine, this._typeEnvironment,
+      this._instrumentation, this.strongMode);
 
   /// Populates [apiMembers] with a list of the implemented and inherited
   /// members of the given [class_]'s interface.
@@ -738,6 +740,19 @@ class InterfaceResolver {
     switch (procedure.kind) {
       case ProcedureKind.Getter:
       case ProcedureKind.Setter:
+        if (strongMode && start < end) {
+          return new AccessorInferenceNode(
+              this, procedure, candidates, start, end);
+        } else if (strongMode && crossStart < crossEnd) {
+          return new AccessorInferenceNode(
+              this, procedure, candidates, crossStart, crossEnd);
+        } else if (procedure is SyntheticAccessor &&
+            procedure._field.initializer != null) {
+          var node = new FieldInitializerInferenceNode(
+              _typeInferenceEngine, procedure._field);
+          ShadowField.setInferenceNode(procedure._field, node);
+          return node;
+        }
         return null;
       default: // Method || Operator
         if (strongMode) {

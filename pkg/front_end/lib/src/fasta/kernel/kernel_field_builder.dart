@@ -79,8 +79,11 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (!library.disableTypeInference && isEligibleForInference) {
-      library.loader.typeInferenceEngine.recordMember(field);
+    if (!library.disableTypeInference &&
+        isEligibleForInference &&
+        !isInstanceMember) {
+      library.loader.typeInferenceEngine
+          .recordStaticFieldInferenceCandidate(field);
     }
     return field;
   }

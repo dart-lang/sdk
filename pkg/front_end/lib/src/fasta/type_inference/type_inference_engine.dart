@@ -42,7 +42,7 @@ class AccessorNode extends InferenceNode {
 
   final crossOverrides = <Member>[];
 
-  AccessorNode(this._typeInferenceEngine, this.member);
+  AccessorNode._(this._typeInferenceEngine, this.member);
 
   List<Member> get candidateOverrides {
     if (isTrivialSetter) {
@@ -302,8 +302,8 @@ abstract class TypeInferenceEngine {
   /// inference.
   void recordInitializingFormal(ShadowVariableDeclaration formal);
 
-  /// Records that the given [member] will need top level type inference.
-  void recordMember(ShadowMember member);
+  /// Records that the given static [field] will need top level type inference.
+  void recordStaticFieldInferenceCandidate(ShadowField field);
 }
 
 /// Derived class containing generic implementations of
@@ -317,7 +317,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   final bool strongMode;
 
-  final accessorNodes = <AccessorNode>[];
+  final staticInferenceNodes = <FieldInitializerInferenceNode>[];
 
   final initializingFormals = <ShadowVariableDeclaration>[];
 
@@ -421,13 +421,10 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
   }
 
-  /// Creates an [AccessorNode] to track dependencies of the given [member].
-  AccessorNode createAccessorNode(ShadowMember member);
-
   @override
   void finishTopLevelFields() {
-    for (var accessorNode in accessorNodes) {
-      accessorNode.resolve();
+    for (var node in staticInferenceNodes) {
+      node.resolve();
     }
   }
 
@@ -464,11 +461,10 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     initializingFormals.add(formal);
   }
 
-  @override
-  void recordMember(ShadowMember member) {
-    if (!(member is ShadowProcedure && !member.isGetter && !member.isSetter)) {
-      accessorNodes.add(createAccessorNode(member));
-    }
+  void recordStaticFieldInferenceCandidate(ShadowField field) {
+    var node = new FieldInitializerInferenceNode(this, field);
+    ShadowField.setInferenceNode(field, node);
+    staticInferenceNodes.add(node);
   }
 
   DartType tryInferAccessorByInheritance(AccessorNode accessorNode) {

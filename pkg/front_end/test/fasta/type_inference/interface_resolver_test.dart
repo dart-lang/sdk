@@ -41,7 +41,8 @@ class InterfaceResolverTest {
     coreTypes = new CoreTypes(program);
     typeEnvironment =
         new TypeSchemaEnvironment(coreTypes, classHierarchy, true);
-    interfaceResolver = new InterfaceResolver(typeEnvironment, null, true);
+    interfaceResolver =
+        new InterfaceResolver(null, typeEnvironment, null, true);
   }
 
   InterfaceType get intType => coreTypes.intClass.rawType;

@@ -710,6 +710,11 @@ class ShadowField extends Field implements ShadowMember {
   }
 
   static bool isImplicitlyTyped(ShadowField field) => field._isImplicitlyTyped;
+
+  static void setInferenceNode(ShadowField field, InferenceNode node) {
+    assert(field._inferenceNode == null);
+    field._inferenceNode = node;
+  }
 }
 
 /// Concrete shadow object representing a field initializer in kernel form.
@@ -1942,13 +1947,6 @@ class ShadowTryFinally extends TryFinally implements ShadowStatement {
 class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
   ShadowTypeInferenceEngine(Instrumentation instrumentation, bool strongMode)
       : super(instrumentation, strongMode);
-
-  @override
-  AccessorNode createAccessorNode(ShadowMember member) {
-    AccessorNode accessorNode = new AccessorNode(this, member);
-    member._inferenceNode = accessorNode;
-    return accessorNode;
-  }
 
   @override
   TypeInferrer createDisabledTypeInferrer() =>
