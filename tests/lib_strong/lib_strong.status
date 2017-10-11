@@ -106,8 +106,6 @@ html/two_scripts_htmltest: Skip # Issue 29919
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
-html/async_spawnuri_test: RuntimeError # Issue 29922
-html/async_test: RuntimeError # Issue 29922
 html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure

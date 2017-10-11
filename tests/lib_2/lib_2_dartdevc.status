@@ -91,6 +91,8 @@ mirrors/regress_14304_test: RuntimeError # Issue 29922
 typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
+html/async_spawnuri_test: RuntimeError # Issue 29922
+html/async_test: RuntimeError # Issue 29922
 
 [ $strong && $compiler == dartdevc ]
 html/custom/document_register_template_test: Crash # Compiler crash issue ????

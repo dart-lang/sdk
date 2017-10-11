@@ -15,6 +15,7 @@ convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 html/*: SkipByDesign # dart:html not supported on AOT.
 mirrors/*: SkipByDesign # Mirrors not supported on AOT.
+convert/utf85_test: Pass, Timeout
 
 [ $compiler == precompiler || $runtime == flutter ]
 isolate/count_test: SkipByDesign

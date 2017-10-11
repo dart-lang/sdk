@@ -3,16 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk && $runtime == vm ]
-html/async_spawnuri_test: DartkCompileTimeError
-html/async_test: DartkCompileTimeError
-html/audiobuffersourcenode_test: DartkCompileTimeError
-html/audiocontext_test: DartkCompileTimeError
-html/audioelement_test: DartkCompileTimeError
-html/b_element_test: DartkCompileTimeError
-html/blob_constructor_test: DartkCompileTimeError
-html/cache_test: DartkCompileTimeError
-html/callbacks_test: DartkCompileTimeError
-html/canvas_pixel_array_type_alias_test: DartkCompileTimeError
 html/canvas_test: DartkCompileTimeError
 html/cdata_test: DartkCompileTimeError
 html/client_rect_test: DartkCompileTimeError

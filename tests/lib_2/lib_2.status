@@ -182,6 +182,8 @@ html/webgl_1_test: Fail
 html/websocket_test: Fail # Issue 7875. Closed with "working as intended".
 html/websql_test: Fail
 html/wheelevent_test: RuntimeError # Issue 23437
+html/audiobuffersourcenode_test/supported: Fail
+html/audiocontext_test/supported: Fail
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
@@ -215,6 +217,7 @@ html/input_element_date_test: Fail
 html/input_element_datetime_test: Fail
 html/notification_test: Fail # Safari doesn't let us access the fields of the Notification to verify them.
 html/touchevent_test: Fail # Safari does not support TouchEvents
+html/audiobuffersourcenode_test/functional: RuntimeError
 
 [ $runtime == chrome ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
@@ -236,6 +239,7 @@ isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not
 
 [ $mode == product ]
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
+developer/timeline_test: Skip # Not supported
 
 [ $compiler != none || $runtime != vm ]
 isolate/package_root_test: SkipByDesign  # Uses Isolate.packageRoot
@@ -246,3 +250,9 @@ isolate/spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
 
 [ $jscl ]
 isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
+
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
+convert/utf85_test: Skip  # Pass, Slow Issue 12644.
+
+[ $arch == simarm64 ]
+convert/utf85_test: Skip # Pass, Slow Issue 20111.
