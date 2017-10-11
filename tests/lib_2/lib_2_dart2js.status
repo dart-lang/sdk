@@ -244,7 +244,9 @@ html/fontface_test: Fail # Fontface not supported on these.
 html/mirrors_js_typed_interop_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $runtime == ff ]
+html/custom/attribute_changed_callback_test: Skip # Times out
 html/custom/constructor_calls_created_synchronously_test: Pass, Timeout
+html/custom/created_callback_test: Skip # Times out
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_keygen_test: RuntimeError # Issue 29922

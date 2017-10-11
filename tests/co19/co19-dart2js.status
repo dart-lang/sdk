@@ -4089,11 +4089,8 @@ Language/Classes/Constructors/Factories/return_type_t05: Pass, Slow # Issue 2594
 Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issue 25940
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/device-aspect-ratio_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/media-rule-screenDepthPerComponent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/media/media-query-list_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 LayoutTests/fast/canvas/webgl/*: Skip # Issue 26725
