@@ -73,10 +73,9 @@ class Simulator {
   int64_t get_last_pc() const;
   void set_pc(int64_t pc);
 
-  // High address.
-  uword stack_base() const { return stack_base_; }
-  // Low address.
-  uword stack_limit() const { return stack_limit_; }
+  // Accessors to the internal simulator stack base and top.
+  uword StackBase() const { return reinterpret_cast<uword>(stack_); }
+  uword StackTop() const;
 
   // Accessor to the instruction counter.
   uint64_t get_icount() const { return icount_; }
@@ -141,8 +140,6 @@ class Simulator {
   int64_t last_pc_;
   int64_t pc_;
   char* stack_;
-  uword stack_limit_;
-  uword stack_base_;
   bool pc_modified_;
   uint64_t icount_;
   static int64_t flag_stop_sim_at_;

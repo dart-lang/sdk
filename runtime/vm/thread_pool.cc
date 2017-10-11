@@ -424,7 +424,10 @@ void ThreadPool::Worker::Main(uword args) {
   ThreadPool* pool;
 
   // Set the thread's stack_base based on the current stack pointer.
-  os_thread->RefineStackBoundsFromSP(Thread::GetCurrentStackPointer());
+  uword current_sp = Thread::GetCurrentStackPointer();
+  if (current_sp > os_thread->stack_base()) {
+    os_thread->set_stack_base(current_sp);
+  }
 
   {
     MonitorLocker ml(&worker->monitor_);

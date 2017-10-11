@@ -932,13 +932,17 @@ static bool ValidateThreadStackBounds(uintptr_t fp,
   return true;
 }
 
-// Get |thread|'s stack boundary and verify that |sp| and |fp| are within
-// it. Return |false| if anything looks suspicious.
+// Get |isolate|'s stack boundary and verify that |sp| and |fp| are within
+// it. If |get_os_thread_bounds| is true then if |isolate| stackbounds are
+// not available we fallback to using underlying OS thread bounds. This only
+// works for the current thread.
+// Return |false| if anything looks suspicious.
 static bool GetAndValidateThreadStackBounds(Thread* thread,
                                             uintptr_t fp,
                                             uintptr_t sp,
                                             uword* stack_lower,
-                                            uword* stack_upper) {
+                                            uword* stack_upper,
+                                            bool get_os_thread_bounds = false) {
   OSThread* os_thread = NULL;
   if (thread != NULL) {
     os_thread = thread->os_thread();
@@ -948,6 +952,7 @@ static bool GetAndValidateThreadStackBounds(Thread* thread,
   ASSERT(os_thread != NULL);
   ASSERT(stack_lower != NULL);
   ASSERT(stack_upper != NULL);
+  ASSERT(!get_os_thread_bounds || (Thread::Current() == thread));
 
 #if defined(USING_SIMULATOR)
   const bool use_simulator_stack_bounds = thread->IsExecutingDartCode();
@@ -955,21 +960,19 @@ static bool GetAndValidateThreadStackBounds(Thread* thread,
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != NULL);
     Simulator* simulator = isolate->simulator();
-#if defined(TARGET_ARCH_DBC)
-    *stack_lower = simulator->stack_base();
-    *stack_upper = simulator->stack_limit();
-#else
-    *stack_lower = simulator->stack_limit();
-    *stack_upper = simulator->stack_base();
-#endif  // defined(TARGET_ARCH_DBC)
+    *stack_lower = simulator->StackBase();
+    *stack_upper = simulator->StackTop();
   }
 #else
   const bool use_simulator_stack_bounds = false;
-#endif  // defined(USING_SIMULATOR)
+#endif
 
-  if (!use_simulator_stack_bounds) {
-    *stack_lower = os_thread->stack_limit();
-    *stack_upper = os_thread->stack_base();
+  if (!use_simulator_stack_bounds &&
+      !(get_os_thread_bounds &&
+        OSThread::GetCurrentStackBounds(stack_lower, stack_upper)) &&
+      !os_thread->GetProfilerStackBounds(stack_lower, stack_upper)) {
+    // Could not get stack boundary.
+    return false;
   }
 
   if ((*stack_lower == 0) || (*stack_upper == 0)) {
@@ -1123,7 +1126,8 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   }
 
   if (!GetAndValidateThreadStackBounds(thread, fp, sp, &stack_lower,
-                                       &stack_upper)) {
+                                       &stack_upper,
+                                       /*get_os_thread_bounds=*/true)) {
     OS::PrintErr(
         "Stack dump aborted because GetAndValidateThreadStackBounds failed.\n");
     return;

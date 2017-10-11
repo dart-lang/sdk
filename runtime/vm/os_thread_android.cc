@@ -228,8 +228,7 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   pthread_attr_t attr;
-  // May fail on the main thread.
-  if (pthread_getattr_np(pthread_self(), &attr) != 0) {
+  if (pthread_getattr_np(pthread_self(), &attr)) {
     return false;
   }
 
@@ -237,7 +236,7 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   size_t size;
   int error = pthread_attr_getstack(&attr, &base, &size);
   pthread_attr_destroy(&attr);
-  if (error != 0) {
+  if (error) {
     return false;
   }
 
