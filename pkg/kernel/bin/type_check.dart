@@ -249,6 +249,15 @@ super method declares ${superParameter.type}
   }
 
   @override
+  void checkUnresolvedInvocation(DartType receiver, TreeNode where) {
+    if (receiver is DynamicType) {
+      return;
+    }
+
+    fail(where, 'Unresolved method invocation');
+  }
+
+  @override
   void fail(TreeNode where, String message) {
     fails++;
 

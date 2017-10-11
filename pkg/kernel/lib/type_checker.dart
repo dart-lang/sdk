@@ -99,6 +99,12 @@ abstract class TypeChecker {
     return expression;
   }
 
+  /// Check unresolved invocation (one that has no interfaceTarget)
+  /// and report an error if necessary.
+  void checkUnresolvedInvocation(DartType receiver, TreeNode where) {
+    // By default we ignore unresolved method invocations.
+  }
+
   /// Indicates that type checking failed.
   void fail(TreeNode where, String message);
 }
@@ -120,6 +126,10 @@ class TypeCheckingVisitor
 
   void checkAssignable(TreeNode where, DartType from, DartType to) {
     checker.checkAssignable(where, from, to);
+  }
+
+  void checkUnresolvedInvocation(DartType receiver, TreeNode where) {
+    checker.checkUnresolvedInvocation(receiver, where);
   }
 
   Expression checkAndDowncastExpression(Expression from, DartType to) {
@@ -535,6 +545,7 @@ class TypeCheckingVisitor
       if (node.name.name == 'call' && receiver is FunctionType) {
         return handleFunctionCall(node, receiver, node.arguments);
       }
+      checkUnresolvedInvocation(receiver, node);
       return handleDynamicCall(receiver, node.arguments);
     } else if (target is Procedure &&
         environment.isOverloadedArithmeticOperator(target)) {
@@ -551,7 +562,8 @@ class TypeCheckingVisitor
   @override
   DartType visitPropertyGet(PropertyGet node) {
     if (node.interfaceTarget == null) {
-      visitExpression(node.receiver);
+      final receiver = visitExpression(node.receiver);
+      checkUnresolvedInvocation(receiver, node);
       return const DynamicType();
     } else {
       var receiver = getReceiverType(node, node.receiver, node.interfaceTarget);
@@ -570,7 +582,8 @@ class TypeCheckingVisitor
           receiver.substituteType(node.interfaceTarget.setterType,
               contravariant: true));
     } else {
-      visitExpression(node.receiver);
+      final receiver = visitExpression(node.receiver);
+      checkUnresolvedInvocation(receiver, node);
     }
     return value;
   }
@@ -622,6 +635,7 @@ class TypeCheckingVisitor
   @override
   DartType visitSuperMethodInvocation(SuperMethodInvocation node) {
     if (node.interfaceTarget == null) {
+      checkUnresolvedInvocation(environment.thisType, node);
       return handleDynamicCall(environment.thisType, node.arguments);
     } else {
       return handleCall(node.arguments, node.interfaceTarget.getterType,
@@ -632,6 +646,7 @@ class TypeCheckingVisitor
   @override
   DartType visitSuperPropertyGet(SuperPropertyGet node) {
     if (node.interfaceTarget == null) {
+      checkUnresolvedInvocation(environment.thisType, node);
       return const DynamicType();
     } else {
       var receiver = getSuperReceiverType(node.interfaceTarget);
@@ -649,6 +664,8 @@ class TypeCheckingVisitor
           value,
           receiver.substituteType(node.interfaceTarget.setterType,
               contravariant: true));
+    } else {
+      checkUnresolvedInvocation(environment.thisType, node);
     }
     return value;
   }
