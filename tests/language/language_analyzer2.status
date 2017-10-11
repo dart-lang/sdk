@@ -12,7 +12,6 @@ regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: StaticWarning # Issue 29081
 regress_29405_test: StaticWarning # Issue 29421
 regress_29349_test: CompileTimeError # Issue 29744
-regress_29481_test: Crash # Issue 29755
 
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
@@ -308,11 +307,9 @@ parser_quirks_test: StaticWarning
 part2_test: StaticWarning
 positional_parameters_type_test/01: StaticWarning
 prefix13_negative_test: CompileTimeError
-prefix14_test: StaticWarning
 prefix15_negative_test: CompileTimeError
 prefix15_test: StaticWarning
 prefix16_test: StaticWarning
-prefix17_test: StaticWarning
 prefix18_negative_test: CompileTimeError
 prefix22_test: StaticWarning
 prefix23_test: StaticWarning
@@ -456,6 +453,8 @@ part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 *: Skip # Issue 28649
 
 [$compiler == dart2analyzer && $runtime == none]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_test/01: MissingStaticWarning
 assertion_initializer_test: CompileTimeError
