@@ -1161,7 +1161,8 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                RawPcDescriptors::Kind kind,
                                                LocationSummary* locs,
                                                const Function& target) {
-  GenerateDartCall(deopt_id, token_pos, stub_entry, kind, locs);
+  __ Call(stub_entry, true /* movable_target */);
+  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   AddStaticCallTarget(target);
 }
 
@@ -1290,9 +1291,9 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
-  GenerateDartCall(deopt_id, token_pos, *StubCode::CallStaticFunction_entry(),
-                   RawPcDescriptors::kOther, locs);
-  AddStaticCallTarget(function);
+  GenerateStaticDartCall(deopt_id, token_pos,
+                         *StubCode::CallStaticFunction_entry(),
+                         RawPcDescriptors::kOther, locs, function);
   __ Drop(count_with_type_args);
 }
 

@@ -1897,10 +1897,16 @@ void Assembler::LoadIsolate(Register dst) {
   movl(dst, Address(THR, Thread::isolate_offset()));
 }
 
-void Assembler::LoadObject(Register dst, const Object& object) {
+void Assembler::LoadObject(Register dst,
+                           const Object& object,
+                           bool movable_referent) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
-  if (object.IsSmi() || object.InVMHeap()) {
+  // movable_referent: some references to VM heap objects may be patched with
+  // references to isolate-local objects (e.g., optimized static calls).
+  // We need to track such references since the latter may move during
+  // compaction.
+  if (object.IsSmi() || (object.InVMHeap() && !movable_referent)) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsNotTemporaryScopedHandle());
@@ -2218,9 +2224,9 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
-void Assembler::Call(const StubEntry& stub_entry) {
+void Assembler::Call(const StubEntry& stub_entry, bool movable_target) {
   const Code& target = Code::ZoneHandle(stub_entry.code());
-  LoadObject(CODE_REG, target);
+  LoadObject(CODE_REG, target, movable_target);
   call(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
 

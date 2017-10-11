@@ -1170,7 +1170,6 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   // and the unoptimized code with IC calls for static calls is patched instead.
   ASSERT(is_optimizing());
   __ CallWithEquivalence(stub_entry, target);
-
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   AddStaticCallTarget(target);
 }
