@@ -730,6 +730,7 @@ deferred_constraints_type_annotation_test/type_annotation_top_level: MissingComp
 deferred_not_loaded_check_test: Fail # Issue 27577
 double_int_to_string_test: RuntimeError # Issue 1533
 enum_test: Fail # Issue 28340
+final_field_override_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
@@ -1007,7 +1008,6 @@ function_type_alias2_test: RuntimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
-final_field_override_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1316,6 +1316,7 @@ field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 final_field_initialization_order_test: RuntimeError
+malformed2_test/00: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1638,7 +1639,7 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
-final_field_initialization_order_test: RuntimeError
+malformed2_test/00: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
