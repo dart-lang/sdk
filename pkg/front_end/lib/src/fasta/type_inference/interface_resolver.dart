@@ -26,6 +26,78 @@ const bool debugCovariance = false;
 /// annotations themselves need to be applied to the forwarding stub.
 typedef void _CovarianceFix(FunctionNode function);
 
+/// Concrete class derived from [InferenceNode] to represent type inference of
+/// getters, setters, and fields based on inheritance.
+class AccessorInferenceNode extends MemberInferenceNode {
+  AccessorInferenceNode(InterfaceResolver interfaceResolver,
+      Procedure declaredMethod, List<Member> candidates, int start, int end)
+      : super(interfaceResolver, declaredMethod, candidates, start, end);
+
+  @override
+  void resolveInternal() {
+    var declaredMethod = _declaredMethod;
+    var kind = declaredMethod.kind;
+    var overriddenTypes = _computeAccessorOverriddenTypes();
+    if (!isCircular) {
+      var inferredType = _matchTypes(overriddenTypes);
+      if (declaredMethod is SyntheticAccessor) {
+        declaredMethod._field.type = inferredType;
+      } else {
+        if (kind == ProcedureKind.Getter) {
+          declaredMethod.function.returnType = inferredType;
+        } else {
+          declaredMethod.function.positionalParameters[0].type = inferredType;
+        }
+      }
+    }
+  }
+
+  /// Computes the types of the getters and setters overridden by
+  /// [_declaredMethod], with appropriate type parameter substitutions.
+  List<DartType> _computeAccessorOverriddenTypes() {
+    var overriddenTypes = <DartType>[];
+    for (int i = _start; i < _end; i++) {
+      var candidate = _candidates[i];
+      Member resolvedCandidate;
+      if (candidate is ForwardingNode) {
+        _candidates[i] = resolvedCandidate = candidate.resolve();
+      } else {
+        resolvedCandidate = candidate;
+      }
+      DartType overriddenType;
+      if (resolvedCandidate is SyntheticAccessor) {
+        var field = resolvedCandidate._field;
+        if (field is ShadowField) {
+          ShadowMember.getInferenceNode(field)?.resolve();
+        }
+        overriddenType = field.type;
+      } else if (resolvedCandidate.function != null &&
+          resolvedCandidate is Procedure) {
+        switch (resolvedCandidate.kind) {
+          case ProcedureKind.Getter:
+            overriddenType = resolvedCandidate.function.returnType;
+            break;
+          case ProcedureKind.Setter:
+            overriddenType =
+                resolvedCandidate.function.positionalParameters[0].type;
+            break;
+          default:
+            // Illegal override (error will be reported elsewhere).  Just skip
+            // this override.
+            continue;
+        }
+      } else {
+        // This can happen if there are errors.  Just skip this override.
+        continue;
+      }
+      overriddenTypes.add(_interfaceResolver
+          ._substitutionFor(resolvedCandidate, _declaredMethod.enclosingClass)
+          .substituteType(overriddenType));
+    }
+    return overriddenTypes;
+  }
+}
+
 /// A [ForwardingNode] represents a method, getter, or setter within a class's
 /// interface that is either implemented in the class directly or inherited from
 /// a superclass.
@@ -525,8 +597,14 @@ class InterfaceResolver {
       InferenceNode getterInferenceNode;
       if (getterStart < getterEnd) {
         if (declaredGetter != null) {
-          getterInferenceNode = _createInferenceNode(class_, declaredGetter,
-              candidates, inheritedGetterStart, getterEnd);
+          getterInferenceNode = _createInferenceNode(
+              class_,
+              declaredGetter,
+              candidates,
+              inheritedGetterStart,
+              getterEnd,
+              inheritedSetterStart,
+              setterEnd);
         }
         var forwardingNode = new ForwardingNode(
             this,
@@ -552,8 +630,14 @@ class InterfaceResolver {
           if (declaredSetter is SyntheticAccessor) {
             setterInferenceNode = getterInferenceNode;
           } else {
-            setterInferenceNode = _createInferenceNode(class_, declaredSetter,
-                candidates, inheritedSetterStart, setterEnd);
+            setterInferenceNode = _createInferenceNode(
+                class_,
+                declaredSetter,
+                candidates,
+                inheritedSetterStart,
+                setterEnd,
+                inheritedGetterStart,
+                getterEnd);
           }
         }
         var forwardingNode = new ForwardingNode(
@@ -639,8 +723,17 @@ class InterfaceResolver {
   /// [candidates] a list containing the procedures overridden by [procedure],
   /// if any.  [start] is the index of the first such procedure, and [end] is
   /// the past-the-end index of the last such procedure.
-  InferenceNode _createInferenceNode(Class class_, Procedure procedure,
-      List<Member> candidates, int start, int end) {
+  ///
+  /// For getters and setters, [crossStart] and [crossEnd] are the start and end
+  /// indices of the corresponding overridden setters/getters, respectively.
+  InferenceNode _createInferenceNode(
+      Class class_,
+      Procedure procedure,
+      List<Member> candidates,
+      int start,
+      int end,
+      int crossStart,
+      int crossEnd) {
     if (!_requiresTypeInference(procedure)) return null;
     switch (procedure.kind) {
       case ProcedureKind.Getter:
@@ -837,9 +930,9 @@ class InterfaceResolver {
   }
 }
 
-/// Concrete class derived from [InferenceNode] to represent type inference of
-/// methods.
-class MethodInferenceNode extends InferenceNode {
+/// Abstract class derived from [InferenceNode] to represent type inference of
+/// methods, getters, and setters based on inheritance.
+abstract class MemberInferenceNode extends InferenceNode {
   final InterfaceResolver _interfaceResolver;
 
   /// The method whose return type and/or parameter types should be inferred.
@@ -856,36 +949,42 @@ class MethodInferenceNode extends InferenceNode {
   /// [_declaredMethod].
   final int _end;
 
-  MethodInferenceNode(this._interfaceResolver, this._declaredMethod,
+  MemberInferenceNode(this._interfaceResolver, this._declaredMethod,
       this._candidates, this._start, this._end);
+
+  DartType _matchTypes(Iterable<DartType> types) {
+    var iterator = types.iterator;
+    if (!iterator.moveNext()) {
+      // No overridden types.  Infer `dynamic`.
+      return const DynamicType();
+    }
+    var inferredType = iterator.current;
+    while (iterator.moveNext()) {
+      if (inferredType != iterator.current) {
+        // TODO(paulberry): Types don't match.  Report an error.
+        return const DynamicType();
+      }
+    }
+    return inferredType;
+  }
+}
+
+/// Concrete class derived from [InferenceNode] to represent type inference of
+/// methods.
+class MethodInferenceNode extends MemberInferenceNode {
+  MethodInferenceNode(InterfaceResolver interfaceResolver,
+      Procedure declaredMethod, List<Member> candidates, int start, int end)
+      : super(interfaceResolver, declaredMethod, candidates, start, end);
 
   @override
   void resolveInternal() {
-    // First collect types of overridden methods
+    var declaredMethod = _declaredMethod;
     var overriddenTypes = _computeMethodOverriddenTypes();
-
-    // Now infer types.
-    DartType matchTypes(Iterable<DartType> types) {
-      var iterator = types.iterator;
-      if (!iterator.moveNext()) {
-        // No overridden types.  Infer `dynamic`.
-        return const DynamicType();
-      }
-      var inferredType = iterator.current;
-      while (iterator.moveNext()) {
-        if (inferredType != iterator.current) {
-          // TODO(paulberry): Types don't match.  Report an error.
-          return const DynamicType();
-        }
-      }
-      return inferredType;
+    if (ShadowProcedure.hasImplicitReturnType(declaredMethod)) {
+      declaredMethod.function.returnType =
+          _matchTypes(overriddenTypes.map((type) => type.returnType));
     }
-
-    if (ShadowProcedure.hasImplicitReturnType(_declaredMethod)) {
-      _declaredMethod.function.returnType =
-          matchTypes(overriddenTypes.map((type) => type.returnType));
-    }
-    var positionalParameters = _declaredMethod.function.positionalParameters;
+    var positionalParameters = declaredMethod.function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
       if (ShadowVariableDeclaration
           .isImplicitlyTyped(positionalParameters[i])) {
@@ -904,15 +1003,15 @@ class MethodInferenceNode extends InferenceNode {
         //     non-optional parameter), the inference result is not defined and
         //     tools are free to either emit an error, or to defer the error to
         //     override checking.
-        positionalParameters[i].type = matchTypes(
+        positionalParameters[i].type = _matchTypes(
             overriddenTypes.map((type) => getPositionalParameterType(type, i)));
       }
     }
-    var namedParameters = _declaredMethod.function.namedParameters;
+    var namedParameters = declaredMethod.function.namedParameters;
     for (int i = 0; i < namedParameters.length; i++) {
       if (ShadowVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
         var name = namedParameters[i].name;
-        namedParameters[i].type = matchTypes(
+        namedParameters[i].type = _matchTypes(
             overriddenTypes.map((type) => getNamedParameterType(type, name)));
       }
     }
@@ -932,6 +1031,7 @@ class MethodInferenceNode extends InferenceNode {
       var candidateFunction = candidate.function;
       if (candidateFunction == null) {
         // This can happen if there are errors.  Just skip this override.
+        continue;
       }
       var substitution = _interfaceResolver._substitutionFor(
           candidate, _declaredMethod.enclosingClass);
