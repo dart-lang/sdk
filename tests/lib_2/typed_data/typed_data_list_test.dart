@@ -167,15 +167,9 @@ void emptyChecks<T>(List<T> list, T toElementType(dynamic c)) {
   list.fillRange(0, 0);
   Expect.listEquals([], list.getRange(0, 0).toList());
 
-  if (list is List<int>) {
-    var intList = list as List<int>;
-    Expect.equals(-1, intList.lastIndexOf(-1));
-    intList.setRange(0, 0, [1, 2]);
-  } else {
-    var doubleList = list as List<double>;
-    Expect.equals(-1, doubleList.lastIndexOf(-1.0));
-    doubleList.setRange(0, 0, [1.0, 2.0]);
-  }
+  final minusOne = toElementType(-1);
+  Expect.equals(-1, list.lastIndexOf(minusOne));
+  list.setRange(0, 0, [one, two]);
 
   list.sort();
 

@@ -35,12 +35,12 @@ import 'dart:math' show Random;
 class ByteData implements TypedData {
   @patch
   factory ByteData(int length) {
-    var list = new Uint8List(length);
+    final list = new Uint8List(length) as _TypedList;
     return new _ByteDataView(list, 0, length);
   }
 
   // Called directly from C code.
-  factory ByteData._view(TypedData typedData, int offsetInBytes, int length) {
+  factory ByteData._view(_TypedList typedData, int offsetInBytes, int length) {
     return new _ByteDataView(typedData, offsetInBytes, length);
   }
 }
@@ -51,117 +51,16 @@ class ByteData implements TypedData {
 // to instances of _TypeListBase. Instead the subclasses use type specific
 // mixins (like _IntListMixin, _DoubleListMixin) to implement ListBase<T>.
 abstract class _TypedListBase {
-  _createList(int length);
-  int get elementSizeInBytes;
   int get length;
-  _ByteBuffer get buffer;
+  int get elementSizeInBytes;
   int get offsetInBytes;
+  _ByteBuffer get buffer;
 
   // Method(s) implementing the Collection interface.
-  bool contains(element) {
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      if (this[i] == element) return true;
-    }
-    return false;
-  }
-
-  void forEach(void f(element)) {
-    var len = this.length;
-    for (var i = 0; i < len; i++) {
-      f(this[i]);
-    }
-  }
-
   String join([String separator = ""]) {
     StringBuffer buffer = new StringBuffer();
-    buffer.writeAll(this, separator);
+    buffer.writeAll(this as Iterable, separator);
     return buffer.toString();
-  }
-
-  dynamic reduce(dynamic combine(value, element)) {
-    var len = this.length;
-    if (len == 0) throw IterableElementError.noElement();
-    var i = 0;
-    var value = this[0];
-    for (var i = 1; i < len; ++i) {
-      value = combine(value, this[i]);
-    }
-    return value;
-  }
-
-  T fold<T>(T initialValue, T combine(T initialValue, element)) {
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      initialValue = combine(initialValue, this[i]);
-    }
-    return initialValue;
-  }
-
-  Iterable<T> map<T>(T f(element)) => new MappedIterable<dynamic, T>(this, f);
-
-  Iterable<T> expand<T>(Iterable<T> f(element)) =>
-      new ExpandIterable<dynamic, T>(this, f);
-
-  bool every(bool f(element)) {
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      if (!f(this[i])) return false;
-    }
-    return true;
-  }
-
-  bool any(bool f(element)) {
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      if (f(this[i])) return true;
-    }
-    return false;
-  }
-
-  dynamic firstWhere(bool test(element), {orElse()}) {
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      var element = this[i];
-      if (test(element)) return element;
-    }
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  dynamic lastWhere(bool test(element), {orElse()}) {
-    var result = null;
-    var len = this.length;
-    for (var i = len - 1; i >= 0; --i) {
-      var element = this[i];
-      if (test(element)) {
-        return element;
-      }
-    }
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  dynamic singleWhere(bool test(element)) {
-    var result = null;
-    bool foundMatching = false;
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      var element = this[i];
-      if (test(element)) {
-        if (foundMatching) {
-          throw IterableElementError.tooMany();
-        }
-        result = element;
-        foundMatching = true;
-      }
-    }
-    if (foundMatching) return result;
-    throw IterableElementError.noElement();
-  }
-
-  dynamic elementAt(int index) {
-    return this[index];
   }
 
   bool get isEmpty {
@@ -176,25 +75,49 @@ abstract class _TypedListBase {
     throw new UnsupportedError("Cannot resize a fixed-length list");
   }
 
-  void add(value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+  void clear() {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void addAll(Iterable value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+  bool remove(Object element) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void insert(int index, value) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void insertAll(int index, Iterable values) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  void replaceRange(int start, int end, Iterable iterable) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void sort([int compare(a, b)]) {
-    if (compare == null) compare = Comparable.compare;
-    Sort.sort(this, compare);
+  // Method(s) implementing Object interface.
+  String toString() => ListBase.listToString(this as List);
+
+  // Internal utility methods.
+
+  // Returns true if operation succeeds.
+  // 'fromCid' and 'toCid' may be cid-s of the views and therefore may not
+  // match the cids of 'this' and 'from'.
+  // Uses toCid and fromCid to decide if clamping is necessary.
+  // Element size of toCid and fromCid must match (test at caller).
+  bool _setRange(int startInBytes, int lengthInBytes, _TypedListBase from,
+      int startFromInBytes, int toCid, int fromCid) native "TypedData_setRange";
+}
+
+abstract class _IntListMixin implements List<int> {
+  int get elementSizeInBytes;
+  int get offsetInBytes;
+  _ByteBuffer get buffer;
+
+  List<int> _createList(int length);
+
+  bool contains(Object element) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (this[i] == element) return true;
+    }
+    return false;
   }
 
   void shuffle([Random random]) {
@@ -209,95 +132,7 @@ abstract class _TypedListBase {
     }
   }
 
-  int indexOf(element, [int start = 0]) {
-    if (start >= this.length) {
-      return -1;
-    } else if (start < 0) {
-      start = 0;
-    }
-    for (int i = start; i < this.length; i++) {
-      if (this[i] == element) return i;
-    }
-    return -1;
-  }
-
-  int lastIndexOf(element, [int start = null]) {
-    if (start == null || start >= this.length) {
-      start = this.length - 1;
-    } else if (start < 0) {
-      return -1;
-    }
-    for (int i = start; i >= 0; i--) {
-      if (this[i] == element) return i;
-    }
-    return -1;
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  int removeLast() {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  bool remove(Object element) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  bool removeAt(int index) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void removeWhere(bool test(element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void retainWhere(bool test(element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  dynamic get first {
-    if (length > 0) return this[0];
-    throw IterableElementError.noElement();
-  }
-
-  dynamic get last {
-    if (length > 0) return this[length - 1];
-    throw IterableElementError.noElement();
-  }
-
-  dynamic get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw IterableElementError.noElement();
-    throw IterableElementError.tooMany();
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void replaceRange(int start, int end, Iterable iterable) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  List toList({bool growable: true}) {
-    return new List.from(this, growable: growable);
-  }
-
-  Set toSet() {
-    return new Set.from(this);
-  }
-
-  List sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    var length = end - start;
-    List result = _createList(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int end, Iterable from, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
     // Check ranges.
     if (0 > start || start > end || end > length) {
       RangeError.checkValidRange(start, end, length); // Always throws.
@@ -312,39 +147,44 @@ abstract class _TypedListBase {
       throw IterableElementError.tooFew();
     }
 
+    if (count == 0) return;
+
     if (from is _TypedListBase) {
-      if (this.elementSizeInBytes == from.elementSizeInBytes) {
-        if ((count < 10) && (from.buffer != this.buffer)) {
-          Lists.copy(from, skipCount, this, start, count);
+      // Note: _TypedListBase is not related to Iterable<int> so there is
+      // no promotion here.
+      final fromAsTypedList = from as _TypedListBase;
+      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
+        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
+          Lists.copy(from as List<int>, skipCount, this, start, count);
           return;
         } else if (this.buffer._data._setRange(
             start * elementSizeInBytes + this.offsetInBytes,
             count * elementSizeInBytes,
-            from.buffer._data,
-            skipCount * elementSizeInBytes + from.offsetInBytes,
+            fromAsTypedList.buffer._data,
+            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
             ClassID.getID(this),
             ClassID.getID(from))) {
           return;
         }
-      } else if (from.buffer == this.buffer) {
+      } else if (fromAsTypedList.buffer == this.buffer) {
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
-        final temp_buffer = new List(count);
+        final fromAsList = from as List<int>;
+        final tempBuffer = _createList(count);
         for (var i = 0; i < count; i++) {
-          temp_buffer[i] = from[skipCount + i];
+          tempBuffer[i] = fromAsList[skipCount + i];
         }
         for (var i = start; i < end; i++) {
-          this[i] = temp_buffer[i - start];
+          this[i] = tempBuffer[i - start];
         }
         return;
       }
     }
 
-    if (count == 0) return;
     List otherList;
     int otherStart;
-    if (from is List) {
+    if (from is List<int>) {
       otherList = from;
       otherStart = skipCount;
     } else {
@@ -357,35 +197,6 @@ abstract class _TypedListBase {
     Lists.copy(otherList, otherStart, this, start, count);
   }
 
-  void setAll(int index, Iterable iterable) {
-    final end = iterable.length + index;
-    setRange(index, end, iterable);
-  }
-
-  void fillRange(int start, int end, [fillValue]) {
-    RangeError.checkValidRange(start, end, this.length);
-    for (var i = start; i < end; ++i) {
-      this[i] = fillValue;
-    }
-  }
-
-  // Method(s) implementing Object interface.
-  String toString() => ListBase.listToString(this);
-
-  // Internal utility methods.
-
-  // Returns true if operation succeeds.
-  // 'fromCid' and 'toCid' may be cid-s of the views and therefore may not
-  // match the cids of 'this' and 'from'.
-  // Uses toCid and fromCid to decide if clamping is necessary.
-  // Element size of toCid and fromCid must match (test at caller).
-  bool _setRange(int startInBytes, int lengthInBytes, _TypedListBase from,
-      int startFromInBytes, int toCid, int fromCid) native "TypedData_setRange";
-}
-
-abstract class _IntListMixin {
-  int get length;
-
   Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
 
   Iterable<int> take(int n) => new SubListIterable<int>(this, 0, n);
@@ -395,7 +206,7 @@ abstract class _IntListMixin {
 
   Iterable<int> skip(int n) => new SubListIterable<int>(this, n, null);
 
-  Iterable<int> skipWhile(bool test(element)) =>
+  Iterable<int> skipWhile(bool test(int element)) =>
       new SkipWhileIterable<int>(this, test);
 
   Iterable<int> get reversed => new ReversedListIterable<int>(this);
@@ -416,22 +227,300 @@ abstract class _IntListMixin {
   Set<int> toSet() {
     return new Set<int>.from(this);
   }
+
+  void forEach(void f(int element)) {
+    var len = this.length;
+    for (var i = 0; i < len; i++) {
+      f(this[i]);
+    }
+  }
+
+  int reduce(int combine(int value, int element)) {
+    var len = this.length;
+    if (len == 0) throw IterableElementError.noElement();
+    var i = 0;
+    var value = this[0];
+    for (var i = 1; i < len; ++i) {
+      value = combine(value, this[i]);
+    }
+    return value;
+  }
+
+  T fold<T>(T initialValue, T combine(T initialValue, int element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      initialValue = combine(initialValue, this[i]);
+    }
+    return initialValue;
+  }
+
+  Iterable<T> map<T>(T f(int element)) => new MappedIterable<int, T>(this, f);
+
+  Iterable<T> expand<T>(Iterable<T> f(int element)) =>
+      new ExpandIterable<int, T>(this, f);
+
+  bool every(bool f(int element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (!f(this[i])) return false;
+    }
+    return true;
+  }
+
+  bool any(bool f(int element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (f(this[i])) return true;
+    }
+    return false;
+  }
+
+  int firstWhere(bool test(int element), {int orElse()}) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) return element;
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
+
+  int lastWhere(bool test(int element), {int orElse()}) {
+    var result = null;
+    var len = this.length;
+    for (var i = len - 1; i >= 0; --i) {
+      var element = this[i];
+      if (test(element)) {
+        return element;
+      }
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
+
+  int singleWhere(bool test(int element)) {
+    var result = null;
+    bool foundMatching = false;
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) {
+        if (foundMatching) {
+          throw IterableElementError.tooMany();
+        }
+        result = element;
+        foundMatching = true;
+      }
+    }
+    if (foundMatching) return result;
+    throw IterableElementError.noElement();
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to a fixed-length list");
+  }
+
+  void addAll(Iterable<int> value) {
+    throw new UnsupportedError("Cannot add to a fixed-length list");
+  }
+
+  void insert(int index, int value) {
+    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  }
+
+  void insertAll(int index, Iterable<int> values) {
+    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  }
+
+  void sort([int compare(int a, int b)]) {
+    Sort.sort(this, compare ?? Comparable.compare);
+  }
+
+  int indexOf(int element, [int start = 0]) {
+    if (start >= this.length) {
+      return -1;
+    } else if (start < 0) {
+      start = 0;
+    }
+    for (int i = start; i < this.length; i++) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexOf(int element, [int start = null]) {
+    if (start == null || start >= this.length) {
+      start = this.length - 1;
+    } else if (start < 0) {
+      return -1;
+    }
+    for (int i = start; i >= 0; i--) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  int removeAt(int index) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  void removeWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  void retainWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  int get first {
+    if (length > 0) return this[0];
+    throw IterableElementError.noElement();
+  }
+
+  int get last {
+    if (length > 0) return this[length - 1];
+    throw IterableElementError.noElement();
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();
+  }
+
+  List<int> sublist(int start, [int end]) {
+    end = RangeError.checkValidRange(start, end, this.length);
+    var length = end - start;
+    List<int> result = _createList(length);
+    result.setRange(0, length, this, start);
+    return result;
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    final end = iterable.length + index;
+    setRange(index, end, iterable);
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    RangeError.checkValidRange(start, end, this.length);
+    for (var i = start; i < end; ++i) {
+      this[i] = fillValue;
+    }
+  }
 }
 
-abstract class _DoubleListMixin {
-  int get length;
+abstract class _DoubleListMixin implements List<double> {
+  int get elementSizeInBytes;
+  int get offsetInBytes;
+  _ByteBuffer get buffer;
 
-  Iterable<double> where(bool f(int element)) =>
+  List<double> _createList(int length);
+
+  bool contains(Object element) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (this[i] == element) return true;
+    }
+    return false;
+  }
+
+  void shuffle([Random random]) {
+    if (random == null) random = new Random();
+    var i = this.length;
+    while (i > 1) {
+      int pos = random.nextInt(i);
+      i -= 1;
+      var tmp = this[i];
+      this[i] = this[pos];
+      this[pos] = tmp;
+    }
+  }
+
+  void setRange(int start, int end, Iterable<double> from,
+      [int skipCount = 0]) {
+    // Check ranges.
+    if (0 > start || start > end || end > length) {
+      RangeError.checkValidRange(start, end, length); // Always throws.
+      assert(false);
+    }
+    if (skipCount < 0) {
+      throw new ArgumentError(skipCount);
+    }
+
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    if (count == 0) return;
+
+    if (from is _TypedListBase) {
+      // Note: _TypedListBase is not related to Iterable<double> so there is
+      // no promotion here.
+      final fromAsTypedList = from as _TypedListBase;
+      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
+        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
+          Lists.copy(from as List<double>, skipCount, this, start, count);
+          return;
+        } else if (this.buffer._data._setRange(
+            start * elementSizeInBytes + this.offsetInBytes,
+            count * elementSizeInBytes,
+            fromAsTypedList.buffer._data,
+            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
+            ClassID.getID(this),
+            ClassID.getID(from))) {
+          return;
+        }
+      } else if (fromAsTypedList.buffer == this.buffer) {
+        // Different element sizes, but same buffer means that we need
+        // an intermediate structure.
+        // TODO(srdjan): Optimize to skip copying if the range does not overlap.
+        final fromAsList = from as List<double>;
+        final tempBuffer = _createList(count);
+        for (var i = 0; i < count; i++) {
+          tempBuffer[i] = fromAsList[skipCount + i];
+        }
+        for (var i = start; i < end; i++) {
+          this[i] = tempBuffer[i - start];
+        }
+        return;
+      }
+    }
+
+    List otherList;
+    int otherStart;
+    if (from is List<double>) {
+      otherList = from;
+      otherStart = skipCount;
+    } else {
+      otherList = from.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    if (otherStart + count > otherList.length) {
+      throw IterableElementError.tooFew();
+    }
+    Lists.copy(otherList, otherStart, this, start, count);
+  }
+
+  Iterable<double> where(bool f(double element)) =>
       new WhereIterable<double>(this, f);
 
   Iterable<double> take(int n) => new SubListIterable<double>(this, 0, n);
 
-  Iterable<double> takeWhile(bool test(int element)) =>
+  Iterable<double> takeWhile(bool test(double element)) =>
       new TakeWhileIterable<double>(this, test);
 
   Iterable<double> skip(int n) => new SubListIterable<double>(this, n, null);
 
-  Iterable<double> skipWhile(bool test(element)) =>
+  Iterable<double> skipWhile(bool test(double element)) =>
       new SkipWhileIterable<double>(this, test);
 
   Iterable<double> get reversed => new ReversedListIterable<double>(this);
@@ -452,23 +541,302 @@ abstract class _DoubleListMixin {
   Set<double> toSet() {
     return new Set<double>.from(this);
   }
+
+  void forEach(void f(double element)) {
+    var len = this.length;
+    for (var i = 0; i < len; i++) {
+      f(this[i]);
+    }
+  }
+
+  double reduce(double combine(double value, double element)) {
+    var len = this.length;
+    if (len == 0) throw IterableElementError.noElement();
+    var i = 0;
+    var value = this[0];
+    for (var i = 1; i < len; ++i) {
+      value = combine(value, this[i]);
+    }
+    return value;
+  }
+
+  T fold<T>(T initialValue, T combine(T initialValue, double element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      initialValue = combine(initialValue, this[i]);
+    }
+    return initialValue;
+  }
+
+  Iterable<T> map<T>(T f(double element)) =>
+      new MappedIterable<double, T>(this, f);
+
+  Iterable<T> expand<T>(Iterable<T> f(double element)) =>
+      new ExpandIterable<double, T>(this, f);
+
+  bool every(bool f(double element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (!f(this[i])) return false;
+    }
+    return true;
+  }
+
+  bool any(bool f(double element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (f(this[i])) return true;
+    }
+    return false;
+  }
+
+  double firstWhere(bool test(double element), {double orElse()}) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) return element;
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
+
+  double lastWhere(bool test(double element), {double orElse()}) {
+    var result = null;
+    var len = this.length;
+    for (var i = len - 1; i >= 0; --i) {
+      var element = this[i];
+      if (test(element)) {
+        return element;
+      }
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
+
+  double singleWhere(bool test(double element)) {
+    var result = null;
+    bool foundMatching = false;
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) {
+        if (foundMatching) {
+          throw IterableElementError.tooMany();
+        }
+        result = element;
+        foundMatching = true;
+      }
+    }
+    if (foundMatching) return result;
+    throw IterableElementError.noElement();
+  }
+
+  double elementAt(int index) {
+    return this[index];
+  }
+
+  void add(double value) {
+    throw new UnsupportedError("Cannot add to a fixed-length list");
+  }
+
+  void addAll(Iterable<double> value) {
+    throw new UnsupportedError("Cannot add to a fixed-length list");
+  }
+
+  void insert(int index, double value) {
+    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  }
+
+  void insertAll(int index, Iterable<double> values) {
+    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  }
+
+  void sort([int compare(double a, double b)]) {
+    Sort.sort(this, compare ?? Comparable.compare);
+  }
+
+  int indexOf(double element, [int start = 0]) {
+    if (start >= this.length) {
+      return -1;
+    } else if (start < 0) {
+      start = 0;
+    }
+    for (int i = start; i < this.length; i++) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexOf(double element, [int start = null]) {
+    if (start == null || start >= this.length) {
+      start = this.length - 1;
+    } else if (start < 0) {
+      return -1;
+    }
+    for (int i = start; i >= 0; i--) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
+  double removeLast() {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  double removeAt(int index) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  void removeWhere(bool test(double element)) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  void retainWhere(bool test(double element)) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  double get first {
+    if (length > 0) return this[0];
+    throw IterableElementError.noElement();
+  }
+
+  double get last {
+    if (length > 0) return this[length - 1];
+    throw IterableElementError.noElement();
+  }
+
+  double get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();
+  }
+
+  List<double> sublist(int start, [int end]) {
+    end = RangeError.checkValidRange(start, end, this.length);
+    var length = end - start;
+    List<double> result = _createList(length);
+    result.setRange(0, length, this, start);
+    return result;
+  }
+
+  void setAll(int index, Iterable<double> iterable) {
+    final end = iterable.length + index;
+    setRange(index, end, iterable);
+  }
+
+  void fillRange(int start, int end, [double fillValue]) {
+    RangeError.checkValidRange(start, end, this.length);
+    for (var i = start; i < end; ++i) {
+      this[i] = fillValue;
+    }
+  }
 }
 
-abstract class _Float32x4ListMixin {
-  int get length;
+abstract class _Float32x4ListMixin implements List<Float32x4> {
+  int get elementSizeInBytes;
+  int get offsetInBytes;
+  _ByteBuffer get buffer;
 
-  Iterable<Float32x4> where(bool f(int element)) =>
+  List<Float32x4> _createList(int length);
+
+  bool contains(Object element) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (this[i] == element) return true;
+    }
+    return false;
+  }
+
+  void shuffle([Random random]) {
+    if (random == null) random = new Random();
+    var i = this.length;
+    while (i > 1) {
+      int pos = random.nextInt(i);
+      i -= 1;
+      var tmp = this[i];
+      this[i] = this[pos];
+      this[pos] = tmp;
+    }
+  }
+
+  void setRange(int start, int end, Iterable<Float32x4> from,
+      [int skipCount = 0]) {
+    // Check ranges.
+    if (0 > start || start > end || end > length) {
+      RangeError.checkValidRange(start, end, length); // Always throws.
+      assert(false);
+    }
+    if (skipCount < 0) {
+      throw new ArgumentError(skipCount);
+    }
+
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    if (count == 0) return;
+
+    if (from is _TypedListBase) {
+      // Note: _TypedListBase is not related to Iterable<Float32x4> so there is
+      // no promotion here.
+      final fromAsTypedList = from as _TypedListBase;
+      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
+        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
+          Lists.copy(from as List<Float32x4>, skipCount, this, start, count);
+          return;
+        } else if (this.buffer._data._setRange(
+            start * elementSizeInBytes + this.offsetInBytes,
+            count * elementSizeInBytes,
+            fromAsTypedList.buffer._data,
+            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
+            ClassID.getID(this),
+            ClassID.getID(from))) {
+          return;
+        }
+      } else if (fromAsTypedList.buffer == this.buffer) {
+        // Different element sizes, but same buffer means that we need
+        // an intermediate structure.
+        // TODO(srdjan): Optimize to skip copying if the range does not overlap.
+        final fromAsList = from as List<Float32x4>;
+        final tempBuffer = _createList(count);
+        for (var i = 0; i < count; i++) {
+          tempBuffer[i] = fromAsList[skipCount + i];
+        }
+        for (var i = start; i < end; i++) {
+          this[i] = tempBuffer[i - start];
+        }
+        return;
+      }
+    }
+
+    List otherList;
+    int otherStart;
+    if (from is List<Float32x4>) {
+      otherList = from;
+      otherStart = skipCount;
+    } else {
+      otherList = from.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    if (otherStart + count > otherList.length) {
+      throw IterableElementError.tooFew();
+    }
+    Lists.copy(otherList, otherStart, this, start, count);
+  }
+
+  Iterable<Float32x4> where(bool f(Float32x4 element)) =>
       new WhereIterable<Float32x4>(this, f);
 
   Iterable<Float32x4> take(int n) => new SubListIterable<Float32x4>(this, 0, n);
 
-  Iterable<Float32x4> takeWhile(bool test(int element)) =>
+  Iterable<Float32x4> takeWhile(bool test(Float32x4 element)) =>
       new TakeWhileIterable<Float32x4>(this, test);
 
   Iterable<Float32x4> skip(int n) =>
       new SubListIterable<Float32x4>(this, n, null);
 
-  Iterable<Float32x4> skipWhile(bool test(element)) =>
+  Iterable<Float32x4> skipWhile(bool test(Float32x4 element)) =>
       new SkipWhileIterable<Float32x4>(this, test);
 
   Iterable<Float32x4> get reversed => new ReversedListIterable<Float32x4>(this);
@@ -489,22 +857,304 @@ abstract class _Float32x4ListMixin {
   Set<Float32x4> toSet() {
     return new Set<Float32x4>.from(this);
   }
+
+  void forEach(void f(Float32x4 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; i++) {
+      f(this[i]);
+    }
+  }
+
+  Float32x4 reduce(Float32x4 combine(Float32x4 value, Float32x4 element)) {
+    var len = this.length;
+    if (len == 0) throw IterableElementError.noElement();
+    var i = 0;
+    var value = this[0];
+    for (var i = 1; i < len; ++i) {
+      value = combine(value, this[i]);
+    }
+    return value;
+  }
+
+  T fold<T>(T initialValue, T combine(T initialValue, Float32x4 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      initialValue = combine(initialValue, this[i]);
+    }
+    return initialValue;
+  }
+
+  Iterable<T> map<T>(T f(Float32x4 element)) =>
+      new MappedIterable<Float32x4, T>(this, f);
+
+  Iterable<T> expand<T>(Iterable<T> f(Float32x4 element)) =>
+      new ExpandIterable<Float32x4, T>(this, f);
+
+  bool every(bool f(Float32x4 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (!f(this[i])) return false;
+    }
+    return true;
+  }
+
+  bool any(bool f(Float32x4 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (f(this[i])) return true;
+    }
+    return false;
+  }
+
+  Float32x4 firstWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) return element;
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
+
+  Float32x4 lastWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+    var result = null;
+    var len = this.length;
+    for (var i = len - 1; i >= 0; --i) {
+      var element = this[i];
+      if (test(element)) {
+        return element;
+      }
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
+
+  Float32x4 singleWhere(bool test(Float32x4 element)) {
+    var result = null;
+    bool foundMatching = false;
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) {
+        if (foundMatching) {
+          throw IterableElementError.tooMany();
+        }
+        result = element;
+        foundMatching = true;
+      }
+    }
+    if (foundMatching) return result;
+    throw IterableElementError.noElement();
+  }
+
+  Float32x4 elementAt(int index) {
+    return this[index];
+  }
+
+  void add(Float32x4 value) {
+    throw new UnsupportedError("Cannot add to a fixed-length list");
+  }
+
+  void addAll(Iterable<Float32x4> value) {
+    throw new UnsupportedError("Cannot add to a fixed-length list");
+  }
+
+  void insert(int index, Float32x4 value) {
+    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  }
+
+  void insertAll(int index, Iterable<Float32x4> values) {
+    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  }
+
+  void sort([int compare(Float32x4 a, Float32x4 b)]) {
+    if (compare == null) {
+      throw "SIMD don't have default compare.";
+    }
+    Sort.sort(this, compare);
+  }
+
+  int indexOf(Float32x4 element, [int start = 0]) {
+    if (start >= this.length) {
+      return -1;
+    } else if (start < 0) {
+      start = 0;
+    }
+    for (int i = start; i < this.length; i++) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexOf(Float32x4 element, [int start = null]) {
+    if (start == null || start >= this.length) {
+      start = this.length - 1;
+    } else if (start < 0) {
+      return -1;
+    }
+    for (int i = start; i >= 0; i--) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
+  Float32x4 removeLast() {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  Float32x4 removeAt(int index) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  void removeWhere(bool test(Float32x4 element)) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  void retainWhere(bool test(Float32x4 element)) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  Float32x4 get first {
+    if (length > 0) return this[0];
+    throw IterableElementError.noElement();
+  }
+
+  Float32x4 get last {
+    if (length > 0) return this[length - 1];
+    throw IterableElementError.noElement();
+  }
+
+  Float32x4 get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();
+  }
+
+  List<Float32x4> sublist(int start, [int end]) {
+    end = RangeError.checkValidRange(start, end, this.length);
+    var length = end - start;
+    List<Float32x4> result = _createList(length);
+    result.setRange(0, length, this, start);
+    return result;
+  }
+
+  void setAll(int index, Iterable<Float32x4> iterable) {
+    final end = iterable.length + index;
+    setRange(index, end, iterable);
+  }
+
+  void fillRange(int start, int end, [Float32x4 fillValue]) {
+    RangeError.checkValidRange(start, end, this.length);
+    for (var i = start; i < end; ++i) {
+      this[i] = fillValue;
+    }
+  }
 }
 
-abstract class _Int32x4ListMixin {
-  int get length;
+abstract class _Int32x4ListMixin implements List<Int32x4> {
+  int get elementSizeInBytes;
+  int get offsetInBytes;
+  _ByteBuffer get buffer;
 
-  Iterable<Int32x4> where(bool f(int element)) =>
+  List<Int32x4> _createList(int length);
+
+  bool contains(Object element) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (this[i] == element) return true;
+    }
+    return false;
+  }
+
+  void shuffle([Random random]) {
+    if (random == null) random = new Random();
+    var i = this.length;
+    while (i > 1) {
+      int pos = random.nextInt(i);
+      i -= 1;
+      var tmp = this[i];
+      this[i] = this[pos];
+      this[pos] = tmp;
+    }
+  }
+
+  void setRange(int start, int end, Iterable<Int32x4> from,
+      [int skipCount = 0]) {
+    // Check ranges.
+    if (0 > start || start > end || end > length) {
+      RangeError.checkValidRange(start, end, length); // Always throws.
+      assert(false);
+    }
+    if (skipCount < 0) {
+      throw new ArgumentError(skipCount);
+    }
+
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    if (count == 0) return;
+
+    if (from is _TypedListBase) {
+      // Note: _TypedListBase is not related to Iterable<Int32x4> so there is
+      // no promotion here.
+      final fromAsTypedList = from as _TypedListBase;
+      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
+        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
+          Lists.copy(from as List<Int32x4>, skipCount, this, start, count);
+          return;
+        } else if (this.buffer._data._setRange(
+            start * elementSizeInBytes + this.offsetInBytes,
+            count * elementSizeInBytes,
+            fromAsTypedList.buffer._data,
+            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
+            ClassID.getID(this),
+            ClassID.getID(from))) {
+          return;
+        }
+      } else if (fromAsTypedList.buffer == this.buffer) {
+        // Different element sizes, but same buffer means that we need
+        // an intermediate structure.
+        // TODO(srdjan): Optimize to skip copying if the range does not overlap.
+        final fromAsList = from as List<Int32x4>;
+        final tempBuffer = _createList(count);
+        for (var i = 0; i < count; i++) {
+          tempBuffer[i] = fromAsList[skipCount + i];
+        }
+        for (var i = start; i < end; i++) {
+          this[i] = tempBuffer[i - start];
+        }
+        return;
+      }
+    }
+
+    List otherList;
+    int otherStart;
+    if (from is List<Int32x4>) {
+      otherList = from;
+      otherStart = skipCount;
+    } else {
+      otherList = from.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    if (otherStart + count > otherList.length) {
+      throw IterableElementError.tooFew();
+    }
+    Lists.copy(otherList, otherStart, this, start, count);
+  }
+
+  Iterable<Int32x4> where(bool f(Int32x4 element)) =>
       new WhereIterable<Int32x4>(this, f);
 
   Iterable<Int32x4> take(int n) => new SubListIterable<Int32x4>(this, 0, n);
 
-  Iterable<Int32x4> takeWhile(bool test(int element)) =>
+  Iterable<Int32x4> takeWhile(bool test(Int32x4 element)) =>
       new TakeWhileIterable<Int32x4>(this, test);
 
   Iterable<Int32x4> skip(int n) => new SubListIterable<Int32x4>(this, n, null);
 
-  Iterable<Int32x4> skipWhile(bool test(element)) =>
+  Iterable<Int32x4> skipWhile(bool test(Int32x4 element)) =>
       new SkipWhileIterable<Int32x4>(this, test);
 
   Iterable<Int32x4> get reversed => new ReversedListIterable<Int32x4>(this);
@@ -525,23 +1175,305 @@ abstract class _Int32x4ListMixin {
   Set<Int32x4> toSet() {
     return new Set<Int32x4>.from(this);
   }
+
+  void forEach(void f(Int32x4 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; i++) {
+      f(this[i]);
+    }
+  }
+
+  Int32x4 reduce(Int32x4 combine(Int32x4 value, Int32x4 element)) {
+    var len = this.length;
+    if (len == 0) throw IterableElementError.noElement();
+    var i = 0;
+    var value = this[0];
+    for (var i = 1; i < len; ++i) {
+      value = combine(value, this[i]);
+    }
+    return value;
+  }
+
+  T fold<T>(T initialValue, T combine(T initialValue, Int32x4 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      initialValue = combine(initialValue, this[i]);
+    }
+    return initialValue;
+  }
+
+  Iterable<T> map<T>(T f(Int32x4 element)) =>
+      new MappedIterable<Int32x4, T>(this, f);
+
+  Iterable<T> expand<T>(Iterable<T> f(Int32x4 element)) =>
+      new ExpandIterable<Int32x4, T>(this, f);
+
+  bool every(bool f(Int32x4 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (!f(this[i])) return false;
+    }
+    return true;
+  }
+
+  bool any(bool f(Int32x4 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (f(this[i])) return true;
+    }
+    return false;
+  }
+
+  Int32x4 firstWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) return element;
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
+
+  Int32x4 lastWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+    var result = null;
+    var len = this.length;
+    for (var i = len - 1; i >= 0; --i) {
+      var element = this[i];
+      if (test(element)) {
+        return element;
+      }
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
+
+  Int32x4 singleWhere(bool test(Int32x4 element)) {
+    var result = null;
+    bool foundMatching = false;
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) {
+        if (foundMatching) {
+          throw IterableElementError.tooMany();
+        }
+        result = element;
+        foundMatching = true;
+      }
+    }
+    if (foundMatching) return result;
+    throw IterableElementError.noElement();
+  }
+
+  Int32x4 elementAt(int index) {
+    return this[index];
+  }
+
+  void add(Int32x4 value) {
+    throw new UnsupportedError("Cannot add to a fixed-length list");
+  }
+
+  void addAll(Iterable<Int32x4> value) {
+    throw new UnsupportedError("Cannot add to a fixed-length list");
+  }
+
+  void insert(int index, Int32x4 value) {
+    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  }
+
+  void insertAll(int index, Iterable<Int32x4> values) {
+    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  }
+
+  void sort([int compare(Int32x4 a, Int32x4 b)]) {
+    if (compare == null) {
+      throw "SIMD don't have default compare.";
+    }
+    Sort.sort(this, compare);
+  }
+
+  int indexOf(Int32x4 element, [int start = 0]) {
+    if (start >= this.length) {
+      return -1;
+    } else if (start < 0) {
+      start = 0;
+    }
+    for (int i = start; i < this.length; i++) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexOf(Int32x4 element, [int start = null]) {
+    if (start == null || start >= this.length) {
+      start = this.length - 1;
+    } else if (start < 0) {
+      return -1;
+    }
+    for (int i = start; i >= 0; i--) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
+  Int32x4 removeLast() {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  Int32x4 removeAt(int index) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  void removeWhere(bool test(Int32x4 element)) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  void retainWhere(bool test(Int32x4 element)) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  Int32x4 get first {
+    if (length > 0) return this[0];
+    throw IterableElementError.noElement();
+  }
+
+  Int32x4 get last {
+    if (length > 0) return this[length - 1];
+    throw IterableElementError.noElement();
+  }
+
+  Int32x4 get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();
+  }
+
+  List<Int32x4> sublist(int start, [int end]) {
+    end = RangeError.checkValidRange(start, end, this.length);
+    var length = end - start;
+    List<Int32x4> result = _createList(length);
+    result.setRange(0, length, this, start);
+    return result;
+  }
+
+  void setAll(int index, Iterable<Int32x4> iterable) {
+    final end = iterable.length + index;
+    setRange(index, end, iterable);
+  }
+
+  void fillRange(int start, int end, [Int32x4 fillValue]) {
+    RangeError.checkValidRange(start, end, this.length);
+    for (var i = start; i < end; ++i) {
+      this[i] = fillValue;
+    }
+  }
 }
 
-abstract class _Float64x2ListMixin {
-  int get length;
+abstract class _Float64x2ListMixin implements List<Float64x2> {
+  int get elementSizeInBytes;
+  int get offsetInBytes;
+  _ByteBuffer get buffer;
 
-  Iterable<Float64x2> where(bool f(int element)) =>
+  List<Float64x2> _createList(int length);
+
+  bool contains(Object element) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (this[i] == element) return true;
+    }
+    return false;
+  }
+
+  void shuffle([Random random]) {
+    if (random == null) random = new Random();
+    var i = this.length;
+    while (i > 1) {
+      int pos = random.nextInt(i);
+      i -= 1;
+      var tmp = this[i];
+      this[i] = this[pos];
+      this[pos] = tmp;
+    }
+  }
+
+  void setRange(int start, int end, Iterable<Float64x2> from,
+      [int skipCount = 0]) {
+    // Check ranges.
+    if (0 > start || start > end || end > length) {
+      RangeError.checkValidRange(start, end, length); // Always throws.
+      assert(false);
+    }
+    if (skipCount < 0) {
+      throw new ArgumentError(skipCount);
+    }
+
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    if (count == 0) return;
+
+    if (from is _TypedListBase) {
+      // Note: _TypedListBase is not related to Iterable<Float64x2> so there is
+      // no promotion here.
+      final fromAsTypedList = from as _TypedListBase;
+      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
+        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
+          Lists.copy(from as List<Float64x2>, skipCount, this, start, count);
+          return;
+        } else if (this.buffer._data._setRange(
+            start * elementSizeInBytes + this.offsetInBytes,
+            count * elementSizeInBytes,
+            fromAsTypedList.buffer._data,
+            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
+            ClassID.getID(this),
+            ClassID.getID(from))) {
+          return;
+        }
+      } else if (fromAsTypedList.buffer == this.buffer) {
+        // Different element sizes, but same buffer means that we need
+        // an intermediate structure.
+        // TODO(srdjan): Optimize to skip copying if the range does not overlap.
+        final fromAsList = from as List<Float64x2>;
+        final tempBuffer = _createList(count);
+        for (var i = 0; i < count; i++) {
+          tempBuffer[i] = fromAsList[skipCount + i];
+        }
+        for (var i = start; i < end; i++) {
+          this[i] = tempBuffer[i - start];
+        }
+        return;
+      }
+    }
+
+    List otherList;
+    int otherStart;
+    if (from is List<Float64x2>) {
+      otherList = from;
+      otherStart = skipCount;
+    } else {
+      otherList = from.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    if (otherStart + count > otherList.length) {
+      throw IterableElementError.tooFew();
+    }
+    Lists.copy(otherList, otherStart, this, start, count);
+  }
+
+  Iterable<Float64x2> where(bool f(Float64x2 element)) =>
       new WhereIterable<Float64x2>(this, f);
 
   Iterable<Float64x2> take(int n) => new SubListIterable<Float64x2>(this, 0, n);
 
-  Iterable<Float64x2> takeWhile(bool test(int element)) =>
+  Iterable<Float64x2> takeWhile(bool test(Float64x2 element)) =>
       new TakeWhileIterable<Float64x2>(this, test);
 
   Iterable<Float64x2> skip(int n) =>
       new SubListIterable<Float64x2>(this, n, null);
 
-  Iterable<Float64x2> skipWhile(bool test(element)) =>
+  Iterable<Float64x2> skipWhile(bool test(Float64x2 element)) =>
       new SkipWhileIterable<Float64x2>(this, test);
 
   Iterable<Float64x2> get reversed => new ReversedListIterable<Float64x2>(this);
@@ -561,6 +1493,198 @@ abstract class _Float64x2ListMixin {
 
   Set<Float64x2> toSet() {
     return new Set<Float64x2>.from(this);
+  }
+
+  void forEach(void f(Float64x2 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; i++) {
+      f(this[i]);
+    }
+  }
+
+  Float64x2 reduce(Float64x2 combine(Float64x2 value, Float64x2 element)) {
+    var len = this.length;
+    if (len == 0) throw IterableElementError.noElement();
+    var i = 0;
+    var value = this[0];
+    for (var i = 1; i < len; ++i) {
+      value = combine(value, this[i]);
+    }
+    return value;
+  }
+
+  T fold<T>(T initialValue, T combine(T initialValue, Float64x2 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      initialValue = combine(initialValue, this[i]);
+    }
+    return initialValue;
+  }
+
+  Iterable<T> map<T>(T f(Float64x2 element)) =>
+      new MappedIterable<Float64x2, T>(this, f);
+
+  Iterable<T> expand<T>(Iterable<T> f(Float64x2 element)) =>
+      new ExpandIterable<Float64x2, T>(this, f);
+
+  bool every(bool f(Float64x2 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (!f(this[i])) return false;
+    }
+    return true;
+  }
+
+  bool any(bool f(Float64x2 element)) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      if (f(this[i])) return true;
+    }
+    return false;
+  }
+
+  Float64x2 firstWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) return element;
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
+
+  Float64x2 lastWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+    var result = null;
+    var len = this.length;
+    for (var i = len - 1; i >= 0; --i) {
+      var element = this[i];
+      if (test(element)) {
+        return element;
+      }
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
+
+  Float64x2 singleWhere(bool test(Float64x2 element)) {
+    var result = null;
+    bool foundMatching = false;
+    var len = this.length;
+    for (var i = 0; i < len; ++i) {
+      var element = this[i];
+      if (test(element)) {
+        if (foundMatching) {
+          throw IterableElementError.tooMany();
+        }
+        result = element;
+        foundMatching = true;
+      }
+    }
+    if (foundMatching) return result;
+    throw IterableElementError.noElement();
+  }
+
+  Float64x2 elementAt(int index) {
+    return this[index];
+  }
+
+  void add(Float64x2 value) {
+    throw new UnsupportedError("Cannot add to a fixed-length list");
+  }
+
+  void addAll(Iterable<Float64x2> value) {
+    throw new UnsupportedError("Cannot add to a fixed-length list");
+  }
+
+  void insert(int index, Float64x2 value) {
+    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  }
+
+  void insertAll(int index, Iterable<Float64x2> values) {
+    throw new UnsupportedError("Cannot insert into a fixed-length list");
+  }
+
+  void sort([int compare(Float64x2 a, Float64x2 b)]) {
+    if (compare == null) {
+      throw "SIMD don't have default compare.";
+    }
+    Sort.sort(this, compare);
+  }
+
+  int indexOf(Float64x2 element, [int start = 0]) {
+    if (start >= this.length) {
+      return -1;
+    } else if (start < 0) {
+      start = 0;
+    }
+    for (int i = start; i < this.length; i++) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexOf(Float64x2 element, [int start = null]) {
+    if (start == null || start >= this.length) {
+      start = this.length - 1;
+    } else if (start < 0) {
+      return -1;
+    }
+    for (int i = start; i >= 0; i--) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  }
+
+  Float64x2 removeLast() {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  Float64x2 removeAt(int index) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  void removeWhere(bool test(Float64x2 element)) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  void retainWhere(bool test(Float64x2 element)) {
+    throw new UnsupportedError("Cannot remove from a fixed-length list");
+  }
+
+  Float64x2 get first {
+    if (length > 0) return this[0];
+    throw IterableElementError.noElement();
+  }
+
+  Float64x2 get last {
+    if (length > 0) return this[length - 1];
+    throw IterableElementError.noElement();
+  }
+
+  Float64x2 get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw IterableElementError.noElement();
+    throw IterableElementError.tooMany();
+  }
+
+  List<Float64x2> sublist(int start, [int end]) {
+    end = RangeError.checkValidRange(start, end, this.length);
+    var length = end - start;
+    List<Float64x2> result = _createList(length);
+    result.setRange(0, length, this, start);
+    return result;
+  }
+
+  void setAll(int index, Iterable<Float64x2> iterable) {
+    final end = iterable.length + index;
+    setRange(index, end, iterable);
+  }
+
+  void fillRange(int start, int end, [Float64x2 fillValue]) {
+    RangeError.checkValidRange(start, end, this.length);
+    for (var i = start; i < end; ++i) {
+      this[i] = fillValue;
+    }
   }
 }
 
@@ -695,6 +1819,8 @@ class _ByteBuffer implements ByteBuffer {
 }
 
 abstract class _TypedList extends _TypedListBase {
+  int get elementSizeInBytes;
+
   // Default method implementing parts of the TypedData interface.
   int get offsetInBytes {
     return 0;
@@ -2782,7 +3908,7 @@ class _Float64x2ArrayView extends _TypedListView
 }
 
 class _ByteDataView implements ByteData {
-  _ByteDataView(TypedData typedData, int _offsetInBytes, int _lengthInBytes)
+  _ByteDataView(_TypedList typedData, int _offsetInBytes, int _lengthInBytes)
       : _typedData = typedData,
         _offset = _offsetInBytes,
         length = _lengthInBytes {
@@ -3024,7 +4150,7 @@ class _ByteDataView implements ByteData {
     _typedData._setFloat32x4(_offset + byteOffset, value);
   }
 
-  final TypedData _typedData;
+  final _TypedList _typedData;
   final int _offset;
   final int length;
 }
