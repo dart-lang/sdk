@@ -171,7 +171,6 @@ html/fileapi_file_test: Fail, Pass # TODO(dart2js-team): Please triage this fail
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
 [ $compiler == dart2js && $runtime != d8 ]
-html/custom/created_callback_test: RuntimeError
 isolate/error_exit_at_spawn_test: Skip # Issue 23876
 isolate/error_at_spawn_test: Skip # Issue 23876
 isolate/exit_at_spawn_test: Skip # Issue 23876
@@ -229,6 +228,7 @@ html/element_types_shadow_test: RuntimeError # Issue 29922
 isolate/message_test: Skip # Issue 12627
 
 [ $compiler == dart2js && $browser ]
+html/custom/created_callback_test: RuntimeError
 html/js_typed_interop_lazy_test/01: RuntimeError
 html/private_extension_member_test: RuntimeError
 isolate/isolate_stress_test: Pass, Slow # Issue 10697
