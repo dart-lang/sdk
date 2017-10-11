@@ -33,9 +33,7 @@ main() {
         yield 2;
       }
 
-      // TODO(jmesserly): use tear off. For now this is a workaround for:
-      // https://github.com/dart-lang/dev_compiler/issues/269
-      var res = f().forEach((x) => list.add(x));
+      var res = f().forEach(list.add);
       list.add(0);
       return res.whenComplete(() {
         expect(list, equals([0, 1, 2]));
@@ -50,9 +48,7 @@ main() {
 
       var completer = new Completer();
       var list = [];
-      // TODO(jmesserly): use tear off. For now this is a workaround for:
-      // https://github.com/dart-lang/dev_compiler/issues/269
-      f().listen((x) => list.add(x),
+      f().listen(list.add,
           onError: (v) => list.add("$v"), onDone: completer.complete);
       return completer.future.whenComplete(() {
         expect(list, equals([1, "2"]));
@@ -252,9 +248,7 @@ main() {
       return expectList(f(), [1, 2]);
     });
 
-    // TODO(jmesserly): restore this when we fix
-    // https://github.com/dart-lang/dev_compiler/issues/263
-    /*test("switch-case", () {
+    test("switch-case", () {
       f(v) async* {
         switch (v) {
           case 0:
@@ -273,7 +267,7 @@ main() {
       }).whenComplete(() {
         return expectList(f(2), [2]);
       });
-    });*/
+    });
 
     test("dead-code return", () {
       f() async* {
@@ -677,37 +671,36 @@ main() {
       });
     });
 
-    // Crashes dart2js.
-    // test("regression-fugl/fisk", () {
-    //   var res = [];
-    //   fisk() async* {
-    //     res.add("+fisk");
-    //     try {
-    //       for (int i = 0; i < 2; i++) {
-    //         yield await new Future.microtask(() => i);
-    //       }
-    //     } finally {
-    //       res.add("-fisk");
-    //     }
-    //   }
+    test("regression-fugl/fisk", () {
+      var res = [];
+      fisk() async* {
+        res.add("+fisk");
+        try {
+          for (int i = 0; i < 2; i++) {
+            yield await new Future.microtask(() => i);
+          }
+        } finally {
+          res.add("-fisk");
+        }
+      }
 
-    //   fugl(int count) async {
-    //     res.add("fisk $count");
-    //     try {
-    //       await for(int i in fisk().take(count)) res.add(i);
-    //     } finally {
-    //       res.add("done");
-    //     }
-    //   }
+      fugl(int count) async {
+        res.add("fisk $count");
+        try {
+          await for(int i in fisk().take(count)) res.add(i);
+        } finally {
+          res.add("done");
+        }
+      }
 
-    //   return fugl(3).whenComplete(() => fugl(2))
-    //                 .whenComplete(() => fugl(1))
-    //                 .whenComplete(() {
-    //     expect(res, ["fisk 3", "+fisk", 0, 1, "-fisk", "done",
-    //                  "fisk 2", "+fisk", 0, 1, "-fisk", "done",
-    //                  "fisk 1", "+fisk", 0, "done", "-fisk", ]);
-    //   });
-    // });
+      return fugl(3).whenComplete(() => fugl(2))
+                    .whenComplete(() => fugl(1))
+                    .whenComplete(() {
+        expect(res, ["fisk 3", "+fisk", 0, 1, "-fisk", "done",
+                     "fisk 2", "+fisk", 0, 1, "-fisk", "done",
+                     "fisk 1", "+fisk", 0, "-fisk", "done", ]);
+      });
+    });
   });
 
   group("pausing", () {
