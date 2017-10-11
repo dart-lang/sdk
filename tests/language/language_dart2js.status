@@ -358,7 +358,7 @@ switch_case_warn_test: SKIP # Analyzer only, see language_analyzer2.status
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-async_star_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+async_star_test: RuntimeError
 await_exceptions_test: RuntimeError
 await_for_test: RuntimeError
 await_for_use_local_test: RuntimeError
@@ -680,6 +680,7 @@ setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
 stacktrace_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
+static_getter_no_setter2_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
 super_test: RuntimeError
@@ -1042,6 +1043,7 @@ stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
 stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
+static_getter_no_setter2_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
 super_test: RuntimeError

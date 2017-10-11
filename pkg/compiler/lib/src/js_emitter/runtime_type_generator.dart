@@ -350,7 +350,7 @@ class RuntimeTypeGenerator {
     if (checkedClasses.contains(_commonElements.functionClass) ||
         checkedFunctionTypes.isNotEmpty) {
       MemberEntity call =
-          _elementEnvironment.lookupClassMember(cls, Identifiers.call);
+          _elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
       if (call != null && call.isFunction) {
         FunctionEntity callFunction = call;
         // A superclass might already implement the Function interface. In such

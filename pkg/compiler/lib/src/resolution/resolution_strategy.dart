@@ -395,7 +395,7 @@ class ComputeSpannableMixin {
 }
 
 /// An element environment base on a [Compiler].
-class _CompilerElementEnvironment implements ElementEnvironment {
+class _CompilerElementEnvironment extends ElementEnvironment {
   final Compiler _compiler;
 
   LibraryEntity _mainLibrary;
@@ -472,7 +472,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  MemberElement lookupClassMember(covariant ClassElement cls, String name,
+  MemberElement lookupLocalClassMember(covariant ClassElement cls, String name,
       {bool setter: false, bool required: false}) {
     cls.ensureResolved(_resolution);
     Element member = cls.implementation.lookupLocalMember(name);

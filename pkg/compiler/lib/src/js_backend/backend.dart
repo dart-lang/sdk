@@ -595,7 +595,7 @@ class JavaScriptBackend {
     frontendStrategy.elementEnvironment.forEachClassMember(objectClass,
         (_, MemberEntity member) {
       MemberEntity interceptorMember = frontendStrategy.elementEnvironment
-          .lookupClassMember(interceptorClass, member.name);
+          .lookupLocalClassMember(interceptorClass, member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
       assert(

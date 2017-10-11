@@ -643,15 +643,24 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
           strategy.elementEquivalence);
 
       Map<MemberEntity, ClassEntity> members1 = <MemberEntity, ClassEntity>{};
+      Set<String> memberNames1 = new Set<String>();
       Map<MemberEntity, ClassEntity> members2 = <MemberEntity, ClassEntity>{};
+      Set<String> memberNames2 = new Set<String>();
       env1.forEachClassMember(cls1,
           (ClassEntity declarer1, MemberEntity member1) {
         if (cls1 == declarer1) {
           Expect.identical(
               member1,
+              env1.lookupLocalClassMember(cls1, member1.name,
+                  setter: member1.isSetter));
+        }
+        if (!memberNames1.contains(member1.name)) {
+          Expect.identical(
+              member1,
               env1.lookupClassMember(cls1, member1.name,
                   setter: member1.isSetter));
         }
+        memberNames1.add(member1.name);
         members1[member1] = declarer1;
       });
       env2.forEachClassMember(cls2,
@@ -659,9 +668,16 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
         if (cls2 == declarer2) {
           Expect.identical(
               member2,
+              env2.lookupLocalClassMember(cls2, member2.name,
+                  setter: member2.isSetter));
+        }
+        if (!memberNames2.contains(member2.name)) {
+          Expect.identical(
+              member2,
               env2.lookupClassMember(cls2, member2.name,
                   setter: member2.isSetter));
         }
+        memberNames2.add(member2.name);
         members2[member2] = declarer2;
       });
       checkMapEquivalence(cls1, cls2, 'members', members1, members2, (a, b) {

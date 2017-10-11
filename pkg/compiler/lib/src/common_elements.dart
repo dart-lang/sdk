@@ -363,7 +363,7 @@ class CommonElements {
 
   MemberEntity _findClassMember(ClassEntity cls, String name,
       {bool setter: false, bool required: true}) {
-    return _env.lookupClassMember(cls, name,
+    return _env.lookupLocalClassMember(cls, name,
         setter: setter, required: required);
   }
 
@@ -461,9 +461,9 @@ class CommonElements {
     _mapLiteralConstructorEmpty =
         _env.lookupConstructor(mapLiteralClass, '_empty');
     _mapLiteralUntypedMaker =
-        _env.lookupClassMember(mapLiteralClass, '_makeLiteral');
+        _env.lookupLocalClassMember(mapLiteralClass, '_makeLiteral');
     _mapLiteralUntypedEmptyMaker =
-        _env.lookupClassMember(mapLiteralClass, '_makeEmpty');
+        _env.lookupLocalClassMember(mapLiteralClass, '_makeEmpty');
   }
 
   ConstructorEntity get mapLiteralConstructor {
@@ -489,7 +489,7 @@ class CommonElements {
   FunctionEntity _objectNoSuchMethod;
   FunctionEntity get objectNoSuchMethod {
     return _objectNoSuchMethod ??=
-        _env.lookupClassMember(objectClass, Identifiers.noSuchMethod_);
+        _env.lookupLocalClassMember(objectClass, Identifiers.noSuchMethod_);
   }
 
   bool isDefaultNoSuchMethodImplementation(FunctionEntity element) {
@@ -518,13 +518,13 @@ class CommonElements {
   FunctionEntity get wrapBody =>
       _findAsyncHelperFunction("_wrapJsFunctionForAsync");
 
-  FunctionEntity get yieldStar => _env.lookupClassMember(
+  FunctionEntity get yieldStar => _env.lookupLocalClassMember(
       _findAsyncHelperClass("_IterationMarker"), "yieldStar");
 
-  FunctionEntity get yieldSingle => _env.lookupClassMember(
+  FunctionEntity get yieldSingle => _env.lookupLocalClassMember(
       _findAsyncHelperClass("_IterationMarker"), "yieldSingle");
 
-  FunctionEntity get syncStarUncaughtError => _env.lookupClassMember(
+  FunctionEntity get syncStarUncaughtError => _env.lookupLocalClassMember(
       _findAsyncHelperClass("_IterationMarker"), "uncaughtError");
 
   FunctionEntity get asyncStarHelper =>
@@ -533,7 +533,7 @@ class CommonElements {
   FunctionEntity get streamOfController =>
       _findAsyncHelperFunction("_streamOfController");
 
-  FunctionEntity get endOfIteration => _env.lookupClassMember(
+  FunctionEntity get endOfIteration => _env.lookupLocalClassMember(
       _findAsyncHelperClass("_IterationMarker"), "endOfIteration");
 
   ClassEntity get syncStarIterable =>
@@ -857,8 +857,8 @@ class CommonElements {
       _env.lookupConstructor(typeVariableClass, '');
 
   FunctionEntity _invokeOnMethod;
-  FunctionEntity get invokeOnMethod => _invokeOnMethod ??=
-      _env.lookupClassMember(jsInvocationMirrorClass, '_getCachedInvocation');
+  FunctionEntity get invokeOnMethod => _invokeOnMethod ??= _env
+      .lookupLocalClassMember(jsInvocationMirrorClass, '_getCachedInvocation');
 
   FunctionEntity _assertTest;
   FunctionEntity get assertTest =>
@@ -1080,7 +1080,7 @@ class CommonElements {
   /// for `Symbol`.
   FieldEntity _symbolImplementationField;
   FieldEntity get symbolImplementationField => _symbolImplementationField ??=
-      _env.lookupClassMember(symbolImplementationClass, '_name',
+      _env.lookupLocalClassMember(symbolImplementationClass, '_name',
           required: true);
 
   ConstructorEntity _symbolValidatedConstructor;
@@ -1242,8 +1242,22 @@ abstract class ElementEnvironment {
 
   /// Lookup the member [name] in [cls], fail if the class is missing and
   /// [required].
-  MemberEntity lookupClassMember(ClassEntity cls, String name,
+  MemberEntity lookupLocalClassMember(ClassEntity cls, String name,
       {bool setter: false, bool required: false});
+
+  /// Lookup the member [name] in [cls] and its superclasses.
+  ///
+  /// Return `null` if the member is not found in the class or any superclass.
+  MemberEntity lookupClassMember(ClassEntity cls, String name,
+      {bool setter: false}) {
+    var entity = lookupLocalClassMember(cls, name, setter: setter);
+    if (entity != null) return entity;
+
+    var superclass = getSuperClass(cls);
+    if (superclass == null) return null;
+
+    return lookupClassMember(superclass, name, setter: setter);
+  }
 
   /// Lookup the constructor [name] in [cls], fail if the class is missing and
   /// [required].

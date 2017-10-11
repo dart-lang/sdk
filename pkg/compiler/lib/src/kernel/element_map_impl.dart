@@ -1218,7 +1218,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   }
 }
 
-class KernelElementEnvironment implements ElementEnvironment {
+class KernelElementEnvironment extends ElementEnvironment {
   final KernelToElementMapBase elementMap;
 
   KernelElementEnvironment(this.elementMap);
@@ -1323,7 +1323,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  MemberEntity lookupClassMember(ClassEntity cls, String name,
+  MemberEntity lookupLocalClassMember(ClassEntity cls, String name,
       {bool setter: false, bool required: false}) {
     MemberEntity member =
         elementMap.lookupClassMember(cls, name, setter: setter);
@@ -1710,8 +1710,9 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
   @override
   bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
     while (cls != null) {
-      MemberEntity member = elementEnvironment
-          .lookupClassMember(cls, selector.name, setter: selector.isSetter);
+      MemberEntity member = elementEnvironment.lookupLocalClassMember(
+          cls, selector.name,
+          setter: selector.isSetter);
       if (member != null &&
           (!selector.memberName.isPrivate ||
               member.library == selector.library)) {

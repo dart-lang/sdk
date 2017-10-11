@@ -342,8 +342,8 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
     while (cls != null) {
       cls = elementEnvironment.getSuperClass(cls);
-      MemberEntity member =
-          elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+      MemberEntity member = elementEnvironment.lookupLocalClassMember(
+          cls, Identifiers.noSuchMethod_);
       if (member != null) {
         if (member.isFunction) {
           FunctionEntity function = member;
@@ -356,7 +356,7 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
         break;
       }
     }
-    FunctionEntity function = elementEnvironment.lookupClassMember(
+    FunctionEntity function = elementEnvironment.lookupLocalClassMember(
         commonElements.objectClass, Identifiers.noSuchMethod_);
     assert(function != null,
         failedAt(cls, "No super noSuchMethod found for class $cls."));

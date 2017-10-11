@@ -202,8 +202,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
         impactSource: _typeVariableResolutionAnalysis);
 
     for (ClassEntity cls in recentClasses) {
-      MemberEntity element =
-          _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+      MemberEntity element = _elementEnvironment.lookupLocalClassMember(
+          cls, Identifiers.noSuchMethod_);
       if (element != null && element.isInstanceMember && element.isFunction) {
         _noSuchMethodRegistry.registerNoSuchMethod(element);
       }
