@@ -1824,11 +1824,26 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleConditionalExpression(Token question, Token colon) {
+  void beginConditionalExpression() {
+    Expression condition = popForValue();
+    typePromoter.enterThen(condition);
+    push(condition);
+    super.beginConditionalExpression();
+  }
+
+  @override
+  void handleConditionalExpressionColon() {
+    typePromoter.enterElse();
+    super.handleConditionalExpressionColon();
+  }
+
+  @override
+  void endConditionalExpression(Token question, Token colon) {
     debugEvent("ConditionalExpression");
     Expression elseExpression = popForValue();
     Expression thenExpression = popForValue();
     Expression condition = popForValue();
+    typePromoter.exitConditional();
     push(new ShadowConditionalExpression(
         condition, thenExpression, elseExpression));
   }

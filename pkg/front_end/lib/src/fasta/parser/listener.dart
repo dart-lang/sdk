@@ -932,7 +932,16 @@ class Listener {
     logEvent("BinaryExpression");
   }
 
-  void handleConditionalExpression(Token question, Token colon) {
+  /// Called when the parser encounters a `?` operator and begins parsing a
+  /// conditional expression.
+  void beginConditionalExpression() {}
+
+  /// Called when the parser encounters a `:` operator in a conditional
+  /// expression.
+  void handleConditionalExpressionColon() {}
+
+  /// Called when the parser finishes processing a conditional expression.
+  void endConditionalExpression(Token question, Token colon) {
     logEvent("ConditionalExpression");
   }
 

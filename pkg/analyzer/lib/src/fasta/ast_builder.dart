@@ -747,7 +747,7 @@ class AstBuilder extends ScopeListener {
     push(ast.isExpression(expression, operator, not, type));
   }
 
-  void handleConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon) {
     debugEvent("ConditionalExpression");
     Expression elseExpression = pop();
     Expression thenExpression = pop();

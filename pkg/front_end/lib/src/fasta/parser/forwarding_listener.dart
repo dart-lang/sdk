@@ -924,8 +924,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleConditionalExpression(Token question, Token colon) {
-    listener?.handleConditionalExpression(question, colon);
+  void beginConditionalExpression() {
+    listener?.beginConditionalExpression();
+  }
+
+  @override
+  void handleConditionalExpressionColon() {
+    listener?.handleConditionalExpressionColon();
+  }
+
+  @override
+  void endConditionalExpression(Token question, Token colon) {
+    listener?.endConditionalExpression(question, colon);
   }
 
   @override

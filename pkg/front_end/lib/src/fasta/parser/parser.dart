@@ -3569,11 +3569,13 @@ class Parser {
   Token parseConditionalExpressionRest(Token token) {
     assert(optional('?', token));
     Token question = token;
+    listener.beginConditionalExpression();
     token = parseExpressionWithoutCascade(token.next);
     Token colon = token;
     token = expect(':', token);
+    listener.handleConditionalExpressionColon();
     token = parseExpressionWithoutCascade(token);
-    listener.handleConditionalExpression(question, colon);
+    listener.endConditionalExpression(question, colon);
     return token;
   }
 

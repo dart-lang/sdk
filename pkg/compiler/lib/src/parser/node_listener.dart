@@ -478,7 +478,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon) {
     Node elseExpression = popNode();
     Node thenExpression = popNode();
     Node condition = popNode();
