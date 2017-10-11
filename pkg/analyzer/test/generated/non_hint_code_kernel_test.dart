@@ -12,6 +12,10 @@ main() {
   });
 }
 
+/// Tests marked with this annotations fail because we either have not triaged
+/// them, or know that this is an analyzer problem.
+const potentialAnalyzerProblem = const Object();
+
 @reflectiveTest
 class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @override
@@ -19,18 +23,21 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_deprecatedMemberUse_inDeprecatedLibrary() async {
     return super.test_deprecatedMemberUse_inDeprecatedLibrary();
   }
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_unusedImport_annotationOnDirective() async {
     return super.test_unusedImport_annotationOnDirective();
   }
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_unusedImport_metadata() async {
     return super.test_unusedImport_metadata();
   }
