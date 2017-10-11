@@ -7,6 +7,7 @@ work.
 
 The current (working) tools are:
 
+- [results](#results)
 - [compare_failures](#compare_failures)
 - [status_summary](#status_summary)
 - [current_summary](#current_summary)
@@ -15,6 +16,115 @@ The current (working) tools are:
 All the tools have been created in an add-hoc manner, thus they solve specific
 tasks that may not match your workflow fully. Feel free to add functionality to
 these. Below is a detailed description of each of the tools.
+
+## results ##
+The results tool should be the primary tool for looking at failures and updating
+of status files. The tool fetches results.logs generated for each invocation of
+test.py on either the build bots or the CQ and matches the actual result for
+each test against the status files in your repository.
+
+(Note, it is important to run the tool in the root of the repository.)
+
+#### Finding failures on the CQ by link ####
+If a CQ job fails then you will receive an email about try jobs failing. There
+is a direct link in the email to the builder that observed a failure:
+
+`https://ci.chromium.org/swarming/task/<swarm_task_id>?server=chromium-swarm.appspot.com`
+
+Copy the link and paste it in the command below to see all failures for that
+builder:
+
+```console
+dart tools/gardening/bin/results.dart get failures <url>
+
+All result logs fetched.
+Calling test.py to find status files for the configuration and the expectation for 18298 tests. Estimated time remaining is 1 seconds...
+	FAILED: analyzer/test/generated/strong_mode_kernel_test
+	Result: RuntimeError
+	Expected: {Slow, Pass}
+	Configuration: mode=release, arch=x64, compiler=none, runtime=vm, checked, system=windows, use-sdk, builder-tag=win7
+
+	To run locally (if you have the right architecture and runtime):
+	tools/test.py --mode=release --arch=x64 --compiler=none --runtime=vm --checked --system=windows --use-sdk --builder-tag=win7 pkg/analyzer/test/generated/strong_mode_kernel_test
+
+```
+
+In the PolyGerrit interface under Tryjobs, for each try builder, you can obtain
+the link by right-clicking a builder-link and use copy link address.
+
+#### Finding failures on the CQ by CL number and patch set ####
+
+To get all failures from all builders in a try run, you can use the following
+command:
+
+```console
+dart tools/gardening/bin/results.dart get failures <CL number> <patch set>
+```
+
+The CL number is shown at the top of the page, and in the URL, and the patch set
+number is shown in the try jobs pane.
+
+#### Finding failures on the build bots ####
+
+There are a few ways to find failures on build bots.
+
+To find failures for an entire builder group use the following:
+```console
+dart tools/gardening/bin/results.dart get failures <group>
+```
+The groups are shown on the main waterfall: vm,vm-kernel,analyzer...
+
+To find failures for the latest build for a single build bot, use the following:
+
+```console
+dart tools/gardening/bin/results.dart get failures <builder_name>
+```
+
+If you want to check failures on a specific build on a builder, use the build
+number:
+```console
+dart tools/gardening/bin/results.dart get failures <builder_name> <build_no>
+```
+Remember, that statuses are tested against status files in your current
+repository. As a result, previous errors may not be reported, if the status
+files have changed.
+
+You can find failures directly from a result log from a run of test.py. You can
+pass the URL linking to a result log, or you can pass the file name of a local
+result log on the command line.
+```console
+dart tools/gardening/bin/results.dart get failures <url>
+```
+
+Finally, you can read the result log from a file by passing the file as so:
+```console
+dart tools/gardening/bin/results.dart get failures <file>
+```
+
+#### Updating the status files ####
+
+For now, the tool does not suggest any updates to status files, however, the
+tool can help to verify that changes to the status files has been done
+correctly.
+
+If a build is failing, the results tool will show which tests failed and how
+their results differed from the expectations.
+
+Update the status files appropriately, save the status files and run the tool
+again with the same arguments as before. If the changes are correct, the tool
+will now report that all test passes.
+
+Note, that changed test files are not rerun, and new status annotations are not
+picked up
+
+#### Generating result.log files for my own test runs ####
+
+If you, for some reason, would like to have a result.log output for a test.py
+invocation, just pass the flag --write-result-log to test.py. The default
+output-directory is `logs`, therefore the file would be written to
+`logs/result.log`. Be aware that existing files are overwritten.
+
+To change the output directory, use the `--output-directory` option.
 
 ## compare_failures ##
 This tool compares a test log of a build step with previous builds. This is
