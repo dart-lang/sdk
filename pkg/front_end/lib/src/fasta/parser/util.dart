@@ -6,7 +6,12 @@ library fasta.parser.util;
 
 import '../scanner.dart' show Token;
 
+import '../scanner/token_constants.dart' show KEYWORD_TOKEN;
+
 import '../../scanner/token.dart' show BeginToken;
+
+bool isKeywordOrIdentifier(Token token) =>
+    token.kind == KEYWORD_TOKEN || token.isIdentifier;
 
 /// Returns true if [token] is the symbol or keyword [value].
 bool optional(String value, Token token) {

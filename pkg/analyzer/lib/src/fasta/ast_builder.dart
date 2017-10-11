@@ -2095,9 +2095,33 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
         return;
+      case "CONST_AND_COVARIANT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_AND_COVARIANT, offset, length);
+        return;
+      case "CONST_AND_FINAL":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_AND_FINAL, offset, length);
+        return;
+      case "CONST_AND_VAR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_AND_VAR, offset, length);
+        return;
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, offset, length);
+        return;
+      case "COVARIANT_AFTER_FINAL":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.COVARIANT_AFTER_FINAL, offset, length);
+        return;
+      case "COVARIANT_AFTER_VAR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.COVARIANT_AFTER_VAR, offset, length);
+        return;
+      case "COVARIANT_AND_STATIC":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.COVARIANT_AND_STATIC, offset, length);
         return;
       case "DEFERRED_AFTER_PREFIX":
         errorReporter?.reportErrorForOffset(
@@ -2110,6 +2134,11 @@ class AstBuilder extends ScopeListener {
       case "DUPLICATE_DEFERRED":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DUPLICATE_DEFERRED, offset, length);
+        return;
+      case "DUPLICATED_MODIFIER":
+        String text = stringOrTokenLexeme();
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DUPLICATED_MODIFIER, offset, length, [text]);
         return;
       case "DUPLICATE_PREFIX":
         errorReporter?.reportErrorForOffset(
@@ -2157,6 +2186,14 @@ class AstBuilder extends ScopeListener {
         String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTRANEOUS_MODIFIER, offset, length, [text]);
+        return;
+      case "FINAL_AND_COVARIANT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.FINAL_AND_COVARIANT, offset, length);
+        return;
+      case "FINAL_AND_VAR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.FINAL_AND_VAR, offset, length);
         return;
       case "GETTER_WITH_PARAMETERS":
         errorReporter?.reportErrorForOffset(
@@ -2248,6 +2285,10 @@ class AstBuilder extends ScopeListener {
       case "PREFIX_AFTER_COMBINATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
+        return;
+      case "STATIC_AFTER_FINAL":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.STATIC_AFTER_FINAL, offset, length);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();

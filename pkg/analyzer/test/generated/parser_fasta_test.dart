@@ -157,27 +157,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_constAndCovariant() {
-    // TODO(brianwilkerson) Does not recover.
-    super.test_constAndCovariant();
-  }
-
-  @override
-  @failingTest
-  void test_constAndFinal() {
-    // TODO(brianwilkerson) Does not recover.
-    super.test_constAndFinal();
-  }
-
-  @override
-  @failingTest
-  void test_constAndVar() {
-    // TODO(brianwilkerson) Does not recover.
-    super.test_constAndVar();
-  }
-
-  @override
-  @failingTest
   void test_constConstructorWithBody() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, found 0
@@ -239,24 +218,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, found 0
     super.test_continueWithoutLabelInCase_error();
-  }
-
-  @override
-  @failingTest
-  void test_covariantAfterVar() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.COVARIANT_AFTER_VAR, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (4)
-    super.test_covariantAfterVar();
-  }
-
-  @override
-  @failingTest
-  void test_covariantAndStatic() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.COVARIANT_AND_STATIC, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (10)
-    super.test_covariantAndStatic();
   }
 
   @override
@@ -348,22 +309,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_duplicatedModifier_const() {
-    // TODO(brianwilkerson) Does not recover.
-    //   UnimplementedError: Failed to map ConstFieldWithoutInitializer at 12
-    //   package:analyzer/src/fasta/ast_builder.dart 1968:7                 AstBuilder.addCompileTimeError
-    //   package:front_end/src/fasta/source/stack_listener.dart 271:5       StackListener.handleRecoverableError
-    //   test/generated/parser_fasta_listener.dart 1420:14                  ForwardingTestListener.handleRecoverableError
-    //   package:front_end/src/fasta/parser/parser.dart 4085:16             Parser.reportRecoverableError
-    //   package:front_end/src/fasta/parser/parser.dart 1904:11             Parser.parseFieldInitializerOpt
-    //   package:front_end/src/fasta/parser/parser.dart 1675:13             Parser.parseFields
-    //   package:front_end/src/fasta/parser/parser.dart 2322:11             Parser.parseMember
-    //   test/generated/parser_fasta_test.dart 2825:39                      ParserProxy._run
-    super.test_duplicatedModifier_const();
-  }
-
-  @override
-  @failingTest
   void test_duplicatedModifier_external() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.DUPLICATED_MODIFIER, found 0;
@@ -385,33 +330,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:front_end/src/fasta/parser/parser.dart 2240:15             Parser.parseMember
     //   test/generated/parser_fasta_test.dart 2825:39                      ParserProxy._run
     super.test_duplicatedModifier_factory();
-  }
-
-  @override
-  @failingTest
-  void test_duplicatedModifier_final() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DUPLICATED_MODIFIER, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (6)
-    super.test_duplicatedModifier_final();
-  }
-
-  @override
-  @failingTest
-  void test_duplicatedModifier_static() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DUPLICATED_MODIFIER, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (7)
-    super.test_duplicatedModifier_static();
-  }
-
-  @override
-  @failingTest
-  void test_duplicatedModifier_var() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DUPLICATED_MODIFIER, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (4)
-    super.test_duplicatedModifier_var();
   }
 
   @override
@@ -886,15 +804,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.FINAL_AND_COVARIANT, found 0
     super.test_finalAndCovariant();
-  }
-
-  @override
-  @failingTest
-  void test_finalAndVar() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.FINAL_AND_VAR, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (6)
-    super.test_finalAndVar();
   }
 
   @override
@@ -2298,15 +2207,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.SETTER_IN_FUNCTION, found 0
     super.test_setterInFunction_expression();
-  }
-
-  @override
-  @failingTest
-  void test_staticAfterConst() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.STATIC_AFTER_FINAL, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (6)
-    super.test_staticAfterConst();
   }
 
   @override

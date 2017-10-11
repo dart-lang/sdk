@@ -421,6 +421,38 @@ const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     message: r"""This is the type variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstAndCovariant = messageConstAndCovariant;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstAndCovariant = const MessageCode(
+    "ConstAndCovariant",
+    analyzerCode: "CONST_AND_COVARIANT",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""Members can't be declared to be both 'const' and 'covariant'.""",
+    tip: r"""Try removing either the 'const' or 'covariant' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstAndFinal = messageConstAndFinal;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstAndFinal = const MessageCode("ConstAndFinal",
+    analyzerCode: "CONST_AND_FINAL",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message: r"""Members can't be declared to be both 'const' and 'final'.""",
+    tip: r"""Try removing either the 'const' or 'final' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstAndVar = messageConstAndVar;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstAndVar = const MessageCode("ConstAndVar",
+    analyzerCode: "CONST_AND_VAR",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message: r"""Members can't be declared to be both 'const' and 'var'.""",
+    tip: r"""Try removing either the 'const' or 'var' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstClass = messageConstClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -509,6 +541,42 @@ Message _withArgumentsCouldNotParseUri(String string, String string2) {
       message: """Couldn't parse URI '$string':
   $string2.""", arguments: {'string': string, 'string2': string2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCovariantAfterFinal = messageCovariantAfterFinal;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCovariantAfterFinal = const MessageCode(
+    "CovariantAfterFinal",
+    analyzerCode: "COVARIANT_AFTER_FINAL",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message:
+        r"""The modifier 'covariant' should be before the modifier 'final'.""",
+    tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCovariantAfterVar = messageCovariantAfterVar;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCovariantAfterVar = const MessageCode(
+    "CovariantAfterVar",
+    analyzerCode: "COVARIANT_AFTER_VAR",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message:
+        r"""The modifier 'covariant' should be before the modifier 'var'.""",
+    tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCovariantAndStatic = messageCovariantAndStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCovariantAndStatic = const MessageCode(
+    "CovariantAndStatic",
+    analyzerCode: "COVARIANT_AND_STATIC",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message:
+        r"""Members can't be declared to be both 'covariant' and 'static'.""",
+    tip: r"""Try removing either the 'covariant' or 'static' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
@@ -710,6 +778,29 @@ Message _withArgumentsDuplicatedImport(String name, Uri uri_, Uri uri2_) {
   return new Message(codeDuplicatedImport,
       message: """'$name' is imported from both '$uri' and '$uri2'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateDuplicatedModifier =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""The modifier '#lexeme' was already specified.""",
+        tipTemplate: r"""Try removing all but one occurance of the modifier.""",
+        withArguments: _withArgumentsDuplicatedModifier);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeDuplicatedModifier =
+    const Code<Message Function(Token token)>(
+        "DuplicatedModifier", templateDuplicatedModifier,
+        analyzerCode: "DUPLICATED_MODIFIER",
+        dart2jsCode: "EXTRANEOUS_MODIFIER");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedModifier(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeDuplicatedModifier,
+      message: """The modifier '$lexeme' was already specified.""",
+      tip: """Try removing all but one occurance of the modifier.""",
+      arguments: {'token': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1306,6 +1397,28 @@ const MessageCode messageFastaUsageShort =
 
   -o <file> Generate the output into <file>.
   -h        Display this message (add -v for information about all options).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFinalAndCovariant = messageFinalAndCovariant;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFinalAndCovariant = const MessageCode(
+    "FinalAndCovariant",
+    analyzerCode: "FINAL_AND_COVARIANT",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""Members can't be declared to be both 'final' and 'covariant'.""",
+    tip: r"""Try removing either the 'final' or 'covariant' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFinalAndVar = messageFinalAndVar;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFinalAndVar = const MessageCode("FinalAndVar",
+    analyzerCode: "FINAL_AND_VAR",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message: r"""Members can't be declared to be both 'final' and 'var'.""",
+    tip: r"""Try removing the keyword 'var'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFinalFieldWithoutInitializer =
@@ -2974,6 +3087,18 @@ const Code<Null> codeStackOverflow = messageStackOverflow;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStackOverflow = const MessageCode("StackOverflow",
     dart2jsCode: "GENERIC", message: r"""Stack overflow.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticAfterFinal = messageStaticAfterFinal;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticAfterFinal = const MessageCode(
+    "StaticAfterFinal",
+    analyzerCode: "STATIC_AFTER_FINAL",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message:
+        r"""The modifier 'static' should be before the modifier 'final'.""",
+    tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsIdentifier = messageSuperAsIdentifier;

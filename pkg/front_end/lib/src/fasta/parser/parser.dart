@@ -75,6 +75,8 @@ import 'listener.dart' show Listener;
 
 import 'member_kind.dart' show MemberKind;
 
+import 'modifier_context.dart' show ModifierContext, ModifierRecoveryContext;
+
 import 'recovery_listeners.dart'
     show ClassHeaderRecoveryListener, ImportRecoveryListener;
 
@@ -435,7 +437,7 @@ class Parser {
     listener.beginImport(importKeyword);
     assert(optional('import', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
-    Token start = token;
+    Token afterUri = token;
     token = parseConditionalUris(token);
     token = parseImportPrefixOpt(token);
     token = parseCombinators(token);
@@ -445,7 +447,7 @@ class Parser {
     } else {
       // Recovery
       listener.endImport(importKeyword, null);
-      return parseImportRecovery(start, token);
+      return parseImportRecovery(afterUri, token);
     }
   }
 
@@ -2605,140 +2607,32 @@ class Parser {
   /// non-null.
   Token parseModifiers(Token token, MemberKind memberKind,
       {FormalParameterKind parameterKind, bool isVarAllowed: false}) {
-    int count = 0;
+    ModifierContext context = new ModifierContext(
+        this,
+        memberKind,
+        parameterKind,
+        isVarAllowed,
+        typeContiunationFromFormalParameterKind(parameterKind));
 
-    int currentOrder = -1;
-    TypeContinuation typeContinuation =
-        typeContiunationFromFormalParameterKind(parameterKind);
+    final firstModifier = token;
+    token = context.parseOpt(token);
 
-    while (token.kind == KEYWORD_TOKEN) {
-      if (token.type.isPseudo) {
-        // A pseudo keyword is never a modifier.
-        break;
-      }
-      if (token.type.isBuiltIn) {
-        // A built-in identifier can only be a modifier as long as it is
-        // followed by another modifier or an identifier. Otherwise, it is the
-        // identifier.
-        if (token.next.kind != KEYWORD_TOKEN && !token.next.isIdentifier) {
-          break;
-        }
-      }
-      int order = modifierOrder(token);
-      if (order < 3) {
-        if (order > currentOrder) {
-          currentOrder = order;
-          if (optional("var", token)) {
-            if (!isVarAllowed && parameterKind == null) {
-              reportRecoverableErrorWithToken(
-                  token, fasta.templateExtraneousModifier);
-            }
-            switch (typeContinuation ?? TypeContinuation.Required) {
-              case TypeContinuation.NormalFormalParameter:
-                typeContinuation =
-                    TypeContinuation.NormalFormalParameterAfterVar;
-                break;
-
-              case TypeContinuation.OptionalPositionalFormalParameter:
-                typeContinuation =
-                    TypeContinuation.OptionalPositionalFormalParameterAfterVar;
-                break;
-
-              case TypeContinuation.NamedFormalParameter:
-                typeContinuation =
-                    TypeContinuation.NamedFormalParameterAfterVar;
-                break;
-
-              default:
-                typeContinuation = TypeContinuation.OptionalAfterVar;
-                break;
-            }
-          } else if (optional("final", token)) {
-            if (!isVarAllowed && parameterKind == null) {
-              reportRecoverableErrorWithToken(
-                  token, fasta.templateExtraneousModifier);
-            }
-            typeContinuation ??= TypeContinuation.Optional;
-          } else if (optional("const", token)) {
-            if (!isVarAllowed) {
-              reportRecoverableErrorWithToken(
-                  token, fasta.templateExtraneousModifier);
-            }
-            typeContinuation ??= TypeContinuation.Optional;
-          } else if (optional("static", token)) {
-            if (parameterKind != null) {
-              reportRecoverableErrorWithToken(
-                  token, fasta.templateExtraneousModifier);
-            } else if (memberKind == MemberKind.NonStaticMethod) {
-              memberKind = MemberKind.StaticMethod;
-            } else if (memberKind == MemberKind.NonStaticField) {
-              memberKind = MemberKind.StaticField;
-            } else {
-              reportRecoverableErrorWithToken(
-                  token, fasta.templateExtraneousModifier);
-              token = token.next;
-              continue;
-            }
-          } else if (optional("covariant", token)) {
-            switch (memberKind) {
-              case MemberKind.StaticField:
-              case MemberKind.StaticMethod:
-              case MemberKind.TopLevelField:
-              case MemberKind.TopLevelMethod:
-                reportRecoverableErrorWithToken(
-                    token, fasta.templateExtraneousModifier);
-                token = token.next;
-                continue;
-
-              default:
-                break;
-            }
-          } else if (optional("external", token)) {
-            switch (memberKind) {
-              case MemberKind.Factory:
-              case MemberKind.NonStaticMethod:
-              case MemberKind.StaticMethod:
-              case MemberKind.TopLevelMethod:
-                break;
-
-              default:
-                reportRecoverableErrorWithToken(
-                    token, fasta.templateExtraneousModifier);
-                token = token.next;
-                continue;
-            }
-          }
-          token = parseModifier(token);
-          count++;
-        } else {
-          reportRecoverableErrorWithToken(
-              token, fasta.templateExtraneousModifier);
-          token = token.next;
-        }
-      } else if (order == 3) {
-        if (memberKind == MemberKind.NonStaticField ||
-            memberKind == MemberKind.NonStaticMethod ||
-            memberKind == MemberKind.StaticField ||
-            memberKind == MemberKind.StaticMethod) {
-          assert(optional('abstract', token));
-          reportRecoverableError(token, fasta.messageAbstractClassMember);
-        } else {
-          reportRecoverableErrorWithToken(
-              token, fasta.templateExtraneousModifier);
-        }
-        token = token.next;
-      } else {
-        break;
-      }
+    // If the next token is a modifier,
+    // then it's probably out of order and we need to recover from that.
+    if (context.isModifier(token)) {
+      // Recovery
+      context = new ModifierRecoveryContext(context, token);
+      token = context.parseOpt(firstModifier);
     }
-    listener.handleModifiers(count);
+    listener.handleModifiers(context.modifierCount);
 
-    typeContinuation ??=
+    memberKind = context.memberKind;
+    context.typeContinuation ??=
         (isVarAllowed || memberKind == MemberKind.GeneralizedFunctionType)
             ? TypeContinuation.Required
             : TypeContinuation.Optional;
 
-    token = parseType(token, typeContinuation, null, memberKind);
+    token = parseType(token, context.typeContinuation, null, memberKind);
     return token;
   }
 

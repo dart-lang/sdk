@@ -326,6 +326,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.CONST_TYPEDEF,
   ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
   ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE,
+  ParserErrorCode.COVARIANT_AFTER_FINAL,
   ParserErrorCode.COVARIANT_AFTER_VAR,
   ParserErrorCode.COVARIANT_AND_STATIC,
   ParserErrorCode.COVARIANT_CONSTRUCTOR,

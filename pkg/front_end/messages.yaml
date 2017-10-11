@@ -260,6 +260,70 @@ ConstClass:
   dart2jsCode: EXTRANEOUS_MODIFIER
   script: "const class C {}"
 
+ConstAndCovariant:
+  template: "Members can't be declared to be both 'const' and 'covariant'."
+  tip: "Try removing either the 'const' or 'covariant' keyword."
+  analyzerCode: CONST_AND_COVARIANT
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { covariant const C f; }"
+    - "class C { const covariant C f; }"
+
+ConstAndFinal:
+  template: "Members can't be declared to be both 'const' and 'final'."
+  tip: "Try removing either the 'const' or 'final' keyword."
+  analyzerCode: CONST_AND_FINAL
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { const final int x; }"
+    - "class C { final const int x; }"
+
+ConstAndVar:
+  template: "Members can't be declared to be both 'const' and 'var'."
+  tip: "Try removing either the 'const' or 'var' keyword."
+  analyzerCode: CONST_AND_VAR
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { const var x; }"
+    - "class C { var const x; }"
+
+CovariantAfterFinal:
+  template: "The modifier 'covariant' should be before the modifier 'final'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: COVARIANT_AFTER_FINAL
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "final covariant f;"
+
+CovariantAfterVar:
+  template: "The modifier 'covariant' should be before the modifier 'var'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: COVARIANT_AFTER_VAR
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "var covariant f;"
+
+CovariantAndStatic:
+  template: "Members can't be declared to be both 'covariant' and 'static'."
+  tip: "Try removing either the 'covariant' or 'static' keyword."
+  analyzerCode: COVARIANT_AND_STATIC
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { covariant static A f; }"
+    - "class C { static covariant A f; }"
+
+DuplicatedModifier:
+  template: "The modifier '#lexeme' was already specified."
+  tip: "Try removing all but one occurance of the modifier."
+  analyzerCode: DUPLICATED_MODIFIER
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { const const m; }"
+    - "class C { external external f(); }"
+    - "class C { final final m; }"
+    - "class C { static static var m; }"
+    - "class C { var var m; }"
+
 ExtraneousModifier:
   template: "Can't have modifier '#lexeme' here."
   tip: "Try removing '#lexeme'."
@@ -296,6 +360,32 @@ ExtraneousModifier:
     - "const typedef foo();"
     - "final typedef foo();"
     - "static typedef foo();"
+
+FinalAndCovariant:
+  template: "Members can't be declared to be both 'final' and 'covariant'."
+  tip: "Try removing either the 'final' or 'covariant' keyword."
+  analyzerCode: FINAL_AND_COVARIANT
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { covariant final f; }"
+    - "class C { final covariant f; }"
+
+FinalAndVar:
+  template: "Members can't be declared to be both 'final' and 'var'."
+  tip: "Try removing the keyword 'var'."
+  analyzerCode: FINAL_AND_VAR
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { final var x; }"
+    - "class C { var final x; }"
+
+StaticAfterFinal:
+  template: "The modifier 'static' should be before the modifier 'final'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: STATIC_AFTER_FINAL
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { final static int f; }"
 
 InvalidAwaitFor:
   template: "'await' is only supported in methods with an 'async' or 'async*' body modifier."
