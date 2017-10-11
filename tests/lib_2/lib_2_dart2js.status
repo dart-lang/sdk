@@ -218,6 +218,7 @@ math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari ]
+html/audiobuffersourcenode_test: RuntimeError
 html/custom/attribute_changed_callback_test: Pass, Timeout
 html/custom/constructor_calls_created_synchronously_test: Pass, Timeout
 html/custom/created_callback_test: Pass, Timeout
@@ -703,6 +704,7 @@ html/window_mangling_test: RuntimeError
 html/window_nosuchmethod_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && $csp ]
+html/canvas_pixel_array_type_alias_test: RuntimeError
 html/js_browser_test: RuntimeError
 html/js_caching_test: RuntimeError
 html/js_context_test: RuntimeError
