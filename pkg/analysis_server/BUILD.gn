@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("//build/dart/dart_package.gni")
+import("//build/dart/dart_tool.gni")
 
 dart_package("analysis_server") {
   package_name = "analysis_server"
@@ -24,5 +25,16 @@ dart_package("analysis_server") {
     "//third_party/dart-pkg/pub/usage",
     "//third_party/dart-pkg/pub/watcher",
     "//third_party/dart-pkg/pub/yaml",
+  ]
+}
+
+dart_tool("analysis_server_bin") {
+  main_dart = "bin/server.dart"
+
+  disable_analysis = true
+
+  deps = [
+    ":analysis_server",
+    "//dart/pkg/analyzer_plugin",
   ]
 }
