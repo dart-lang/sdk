@@ -33,18 +33,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_async_star_method_propagation() async {
-    return super.test_async_star_method_propagation();
-  }
-
-  @override
-  @failingTest
-  test_async_star_propagation() async {
-    return super.test_async_star_propagation();
-  }
-
-  @override
-  @failingTest
   test_covarianceChecks_returnFunction() async {
     return super.test_covarianceChecks_returnFunction();
   }

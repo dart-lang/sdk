@@ -320,7 +320,12 @@ class _DuplicatedFieldInitializerError {
   _DuplicatedFieldInitializerError(String name);
 }
 
+class AbstractClassInstantiationError {
+  AbstractClassInstantiationError(String className);
+}
+
 class FallThroughError {
+  FallThroughError();
   FallThroughError._create(String url, int line);
 }
 
