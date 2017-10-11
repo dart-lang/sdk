@@ -127,7 +127,7 @@ abstract class Directory implements FileSystemEntity {
    * current working directory.
    */
   factory Directory(String path) {
-    final IoOverrides overrides = IoOverrides.current;
+    final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return new _Directory(path);
     }
@@ -146,7 +146,7 @@ abstract class Directory implements FileSystemEntity {
    * directory.
    */
   static Directory get current {
-    final IoOverrides overrides = IoOverrides.current;
+    final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return _Directory.current;
     }
@@ -181,7 +181,7 @@ abstract class Directory implements FileSystemEntity {
    * are working with the file system, can lead to unexpected results.
    */
   static void set current(path) {
-    final IoOverrides overrides = IoOverrides.current;
+    final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       _Directory.current = path;
       return;
@@ -222,7 +222,7 @@ abstract class Directory implements FileSystemEntity {
    * and may be set by an environment variable.
    */
   static Directory get systemTemp {
-    final IoOverrides overrides = IoOverrides.current;
+    final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return _Directory.systemTemp;
     }

@@ -23,7 +23,7 @@ const _asyncRunZoned = runZoned;
 /// }
 ///
 /// main() {
-///   IoOverrides.runZoned(() {
+///   IOOverrides.runZoned(() {
 ///     ...
 ///     // Operations will use MyDirectory instead of dart:io's Directory
 ///     // implementation whenever Directory is used.
@@ -31,14 +31,14 @@ const _asyncRunZoned = runZoned;
 ///   }, createDirectory: (String path) => new MyDirectory(path));
 /// }
 /// ```
-abstract class IoOverrides {
-  static IoOverrides get current {
+abstract class IOOverrides {
+  static IOOverrides get current {
     return Zone.current[_ioOverridesToken];
   }
 
   /// Runs [body] in a fresh [Zone] using the provided overrides.
   ///
-  /// See the documentation on the corresponding methods of IoOverrides for
+  /// See the documentation on the corresponding methods of IOOverrides for
   /// information about what the optional arguments do.
   static R runZoned<R>(R body(),
       {
@@ -71,7 +71,7 @@ abstract class IoOverrides {
       // Optional Zone parameters
       ZoneSpecification zoneSpecification,
       Function onError}) {
-    IoOverrides overrides = new _IoOverridesScope(
+    IOOverrides overrides = new _IOOverridesScope(
       // Directory
       createDirectory,
       getCurrentDirectory,
@@ -107,8 +107,8 @@ abstract class IoOverrides {
   /// Runs [body] in a fresh [Zone] using the overrides found in [overrides].
   ///
   /// Note that [overrides] should be an instance of a class that extends
-  /// [IoOverrides].
-  static R runWithIoOverrides<R>(R body(), IoOverrides overrides,
+  /// [IOOverrides].
+  static R runWithIOOverrides<R>(R body(), IOOverrides overrides,
       {ZoneSpecification zoneSpecification, Function onError}) {
     return _asyncRunZoned<R>(body,
         zoneValues: {_ioOverridesToken: overrides},
@@ -230,8 +230,8 @@ abstract class IoOverrides {
   Link createLink(String path) => new _Link(path);
 }
 
-class _IoOverridesScope extends IoOverrides {
-  final IoOverrides _previous = IoOverrides.current;
+class _IOOverridesScope extends IOOverrides {
+  final IOOverrides _previous = IOOverrides.current;
 
   // Directory
   Directory Function(String) _createDirectory;
@@ -259,7 +259,7 @@ class _IoOverridesScope extends IoOverrides {
   // Link
   Link Function(String) _createLink;
 
-  _IoOverridesScope(
+  _IOOverridesScope(
     // Directory
     this._createDirectory,
     this._getCurrentDirectory,

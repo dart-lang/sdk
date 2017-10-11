@@ -220,7 +220,7 @@ abstract class File implements FileSystemEntity {
    * current working directory.
    */
   factory File(String path) {
-    final IoOverrides overrides = IoOverrides.current;
+    final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return new _File(path);
     }

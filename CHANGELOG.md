@@ -34,7 +34,7 @@
     String describing the version of the operating system.
   * Added `RawZLibFilter` for low-level access to compression and
     decompression routines.
-  * Added `IoOverrides` and `HttpOverrides` to aid in writing tests that wish to
+  * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
     mock varios `dart:io` objects.
 
 * `dart:core`

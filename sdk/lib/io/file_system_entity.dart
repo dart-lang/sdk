@@ -109,7 +109,7 @@ class FileStat {
    * FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
   static FileStat statSync(String path) {
-    final IoOverrides overrides = IoOverrides.current;
+    final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return _statSyncInternal(path);
     }
@@ -141,7 +141,7 @@ class FileStat {
    * the other fields invalid.
    */
   static Future<FileStat> stat(String path) {
-    final IoOverrides overrides = IoOverrides.current;
+    final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return _stat(path);
     }
@@ -484,7 +484,7 @@ abstract class FileSystemEntity {
   Stream<FileSystemEvent> watch(
       {int events: FileSystemEvent.ALL, bool recursive: false}) {
     final String trimmedPath = _trimTrailingPathSeparators(path);
-    final IoOverrides overrides = IoOverrides.current;
+    final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return _FileSystemWatcher._watch(trimmedPath, events, recursive);
     }
@@ -520,7 +520,7 @@ abstract class FileSystemEntity {
    * to an object that does not exist.
    */
   static Future<bool> identical(String path1, String path2) {
-    IoOverrides overrides = IoOverrides.current;
+    IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return _identical(path1, path2);
     }
@@ -586,7 +586,7 @@ abstract class FileSystemEntity {
    * exist.
    */
   static bool identicalSync(String path1, String path2) {
-    IoOverrides overrides = IoOverrides.current;
+    IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return _identicalSync(path1, path2);
     }
@@ -599,7 +599,7 @@ abstract class FileSystemEntity {
    * OS X 10.6 and below is not supported.
    */
   static bool get isWatchSupported {
-    final IoOverrides overrides = IoOverrides.current;
+    final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return _FileSystemWatcher.isSupported;
     }
@@ -737,7 +737,7 @@ abstract class FileSystemEntity {
   }
 
   static FileSystemEntityType _getTypeSync(String path, bool followLinks) {
-    IoOverrides overrides = IoOverrides.current;
+    IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return _getTypeSyncHelper(path, followLinks);
     }
@@ -756,7 +756,7 @@ abstract class FileSystemEntity {
   }
 
   static Future<FileSystemEntityType> _getType(String path, bool followLinks) {
-    IoOverrides overrides = IoOverrides.current;
+    IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return _getTypeRequest(path, followLinks);
     }

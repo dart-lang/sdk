@@ -158,7 +158,7 @@ class LinkMock extends FileSystemEntity implements Link {
 }
 
 Future<Null> ioOverridesRunTest() async {
-  Future<Null> f = IoOverrides.runZoned(
+  Future<Null> f = IOOverrides.runZoned(
     () async {
       Expect.isTrue(new Directory("directory") is DirectoryMock);
       Expect.isTrue(Directory.current is DirectoryMock);
