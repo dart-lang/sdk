@@ -1140,8 +1140,10 @@ class CallSiteInliner : public ValueObject {
                                    call_data->call->token_pos(),
                                    call_data->caller_inlining_id));
         TRACE_INLINING(THR_Print("     Success\n"));
-        TRACE_INLINING(THR_Print("       with size %" Pd "\n",
-                                 function.optimized_instruction_count()));
+        TRACE_INLINING(THR_Print(
+            "       with reason %s, code size %" Pd ", call sites: %" Pd "\n",
+            decision.reason, function.optimized_instruction_count(),
+            call_site_count));
         PRINT_INLINING_TREE(NULL, &call_data->caller, &function, call);
         return true;
       } else {
@@ -2608,6 +2610,10 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                     TargetEntryInstr** entry,
                                     Definition** last) {
   ASSERT(array_cid != kIllegalCid);
+  if (array_cid == kDynamicCid) {
+    ASSERT(call->IsStaticCall());
+    return false;
+  }
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
   *entry = new (Z)
@@ -2651,6 +2657,10 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                      TargetEntryInstr** entry,
                                      Definition** last) {
   ASSERT(array_cid != kIllegalCid);
+  if (array_cid == kDynamicCid) {
+    ASSERT(call->IsStaticCall());
+    return false;
+  }
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
   *entry = new (Z)
@@ -2836,6 +2846,10 @@ static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
                                    intptr_t cid,
                                    TargetEntryInstr** entry,
                                    Definition** last) {
+  if (cid == kDynamicCid) {
+    ASSERT(call->IsStaticCall());
+    return false;
+  }
   ASSERT((cid == kOneByteStringCid) || (cid == kTwoByteStringCid) ||
          (cid == kExternalOneByteStringCid) ||
          (cid == kExternalTwoByteStringCid));
@@ -2911,8 +2925,15 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     StaticCallInstr* call) {
   TargetEntryInstr* entry;
   Definition* last;
+  Definition* receiver = NULL;
+  intptr_t receiver_cid = kIllegalCid;
+  if (!call->function().is_static()) {
+    receiver = call->ArgumentAt(call->FirstArgIndex());
+    receiver_cid =
+        call->PushArgumentAt(call->FirstArgIndex())->value()->Type()->ToCid();
+  }
   if (FlowGraphInliner::TryInlineRecognizedMethod(
-          flow_graph, kIllegalCid, call->function(), call, NULL,
+          flow_graph, receiver_cid, call->function(), call, receiver,
           call->token_pos(), *call->ic_data(), &entry, &last)) {
     // Remove the original push arguments.
     for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -3295,14 +3316,16 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kDouble_getIsInfinite:
       return InlineDoubleTestOp(flow_graph, call, receiver, kind, entry, last);
     case MethodRecognizer::kGrowableArraySetData:
-      ASSERT(receiver_cid == kGrowableObjectArrayCid);
-      ASSERT(ic_data.NumberOfChecksIs(1));
+      ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
+             ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
+      ASSERT(call->IsStaticCall() || ic_data.NumberOfChecksIs(1));
       return InlineGrowableArraySetter(
           flow_graph, GrowableObjectArray::data_offset(), kEmitStoreBarrier,
           call, receiver, entry, last);
     case MethodRecognizer::kGrowableArraySetLength:
-      ASSERT(receiver_cid == kGrowableObjectArrayCid);
-      ASSERT(ic_data.NumberOfChecksIs(1));
+      ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
+             ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
+      ASSERT(call->IsStaticCall() || ic_data.NumberOfChecksIs(1));
       return InlineGrowableArraySetter(
           flow_graph, GrowableObjectArray::length_offset(), kNoStoreBarrier,
           call, receiver, entry, last);

@@ -1466,95 +1466,82 @@ void CallSpecializer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 }
 
 void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
+  if (IsAllowedForInlining(call->deopt_id())) {
+    // Only if speculative inlining is enabled.
+
+    MethodRecognizer::Kind recognized_kind =
+        MethodRecognizer::RecognizeKind(call->function());
+
+    switch (recognized_kind) {
+      case MethodRecognizer::kMathMin:
+      case MethodRecognizer::kMathMax: {
+        // We can handle only monomorphic min/max call sites with both arguments
+        // being either doubles or smis.
+        if (CanUnboxDouble() && call->HasICData() &&
+            call->ic_data()->NumberOfChecksIs(1) &&
+            (call->FirstArgIndex() == 0)) {
+          const ICData& ic_data = *call->ic_data();
+          intptr_t result_cid = kIllegalCid;
+          if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid,
+                                                kDoubleCid)) {
+            result_cid = kDoubleCid;
+          } else if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid,
+                                                       kSmiCid)) {
+            result_cid = kSmiCid;
+          }
+          if (result_cid != kIllegalCid) {
+            MathMinMaxInstr* min_max = new (Z) MathMinMaxInstr(
+                recognized_kind, new (Z) Value(call->ArgumentAt(0)),
+                new (Z) Value(call->ArgumentAt(1)), call->deopt_id(),
+                result_cid);
+            const Cids* cids =
+                Cids::Create(Z, ic_data, /* argument_number =*/0);
+            AddCheckClass(min_max->left()->definition(), *cids,
+                          call->deopt_id(), call->env(), call);
+            AddCheckClass(min_max->right()->definition(), *cids,
+                          call->deopt_id(), call->env(), call);
+            ReplaceCall(call, min_max);
+            return;
+          }
+        }
+        break;
+      }
+      case MethodRecognizer::kDoubleFromInteger: {
+        if (call->HasICData() && call->ic_data()->NumberOfChecksIs(1) &&
+            (call->FirstArgIndex() == 0)) {
+          const ICData& ic_data = *call->ic_data();
+          if (CanUnboxDouble()) {
+            if (ArgIsAlways(kSmiCid, ic_data, 1)) {
+              Definition* arg = call->ArgumentAt(1);
+              AddCheckSmi(arg, call->deopt_id(), call->env(), call);
+              ReplaceCall(call, new (Z) SmiToDoubleInstr(new (Z) Value(arg),
+                                                         call->token_pos()));
+              return;
+            } else if (ArgIsAlways(kMintCid, ic_data, 1) &&
+                       CanConvertUnboxedMintToDouble()) {
+              Definition* arg = call->ArgumentAt(1);
+              ReplaceCall(call, new (Z) MintToDoubleInstr(new (Z) Value(arg),
+                                                          call->deopt_id()));
+              return;
+            }
+          }
+        }
+        break;
+      }
+
+      default:
+        break;
+    }
+
+    if (FlowGraphInliner::TryReplaceStaticCallWithInline(
+            flow_graph_, current_iterator(), call)) {
+      return;
+    }
+  }
+
   if (FLAG_experimental_strong_mode &&
       TryOptimizeStaticCallUsingStaticTypes(call)) {
     return;
-  }
-
-  if (!IsAllowedForInlining(call->deopt_id())) {
-    // Inlining disabled after a speculative inlining attempt.
-    return;
-  }
-
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(call->function());
-  switch (recognized_kind) {
-    case MethodRecognizer::kObjectConstructor:
-    case MethodRecognizer::kObjectArrayAllocate:
-    case MethodRecognizer::kFloat32x4Zero:
-    case MethodRecognizer::kFloat32x4Splat:
-    case MethodRecognizer::kFloat32x4Constructor:
-    case MethodRecognizer::kFloat64x2ToFloat32x4:
-    case MethodRecognizer::kFloat32x4ToFloat64x2:
-    case MethodRecognizer::kFloat64x2Constructor:
-    case MethodRecognizer::kFloat64x2Zero:
-    case MethodRecognizer::kFloat64x2Splat:
-    case MethodRecognizer::kInt32x4BoolConstructor:
-    case MethodRecognizer::kInt32x4Constructor:
-    case MethodRecognizer::kMathSqrt:
-    case MethodRecognizer::kMathDoublePow:
-    case MethodRecognizer::kMathSin:
-    case MethodRecognizer::kMathCos:
-    case MethodRecognizer::kMathTan:
-    case MethodRecognizer::kMathAsin:
-    case MethodRecognizer::kMathAcos:
-    case MethodRecognizer::kMathAtan:
-    case MethodRecognizer::kMathAtan2:
-      FlowGraphInliner::TryReplaceStaticCallWithInline(
-          flow_graph_, current_iterator(), call);
-      break;
-    case MethodRecognizer::kMathMin:
-    case MethodRecognizer::kMathMax: {
-      // We can handle only monomorphic min/max call sites with both arguments
-      // being either doubles or smis.
-      if (CanUnboxDouble() && call->HasICData() &&
-          call->ic_data()->NumberOfChecksIs(1) &&
-          (call->FirstArgIndex() == 0)) {
-        const ICData& ic_data = *call->ic_data();
-        intptr_t result_cid = kIllegalCid;
-        if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid,
-                                              kDoubleCid)) {
-          result_cid = kDoubleCid;
-        } else if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid,
-                                                     kSmiCid)) {
-          result_cid = kSmiCid;
-        }
-        if (result_cid != kIllegalCid) {
-          MathMinMaxInstr* min_max = new (Z) MathMinMaxInstr(
-              recognized_kind, new (Z) Value(call->ArgumentAt(0)),
-              new (Z) Value(call->ArgumentAt(1)), call->deopt_id(), result_cid);
-          const Cids* cids = Cids::Create(Z, ic_data, /* argument_number =*/0);
-          AddCheckClass(min_max->left()->definition(), *cids, call->deopt_id(),
-                        call->env(), call);
-          AddCheckClass(min_max->right()->definition(), *cids, call->deopt_id(),
-                        call->env(), call);
-          ReplaceCall(call, min_max);
-        }
-      }
-      break;
-    }
-    case MethodRecognizer::kDoubleFromInteger: {
-      if (call->HasICData() && call->ic_data()->NumberOfChecksIs(1) &&
-          (call->FirstArgIndex() == 0)) {
-        const ICData& ic_data = *call->ic_data();
-        if (CanUnboxDouble()) {
-          if (ArgIsAlways(kSmiCid, ic_data, 1)) {
-            Definition* arg = call->ArgumentAt(1);
-            AddCheckSmi(arg, call->deopt_id(), call->env(), call);
-            ReplaceCall(call, new (Z) SmiToDoubleInstr(new (Z) Value(arg),
-                                                       call->token_pos()));
-          } else if (ArgIsAlways(kMintCid, ic_data, 1) &&
-                     CanConvertUnboxedMintToDouble()) {
-            Definition* arg = call->ArgumentAt(1);
-            ReplaceCall(call, new (Z) MintToDoubleInstr(new (Z) Value(arg),
-                                                        call->deopt_id()));
-          }
-        }
-      }
-      break;
-    }
-    default:
-      break;
   }
 }
 
