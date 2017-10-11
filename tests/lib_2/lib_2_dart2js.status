@@ -80,7 +80,9 @@ html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 html/mirrors_js_typed_interop_test: Pass, Slow
 html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
+html/wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 html/websql_test: Pass, Timeout # Roll 50 failure
+html/xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
 isolate/browser/issue_12474_test: CompileTimeError # Issue 22529
 isolate/enum_const_test/02: RuntimeError # Issue 21817
 isolate/error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
@@ -137,6 +139,8 @@ convert/utf85_test: Pass, Slow # Issue 12029.
 html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
+html/audiocontext_test/supported: RuntimeError # TODO(dart2js-team): Please triage this failure.
+html/audiobuffersourcenode_test/supported: Fail # TODO(dart2js-team): Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # TODO(dart2js-team): Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # TODO(dart2js-team): Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # TODO(dart2js-team): Please triage this failure.
@@ -149,12 +153,11 @@ html/input_element_week_test: Fail # TODO(dart2js-team): Please triage this fail
 html/media_stream_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/rtc_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/speechrecognition_test: Fail # TODO(dart2js-team): Please triage this failure.
+html/xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 isolate/mandel_isolate_test: Pass, Timeout # TODO(kasperl): Please triage.
 isolate/unresolved_ports_test: Pass, Timeout # Issue 15610
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
-html/audiocontext_test/supported: RuntimeError # TODO(dart2js-team): Please triage this failure.
-html/audiobuffersourcenode_test/supported: Fail # TODO(dart2js-team): Please triage this failure.
 
 [ $compiler == dart2js && ( $runtime == chrome || $runtime == ff ) ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
@@ -457,6 +460,11 @@ html/wheelevent_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart'
 html/window_eq_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/window_mangling_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/window_nosuchmethod_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/window_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/worker_api_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/worker_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/xhr_cross_origin_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/xhr_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 html/async_spawnuri_test: RuntimeError
@@ -811,3 +819,21 @@ html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue
 
 [ $compiler == dart2js && $runtime == drt && ! $checked ]
 html/audiocontext_test/functional: Pass, Fail
+html/window_test: RuntimeError
+html/worker_api_test: RuntimeError
+html/worker_test/functional: RuntimeError
+html/worker_test/supported: RuntimeError
+html/worker_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/xhr_cross_origin_test/functional: RuntimeError
+html/xhr_cross_origin_test/supported: RuntimeError
+html/xhr_cross_origin_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/xhr_test/headers: RuntimeError
+html/xhr_test/json: RuntimeError
+html/xhr_test/supported_onLoadEnd: RuntimeError
+html/xhr_test/supported_onProgress: RuntimeError
+html/xhr_test/supported_overrideMimeType: RuntimeError
+html/xhr_test/xhr_requestBlob: RuntimeError
+html/xhr_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+
+[  $compiler == dart2js && $runtime == ff ]
+html/xhr_test/xhr: Pass, Fail # Issue 11602

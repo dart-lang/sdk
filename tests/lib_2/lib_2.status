@@ -74,6 +74,7 @@ html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
 html/webgl_1_test: Pass, Fail # Issue 8219
+html/worker_api_test: Skip # Issue 13221
 
 [ ($runtime == safari && $builder_tag == mac10_7)|| $runtime == safarimobilesim ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
@@ -184,6 +185,8 @@ html/websql_test: Fail
 html/wheelevent_test: RuntimeError # Issue 23437
 html/audiobuffersourcenode_test/supported: Fail
 html/audiocontext_test/supported: Fail
+html/worker_test/functional: Pass, Fail # Issues 20659.
+html/xhr_test/json: Fail # IE10 returns string, not JSON object
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
@@ -203,6 +206,7 @@ html/performance_api_test/supported: Fail
 html/notification_test: RuntimeError # Issue 22869
 html/performance_api_test/supported: Fail
 html/wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
+html/xhr_test/json: Fail # Safari doesn't support JSON response type
 
 [ $runtime == safari ]
 html/indexeddb_1_test/functional: Skip # Times out. Issue 21433
@@ -256,3 +260,6 @@ convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
+
+[ ($runtime == drt && $system == macos) || $system == windows ]
+html/xhr_test/xhr: Skip # Times out.  Issue 21527

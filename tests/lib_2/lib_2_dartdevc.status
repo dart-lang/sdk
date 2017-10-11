@@ -58,6 +58,8 @@ convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/streamed_conversion_utf8_decode_test: Slow, Pass
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/utf85_test: Slow, Pass
+html/async_spawnuri_test: RuntimeError # Issue 29922
+html/async_test: RuntimeError # Issue 29922
 html/custom/created_callback_test: RuntimeError
 html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922
@@ -79,6 +81,9 @@ html/media_stream_test: RuntimeError # Issue 29922
 html/mediasource_test: RuntimeError # Issue 29922
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 html/webgl_extensions_test: RuntimeError # Issue 31017
+html/worker_api_test: RuntimeError # Issue 29922
+html/xhr_cross_origin_test/functional: RuntimeError # Issue 29922
+html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
 math/random_big_test: RuntimeError # Issue 29922
 mirrors/private_types_test: RuntimeError # Issue 29922
 mirrors/reflect_runtime_type_test: RuntimeError # Issue 29922
@@ -91,8 +96,6 @@ mirrors/regress_14304_test: RuntimeError # Issue 29922
 typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
-html/async_spawnuri_test: RuntimeError # Issue 29922
-html/async_test: RuntimeError # Issue 29922
 
 [ $strong && $compiler == dartdevc ]
 html/custom/document_register_template_test: Crash # Compiler crash issue ????
@@ -115,3 +118,6 @@ html/client_rect_test: RuntimeError # Issue 29922, seems to be a reified type pr
 [ $compiler == dartdevc && $runtime != none && $system == macos ]
 html/client_rect_test: Pass, RuntimeError # Issue 31019
 html/css_test: Pass, RuntimeError # Issue 31019
+
+[ $compiler == dartdevc && $system == windows ]
+html/xhr_test/xhr: Skip # Times out. Issue 21527

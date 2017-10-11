@@ -32,7 +32,17 @@ html/custom/document_register_type_extensions_test: CompileTimeError # Issue 289
 html/custom/element_upgrade_test: CompileTimeError # Issue 28969
 html/element_dimensions_test: Skip
 html/events_test: Skip
+html/fileapi_test: Skip
+html/filereader_test: Skip
+html/fontface_loaded_test: Skip
+html/js_function_getter_trust_types_test: Skip
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
+html/keyboard_event_test: Skip
+html/mutationobserver_test: Skip
+html/postmessage_structured_test: Skip
+html/resource_http_test: Skip
+html/transferables_test: Skip
+html/webgl_1_test: Skip
 html/wrapping_collections_test: Skip
 mirrors/circular_factory_redirection_test: Skip
 mirrors/class_declarations_test: Skip
@@ -111,6 +121,13 @@ html/element_classes_test: RuntimeError # Issue 29922
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode cast failure
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
+html/isolates_test: RuntimeError # Issue 29922
+html/js_util_test: RuntimeError # Issue 29922
+html/media_stream_test: RuntimeError # Issue 29922
+html/mediasource_test: RuntimeError # Issue 29922
+html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
+html/typing_test: RuntimeError # Issue 29922
+html/websql_test/functional: RuntimeError # Issue 29922
 html/worker_api_test: RuntimeError # Issue 29922
 html/xhr_cross_origin_test/functional: RuntimeError # Issue 29922
 html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
@@ -153,4 +170,3 @@ html/element_types_keygen_test: RuntimeError # Issue 29922
 [ $compiler == dartdevc && $runtime == drt ]
 
 [ $compiler == dartdevc && $system == windows ]
-html/xhr_test/xhr: Skip # Times out. Issue 21527
