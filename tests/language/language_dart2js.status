@@ -23,7 +23,6 @@ assertion_initializer_const_error2_test/cc09: Crash
 assertion_initializer_const_error2_test/cc10: Crash
 assertion_initializer_const_error2_test/cc11: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
-assertion_test: RuntimeError
 deferred_not_loaded_check_test: Fail # Issue 27577
 enum_test: Fail # Issue 28340
 getter_setter_in_lib_test: Fail # Issue 23288
@@ -220,6 +219,7 @@ malbounded_type_test2_test: Fail # Issue 14121
 default_factory2_test/01: Fail # Issue 14121
 
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
+assertion_test: RuntimeError
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
 generic_test: RuntimeError, OK
 map_literal4_test: RuntimeError, OK # Checked mode required.
