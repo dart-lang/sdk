@@ -45,9 +45,6 @@ class ForwardingNode extends Procedure {
   /// to this [ForwardingNode].
   final List<Member> _candidates;
 
-  /// Indicates whether this forwarding node is for a setter.
-  final bool _setter;
-
   /// Index of the first entry in [_candidates] relevant to this
   /// [ForwardingNode].
   final int _start;
@@ -64,16 +61,8 @@ class ForwardingNode extends Procedure {
   /// corresponding [InferenceNode]; otherwise `null`.
   InferenceNode _inferenceNode;
 
-  ForwardingNode(
-      this._interfaceResolver,
-      this._inferenceNode,
-      Class class_,
-      Name name,
-      ProcedureKind kind,
-      this._candidates,
-      this._setter,
-      this._start,
-      this._end)
+  ForwardingNode(this._interfaceResolver, this._inferenceNode, Class class_,
+      Name name, ProcedureKind kind, this._candidates, this._start, this._end)
       : super(name, kind, null) {
     parent = class_;
   }
@@ -374,14 +363,16 @@ class ForwardingNode extends Procedure {
       inheritedMemberSubstitution =
           _interfaceResolver._substitutionFor(inheritedMember, enclosingClass);
       var inheritedMemberType = inheritedMemberSubstitution.substituteType(
-          _setter ? inheritedMember.setterType : inheritedMember.getterType);
+          kind == ProcedureKind.Setter
+              ? inheritedMember.setterType
+              : inheritedMember.getterType);
       for (int i = _end - 2; i >= _start; i--) {
         var candidate = _candidates[i];
         var substitution =
             _interfaceResolver._substitutionFor(candidate, enclosingClass);
         bool isBetter;
         DartType type;
-        if (_setter) {
+        if (kind == ProcedureKind.Setter) {
           type = substitution.substituteType(candidate.setterType);
           // Setters are contravariant in their setter type, so we have to
           // reverse the check.
@@ -544,7 +535,6 @@ class InterfaceResolver {
             name,
             _kindOf(candidates[getterStart]),
             candidates,
-            false,
             getterStart,
             getterEnd);
         if (!forwardingNode.isGetter) {
@@ -573,7 +563,6 @@ class InterfaceResolver {
             name,
             ProcedureKind.Setter,
             candidates,
-            false,
             getterEnd,
             setterEnd);
         // Setters need to be resolved later, as part of type

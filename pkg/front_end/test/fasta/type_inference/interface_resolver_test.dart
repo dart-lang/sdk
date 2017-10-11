@@ -98,7 +98,7 @@ class InterfaceResolverTest {
     InterfaceResolver.forEachApiMember(candidates,
         (int start, int end, Name name) {
       forwardingNodes.add(new ForwardingNode(interfaceResolver, null, class_,
-          name, candidates[start].kind, candidates, setters, start, end));
+          name, candidates[start].kind, candidates, start, end));
     });
     return forwardingNodes;
   }
