@@ -569,6 +569,8 @@ string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+symbol_literal_test/none: CompileTimeError
+sync_generator1_test/01: MissingCompileTimeError
 try_catch_on_syntax_test/07: MissingCompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
@@ -689,6 +691,7 @@ not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
 null_test/mirrors: Skip # Uses mirrors.
+tearoff_dynamic_test: RuntimeError
 type_literal_test: RuntimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel ]
@@ -1307,6 +1310,24 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
+syntax_test/28: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/29: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/30: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/31: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/32: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/33: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/28: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/29: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/30: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/31: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/32: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/33: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/28: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/29: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/30: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/31: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/32: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/33: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
 truncdiv_test: RuntimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError

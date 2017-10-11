@@ -46,7 +46,7 @@ einsZwei() sync* {
 
 dreiVier() sync* {
   // Throws type error: yielded object is not an iterable.
-  yield* 3; //# 01: static type warning
+  yield* 3; //# 01: compile-time error
 }
 
 main() {

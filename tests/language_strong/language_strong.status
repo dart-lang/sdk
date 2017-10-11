@@ -228,14 +228,6 @@ switch7_negative_test: Skip
 switch_bad_case_test: Skip
 switch_case_test: Skip
 switch_fallthru_test: Skip
-symbol_literal_test: Skip
-sync_generator1_test: Skip
-sync_generator2_test: Skip
-syntax_test: Skip
-test_negative_test: Skip
-third_test: Skip
-this_conditional_operator_test: Skip
-this_test: Skip
 throw_expr_test: Skip
 top_level_getter_no_setter1_test: Skip
 top_level_getter_no_setter2_test: Skip

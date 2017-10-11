@@ -40,5 +40,5 @@ main() {
   Expect.equals(1, m[#B]);
 
   // Tries to call the symbol literal #a.toString
-  Expect.throws(() => #a.toString(), (e) => e is NoSuchMethodError); //# 01: static type warning
+  Expect.throws(() => #a.toString(), (e) => e is NoSuchMethodError); //# 01: compile-time error
 }

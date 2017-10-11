@@ -860,8 +860,6 @@ private_member1_negative_test: fail # Issue 14021
 private_member2_negative_test: fail # Issue 14021
 private_member3_negative_test: fail # Issue 14021
 prefix7_negative_test: CompileTimeError
-try_catch_on_syntax_test/10: MissingCompileTimeError
-try_catch_on_syntax_test/11: MissingCompileTimeError
 regress_27617_test/1: MissingCompileTimeError
 regress_23408_test: Skip # don't care about the static warning.
 final_syntax_test/01: Fail # Issue 11124
@@ -869,6 +867,10 @@ final_syntax_test/04: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
 static_call_wrong_argument_count_negative_test: fail # Issue 12156
+syntax_test/none: fail # Issue 11575
+test_negative_test: CompileTimeError
+try_catch_on_syntax_test/10: MissingCompileTimeError
+try_catch_on_syntax_test/11: MissingCompileTimeError
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -1235,6 +1237,11 @@ string_no_operator_test/16: MissingCompileTimeError
 string_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
+sync_generator1_test/01: MissingCompileTimeError
+symbol_literal_test/01: MissingCompileTimeError
+syntax_test/59: MissingCompileTimeError
+syntax_test/60: MissingCompileTimeError
+syntax_test/61: MissingCompileTimeError
 top_level_getter_no_setter1_test: MissingCompileTimeError
 top_level_getter_no_setter2_test: MissingCompileTimeError
 transitive_private_library_access_test: MissingCompileTimeError

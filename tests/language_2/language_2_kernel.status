@@ -21,6 +21,12 @@ hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 library_env_test/has_no_mirror_support: RuntimeError
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
+syntax_test/28: MissingCompileTimeError
+syntax_test/29: MissingCompileTimeError
+syntax_test/30: MissingCompileTimeError
+syntax_test/31: MissingCompileTimeError
+syntax_test/32: MissingCompileTimeError
+syntax_test/33: MissingCompileTimeError
 type_variable_bounds4_test/01: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm ]
@@ -234,6 +240,7 @@ generic_methods_bounds_test/02: MissingRuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
+tearoff_dynamic_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && $checked ]
 assertion_initializer_const_function_test/01: RuntimeError

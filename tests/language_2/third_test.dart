@@ -14,8 +14,8 @@ class A extends B {
   }
 
   A(x, y)
-      : super(y),
-        a = x {}
+      : a = x,
+        super(y) {}
 
   value() {
     return a + b + foo();
