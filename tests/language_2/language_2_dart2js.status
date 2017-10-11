@@ -903,7 +903,7 @@ type_parameter_test/05: MissingCompileTimeError
 [ $compiler == dart2js && $minified ]
 cyclic_type2_test: RuntimeError # Issue 31054
 cyclic_type_test/0*: RuntimeError # Issue 31054
-f_bounded_quantification5_test: RuntimeError # Issue 31054, 31053
+f_bounded_quantification5_test: RuntimeError # Issue 31054
 generic_closure_test: RuntimeError # Issue 31054
 mixin_mixin2_test: RuntimeError # Issue 31054
 mixin_mixin3_test: RuntimeError # Issue 31054
