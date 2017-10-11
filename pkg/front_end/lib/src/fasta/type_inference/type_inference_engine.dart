@@ -106,6 +106,41 @@ class AccessorNode extends InferenceNode {
   String toString() => member.toString();
 }
 
+/// Concrete class derived from [InferenceNode] to represent type inference of a
+/// field based on its initializer.
+class FieldInitializerInferenceNode extends InferenceNode {
+  final TypeInferenceEngineImpl _typeInferenceEngine;
+
+  /// The field whose type should be inferred.
+  final ShadowField field;
+
+  FieldInitializerInferenceNode(this._typeInferenceEngine, this.field);
+
+  @override
+  void resolveInternal() {
+    if (_typeInferenceEngine.strongMode) {
+      var typeInferrer = _typeInferenceEngine.getMemberTypeInferrer(field);
+      var inferredType = typeInferrer.inferDeclarationType(
+          typeInferrer.inferFieldTopLevel(field, null, true));
+      if (isCircular) {
+        // TODO(paulberry): report the appropriate error.
+        inferredType = const DynamicType();
+      }
+      field.setInferredType(
+          _typeInferenceEngine, typeInferrer.uri, inferredType);
+      // TODO(paulberry): if type != null, then check that the type of the
+      // initializer is assignable to it.
+    }
+    // TODO(paulberry): the following is a hack so that outlines don't contain
+    // initializers.  But it means that we rebuild the initializers when doing
+    // a full compile.  There should be a better way.
+    field.initializer = null;
+  }
+
+  @override
+  String toString() => field.toString();
+}
+
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a covariant fashion.
 class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
