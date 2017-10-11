@@ -198,15 +198,6 @@ setter_no_getter_call_test: Skip
 setter_override2_test: Skip
 setter_override_test: Skip
 source_self_negative_test: Skip
-super_call3_test: Skip
-super_call4_test: Skip
-super_conditional_operator_test: Skip
-super_field_2_test: Skip
-super_field_access_test: Skip
-super_field_test: Skip
-super_first_constructor_test: Skip
-super_getter_setter_test: Skip
-super_operator_index5_test: Skip
 super_operator_index6_test: Skip
 super_operator_index7_test: Skip
 super_operator_index8_test: Skip

@@ -232,6 +232,20 @@ type_literal_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
+super_call4_test/01: MissingCompileTimeError
+super_call4_test/02: MissingCompileTimeError
+super_call4_test/03: MissingCompileTimeError
+super_call4_test/04: MissingCompileTimeError
+super_getter_setter_test/01: MissingCompileTimeError
+super_getter_setter_test/02: MissingCompileTimeError
+super_getter_setter_test/03: MissingCompileTimeError
+super_no_such_method1_test/01: MissingCompileTimeError
+super_no_such_method2_test/01: MissingCompileTimeError
+super_no_such_method3_test/01: MissingCompileTimeError
+super_no_such_method4_test/01: MissingCompileTimeError
+super_no_such_method5_test/01: MissingCompileTimeError
+super_operator_index5_test/01: MissingCompileTimeError
+super_operator_index5_test/02: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]

@@ -19,8 +19,8 @@ class B extends A {
       : this.foo = y,
         super(x);
   B.b3(x, y)
-      : super(x),
-        this.foo = y;
+      : this.foo = y,
+        super(x);
 
   super$foo() => super.foo;
   sum() => foo + super.foo;

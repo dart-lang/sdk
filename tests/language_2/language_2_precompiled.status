@@ -523,6 +523,8 @@ string_no_operator_test/16: MissingCompileTimeError
 string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
+super_call4_test: CompileTimeError
+super_getter_setter_test: CompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError

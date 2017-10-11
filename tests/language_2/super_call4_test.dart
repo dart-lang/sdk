@@ -11,6 +11,11 @@ import "package:expect/expect.dart";
 class C {
   E e = new E();
 
+  bool foo();
+  bool bar(int a);
+  bool baz({int b});
+  bool boz(int a, {int c});
+
   bool noSuchMethod(Invocation im) {
     if (im.memberName == const Symbol('foo')) {
       return im.positionalArguments.isEmpty &&

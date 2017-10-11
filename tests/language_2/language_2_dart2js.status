@@ -918,8 +918,10 @@ mixin_mixin_bound2_test: RuntimeError # Issue 31054
 mixin_mixin_bound_test: RuntimeError # Issue 31054
 
 [ $compiler == dart2js && $runtime == d8 && $checked ]
-regress_30339_test: RuntimeError # Issue 26429
 factory_implementation_test/00: Fail
+regress_30339_test: RuntimeError # Issue 26429
+super_call4_test: CompileTimeError
+super_getter_setter_test: CompileTimeError
 
 [ $compiler == dart2js && $runtime == drt && $checked ]
 regress_30339_test: RuntimeError # Issue 30393
@@ -1692,6 +1694,8 @@ async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
 field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
+super_call4_test: CompileTimeError
+super_getter_setter_test: CompileTimeError
 
 [ $compiler == dart2js && $runtime == chrome ]
 field_override_optimization_test: RuntimeError

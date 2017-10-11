@@ -44,6 +44,12 @@ class B extends A {
     indexField[index] = value;
   }
 
+  set missingSetter(a);
+  get missingGetter;
+
+  set missingAll(a);
+  get missingAll;
+
   noSuchMethod(Invocation im) {
     String name = MirrorSystem.getName(im.memberName);
     if (name.startsWith('missingSetter')) {

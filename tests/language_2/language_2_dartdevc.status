@@ -108,6 +108,12 @@ regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_23408_test: CompileTimeError
 regress_25568_test: RuntimeError
 regress_27617_test/1: MissingCompileTimeError
+super_call4_test: RuntimeError
+super_no_such_method1_test: RuntimeError
+super_no_such_method2_test: RuntimeError
+super_no_such_method3_test: RuntimeError
+super_no_such_method4_test: RuntimeError
+super_operator_index5_test: RuntimeError
 field_wierd_name_test: Crash
 final_field_initialization_order_test: RuntimeError # Issue 31058
 final_syntax_test/01: MissingCompileTimeError

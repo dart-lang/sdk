@@ -10,6 +10,8 @@ class A {
   var indexField = new List(2);
   operator [](index) => indexField[index];
 
+  operator []=(index, value);
+
   noSuchMethod(Invocation im) {
     if (im.memberName == const Symbol('[]=')) {
       Expect.equals(2, im.positionalArguments.length);
