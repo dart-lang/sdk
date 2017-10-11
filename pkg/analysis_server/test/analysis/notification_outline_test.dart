@@ -339,78 +339,78 @@ void main() {
     // group1
     Outline group1_outline = main_children[0];
     _expect(group1_outline,
-        kind: ElementKind.UNKNOWN,
+        kind: ElementKind.UNIT_TEST_GROUP,
         length: 5,
-        name: 'group group1',
+        name: 'group("group1")',
         offset: testCode.indexOf("group('group1'"));
     List<Outline> group1_children = group1_outline.children;
     expect(group1_children, hasLength(2));
     // group1_1
     Outline group1_1_outline = group1_children[0];
     _expect(group1_1_outline,
-        kind: ElementKind.UNKNOWN,
+        kind: ElementKind.UNIT_TEST_GROUP,
         length: 5,
-        name: 'group group1_1',
+        name: 'group("group1_1")',
         offset: testCode.indexOf("group('group1_1'"));
     List<Outline> group1_1_children = group1_1_outline.children;
     expect(group1_1_children, hasLength(2));
     // test1_1_1
     Outline test1_1_1_outline = group1_1_children[0];
     _expect(test1_1_1_outline,
-        kind: ElementKind.UNKNOWN,
+        kind: ElementKind.UNIT_TEST_TEST,
         leaf: true,
         length: 4,
-        name: 'test test1_1_1',
+        name: 'test("test1_1_1")',
         offset: testCode.indexOf("test('test1_1_1'"));
     // test1_1_1
     Outline test1_1_2_outline = group1_1_children[1];
     _expect(test1_1_2_outline,
-        kind: ElementKind.UNKNOWN,
+        kind: ElementKind.UNIT_TEST_TEST,
         leaf: true,
         length: 4,
-        name: 'test test1_1_2',
+        name: 'test("test1_1_2")',
         offset: testCode.indexOf("test('test1_1_2'"));
     // group1_2
     Outline group1_2_outline = group1_children[1];
     _expect(group1_2_outline,
-        kind: ElementKind.UNKNOWN,
+        kind: ElementKind.UNIT_TEST_GROUP,
         length: 5,
-        name: 'group group1_2',
+        name: 'group("group1_2")',
         offset: testCode.indexOf("group('group1_2'"));
     List<Outline> group1_2_children = group1_2_outline.children;
     expect(group1_2_children, hasLength(1));
     // test2_1
     Outline test1_2_1_outline = group1_2_children[0];
     _expect(test1_2_1_outline,
-        kind: ElementKind.UNKNOWN,
+        kind: ElementKind.UNIT_TEST_TEST,
         leaf: true,
         length: 4,
-        name: 'test test1_2_1',
+        name: 'test("test1_2_1")',
         offset: testCode.indexOf("test('test1_2_1'"));
     // group2
     Outline group2_outline = main_children[1];
     _expect(group2_outline,
-        kind: ElementKind.UNKNOWN,
+        kind: ElementKind.UNIT_TEST_GROUP,
         length: 5,
-        name: 'group group2',
+        name: 'group("group2")',
         offset: testCode.indexOf("group('group2'"));
     List<Outline> group2_children = group2_outline.children;
     expect(group2_children, hasLength(2));
     // test2_1
     Outline test2_1_outline = group2_children[0];
     _expect(test2_1_outline,
-        kind: ElementKind.UNKNOWN,
+        kind: ElementKind.UNIT_TEST_TEST,
         leaf: true,
         length: 4,
-        name: 'test test2_1',
+        name: 'test("test2_1")',
         offset: testCode.indexOf("test('test2_1'"));
     // test2_2
     Outline test2_2_outline = group2_children[1];
     _expect(test2_2_outline,
-        kind: ElementKind.UNKNOWN,
+        kind: ElementKind.UNIT_TEST_TEST,
         leaf: true,
         length: 4,
-        name: 'test test2_2',
+        name: 'test("test2_2")',
         offset: testCode.indexOf("test('test2_2'"));
   }
 
