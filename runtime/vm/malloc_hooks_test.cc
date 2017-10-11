@@ -28,6 +28,7 @@ static void MallocHookTestBufferInitializer(volatile char* buffer,
 class EnableMallocHooksScope : public ValueObject {
  public:
   EnableMallocHooksScope() {
+    OSThread::Current();  // Ensure not allocated during test.
     saved_enable_malloc_hooks_ = FLAG_profiler_native_memory;
     FLAG_profiler_native_memory = true;
     MallocHooks::InitOnce();
@@ -46,6 +47,7 @@ class EnableMallocHooksScope : public ValueObject {
 class EnableMallocHooksAndStacksScope : public EnableMallocHooksScope {
  public:
   EnableMallocHooksAndStacksScope() {
+    OSThread::Current();  // Ensure not allocated during test.
     saved_enable_stack_traces_ = MallocHooks::stack_trace_collection_enabled();
     MallocHooks::set_stack_trace_collection_enabled(true);
     if (!FLAG_profiler) {

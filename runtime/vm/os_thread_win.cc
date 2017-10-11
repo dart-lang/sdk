@@ -165,11 +165,28 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
 // FS segment register on x86 and GS segment register on x86_64.
 #ifdef _WIN64
   *upper = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackBase)));
-  *lower = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackLimit)));
 #else
   *upper = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackBase)));
-  *lower = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackLimit)));
 #endif
+  // Notice that we cannot use the TIB's StackLimit for the stack end, as it
+  // tracks the end of the committed range. We're after the end of the reserved
+  // stack area (most of which will be uncommitted, most times).
+  MEMORY_BASIC_INFORMATION stack_info;
+  memset(&stack_info, 0, sizeof(MEMORY_BASIC_INFORMATION));
+  size_t result_size =
+      VirtualQuery(&stack_info, &stack_info, sizeof(MEMORY_BASIC_INFORMATION));
+  ASSERT(result_size >= sizeof(MEMORY_BASIC_INFORMATION));
+  *lower = reinterpret_cast<uword>(stack_info.AllocationBase);
+  ASSERT(*upper > *lower);
+  // When the third last page of the reserved stack is accessed as a
+  // guard page, the second last page will be committed (along with removing
+  // the guard bit on the third last) _and_ a stack overflow exception
+  // is raised.
+  //
+  // http://blogs.msdn.com/b/satyem/archive/2012/08/13/thread-s-stack-memory-management.aspx
+  // explains the details.
+  ASSERT((*upper - *lower) >= (4u * 0x1000));
+  *lower -= 4 * 0x1000;
   return true;
 }
 

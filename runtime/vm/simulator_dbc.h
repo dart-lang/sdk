@@ -45,9 +45,10 @@ class Simulator {
   // current isolate
   static Simulator* Current();
 
-  // Accessors to the internal simulator stack base and top.
-  uword StackBase() const { return reinterpret_cast<uword>(stack_); }
-  uword StackTop() const;
+  // Low address (DBC stack grows up).
+  uword stack_base() const { return stack_base_; }
+  // High address (DBC stack grows up).
+  uword stack_limit() const { return stack_limit_; }
 
   // The thread's top_exit_frame_info refers to a Dart frame in the simulator
   // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
@@ -89,6 +90,8 @@ class Simulator {
 
  private:
   uintptr_t* stack_;
+  uword stack_base_;
+  uword stack_limit_;
 
   RawObject** fp_;
   uword pc_;

@@ -6635,12 +6635,9 @@ void Parser::ParseTopLevel() {
 }
 
 void Parser::CheckStack() {
-  volatile uword c_stack_pos = Thread::GetCurrentStackPointer();
-  volatile uword c_stack_base = OSThread::Current()->stack_base();
-  volatile uword c_stack_limit =
-      c_stack_base - OSThread::GetSpecifiedStackSize();
-  // Note: during early initialization the stack_base() can return 0.
-  if ((c_stack_base > 0) && (c_stack_pos < c_stack_limit)) {
+  uword c_stack_pos = Thread::GetCurrentStackPointer();
+  uword c_stack_limit = OSThread::Current()->stack_limit_with_headroom();
+  if (c_stack_pos < c_stack_limit) {
     ReportError("stack overflow while parsing");
   }
 }
