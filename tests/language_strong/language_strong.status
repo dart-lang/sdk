@@ -153,13 +153,6 @@ malbounded_instantiation_test: Skip
 malbounded_redirecting_factory2_test: Skip
 malbounded_redirecting_factory_test: Skip
 malbounded_type_cast2_test: Skip
-missing_const_constructor_test: Skip
-missing_part_of_tag_test: Skip
-mixin_black_listed_test: Skip
-mixin_cyclic_test: Skip
-mixin_extends_field_test: Skip
-mixin_extends_method_test: Skip
-mixin_field_test: Skip
 mixin_forwarding_constructor4_test: Skip
 mixin_illegal_constructor_test: Skip
 mixin_illegal_cycles_test: Skip

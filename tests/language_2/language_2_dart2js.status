@@ -753,6 +753,7 @@ integer_division_by_zero_test: RuntimeError # Issue 8301
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
 method_name_test: Fail # issue 25574
 method_override5_test: RuntimeError # Issue 12809
+mint_arithmetic_test: RuntimeError # Issue 1533
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
 mixin_super_constructor_named_test/01: Fail # Issue 15101
@@ -1203,6 +1204,9 @@ method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
+mint_arithmetic_test: RuntimeError
+mixin_black_listed_test/02: MissingCompileTimeError
+mixin_bound_test: RuntimeError
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
@@ -1537,6 +1541,9 @@ method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
+mint_arithmetic_test: RuntimeError
+mixin_black_listed_test/02: MissingCompileTimeError
+mixin_bound_test: RuntimeError
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError

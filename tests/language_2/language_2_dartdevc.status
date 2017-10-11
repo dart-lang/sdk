@@ -271,6 +271,7 @@ lazy_static8_test: RuntimeError # Issue 30852
 left_shift_test: RuntimeError # Ints and doubles are unified.
 list_is_test: RuntimeError # Issue 29920
 many_overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
+mint_arithmetic_test: RuntimeError # Issue 29920
 modulo_test: RuntimeError # Ints and doubles are unified.
 named_parameter_clash_test: RuntimeError # Issue 29920
 named_parameters_default_eq_test/none: RuntimeError
