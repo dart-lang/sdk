@@ -374,7 +374,7 @@ abstract class CanvasElement extends HtmlElement {
   CanvasRenderingContext2D get context2D;
 }
 
-abstract class class CanvasRenderingContext2D {}
+abstract class CanvasRenderingContext2D {}
 
 Element query(String relativeSelectors) => null;
 ''');

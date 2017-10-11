@@ -23,28 +23,4 @@ class StrictModeTest_Kernel extends StrictModeTest_Driver {
 class TypePropagationTest_Kernel extends TypePropagationTest_Driver {
   @override
   bool get enableKernelDriver => true;
-
-  @override
-  @failingTest
-  test_CanvasElement_getContext() async {
-    return super.test_CanvasElement_getContext();
-  }
-
-  @override
-  @failingTest
-  test_initializer_dereference() async {
-    return super.test_initializer_dereference();
-  }
-
-  @override
-  @failingTest
-  test_objectMethodInference_disabled_for_library_prefix() async {
-    return super.test_objectMethodInference_disabled_for_library_prefix();
-  }
-
-  @override
-  @failingTest
-  test_query() async {
-    return super.test_query();
-  }
 }
