@@ -163,6 +163,54 @@ abstract class ClassHierarchy {
   /// same instance, or return a new instance.
   ClassHierarchy applyChanges(Iterable<Class> classes);
 
+  /// Merges two sorted lists.
+  ///
+  /// If a given member occurs in both lists, the merge will attempt to exclude
+  /// the duplicate member, but is not strictly guaranteed to do so.
+  ///
+  /// The sort has the following stability properties:
+  ///
+  /// - If both x and y came from the same input list, and x preceded y in the
+  ///   input list, x will precede y in the output list.  This holds even if x
+  ///   and y have matching names.
+  ///
+  /// - If m is a contiguous subsequence of the output list containing at least
+  ///   one element from each input list, and all elements of m have matching
+  ///   names, then the elements of m from [first] will precede the elements of
+  ///   m from [second].
+  static List<Member> mergeSortedLists(
+      List<Member> first, List<Member> second) {
+    if (first.isEmpty) return second;
+    if (second.isEmpty) return first;
+    List<Member> result = <Member>[]..length = first.length + second.length;
+    int storeIndex = 0;
+    int i = 0, j = 0;
+    while (i < first.length && j < second.length) {
+      Member firstMember = first[i];
+      Member secondMember = second[j];
+      int compare = ClassHierarchy.compareMembers(firstMember, secondMember);
+      if (compare <= 0) {
+        result[storeIndex++] = firstMember;
+        ++i;
+        // If the same member occurs in both lists, skip the duplicate.
+        if (identical(firstMember, secondMember)) {
+          ++j;
+        }
+      } else {
+        result[storeIndex++] = secondMember;
+        ++j;
+      }
+    }
+    while (i < first.length) {
+      result[storeIndex++] = first[i++];
+    }
+    while (j < second.length) {
+      result[storeIndex++] = second[j++];
+    }
+    result.length = storeIndex;
+    return result;
+  }
+
   /// Compares members by name, using the same sort order as
   /// [getDeclaredMembers] and [getInterfaceMembers].
   static int compareMembers(Member first, Member second) {
@@ -737,7 +785,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           type.classNode, _infoFor[type.classNode],
           setters: setters);
       inherited = _getUnshadowedInheritedMembers(declared, inherited);
-      allInheritedMembers = _merge(allInheritedMembers, inherited);
+      allInheritedMembers =
+          ClassHierarchy.mergeSortedLists(allInheritedMembers, inherited);
     }
 
     inheritFrom(classNode.supertype);
@@ -833,42 +882,6 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     // the inherited members.
     while (j < inherited.length) {
       result[storeIndex++] = inherited[j++];
-    }
-    result.length = storeIndex;
-    return result;
-  }
-
-  /// Merges two sorted lists.
-  ///
-  /// If a given member occurs in both lists, the merge will attempt to exclude
-  /// the duplicate member, but is not strictly guaranteed to do so.
-  static List<Member> _merge(List<Member> first, List<Member> second) {
-    if (first.isEmpty) return second;
-    if (second.isEmpty) return first;
-    List<Member> result = <Member>[]..length = first.length + second.length;
-    int storeIndex = 0;
-    int i = 0, j = 0;
-    while (i < first.length && j < second.length) {
-      Member firstMember = first[i];
-      Member secondMember = second[j];
-      int compare = ClassHierarchy.compareMembers(firstMember, secondMember);
-      if (compare <= 0) {
-        result[storeIndex++] = firstMember;
-        ++i;
-        // If the same member occurs in both lists, skip the duplicate.
-        if (identical(firstMember, secondMember)) {
-          ++j;
-        }
-      } else {
-        result[storeIndex++] = secondMember;
-        ++j;
-      }
-    }
-    while (i < first.length) {
-      result[storeIndex++] = first[i++];
-    }
-    while (j < second.length) {
-      result[storeIndex++] = second[j++];
     }
     result.length = storeIndex;
     return result;

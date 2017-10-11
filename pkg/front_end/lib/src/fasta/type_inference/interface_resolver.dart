@@ -43,7 +43,7 @@ class ForwardingNode extends Procedure {
   /// Note that many [ForwardingNode]s share the same [_candidates] list;
   /// consult [_start] and [_end] to see which entries in this list are relevant
   /// to this [ForwardingNode].
-  final List<Procedure> _candidates;
+  final List<Member> _candidates;
 
   /// Indicates whether this forwarding node is for a setter.
   final bool _setter;
@@ -492,28 +492,97 @@ class InterfaceResolver {
   ///
   /// If [setters] is `true`, the list will be populated by setters; otherwise
   /// it will be populated by getters and methods.
-  void createApiMembers(Class class_, List<Member> apiMembers, bool setters) {
-    List<Procedure> candidates = getCandidates(class_, setters);
-    // Now create a forwarding node for each unique name.
-    apiMembers.length = candidates.length;
-    int storeIndex = 0;
-    forEachApiMember(candidates, (int start, int end, Name name) {
+  void createApiMembers(
+      Class class_, List<Member> getters, List<Member> setters) {
+    var candidates = ClassHierarchy.mergeSortedLists(
+        getCandidates(class_, false), getCandidates(class_, true));
+    // Now create getter and perhaps setter forwarding nodes for each unique
+    // name.
+    getters.length = candidates.length;
+    setters.length = candidates.length;
+    int getterIndex = 0;
+    int setterIndex = 0;
+    forEachApiMember(candidates, (int getterStart, int setterEnd, Name name) {
       // TODO(paulberry): check for illegal getter/method mixing
-      var kind = candidates[start].kind;
-      InferenceNode inferenceNode = _createInferenceNode(
-          class_, candidates[start], candidates, start + 1, end);
-      var forwardingNode = new ForwardingNode(this, inferenceNode, class_, name,
-          kind, candidates, setters, start, end);
-      if (kind == ProcedureKind.Method || kind == ProcedureKind.Operator) {
-        // Methods and operators can be resolved immediately.
-        apiMembers[storeIndex++] = forwardingNode.resolve();
+
+      Procedure declaredGetter;
+      int i = getterStart;
+      int inheritedGetterStart;
+      int getterEnd;
+      if (_kindOf(candidates[i]) == ProcedureKind.Setter) {
+        inheritedGetterStart = i;
       } else {
-        // Getters and setters need to be resolved later, as part of type
+        if (identical(candidates[i].enclosingClass, class_)) {
+          declaredGetter = candidates[i++];
+        }
+        inheritedGetterStart = i;
+        while (
+            i < setterEnd && _kindOf(candidates[i]) != ProcedureKind.Setter) {
+          ++i;
+        }
+      }
+      getterEnd = i;
+      Procedure declaredSetter;
+      int inheritedSetterStart;
+      if (i < setterEnd && identical(candidates[i].enclosingClass, class_)) {
+        declaredSetter = candidates[i];
+        inheritedSetterStart = i + 1;
+      } else {
+        inheritedSetterStart = i;
+      }
+
+      InferenceNode getterInferenceNode;
+      if (getterStart < getterEnd) {
+        if (declaredGetter != null) {
+          getterInferenceNode = _createInferenceNode(class_, declaredGetter,
+              candidates, inheritedGetterStart, getterEnd);
+        }
+        var forwardingNode = new ForwardingNode(
+            this,
+            getterInferenceNode,
+            class_,
+            name,
+            _kindOf(candidates[getterStart]),
+            candidates,
+            false,
+            getterStart,
+            getterEnd);
+        if (!forwardingNode.isGetter) {
+          // Methods and operators can be resolved immediately.
+          getters[getterIndex++] = forwardingNode.resolve();
+        } else {
+          // Getters need to be resolved later, as part of type
+          // inference, so just save the forwarding node for now.
+          getters[getterIndex++] = forwardingNode;
+        }
+      }
+      if (getterEnd < setterEnd) {
+        InferenceNode setterInferenceNode;
+        if (declaredSetter != null) {
+          if (declaredSetter is SyntheticAccessor) {
+            setterInferenceNode = getterInferenceNode;
+          } else {
+            setterInferenceNode = _createInferenceNode(class_, declaredSetter,
+                candidates, inheritedSetterStart, setterEnd);
+          }
+        }
+        var forwardingNode = new ForwardingNode(
+            this,
+            setterInferenceNode,
+            class_,
+            name,
+            ProcedureKind.Setter,
+            candidates,
+            false,
+            getterEnd,
+            setterEnd);
+        // Setters need to be resolved later, as part of type
         // inference, so just save the forwarding node for now.
-        apiMembers[storeIndex++] = forwardingNode;
+        setters[setterIndex++] = forwardingNode;
       }
     });
-    apiMembers.length = storeIndex;
+    getters.length = getterIndex;
+    setters.length = setterIndex;
   }
 
   void finalizeCovariance(Class class_, List<Member> apiMembers) {
@@ -582,8 +651,7 @@ class InterfaceResolver {
   /// if any.  [start] is the index of the first such procedure, and [end] is
   /// the past-the-end index of the last such procedure.
   InferenceNode _createInferenceNode(Class class_, Procedure procedure,
-      List<Procedure> candidates, int start, int end) {
-    if (!identical(procedure.enclosingClass, class_)) return null;
+      List<Member> candidates, int start, int end) {
     if (!_requiresTypeInference(procedure)) return null;
     switch (procedure.kind) {
       case ProcedureKind.Getter:
@@ -713,8 +781,8 @@ class InterfaceResolver {
   /// The [start] and [end] values passed to [callback] are the start and
   /// past-the-end indices into [candidates] of a group of members having the
   /// same name.  The [name] value passed to [callback] is the common name.
-  static void forEachApiMember(List<Procedure> candidates,
-      void callback(int start, int end, Name name)) {
+  static void forEachApiMember(
+      List<Member> candidates, void callback(int start, int end, Name name)) {
     int i = 0;
     while (i < candidates.length) {
       var name = candidates[i].name;
@@ -761,6 +829,8 @@ class InterfaceResolver {
     return unhandled('${member.runtimeType}', 'makeCandidate', -1, null);
   }
 
+  static ProcedureKind _kindOf(Procedure procedure) => procedure.kind;
+
   /// Determines whether the given [procedure] will require type inference.
   static bool _requiresTypeInference(Procedure procedure) {
     if (procedure is SyntheticAccessor) {
@@ -787,7 +857,7 @@ class MethodInferenceNode extends InferenceNode {
   final Procedure _declaredMethod;
 
   /// A list containing the methods overridden by [_declaredMethod], if any.
-  final List<Procedure> _candidates;
+  final List<Member> _candidates;
 
   /// The index of the first method in [_candidates] overridden by
   /// [_declaredMethod].
