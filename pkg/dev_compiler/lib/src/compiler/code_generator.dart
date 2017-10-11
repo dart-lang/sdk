@@ -2278,7 +2278,7 @@ class CodeGenerator extends Object
       // Default constructors (factory or not) use `new` as their name.
       return _propertyName('new');
     }
-    return _emitMemberName(name, isStatic: true);
+    return _emitStaticMemberName(name);
   }
 
   JS.Block _emitConstructorBody(ConstructorDeclaration node,
@@ -4255,7 +4255,7 @@ class CodeGenerator extends Object
       var element = node.element;
       assert(element.getAncestor((e) => identical(e, target)) != null,
           "target is $target but enclosing element is ${element.enclosingElement}");
-      var access = _emitMemberName(name, isStatic: true);
+      var access = _emitStaticMemberName(name);
       accessors.add(closureAnnotate(
           new JS.Method(
               access,
@@ -5800,7 +5800,7 @@ class CodeGenerator extends Object
       Element element}) {
     // Static members skip the rename steps and may require JS interop renames.
     if (isStatic) {
-      return _emitJSInteropStaticMemberName(element) ?? _propertyName(name);
+      return _emitStaticMemberName(name, element);
     }
 
     // We allow some (illegal in Dart) member names to be used in our private
@@ -5828,6 +5828,38 @@ class CodeGenerator extends Object
     name = _jsMemberNameForDartMember(name);
     if (useExtension) {
       return _getExtensionSymbolInternal(name);
+    }
+    return _propertyName(name);
+  }
+
+  JS.Expression _emitStaticMemberName(String name, [Element element]) {
+    if (element != null) {
+      var jsName = _emitJSInteropStaticMemberName(element);
+      if (jsName != null) return jsName;
+    }
+
+    switch (name) {
+      // Reserved for the compiler to do `x as T`.
+      case 'as':
+      // Reserved for the compiler to do implicit cast `T x = y`.
+      case '_check':
+      // Reserved for the SDK to compute `Type.toString()`.
+      case 'name':
+      // Reserved by JS, not a valid static member name.
+      case 'prototype':
+        name += '_';
+        break;
+      default:
+        // All trailing underscores static names are reserved for the compiler
+        // or SDK libraries.
+        //
+        // If user code uses them, add an extra `_`.
+        //
+        // This also avoids collision with the renames above, e.g. `static as`
+        // and `static as_` will become `as_` and `as__`.
+        if (name.endsWith('_')) {
+          name += '_';
+        }
     }
     return _propertyName(name);
   }

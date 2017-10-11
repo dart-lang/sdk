@@ -25,6 +25,47 @@ class B extends A2 {
   get prototype => 4;
 }
 
+class P {
+  m() => 42;
+}
+
+class C {
+  m() => 777;
+  static get prototype => new P();
+  static get name => 'hello from C.name';
+  static void _check(obj) {
+    Expect.equals(obj, 'hello');
+    check_++;
+  }
+
+  static void as(obj) {
+    Expect.equals(obj, 'world');
+    as_++;
+  }
+
+  static int as_ = 0;
+  static int check_ = 0;
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/31049
+regress31049() {
+  dynamic d = new C();
+  C c = d; // implicit cast
+  d as C; // explicit cast
+  C._check('hello');
+  Expect.equals(C.check_, 1);
+  C.as('world');
+  Expect.equals(C.as_, 1);
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/31050
+regress31050() {
+  Expect.isFalse((C).toString().contains('C.name'), 'should not call C.name');
+  Expect.equals(C.name, 'hello from C.name');
+  Expect.equals(C.prototype.m(), 42);
+  Expect.equals(new C().m(), 777);
+}
+
 main() {
   var a = new A();
   var a2 = new A2();
@@ -44,4 +85,7 @@ main() {
       Expect.equals(4, prototype);
     }
   }
+
+  regress31049();
+  regress31050();
 }
