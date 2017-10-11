@@ -488,7 +488,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 
   DartType _computeOverriddenAccessorType(Member override, Class thisClass) {
-    AccessorNode dependency = ShadowMember.getInferenceNode(override);
+    InferenceNode dependency = ShadowMember.getInferenceNode(override);
     if (dependency != null) {
       dependency.resolve();
     }

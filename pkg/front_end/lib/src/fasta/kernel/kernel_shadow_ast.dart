@@ -693,7 +693,7 @@ class ShadowFactoryConstructorInvocation extends StaticInvocation
 /// Concrete shadow object representing a field in kernel form.
 class ShadowField extends Field implements ShadowMember {
   @override
-  AccessorNode _accessorNode;
+  InferenceNode _inferenceNode;
 
   @override
   ShadowTypeInferrer _typeInferrer;
@@ -1232,9 +1232,9 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
 abstract class ShadowMember implements Member {
   String get fileUri;
 
-  AccessorNode get _accessorNode;
+  InferenceNode get _inferenceNode;
 
-  void set _accessorNode(AccessorNode value);
+  void set _inferenceNode(InferenceNode value);
 
   ShadowTypeInferrer get _typeInferrer;
 
@@ -1243,21 +1243,23 @@ abstract class ShadowMember implements Member {
   void setInferredType(
       TypeInferenceEngineImpl engine, String uri, DartType inferredType);
 
-  static AccessorNode getInferenceNode(Member member) {
-    if (member is ShadowMember) return member._accessorNode;
+  static InferenceNode getInferenceNode(Member member) {
+    if (member is ShadowMember) return member._inferenceNode;
     return null;
   }
 
   static void recordCrossOverride(
       ShadowMember member, Member overriddenMember) {
-    if (member._accessorNode != null) {
-      member._accessorNode.crossOverrides.add(overriddenMember);
+    var inferenceNode = member._inferenceNode;
+    if (inferenceNode is AccessorNode) {
+      inferenceNode.crossOverrides.add(overriddenMember);
     }
   }
 
   static void recordOverride(ShadowMember member, Member overriddenMember) {
-    if (member._accessorNode != null) {
-      member._accessorNode.overrides.add(overriddenMember);
+    var inferenceNode = member._inferenceNode;
+    if (inferenceNode is AccessorNode) {
+      inferenceNode.overrides.add(overriddenMember);
     }
   }
 }
@@ -1407,7 +1409,7 @@ class ShadowNullLiteral extends NullLiteral implements ShadowExpression {
 /// Concrete shadow object representing a procedure in kernel form.
 class ShadowProcedure extends Procedure implements ShadowMember {
   @override
-  AccessorNode _accessorNode;
+  InferenceNode _inferenceNode;
 
   @override
   ShadowTypeInferrer _typeInferrer;
@@ -1582,9 +1584,9 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
       writeContext = write.target.setterType;
       _storeLetType(inferrer, write, writeContext);
       var target = write.target;
-      if (target is ShadowField && target._accessorNode != null) {
+      if (target is ShadowField && target._inferenceNode != null) {
         if (inferrer.isTopLevel) {
-          target._accessorNode.resolve();
+          target._inferenceNode.resolve();
         }
       }
     }
@@ -1605,9 +1607,9 @@ class ShadowStaticGet extends StaticGet implements ShadowExpression {
     typeNeeded =
         inferrer.listener.staticGetEnter(this, typeContext) || typeNeeded;
     var target = this.target;
-    if (target is ShadowField && target._accessorNode != null) {
+    if (target is ShadowField && target._inferenceNode != null) {
       if (inferrer.isTopLevel) {
-        target._accessorNode.resolve();
+        target._inferenceNode.resolve();
       }
     }
     var inferredType = typeNeeded ? target.getterType : null;
@@ -1944,7 +1946,7 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
   @override
   AccessorNode createAccessorNode(ShadowMember member) {
     AccessorNode accessorNode = new AccessorNode(this, member);
-    member._accessorNode = accessorNode;
+    member._inferenceNode = accessorNode;
     return accessorNode;
   }
 
