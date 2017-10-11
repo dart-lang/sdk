@@ -3196,6 +3196,7 @@ class Parser {
   /// It's an error if there's no function body unless [allowAbstract] is true.
   Token parseFunctionBody(
       Token token, bool ofFunctionExpression, bool allowAbstract) {
+    firstToken ??= token;
     if (optional('native', token)) {
       Token nativeToken = token;
       token = parseNativeClause(nativeToken);
@@ -3253,7 +3254,15 @@ class Parser {
     listener.beginBlockFunctionBody(begin);
     token = token.next;
     while (notEofOrValue('}', token)) {
-      token = parseStatement(token);
+      Token startToken = token;
+      token = parseStatementOpt(token);
+      if (identical(token, startToken)) {
+        // No progress was made, so we report the current token as being invalid
+        // and move forward.
+        reportRecoverableError(
+            token, fasta.templateUnexpectedToken.withArguments(token));
+        token = token.next;
+      }
       ++statementCount;
     }
     listener.endBlockFunctionBody(statementCount, begin, token);
@@ -3314,7 +3323,7 @@ class Parser {
   }
 
   int statementDepth = 0;
-  Token parseStatement(Token token) {
+  Token parseStatementOpt(Token token) {
     if (statementDepth++ > 500) {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
@@ -3455,12 +3464,15 @@ class Parser {
       labelCount++;
     } while (token.isIdentifier && optional(':', token.next));
     listener.beginLabeledStatement(token, labelCount);
-    token = parseStatement(token);
+    token = parseStatementOpt(token);
     listener.endLabeledStatement(labelCount);
     return token;
   }
 
   Token parseExpressionStatement(Token token) {
+    // TODO(brianwilkerson) If the next token is not the start of a valid
+    // expression, then this method shouldn't report that we have an expression
+    // statement.
     listener.beginExpressionStatement(token);
     token = parseExpression(token);
     listener.endExpressionStatement(token);
@@ -4280,13 +4292,13 @@ class Parser {
     token = expect('if', token);
     token = parseParenthesizedExpression(token);
     listener.beginThenStatement(token);
-    token = parseStatement(token);
+    token = parseStatementOpt(token);
     listener.endThenStatement(token);
     Token elseToken = null;
     if (optional('else', token)) {
       elseToken = token;
       listener.beginElseStatement(token);
-      token = parseStatement(token.next);
+      token = parseStatementOpt(token.next);
       listener.endElseStatement(token);
     }
     listener.endIfStatement(ifToken, elseToken);
@@ -4345,7 +4357,7 @@ class Parser {
     }
     token = expect(')', token);
     listener.beginForStatementBody(token);
-    token = parseStatement(token);
+    token = parseStatementOpt(token);
     listener.endForStatementBody(token);
     listener.endForStatement(
         forToken, leftParenthesis, leftSeparator, expressionCount, token);
@@ -4362,7 +4374,7 @@ class Parser {
     listener.endForInExpression(token);
     token = expect(')', token);
     listener.beginForInBody(token);
-    token = parseStatement(token);
+    token = parseStatementOpt(token);
     listener.endForInBody(token);
     listener.endForIn(
         awaitToken, forKeyword, leftParenthesis, inKeyword, token);
@@ -4375,7 +4387,7 @@ class Parser {
     token = expect('while', token);
     token = parseParenthesizedExpression(token);
     listener.beginWhileStatementBody(token);
-    token = parseStatement(token);
+    token = parseStatementOpt(token);
     listener.endWhileStatementBody(token);
     listener.endWhileStatement(whileToken, token);
     return token;
@@ -4386,7 +4398,7 @@ class Parser {
     listener.beginDoWhileStatement(doToken);
     token = expect('do', token);
     listener.beginDoWhileStatementBody(token);
-    token = parseStatement(token);
+    token = parseStatementOpt(token);
     listener.endDoWhileStatementBody(token);
     Token whileToken = token;
     token = expect('while', token);
@@ -4401,7 +4413,15 @@ class Parser {
     int statementCount = 0;
     token = expect('{', token);
     while (notEofOrValue('}', token)) {
-      token = parseStatement(token);
+      Token startToken = token;
+      token = parseStatementOpt(token);
+      if (identical(token, startToken)) {
+        // No progress was made, so we report the current token as being invalid
+        // and move forward.
+        reportRecoverableError(
+            token, fasta.templateUnexpectedToken.withArguments(token));
+        token = token.next;
+      }
       ++statementCount;
     }
     listener.endBlock(statementCount, begin, token);
@@ -4599,9 +4619,17 @@ class Parser {
         // A label just before "}" will be handled as a statement error.
         break;
       } else {
-        token = parseStatement(token);
+        Token startToken = token;
+        token = parseStatementOpt(token);
+        if (identical(token, startToken)) {
+          // No progress was made, so we report the current token as being
+          // invalid and move forward.
+          reportRecoverableError(
+              token, fasta.templateUnexpectedToken.withArguments(token));
+          token = token.next;
+        }
+        ++statementCount;
       }
-      statementCount++;
       peek = peekPastLabels(token);
     }
     listener.endSwitchCase(labelCount, expressionCount, defaultKeyword,

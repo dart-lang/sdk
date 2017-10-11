@@ -3259,7 +3259,7 @@ class FastaParserTestCase extends Object
   @override
   Statement parseStatement(String source,
       [bool enableLazyAssignmentOperators]) {
-    return _runParser(source, (parser) => parser.parseStatement, null)
+    return _runParser(source, (parser) => parser.parseStatementOpt, null)
         as Statement;
   }
 
@@ -3556,7 +3556,7 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   Statement parseStatement2() {
-    return _run((parser) => parser.parseStatement) as Statement;
+    return _run((parser) => parser.parseStatementOpt) as Statement;
   }
 
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {

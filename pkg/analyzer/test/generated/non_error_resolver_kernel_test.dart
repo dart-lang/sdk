@@ -121,27 +121,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30208')
-  test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
-    return super.test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30208')
-  test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
-    return super.test_genericTypeAlias_castsAndTypeChecks_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30208')
-  test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
-    return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
   test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() async {
     return super
@@ -288,20 +267,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_undefinedConstructorInInitializer_redirecting() async {
     return super.test_undefinedConstructorInInitializer_redirecting();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30840')
-  test_undefinedIdentifier_synthetic_whenExpression() async {
-    return super.test_undefinedIdentifier_synthetic_whenExpression();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30840')
-  test_undefinedIdentifier_synthetic_whenMethodName() async {
-    return super.test_undefinedIdentifier_synthetic_whenMethodName();
   }
 
   @override

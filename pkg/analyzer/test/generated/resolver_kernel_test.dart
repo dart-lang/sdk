@@ -1,4 +1,4 @@
-// Copyright (c) 2
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23,12 +23,6 @@ class StrictModeTest_Kernel extends StrictModeTest_Driver {
 class TypePropagationTest_Kernel extends TypePropagationTest_Driver {
   @override
   bool get enableKernelDriver => true;
-
-  @override
-  @failingTest
-  test_assignment_throwExpression() async {
-    return super.test_assignment_throwExpression();
-  }
 
   @override
   @failingTest

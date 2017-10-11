@@ -30,13 +30,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30986')
-  test_builtInIdentifierAsType_variableDeclaration() async {
-    return super.test_builtInIdentifierAsType_variableDeclaration();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_conflictingConstructorNameAndMember_field() async {
     return super.test_conflictingConstructorNameAndMember_field();
@@ -388,20 +381,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_nonConstantAnnotationConstructor_named() async {
     return super.test_nonConstantAnnotationConstructor_named();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30983')
-  test_nonConstMapAsExpressionStatement_begin() async {
-    return super.test_nonConstMapAsExpressionStatement_begin();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30983')
-  test_nonConstMapAsExpressionStatement_only() async {
-    return super.test_nonConstMapAsExpressionStatement_only();
   }
 
   @override
