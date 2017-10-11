@@ -424,6 +424,7 @@ enum MessageKind {
   UNSUPPORTED_BANG_EQ_EQ,
   UNSUPPORTED_EQ_EQ_EQ,
   UNSUPPORTED_LITERAL_SYMBOL,
+  UNSUPPORTED_OPERATOR,
   UNSUPPORTED_PREFIX_PLUS,
   MISSING_EXPRESSION_IN_THROW,
   UNTERMINATED_COMMENT,
@@ -2472,6 +2473,10 @@ main() => A.A = 1;
           MessageKind.UNSUPPORTED_BANG_EQ_EQ,
           "'!==' is not an operator. "
           "Did you mean '#{lhs} != #{rhs}' or '!identical(#{lhs}, #{rhs})'?"),
+
+      MessageKind.UNSUPPORTED_OPERATOR: const MessageTemplate(
+          MessageKind.UNSUPPORTED_OPERATOR,
+          "'#{operator}' is not an operator. "),
 
       MessageKind.UNSUPPORTED_PREFIX_PLUS: const MessageTemplate(
           MessageKind.UNSUPPORTED_PREFIX_PLUS, "'+' is not a prefix operator. ",

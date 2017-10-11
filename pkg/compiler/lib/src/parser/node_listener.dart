@@ -457,6 +457,13 @@ class NodeListener extends ElementListener {
     if (send == null || !(send.isPropertyAccess || send.isIndex)) {
       reportNotAssignable(node);
     }
+    var tokenString = token.stringValue;
+    if (tokenString == '||=' || tokenString == '&&=') {
+      reporter.reportErrorMessage(reporter.spanFromToken(token),
+          MessageKind.UNSUPPORTED_OPERATOR, {'operator': tokenString});
+      pushNode(arg);
+      return;
+    }
     if (send.asSendSet() != null) internalError(node: send);
     NodeList arguments;
     if (send.isIndex) {
