@@ -11,15 +11,26 @@ assertion_initializer_test: Crash
 generalized_void_syntax_test: CompileTimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel ]
-assertion_test: RuntimeError
+assertion_initializer_const_error2_test/cc01: Crash
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error2_test/cc03: Crash
+assertion_initializer_const_error2_test/cc04: Crash
+assertion_initializer_const_error2_test/cc05: Crash
+assertion_initializer_const_error2_test/cc06: Crash
+assertion_initializer_const_error2_test/cc07: Crash
+assertion_initializer_const_error2_test/cc08: Crash
+assertion_initializer_const_error2_test/cc09: Crash
+assertion_initializer_const_error2_test/cc10: Crash
+assertion_initializer_const_error2_test/cc11: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
+assertion_test: RuntimeError
+deferred_not_loaded_check_test: Fail # Issue 27577
 enum_test: Fail # Issue 28340
+getter_setter_in_lib_test: Fail # Issue 23288
+method_name_test: Fail # issue 25574
 regress_28341_test: Fail # Issue 28340
 regress_29349_test: CompileTimeError # Issue 29745
 regress_29481_test: Crash # Issue 29754
-deferred_not_loaded_check_test: Fail # Issue 27577
-getter_setter_in_lib_test: Fail # Issue 23288
-method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
