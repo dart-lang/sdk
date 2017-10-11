@@ -6,7 +6,13 @@
 [ $compiler == dart2js ]
 vm/*: Skip # Issue 12699
 
+[ $compiler == dart2js ]
+assertion_initializer_test: Crash
+generalized_void_syntax_test: CompileTimeError
+
 [ $compiler == dart2js && !$dart2js_with_kernel ]
+assertion_test: RuntimeError
+assertion_initializer_const_function_test/01: CompileTimeError
 enum_test: Fail # Issue 28340
 regress_28341_test: Fail # Issue 28340
 regress_29349_test: CompileTimeError # Issue 29745
@@ -16,9 +22,12 @@ getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639
 
+async_star_cancel_while_paused_test: RuntimeError # Issue 22853
+
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
 
+call_function_apply_test: RuntimeError # Issue 23873
 mixin_supertype_subclass_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass2_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass3_test: CompileTimeError # Issue 23773
@@ -34,8 +43,20 @@ library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: RuntimeError, OK
 
+accessor_conflict_import2_test: RuntimeError # Issue 25626
+accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
+accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
+accessor_conflict_import_test: RuntimeError # Issue 25626
+
 duplicate_part_test/01: MissingCompileTimeError # Issue 27517
 
+bad_typedef_test/00: Crash # Issue 28214
+generic_function_typedef2_test/00: Crash # Issue 28214
+generic_function_typedef2_test/01: Crash # Issue 28214
+generic_function_typedef2_test/02: Crash # Issue 28214
+generic_function_typedef2_test/03: Crash # Issue 28214
+generic_function_typedef2_test/05: Crash # Issue 28214
+generic_function_typedef2_test/06: Crash # Issue 28214
 
 stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant.
 
@@ -46,6 +67,18 @@ conditional_import_string_test: Fail # Issue 30615
 conditional_import_test: Fail # Issue 30615
 
 [ $compiler == dart2js && $fast_startup && !$dart2js_with_kernel ]
+assertion_initializer_const_error2_test/cc01: Crash
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error2_test/cc03: Crash
+assertion_initializer_const_error2_test/cc04: Crash
+assertion_initializer_const_error2_test/cc05: Crash
+assertion_initializer_const_error2_test/cc06: Crash
+assertion_initializer_const_error2_test/cc07: Crash
+assertion_initializer_const_error2_test/cc08: Crash
+assertion_initializer_const_error2_test/cc09: Crash
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_test: Crash
 const_evaluation_test/*: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported
 deferred_constraints_constants_test/reference_after_load: Fail # mirrors not supported
@@ -73,10 +106,15 @@ super_call4_test: Fail # mirrors not supported
 super_getter_setter_test: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
 
+[ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel ]
+assertion_initializer_const_function_test/none: RuntimeError
+
 [ $compiler == dart2js && $runtime == jsshell && !$dart2js_with_kernel ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
+async_star_no_cancel_test: RuntimeError # Need triage
+async_star_no_cancel2_test: RuntimeError # Need triage
 
 [ $compiler == dart2js && $browser && !$dart2js_with_kernel ]
 config_import_test: Fail # Test flag is not passed to the compiler.
@@ -92,6 +130,7 @@ constructor_duplicate_final_test/01: Fail # Issue 13363
 constructor_duplicate_final_test/02: Fail # Issue 13363
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
+bad_constructor_test/05: CompileTimeError # Issue 13639
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 full_stacktrace3_test: Pass, RuntimeError # Issue 12698
@@ -147,6 +186,8 @@ multiline_newline_test/06r: MissingCompileTimeError # Issue 23888
 mixin_mixin_type_arguments_test: RuntimeError # Issue 29587
 
 [ $compiler == dart2js && $checked && !$dart2js_with_kernel ]
+async_return_types_test/nestedFuture: Fail # Issue 26429
+async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 regress_26133_test: RuntimeError # Issue 26429
 regress_29405_test: Fail # Issue 29422
 type_variable_bounds_test/02: Fail # Issue 12702
@@ -154,6 +195,7 @@ type_variable_bounds2_test/01: Fail # Issue 12702
 type_variable_bounds2_test/04: Fail # Issue 12702
 type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
+closure_type_test: Fail # Issue 12745
 malbounded_redirecting_factory_test/02: Fail # Issue 12825
 malbounded_redirecting_factory_test/03: Fail # Issue 12825
 malbounded_redirecting_factory2_test/02: Fail # Issue 12825
@@ -178,6 +220,10 @@ positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 
 [ $compiler == dart2js && !$checked && $enable_asserts && !$dart2js_with_kernel ]
+assertion_test: RuntimeError # Issue 12748
+
+[ $compiler == dart2js && ! $checked && $enable_asserts ]
+bool_check_test: RuntimeError # Issue 29647
 
 [ $compiler == dart2js && !$checked && $minified && !$dart2js_with_kernel ]
 f_bounded_quantification5_test: Fail, OK # Issue 12605
@@ -186,6 +232,7 @@ f_bounded_quantification5_test: Fail, OK # Issue 12605
 cyclic_type_test/0*: Fail # Issue 12605
 cyclic_type2_test: Fail # Issue 12605
 f_bounded_quantification4_test: Fail, Pass # Issue 12605
+generic_closure_test: Fail # Issue 12605
 mixin_generic_test: Fail # Issue 12605
 mixin_mixin2_test: Fail # Issue 12605
 mixin_mixin3_test: Fail # Issue 12605
@@ -199,6 +246,7 @@ symbol_conflict_test: RuntimeError # Issue 23857
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
 
+branch_canonicalization_test: RuntimeError # Issue 638.
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 integer_division_by_zero_test: RuntimeError # Issue 8301
 number_identity2_test: RuntimeError # Issue 12596
@@ -231,6 +279,8 @@ list_literal4_test: RuntimeError # Issue 12890
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
 
 numbers_test: RuntimeError, OK # Issue 1533
+canonical_const2_test: RuntimeError, OK # Issue 1533
+bit_operations_test: RuntimeError, OK # Issue 1533
 expect_test: RuntimeError, OK # Issue 13080
 
 [ $compiler == dart2js && $runtime == none ]
@@ -253,6 +303,7 @@ string_literals_test: RuntimeError # Issue 27533
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 # Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))
+call_through_getter_test: Fail, OK
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
@@ -262,12 +313,30 @@ stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 regress_21795_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
+accessor_conflict_export2_test: Crash # Issue 25626
+accessor_conflict_export_test: Crash # Issue 25626
+generic_field_mixin4_test: Crash # Issue 18651
+generic_field_mixin5_test: Crash # Issue 18651
 method_override5_test: RuntimeError # Issue 12809
 
 [ $compiler == dart2js && $runtime != drt ]
 issue23244_test: RuntimeError # 23244
 
 [ $compiler == dart2js && $host_checked && !$dart2js_with_kernel ]
+assertion_initializer_const_error2_test/cc01: Crash
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error2_test/cc03: Crash
+assertion_initializer_const_error2_test/cc04: Crash
+assertion_initializer_const_error2_test/cc05: Crash
+assertion_initializer_const_error2_test/cc06: Crash
+assertion_initializer_const_error2_test/cc07: Crash
+assertion_initializer_const_error2_test/cc08: Crash
+assertion_initializer_const_error2_test/cc09: Crash
+assertion_initializer_const_error2_test/cc10: Crash
+assertion_initializer_const_error2_test/cc11: Crash
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_const_function_test/01: Crash
+assertion_initializer_test: Crash
 regress_26855_test/1: Crash # Issue 26867
 regress_26855_test/2: Crash # Issue 26867
 regress_26855_test/3: Crash # Issue 26867
