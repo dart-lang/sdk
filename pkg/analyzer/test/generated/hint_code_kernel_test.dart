@@ -19,12 +19,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @override
   @failingTest
-  test_deadCode_deadFinalStatementInCase() async {
-    return super.test_deadCode_deadFinalStatementInCase();
-  }
-
-  @override
-  @failingTest
   test_deprecatedAnnotationUse_export() async {
     return super.test_deprecatedAnnotationUse_export();
   }

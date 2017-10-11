@@ -319,6 +319,11 @@ class _ConstantExpressionError {
 class _DuplicatedFieldInitializerError {
   _DuplicatedFieldInitializerError(String name);
 }
+
+class FallThroughError {
+  FallThroughError._create(String url, int line);
+}
+
 ''');
 
 const _MockSdkLibrary _LIB_FOREIGN_HELPER = const _MockSdkLibrary(
