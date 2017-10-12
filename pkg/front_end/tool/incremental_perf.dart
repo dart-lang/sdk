@@ -21,14 +21,20 @@
 ///
 ///  For example:
 ///  [
-///    [
-///      ['input1.dart', 'black', 'green'],
-///      ['input1.dart', '30px', '10px'],
-///      ['input2.dart', 'a.toString()', '"$a"']
-///    ],
-///    [
-///      ['input1.dart', 'green', 'blue']
-///    ],
+///    {
+///      "name" : "big_change",
+///      "edits" : [
+///        ["input1.dart", "black", "green"],
+///        ["input1.dart", "30px", "10px"],
+///        ["input2.dart", "a.toString()", ""$a""]
+///      ]
+///    },
+///    {
+///      "name" : "small_chnage",
+///      "edits" : [
+///        ["input1.dart", "green", "blue"]
+///      ]
+///    }
 ///  ]
 ///
 ///  Is interpreted as 2 iterations, the first iteration updates input1.dart
@@ -59,7 +65,8 @@ main(List<String> args) async {
 
   var entryUri = _resolveOverlayUri(options.rest[0]);
   var editsUri = Uri.base.resolve(options.rest[1]);
-  var edits = parse(JSON.decode(new File.fromUri(editsUri).readAsStringSync()));
+  var changeSets =
+      parse(JSON.decode(new File.fromUri(editsUri).readAsStringSync()));
 
   var overlayFs = new OverlayFileSystem();
   var compilerOptions = new CompilerOptions()..fileSystem = overlayFs;
@@ -84,14 +91,16 @@ main(List<String> args) async {
   print("Libraries changed: ${delta.newProgram.libraries.length}");
   print("Initial compilation took: ${timer1.elapsedMilliseconds}ms");
 
-  for (var iteration in edits) {
-    await applyEdits(iteration, overlayFs, generator);
+  for (final ChangeSet changeSet in changeSets) {
+    await applyEdits(changeSet.edits, overlayFs, generator);
     var iterTimer = new Stopwatch()..start();
     delta = await generator.computeDelta();
     generator.acceptLastDelta();
     iterTimer.stop();
-    print("Libraries changed: ${delta.newProgram.libraries.length}");
-    print("Incremental compilation took: ${iterTimer.elapsedMilliseconds}ms");
+    print("Change '${changeSet.name}' - "
+        "Libraries changed: ${delta.newProgram.libraries.length}");
+    print("Change '${changeSet.name}' - "
+        "Incremental compilation took: ${iterTimer.elapsedMilliseconds}ms");
   }
 }
 
@@ -100,7 +109,7 @@ main(List<String> args) async {
 applyEdits(List<Edit> edits, OverlayFileSystem fs,
     IncrementalKernelGenerator generator) async {
   for (var edit in edits) {
-    print('update ${edit.uri}');
+    print('edit $edit');
     generator.invalidate(edit.uri);
     OverlayFileSystemEntity entity = fs.entityForUri(edit.uri);
     var contents = await entity.readAsString();
@@ -111,16 +120,16 @@ applyEdits(List<Edit> edits, OverlayFileSystem fs,
 
 /// Parse a set of edits from a JSON array. See library comment above for
 /// details on the format.
-List<List<Edit>> parse(List json) {
-  var edits = <List<Edit>>[];
-  for (var jsonIteration in json) {
-    var iteration = <Edit>[];
-    edits.add(iteration);
-    for (var jsonEdit in jsonIteration) {
-      iteration.add(new Edit(jsonEdit[0], jsonEdit[1], jsonEdit[2]));
+List<ChangeSet> parse(List json) {
+  final changeSets = <ChangeSet>[];
+  for (final Map jsonChangeSet in json) {
+    final edits = <Edit>[];
+    for (final jsonEdit in jsonChangeSet['edits']) {
+      edits.add(new Edit(jsonEdit[0], jsonEdit[1], jsonEdit[2]));
     }
+    changeSets.add(new ChangeSet(jsonChangeSet['name'], edits));
   }
-  return edits;
+  return changeSets;
 }
 
 /// An overlay file system that reads the original contents from the physical
@@ -187,8 +196,21 @@ class Edit {
   final Uri uri;
   final String original;
   final String replacement;
+
   Edit(String uriString, this.original, this.replacement)
       : uri = _resolveOverlayUri(uriString);
+
+  String toString() => 'Edit($uri, "$original" -> "$replacement")';
+}
+
+/// A named set of changes applied together.
+class ChangeSet {
+  final String name;
+  final List<Edit> edits;
+
+  ChangeSet(this.name, this.edits);
+
+  String toString() => 'ChangeSet($name, $edits)';
 }
 
 _resolveOverlayUri(uriString) =>

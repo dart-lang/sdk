@@ -53,14 +53,33 @@ runSmallExample(Uri sdkOutline, Uri tmpUri) async {
     // iteration 4: edit b.dart and c.dart to revert to state of iteration 1
     //              may skip recompile if compiler cached old results.
     'edits.json': '''[
-      [],
-      [["${tmpUri.resolve('b.dart')}", "m1()", "m2()"]],
-      [],
-      [["${tmpUri.resolve('c.dart')}", "hello1", "hello3"]],
-      [
-        ["${tmpUri.resolve('b.dart')}", "m2()", "m1()"],
-        ["${tmpUri.resolve('c.dart')}", "hello3", "hello1"]
-      ]
+      {
+        "name" : "a",
+        "edits": []
+      },
+      {
+        "name" : "b",
+        "edits": [
+          ["${tmpUri.resolve('b.dart')}", "m1()", "m2()"]
+        ]
+      },
+      {
+        "name" : "c",
+        "edits": []
+      },
+      {
+        "name" : "d",
+        "edits": [
+          ["${tmpUri.resolve('c.dart')}", "hello1", "hello3"]
+        ]
+      },
+      {
+        "name" : "e",
+        "edits": [
+          ["${tmpUri.resolve('b.dart')}", "m2()", "m1()"],
+          ["${tmpUri.resolve('c.dart')}", "hello3", "hello1"]
+        ]
+      }
     ]''',
   };
 
@@ -79,8 +98,8 @@ runLargeExample(Uri sdkOutline, Uri tmpUri) async {
   var jsonUri = tmpUri.resolve('edits.json');
   var loaderFile =
       Platform.script.resolve('../../compiler/lib/src/library_loader.dart');
-  new File.fromUri(jsonUri)
-      .writeAsStringSync('[[["$loaderFile", "root=", "root2="]]]');
+  new File.fromUri(jsonUri).writeAsStringSync(
+      '[{ "name": "a", "edits": [["$loaderFile", "root=", "root2="]]}]');
   var entryUri = Platform.script.resolve('../../compiler/lib/src/dart2js.dart');
   await m.main(['--sdk-summary', '$sdkOutline', '$entryUri', '$jsonUri']);
 }

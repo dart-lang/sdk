@@ -1,0 +1,14 @@
+[
+  {
+    "name": "mainlib",
+    "edits": [
+      ["pkg/front_end/benchmarks/ikg/dart2js.dart", "args", "arguments"]
+    ]
+  },
+  {
+    "name": "optionslib",
+    "edits": [
+      ["pkg/compiler/lib/src/options.dart", "_extractStringOption", "_extractStringOptionReplacement"]
+    ]
+  }
+]
