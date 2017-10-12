@@ -39,6 +39,7 @@ static const int kDartFrameFixedSize = 4;  // Function, Code, PC, FP
 static const int kSavedPcSlotFromSp = 3;
 
 static const int kFirstObjectSlotFromFp = -4;  // Used by GC to traverse stack.
+static const int kLastFixedObjectSlotFromFp = -3;
 
 static const int kSavedCallerFpSlotFromFp = -1;
 static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
