@@ -695,7 +695,6 @@ class ShadowField extends Field implements ShadowMember {
   @override
   InferenceNode _inferenceNode;
 
-  @override
   ShadowTypeInferrer _typeInferrer;
 
   final bool _isImplicitlyTyped;
@@ -1241,10 +1240,6 @@ abstract class ShadowMember implements Member {
 
   void set _inferenceNode(InferenceNode value);
 
-  ShadowTypeInferrer get _typeInferrer;
-
-  void set _typeInferrer(ShadowTypeInferrer value);
-
   void setInferredType(
       TypeInferenceEngineImpl engine, String uri, DartType inferredType);
 
@@ -1404,9 +1399,6 @@ class ShadowNullLiteral extends NullLiteral implements ShadowExpression {
 class ShadowProcedure extends Procedure implements ShadowMember {
   @override
   InferenceNode _inferenceNode;
-
-  @override
-  ShadowTypeInferrer _typeInferrer;
 
   final bool _hasImplicitReturnType;
 
@@ -1948,14 +1940,14 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
 
   @override
   ShadowTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
-      InterfaceType thisType, ShadowMember member) {
-    return member._typeInferrer = new ShadowTypeInferrer._(
-        this, member.fileUri, listener, true, thisType);
+      InterfaceType thisType, ShadowField field) {
+    return field._typeInferrer =
+        new ShadowTypeInferrer._(this, field.fileUri, listener, true, thisType);
   }
 
   @override
-  ShadowTypeInferrer getMemberTypeInferrer(ShadowMember member) {
-    return member._typeInferrer;
+  ShadowTypeInferrer getFieldTypeInferrer(ShadowField field) {
+    return field._typeInferrer;
   }
 }
 

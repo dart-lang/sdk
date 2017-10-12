@@ -39,7 +39,7 @@ class FieldInitializerInferenceNode extends InferenceNode {
   @override
   void resolveInternal() {
     if (_typeInferenceEngine.strongMode) {
-      var typeInferrer = _typeInferenceEngine.getMemberTypeInferrer(field);
+      var typeInferrer = _typeInferenceEngine.getFieldTypeInferrer(field);
       var inferredType = typeInferrer.inferDeclarationType(
           typeInferrer.inferFieldTopLevel(field, null, true));
       if (isCircular) {
@@ -202,7 +202,7 @@ abstract class TypeInferenceEngine {
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
-      InterfaceType thisType, ShadowMember member);
+      InterfaceType thisType, ShadowField field);
 
   /// Performs the second phase of top level initializer inference, which is to
   /// visit all accessors and top level variables that were passed to
@@ -365,9 +365,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
   }
 
-  /// Retrieve the [TypeInferrer] for the given [member], which was created by
+  /// Retrieve the [TypeInferrer] for the given [field], which was created by
   /// a previous call to [createTopLevelTypeInferrer].
-  TypeInferrerImpl getMemberTypeInferrer(ShadowMember member);
+  TypeInferrerImpl getFieldTypeInferrer(ShadowField field);
 
   @override
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {

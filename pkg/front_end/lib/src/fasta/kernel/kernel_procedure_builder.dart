@@ -57,9 +57,6 @@ import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import '../type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
-
 import 'kernel_builder.dart'
     show
         Builder,
@@ -290,17 +287,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   Procedure get target => procedure;
-
-  @override
-  void prepareTopLevelInference(
-      SourceLibraryBuilder library, ClassBuilder currentClass) {
-    if (isEligibleForTopLevelInference) {
-      var typeInferenceEngine = library.loader.typeInferenceEngine;
-      var listener = new TypeInferenceListener();
-      typeInferenceEngine.createTopLevelTypeInferrer(
-          listener, procedure.enclosingClass?.thisType, procedure);
-    }
-  }
 
   @override
   void instrumentTopLevelInference(Instrumentation instrumentation) {
