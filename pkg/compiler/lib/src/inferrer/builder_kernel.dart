@@ -52,6 +52,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final Map<JumpTarget, List<LocalsHandler>> _continuesFor =
       <JumpTarget, List<LocalsHandler>>{};
   TypeInformation _returnType;
+  final Set<Local> _capturedVariables = new Set<Local>();
 
   /// Whether we currently collect [IsCheck]s.
   bool _accumulateIsChecks = false;
@@ -103,9 +104,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // previous analysis of [outermostElement].
     ClosureRepresentationInfo closureData =
         _closureDataLookup.getClosureInfoForMember(_analyzedMember);
-    closureData.forEachCapturedVariable((variable, field) {
-      _locals.setCaptured(variable, field);
-    });
     closureData.forEachBoxedVariable((variable, field) {
       _locals.setCapturedAndBoxed(variable, field);
     });
@@ -621,13 +619,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (variable != null) {
       // TODO(redemption): Exclude captured locals.
       Local local = _localsMap.getLocalVariable(variable);
-      TypeInformation refinedType = _types
-          .refineReceiver(selector, mask, receiverType, isConditional: false);
-      DartType type = _localsMap.getLocalType(_elementMap, local);
-      _locals.update(local, refinedType, node, type);
-      List<Refinement> refinements = _localRefinementMap[variable];
-      if (refinements != null) {
-        refinements.add(new Refinement(selector, mask));
+      if (!_capturedVariables.contains(local)) {
+        TypeInformation refinedType = _types
+            .refineReceiver(selector, mask, receiverType, isConditional: false);
+        DartType type = _localsMap.getLocalType(_elementMap, local);
+        _locals.update(local, refinedType, node, type);
+        List<Refinement> refinements = _localRefinementMap[variable];
+        if (refinements != null) {
+          refinements.add(new Refinement(selector, mask));
+        }
       }
     }
 
@@ -1145,6 +1145,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       ir.TreeNode node, ir.FunctionNode functionNode,
       [ir.VariableDeclaration variable]) {
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
+
+    // Record the types of captured non-boxed variables. Types of
+    // these variables may already be there, because of an analysis of
+    // a previous closure.
+    info.forEachFreeVariable((variable, field) {
+      if (!info.isVariableBoxed(variable)) {
+        if (variable == info.thisLocal) {
+          _inferrer.recordTypeOfField(field, thisType);
+        }
+        // The type is null for type parameters.
+        if (_locals.locals[variable] == null) return;
+        _inferrer.recordTypeOfField(field, _locals.locals[variable]);
+      }
+      _capturedVariables.add(variable);
+    });
+
     TypeInformation localFunctionType =
         _inferrer.concreteTypes.putIfAbsent(node, () {
       return _types.allocateClosure(info.callMethod);

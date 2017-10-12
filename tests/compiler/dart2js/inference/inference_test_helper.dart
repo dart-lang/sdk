@@ -140,7 +140,7 @@ void computeMemberIrTypeMasks(
 class TypeMaskIrComputer extends IrDataExtractor
     with ComputeValueMixin<ir.Node> {
   final GlobalTypeInferenceResults<ir.Node> results;
-  final GlobalTypeInferenceElementResult<ir.Node> result;
+  GlobalTypeInferenceElementResult<ir.Node> result;
   final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
   final ClosureDataLookup<ir.Node> _closureDataLookup;
@@ -155,6 +155,24 @@ class TypeMaskIrComputer extends IrDataExtractor
       this._closureDataLookup)
       : result = results.resultOfMember(member),
         super(reporter, actualMap);
+
+  @override
+  visitFunctionExpression(ir.FunctionExpression node) {
+    GlobalTypeInferenceElementResult<ir.Node> oldResult = result;
+    ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
+    result = results.resultOfMember(info.callMethod);
+    super.visitFunctionExpression(node);
+    result = oldResult;
+  }
+
+  @override
+  visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    GlobalTypeInferenceElementResult<ir.Node> oldResult = result;
+    ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
+    result = results.resultOfMember(info.callMethod);
+    super.visitFunctionDeclaration(node);
+    result = oldResult;
+  }
 
   @override
   String computeMemberValue(Id id, ir.Member node) {

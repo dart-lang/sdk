@@ -309,10 +309,14 @@ Future checkCode(
   data.expectedMap.forEach((Id id, IdValue expected) {
     if (!data.actualMap.containsKey(id)) {
       missingIds.add(id);
+      StringBuffer sb = new StringBuffer();
+      for (Id id in data.actualMap.keys /*.where((d) => d.kind == id.kind)*/) {
+        sb.write('\n  $id');
+      }
       reportHere(
           data.compiler.reporter,
           computeSpannable(data.elementEnvironment, data.mainUri, id),
-          'Expected $expected for id $id missing in ${data.actualMap.keys}');
+          'Expected $expected for id $id missing in${sb}');
     }
   });
   if (missingIds.isNotEmpty) {

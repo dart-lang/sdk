@@ -247,8 +247,7 @@ class LocalsHandler<T> {
   final TypeSystem<T> types;
   final InferrerEngine<T> inferrer;
   final VariableScope<T> locals;
-  final Map<Local, FieldEntity> captured;
-  final Map<Local, FieldEntity> capturedAndBoxed;
+  final Map<Local, FieldEntity> _capturedAndBoxed;
   final FieldInitializationScope<T> fieldScope;
   LocalsHandler<T> tryBlock;
   bool seenReturnOrThrow = false;
@@ -263,16 +262,14 @@ class LocalsHandler<T> {
   LocalsHandler(this.inferrer, this.types, this.options, T block,
       [this.fieldScope])
       : locals = new VariableScope<T>(block),
-        captured = new Map<Local, FieldEntity>(),
-        capturedAndBoxed = new Map<Local, FieldEntity>(),
+        _capturedAndBoxed = new Map<Local, FieldEntity>(),
         tryBlock = null;
 
   LocalsHandler.from(LocalsHandler<T> other, T block,
       {bool useOtherTryBlock: true})
       : locals = new VariableScope<T>(block, other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
-        captured = other.captured,
-        capturedAndBoxed = other.capturedAndBoxed,
+        _capturedAndBoxed = other._capturedAndBoxed,
         types = other.types,
         inferrer = other.inferrer,
         options = other.options {
@@ -282,8 +279,7 @@ class LocalsHandler<T> {
   LocalsHandler.deepCopyOf(LocalsHandler<T> other)
       : locals = new VariableScope<T>.deepCopyOf(other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
-        captured = other.captured,
-        capturedAndBoxed = other.capturedAndBoxed,
+        _capturedAndBoxed = other._capturedAndBoxed,
         tryBlock = other.tryBlock,
         types = other.types,
         inferrer = other.inferrer,
@@ -292,8 +288,7 @@ class LocalsHandler<T> {
   LocalsHandler.topLevelCopyOf(LocalsHandler<T> other)
       : locals = new VariableScope<T>.topLevelCopyOf(other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
-        captured = other.captured,
-        capturedAndBoxed = other.capturedAndBoxed,
+        _capturedAndBoxed = other._capturedAndBoxed,
         tryBlock = other.tryBlock,
         types = other.types,
         inferrer = other.inferrer,
@@ -301,8 +296,8 @@ class LocalsHandler<T> {
 
   TypeInformation use(Local local) {
     assert(!(local is LocalElement && !local.isImplementation));
-    if (capturedAndBoxed.containsKey(local)) {
-      FieldEntity field = capturedAndBoxed[local];
+    if (_capturedAndBoxed.containsKey(local)) {
+      FieldEntity field = _capturedAndBoxed[local];
       return inferrer.typeOfMember(field);
     } else {
       return locals[local];
@@ -331,8 +326,8 @@ class LocalsHandler<T> {
       locals[local] = type;
     }
 
-    if (capturedAndBoxed.containsKey(local)) {
-      inferrer.recordTypeOfField(capturedAndBoxed[local], type);
+    if (_capturedAndBoxed.containsKey(local)) {
+      inferrer.recordTypeOfField(_capturedAndBoxed[local], type);
     } else if (inTryBlock) {
       // We don'TypeInformation know if an assignment in a try block
       // will be executed, so all assignments in that block are
@@ -347,7 +342,7 @@ class LocalsHandler<T> {
         TypeInformation inputType = types.addPhiInput(local, phiType, type);
         tryBlock.locals.parent[local] = inputType;
       }
-      // Update the current handler unconditionnally with the new
+      // Update the current handler unconditionally with the new
       // type.
       updateLocal();
     } else {
@@ -362,12 +357,8 @@ class LocalsHandler<T> {
     update(local, newType, node, type, isSetIfNull: isSetIfNull);
   }
 
-  void setCaptured(Local local, FieldEntity field) {
-    captured[local] = field;
-  }
-
   void setCapturedAndBoxed(Local local, FieldEntity field) {
-    capturedAndBoxed[local] = field;
+    _capturedAndBoxed[local] = field;
   }
 
   void mergeDiamondFlow(

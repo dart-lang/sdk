@@ -923,9 +923,6 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ClosureRepresentationInfo closureData = compiler
         .backendStrategy.closureDataLookup
         .getClosureInfoForMember(analyzedElement);
-    closureData.forEachCapturedVariable((variable, field) {
-      locals.setCaptured(variable, field);
-    });
     closureData.forEachBoxedVariable((variable, field) {
       locals.setCapturedAndBoxed(variable, field);
     });
@@ -1122,7 +1119,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // a previous closure.
     ClosureRepresentationInfo nestedClosureData =
         compiler.backendStrategy.closureDataLookup.getClosureInfo(node);
-    nestedClosureData.forEachCapturedVariable((variable, field) {
+    nestedClosureData.forEachFreeVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
         if (variable == nestedClosureData.thisLocal) {
           inferrer.recordTypeOfField(field, thisType);
@@ -2797,7 +2794,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         }
       }
       // TODO(johnniwinther): Enable this to improve precision of conditional
-      // access.
+      // access. This cannot currently be done because the receiver and the
+      // call shares type mask.
       /*if (isConditional) {
       receiverType = types.narrowNotNull(receiverType);
       }*/

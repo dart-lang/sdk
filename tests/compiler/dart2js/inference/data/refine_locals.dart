@@ -117,8 +117,6 @@ _refineToClass1InvokeIfNotNull(
   return o;
 }
 
-// TODO(redemption): Test conditional access.
-
 /*element: refineToClass:[null]*/
 refineToClass() {
   _refineToClass1Invoke(new Class1());

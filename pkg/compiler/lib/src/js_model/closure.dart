@@ -515,13 +515,6 @@ class KernelClosureClass extends JsScopeInfo
 
   FieldEntity get thisFieldEntity => localToFieldMap[thisLocal];
 
-  void forEachCapturedVariable(f(Local from, JField to)) {
-    for (Local l in localToFieldMap.keys) {
-      var jField = localToFieldMap[l];
-      if (l is! BoxLocal) f(l, jField);
-    }
-  }
-
   @override
   void forEachBoxedVariable(f(Local local, JField field)) {
     boxedVariables.forEach(f);

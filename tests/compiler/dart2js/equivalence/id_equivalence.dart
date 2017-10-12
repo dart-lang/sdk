@@ -347,7 +347,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   visitFunctionExpression(ast.FunctionExpression node) {
     AstElement element = elements.getFunctionDefinition(node);
-    if (!element.isLocal) {
+    if (element != null && !element.isLocal) {
       computeForElement(element);
     } else {
       computeForNode(node, computeDefaultNodeId(node), element);
@@ -580,6 +580,7 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
         receiver.variable.parent is ir.FunctionDeclaration) {
       // This is an invocation of a named local function.
       computeForNode(node, createInvokeId(node.receiver));
+      node.arguments.accept(this);
     } else if (node.name.name == '==' &&
         receiver is ir.VariableGet &&
         receiver.variable.name == null) {
