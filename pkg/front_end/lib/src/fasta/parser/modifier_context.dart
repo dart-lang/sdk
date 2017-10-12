@@ -21,7 +21,7 @@ import 'formal_parameter_kind.dart' show FormalParameterKind;
 import 'member_kind.dart' show MemberKind;
 import 'parser.dart' show Parser;
 import 'type_continuation.dart' show TypeContinuation;
-import 'util.dart' show isKeywordOrIdentifier, optional;
+import 'util.dart' show optional;
 
 class ModifierContext {
   final Parser parser;
@@ -101,7 +101,7 @@ class ModifierContext {
     // A built-in identifier can only be a modifier as long as it is
     // followed by another modifier or an identifier.
     // Otherwise, it is the identifier.
-    if (!isKeywordOrIdentifier(token.next)) {
+    if (!token.next.isKeywordOrIdentifier) {
       return token;
     }
     switch (memberKind) {
@@ -124,7 +124,7 @@ class ModifierContext {
     // A built-in identifier can only be a modifier as long as it is
     // followed by another modifier or an identifier.
     // Otherwise, it is the identifier.
-    if (!isKeywordOrIdentifier(token.next)) {
+    if (!token.next.isKeywordOrIdentifier) {
       return token;
     }
     switch (memberKind) {
@@ -157,7 +157,7 @@ class ModifierContext {
     // A built-in identifier can only be a modifier as long as it is
     // followed by another modifier or an identifier.
     // Otherwise, it is the identifier.
-    if (!isKeywordOrIdentifier(token.next)) {
+    if (!token.next.isKeywordOrIdentifier) {
       return token;
     }
     if (parameterKind != null) {

@@ -435,6 +435,12 @@ class KeywordToken extends SimpleToken {
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   @override
+  bool get isKeyword => true;
+
+  @override
+  bool get isKeywordOrIdentifier => true;
+
+  @override
   Object value() => keyword;
 }
 
@@ -497,6 +503,12 @@ class SimpleToken implements Token {
 
   @override
   bool get isIdentifier => false;
+
+  @override
+  bool get isKeyword => false;
+
+  @override
+  bool get isKeywordOrIdentifier => isIdentifier;
 
   @override
   bool get isModifier => type.isModifier;
@@ -764,6 +776,17 @@ abstract class Token implements SyntacticEntity {
    * see implementation in [KeywordToken].
    */
   bool get isIdentifier;
+
+  /**
+   * True if this token is a keyword. Some keywords allowed as identifiers,
+   * see implementation in [KeywordToken].
+   */
+  bool get isKeyword;
+
+  /**
+   * True if this token is a keyword or an identifier.
+   */
+  bool get isKeywordOrIdentifier;
 
   /**
    * Return `true` if this token is a modifier such as `abstract` or `const`.
