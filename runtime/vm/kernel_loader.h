@@ -101,8 +101,7 @@ class KernelLoader {
  private:
   friend class BuildingTranslationHelper;
 
-  void LoadPreliminaryClass(Class* klass,
-                            ClassHelper* class_helper,
+  void LoadPreliminaryClass(ClassHelper* class_helper,
                             intptr_t type_parameter_count);
   Class& LoadClass(const Library& library,
                    const Class& toplevel_class,
@@ -111,11 +110,6 @@ class KernelLoader {
                      const Class& owner,
                      bool in_class,
                      intptr_t procedure_end);
-
-  void LoadAndSetupTypeParameters(const Object& set_on,
-                                  intptr_t type_parameter_count,
-                                  const Class& parameterized_class,
-                                  const Function& parameterized_function);
 
   RawArray* MakeFunctionsArray();
 

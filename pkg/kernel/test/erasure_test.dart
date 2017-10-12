@@ -62,7 +62,7 @@ class Tester {
     Expect.stringEquals("(dart.core::List<dynamic>) → dynamic",
         debugNodeToString(fDeclaration.variable.type).trim());
     Expect.stringEquals(
-        "<T extends dynamic, S extends dart.core::List<dynamic>>(dart.core::List<dynamic>) → dynamic",
+        "<T extends dynamic, S extends dart.core::List<T>>(S) → T",
         debugNodeToString(functionExpression.getStaticType(null)).trim());
   }
 
