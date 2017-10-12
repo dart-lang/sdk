@@ -144,15 +144,6 @@ is_object_test: Skip
 isnot_malformed_type_test: Skip
 issue11724_test: Skip
 issue11793_test: Skip
-literal_unary_plus_test: Skip
-local_function2_test: Skip
-local_function3_test: Skip
-local_function_test: Skip
-logical_expression3_test: Skip
-malbounded_instantiation_test: Skip
-malbounded_redirecting_factory2_test: Skip
-malbounded_redirecting_factory_test: Skip
-malbounded_type_cast2_test: Skip
 mixin_forwarding_constructor4_test: Skip
 mixin_illegal_constructor_test: Skip
 mixin_illegal_cycles_test: Skip
@@ -243,8 +234,6 @@ bit_operations_test/04: MissingStaticWarning # Issue 28823
 field3a_negative_test: StaticWarning # Issue 28823
 interface_inherit_field_test: StaticWarning # Issue 28823
 internal_library_test/02: MissingStaticWarning # Issue 28823
-main_not_a_function_test/01: MissingStaticWarning # Issue 28823
-main_test/03: MissingStaticWarning # Issue 28823
 no_main_test/01: MissingStaticWarning # Issue 28823
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
 super_setter_test: StaticWarning # Issue 28823
@@ -276,7 +265,6 @@ instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
 instanceof2_test: RuntimeError # Issue 29920
 instanceof4_test/01: RuntimeError # Issue 29920
 instanceof4_test/none: RuntimeError # Issue 29920
-main_test/03: MissingRuntimeError # Issue 29920
 mint_arithmetic_test: RuntimeError # Issue 29920
 nan_identical_test: RuntimeError # Issue 29920
 nested_switch_label_test: RuntimeError # Issue 29920

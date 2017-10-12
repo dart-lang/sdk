@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
-
 class A<
     Ta
            extends num // //# 02: continued
@@ -20,17 +18,21 @@ class C<
     Tc
            extends num // //# 04: continued
     > {
-  factory C() = B<Tc>;
+  factory C() = A<Tc>;
 }
 
-class D<Td> {
+class D<
+    Td
+           extends num // //# 05: continued
+    > {
   test() => new C<Td>();
 }
 
 main() {
   new D<int>().test();
-  new D<String>().test(); // //# 01: static type warning
-  new D<String>().test(); // //# 02: static type warning, dynamic type error
-  new D<String>().test(); // //# 03: static type warning, dynamic type error
-  new D<String>().test(); // //# 04: static type warning, dynamic type error
+  new D<String>().test(); // //# 01: ok
+  new D<String>().test(); // //# 02: compile-time error
+  new D<String>().test(); // //# 03: compile-time error
+  new D<String>().test(); // //# 04: compile-time error
+  new D<String>().test(); // //# 05: compile-time error
 }

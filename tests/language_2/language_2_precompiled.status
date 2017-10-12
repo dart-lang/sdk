@@ -699,6 +699,26 @@ first_class_types_literals_test/09: MissingCompileTimeError
 first_class_types_literals_test/10: MissingCompileTimeError
 first_class_types_literals_test/11: MissingCompileTimeError
 first_class_types_literals_test/12: MissingCompileTimeError
+local_function2_test/01: MissingCompileTimeError
+local_function2_test/02: MissingCompileTimeError
+local_function2_test/none: RuntimeError
+local_function3_test/01: MissingCompileTimeError
+local_function3_test/none: RuntimeError
+local_function_test/01: MissingCompileTimeError
+local_function_test/02: MissingCompileTimeError
+local_function_test/03: MissingCompileTimeError
+local_function_test/04: MissingCompileTimeError
+local_function_test/none: RuntimeError
+logical_expression3_test: MissingCompileTimeError
+main_test/03: RuntimeError
+malbounded_instantiation_test/01: MissingCompileTimeError
+malbounded_instantiation_test/02: MissingCompileTimeError
+malbounded_instantiation_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/02: MissingCompileTimeError
+malbounded_redirecting_factory_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/04: MissingCompileTimeError
+malbounded_redirecting_factory_test/05: MissingCompileTimeError
+malbounded_type_cast2_test: MissingCompileTimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError

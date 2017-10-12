@@ -4,29 +4,15 @@
 
 import "package:expect/expect.dart";
 
-isCheckedMode() {
-  try {
-    var i = 1;
-    String s = i;
-    return false;
-  } catch (e) {
-    return true;
-  }
-}
-
 class A<T extends num> {}
 
 class B<T> {
   test() {
-    new A() as A<T>; // //# static type warning
+    new A() as A<T>; /*@compile-error=unspecified*/
   }
 }
 
 main() {
   var b = new B<String>();
-  if (isCheckedMode()) {
-    Expect.throws(() => b.test(), (e) => e is TypeError);
-  } else {
-    b.test();
-  }
+  Expect.throws(() => b.test());
 }

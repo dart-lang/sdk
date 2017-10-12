@@ -379,6 +379,120 @@ mixin_type_parameters_errors_test/05: MissingCompileTimeError
 mixin_type_parameters_mixin_extends_test: RuntimeError
 mixin_type_parameters_mixin_test: RuntimeError
 mixin_type_parameters_super_extends_test: RuntimeError
+new_expression_type_args_test/00: MissingCompileTimeError
+new_expression_type_args_test/01: MissingCompileTimeError
+new_expression_type_args_test/02: MissingCompileTimeError
+new_prefix_test/01: MissingCompileTimeError
+no_such_constructor_test/01: MissingCompileTimeError
+no_such_method_mock_test: RuntimeError
+least_upper_bound_test/03: MissingCompileTimeError
+least_upper_bound_test/04: MissingCompileTimeError
+least_upper_bound_test/10: MissingCompileTimeError
+least_upper_bound_test/19: MissingCompileTimeError
+least_upper_bound_test/20: MissingCompileTimeError
+least_upper_bound_test/23: MissingCompileTimeError
+least_upper_bound_test/24: MissingCompileTimeError
+least_upper_bound_test/29: MissingCompileTimeError
+least_upper_bound_test/30: MissingCompileTimeError
+least_upper_bound_test/32: MissingCompileTimeError
+least_upper_bound_expansive_test/01: MissingCompileTimeError
+least_upper_bound_expansive_test/02: MissingCompileTimeError
+least_upper_bound_expansive_test/03: MissingCompileTimeError
+least_upper_bound_expansive_test/04: MissingCompileTimeError
+least_upper_bound_expansive_test/05: MissingCompileTimeError
+least_upper_bound_expansive_test/06: MissingCompileTimeError
+least_upper_bound_expansive_test/07: MissingCompileTimeError
+least_upper_bound_expansive_test/08: MissingCompileTimeError
+least_upper_bound_expansive_test/09: MissingCompileTimeError
+least_upper_bound_expansive_test/10: MissingCompileTimeError
+least_upper_bound_expansive_test/11: MissingCompileTimeError
+least_upper_bound_expansive_test/12: MissingCompileTimeError
+library_ambiguous_test/00: MissingCompileTimeError
+library_ambiguous_test/01: MissingCompileTimeError
+library_ambiguous_test/02: MissingCompileTimeError
+library_ambiguous_test/03: MissingCompileTimeError
+library_ambiguous_test/04: MissingCompileTimeError
+external_test/21: CompileTimeError
+external_test/24: CompileTimeError
+f_bounded_quantification_test/01: MissingCompileTimeError
+f_bounded_quantification_test/02: MissingCompileTimeError
+factory1_test/00: MissingCompileTimeError
+factory1_test/01: MissingCompileTimeError
+factory2_test/03: MissingCompileTimeError
+factory2_test/none: MissingCompileTimeError
+factory3_test/none: MissingCompileTimeError
+factory4_test/00: MissingCompileTimeError
+factory5_test/00: MissingCompileTimeError
+factory6_test/00: MissingCompileTimeError
+factory_redirection_test/01: MissingCompileTimeError
+factory_redirection_test/02: MissingCompileTimeError
+factory_redirection_test/03: MissingCompileTimeError
+factory_redirection_test/05: MissingCompileTimeError
+factory_redirection_test/06: MissingCompileTimeError
+factory_redirection_test/08: MissingCompileTimeError
+factory_redirection_test/09: MissingCompileTimeError
+factory_redirection_test/10: MissingCompileTimeError
+factory_redirection_test/11: MissingCompileTimeError
+factory_redirection_test/12: MissingCompileTimeError
+factory_redirection_test/13: MissingCompileTimeError
+factory_redirection_test/14: MissingCompileTimeError
+factory_redirection_test/none: MissingCompileTimeError
+factory_return_type_checked_test/00: MissingCompileTimeError
+top_level_getter_no_setter1_test: MissingCompileTimeError
+top_level_getter_no_setter2_test: MissingCompileTimeError
+transitive_private_library_access_test: MissingCompileTimeError
+field_override2_test: MissingCompileTimeError
+field_override_test/00: MissingCompileTimeError
+field_override_test/01: MissingCompileTimeError
+field_override_test/02: MissingCompileTimeError
+field_override_test/none: MissingCompileTimeError
+field_type_check_test/01: MissingCompileTimeError
+final_for_in_variable_test: MissingCompileTimeError
+final_param_test: MissingCompileTimeError
+final_super_field_set_test: MissingCompileTimeError
+final_syntax_test/10: MissingCompileTimeError
+final_variable_assignment_test/01: MissingCompileTimeError
+final_variable_assignment_test/02: MissingCompileTimeError
+final_variable_assignment_test/03: MissingCompileTimeError
+final_variable_assignment_test/04: MissingCompileTimeError
+first_class_types_literals_test/03: MissingCompileTimeError
+first_class_types_literals_test/04: MissingCompileTimeError
+first_class_types_literals_test/05: MissingCompileTimeError
+first_class_types_literals_test/06: MissingCompileTimeError
+first_class_types_literals_test/07: MissingCompileTimeError
+first_class_types_literals_test/08: MissingCompileTimeError
+first_class_types_literals_test/09: MissingCompileTimeError
+first_class_types_literals_test/10: MissingCompileTimeError
+first_class_types_literals_test/11: MissingCompileTimeError
+first_class_types_literals_test/12: MissingCompileTimeError
+local_function2_test/01: MissingCompileTimeError
+local_function2_test/02: MissingCompileTimeError
+local_function2_test/none: RuntimeError
+local_function3_test/01: MissingCompileTimeError
+local_function3_test/none: RuntimeError
+local_function_test/01: MissingCompileTimeError
+local_function_test/02: MissingCompileTimeError
+local_function_test/03: MissingCompileTimeError
+local_function_test/04: MissingCompileTimeError
+local_function_test/none: RuntimeError
+logical_expression3_test: MissingCompileTimeError
+main_test/03: RuntimeError
+malbounded_instantiation_test/01: MissingCompileTimeError
+malbounded_instantiation_test/02: MissingCompileTimeError
+malbounded_instantiation_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/02: MissingCompileTimeError
+malbounded_redirecting_factory_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/04: MissingCompileTimeError
+malbounded_redirecting_factory_test/05: MissingCompileTimeError
+malbounded_type_cast2_test: MissingCompileTimeError
+
+# The following tests are supposed to fail.
+# In testing-mode, dart2js supports all dart:X libraries (because it
+# uses '--categories=all').
+library_env_test/has_no_html_support: RuntimeError, OK
+library_env_test/has_no_io_support: RuntimeError, OK
+library_env_test/has_no_mirror_support: RuntimeError, OK
+
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/03: MissingCompileTimeError
@@ -1320,6 +1434,17 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
+field_override3_test/00: MissingCompileTimeError
+field_override3_test/01: MissingCompileTimeError
+field_override3_test/02: MissingCompileTimeError
+field_override3_test/03: MissingCompileTimeError
+field_override4_test/02: MissingCompileTimeError
+final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/02: MissingCompileTimeError
+final_field_initialization_order_test: RuntimeError
+malformed2_test/00: MissingCompileTimeError
+local_function3_test/none: RuntimeError
+local_function_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1663,6 +1788,16 @@ type_parameter_test/08: Crash # Assertion failure: Runtime type information not 
 type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
+field_override3_test/00: MissingCompileTimeError
+field_override3_test/01: MissingCompileTimeError
+field_override3_test/02: MissingCompileTimeError
+field_override3_test/03: MissingCompileTimeError
+field_override4_test/02: MissingCompileTimeError
+final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/02: MissingCompileTimeError
+malformed2_test/00: MissingCompileTimeError
+local_function3_test/none: RuntimeError
+local_function_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
@@ -1705,6 +1840,10 @@ regress_26133_test: RuntimeError # Issue 26429
 malbounded_type_cast_test: Fail # Issue 14121
 malbounded_type_test_test/03: Fail # Issue 14121
 malbounded_type_test_test/04: Fail # Issue 14121
+malbounded_redirecting_factory_test/02: Fail # Issue 12825
+malbounded_redirecting_factory_test/03: Fail # Issue 12825
+malbounded_instantiation_test/01: Fail # Issue 12702
+malbounded_type_cast2_test: Fail # Issue 14121
 
 [ $compiler == dart2js && !$checked ]
 type_argument_in_super_type_test: RuntimeError

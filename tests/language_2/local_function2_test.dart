@@ -10,12 +10,12 @@ typedef T F<T>(T t);
 class Parameterized<T> {
   Parameterized() {}
   T mul3(F f, T t) {
-    return 3 * f(t);
+    return 3 * f(t); //# 01: compile-time error
   }
 
   T test(T t) {
     return mul3((T t) {
-      return 3 * t;
+      return 3 * t; //# 02: compile-time error
     }, t);
   }
 }

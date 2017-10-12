@@ -13,8 +13,8 @@ class LocalFunction3Test {
     Expect.equals(true, f is Object);
     bool exception_caught = false;
     try {
-      f.xyz(0);
-    } on NoSuchMethodError catch (e) {
+      f.xyz(0); //# 01: compile-time error
+    } on NoSuchMethodError {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
@@ -22,7 +22,7 @@ class LocalFunction3Test {
     String f_string;
     try {
       f_string = f.toString();
-    } on NoSuchMethodError catch (e) {
+    } on NoSuchMethodError  {
       exception_caught = true;
     }
     Expect.equals(false, exception_caught);

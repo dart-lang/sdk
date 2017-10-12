@@ -168,28 +168,28 @@ class LocalFunctionTest {
     Expect.equals(true, f.toString().startsWith("Closure"));
     bool exception_caught = false;
     try {
-      f(1, 2);
+      f(1, 2); //# 01: compile-time error
     } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
-      f();
+      f(); //# 02: compile-time error
     } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
-      f.xyz(0);
+      f.xyz(0); //# 03: compile-time error
     } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
 
     // Overwrite closure value.
-    f = 3;
+    f = 3; //# 04: compile-time error
     exception_caught = false;
     try {
       f(1);

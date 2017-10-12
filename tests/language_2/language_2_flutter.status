@@ -301,6 +301,9 @@ f_bounded_quantification_test/01: CompileTimeError
 f_bounded_quantification_test/02: CompileTimeError
 f_bounded_quantification5_test: CompileTimeError
 field_override_test/01: CompileTimeError
+malbounded_redirecting_factory_test/none: CompileTimeError
+malbounded_redirecting_factory_test/01: CompileTimeError
+malbounded_instantiation_test/01: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

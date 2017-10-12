@@ -1348,6 +1348,22 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 vm/type_vm_test: StaticWarning
+local_function2_test/01: MissingCompileTimeError
+local_function2_test/02: MissingCompileTimeError
+local_function3_test/01: MissingCompileTimeError
+local_function_test/01: MissingCompileTimeError
+local_function_test/02: MissingCompileTimeError
+local_function_test/03: MissingCompileTimeError
+local_function_test/04: MissingCompileTimeError
+logical_expression3_test: MissingCompileTimeError
+malbounded_instantiation_test/01: MissingCompileTimeError
+malbounded_instantiation_test/02: MissingCompileTimeError
+malbounded_instantiation_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/02: MissingCompileTimeError
+malbounded_redirecting_factory_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/04: MissingCompileTimeError
+malbounded_redirecting_factory_test/05: MissingCompileTimeError
+malbounded_type_cast2_test: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_error2_test/none: CompileTimeError
