@@ -21,7 +21,6 @@ import '../../scanner/token.dart'
         Keyword,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
-        SimpleToken,
         SyntheticBeginToken,
         SyntheticKeywordToken,
         SyntheticStringToken,
@@ -793,6 +792,7 @@ class Parser {
   }
 
   Token parseFormalParametersOpt(Token token, MemberKind kind) {
+    firstToken ??= token;
     if (optional('(', token)) {
       return parseFormalParameters(token, kind);
     } else {
@@ -2101,16 +2101,10 @@ class Parser {
         token = stuffParser(token.next);
         ++count;
       } while (optional(',', token));
-      Token next = token.next;
       if (identical(token.stringValue, '>>')) {
-        // TODO(brianwilkerson) This doesn't fix the token stream to include the
-        // newly created tokens. That should be fixed when this functionality is
-        // moved into the TokenStreamRewriter.
-        Token gtgt = token;
-        token = new Token(TokenType.GT, token.charOffset);
-        (token as SimpleToken).precedingComments = gtgt.precedingComments;
-        token.next = new Token(TokenType.GT, token.charOffset + 1);
-        token.next.next = next;
+        Token replacement = new Token(TokenType.GT, token.charOffset)
+          ..next = new Token(TokenType.GT, token.charOffset + 1);
+        token = rewriter.replaceToken(begin, token, replacement);
       }
       endStuff(count, begin, token);
       return expect('>', token);
@@ -3231,6 +3225,7 @@ class Parser {
 
   int statementDepth = 0;
   Token parseStatementOpt(Token token) {
+    firstToken ??= token;
     if (statementDepth++ > 500) {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
@@ -3490,6 +3485,7 @@ class Parser {
       Token token, int precedence, bool allowCascades) {
     assert(precedence >= 1);
     assert(precedence <= POSTFIX_PRECEDENCE);
+    Token begin = token;
     token = parseUnaryExpression(token, allowCascades);
     TokenType type = token.type;
     int tokenLevel = type.precedence;
@@ -3525,18 +3521,11 @@ class Parser {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
           } else if (identical(type, TokenType.INDEX)) {
-            // Recovery
-            // TODO(brianwilkerson) This doesn't remove the old index operator
-            // from the token stream because we don't have a reference to the
-            // token before the index operator. That should be fixed when this
-            // functionality is moved into the TokenStreamRewriter.
-            Token index = token;
-            token = new BeginToken(TokenType.OPEN_SQUARE_BRACKET,
-                index.charOffset, index.precedingComments);
-            token.next =
-                new Token(TokenType.CLOSE_SQUARE_BRACKET, index.charOffset + 1);
-            token.next.next = index.next;
-            index.next = token;
+            Token replacement = new BeginToken(TokenType.OPEN_SQUARE_BRACKET,
+                token.charOffset, token.precedingComments)
+              ..next = new Token(
+                  TokenType.CLOSE_SQUARE_BRACKET, token.charOffset + 1);
+            token = rewriter.replaceToken(begin, token, replacement);
             token = parseArgumentOrIndexStar(token);
           } else {
             token = reportUnexpectedToken(token).next;
