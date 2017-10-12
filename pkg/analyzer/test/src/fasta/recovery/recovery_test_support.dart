@@ -17,10 +17,12 @@ import '../../../generated/parser_fasta_test.dart';
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
       String invalidCode, List<ErrorCode> errorCodes, String validCode,
-      [List<ErrorCode> errorsInValidCode = const <ErrorCode>[]]) {
+      {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit)}) {
     CompilationUnit invalidUnit = parseCompilationUnit(invalidCode, errorCodes);
-    CompilationUnit validUnit =
-        parseCompilationUnit(validCode, errorsInValidCode);
+    CompilationUnit validUnit = parseCompilationUnit(validCode);
+    if (adjustValidUnitBeforeComparison != null) {
+      validUnit = adjustValidUnitBeforeComparison(validUnit);
+    }
     ResultComparator.compare(invalidUnit, validUnit);
   }
 }

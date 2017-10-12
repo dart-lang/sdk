@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -107,8 +108,12 @@ class A extends C with B {}
     testRecovery('''
 class A with B, C {}
 ''', [ParserErrorCode.WITH_WITHOUT_EXTENDS], '''
-class A with B, C {}
-''', [ParserErrorCode.WITH_WITHOUT_EXTENDS]);
+class A extends Object with B, C {}
+''', adjustValidUnitBeforeComparison: (CompilationUnit unit) {
+      ClassDeclaration declaration = unit.declarations[0];
+      declaration.extendsClause = null;
+      return unit;
+    });
   }
 }
 
@@ -118,52 +123,56 @@ class A with B, C {}
  */
 @reflectiveTest
 class CompilationUnitMemberTest extends AbstractRecoveryTest {
-  @failingTest
   void test_declarationBeforeDirective_export() {
-    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 export 'bar.dart';
 ''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
 export 'bar.dart';
 class C { }
-''');
+''', adjustValidUnitBeforeComparison: (CompilationUnit unit) {
+      unit.beginToken = unit.declarations[0].beginToken;
+      return unit;
+    });
   }
 
-  @failingTest
   void test_declarationBeforeDirective_import() {
-    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 import 'bar.dart';
 ''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
 import 'bar.dart';
 class C { }
-''');
+''', adjustValidUnitBeforeComparison: (CompilationUnit unit) {
+      unit.beginToken = unit.declarations[0].beginToken;
+      return unit;
+    });
   }
 
-  @failingTest
   void test_declarationBeforeDirective_part() {
-    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 part 'bar.dart';
 ''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
 part 'bar.dart';
 class C { }
-''');
+''', adjustValidUnitBeforeComparison: (CompilationUnit unit) {
+      unit.beginToken = unit.declarations[0].beginToken;
+      return unit;
+    });
   }
 
-  @failingTest
   void test_declarationBeforeDirective_part_of() {
-    // TODO(danrubel): members are not reordered
     testRecovery('''
 class C { }
 part of foo;
 ''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
 part of foo;
 class C { }
-''');
+''', adjustValidUnitBeforeComparison: (CompilationUnit unit) {
+      unit.beginToken = unit.declarations[0].beginToken;
+      return unit;
+    });
   }
 
   @failingTest
