@@ -1277,6 +1277,9 @@ regress_22936_test: MissingCompileTimeError
 regress_23089_test: MissingCompileTimeError
 regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
+setter4_test: MissingCompileTimeError
+setter_no_getter_call_test/01: StaticWarning
+setter_override2_test/none: CompileTimeError
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
 string_no_operator_test/02: MissingCompileTimeError
