@@ -210,7 +210,22 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 }
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
-  return false;
+  pthread_attr_t attr;
+  if (pthread_getattr_np(pthread_self(), &attr) != 0) {
+    return false;
+  }
+
+  void* base;
+  size_t size;
+  int error = pthread_attr_getstack(&attr, &base, &size);
+  pthread_attr_destroy(&attr);
+  if (error != 0) {
+    return false;
+  }
+
+  *lower = reinterpret_cast<uword>(base);
+  *upper = *lower + size;
+  return true;
 }
 
 Mutex::Mutex(NOT_IN_PRODUCT(const char* name))

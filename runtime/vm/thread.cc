@@ -386,19 +386,11 @@ void Thread::PrepareForGC() {
 }
 
 void Thread::SetStackLimitFromStackBase(uword stack_base) {
-// Set stack limit.
-#if !defined(TARGET_ARCH_DBC)
 #if defined(USING_SIMULATOR)
-  // Ignore passed-in native stack top and use Simulator stack top.
-  Simulator* sim = Simulator::Current();  // May allocate a simulator.
-  ASSERT(isolate()->simulator() == sim);  // Isolate's simulator is current one.
-  stack_base = sim->StackTop();
-// The overflow area is accounted for by the simulator.
-#endif
-  SetStackLimit(stack_base - OSThread::GetSpecifiedStackSize());
+  SetStackLimit(Simulator::Current()->stack_limit());
 #else
-  SetStackLimit(Simulator::Current()->StackTop());
-#endif  // !defined(TARGET_ARCH_DBC)
+  SetStackLimit(OSThread::Current()->stack_limit_with_headroom());
+#endif
 }
 
 void Thread::SetStackLimit(uword limit) {
