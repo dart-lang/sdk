@@ -130,7 +130,6 @@ ref_before_declaration_test/06: MissingCompileTimeError
 regress_22976_test: CompileTimeError # Issue 23132
 regress_24283_test: RuntimeError # Issue 1533
 regress_28341_test: Fail # Issue 28340
-regress_29349_test: CompileTimeError # Issue 29745
 regress_29481_test: Crash # Issue 29754
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
 setter4_test: CompileTimeError # issue 13639

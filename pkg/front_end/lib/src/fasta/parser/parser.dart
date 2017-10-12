@@ -384,22 +384,26 @@ class Parser {
         directiveState?.checkDeclaration();
         return parseTopLevelMember(token);
       }
-    } else if (optional('(', token.next)) {
+    } else {
       // The remaining top level keywords are built-in keywords
       // and can be used as an identifier in a top level declaration
-      directiveState?.checkDeclaration();
-      return parseTopLevelMember(token);
-    } else if (identical(value, 'library')) {
-      directiveState?.checkLibrary(this, token);
-      return parseLibraryName(token);
-    } else if (identical(value, 'import')) {
-      directiveState?.checkImport(this, token);
-      return parseImport(token);
-    } else if (identical(value, 'export')) {
-      directiveState?.checkExport(this, token);
-      return parseExport(token);
-    } else if (identical(value, 'part')) {
-      return parsePartOrPartOf(token, directiveState);
+      // such as "abstract<T>() => 0;".
+      String nextValue = token.next.stringValue;
+      if (identical(nextValue, '(') || identical(nextValue, '<')) {
+        directiveState?.checkDeclaration();
+        return parseTopLevelMember(token);
+      } else if (identical(value, 'library')) {
+        directiveState?.checkLibrary(this, token);
+        return parseLibraryName(token);
+      } else if (identical(value, 'import')) {
+        directiveState?.checkImport(this, token);
+        return parseImport(token);
+      } else if (identical(value, 'export')) {
+        directiveState?.checkExport(this, token);
+        return parseExport(token);
+      } else if (identical(value, 'part')) {
+        return parsePartOrPartOf(token, directiveState);
+      }
     }
 
     throw "Internal error: Unhandled top level keyword '$value'.";
@@ -2412,6 +2416,27 @@ class Parser {
               identifiers = identifiers.tail;
               token = newType;
               continue;
+            }
+          }
+        } else if (token.type.isBuiltIn) {
+          // Handle the edge case where a built-in keyword is being used
+          // as the identifier, as in "abstract<T>() => 0;"
+          if (optional('<', token.next)) {
+            Token identifier = token;
+            if (token.next is BeginToken) {
+              token = token.next;
+              Token closeBrace = closeBraceTokenFor(token);
+              if (closeBrace == null) {
+                // Handle the edge case where the user is defining the less
+                // than operator, as in "bool operator <(other) => false;"
+                if (optional('operator', identifier)) {
+                  token = identifier;
+                } else {
+                  token = reportUnmatchedToken(token).next;
+                }
+              } else {
+                token = closeBrace;
+              }
             }
           }
         }

@@ -1223,6 +1223,25 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.body, isNotNull);
   }
 
+  void test_parseClassMember_operator_lessThan() {
+    createParser('bool operator <(other) => false;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name.name, '<');
+    expect(method.operatorKeyword, isNotNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
   void test_parseClassMember_operator_index() {
     createParser('int operator [](int i) {}');
     ClassMember member = parser.parseClassMember('C');
@@ -14069,21 +14088,22 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCompilationUnit_builtIn_asFunctionName() {
-    parseCompilationUnit('abstract(x) => 0;');
-    parseCompilationUnit('as(x) => 0;');
-    parseCompilationUnit('dynamic(x) => 0;');
-    parseCompilationUnit('export(x) => 0;');
-    parseCompilationUnit('external(x) => 0;');
-    parseCompilationUnit('factory(x) => 0;');
-    parseCompilationUnit('get(x) => 0;');
-    parseCompilationUnit('implements(x) => 0;');
-    parseCompilationUnit('import(x) => 0;');
-    parseCompilationUnit('library(x) => 0;');
-    parseCompilationUnit('operator(x) => 0;');
-    parseCompilationUnit('part(x) => 0;');
-    parseCompilationUnit('set(x) => 0;');
-    parseCompilationUnit('static(x) => 0;');
-    parseCompilationUnit('typedef(x) => 0;');
+    for (Keyword keyword in Keyword.values) {
+      if (keyword.isBuiltIn) {
+        String lexeme = keyword.lexeme;
+        parseCompilationUnit('$lexeme(x) => 0;');
+      }
+    }
+  }
+
+  @failingTest
+  void test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter() {
+    for (Keyword keyword in Keyword.values) {
+      if (keyword.isBuiltIn) {
+        String lexeme = keyword.lexeme;
+        parseCompilationUnit('$lexeme<T>(x) => 0;');
+      }
+    }
   }
 
   void test_parseCompilationUnit_directives_multiple() {

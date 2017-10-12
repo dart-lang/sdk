@@ -4072,6 +4072,12 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
+  void test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter() {
+    // Fasta correctly parses these, while analyzer does not.
+    super.test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter();
+  }
+
+  @override
   @failingTest
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
     // TODO(paulberry): As of commit 5de9108 this syntax is invalid.

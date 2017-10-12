@@ -178,8 +178,6 @@ method_name_test: CompileTimeError # Fasta bug: Parser bug.
 
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 
-regress_29349_test: CompileTimeError # Fasta bug: Parser bug.
-
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 
 syntax_test/none: CompileTimeError # Issue #30176.
