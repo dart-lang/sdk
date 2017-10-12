@@ -905,11 +905,6 @@ class StreamingFlowGraphBuilder {
   void SetOffset(intptr_t offset);
 
  private:
-  void LoadAndSetupTypeParameters(ActiveClass* active_class,
-                                  const Object& set_on,
-                                  intptr_t type_parameter_count,
-                                  const Function& parameterized_function);
-
   void DiscoverEnclosingElements(Zone* zone,
                                  const Function& function,
                                  Function* outermost_function);
@@ -1187,8 +1182,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildFunctionDeclaration();
   Fragment BuildFunctionNode(TokenPosition parent_position,
                              StringIndex name_index);
-  void SetupFunctionParameters(ActiveClass* active_class,
-                               const Class& klass,
+  void SetupFunctionParameters(const Class& klass,
                                const Function& function,
                                bool is_method,
                                bool is_closure,

@@ -1887,11 +1887,6 @@ class RawClosure : public RawInstance {
   // used to instantiate the signature of function_ when this closure is
   // involved in a type test. In other words, these fields define the function
   // type of this closure instance, but they are not used when invoking it.
-  // Whereas the source frontend will save a copy of the function's type
-  // arguments in the closure's context and only use the
-  // function_type_arguments_ field for type tests, the kernel frontend will use
-  // the function_type_arguments_ vector here directly.
-  //
   // If this closure is generic, it can be invoked with function type arguments
   // that will be processed in the prolog of the closure function_. For example,
   // if the generic closure function_ has a generic parent function, the

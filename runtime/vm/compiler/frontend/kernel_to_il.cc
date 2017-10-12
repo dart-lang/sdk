@@ -26,62 +26,6 @@ namespace kernel {
 #define T (type_translator_)
 #define I Isolate::Current()
 
-ActiveTypeParametersScope::ActiveTypeParametersScope(ActiveClass* active_class,
-                                                     const Function& innermost,
-                                                     Zone* Z)
-    : active_class_(active_class), saved_(*active_class) {
-  intptr_t num_params = 0;
-
-  Function& f = Function::Handle(Z);
-  TypeArguments& f_params = TypeArguments::Handle(Z);
-  for (f = innermost.raw(); f.parent_function() != Object::null();
-       f = f.parent_function()) {
-    f_params = f.type_parameters();
-    num_params += f_params.Length();
-  }
-  if (num_params == 0) return;
-
-  TypeArguments& params =
-      TypeArguments::Handle(Z, TypeArguments::New(num_params));
-
-  intptr_t index = num_params;
-  for (f = innermost.raw(); f.parent_function() != Object::null();
-       f = f.parent_function()) {
-    f_params = f.type_parameters();
-    for (intptr_t j = f_params.Length() - 1; j >= 0; --j) {
-      params.SetTypeAt(--index, AbstractType::Handle(Z, f_params.TypeAt(j)));
-    }
-  }
-
-  active_class_->local_type_parameters = &params;
-}
-
-ActiveTypeParametersScope::ActiveTypeParametersScope(
-    ActiveClass* active_class,
-    const TypeArguments& new_params,
-    Zone* Z)
-    : active_class_(active_class), saved_(*active_class) {
-  if (new_params.IsNull()) return;
-
-  const TypeArguments* old_params = active_class->local_type_parameters;
-  const intptr_t old_param_count =
-      old_params == NULL ? 0 : old_params->Length();
-  const TypeArguments& extended_params = TypeArguments::Handle(
-      Z, TypeArguments::New(old_param_count + new_params.Length()));
-
-  intptr_t index = 0;
-  for (intptr_t i = 0; i < old_param_count; ++i) {
-    extended_params.SetTypeAt(
-        index++, AbstractType::ZoneHandle(Z, old_params->TypeAt(i)));
-  }
-  for (intptr_t i = 0; i < new_params.Length(); ++i) {
-    extended_params.SetTypeAt(
-        index++, AbstractType::ZoneHandle(Z, new_params.TypeAt(i)));
-  }
-
-  active_class_->local_type_parameters = &extended_params;
-}
-
 Fragment& Fragment::operator+=(const Fragment& other) {
   if (entry == NULL) {
     entry = other.entry;
@@ -872,6 +816,9 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 // This function is responsible for pushing a type arguments vector which
 // contains all type arguments of enclosing functions prepended to the type
 // arguments of the current function.
+//
+// TODO(30455): Kernel generic methods undone. This doesn't work for generic
+// closures.
 Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
   Fragment instructions;
   if (!FLAG_reify_generic_functions) {
@@ -881,7 +828,7 @@ Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
 
   const Function& function = parsed_function_->function();
 
-  if (function.IsClosureFunction() && !function.IsGeneric()) {
+  if (function.IsClosureFunction() /* TODO(30455): && !function.IsGeneric()*/) {
     LocalScope* scope = parsed_function_->node_sequence()->scope();
     LocalVariable* closure = scope->VariableAt(0);
     ASSERT(closure != NULL);

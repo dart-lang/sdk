@@ -41,4 +41,10 @@ class VmGenericTypesReifiedTarget extends vmcc_target.VmClosureConvertedTarget {
   // TODO(dmitryas): remove this when the libraries are in dart:_internal
   @override
   void performTreeShaking(CoreTypes coreTypes, Program program) {}
+
+  // Here we disable Erasure pass of VmTarget class. The information deleted by
+  // the Erasure pass is required for Generic Type Reification. Also, reify
+  // transformation also performs its own Erasure pass.
+  @override
+  void performErasure(Program program) {}
 }

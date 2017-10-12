@@ -190,7 +190,7 @@ typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 
 class ActiveClass {
  public:
-  ActiveClass() : klass(NULL), member(NULL), local_type_parameters(NULL) {}
+  ActiveClass() : klass(NULL), member(NULL) {}
 
   bool HasMember() { return member != NULL; }
 
@@ -220,8 +220,6 @@ class ActiveClass {
   const Class* klass;
 
   const Function* member;
-
-  const TypeArguments* local_type_parameters;
 };
 
 class ActiveClassScope {
@@ -247,26 +245,6 @@ class ActiveMemberScope {
   }
 
   ~ActiveMemberScope() { *active_class_ = saved_; }
-
- private:
-  ActiveClass* active_class_;
-  ActiveClass saved_;
-};
-
-class ActiveTypeParametersScope {
- public:
-  // Set the local type parameters of the ActiveClass to be exactly all type
-  // parameters defined by 'innermost' and any enclosing *closures* (but not
-  // enclosing methods/top-level functions/classes).
-  ActiveTypeParametersScope(ActiveClass* active_class,
-                            const Function& innermost,
-                            Zone* Z);
-
-  // Append the list of the local type parameters to the list in ActiveClass.
-  ActiveTypeParametersScope(ActiveClass* active_class,
-                            const TypeArguments& new_params,
-                            Zone* Z);
-  ~ActiveTypeParametersScope() { *active_class_ = saved_; }
 
  private:
   ActiveClass* active_class_;

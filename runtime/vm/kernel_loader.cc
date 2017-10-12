@@ -493,17 +493,17 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
   }
 }
 
-void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
+void KernelLoader::LoadPreliminaryClass(Class* klass,
+                                        ClassHelper* class_helper,
                                         intptr_t type_parameter_count) {
-  const Class* klass = active_class_.klass;
   // Note: This assumes that ClassHelper is exactly at the position where
   // the length of the type parameters have been read, and that the order in
   // the binary is as follows: [...], kTypeParameters, kSuperClass, kMixinType,
   // kImplementedClasses, [...].
 
   // Set type parameters.
-  builder_.LoadAndSetupTypeParameters(
-      &active_class_, *klass, type_parameter_count, Function::Handle(Z));
+  LoadAndSetupTypeParameters(*klass, type_parameter_count, *klass,
+                             Function::Handle(Z));
 
   // Set super type.  Some classes (e.g., Object) do not have one.
   Tag type_tag = builder_.ReadTag();  // read super class type (part 1).
@@ -566,7 +566,7 @@ Class& KernelLoader::LoadClass(const Library& library,
 
   ActiveClassScope active_class_scope(&active_class_, &klass);
   if (!klass.is_cycle_free()) {
-    LoadPreliminaryClass(&class_helper, type_parameter_counts);
+    LoadPreliminaryClass(&klass, &class_helper, type_parameter_counts);
   } else {
     for (intptr_t i = 0; i < type_parameter_counts; ++i) {
       builder_.SkipStringReference();  // read ith name index.
@@ -658,8 +658,8 @@ Class& KernelLoader::LoadClass(const Library& library,
 
     FunctionNodeHelper function_node_helper(&builder_);
     function_node_helper.ReadUntilExcluding(
-        FunctionNodeHelper::kTypeParameters);
-    builder_.SetupFunctionParameters(&active_class_, klass, function,
+        FunctionNodeHelper::kRequiredParameterCount);
+    builder_.SetupFunctionParameters(klass, function,
                                      true,   // is_method
                                      false,  // is_closure
                                      &function_node_helper);
@@ -819,7 +819,18 @@ void KernelLoader::LoadProcedure(const Library& library,
   }
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
-  builder_.SetupFunctionParameters(&active_class_, owner, function, is_method,
+  if (!function.IsFactory()) {
+    // Read type_parameters list length.
+    intptr_t type_parameter_count = builder_.ReadListLength();
+    // Set type parameters.
+    LoadAndSetupTypeParameters(function, type_parameter_count, Class::Handle(Z),
+                               function);
+    function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
+  }
+
+  function_node_helper.ReadUntilExcluding(
+      FunctionNodeHelper::kRequiredParameterCount);
+  builder_.SetupFunctionParameters(owner, function, is_method,
                                    false,  // is_closure
                                    &function_node_helper);
 
@@ -838,6 +849,69 @@ void KernelLoader::LoadProcedure(const Library& library,
   if (FLAG_enable_mirrors && annotation_count > 0) {
     library.AddFunctionMetadata(function, TokenPosition::kNoSource,
                                 procedure_offset);
+  }
+}
+
+void KernelLoader::LoadAndSetupTypeParameters(
+    const Object& set_on,
+    intptr_t type_parameter_count,
+    const Class& parameterized_class,
+    const Function& parameterized_function) {
+  ASSERT(type_parameter_count >= 0);
+  if (type_parameter_count == 0) {
+    return;
+  }
+  // First setup the type parameters, so if any of the following code uses it
+  // (in a recursive way) we're fine.
+  TypeArguments& type_parameters =
+      TypeArguments::Handle(Z, TypeArguments::null());
+  TypeParameter& parameter = TypeParameter::Handle(Z);
+  Type& null_bound = Type::Handle(Z, Type::null());
+
+  // Step a) Create array of [TypeParameter] objects (without bound).
+  type_parameters = TypeArguments::New(type_parameter_count);
+  {
+    AlternativeReadingScope alt(builder_.reader_);
+    for (intptr_t i = 0; i < type_parameter_count; i++) {
+      builder_.SkipFlags();
+      builder_.SkipListOfExpressions();  // read annotations.
+      parameter = TypeParameter::New(
+          parameterized_class, parameterized_function, i,
+          H.DartSymbol(builder_.ReadStringReference()),  // read ith name index.
+          null_bound, TokenPosition::kNoSource);
+      type_parameters.SetTypeAt(i, parameter);
+      builder_.SkipDartType();  // read guard.
+    }
+  }
+
+  ASSERT(set_on.IsClass() || set_on.IsFunction());
+  if (set_on.IsClass()) {
+    Class::Cast(set_on).set_type_parameters(type_parameters);
+  } else {
+    Function::Cast(set_on).set_type_parameters(type_parameters);
+  }
+
+  // Step b) Fill in the bounds of all [TypeParameter]s.
+  for (intptr_t i = 0; i < type_parameter_count; i++) {
+    builder_.SkipFlags();
+    builder_.SkipListOfExpressions();  // read annotations.
+    builder_.SkipStringReference();    // read ith name index.
+
+    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
+    // by the frontend.
+    parameter ^= type_parameters.TypeAt(i);
+    Tag tag = builder_.PeekTag();  // peek ith bound type.
+    if (tag == kDynamicType) {
+      builder_.SkipDartType();  // read ith bound.
+      parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
+    } else {
+      AbstractType& bound =
+          T.BuildTypeWithoutFinalization();  // read ith bound.
+      if (bound.IsMalformedOrMalbounded()) {
+        bound = I->object_store()->object_type();
+      }
+      parameter.set_bound(bound);
+    }
   }
 }
 
