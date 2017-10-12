@@ -4,6 +4,8 @@
 
 
 Require Import Coq.Lists.SetoidList.
+Require Import Coq.Init.Wf.
+Require Import Omega.
 
 Require Import Common.
 Require Import Syntax.
@@ -105,6 +107,69 @@ Proof.
     exists intf, desc; split; auto
 
   ).
+Qed.
+
+
+Lemma subtype_means_equals :
+  forall type_pair, subtype type_pair = true -> fst type_pair = snd type_pair.
+Proof.
+  intro.
+  apply well_founded_ind with (R := pair_size_order) (a := type_pair).
+  apply pair_size_order_wf.
+  intros.
+
+  assert ((fst x) <: (snd x)).
+    destruct x. simpl. auto.
+  destruct (fst x) eqn:?. destruct (snd x) eqn:?.
+  (* t1 : Interface Type, t2 : Interface Type. *)
+  simplify_subtypes.
+  apply N.eqb_eq in H1. rewrite H1. reflexivity.
+  (* t1 : Interface Type, t2 : Function Type. *)
+  simplify_subtypes.
+  destruct (snd x) eqn :?.
+  (* t1 : Function Type, t2 : Interface Type. *)
+  simplify_subtypes.
+  (* t1 : Function Type, t2 : Function Type. *)
+  simplify_subtypes.
+  apply andb_true_iff in H1. destruct H1.
+  assert (d = d1).
+    apply H with (y := (d, d1)).
+    unfold pair_size_order. destruct x.
+    simpl in Heqd. simpl in Heqd0. rewrite Heqd, Heqd0.
+    unfold pair_size. simpl.
+    omega.
+    auto.
+  assert (d2 = d0).
+    apply H with (y := (d2, d0)).
+    unfold pair_size_order. destruct x.
+    simpl in Heqd. simpl in Heqd0. rewrite Heqd, Heqd0.
+    unfold pair_size. simpl.
+    omega.
+    auto.
+  rewrite H3, H4.
+  reflexivity.
+Qed.
+
+
+Lemma structural_subtype_methods :
+  forall type1 type2 name,
+  method_exists CE ME (Some type1) name ->
+  type2 <: type1 ->
+  method_exists CE ME (Some type2) name.
+Proof.
+  intros.
+  apply subtype_means_equals in H0. simpl in H0. rewrite H0. auto.
+Qed.
+
+
+Lemma structural_subtype_getters :
+  forall type1 type2 name,
+  getter_exists CE ME (Some type1) name ->
+  type2 <: type1 ->
+  getter_exists CE ME (Some type2) name.
+Proof.
+  intros.
+  apply subtype_means_equals in H0. simpl in H0. rewrite H0. auto.
 Qed.
 
 
@@ -431,8 +496,187 @@ Qed.
 Lemma configuration_valid_wf :
   forall conf, configuration_valid CE ME conf -> configuration_wf CE ME conf.
 Proof.
-  admit.
-Admitted.
+  intros. destruct H.
+
+  (* Case 1. Eval Configuration. *)
+  destruct H2.
+
+    (* Case 1.1. Eval Variable Get. *)
+    constructor. auto.
+
+    (* Case 1.2. Eval Property Get. *)
+    remember (E_Property_Get (Property_Get expr name)) as expr0.
+    destruct H3.
+    assert (
+      exists rcvr_type,
+        expression_type CE (env_to_type_env env) expr = Some rcvr_type
+    ).
+      rewrite Heqexpr0 in H3. simpl in H3.
+      destruct (expression_type CE (env_to_type_env env) expr) eqn:?;
+        try discriminate H3.
+      exists d. reflexivity.
+    destruct H5 as (rcvr_type & H6).
+    rewrite Heqexpr0. destruct name.
+    constructor 3 with (rcvr_type := rcvr_type).
+    auto.
+
+    (* Case 1.3. Eval Constructor Invocation. *)
+    constructor.
+    remember
+      (E_Invocation_Expression
+        (IE_Constructor_Invocation
+          (Constructor_Invocation class_id)))
+      as expr.
+    destruct H; try discriminate Heqexpr.
+    assert (ref = class_id).
+      injection Heqexpr. intros. auto.
+    rewrite <- H2. auto.
+
+    (* Case 1.4. Eval Method Invocation. *)
+    remember
+      (E_Invocation_Expression
+        (IE_Method_Invocation
+          (Method_Invocation rcvr_expr name (Arguments arg_expr) ref)))
+      as expr.
+    destruct H3.
+    assert (
+      exists rcvr_type,
+        expression_type CE (env_to_type_env env) rcvr_expr = Some rcvr_type
+    ).
+      rewrite Heqexpr in H2. simpl in H2.
+      destruct (expression_type CE (env_to_type_env env) rcvr_expr) eqn:?;
+        try discriminate H2.
+      exists d. reflexivity.
+    destruct H4 as (rcvr_type & H5).
+    rewrite Heqexpr. destruct name.
+    constructor 2 with (rcvr_type := rcvr_type).
+    auto.
+
+  (* Case 2. Exec Configuration. *)
+  destruct H3.
+
+    (* Case 2.1. Exec Expression Statement. *)
+    remember
+      (S_Expression_Statement
+        (Expression_Statement expr))
+      as stmt.
+    destruct H4.
+    assert (
+      exists expr_type,
+        expression_type CE (env_to_type_env env) expr = Some expr_type
+    ).
+      rewrite Heqstmt in H4. simpl in H4.
+      destruct (expression_type CE (env_to_type_env env) expr) eqn:?;
+        try discriminate H4.
+      exists d. auto.
+    destruct H6 as (expr_type & H7).
+    rewrite Heqstmt.
+    constructor 8 with (expr_type := expr_type).
+    auto.
+
+    (* Case 2.2. Exec Empty Block. *)
+    constructor.
+
+    (* Case 2.3. Exec Non-Empty Block. *)
+    constructor.
+
+    (* Case 2.4. Exec Return Statement. *)
+    constructor.
+
+    (* Case 2.5. Exec Variable Declaration without Initializer. *)
+    constructor.
+
+    (* Case 2.6. Exec Variable Declaration with Initializer. *)
+    remember
+      (S_Variable_Declaration
+        (Variable_Declaration var type (Some init_expr)))
+      as stmt.
+    destruct H4.
+    assert (
+      exists init_type,
+        expression_type CE (env_to_type_env env) init_expr = Some init_type
+    ).
+      rewrite Heqstmt in H4. simpl in H4.
+      destruct (expression_type CE (env_to_type_env env) init_expr) eqn:?;
+        try discriminate H4.
+      exists d. auto.
+    destruct H6 as (init_type & H7).
+    rewrite Heqstmt.
+    constructor 5 with (init_type := init_type).
+    auto.
+
+  (* Case 3. Value Passing Configuration *)
+  destruct cont. destruct u.
+
+    (* Case 3.1. Pass Value to ExpressionEK. *)
+    constructor.
+
+    (* Case 3.2. Pass Value to MethodInvocationEK. *)
+    destruct (runtime_type val) eqn:?.
+
+      (* Case 3.2.1. Non Null Value. Actual Invocation. *)
+      remember (Expression_Continuation (Method_Invocation_Ek s e e0 e1) d)
+        as econt.
+      destruct H; try discriminate Heqecont.
+      constructor 10 with (arg_type := arg_type) (rcvr_type := d0).
+      auto.
+      auto.
+
+      (* Case 3.2.2. Null Value. No Such Method. *)
+      assert (val = mk_runtime_value None).
+        destruct val. simpl in Heqo. rewrite Heqo. reflexivity.
+      rewrite H2.
+      constructor.
+      rewrite <- H2. auto.
+
+    (* Case 3.3. Pass Value to InvocationEK. *)
+    remember (Expression_Continuation (Invocation_Ek r s e e0) d) as econt.
+    destruct H; try discriminate Heqecont.
+    remember (runtime_type rcvr_val) as rcvr_val_type.
+    destruct H3; constructor; rewrite <- Heqrcvr_val_type; auto.
+
+    (* Case 3.4. Pass Value to PropertyGetEK. *)
+    destruct (runtime_type val) eqn:?.
+    assert (val = mk_runtime_value (Some d0)).
+      destruct val. rewrite <- Heqo. simpl. reflexivity.
+
+      (* Case 3.4.1. Non Null Value. Actual Invocation. *)
+      constructor 12 with (rcvr_type := d0).
+      auto.
+      rewrite H2. simpl.
+      remember (Expression_Continuation (Property_Get_Ek s e) d) as econt.
+      destruct H1; try discriminate Heqo.
+      assert (type = d0). injection Heqo. intros. auto.
+      rewrite H3 in *.
+      remember (Expression_Continuation cont expected_type) as econt.
+      destruct H; try discriminate Heqecont.
+      remember (Some rcvr_type) as rt.
+      destruct H4.
+      assert (rcvr_type0 = rcvr_type). injection Heqrt. intros. auto.
+      rewrite H11 in *.
+      assert (rcvr_type = expected_type). injection Heqecont0. intros. auto.
+      rewrite H12 in *.
+      apply structural_subtype_getters with
+        (type1 := expected_type) (type2 := d0).
+      auto.
+      assert (name = s). injection Heqecont. intros. auto.
+      rewrite <- H13.
+      auto.
+      auto.
+
+      (* Case 3.4.2. Null Value. No Such Getter. *)
+      constructor. auto.
+
+    (* Case 3.5. Pass Value to Var Declaration. *)
+    constructor.
+
+    (* Case 3.6. Pass Value to Halt. *)
+    remember (Expression_Continuation Halt_Ek d) as econt.
+    destruct H; discriminate Heqecont.
+
+    (* Case 4. Forward Configuration. *)
+    constructor.
+Qed.
 
 
 Lemma configuration_valid_step :

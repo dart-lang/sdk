@@ -810,7 +810,7 @@ Inductive configuration_wf : configuration -> Prop :=
         env ret_cont next_cont)
 
   (** TODO(dmitryas): Write descriptive comment here. *)
-  | Exec_Block_Empty_Wf :
+  | Exec_Block_Wf :
     forall stmts env ret_cont next_cont,
     configuration_wf
       (Exec_Configuration (S_Block (Block stmts)) env ret_cont next_cont)
@@ -1251,11 +1251,6 @@ Inductive econt_valid : expression_continuation -> Prop :=
       (Expression_Continuation
         (Var_Declaration_Ek var var_type env next_cont)
         init_type)
-
-  | CV_Halt_Ek :
-    forall type,
-    dart_type_valid (Some type) ->
-    econt_valid (Expression_Continuation Halt_Ek type)
 
 with scont_valid : statement_continuation -> Prop :=
 
