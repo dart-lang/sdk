@@ -67,9 +67,7 @@ class AccessorInferenceNode extends MemberInferenceNode {
       DartType overriddenType;
       if (resolvedCandidate is SyntheticAccessor) {
         var field = resolvedCandidate._field;
-        if (field is ShadowField) {
-          ShadowMember.getInferenceNode(field)?.resolve();
-        }
+        ShadowMember.resolveInferenceNode(field);
         overriddenType = field.type;
       } else if (resolvedCandidate.function != null &&
           resolvedCandidate is Procedure) {

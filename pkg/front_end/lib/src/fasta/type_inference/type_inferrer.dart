@@ -1027,9 +1027,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         member = member is SyntheticAccessor
             ? SyntheticAccessor.getField(member)
             : member;
-        if (member is ShadowMember) {
-          ShadowMember.getInferenceNode(member)?.resolve();
-        }
+        ShadowMember.resolveInferenceNode(member);
         return member;
       }
     }

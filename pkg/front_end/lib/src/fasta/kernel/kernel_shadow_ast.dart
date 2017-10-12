@@ -1248,11 +1248,6 @@ abstract class ShadowMember implements Member {
   void setInferredType(
       TypeInferenceEngineImpl engine, String uri, DartType inferredType);
 
-  static InferenceNode getInferenceNode(Member member) {
-    if (member is ShadowMember) return member._inferenceNode;
-    return null;
-  }
-
   static void recordCrossOverride(
       ShadowMember member, Member overriddenMember) {
     var inferenceNode = member._inferenceNode;
@@ -1265,6 +1260,15 @@ abstract class ShadowMember implements Member {
     var inferenceNode = member._inferenceNode;
     if (inferenceNode is AccessorNode) {
       inferenceNode.overrides.add(overriddenMember);
+    }
+  }
+
+  static void resolveInferenceNode(Member member) {
+    if (member is ShadowMember) {
+      if (member._inferenceNode != null) {
+        member._inferenceNode.resolve();
+        member._inferenceNode = null;
+      }
     }
   }
 }
@@ -1590,9 +1594,8 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
       _storeLetType(inferrer, write, writeContext);
       var target = write.target;
       if (target is ShadowField && target._inferenceNode != null) {
-        if (inferrer.isTopLevel) {
-          target._inferenceNode.resolve();
-        }
+        target._inferenceNode.resolve();
+        target._inferenceNode = null;
       }
     }
     var inferredType = _inferRhs(inferrer, writeContext);
@@ -1613,9 +1616,8 @@ class ShadowStaticGet extends StaticGet implements ShadowExpression {
         inferrer.listener.staticGetEnter(this, typeContext) || typeNeeded;
     var target = this.target;
     if (target is ShadowField && target._inferenceNode != null) {
-      if (inferrer.isTopLevel) {
-        target._inferenceNode.resolve();
-      }
+      target._inferenceNode.resolve();
+      target._inferenceNode = null;
     }
     var inferredType = typeNeeded ? target.getterType : null;
     inferrer.listener.staticGetExit(this, inferredType);

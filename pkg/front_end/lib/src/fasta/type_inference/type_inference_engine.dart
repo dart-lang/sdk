@@ -426,6 +426,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     for (var node in staticInferenceNodes) {
       node.resolve();
     }
+    staticInferenceNodes.clear();
   }
 
   @override
@@ -484,10 +485,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 
   DartType _computeOverriddenAccessorType(Member override, Class thisClass) {
-    InferenceNode dependency = ShadowMember.getInferenceNode(override);
-    if (dependency != null) {
-      dependency.resolve();
-    }
+    ShadowMember.resolveInferenceNode(override);
     DartType overriddenType;
     if (override is Field) {
       overriddenType = override.type;
