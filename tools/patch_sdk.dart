@@ -336,8 +336,14 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
     //       dart/
     //       flutter/
     var srcDir = path.dirname(path.dirname(path.dirname(path.absolute(base))));
-    var uiLibraryInDir = path.join(srcDir, 'flutter', 'lib', 'ui');
-    for (var file in new Directory(uiLibraryInDir).listSync()) {
+    var uiLibraryInDir =
+        new Directory(path.join(srcDir, 'flutter', 'lib', 'ui'));
+    if (!uiLibraryInDir.existsSync()) {
+      // Must be Fuchsia!
+      uiLibraryInDir = new Directory(
+          path.join(srcDir, 'third_party', 'flutter', 'lib', 'ui'));
+    }
+    for (var file in uiLibraryInDir.listSync()) {
       if (!file.path.endsWith('.dart')) continue;
       var name = path.basename(file.path);
       var uiLibraryOut = path.join(sdkOut, 'ui', name);
