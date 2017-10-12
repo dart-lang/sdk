@@ -282,7 +282,7 @@ class GetTestFailuresCommand extends Command {
 
     print("All result logs fetched.");
     var estimatedTime =
-        new Duration(milliseconds: testResult.results.length * 60 ~/ 1000);
+        new Duration(milliseconds: testResult.results.length * 100 ~/ 1000);
     print("Calling test.py to find status files for the configuration and "
         "the expectation for ${testResult.results.length} tests. "
         "Estimated time remaining is ${estimatedTime.inSeconds} seconds...");
@@ -367,7 +367,9 @@ class GetTestMatrix extends Command {
 
 /// Prints a test result.
 void printFailingTestExpectationResults(List<TestExpectationResult> results) {
-  var failing = results.where((x) => !x.isSuccess());
+  List<TestExpectationResult> failing =
+      results.where((x) => !x.isSuccess()).toList();
+  failing.sort((a, b) => a.result.name.compareTo(b.result.name));
   int index = 0;
   failing.forEach((fail) => printFailingTest(fail, index++));
   if (index == 0) {
