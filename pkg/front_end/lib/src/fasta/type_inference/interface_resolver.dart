@@ -486,17 +486,6 @@ class ForwardingNode extends Procedure {
       for (var fix in covarianceFixes) {
         fix(function);
       }
-      if (inheritedMember is SyntheticAccessor) {
-        var field = inheritedMember._field;
-        if (inheritedMember.kind == ProcedureKind.Setter) {
-          // Propagate covariance fixes to the field.
-          var setterParameter = function.positionalParameters[0];
-          field.isCovariant = setterParameter.isCovariant;
-          field.isGenericCovariantInterface =
-              setterParameter.isGenericCovariantInterface;
-          field.isGenericCovariantImpl = setterParameter.isGenericCovariantImpl;
-        }
-      }
       return inheritedMember;
     }
   }
@@ -1041,6 +1030,10 @@ class MethodInferenceNode extends MemberInferenceNode {
     var declaredTypeParameters = _declaredMethod.function.typeParameters;
     for (int i = _start; i < _end; i++) {
       var candidate = _candidates[i];
+      if (candidate is SyntheticAccessor) {
+        // This can happen if there are errors.  Just skip this override.
+        continue;
+      }
       var candidateFunction = candidate.function;
       if (candidateFunction == null) {
         // This can happen if there are errors.  Just skip this override.
@@ -1077,13 +1070,84 @@ class SyntheticAccessor extends Procedure {
 
   SyntheticAccessor(
       Name name, ProcedureKind kind, FunctionNode function, this._field)
-      : super(name, kind, function);
+      : super(
+            name,
+            kind,
+            kind == ProcedureKind.Setter
+                ? new SyntheticAccessorFunctionNode.setter(_field)
+                : new SyntheticAccessorFunctionNode.getter(_field),
+            fileUri: _field.fileUri) {
+    fileOffset = _field.fileOffset;
+  }
 
   @override
-  int get fileOffset => _field.fileOffset;
-
-  @override
-  String get fileUri => _field.fileUri;
+  DartType get getterType => _field.type;
 
   static getField(SyntheticAccessor accessor) => accessor._field;
+}
+
+/// A [SyntheticAccessorFunctionNode] represents the [FunctionNode] part of the
+/// getter or setter implied by a field.
+///
+/// For getters, [returnType] maps to the underlying field's type, so that if
+/// type inference fills in the type of the field, the change will automatically
+/// be reflected in the synthetic getter.
+class SyntheticAccessorFunctionNode extends FunctionNode {
+  final Field _field;
+
+  SyntheticAccessorFunctionNode.getter(this._field)
+      : super(new ReturnStatement());
+
+  SyntheticAccessorFunctionNode.setter(this._field)
+      : super(new ReturnStatement(),
+            positionalParameters: [new SyntheticSetterParameter(_field)]);
+
+  @override
+  DartType get returnType =>
+      positionalParameters.isEmpty ? _field.type : const VoidType();
+}
+
+/// A [SyntheticSetterParameter] represents the "value" parameter of the setter
+/// implied by a field.
+///
+/// The getters [isCovariant], [isGenericCovariantImpl],
+/// [isGenericCovariantInterface], and [type] map to the underlying field's
+/// properties, so that if these properties are modified on the field, the
+/// change will automatically be reflected in the synthetic setter.  Similarly,
+/// the setters [isCovariant], [isGenericCovariantImpl], and
+/// [isGenericCovariantInterface] update the corresponding properties on the
+/// field, so that covariance propagation logic can act uniformly on [Procedure]
+/// objects without having to have special case handling for fields.
+class SyntheticSetterParameter extends VariableDeclaration {
+  final Field _field;
+
+  SyntheticSetterParameter(this._field)
+      : super('_', isCovariant: _field.isCovariant);
+
+  @override
+  bool get isCovariant => _field.isCovariant;
+
+  @override
+  void set isCovariant(bool value) {
+    _field.isCovariant = value;
+  }
+
+  @override
+  bool get isGenericCovariantImpl => _field.isGenericCovariantImpl;
+
+  @override
+  void set isGenericCovariantImpl(bool value) {
+    _field.isGenericCovariantImpl = value;
+  }
+
+  @override
+  bool get isGenericCovariantInterface => _field.isGenericCovariantInterface;
+
+  @override
+  void set isGenericCovariantInterface(bool value) {
+    _field.isGenericCovariantInterface = value;
+  }
+
+  @override
+  DartType get type => _field.type;
 }
