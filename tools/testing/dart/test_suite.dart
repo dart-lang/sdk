@@ -624,6 +624,7 @@ class StandardTestSuite extends TestSuite {
       '$directory/${name}_dartdevc.status',
       '$directory/${name}_kernel.status',
       '$directory/${name}_precompiled.status',
+      '$directory/${name}_spec_parser.status',
       '$directory/${name}_vm.status',
     ];
 

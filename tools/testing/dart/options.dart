@@ -109,7 +109,10 @@ dartk:         Compile the Dart source into Kernel before running
 
 dartkp:        Compile the Dart source into Kernel and then Kernel
                into AOT snapshot before running the test.
-               (Only valid with runtime dart_precompiled.)''',
+               (Only valid with runtime dart_precompiled.)
+
+spec_parser:   Parse Dart code by running the specification parser.
+               (Only valid with runtime none.)''',
         abbr: 'c',
         values: Compiler.names,
         defaultsTo: Compiler.none.name),

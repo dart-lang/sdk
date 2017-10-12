@@ -25,10 +25,17 @@ import java.util.Stack;
 }
 
 @parser::members {
-  private String filePath = null;
-  private boolean errorHasOccurred = false;
+  static String filePath = null;
+  static boolean errorHasOccurred = false;
 
-  /** Parse library, return true if success, false if errors occurred. */
+  /// Must be invoked before the first error is reported for a library.
+  /// Will print the name of the library and indicate that it has errors.
+  static void prepareForErrors() {
+    errorHasOccurred = true;
+    System.err.println("Parse errors in " + filePath + ":");
+  }
+
+  /// Parse library, return true if success, false if errors occurred.
   public boolean parseLibrary(String filePath) throws RecognitionException {
     this.filePath = filePath;
     errorHasOccurred = false;
@@ -36,7 +43,8 @@ import java.util.Stack;
     return !errorHasOccurred;
   }
 
-  // Grammar debugging friendly output, 'The Definitive ANTLR Reference', p247.
+  /// Produce grammar debugging friendly output, as described in 'The
+  /// Definitive ANTLR Reference', p247.
   public String getErrorMessage(RecognitionException e, String[] tokenNames) {
     List stack = getRuleInvocationStack(e, this.getClass().getName());
     String msg = null;
@@ -50,10 +58,7 @@ import java.util.Stack;
     else {
       msg = super.getErrorMessage(e, tokenNames);
     }
-    if (!errorHasOccurred) {
-      errorHasOccurred = true;
-      System.err.println("Parse error in " + filePath + ":");
-    }
+    if (!errorHasOccurred) prepareForErrors();
     return stack + " " + msg;
   }
 
@@ -106,6 +111,13 @@ import java.util.Stack;
   public static final int BRACE_DOUBLE = 3;
   public static final int BRACE_THREE_SINGLE = 4;
   public static final int BRACE_THREE_DOUBLE = 5;
+
+  /// This override ensures that lexer errors are recognized as errors,
+  /// but does not change the format of the reported error.
+  public String getErrorMessage(RecognitionException e, String[] tokenNames) {
+    if (!DartParser.errorHasOccurred) DartParser.prepareForErrors();
+    return super.getErrorMessage(e, tokenNames);
+  }
 
   // Enable the parser to handle string interpolations via brace matching.
   // The top of the `braceLevels` stack describes the most recent unmatched
@@ -270,6 +282,7 @@ normalFormalParameterNoMetadata
     |    simpleFormalParameter
     ;
 
+// NB: It is an anomaly that a functionFormalParameter cannot be FINAL.
 functionFormalParameter
     :    COVARIANT? type? identifierNotFunction formalParameterPart
     ;
@@ -279,6 +292,7 @@ simpleFormalParameter
     |    COVARIANT? identifier
     ;
 
+// NB: It is an anomaly that VAR can be a return type (`var this.x()`).
 fieldFormalParameter
     :    finalConstVarOrType? THIS '.' identifier formalParameterPart?
     ;
@@ -335,13 +349,20 @@ methodSignature
 // rule, such that const factories in general are allowed.
 // TODO(eernst): Close that issue when this is integrated into the spec.
 
+// TODO(eernst): Note that `EXTERNAL? STATIC? functionSignature` includes
+// `STATIC functionSignature`, but a static function cannot be abstract.
+// We might want to make that a syntax error rather than a static semantic
+// check.
+
 declaration
     :    (EXTERNAL CONST? FACTORY constructorName '(') =>
          EXTERNAL factoryConstructorSignature
     |    EXTERNAL constantConstructorSignature
     |    (EXTERNAL constructorName '(') => EXTERNAL constructorSignature
-    |    ((EXTERNAL STATIC?)? type? GET) => (EXTERNAL STATIC?)? getterSignature
-    |    ((EXTERNAL STATIC?)? type? SET) => (EXTERNAL STATIC?)? setterSignature
+    |    ((EXTERNAL STATIC?)? type? GET identifier) =>
+         (EXTERNAL STATIC?)? getterSignature
+    |    ((EXTERNAL STATIC?)? type? SET identifier) =>
+         (EXTERNAL STATIC?)? setterSignature
     |    (EXTERNAL? type? OPERATOR) => EXTERNAL? operatorSignature
     |    (STATIC (FINAL | CONST)) =>
          STATIC (FINAL | CONST) type? staticFinalDeclarationList
@@ -912,7 +933,8 @@ statement
 // check.
 nonLabelledStatement
     :    (LBRACE) => block
-    |    (declaredIdentifier ('='|','|';')) => localVariableDeclaration
+    |    (metadata declaredIdentifier ('='|','|';')) =>
+         localVariableDeclaration
     |    (AWAIT? FOR) => forStatement
     |    whileStatement
     |    doStatement
@@ -935,7 +957,7 @@ expressionStatement
     ;
 
 localVariableDeclaration
-    :    initializedVariableDeclaration ';'
+    :    metadata initializedVariableDeclaration ';'
     ;
 
 initializedVariableDeclaration
@@ -955,8 +977,9 @@ forStatement
     ;
 
 forLoopParts
-    :    (declaredIdentifier IN) => declaredIdentifier IN expression
-    |    (identifier IN) => identifier IN expression
+    :    (metadata declaredIdentifier IN) =>
+         metadata declaredIdentifier IN expression
+    |    (metadata identifier IN) => metadata identifier IN expression
     |    forInitializerStatement expression? ';' expressionList?
     ;
 
@@ -1042,7 +1065,7 @@ assertStatement
     ;
 
 assertClause
-    :    ASSERT '(' expression (',' expression)? ')'
+    :    ASSERT '(' expression (',' expression)? ','? ')'
     ;
 
 libraryName
