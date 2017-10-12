@@ -351,10 +351,16 @@ class BinaryBuilder {
   void _readOneProgram(Program program, int programFileSize) {
     _programStartOffset = _byteOffset;
 
-    int magic = readUint32();
+    final int magic = readUint32();
     if (magic != Tag.ProgramFile) {
       throw fail('This is not a binary dart file. '
           'Magic number was: ${magic.toRadixString(16)}');
+    }
+
+    final int formatVersion = readUint32();
+    if (formatVersion != Tag.BinaryFormatVersion) {
+      throw fail('Invalid kernel binary format version '
+          '(found ${formatVersion}, expected ${Tag.BinaryFormatVersion})');
     }
 
     // Read program index from the end of this ProgramFiles serialized data.

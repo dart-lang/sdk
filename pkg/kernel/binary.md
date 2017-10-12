@@ -124,6 +124,7 @@ type CanonicalName {
 
 type ProgramFile {
   UInt32 magic = 0x90ABCDEF;
+  UInt32 formatVersion;
   MetadataPayload[] metadataPayloads;
   Library[] libraries;
   UriSource sourceMap;

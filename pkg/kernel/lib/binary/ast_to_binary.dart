@@ -202,6 +202,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     computeCanonicalNames(program);
     final programOffset = getBufferOffset();
     writeUInt32(Tag.ProgramFile);
+    writeUInt32(Tag.BinaryFormatVersion);
     indexLinkTable(program);
     indexUris(program);
     // Note: must write metadata payloads before any other node in the program

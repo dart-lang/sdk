@@ -16,9 +16,11 @@
 namespace dart {
 namespace kernel {
 
-static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
+// Keep in sync with package:kernel/lib/binary/tag.dart.
 
-// Keep in sync with package:dynamo/lib/binary/tag.dart
+static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
+static const uint32_t kBinaryFormatVersion = 1;
+
 enum Tag {
   kNothing = 0,
   kSomething = 1,
@@ -135,7 +137,9 @@ enum Tag {
 static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
 static const int SourceTableFieldCountFromFirstLibraryOffset = 3;
-static const int MetadataPayloadOffset = 4;  // Right after 'magic'.
+
+static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
+static const int MetadataPayloadOffset = HeaderSize;  // Right after header.
 
 class Reader {
  public:
