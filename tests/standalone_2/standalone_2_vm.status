@@ -31,6 +31,9 @@ link_natives_lazily_test: SkipByDesign
 # SIMDBC interpreter doesn't support --no_lazy_dispatchers
 no_lazy_dispatchers_test: SkipByDesign
 
+[ $arch == simdbc64 && $mode == debug && $checked ]
+io/web_socket_test: Pass, RuntimeError # Issue 26814.
+
 [ $system == windows ]
 io/skipping_dart2js_compilations_test: Skip # Issue 19551.
 verbose_gc_to_bmu_test: Skip
