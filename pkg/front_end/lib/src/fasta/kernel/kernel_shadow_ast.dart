@@ -1248,21 +1248,6 @@ abstract class ShadowMember implements Member {
   void setInferredType(
       TypeInferenceEngineImpl engine, String uri, DartType inferredType);
 
-  static void recordCrossOverride(
-      ShadowMember member, Member overriddenMember) {
-    var inferenceNode = member._inferenceNode;
-    if (inferenceNode is AccessorNode) {
-      inferenceNode.crossOverrides.add(overriddenMember);
-    }
-  }
-
-  static void recordOverride(ShadowMember member, Member overriddenMember) {
-    var inferenceNode = member._inferenceNode;
-    if (inferenceNode is AccessorNode) {
-      inferenceNode.overrides.add(overriddenMember);
-    }
-  }
-
   static void resolveInferenceNode(Member member) {
     if (member is ShadowMember) {
       if (member._inferenceNode != null) {

@@ -4,7 +4,6 @@
 
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
-import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
@@ -14,97 +13,18 @@ import 'package:kernel/ast.dart'
         DartType,
         DartTypeVisitor,
         DynamicType,
-        Field,
         FunctionType,
         InterfaceType,
         Location,
-        Member,
-        Procedure,
         TypeParameter,
         TypeParameterType,
         TypedefType,
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/type_algebra.dart';
 
 import '../deprecated_problems.dart' show Crash;
 import '../messages.dart' show getLocationFromNode;
-
-/// Data structure for tracking dependencies among fields, getters, and setters
-/// that require type inference.
-class AccessorNode extends InferenceNode {
-  final TypeInferenceEngineImpl _typeInferenceEngine;
-
-  final ShadowMember member;
-
-  final overrides = <Member>[];
-
-  final crossOverrides = <Member>[];
-
-  AccessorNode._(this._typeInferenceEngine, this.member);
-
-  List<Member> get candidateOverrides {
-    if (isTrivialSetter) {
-      return const [];
-    } else if (overrides.isNotEmpty) {
-      return overrides;
-    } else {
-      return crossOverrides;
-    }
-  }
-
-  /// Indicates whether this accessor is a setter for which the only type we
-  /// have to infer is its return type.
-  bool get isTrivialSetter {
-    var member = this.member;
-    if (member is ShadowProcedure &&
-        member.isSetter &&
-        member.function != null) {
-      var parameters = member.function.positionalParameters;
-      return parameters.length > 0 &&
-          !ShadowVariableDeclaration.isImplicitlyTyped(parameters[0]);
-    }
-    return false;
-  }
-
-  @override
-  void resolveInternal() {
-    var member = this.member;
-    if (_typeInferenceEngine.strongMode) {
-      var typeInferrer = _typeInferenceEngine.getMemberTypeInferrer(member);
-      if (!isTrivialSetter) {
-        var inferredType =
-            _typeInferenceEngine.tryInferAccessorByInheritance(this);
-        if (inferredType == null) {
-          if (member is ShadowField) {
-            inferredType = typeInferrer.inferDeclarationType(
-                typeInferrer.inferFieldTopLevel(member, null, true));
-          } else {
-            inferredType = const DynamicType();
-          }
-        }
-        if (isCircular) {
-          // TODO(paulberry): report the appropriate error.
-          inferredType = const DynamicType();
-        }
-        member.setInferredType(
-            _typeInferenceEngine, typeInferrer.uri, inferredType);
-      }
-    }
-    // TODO(paulberry): if type != null, then check that the type of the
-    // initializer is assignable to it.
-    // TODO(paulberry): the following is a hack so that outlines don't contain
-    // initializers.  But it means that we rebuild the initializers when doing
-    // a full compile.  There should be a better way.
-    if (member is ShadowField) {
-      member.initializer = null;
-    }
-  }
-
-  @override
-  String toString() => member.toString();
-}
 
 /// Concrete class derived from [InferenceNode] to represent type inference of a
 /// field based on its initializer.
@@ -466,56 +386,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     var node = new FieldInitializerInferenceNode(this, field);
     ShadowField.setInferenceNode(field, node);
     staticInferenceNodes.add(node);
-  }
-
-  DartType tryInferAccessorByInheritance(AccessorNode accessorNode) {
-    DartType inferredType;
-    for (var override in accessorNode.candidateOverrides) {
-      var nextInferredType = _computeOverriddenAccessorType(
-          override, accessorNode.member.enclosingClass);
-      if (inferredType == null) {
-        inferredType = nextInferredType;
-      } else if (inferredType != nextInferredType) {
-        // Overrides don't have matching types.
-        // TODO(paulberry): report an error
-        return const DynamicType();
-      }
-    }
-    return inferredType;
-  }
-
-  DartType _computeOverriddenAccessorType(Member override, Class thisClass) {
-    ShadowMember.resolveInferenceNode(override);
-    DartType overriddenType;
-    if (override is Field) {
-      overriddenType = override.type;
-    } else if (override is Procedure) {
-      // TODO(paulberry): handle the case where override needs its type
-      // inferred first.
-      if (override.isGetter) {
-        overriddenType = override.getterType;
-      } else if (override.isSetter) {
-        overriddenType = override.setterType;
-      } else {
-        // Illegal override; will be reported elsewhere.
-        overriddenType = const DynamicType();
-      }
-    } else {
-      dynamic parent = override.parent;
-      return unhandled(
-          "${override.runtimeType}",
-          "_computeOverriddenAccessorType",
-          override.fileOffset,
-          Uri.parse(parent.fileUri));
-    }
-    var superclass = override.enclosingClass;
-    if (superclass.typeParameters.isEmpty) return overriddenType;
-    var superclassInstantiation = classHierarchy
-        .getClassAsInstanceOf(thisClass, superclass)
-        .asInterfaceType;
-    return Substitution
-        .fromInterfaceType(superclassInstantiation)
-        .substituteType(overriddenType);
   }
 
   DartType _inferInitializingFormalType(ShadowVariableDeclaration formal) {

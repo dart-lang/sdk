@@ -53,8 +53,6 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         computeDefaultTypeArguments;
 
-import 'kernel_shadow_ast.dart' show ShadowMember;
-
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 abstract class KernelClassBuilder
@@ -190,7 +188,6 @@ abstract class KernelClassBuilder
 
   void checkOverrides(ClassHierarchy hierarchy) {
     hierarchy.forEachOverridePair(cls, checkOverride);
-    hierarchy.forEachCrossOverridePair(cls, handleCrossOverride);
   }
 
   void checkOverride(
@@ -206,25 +203,6 @@ abstract class KernelClassBuilder
       }
     }
     // TODO(ahe): Handle other cases: accessors, operators, and fields.
-
-    // Also record any cases where a field or getter/setter overrides something
-    // in a superclass, since this information will be needed for type
-    // inference.
-    if (declaredMember is ShadowMember &&
-        identical(declaredMember.enclosingClass, cls)) {
-      ShadowMember.recordOverride(declaredMember, interfaceMember);
-    }
-  }
-
-  void handleCrossOverride(
-      Member declaredMember, Member interfaceMember, bool isSetter) {
-    // Record any cases where a field or getter/setter has a corresponding (but
-    // opposite) getter/setter in a superclass, since this information will be
-    // needed for type inference.
-    if (declaredMember is ShadowMember &&
-        identical(declaredMember.enclosingClass, cls)) {
-      ShadowMember.recordCrossOverride(declaredMember, interfaceMember);
-    }
   }
 
   void checkMethodOverride(
