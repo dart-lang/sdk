@@ -202,7 +202,7 @@ Proof.
       (Expression_Continuation
         (Invocation_Ek rcvr_val name env ret_cont)
         arg_type)).
-  constructor. auto.
+  constructor 9 with (rcvr_type := rcvr_type). auto. auto.
 
   (* Case 12. Pass Value to InvocationEK. *)
   pose proof (method_exists_desc (runtime_type rcvr_val) name H).
@@ -243,17 +243,18 @@ Proof.
   set (type := runtime_type rcvr_val).
   assert (mk_runtime_value type = rcvr_val).
     destruct rcvr_val. subst type. simpl. congruence.
-  destruct H.
+  destruct H0.
   destruct (gt_type desc) eqn:?.
 
     (* Case 13.1. Getting a Value of Interface Type from a Value of Interface
       Type. *)
     assert (runtime_type rcvr_val = type).
-      rewrite <- H0. simpl. auto.
-    subst type. rewrite H0 in H1. rewrite <- H4 in H1.
-      destruct H1 eqn:?; try (rewrite H in H4; discriminate H4).
+      rewrite <- H1. simpl. auto.
+    subst type. rewrite H1 in H2. rewrite H0 in H2.
+      destruct H2 eqn:?;
+      try (rewrite e1 in H5; rewrite H0 in H5; discriminate H5).
     assert (type0 = type).
-      injection H4. intros. auto.
+      rewrite e1 in H5. injection H5. intros. auto.
     destruct i eqn:?.
     assert (NatMap.In n CE).
       apply intf_refs_wf with (class_id := class_id0) (intf := intf) (ref := n).
@@ -261,8 +262,8 @@ Proof.
       constructor 2 with (get_desc := desc).
       auto.
       rewrite Heqd. constructor.
-    pose proof (MoreNatMapFacts.maps_in_mapsto interface CE n H6).
-    destruct H6 as (el & H8).
+    pose proof (MoreNatMapFacts.maps_in_mapsto interface CE n H7).
+    destruct H8 as (el & H9).
     set (ret_type := DT_Interface_Type (Interface_Type n)).
     set (ret_intf := el).
     set (ret_val := mk_runtime_value (Some ret_type)).
@@ -277,10 +278,10 @@ Proof.
       set (get_desc_alt := mk_getter_desc name (gt_ref desc) ret_type).
       assert (desc = get_desc_alt).
         destruct desc. subst get_desc_alt. simpl.
-        simpl in H3. rewrite H3.
+        simpl in H4. rewrite H4.
         simpl in Heqd. rewrite Heqd. subst ret_type.
         congruence.
-      rewrite <- H6.
+      rewrite <- H8.
       auto.
     constructor 1 with (class_id := n).
       auto.
@@ -296,14 +297,15 @@ Proof.
     set (ret_val := mk_runtime_value (Some ret_type)).
 
     assert (runtime_type rcvr_val = Some type0).
-      subst type. rewrite <- H0. simpl. auto.
-    subst type. rewrite H0 in H1. rewrite <- H4 in H1.
-      destruct H1 eqn:?; try (rewrite H in H4; discriminate H4).
+      subst type. rewrite <- H1. simpl. auto.
+    subst type. rewrite H1 in H2. rewrite H0 in H2.
+      destruct H2 eqn:?;
+      try (rewrite e1 in H5; rewrite H0 in H5; discriminate H5).
     assert (type0 = type).
-      injection H4. intros. auto.
+      rewrite e1 in H5. injection H5. intros. auto.
     assert (class_id0 = class_id).
-      clear Heqv. rewrite <- H5 in e. rewrite H in e.
-      injection e. intros. auto.
+      rewrite e in H6. rewrite H0 in H6.
+      injection H6. intros. auto.
 
     exists (Value_Passing_Configuration ret_cont ret_val).
     constructor 12 with
@@ -317,18 +319,19 @@ Proof.
     set (get_desc_alt := mk_getter_desc name (gt_ref desc) ret_type).
     assert (desc = get_desc_alt).
       destruct desc. subst get_desc_alt. simpl.
-      simpl in H3. rewrite H3.
+      simpl in H4. rewrite H4.
       simpl in Heqd. rewrite Heqd. subst ret_type.
       congruence.
-    rewrite <- H7. auto.
+    rewrite <- H8. auto.
 
     clear Heqv.
-      destruct H1; try (rewrite H in H4; discriminate H4).
+      destruct H2;
+      try (rewrite e1 in H5; rewrite H0 in H5; discriminate H5).
     apply NatMapFacts.find_mapsto_iff in e0.
     pose proof (program_getters_wf class_id0 intf desc e0).
-    pose proof (H9 H2).
-    apply MoreNatMapFacts.maps_in_mapsto in H10.
-    destruct H10 as (mbr & H11).
+    pose proof (H10 H3).
+    apply MoreNatMapFacts.maps_in_mapsto in H11.
+    destruct H11 as (mbr & H12).
 
     destruct mbr.
     constructor 2 with (memb_id := gt_ref desc) (proc := p).
@@ -338,19 +341,18 @@ Proof.
     simpl. subst ret_type. congruence.
 
     (* Case 13.3. Getting a Value from a Value of Function Type. *)
-    subst type. rewrite H0 in H1. rewrite H in H1.
-      destruct H1 eqn:?; try (
+    subst type. rewrite H1 in H2. rewrite H in H2.
+      destruct H2 eqn:?; try (
         clear Heqv;
-        rewrite <- H0 in e1;
+        rewrite <- H1 in e1;
         simpl in e1;
-        rewrite H in e1;
+        rewrite H0 in e1;
         rewrite e in e1;
         discriminate e1
     ).
 
     assert (ftype0 = ftype).
-      rewrite H in H0. clear Heqv. rewrite <- H0 in e1. simpl in e1.
-      injection e1. intros. auto.
+      rewrite H0 in H. injection H. intros. auto.
 
     exists (Value_Passing_Configuration ret_cont val).
     constructor 12 with
@@ -359,20 +361,21 @@ Proof.
         (memb_id := gt_ref desc)
         (ret_intf := intf)
         (ret_type := type0).
-    rewrite H. rewrite <- H4. auto.
+    rewrite H. auto.
 
     pose proof H2.
-    rewrite e0 in H2.
-    pose proof (List.in_inv H2).
-    destruct H6.
-      rewrite <- H6 in H2. simpl in H2. rewrite <- H6. simpl.
-        rewrite H4 in H6. rewrite <- H in H6. rewrite H6. auto.
-      pose proof (List.in_nil H6). contradiction.
-    rewrite H; rewrite <- H4; auto.
+    rewrite e0 in H3.
+    pose proof (List.in_inv H3).
+    destruct H7.
+      clear Heqv. rewrite H7 in H3. rewrite H7 in e0. rewrite <- H7. simpl.
+        rewrite <- e0 in  H3. rewrite H5 in H7. rewrite <- H0 in H7.
+        rewrite H7. auto.
+      pose proof (List.in_nil H7). contradiction.
+    rewrite H0; rewrite <- H5; auto.
 
     (* Case 13.4. Getting a Value from Null. *)
-    rewrite e0 in H2.
-    pose proof (List.in_nil H2).
+    rewrite e0 in H3.
+    pose proof (List.in_nil H3).
     contradiction.
 
   (* Case 9. Forward. *)
@@ -392,6 +395,36 @@ Proof.
       (* Case 9.2.2. Block is Non-Empty. *)
       exists (Exec_Configuration s env e0 (Block_Sk l e e0 next_cont)).
       constructor.
+
+  (* Case 10. Pass Value to ExpressionEk. *)
+  exists (Forward_Configuration next_cont env).
+  constructor.
+
+  (* Case 11. Pass Value to VarDeclarationEk. *)
+  set (env' := env_extend var var_type val env).
+  exists (Forward_Configuration next_cont env').
+  constructor.
+  auto.
+
+  (* Case 12. Pass Value to MethodInvocationEK: No Such Method. *)
+  exists
+    (Value_Passing_Configuration
+      (Expression_Continuation Halt_Ek rcvr_type)
+      (mk_runtime_value None)).
+  assert (rcvr_val = mk_runtime_value None).
+    destruct rcvr_val. simpl in H. rewrite H. reflexivity.
+  rewrite H0.
+  constructor 19.
+
+  (* Case 13. Pass Value to PropertyGetEK: No Such Getter. *)
+  exists
+    (Value_Passing_Configuration
+      (Expression_Continuation Halt_Ek rcvr_type)
+      (mk_runtime_value None)).
+  assert (rcvr_val = mk_runtime_value None).
+    destruct rcvr_val. simpl in H. rewrite H. reflexivity.
+  rewrite H0.
+  constructor 20.
 Qed.
 
 

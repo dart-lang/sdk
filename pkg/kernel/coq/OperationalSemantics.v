@@ -540,14 +540,17 @@ Inductive step : configuration -> configuration -> Prop :=
               rcvr_type))
 
   (** <MethodInvocationEK(name, arg, ρ, κE), rcvrVal)pass ==>
-        <arg, ρ, InvocationEK(rcvrVal, name, ρ, κE)>eval *)
-  | Pass_Method_Invocation_Ek :
-    forall name arg_expr arg_type env ret_cont rcvr_val rcvr_type,
+        <arg, ρ, InvocationEK(rcvrVal, name, ρ, κE)>eval,
+      rcvrVall != null *)
+  | Pass_Method_Invocation_Ek_Non_Null :
+    forall name arg_expr arg_type env ret_cont
+        rcvr_val rcvr_type expected_rcvr_type,
+    runtime_type rcvr_val = Some rcvr_type ->
     expression_type CE (env_to_type_env env) arg_expr = Some arg_type ->
     step (Value_Passing_Configuration
             (Expression_Continuation
               (Method_Invocation_Ek name arg_expr env ret_cont)
-              rcvr_type)
+              expected_rcvr_type)
             rcvr_val)
          (Eval_Configuration arg_expr env
             (Expression_Continuation
@@ -675,7 +678,46 @@ Inductive step : configuration -> configuration -> Prop :=
               (Var_Declaration_Ek var var_type env next_cont)
               init_type)
             val)
-         (Forward_Configuration next_cont env').
+         (Forward_Configuration next_cont env')
+
+  (** <ExpressionEK(ρ, κE, κS), val>pass ==> <κS, ρ>forward *)
+  | Pass_Expression_Ek :
+    forall env ret_cont next_cont val val_type,
+    step (Value_Passing_Configuration
+            (Expression_Continuation
+              (Expression_Ek env ret_cont next_cont)
+              val_type)
+            val)
+         (Forward_Configuration next_cont env)
+
+  (** <MethodInvocationEK(name, arg, ρ, κE), null)pass ==>
+        <HaltEK, null>pass *)
+  | Pass_Method_Invocation_Ek_Null :
+    forall name arg_expr arg_type env ret_cont expected_rcvr_type,
+    step (Value_Passing_Configuration
+            (Expression_Continuation
+              (Method_Invocation_Ek name arg_expr env ret_cont)
+              expected_rcvr_type)
+            (mk_runtime_value None))
+         (Value_Passing_Configuration
+            (Expression_Continuation
+              Halt_Ek
+              arg_type)
+            (mk_runtime_value None))
+
+  (** <PropertyGetEK(name, κE), null)pass ==> <HaltEK, null>pass *)
+  | Pass_Property_Get_Ek_Null :
+    forall name ret_cont expected_rcvr_type,
+    step (Value_Passing_Configuration
+            (Expression_Continuation
+              (Property_Get_Ek name ret_cont)
+              expected_rcvr_type)
+            (mk_runtime_value None))
+         (Value_Passing_Configuration
+            (Expression_Continuation
+              Halt_Ek
+              expected_rcvr_type)
+            (mk_runtime_value None)).
 
 (* TODO(dmitryas): Add transitions to final states. *)
 
@@ -778,14 +820,16 @@ Inductive configuration_wf : configuration -> Prop :=
     argument expression is well-typed, because the machine procedes to the
     evaluation of the argument, and the expression continuation that awaits for
     the argument value needs to be typed. *)
-  | Pass_Method_Invocation_Ek_Configuration_Wf :
-    forall name arg_expr arg_type env ret_cont rcvr_type rcvr_val,
+  | Pass_Method_Invocation_Ek_Non_Null_Configuration_Wf :
+    forall name arg_expr arg_type env ret_cont
+        expected_rcvr_type rcvr_type rcvr_val,
+    runtime_type rcvr_val = Some rcvr_type ->
     expression_type CE (env_to_type_env env) arg_expr = Some arg_type ->
     configuration_wf
       (Value_Passing_Configuration
         (Expression_Continuation
           (Method_Invocation_Ek name arg_expr env ret_cont)
-          rcvr_type)
+          expected_rcvr_type)
         rcvr_val)
 
   (** These configurations pass the evaluated argument to the rest of the
@@ -804,12 +848,15 @@ Inductive configuration_wf : configuration -> Prop :=
   (** These configurations pass the evaluated receiver to the rest of the
     property get.  The preconditions is that the getter with such name
     exists. *)
-  | Pass_Property_Get_Ek_Configuration_Wf :
-    forall name ret_cont rcvr_val rcvr_type,
+  | Pass_Property_Get_Ek_Non_Null_Configuration_Wf :
+    forall name ret_cont expected_rcvr_type rcvr_type rcvr_val,
+    runtime_type rcvr_val = Some rcvr_type ->
     getter_exists (runtime_type rcvr_val) name ->
     configuration_wf
       (Value_Passing_Configuration
-        (Expression_Continuation (Property_Get_Ek name ret_cont) rcvr_type)
+        (Expression_Continuation
+          (Property_Get_Ek name ret_cont)
+          expected_rcvr_type)
         rcvr_val)
 
   (** In the currently formalized subset of Kernel all forward configurations
@@ -817,7 +864,49 @@ Inductive configuration_wf : configuration -> Prop :=
     a statement or proceeds to the next continuation. *)
   | Forward_Configuration_Wf :
     forall next_cont env,
-    configuration_wf (Forward_Configuration next_cont env).
+    configuration_wf (Forward_Configuration next_cont env)
+
+  (** TODO(dmitryas): Write descriptive comments. *)
+  | Pass_Expression_Ek_Configuration_Wf :
+    forall env ret_cont next_cont val val_type,
+    configuration_wf
+      (Value_Passing_Configuration
+        (Expression_Continuation
+          (Expression_Ek env ret_cont next_cont)
+          val_type)
+        val)
+
+  (** TODO(dmitryas): Write descriptive comments. *)
+  | Pass_Var_Declaration_Ek_Configuration_Wf :
+    forall var var_type env next_cont init_type val,
+    configuration_wf
+      (Value_Passing_Configuration
+        (Expression_Continuation
+          (Var_Declaration_Ek var var_type env next_cont)
+          init_type)
+        val)
+
+  (** Invoking a method on `null` always puts the abstract machine in a final
+    state, so passing `null` to MethodInvocationEK is always well-formed. *)
+  | Pass_Method_Invocation_Ek_Null_Configuration_Wf :
+    forall name arg_expr env ret_cont rcvr_type rcvr_val,
+    runtime_type rcvr_val = None ->
+    configuration_wf
+      (Value_Passing_Configuration
+        (Expression_Continuation
+          (Method_Invocation_Ek name arg_expr env ret_cont)
+          rcvr_type)
+        rcvr_val)
+
+  (** Getting a property of `null` always puts the abstract machine in a final
+    state, so passing `null` to propertyGetEK is always well-formed. *)
+  | Pass_Property_Get_Ek_Null_Configuration_Wf :
+    forall name ret_cont rcvr_type rcvr_val,
+    runtime_type rcvr_val = None ->
+    configuration_wf
+      (Value_Passing_Configuration
+        (Expression_Continuation (Property_Get_Ek name ret_cont) rcvr_type)
+        rcvr_val).
 
 
 Inductive configuration_final : configuration -> Prop :=
