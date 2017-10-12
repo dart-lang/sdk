@@ -111,7 +111,6 @@ String* Object::null_string_ = NULL;
 Instance* Object::null_instance_ = NULL;
 Function* Object::null_function_ = NULL;
 TypeArguments* Object::null_type_arguments_ = NULL;
-TypeArguments* Object::empty_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
 Context* Object::empty_context_ = NULL;
@@ -506,7 +505,6 @@ void Object::InitOnce(Isolate* isolate) {
   null_instance_ = Instance::ReadOnlyHandle();
   null_function_ = Function::ReadOnlyHandle();
   null_type_arguments_ = TypeArguments::ReadOnlyHandle();
-  empty_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
   zero_array_ = Array::ReadOnlyHandle();
   empty_context_ = Context::ReadOnlyHandle();
@@ -750,22 +748,6 @@ void Object::InitOnce(Isolate* isolate) {
   // Needed for object pools of VM isolate stubs.
   Class::NewTypedDataClass(kTypedDataInt8ArrayCid);
 
-  // Allocate and initialize the empty_type_arguments instance.
-  {
-    uword address = heap->Allocate(TypeArguments::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, TypeArguments::kClassId,
-                     TypeArguments::InstanceSize(0), true);
-    TypeArguments::initializeHandle(
-        empty_type_arguments_,
-        reinterpret_cast<RawTypeArguments*>(address + kHeapObjectTag));
-    empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->length_,
-                                    Smi::New(0));
-    empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->hash_,
-                                    Smi::New(0));
-    // instantiations_ field is initialized to null and should not be used.
-    empty_type_arguments_->SetCanonical();
-  }
-
   // Allocate and initialize the empty_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
@@ -963,8 +945,6 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(null_function_->IsFunction());
   ASSERT(!null_type_arguments_->IsSmi());
   ASSERT(null_type_arguments_->IsTypeArguments());
-  ASSERT(!empty_type_arguments_->IsSmi());
-  ASSERT(empty_type_arguments_->IsTypeArguments());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
@@ -7144,14 +7124,10 @@ RawInstance* Function::ImplicitStaticClosure() const {
   if (implicit_static_closure() == Instance::null()) {
     Zone* zone = Thread::Current()->zone();
     const Context& context = Object::empty_context();
-    TypeArguments& function_type_arguments = TypeArguments::Handle(zone);
-    if (!HasInstantiatedSignature(kFunctions)) {
-      function_type_arguments = Object::empty_type_arguments().raw();
-    }
     Instance& closure =
         Instance::Handle(zone, Closure::New(Object::null_type_arguments(),
-                                            function_type_arguments, *this,
-                                            context, Heap::kOld));
+                                            Object::null_type_arguments(),
+                                            *this, context, Heap::kOld));
     set_implicit_static_closure(closure);
   }
   return implicit_static_closure();
@@ -7163,15 +7139,12 @@ RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
   const Context& context = Context::Handle(zone, Context::New(1));
   context.SetAt(0, receiver);
   TypeArguments& instantiator_type_arguments = TypeArguments::Handle(zone);
-  TypeArguments& function_type_arguments = TypeArguments::Handle(zone);
   if (!HasInstantiatedSignature(kCurrentClass)) {
     instantiator_type_arguments = receiver.GetTypeArguments();
   }
-  if (!HasInstantiatedSignature(kFunctions)) {
-    function_type_arguments = Object::empty_type_arguments().raw();
-  }
-  return Closure::New(instantiator_type_arguments, function_type_arguments,
-                      *this, context);
+  ASSERT(HasInstantiatedSignature(kFunctions));  // No generic parent function.
+  return Closure::New(instantiator_type_arguments,
+                      Object::null_type_arguments(), *this, context);
 }
 
 intptr_t Function::ComputeClosureHash() const {

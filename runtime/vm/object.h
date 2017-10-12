@@ -368,10 +368,6 @@ class Object {
     ASSERT(null_type_arguments_ != NULL);
     return *null_type_arguments_;
   }
-  static const TypeArguments& empty_type_arguments() {
-    ASSERT(empty_type_arguments_ != NULL);
-    return *empty_type_arguments_;
-  }
 
   static const Array& empty_array() {
     ASSERT(empty_array_ != NULL);
@@ -812,7 +808,6 @@ class Object {
   static Instance* null_instance_;
   static Function* null_function_;
   static TypeArguments* null_type_arguments_;
-  static TypeArguments* empty_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
   static Context* empty_context_;
@@ -5769,8 +5764,17 @@ class AbstractType : public Instance {
   // Check if this type represents a function type.
   virtual bool IsFunctionType() const { return false; }
 
-  // Instantiate this type using the given type argument vectors and possibly
-  // the current context.
+  // Instantiate this type using the given type argument vectors.
+  //
+  // Note that some type parameters appearing in this type may not require
+  // instantiation. Consider a class C<T> declaring a non-generic method
+  // foo(bar<B>(T t, B b)). Although foo is not a generic method, it takes a
+  // generic function bar<B> as argument and its function type refers to class
+  // type parameter T and function type parameter B. When instantiating the
+  // function type of foo for a particular value of T, function type parameter B
+  // must remain uninstantiated, because only T is a free variable in this type.
+  // TODO(regis): Add a num_free_fun_type_params argument to this call.
+  //
   // Return a new type, or return 'this' if it is already instantiated.
   // If bound_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractType* InstantiateFrom(

@@ -471,14 +471,11 @@ static void UpdateTypeTestCache(
   Object& instance_class_id_or_function = Object::Handle();
   TypeArguments& instance_type_arguments = TypeArguments::Handle();
   if (instance_class.IsClosureClass()) {
-    // If the closure instance is generic, we cannot perform the optimization,
-    // because one more input (function_type_arguments) would need to be
-    // considered. For now, only perform the optimization if the closure's
-    // function_type_arguments is null, meaning the closure function is not
-    // generic.
-    // TODO(regis): In addition to null (non-generic closure), we should also
-    // accept Object::empty_type_arguments() (non-nested generic closure).
-    // In that case, update stubs and simulator_dbc accordingly.
+    // If the closure instance has a generic parent, we cannot perform the
+    // optimization, because one more input (closure.function_type_arguments)
+    // would need to be considered. For now, only perform the optimization if
+    // the closure's function_type_arguments field is null, meaning the closure
+    // function has no generic parent.
     if (Closure::Cast(instance).function_type_arguments() !=
         TypeArguments::null()) {
       if (FLAG_trace_type_checks) {
