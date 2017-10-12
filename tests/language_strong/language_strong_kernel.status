@@ -32,5 +32,4 @@ redirecting_factory_reflection_test: RuntimeError
 regress_r24720_test: RuntimeError
 reify_typevar_static_test/00: MissingCompileTimeError
 reify_typevar_test: RuntimeError
-setter_no_getter_test/01: Crash # VM does not support BottomType
 sync_generator3_test/test2: RuntimeError

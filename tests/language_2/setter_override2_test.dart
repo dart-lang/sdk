@@ -10,10 +10,11 @@ import "package:expect/expect.dart";
 import "package:meta/meta.dart" show virtual;
 
 class A {
-  @virtual var foo = 42; // //# 00: ok
+  @virtual
+  var foo = 42; // //# 00: ok
   get foo => 42; // //# 01: ok
   foo() => 42; // //# 02: ok
-  set foo(value) { } // //# 03: ok
+  set foo(value) {} // //# 03: ok
 }
 
 class B extends A {

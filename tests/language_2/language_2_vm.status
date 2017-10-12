@@ -474,6 +474,8 @@ regress_23089_test: MissingCompileTimeError
 regress_23408_test: RuntimeError
 regress_27572_test: MissingCompileTimeError
 regress_26133_test: MissingCompileTimeError
+setter_override2_test/none: CompileTimeError
+setter4_test: MissingCompileTimeError # Issue 14736
 static_field1_test/01: MissingCompileTimeError
 static_field1a_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
