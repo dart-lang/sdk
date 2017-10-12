@@ -22,6 +22,7 @@ import '../../scanner/token.dart'
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         SimpleToken,
+        SyntheticBeginToken,
         SyntheticKeywordToken,
         SyntheticStringToken,
         SyntheticToken,
@@ -2672,9 +2673,16 @@ class Parser {
     Token begin = token;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
-      token = reportUnrecoverableErrorWithToken(
-              token, fasta.templateExpectedClassBody)
-          .next;
+      reportRecoverableError(
+          token, fasta.templateExpectedClassBody.withArguments(token));
+      begin =
+          new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset);
+      Token end =
+          new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset);
+      (begin as BeginToken).endGroup = end;
+      rewriter.insertTokenBefore(begin, token);
+      rewriter.insertTokenBefore(end, token);
+      token = begin;
     }
     token = token.next;
     int count = 0;

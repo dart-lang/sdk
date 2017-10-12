@@ -12,6 +12,18 @@ main() {
 
 class ClassDeclarationTest extends PartialCodeTest {
   buildAll() {
+    List<bool> exceptAtEof = [
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ];
     buildTests(
         'class_declaration',
         [
@@ -23,104 +35,103 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class _s_ {}',
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor('named', 'class A',
-              [ParserErrorCode.MISSING_CLASS_BODY], 'class A {}',
-              allFailing: true),
+              [ParserErrorCode.MISSING_CLASS_BODY], 'class A {}'),
           new TestDescriptor(
               'extends',
               'class A extends',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends _s_ {}',
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor('extendsBody', 'class A extends {}',
-              [ParserErrorCode.MISSING_IDENTIFIER], 'class A extends _s_ {}',
+              [ParserErrorCode.EXPECTED_TYPE_NAME], 'class A extends _s_ {}',
               allFailing: true),
           new TestDescriptor(
               'extendsWithNameBody',
               'class A extends with B {}',
-              [ParserErrorCode.MISSING_IDENTIFIER],
+              [ParserErrorCode.EXPECTED_TYPE_NAME],
               'class A extends _s_ with B {}',
               allFailing: true),
           new TestDescriptor(
               'extendsImplementsNameBody',
               'class A extends implements B {}',
-              [ParserErrorCode.MISSING_IDENTIFIER],
+              [ParserErrorCode.EXPECTED_TYPE_NAME],
               'class A extends _s_ implements B {}',
               allFailing: true),
           new TestDescriptor(
               'extendsNameWith',
               'class A extends B with',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends B with _s_ {}',
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor(
               'extendsNameWithBody',
               'class A extends B with {}',
-              [ParserErrorCode.MISSING_IDENTIFIER],
+              [ParserErrorCode.EXPECTED_TYPE_NAME],
               'class A extends B with _s_ {}',
               allFailing: true),
           new TestDescriptor(
               'extendsNameImplements',
               'class A extends B implements',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends B implements _s_ {}',
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor(
               'extendsNameImplementsBody',
               'class A extends B implements {}',
-              [ParserErrorCode.MISSING_IDENTIFIER],
+              [ParserErrorCode.EXPECTED_TYPE_NAME],
               'class A extends B implements _s_ {}',
               allFailing: true),
           new TestDescriptor(
               'extendsNameWithNameImplements',
               'class A extends B with C implements',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends B with C implements _s_ {}',
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor(
               'extendsNameWithNameImplementsBody',
               'class A extends B with C implements {}',
-              [ParserErrorCode.MISSING_IDENTIFIER],
+              [ParserErrorCode.EXPECTED_TYPE_NAME],
               'class A extends B with C implements _s_ {}',
               allFailing: true),
           new TestDescriptor(
               'implements',
               'class A implements',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A implements _s_ {}',
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor('implementsBody', 'class A implements {}',
-              [ParserErrorCode.MISSING_IDENTIFIER], 'class A implements _s_ {}',
+              [ParserErrorCode.EXPECTED_TYPE_NAME], 'class A implements _s_ {}',
               allFailing: true),
           new TestDescriptor(
               'implementsNameComma',
               'class A implements B,',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A implements B, _s_ {}',
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor(
               'implementsNameCommaBody',
               'class A implements B, {}',
-              [ParserErrorCode.MISSING_IDENTIFIER],
+              [ParserErrorCode.EXPECTED_TYPE_NAME],
               'class A implements B, _s_ {}',
               allFailing: true),
         ],

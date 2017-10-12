@@ -1524,14 +1524,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingClassBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_CLASS_BODY, found 0
-    super.test_missingClassBody();
-  }
-
-  @override
-  @failingTest
   void test_missingClosingParenthesis() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ScannerErrorCode.EXPECTED_TOKEN, found 0
