@@ -10,7 +10,6 @@ class A {
   }
 
   void set a(var val) {
-    /*@compile-error=unspecified*/
     int i = val;
   }
 }

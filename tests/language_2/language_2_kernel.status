@@ -21,9 +21,6 @@ hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 library_env_test/has_no_mirror_support: RuntimeError
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
-setter_declaration2_negative_test: DartkCrash
-setter_declaration_negative_test: Fail
-setter_override2_test/none: CompileTimeError
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError
@@ -555,7 +552,6 @@ const_syntax_test/08: Crash
 const_syntax_test/09: Crash
 const_syntax_test/10: Crash
 implicit_closure1_test: Crash
-final_syntax_test/09: Crash
 generic_function_dcall_test: CompileTimeError
 generic_function_bounds_test: CompileTimeError
 named_parameters_type_test/01: Crash
@@ -570,9 +566,8 @@ positional_parameters_type_test/01: Crash
 positional_parameters_type_test/02: Crash
 positional_parameters_type_test/none: Crash
 factory3_test: Crash
-setter_declaration2_negative_test: Crash
-setter_declaration_negative_test: Crash
-stacktrace_demangle_ctors_test: RuntimeError
+export_double_same_main_test: Crash # Issue 29895
+final_syntax_test/09: Crash
 
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError

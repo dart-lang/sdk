@@ -951,6 +951,3 @@ vm/no_such_args_error_message_vm_test: Skip
 vm/no_such_method_error_message_callable_vm_test: Skip
 vm/no_such_method_error_message_vm_test: Skip
 vm/regress_28325_test:Skip
-
-[$compiler == precompiler && $runtime == dart_precompiled ]
-stacktrace_demangle_ctors_test: RuntimeError
