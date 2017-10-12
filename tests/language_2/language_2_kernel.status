@@ -12,10 +12,8 @@ const_syntax_test/08: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30931
 generic_function_type_as_type_argument_test/02: Pass # For the wrong reason, issue 30931
 generic_function_type_as_type_argument_test/03: CompileTimeError # Issue 30931
-generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30208
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 library_env_test/has_no_mirror_support: RuntimeError

@@ -2236,25 +2236,19 @@ void StreamingDartTypeTranslator::BuildInterfaceType(bool simple) {
 }
 
 void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
-  intptr_t list_length = 0;
-  if (!simple) {
-    list_length = builder_->PeekListLength();
-    builder_->SkipTypeParametersList();
-  }
-
-  // The spec describes in section "19.1 Static Types":
-  //
-  //     Any use of a malformed type gives rise to a static warning. A
-  //     malformed type is then interpreted as dynamic by the static type
-  //     checker and the runtime unless explicitly specified otherwise.
-  //
-  // So we convert malformed return/parameter types to `dynamic`.
-  TypeParameterScope scope(this, list_length);
-
   Function& signature_function = Function::ZoneHandle(
       Z,
       Function::NewSignatureFunction(*active_class_->klass, Function::Handle(Z),
                                      TokenPosition::kNoSource));
+
+  if (!simple) {
+    builder_->LoadAndSetupTypeParameters(active_class_, signature_function,
+                                         builder_->ReadListLength(),
+                                         signature_function);
+  }
+  ActiveTypeParametersScope scope(
+      active_class_,
+      TypeArguments::Handle(Z, signature_function.type_parameters()), Z);
 
   intptr_t required_count;
   intptr_t all_count;

@@ -57,24 +57,9 @@ class Erasure extends Transformer {
   visitDartType(DartType type) {
     if (type is FunctionType && type.typeParameters.isNotEmpty) {
       FunctionType function = type;
-      for (var parameter in function.typeParameters) {
-        // Note, normally, we would have to remove these substitutions again to
-        // avoid memory leaks. Unfortunately, that that's not compatible with
-        // how function types share their TypeParameter object with a
-        // FunctionNode.
-        substitution[parameter] = const DynamicType();
-      }
-      for (var parameter in function.typeParameters) {
-        if (!isObject(parameter.bound)) {
-          substitution[parameter] = substitute(parameter.bound, substitution);
-        }
-      }
-      // We need to delete the type parameters of the function type before
-      // calling [substitute], otherwise it creates a new environment with
-      // fresh type variables that shadow the ones we want to remove.  Since a
-      // FunctionType is often assumed to be immutable, we return a copy.
       type = new FunctionType(
           function.positionalParameters, function.returnType,
+          typeParameters: function.typeParameters,
           namedParameters: function.namedParameters,
           requiredParameterCount: function.requiredParameterCount,
           positionalParameterNames: function.positionalParameterNames,
