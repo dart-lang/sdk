@@ -26,8 +26,8 @@ import 'util.dart' show optional;
 class ModifierContext {
   final Parser parser;
   MemberKind memberKind;
-  FormalParameterKind parameterKind;
-  bool isVarAllowed;
+  final FormalParameterKind parameterKind;
+  final bool isVarAllowed;
   TypeContinuation typeContinuation;
   int modifierCount = 0;
 
