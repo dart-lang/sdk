@@ -73,7 +73,7 @@ abstract class InferrerEngine<T> {
 
   void runOverAllElements();
 
-  void analyze(MemberEntity member, T node, ArgumentsTypes arguments);
+  void analyze(MemberEntity member, T node);
   void analyzeListAndEnqueue(ListTypeInformation info);
   void analyzeMapAndEnqueue(MapTypeInformation info);
 
@@ -668,7 +668,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
       T body = computeMemberBody(member);
-      types.withMember(member, () => analyze(member, body, null));
+      types.withMember(member, () => analyze(member, body));
     });
     reporter.log('Added $addedInGraph elements in inferencing graph.');
   }
@@ -684,7 +684,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   /// implement `call`.
   FunctionEntity lookupCallMethod(ClassEntity cls);
 
-  void analyze(MemberEntity element, T body, ArgumentsTypes arguments) {
+  void analyze(MemberEntity element, T body) {
     assert(!(element is MemberElement && !element.isDeclaration));
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);

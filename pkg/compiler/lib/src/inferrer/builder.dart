@@ -890,15 +890,14 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     return cascadeReceiverStack.removeLast();
   }
 
-  void analyzeSuperConstructorCall(
-      ConstructorElement target, ArgumentsTypes arguments) {
+  void analyzeSuperConstructorCall(ConstructorElement target) {
     assert(target.isDeclaration);
     ResolvedAst resolvedAst = target.resolvedAst;
     ast.Node body;
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
       body = resolvedAst.node;
     }
-    inferrer.analyze(target, body, arguments);
+    inferrer.analyze(target, body);
     isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 
@@ -1021,7 +1020,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
             !cls.isObject) {
           ConstructorElement target = cls.superclass.lookupDefaultConstructor();
           ArgumentsTypes arguments = new ArgumentsTypes([], {});
-          analyzeSuperConstructorCall(target, arguments);
+          analyzeSuperConstructorCall(target);
           inferrer.registerCalledMember(node, null, null, outermostElement,
               target, arguments, sideEffects, inLoop);
         }
@@ -2329,7 +2328,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         isConstructorRedirect = true;
       } else if (ast.Initializers.isSuperConstructorCall(node)) {
         seenSuperConstructorCall = true;
-        analyzeSuperConstructorCall(constructor, arguments);
+        analyzeSuperConstructorCall(constructor);
       }
     }
     // If we are looking at a new expression on a forwarding factory, we have to

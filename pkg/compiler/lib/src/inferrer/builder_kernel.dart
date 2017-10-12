@@ -203,6 +203,33 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _inferrer.recordTypeOfField(field, rhsType);
   }
 
+  @override
+  visitSuperInitializer(ir.SuperInitializer node) {
+    // TODO(redemption): Handle exposure of this.
+    ConstructorEntity constructor = _elementMap.getConstructor(node.target);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
+        _elementMap.getCallStructure(node.arguments));
+    TypeMask mask = _memberData.typeOfSend(node);
+    handleConstructorInvoke(node, selector, mask, constructor, arguments);
+  }
+
+  @override
+  visitRedirectingInitializer(ir.RedirectingInitializer node) {
+    // TODO(redemption): Handle exposure of this?
+    ConstructorEntity constructor = _elementMap.getConstructor(node.target);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
+        _elementMap.getCallStructure(node.arguments));
+    TypeMask mask = _memberData.typeOfSend(node);
+    handleConstructorInvoke(node, selector, mask, constructor, arguments);
+  }
+
+  @override
+  visitLocalInitializer(ir.LocalInitializer node) {
+    visit(node.variable);
+  }
+
   void handleParameters(ir.FunctionNode node) {
     int position = 0;
     for (ir.VariableDeclaration parameter in node.positionalParameters) {
@@ -813,7 +840,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitConstructorInvocation(ir.ConstructorInvocation node) {
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    // TODO(redemption): Handle initializers.
     // TODO(redemption): Handle foreign constructors.
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
