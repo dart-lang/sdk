@@ -7,7 +7,6 @@ import '../ast.dart' show Program, Library;
 import '../core_types.dart' show CoreTypes;
 import '../class_hierarchy.dart';
 import '../transformations/continuation.dart' as cont;
-import '../transformations/erasure.dart';
 import '../transformations/insert_covariance_checks.dart';
 import '../transformations/insert_type_checks.dart';
 import '../transformations/mixin_full_resolution.dart' as mix;
@@ -55,10 +54,6 @@ class VmClosureConvertedTarget extends vm_target.VmTarget {
 
     cont.transformProgram(coreTypes, program);
 
-    if (strongMode) {
-      performErasure(program);
-    }
-
     new SanitizeForVM().transform(program);
 
     cc.transformProgram(coreTypes, program);
@@ -69,9 +64,5 @@ class VmClosureConvertedTarget extends vm_target.VmTarget {
             strongMode: strongMode, programRoots: flags.programRoots)
         .transform(program);
     _hierarchy = null; // Hierarchy must be recomputed.
-  }
-
-  void performErasure(Program program) {
-    new Erasure().transform(program);
   }
 }

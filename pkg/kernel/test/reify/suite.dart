@@ -98,11 +98,6 @@ class NotReifiedTarget extends VmClosureConvertedTarget {
   @override
   void performTreeShaking(CoreTypes coreTypes, Program program) {}
 
-  // Erasure needs to be disabled, because it removes the necessary information
-  // about type arguments for generic methods.
-  @override
-  void performErasure(Program program) {}
-
   // Adds the necessary runtime libraries.
   @override
   List<String> get extraRequiredLibraries {
