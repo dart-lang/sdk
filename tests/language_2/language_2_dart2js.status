@@ -685,7 +685,24 @@ vm/*: SkipByDesign # Tests for the VM.
 minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
+accessor_conflict_import2_test: RuntimeError # Issue 25626
+accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
+accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
+accessor_conflict_import_test: RuntimeError # Issue 25626
+assertion_test: RuntimeError # Issue 30326
 async_star_test/02: RuntimeError
+bit_operations_test: RuntimeError, OK # Issue 1533
+branch_canonicalization_test: RuntimeError # Issue 638.
+covariant_override/runtime_check_test: RuntimeError
+generic_closure_test: RuntimeError
+generic_function_typedef_test/01: RuntimeError
+generic_instanceof_test: RuntimeError
+generic_typedef_test: RuntimeError
+instanceof2_test: RuntimeError
+instanceof4_test/01: RuntimeError
+instanceof4_test/none: RuntimeError
+many_generic_instanceof_test: RuntimeError
+map_literal8_test: RuntimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
@@ -693,6 +710,7 @@ not_enough_positional_arguments_test/07: MissingCompileTimeError
 null_test/mirrors: Skip # Uses mirrors.
 tearoff_dynamic_test: RuntimeError
 type_literal_test: RuntimeError
+vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626
@@ -826,25 +844,6 @@ expect_test: RuntimeError, OK # Issue 13080
 truncdiv_test: RuntimeError # Issue 15246
 final_attempt_reinitialization_test.dart: Skip # Issue 29659
 
-[ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
-accessor_conflict_import2_test: RuntimeError # Issue 25626
-accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
-accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
-accessor_conflict_import_test: RuntimeError # Issue 25626
-assertion_test: RuntimeError # Issue 30326
-bit_operations_test: RuntimeError, OK # Issue 1533
-branch_canonicalization_test: RuntimeError # Issue 638.
-covariant_override/runtime_check_test: RuntimeError
-generic_closure_test: RuntimeError
-generic_function_typedef_test/01: RuntimeError
-generic_instanceof_test: RuntimeError
-generic_typedef_test: RuntimeError
-instanceof2_test: RuntimeError
-instanceof4_test/01: RuntimeError
-instanceof4_test/none: RuntimeError
-many_generic_instanceof_test: RuntimeError
-vm/*: SkipByDesign # Tests for the VM.
-
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
@@ -883,6 +882,11 @@ getters_setters2_test/none: RuntimeError
 if_null_precedence_test/none: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 malformed2_test/00: MissingCompileTimeError
+mixin_mixin2_test: RuntimeError
+mixin_mixin3_test: RuntimeError
+mixin_mixin_type_arguments_test: RuntimeError
+mixin_type_parameters_super_test: RuntimeError
+type_parameter_test/05: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && !$checked && !$enable_asserts && !$dart2js_with_kernel && $runtime != none ]
@@ -891,18 +895,14 @@ typevariable_substitution2_test/02: RuntimeError
 runtime_type_function_test: Pass, RuntimeError # Issue 27394
 
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
+bool_check_test: RuntimeError # Issue 29647
+bool_condition_check_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
+generic_test: RuntimeError, OK
 list_literal1_test/01: MissingCompileTimeError
 
 [ $compiler == dart2js && !$checked && $minified && !$dart2js_with_kernel ]
 function_subtype_inline2_test: RuntimeError
-
-[ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
-mixin_mixin_type_arguments_test: RuntimeError
-mixin_type_parameters_super_test: RuntimeError
-type_parameter_test/05: MissingCompileTimeError
 
 [ $compiler == dart2js && $minified ]
 cyclic_type2_test: RuntimeError # Issue 31054
@@ -1037,6 +1037,7 @@ async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: RuntimeError
 async_star_take_reyield_test: RuntimeError
 async_star_test/01: RuntimeError
+async_star_test/02: RuntimeError
 async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
@@ -1208,6 +1209,7 @@ interface_test/00: Crash # 'package:front_end/src/fasta/kernel/body_builder.dart
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
 invocation_mirror2_test: RuntimeError
 issue21079_test: RuntimeError
+issue23244_test: RuntimeError
 issue_1751477_test: CompileTimeError
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
@@ -1222,6 +1224,7 @@ list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
+map_literal8_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
@@ -1282,11 +1285,16 @@ named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
+not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
+not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/05: MissingCompileTimeError
+not_enough_positional_arguments_test/06: MissingCompileTimeError
+not_enough_positional_arguments_test/07: MissingCompileTimeError
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
+null_test/mirrors: RuntimeError
 null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
@@ -1321,14 +1329,6 @@ regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 
 stacktrace_test: RuntimeError
 super_call4_test: Crash # Assertion failure: Missing scope info for j:method(E.boz).
 symbol_literal_test/01: MissingCompileTimeError
-async_star_test/02: RuntimeError
-issue23244_test: RuntimeError
-map_literal8_test: RuntimeError
-not_enough_positional_arguments_test/00: MissingCompileTimeError
-not_enough_positional_arguments_test/03: MissingCompileTimeError
-not_enough_positional_arguments_test/06: MissingCompileTimeError
-not_enough_positional_arguments_test/07: MissingCompileTimeError
-null_test/mirrors: RuntimeError
 syntax_test/28: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
 syntax_test/29: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
 syntax_test/30: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
@@ -1372,6 +1372,7 @@ async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: RuntimeError
 async_star_take_reyield_test: RuntimeError
 async_star_test/01: RuntimeError
+async_star_test/02: RuntimeError
 async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
@@ -1544,6 +1545,7 @@ internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' 
 invocation_mirror2_test: RuntimeError
 invocation_mirror_test: RuntimeError
 issue21079_test: RuntimeError
+issue23244_test: RuntimeError
 issue_1751477_test: CompileTimeError
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
@@ -1558,6 +1560,7 @@ list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
+map_literal8_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
@@ -1621,11 +1624,16 @@ nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 no_such_method_native_test: RuntimeError
+not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
+not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/05: MissingCompileTimeError
+not_enough_positional_arguments_test/06: MissingCompileTimeError
+not_enough_positional_arguments_test/07: MissingCompileTimeError
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
+null_test/mirrors: RuntimeError
 null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
@@ -1662,14 +1670,6 @@ stacktrace_test: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 symbol_conflict_test: RuntimeError
 symbol_literal_test/01: MissingCompileTimeError
-async_star_test/02: RuntimeError
-issue23244_test: RuntimeError
-map_literal8_test: RuntimeError
-not_enough_positional_arguments_test/00: MissingCompileTimeError
-not_enough_positional_arguments_test/03: MissingCompileTimeError
-not_enough_positional_arguments_test/06: MissingCompileTimeError
-not_enough_positional_arguments_test/07: MissingCompileTimeError
-null_test/mirrors: RuntimeError
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError
@@ -1736,11 +1736,6 @@ malbounded_type_cast_test: Fail # Issue 14121
 malbounded_type_test_test/03: Fail # Issue 14121
 malbounded_type_test_test/04: Fail # Issue 14121
 
-[ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
-bool_check_test: RuntimeError # Issue 29647
-bool_condition_check_test: RuntimeError
-generic_test: RuntimeError, OK
-
 [ $compiler == dart2js && !$checked ]
 type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
@@ -1785,14 +1780,6 @@ issue23244_test: RuntimeError # 23244
 
 [ $compiler == dart2js && $runtime == chrome && !$dart2js_with_kernel ]
 enum_mirror_test: pass
-
-[ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
-map_literal8_test: RuntimeError
-not_enough_positional_arguments_test/00: MissingCompileTimeError
-not_enough_positional_arguments_test/03: MissingCompileTimeError
-not_enough_positional_arguments_test/06: MissingCompileTimeError
-not_enough_positional_arguments_test/07: MissingCompileTimeError
-null_test/mirrors: Skip # Uses mirrors.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid && !$dart2js_with_kernel ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
