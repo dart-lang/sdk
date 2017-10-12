@@ -235,10 +235,8 @@ class AstBuilder extends ScopeListener {
         push(identifier);
       }
     } else if (context == IdentifierContext.enumValueDeclaration) {
-      // TODO(paulberry): analyzer's ASTs allow for enumerated values to have
-      // metadata, but the spec doesn't permit it.
-      List<Annotation> metadata = null;
-      Comment comment = _findComment(metadata, token);
+      List<Annotation> metadata = pop();
+      Comment comment = _parseDocumentationCommentOpt(token.precedingComments);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       push(identifier);
@@ -2086,6 +2084,10 @@ class AstBuilder extends ScopeListener {
       case "ABSTRACT_CLASS_MEMBER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ABSTRACT_CLASS_MEMBER, offset, length);
+        return;
+      case "ANNOTATION_ON_ENUM_CONSTANT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, offset, length);
         return;
       case "ASYNC_KEYWORD_USED_AS_IDENTIFIER":
         errorReporter?.reportErrorForOffset(

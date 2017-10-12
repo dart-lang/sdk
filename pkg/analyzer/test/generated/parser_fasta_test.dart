@@ -106,20 +106,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_annotationOnEnumConstant_first() {
-    // TODO(brianwilkerson) Does not support annotations on enum constants.
-    super.test_annotationOnEnumConstant_first();
-  }
-
-  @override
-  @failingTest
-  void test_annotationOnEnumConstant_middle() {
-    // TODO(brianwilkerson) Does not support annotations on enum constants.
-    super.test_annotationOnEnumConstant_middle();
-  }
-
-  @override
-  @failingTest
   void test_breakOutsideOfLoop_breakInIfStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0

@@ -438,6 +438,9 @@ class ElementListener extends Listener {
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
+    if (context == IdentifierContext.enumValueDeclaration) {
+      metadata.clear();
+    }
     pushNode(new Identifier(token));
   }
 

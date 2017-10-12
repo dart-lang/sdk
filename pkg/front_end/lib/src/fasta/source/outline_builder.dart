@@ -237,11 +237,16 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
-    super.handleIdentifier(token, context);
-    push(token.charOffset);
     if (context == IdentifierContext.enumValueDeclaration) {
+      // Discard the metadata.
+      pop();
+      super.handleIdentifier(token, context);
+      push(token.charOffset);
       String documentationComment = _getDocumentationComment(token);
       push(documentationComment ?? NullValue.DocumentationComment);
+    } else {
+      super.handleIdentifier(token, context);
+      push(token.charOffset);
     }
   }
 

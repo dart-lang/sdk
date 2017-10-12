@@ -24,7 +24,8 @@ import '../fasta_codes.dart'
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../parser.dart' show MemberKind, Parser, closeBraceTokenFor, optional;
+import '../parser.dart'
+    show IdentifierContext, MemberKind, Parser, closeBraceTokenFor, optional;
 
 import '../problems.dart' show internalProblem;
 
@@ -255,6 +256,15 @@ class DietListener extends StackListener {
   @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
+  }
+
+  @override
+  void handleIdentifier(Token token, IdentifierContext context) {
+    if (context == IdentifierContext.enumValueDeclaration) {
+      // Discard the metadata.
+      pop();
+    }
+    super.handleIdentifier(token, context);
   }
 
   @override

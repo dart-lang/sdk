@@ -1207,6 +1207,12 @@ PreviousUseOfName:
 ExpressionNotMetadata:
   template: "This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor."
 
+AnnotationOnEnumConstant:
+  template: "Enum constants can't have annotations."
+  tip: "Try removing the annotation."
+  analyzerCode: ANNOTATION_ON_ENUM_CONSTANT
+  dart2jsCode: "*fatal*"
+
 ExpectedAnInitializer:
   template: "Expected an initializer."
 

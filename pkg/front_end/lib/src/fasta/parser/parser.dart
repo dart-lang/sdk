@@ -1031,11 +1031,21 @@ class Parser {
     token = expect('{', token);
     int count = 0;
     if (!optional('}', token)) {
+      Token before = token;
+      token = parseMetadataStar(token);
+      if (!identical(token, before)) {
+        reportRecoverableError(before, fasta.messageAnnotationOnEnumConstant);
+      }
       token = parseIdentifier(token, IdentifierContext.enumValueDeclaration);
       count++;
       while (optional(',', token)) {
         token = token.next;
         if (optional('}', token)) break;
+        Token before = token;
+        token = parseMetadataStar(token);
+        if (!identical(token, before)) {
+          reportRecoverableError(before, fasta.messageAnnotationOnEnumConstant);
+        }
         token = parseIdentifier(token, IdentifierContext.enumValueDeclaration);
         count++;
       }

@@ -844,6 +844,8 @@ class NodeListener extends ElementListener {
       } else {
         pushNode(typeAnnotation);
       }
+    } else if (context == IdentifierContext.enumValueDeclaration) {
+      popNode();
     }
     pushNode(new Identifier(token));
   }
