@@ -304,6 +304,14 @@ field_override_test/01: CompileTimeError
 malbounded_redirecting_factory_test/none: CompileTimeError
 malbounded_redirecting_factory_test/01: CompileTimeError
 malbounded_instantiation_test/01: CompileTimeError
+mixin_invalid_bound_test/01: CompileTimeError
+mixin_invalid_bound_test/none: CompileTimeError
+mixin_invalid_bound_test/05: CompileTimeError
+mixin_invalid_bound_test/03: CompileTimeError
+mixin_invalid_bound2_test/none: CompileTimeError
+mixin_invalid_bound2_test/01: CompileTimeError
+mixin_invalid_bound2_test/04: CompileTimeError
+mixin_invalid_bound2_test/07: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

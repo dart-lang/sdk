@@ -345,6 +345,11 @@ factory_redirection_test/13: Fail
 factory_redirection_test/14: Fail
 malbounded_redirecting_factory_test/03: Fail
 malbounded_redirecting_factory_test/04: Fail
+mixin_invalid_bound2_test/08: Fail
+mixin_invalid_bound2_test/09: Fail
+mixin_invalid_bound2_test/10: Fail
+mixin_invalid_bound_test/06: Fail
+mixin_invalid_bound_test/07: Fail
 
 [ $compiler == dartk || $compiler == dartkp ]
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -571,6 +576,9 @@ generic_field_mixin6_test/none: RuntimeError
 deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
+mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
+mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 # Non-contractive types are not supported in the vm.
@@ -583,6 +591,8 @@ example_constructor_test: Fail, OK
 field_initialization_order_test: Fail, OK
 no_main_test/01: Skip
 main_not_a_function_test: Skip
+mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
+mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 cyclic_type_variable_test/01: Crash

@@ -48,8 +48,8 @@ main() {
   new D5(); // //# 11: continued
   new D6(); // //# 12: continued
 
-  new C0(1,2,3); //  //# 13: static type warning, runtime error
-  new C0.named(); // //# 14: static type warning, runtime error
-  new D0(1,2,3); //  //# 15: static type warning, runtime error
-  new D0.named(); // //# 16: static type warning, runtime error
+  new C0(1,2,3); //  //# 13: compile-time error
+  new C0.named(); // //# 14: compile-time error
+  new D0(1,2,3); //  //# 15: compile-time error
+  new D0.named(); // //# 16: compile-time error
 }

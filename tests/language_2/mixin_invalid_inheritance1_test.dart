@@ -4,8 +4,8 @@
 
 class C<T> extends Object
   with Malformed // //# 01: compile-time error
-  with T // //# 02: compile-time error
-  with T<int> // //# 03: compile-time error
+  with T //         //# 02: compile-time error
+  with T<int> //    //# 03: compile-time error
 {}
 
 main() => new C<C>();
