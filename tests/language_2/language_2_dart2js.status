@@ -892,8 +892,6 @@ mixin_mixin_bound_test: RuntimeError # Issue 31054
 [ $compiler == dart2js && $runtime == d8 && $checked && !$dart2js_with_kernel ]
 factory_implementation_test/00: Fail
 regress_30339_test: RuntimeError # Issue 26429
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
 
 [ $compiler == dart2js && $runtime == drt && $checked && !$dart2js_with_kernel ]
 regress_30339_test: RuntimeError # Issue 30393
