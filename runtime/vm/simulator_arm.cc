@@ -671,11 +671,6 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
   stack_ =
       new char[(OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer +
                 kSimulatorStackUnderflowSize)];
-  // Low address.
-  stack_limit_ = reinterpret_cast<uword>(stack_) + OSThread::kStackSizeBuffer;
-  // High address.
-  stack_base_ = stack_limit_ + OSThread::GetSpecifiedStackSize();
-
   pc_modified_ = false;
   icount_ = 0;
   break_pc_ = NULL;
@@ -695,7 +690,7 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
 
   // The sp is initialized to point to the bottom (high address) of the
   // allocated stack area.
-  registers_[SP] = stack_base();
+  registers_[SP] = StackTop();
   // The lr and pc are initialized to a known bad value that will cause an
   // access violation if the simulator ever tries to execute it.
   registers_[PC] = kBadLR;
@@ -1047,6 +1042,15 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
     return 0;  // Success.
   }
   return 1;  // Failure.
+}
+
+// Returns the top of the stack area to enable checking for stack pointer
+// validity.
+uword Simulator::StackTop() const {
+  // To be safe in potential stack underflows we leave some buffer above and
+  // set the stack top.
+  return StackBase() +
+         (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
 bool Simulator::IsTracingExecution() const {
