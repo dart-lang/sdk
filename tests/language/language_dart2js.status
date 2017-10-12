@@ -29,6 +29,7 @@ assertion_initializer_const_error2_test/cc09: Crash
 assertion_initializer_const_error2_test/cc10: Crash
 assertion_initializer_const_error2_test/cc11: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_const_function_error_test/01: Crash
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 bad_constructor_test/05: CompileTimeError # Issue 13639
 bad_typedef_test/00: Crash # Issue 28214

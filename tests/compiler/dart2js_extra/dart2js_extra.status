@@ -117,6 +117,7 @@ timer_negative_test: Fail, OK # A negative runtime test.
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
 deferred_custom_loader_test: SkipByDesign # Issue 25683
+js_interop_test: RuntimeError # Issue 31082
 
 [ $compiler == none && $runtime == vm ]
 invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy

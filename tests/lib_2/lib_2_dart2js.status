@@ -819,21 +819,6 @@ html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue
 
 [ $compiler == dart2js && $runtime == drt && ! $checked ]
 html/audiocontext_test/functional: Pass, Fail
-html/window_test: RuntimeError
-html/worker_api_test: RuntimeError
-html/worker_test/functional: RuntimeError
-html/worker_test/supported: RuntimeError
-html/worker_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/xhr_cross_origin_test/functional: RuntimeError
-html/xhr_cross_origin_test/supported: RuntimeError
-html/xhr_cross_origin_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/xhr_test/headers: RuntimeError
-html/xhr_test/json: RuntimeError
-html/xhr_test/supported_onLoadEnd: RuntimeError
-html/xhr_test/supported_onProgress: RuntimeError
-html/xhr_test/supported_overrideMimeType: RuntimeError
-html/xhr_test/xhr_requestBlob: RuntimeError
-html/xhr_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 
 [  $compiler == dart2js && $runtime == ff ]
 html/xhr_test/xhr: Pass, Fail # Issue 11602
