@@ -384,6 +384,11 @@ class Parser {
         directiveState?.checkDeclaration();
         return parseTopLevelMember(token);
       }
+    } else if (optional('(', token.next)) {
+      // The remaining top level keywords are built-in keywords
+      // and can be used as an identifier in a top level declaration
+      directiveState?.checkDeclaration();
+      return parseTopLevelMember(token);
     } else if (identical(value, 'library')) {
       directiveState?.checkLibrary(this, token);
       return parseLibraryName(token);

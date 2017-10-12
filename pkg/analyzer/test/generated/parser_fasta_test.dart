@@ -4087,39 +4087,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  void test_parseCompilationUnit_builtIn_asFunctionName() {
-    //super.test_parseCompilationUnit_builtIn_asFunctionName();
-
-    // This is a subset of
-    // super.test_parseCompilationUnit_builtIn_asFunctionName
-    // that passes. The remainder are in the
-    // test_parseCompilationUnit_builtIn_asFunctionName2 method below
-    parseCompilationUnit('abstract(x) => 0;');
-    parseCompilationUnit('as(x) => 0;');
-    parseCompilationUnit('dynamic(x) => 0;');
-    parseCompilationUnit('external(x) => 0;');
-    parseCompilationUnit('factory(x) => 0;');
-    parseCompilationUnit('get(x) => 0;');
-    parseCompilationUnit('implements(x) => 0;');
-    parseCompilationUnit('operator(x) => 0;');
-    parseCompilationUnit('set(x) => 0;');
-    parseCompilationUnit('static(x) => 0;');
-    parseCompilationUnit('static(abstract) => 0;');
-    parseCompilationUnit('typedef(x) => 0;');
-  }
-
-  @failingTest
-  void test_parseCompilationUnit_builtIn_asFunctionName2() {
-    // TODO(paulberry,ahe): Fasta's parser is confused when one of the built-in
-    // identifiers `export`, `import`, `library`, `part`, or `typedef` appears
-    // as the name of a top level function with an implicit return type.
-    parseCompilationUnit('export(x) => 0;');
-    parseCompilationUnit('import(x) => 0;');
-    parseCompilationUnit('library(x) => 0;');
-    parseCompilationUnit('part(x) => 0;');
-  }
-
-  @override
   @failingTest
   void test_parseCompilationUnit_exportAsPrefix() {
     // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
