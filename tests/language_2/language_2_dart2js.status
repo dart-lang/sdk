@@ -686,6 +686,15 @@ string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+super_operator_index_test/01: MissingCompileTimeError
+super_operator_index_test/02: MissingCompileTimeError
+super_operator_index_test/03: MissingCompileTimeError
+super_operator_index_test/04: MissingCompileTimeError
+super_operator_index_test/05: MissingCompileTimeError
+super_operator_index_test/06: MissingCompileTimeError
+super_operator_index_test/07: MissingCompileTimeError
+super_test: RuntimeError
+switch_fallthru_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
 top_level_getter_no_setter1_test: MissingCompileTimeError
 top_level_getter_no_setter2_test: MissingCompileTimeError
@@ -1542,6 +1551,12 @@ mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_issue10216_2_test: RuntimeError
+super_test: RuntimeError
+switch_bad_case_test/01: MissingCompileTimeError
+switch_bad_case_test/02: MissingCompileTimeError
+switch_case_test/00: MissingCompileTimeError
+switch_case_test/01: MissingCompileTimeError
+switch_case_test/02: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1868,6 +1883,12 @@ stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
 stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+super_test: RuntimeError
+switch_bad_case_test/01: MissingCompileTimeError
+switch_bad_case_test/02: MissingCompileTimeError
+switch_case_test/00: MissingCompileTimeError
+switch_case_test/01: MissingCompileTimeError
+switch_case_test/02: MissingCompileTimeError
 symbol_conflict_test: RuntimeError
 symbol_literal_test/01: MissingCompileTimeError
 syntax_test/28: MissingCompileTimeError

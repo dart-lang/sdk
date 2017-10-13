@@ -251,6 +251,13 @@ super_no_such_method4_test/01: MissingCompileTimeError
 super_no_such_method5_test/01: MissingCompileTimeError
 super_operator_index5_test/01: MissingCompileTimeError
 super_operator_index5_test/02: MissingCompileTimeError
+super_operator_index_test/01: MissingCompileTimeError
+super_operator_index_test/02: MissingCompileTimeError
+super_operator_index_test/03: MissingCompileTimeError
+super_operator_index_test/04: MissingCompileTimeError
+super_operator_index_test/05: MissingCompileTimeError
+super_operator_index_test/06: MissingCompileTimeError
+super_operator_index_test/07: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
@@ -532,6 +539,11 @@ regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redir
 regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/none: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28278_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+switch_bad_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+switch_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+switch_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError
@@ -600,6 +612,7 @@ no_main_test/01: Skip
 main_not_a_function_test: Skip
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
+super_test: Fail, OK
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 cyclic_type_variable_test/01: Crash

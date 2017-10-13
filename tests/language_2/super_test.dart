@@ -45,16 +45,16 @@ class Sub extends Sup {
   var u, v, w;
 
   Sub(a, b)
-      : super(a, b),
-        this.v = a,
-        this.w = b {
+      : this.v = a,
+        this.w = b,
+        super(a, b) {
     u = a + b;
   }
 
   Sub.stat()
-      : super.stat(),
-        this.v = i++,
-        this.w = i++ {
+      : this.v = i++,
+        this.w = i++,
+        super.stat() {
     u = i++;
   }
 }

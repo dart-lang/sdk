@@ -29,7 +29,7 @@ class D implements C {
 }
 
 main() {
-  switch (new B()) {
+  switch (new B()) { 
     case const A.B(): Expect.fail("bad switch"); break; // //# 00: continued
   }
 

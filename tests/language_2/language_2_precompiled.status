@@ -526,6 +526,14 @@ super_assign_test/01: MissingCompileTimeError
 super_call4_test: CompileTimeError
 super_getter_setter_test: CompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+super_operator_index_test/01: MissingCompileTimeError
+super_operator_index_test/02: MissingCompileTimeError
+super_operator_index_test/03: MissingCompileTimeError
+super_operator_index_test/04: MissingCompileTimeError
+super_operator_index_test/05: MissingCompileTimeError
+super_operator_index_test/06: MissingCompileTimeError
+super_operator_index_test/07: MissingCompileTimeError
+switch_fallthru_test/01: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
 top_level_getter_no_setter1_test: MissingCompileTimeError

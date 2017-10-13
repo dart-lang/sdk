@@ -46,14 +46,6 @@ class B extends A {
   }
 }
 
-class Autobianchi {
-  g() => super[0];
-}
-
-testRegression6403() {
-  // Do not crash, throw exception instead
-  new Autobianchi().g();
-}
 
 main() {
   var a = new A();
@@ -69,6 +61,4 @@ main() {
   a[4] = 1; // operator []= of class B.
   Expect.equals(43, a.things[4]);
   Expect.equals(86, a[4]);
-
-  Expect.throws(testRegression6403);
 }

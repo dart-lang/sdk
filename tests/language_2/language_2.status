@@ -205,3 +205,6 @@ library_env_test/has_no_mirror_support: RuntimeError, OK
 
 [ $minified && !$dart2js_with_kernel ]
 stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
+
+[ $compiler != dart2analyzer]
+switch_case_warn_test: SKIP # Analyzer only, see language_analyzer2.status

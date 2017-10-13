@@ -310,6 +310,12 @@ regress_29784_test/02: Crash # assert initializers not implemented
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920
 stack_overflow_test: RuntimeError # Issue 29920
 stacktrace_test: RuntimeError # Issue 29920
+super_operator_index7_test: RuntimeError
+super_operator_index8_test: RuntimeError
+super_test: RuntimeError
+switch_case_test/none: CompileTimeError
+switch_label2_test: RuntimeError # Issue 29920
+switch_label_test: RuntimeError # Issue 29920
 switch_try_catch_test: RuntimeError # Issue 29920
 truncdiv_test: RuntimeError # Issue 29920
 vm/*: SkipByDesign # Tests for the VM.
