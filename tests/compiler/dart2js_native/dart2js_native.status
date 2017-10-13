@@ -36,7 +36,6 @@ native_mirror_test: RuntimeError
 native_mixin_field_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
-native_property_frog_test: CompileTimeError
 optimization_hints_test: RuntimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_constructor_2_test: RuntimeError
@@ -54,7 +53,6 @@ native_mirror_test: RuntimeError
 native_mixin_field_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
-native_property_frog_test: CompileTimeError
 optimization_hints_test: RuntimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_constructor_2_test: RuntimeError
