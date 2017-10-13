@@ -59,8 +59,12 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
   }
 
   void operator []=(K key, V value) {
-    JS('', '#.set(#, #)', _map, key, value);
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    var map = _map;
+    var length = JS('int', '#.size', map);
+    JS('', '#.set(#, #)', map, key, value);
+    if (length != JS('int', '#.size', map)) {
+      _modifications = (_modifications + 1) & 0x3ffffff;
+    }
   }
 
   V putIfAbsent(K key, V ifAbsent()) {

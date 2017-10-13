@@ -166,8 +166,6 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
     var map = _map;
     int length = JS('', '#.size', map);
     JS('', '#.set(#, #)', map, key, value);
-    // TODO(jmesserly): can we remove this? Identity maps do not try to be as
-    // precise. We do pay a performance cost to support it.
     if (length != JS('int', '#.size', map)) {
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
