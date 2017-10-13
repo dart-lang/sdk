@@ -13,6 +13,7 @@ issue13474_test: SkipByDesign # Requires checked mode.
 map_literal4_test: SkipByDesign # Requires checked mode.
 positional_parameters_type_test/01: SkipByDesign # Requires checked mode.
 positional_parameters_type_test/02: SkipByDesign # Requires checked mode.
+stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
 [ $compiler == none && $runtime == drt && !$checked ]
@@ -200,3 +201,6 @@ deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
 [ $compiler == none || $compiler == app_jit ]
 library_env_test/has_no_mirror_support: RuntimeError, OK
+
+[ $minified && !$dart2js_with_kernel ]
+stack_trace_test: Fail, OK # Stack trace not preserved in minified code.

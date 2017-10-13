@@ -11,8 +11,8 @@ import "package:expect/expect.dart";
 
 class A {
   var foo = 42; // //# 00: compile-time error
-  get foo => 42; // //# 01: static type warning
-  foo() => 42; // //# 02: static type warning
+  get foo => 42; // //# 01: compile-time warning
+  foo() => 42; // //# 02: compile-time warning
   set foo(value) {} // //# 03: compile-time error
 }
 
