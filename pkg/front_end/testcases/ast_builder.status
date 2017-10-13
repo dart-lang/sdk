@@ -456,6 +456,7 @@ runtime_checks/generic_vs_explicit_covariance: Crash
 runtime_checks_new/derived_class_typed: Fail
 runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Crash
 runtime_checks_new/field_forwarding_stub_explicit_covariant: Crash
+runtime_checks_new/generic_covariance_based_on_inference: Crash
 static_setter: Crash
 store_load: Crash
 stringliteral: Crash
