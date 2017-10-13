@@ -264,6 +264,20 @@ f(x) {
     testUserDefinableOperatorWithSuper('+');
   }
 
+  void test_prefixedIdentifier() {
+    testRecovery('''
+f() {
+  var v = 'String';
+  v.
+}
+''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
+f() {
+  var v = 'String';
+  v._s_;
+}
+''');
+  }
+
   @failingTest
   void test_slash() {
     // Parser crashes

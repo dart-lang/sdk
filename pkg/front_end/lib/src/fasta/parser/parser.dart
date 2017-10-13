@@ -1398,7 +1398,8 @@ class Parser {
       followingValues = [';', '=', ','];
     } else if (context == IdentifierContext.enumDeclaration) {
       followingValues = ['{'];
-    } else if (context == IdentifierContext.expression) {
+    } else if (context == IdentifierContext.expression ||
+        context == IdentifierContext.expressionContinuation) {
       if (token.isOperator) {
         return true;
       }
