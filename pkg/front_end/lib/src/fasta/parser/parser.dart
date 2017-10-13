@@ -409,11 +409,13 @@ class Parser {
     throw "Internal error: Unhandled top level keyword '$value'.";
   }
 
-  /// library qualified ';'
+  /// libraryDirective:
+  ///   'library' qualified ';'
+  /// ;
   Token parseLibraryName(Token token) {
+    assert(optional('library', token));
     Token libraryKeyword = token;
     listener.beginLibraryName(libraryKeyword);
-    assert(optional('library', token));
     token = parseQualified(token.next, IdentifierContext.libraryName,
         IdentifierContext.libraryNameContinuation);
     Token semicolon = ensureSemicolon(token);
@@ -421,6 +423,9 @@ class Parser {
     return semicolon.next;
   }
 
+  /// importPrefix:
+  ///   'deferred'? 'as' identifier
+  /// ;
   Token parseImportPrefixOpt(Token token) {
     if (optional('deferred', token) && optional('as', token.next)) {
       Token deferredToken = token;
@@ -439,11 +444,13 @@ class Parser {
     return token;
   }
 
-  /// import uri (if (test) uri)* (as identifier)? combinator* ';'
+  /// importDirective:
+  ///   'import' uri ('if' '(' test ')' uri)* importPrefix? combinator* ';'
+  /// ;
   Token parseImport(Token token) {
+    assert(optional('import', token));
     Token importKeyword = token;
     listener.beginImport(importKeyword);
-    assert(optional('import', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
     Token afterUri = token;
     token = parseConditionalUris(token);
@@ -459,9 +466,9 @@ class Parser {
     }
   }
 
-  /// Recover given out-of-order clauses in an import directive
-  /// where [token] is the import keyword
-  /// and [recoveryStart] is the token on which main parsing stopped.
+  /// Recover given out-of-order clauses in an import directive where [token] is
+  /// the import keyword and [recoveryStart] is the token on which main parsing
+  /// stopped.
   Token parseImportRecovery(Token token, Token recoveryStart) {
     final primaryListener = listener;
     final recoveryListener = new ImportRecoveryListener(primaryListener);
@@ -558,7 +565,9 @@ class Parser {
     return semicolon.next;
   }
 
-  /// if (test) uri
+  /// conditionalUris:
+  ///   conditionalUri*
+  /// ;
   Token parseConditionalUris(Token token) {
     listener.beginConditionalUris(token);
     int count = 0;
@@ -570,6 +579,9 @@ class Parser {
     return token;
   }
 
+  /// conditionalUri:
+  ///   'if' '(' dottedName ('==' literalString)? ')' uri
+  /// ;
   Token parseConditionalUri(Token token) {
     listener.beginConditionalUri(token);
     Token ifKeyword = token;
@@ -588,6 +600,9 @@ class Parser {
     return token;
   }
 
+  /// dottedName:
+  ///   identifier ('.' identifier)*
+  /// ;
   Token parseDottedName(Token token) {
     listener.beginDottedName(token);
     // TODO(brianwilkerson): If `token` is not an identifier, then a synthetic
@@ -605,11 +620,13 @@ class Parser {
     return token;
   }
 
-  /// export uri conditional-uris* combinator* ';'
+  /// exportDirective:
+  ///   'export' uri conditional-uris* combinator* ';'
+  /// ;
   Token parseExport(Token token) {
+    assert(optional('export', token));
     Token exportKeyword = token;
     listener.beginExport(exportKeyword);
-    assert(optional('export', token));
     token = ensureParseLiteralString(token.next);
     token = parseConditionalUris(token);
     token = parseCombinators(token);
@@ -618,6 +635,9 @@ class Parser {
     return semicolon.next;
   }
 
+  /// combinators:
+  ///   (hideCombinator | showCombinator)*
+  /// ;
   Token parseCombinators(Token token) {
     listener.beginCombinators(token);
     int count = 0;
@@ -636,27 +656,33 @@ class Parser {
     return token;
   }
 
-  /// hide identifierList
+  /// hideCombinator:
+  ///   'hide' identifierList
+  /// ;
   Token parseHide(Token token) {
+    assert(optional('hide', token));
     Token hideKeyword = token;
     listener.beginHide(hideKeyword);
-    assert(optional('hide', token));
     token = parseIdentifierList(token.next);
     listener.endHide(hideKeyword);
     return token;
   }
 
-  /// show identifierList
+  /// showCombinator:
+  ///   'show' identifierList
+  /// ;
   Token parseShow(Token token) {
+    assert(optional('show', token));
     Token showKeyword = token;
     listener.beginShow(showKeyword);
-    assert(optional('show', token));
     token = parseIdentifierList(token.next);
     listener.endShow(showKeyword);
     return token;
   }
 
-  /// identifier (, identifier)*
+  /// identifierList:
+  ///   identifier (',' identifier)*
+  /// ;
   Token parseIdentifierList(Token token) {
     // TODO(brianwilkerson): If `token` is not an identifier, then a synthetic
     // identifier will be inserted, but `beginIdentifierList` will be called
@@ -672,7 +698,9 @@ class Parser {
     return token;
   }
 
-  /// type (, type)*
+  /// typeList:
+  ///   type (',' type)*
+  /// ;
   Token parseTypeList(Token token) {
     listener.beginTypeList(token);
     token = parseType(token);
@@ -696,20 +724,26 @@ class Parser {
     }
   }
 
+  /// partDirective:
+  ///   'part' uri ';'
+  /// ;
   Token parsePart(Token token) {
+    assert(optional('part', token));
     Token partKeyword = token;
     listener.beginPart(token);
-    assert(optional('part', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
     Token semicolon = ensureSemicolon(token);
     listener.endPart(partKeyword, semicolon);
     return semicolon.next;
   }
 
+  /// partOfDirective:
+  ///   'part' 'of' (qualified | uri) ';'
+  /// ;
   Token parsePartOf(Token token) {
-    listener.beginPartOf(token);
     assert(optional('part', token));
     assert(optional('of', token.next));
+    listener.beginPartOf(token);
     Token partKeyword = token;
     Token ofKeyword = token.next;
     token = token.next.next;
@@ -725,6 +759,9 @@ class Parser {
     return semicolon.next;
   }
 
+  /// metadata:
+  ///   annotation*
+  /// ;
   Token parseMetadataStar(Token token) {
     token = listener.injectGenericCommentTypeAssign(token);
     // TODO(brianwilkerson): Remove the `token` because we cannot make any
@@ -739,12 +776,14 @@ class Parser {
     return token;
   }
 
-  /// Parse `'@' qualified (‘.’ identifier)? (arguments)?`
+  /// annotation:
+  ///   '@' qualified ('.' identifier)? arguments?
+  /// ;
   Token parseMetadata(Token token) {
+    assert(optional('@', token));
     firstToken ??= token;
     listener.beginMetadata(token);
     Token atToken = token;
-    assert(optional('@', token));
     token = parseIdentifier(token.next, IdentifierContext.metadataReference);
     token =
         parseQualifiedRestOpt(token, IdentifierContext.metadataContinuation);
@@ -872,9 +911,9 @@ class Parser {
 
   Token parseOptionalFormalParameters(
       Token token, bool isNamed, MemberKind kind) {
+    assert((isNamed && optional('{', token)) || optional('[', token));
     Token begin = token;
     listener.beginOptionalFormalParameters(begin);
-    assert((isNamed && optional('{', token)) || optional('[', token));
     int parameterCount = 0;
     do {
       token = token.next;
@@ -916,8 +955,8 @@ class Parser {
     return false;
   }
 
-  /// Returns true if [token] matches '<' type (',' type)* '>' '(', and
-  /// otherwise returns false. The final '(' is not part of the grammar
+  /// Returns `true` if [token] matches '<' type (',' type)* '>' '(', and
+  /// otherwise returns `false`. The final '(' is not part of the grammar
   /// construct `typeArguments`, but it is required here such that type
   /// arguments in generic method invocations can be recognized, and as few as
   /// possible other constructs will pass (e.g., 'a < C, D > 3').
@@ -994,6 +1033,9 @@ class Parser {
     return tryParseMethodTypeArguments(token) != null;
   }
 
+  /// qualified:
+  ///   identifier ('.' identifier)*
+  /// ;
   Token parseQualified(Token token, IdentifierContext context,
       IdentifierContext continuationContext) {
     token = parseIdentifier(token, context);
@@ -1034,6 +1076,7 @@ class Parser {
   }
 
   Token parseEnum(Token token) {
+    assert(optional('enum', token));
     listener.beginEnum(token);
     Token enumKeyword = token;
     token = parseIdentifier(token.next, IdentifierContext.enumDeclaration);
@@ -1250,6 +1293,9 @@ class Parser {
     return token;
   }
 
+  /// implementsClause:
+  ///   'implements' typeName (',' typeName)*
+  /// ;
   Token parseClassImplementsOpt(Token token) {
     Token implementsKeyword;
     int interfacesCount = 0;
@@ -1499,6 +1545,9 @@ class Parser {
     return token.next;
   }
 
+  /// typeVariable:
+  ///   metadata? identifier (('extends' | 'super') typeName)?
+  /// ;
   Token parseTypeVariable(Token token) {
     listener.beginTypeVariable(token);
     token = parseMetadataStar(token);
@@ -1514,7 +1563,7 @@ class Parser {
     return token;
   }
 
-  /// Returns true if the stringValue of the [token] is either [value1],
+  /// Returns `true` if the stringValue of the [token] is either [value1],
   /// [value2], or [value3].
   bool isOneOf3(Token token, String value1, String value2, String value3) {
     String stringValue = token.stringValue;
@@ -1523,7 +1572,7 @@ class Parser {
         identical(value3, stringValue);
   }
 
-  /// Returns true if the stringValue of the [token] is either [value1],
+  /// Returns `true` if the stringValue of the [token] is either [value1],
   /// [value2], [value3], or [value4].
   bool isOneOf4(
       Token token, String value1, String value2, String value3, String value4) {
@@ -2702,6 +2751,12 @@ class Parser {
     return closeBrace;
   }
 
+  /// classBody:
+  ///   '{' classMember* '}'
+  /// ;
+  ///
+  /// Note: unlike most parse methods, this method returns the last token parsed
+  /// (the closing brace) rather than the next token to be parsed.
   Token parseClassBody(Token token) {
     Token begin = token;
     listener.beginClassBody(token);
@@ -2739,6 +2794,11 @@ class Parser {
     return optional('factory', token);
   }
 
+  /// classMember:
+  ///   fieldDeclaration |
+  ///   constructorDeclaration |
+  ///   methodDeclaration
+  /// ;
   Token parseMember(Token token) {
     firstToken ??= token;
     token = parseMetadataStar(token);
@@ -2949,8 +3009,8 @@ class Parser {
   }
 
   Token parseFactoryMethod(Token token) {
-    firstToken ??= token;
     assert(isFactoryDeclaration(token));
+    firstToken ??= token;
     Token start = token;
     bool isExternal = false;
     int modifierCount = 0;
@@ -3077,8 +3137,8 @@ class Parser {
   }
 
   Token parseRedirectingFactoryBody(Token token) {
-    listener.beginRedirectingFactoryBody(token);
     assert(optional('=', token));
+    listener.beginRedirectingFactoryBody(token);
     Token equals = token;
     token = parseConstructorReference(token.next);
     Token semicolon = ensureSemicolon(token);
@@ -3343,9 +3403,9 @@ class Parser {
   }
 
   Token parseYieldStatement(Token token) {
+    assert(identical('yield', token.stringValue));
     Token begin = token;
     listener.beginYieldStatement(begin);
-    assert(identical('yield', token.stringValue));
     token = token.next;
     Token starToken;
     if (optional('*', token)) {
@@ -3359,6 +3419,7 @@ class Parser {
   }
 
   Token parseReturnStatement(Token token) {
+    assert(identical('return', token.stringValue));
     Token begin = token;
     listener.beginReturnStatement(begin);
     assert(optional('return', token));
@@ -3599,8 +3660,8 @@ class Parser {
   }
 
   Token parseCascadeExpression(Token token) {
-    listener.beginCascade(token);
     assert(optional('..', token));
+    listener.beginCascade(token);
     Token cascadeOperator = token;
     token = token.next;
     if (optional('[', token)) {
@@ -4118,9 +4179,9 @@ class Parser {
   }
 
   Token parseArguments(Token token) {
+    assert(identical('(', token.stringValue));
     Token begin = token;
     listener.beginArguments(begin);
-    assert(identical('(', token.stringValue));
     int argumentCount = 0;
     if (optional(')', token.next)) {
       listener.endArguments(argumentCount, begin, token.next);
