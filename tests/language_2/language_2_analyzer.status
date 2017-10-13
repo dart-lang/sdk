@@ -1016,6 +1016,7 @@ parser_quirks_test: CompileTimeError
 prefix13_negative_test: CompileTimeError, OK
 prefix15_negative_test: CompileTimeError, OK
 prefix18_negative_test: CompileTimeError, OK
+regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
 setter_override2_test/none: CompileTimeError
 string_supertype_checked_test: CompileTimeError
