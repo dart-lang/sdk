@@ -368,6 +368,9 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           break;
         case SendStructureKind.INVOKE:
           switch (sendStructure.semantics.kind) {
+            case AccessKind.EXPRESSION:
+              computeForNode(node, createInvokeId(node.argumentsNode));
+              break;
             case AccessKind.LOCAL_VARIABLE:
             case AccessKind.FINAL_LOCAL_VARIABLE:
             case AccessKind.PARAMETER:

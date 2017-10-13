@@ -892,12 +892,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   void analyzeSuperConstructorCall(ConstructorElement target) {
     assert(target.isDeclaration);
-    ResolvedAst resolvedAst = target.resolvedAst;
-    ast.Node body;
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      body = resolvedAst.node;
-    }
-    inferrer.analyze(target, body);
+    inferrer.analyze(target);
     isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 

@@ -167,6 +167,7 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
             case AccessKind.FINAL_LOCAL_VARIABLE:
             case AccessKind.PARAMETER:
             case AccessKind.FINAL_PARAMETER:
+            case AccessKind.EXPRESSION:
               if (id.kind == IdKind.invoke) {
                 return computeInvokeName('call');
               } else if (id.kind == IdKind.node) {

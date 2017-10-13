@@ -177,12 +177,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       case MemberKind.regular:
         ir.Member node = definition.node;
         if (node is ir.Field) {
-          if (node.isInstanceMember &&
-              !node.isFinal &&
-              node.initializer is ir.NullLiteral) {
-            return null;
-          }
-          return node.initializer;
+          return getFieldInitializer(_elementMap, member);
         } else if (node is ir.Procedure) {
           return node.function;
         }
@@ -447,4 +442,20 @@ class KernelGlobalTypeInferenceElementData
     if (_sendMap == null) return null;
     return _sendMap[node];
   }
+}
+
+/// Returns the initializer for [field].
+///
+/// If [field] is an instance field with a null literal initializer `null` is
+/// returned, otherwise the initializer of the [ir.Field] is returned.
+ir.Node getFieldInitializer(
+    KernelToElementMapForBuilding elementMap, FieldEntity field) {
+  MemberDefinition definition = elementMap.getMemberDefinition(field);
+  ir.Field node = definition.node;
+  if (node.isInstanceMember &&
+      !node.isFinal &&
+      node.initializer is ir.NullLiteral) {
+    return null;
+  }
+  return node.initializer;
 }

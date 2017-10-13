@@ -22,6 +22,7 @@ import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
 import 'inferrer_engine.dart';
+import 'kernel_inferrer_engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
@@ -88,6 +89,61 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   int _loopLevel = 0;
 
   bool get inLoop => _loopLevel > 0;
+
+  bool get _isThisExposed {
+    return _inGenerativeConstructor ? _locals.fieldScope.isThisExposed : true;
+  }
+
+  void _markThisAsExposed() {
+    if (_inGenerativeConstructor) {
+      _locals.fieldScope.isThisExposed = true;
+    }
+  }
+
+  /// Returns `true` if [member] is defined in a subclass of the current this
+  /// type.
+  bool _isInClassOrSubclass(MemberEntity member) {
+    ClassEntity cls = _elementMap.getMemberThisType(_analyzedMember)?.element;
+    if (cls == null) return false;
+    return _closedWorld.isSubclassOf(member.enclosingClass, cls);
+  }
+
+  /// Checks whether the access or update of [selector] on [mask] potentially
+  /// exposes `this`.
+  ///
+  /// If all matching members are instance fields on the current `this`
+  /// class or subclasses, `this` is not considered to be exposed.
+  ///
+  /// If an instance field matched with a [selector] that is _not_ a setter, the
+  /// field is considered to have been read before initialization and the field
+  /// is assumed to be potentially `null`.
+  void _checkIfExposesThis(Selector selector, TypeMask mask) {
+    if (_isThisExposed) {
+      // We already consider `this` to have been exposed.
+      return;
+    }
+    _inferrer.forEachElementMatching(selector, mask, (MemberEntity element) {
+      if (element.isField) {
+        FieldEntity field = element;
+        if (!selector.isSetter &&
+            _isInClassOrSubclass(field) &&
+            field.isAssignable &&
+            _locals.fieldScope.readField(field) == null &&
+            getFieldInitializer(_elementMap, field) == null) {
+          // If the field is being used before this constructor
+          // actually had a chance to initialize it, say it can be
+          // null.
+          _inferrer.recordTypeOfField(field, _types.nullType);
+        }
+        // Accessing a field does not expose `this`.
+        return true;
+      }
+      // TODO(ngeoffray): We could do better here if we knew what we
+      // are calling does not expose this.
+      _markThisAsExposed();
+      return false;
+    });
+  }
 
   TypeInformation run() {
     if (_analyzedMember.isField) {
@@ -180,6 +236,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         }
       });
     }
+    _inferrer.recordExposesThis(_analyzedMember, _isThisExposed);
 
     if (cls.isAbstract) {
       if (_closedWorld.isInstantiated(cls)) {
@@ -205,24 +262,32 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   visitSuperInitializer(ir.SuperInitializer node) {
-    // TODO(redemption): Handle exposure of this.
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
         _elementMap.getCallStructure(node.arguments));
     TypeMask mask = _memberData.typeOfSend(node);
     handleConstructorInvoke(node, selector, mask, constructor, arguments);
+
+    _inferrer.analyze(constructor);
+    if (_inferrer.checkIfExposesThis(constructor)) {
+      _markThisAsExposed();
+    }
   }
 
   @override
   visitRedirectingInitializer(ir.RedirectingInitializer node) {
-    // TODO(redemption): Handle exposure of this?
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
         _elementMap.getCallStructure(node.arguments));
     TypeMask mask = _memberData.typeOfSend(node);
     handleConstructorInvoke(node, selector, mask, constructor, arguments);
+
+    _inferrer.analyze(constructor);
+    if (_inferrer.checkIfExposesThis(constructor)) {
+      _markThisAsExposed();
+    }
   }
 
   @override
@@ -547,6 +612,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       _locals.update(local, visit(node.initializer), node, type);
     }
+    if (node.initializer is ir.ThisExpression) {
+      _markThisAsExposed();
+    }
     return null;
   }
 
@@ -560,9 +628,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitVariableSet(ir.VariableSet node) {
+    TypeInformation rhsType = visit(node.value);
+    if (node.value is ir.ThisExpression) {
+      _markThisAsExposed();
+    }
     Local local = _localsMap.getLocalVariable(node.variable);
     DartType type = _localsMap.getLocalType(_elementMap, local);
-    TypeInformation rhsType = visit(node.value);
     _locals.update(local, rhsType, node, type);
     return rhsType;
   }
@@ -571,14 +642,24 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     List<TypeInformation> positional = <TypeInformation>[];
     Map<String, TypeInformation> named;
     for (ir.Expression argument in arguments.positional) {
+      // TODO(ngeoffray): We could do better here if we knew what we
+      // are calling does not expose this.
+      if (argument is ir.ThisExpression) {
+        _markThisAsExposed();
+      }
       positional.add(argument.accept(this));
     }
     for (ir.NamedExpression argument in arguments.named) {
       named ??= <String, TypeInformation>{};
-      named[argument.name] = argument.value.accept(this);
+      ir.Expression value = argument.value;
+      // TODO(ngeoffray): We could do better here if we knew what we
+      // are calling does not expose this.
+      if (value is ir.ThisExpression) {
+        _markThisAsExposed();
+      }
+      named[argument.name] = value.accept(this);
     }
 
-    /// TODO(johnniwinther): Track `isThisExposed`.
     return new ArgumentsTypes(positional, named);
   }
 
@@ -610,6 +691,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         _potentiallyAddNullCheck(node, node.receiver);
         return _types.boolType;
       }
+    }
+    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(selector, mask);
     }
     return handleDynamicInvoke(
         CallType.access, node, selector, mask, receiverType, arguments);
@@ -644,7 +728,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
 
     if (variable != null) {
-      // TODO(redemption): Exclude captured locals.
       Local local = _localsMap.getLocalVariable(variable);
       if (!_capturedVariables.contains(local)) {
         TypeInformation refinedType = _types
@@ -743,6 +826,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitForInStatement(ir.ForInStatement node) {
+    if (node.iterable is ir.ThisExpression) {
+      // Any reasonable implementation of an iterator would expose
+      // this, so we play it safe and assume it will.
+      _markThisAsExposed();
+    }
+
     TypeMask currentMask;
     TypeMask moveNextMask;
     TypeInformation iteratorType;
@@ -933,6 +1022,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitStaticSet(ir.StaticSet node) {
     TypeInformation rhsType = visit(node.value);
+    if (node.value is ir.ThisExpression) {
+      _markThisAsExposed();
+    }
     MemberEntity member = _elementMap.getMember(node.target);
     TypeMask mask = _memberData.typeOfSend(node);
     handleStaticInvoke(node, new Selector.setter(member.memberName), mask,
@@ -947,6 +1039,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeMask mask = _memberData.typeOfSend(node);
     // TODO(johnniwinther): Use `node.interfaceTarget` to narrow the receiver
     // type for --trust-type-annotations/strong-mode.
+    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(selector, mask);
+    }
     return handleDynamicGet(node, selector, mask, receiverType);
   }
 
@@ -956,13 +1051,20 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     MemberEntity member = _elementMap.getMember(node.target);
     TypeMask mask = _memberData.typeOfSend(node);
     // TODO(johnniwinther): Use `node.target` to narrow the receiver type.
-    return handleDynamicGet(
-        node, new Selector.getter(member.memberName), mask, receiverType);
+    Selector selector = new Selector.getter(member.memberName);
+    if (!_isThisExposed) {
+      _checkIfExposesThis(selector, mask);
+    }
+    return handleDynamicGet(node, selector, mask, receiverType);
   }
 
   @override
   TypeInformation visitPropertySet(ir.PropertySet node) {
     TypeInformation rhsType = visit(node.value);
+    if (node.value is ir.ThisExpression) {
+      _markThisAsExposed();
+    }
+
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
@@ -979,6 +1081,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           _locals.updateField(field, rhsType);
         }
       }
+    }
+    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(selector, mask);
     }
     handleDynamicSet(node, selector, mask, receiverType, rhsType);
     return rhsType;
@@ -1170,6 +1275,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation handleLocalFunction(
       ir.TreeNode node, ir.FunctionNode functionNode,
       [ir.VariableDeclaration variable]) {
+    // We loose track of [this] in closures (see issue 20840). To be on
+    // the safe side, we mark [this] as exposed here. We could do better by
+    // analyzing the closure.
+    // TODO(herhut): Analyze whether closure exposes this. Possibly using
+    // whether the created closure as a `thisLocal`.
+    _markThisAsExposed();
+
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
 
     // Record the types of captured non-boxed variables. Types of
@@ -1343,7 +1455,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitSuperPropertyGet(ir.SuperPropertyGet node) {
-    // TODO(redemption): Track exposure of `this`.
+    // TODO(herhut): We could do better here if we knew what we
+    // are calling does not expose this.
+    _markThisAsExposed();
+
     MemberEntity member = _elementMap.getSuperMember(
         _analyzedMember, node.name, node.interfaceTarget);
     TypeMask mask = _memberData.typeOfSend(node);
@@ -1353,7 +1468,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitSuperPropertySet(ir.SuperPropertySet node) {
-    // TODO(redemption): Track exposure of `this`.
+    // TODO(herhut): We could do better here if we knew what we
+    // are calling does not expose this.
+    _markThisAsExposed();
+
     TypeInformation rhsType = visit(node.value);
     MemberEntity member = _elementMap.getSuperMember(
         _analyzedMember, node.name, node.interfaceTarget);
@@ -1365,7 +1483,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
-    // TODO(redemption): Track exposure of `this`.
+    // TODO(herhut): We could do better here if we knew what we
+    // are calling does not expose this.
+    _markThisAsExposed();
+
     MemberEntity member = _elementMap.getSuperMember(
         _analyzedMember, node.name, node.interfaceTarget);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
