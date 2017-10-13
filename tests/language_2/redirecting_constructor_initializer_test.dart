@@ -28,8 +28,8 @@ class B extends A {
 
   // Call the redirecting constructor using super.
   B()
-      : super(),
-        w = append('w');
+      : w = append('w'),
+        super();
 }
 
 main() {
@@ -39,5 +39,5 @@ main() {
 
   string = '';
   new B();
-  Expect.equals('yxzw', string);
+  Expect.equals('wyxz', string);
 }

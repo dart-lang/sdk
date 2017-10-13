@@ -2,21 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Foo<T> extends Bar<T> {
-  factory Foo() = Bar;
-
-  Foo.create() : super.create() {}
+class Foo<T> {
+  factory Foo() = Bar<T>;
+  Foo.create() {}
 }
 
 class Bar<
     T
-            extends num // //# 01: static type warning, dynamic type error
-    > {
+            extends num //# 01: compile-time error
+    > extends Foo<T> {
   factory Bar() {
-    return new Foo<T>.create();
+    return new Bar<T>.create();
   }
 
-  Bar.create() {}
+  Bar.create() : super.create() {}
 }
 
 main() {

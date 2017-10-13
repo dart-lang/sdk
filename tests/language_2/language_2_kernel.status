@@ -272,6 +272,8 @@ super_operator_index_test/05: MissingCompileTimeError
 super_operator_index_test/06: MissingCompileTimeError
 super_operator_index_test/07: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
+main_not_a_function_test: DartkCrash
+recursive_generic_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -380,6 +382,8 @@ mixin_invalid_bound2_test/09: Fail
 mixin_invalid_bound2_test/10: Fail
 mixin_invalid_bound_test/06: Fail
 mixin_invalid_bound_test/07: Fail
+redirecting_factory_infinite_steps_test/01: Fail
+redirecting_factory_malbounded_test/01: Fail
 
 [ $compiler == dartk || $compiler == dartkp ]
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -645,6 +649,10 @@ mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: I
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
 regress_20394_test/01: MissingCompileTimeError # Fasta bug: Illegal access to private constructor.
+redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
+redirecting_factory_default_values_test/01: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
+redirecting_factory_default_values_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
+private_super_constructor_test/01: MissingCompileTimeError # Fasta bug: Illegal access to private constructor.
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 # Non-contractive types are not supported in the vm.

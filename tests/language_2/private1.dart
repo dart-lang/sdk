@@ -56,8 +56,8 @@ class C1 {
 class C3 extends C2 {
   int _field2;
   C3()
-      : super(),
-        _field2 = 42;
+      : _field2 = 42,
+        super();
 
   field2a() => _field2;
   field1c() => _field1;

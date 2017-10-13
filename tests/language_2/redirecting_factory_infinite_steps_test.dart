@@ -13,7 +13,7 @@
 // indirectly via a sequence of redirections."
 
 class Foo extends Bar {
-  factory Foo() = Bar; //# 01: static type warning, dynamic type error
+  factory Foo() = Bar; //# 01: compile-time error
 }
 
 class Bar {

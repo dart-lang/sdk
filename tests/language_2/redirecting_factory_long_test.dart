@@ -11,7 +11,7 @@ class C {
 }
 
 class D<T> implements C {
-  const factory D() = E<double, int>;
+  const factory D() = E<double, T>;
 }
 
 class E<S, T> implements D<T> {

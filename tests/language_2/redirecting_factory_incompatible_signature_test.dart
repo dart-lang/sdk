@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test that incompatible signatures in a forwarding factory
-// constructor leads to a [NoSuchMethodError].
+// constructor leads to a compile-time error.
 
 import "package:expect/expect.dart";
 
 class A {
   A(a, b);
-  factory A.f() = A;
+  factory A.f() = A; //# 01: compile-time error
 }
 
 main() {
-  Expect.throws(() => new A.f(), (e) => e is NoSuchMethodError);
+  new A.f(); //# 01: continued
 }

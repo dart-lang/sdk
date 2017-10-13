@@ -653,6 +653,8 @@ runtime_type_function_test: RuntimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override2_test/none: CompileTimeError
+setter_override_test/01: MissingCompileTimeError
+setter_override_test/02: MissingCompileTimeError
 static_field1_test/01: MissingCompileTimeError
 static_field1a_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
@@ -1153,10 +1155,12 @@ mixin_mixin_bound_test: RuntimeError # Issue 31054
 
 [ $compiler == dart2js && $runtime == d8 && $checked && !$dart2js_with_kernel ]
 factory_implementation_test/00: Fail
+recursive_generic_test: RuntimeError
 regress_30339_test: RuntimeError # Issue 26429
 setter4_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime == d8 ]
+recursive_generic_test: RuntimeError
 setter4_test: MissingCompileTimeError
 regress_12561_test: MissingCompileTimeError
 regress_13494_test: MissingCompileTimeError
@@ -1167,6 +1171,9 @@ regress_21793_test/01: MissingCompileTimeError
 regress_21912_test/01: MissingCompileTimeError
 regress_21912_test/02: MissingCompileTimeError
 regress_22438_test: MissingCompileTimeError
+
+[ $compiler == dart2js && $runtime == d8 && $host_checked ]
+recursive_mixin_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && $checked && !$dart2js_with_kernel ]
 regress_30339_test: RuntimeError # Issue 30393
@@ -1406,6 +1413,15 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+field_override3_test/00: MissingCompileTimeError
+field_override3_test/01: MissingCompileTimeError
+field_override3_test/02: MissingCompileTimeError
+field_override3_test/03: MissingCompileTimeError
+field_override4_test/02: MissingCompileTimeError
+final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/02: MissingCompileTimeError
+final_field_initialization_order_test: RuntimeError
+
 generalized_void_syntax_test: CompileTimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
@@ -1595,6 +1611,11 @@ redirecting_factory_reflection_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
+private_super_constructor_test/01: MissingCompileTimeError
+redirecting_constructor_initializer_test: RuntimeError
+redirecting_factory_default_values_test/01: MissingCompileTimeError
+redirecting_factory_default_values_test/02: MissingCompileTimeError
+redirecting_factory_long_test: RuntimeError
 regress_22443_test: CompileTimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
@@ -1853,11 +1874,18 @@ factory_redirection_test/07: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError
+field_override3_test/00: MissingCompileTimeError
+field_override3_test/01: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
+field_override3_test/02: MissingCompileTimeError
+field_override3_test/03: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
+field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
@@ -1935,6 +1963,7 @@ list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
 local_function3_test/none: RuntimeError
 local_function_test: RuntimeError
+malformed2_test/00: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 map_literal8_test: RuntimeError
@@ -2079,6 +2108,11 @@ regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
+private_super_constructor_test/01: MissingCompileTimeError
+redirecting_constructor_initializer_test: RuntimeError
+redirecting_factory_default_values_test/01: MissingCompileTimeError
+redirecting_factory_default_values_test/02: MissingCompileTimeError
+redirecting_factory_long_test: RuntimeError
 regress_22443_test: CompileTimeError
 regress_22976_test: CompileTimeError
 regress_23408_test: CompileTimeError
@@ -2237,6 +2271,8 @@ async_star_no_cancel_test: RuntimeError # Need triage
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 
+[ $compiler == dart2js && $runtime != none ]
+
 [ $compiler == dart2js && $runtime == jsshell ]
 async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
@@ -2255,11 +2291,17 @@ regress_21793_test/01: MissingCompileTimeError
 regress_21912_test/01: MissingCompileTimeError
 regress_21912_test/02: MissingCompileTimeError
 regress_22438_test: MissingCompileTimeError
+recursive_generic_test: RuntimeError
+recursive_mixin_test: RuntimeError
 setter4_test: MissingCompileTimeError
+super_call4_test: CompileTimeError
+super_getter_setter_test: CompileTimeError
 
 [ $compiler == dart2js && $runtime == chrome ]
 field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
+recursive_generic_test: RuntimeError
+recursive_mixin_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && !$checked ]
 field_override_optimization_test: RuntimeError

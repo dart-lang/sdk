@@ -116,18 +116,6 @@ is_object_test: Skip
 isnot_malformed_type_test: Skip
 issue11724_test: Skip
 issue11793_test: Skip
-private_test: Skip
-propagated_argument_type_check_test: Skip
-property_field_override_test: Skip
-proxy2_test: Skip
-proxy3_test: Skip
-proxy_test: Skip
-redirecting_constructor_initializer_test: Skip
-redirecting_factory_default_values_test: Skip
-redirecting_factory_incompatible_signature_test: Skip
-redirecting_factory_infinite_steps_test: Skip
-redirecting_factory_long_test: Skip
-redirecting_factory_malbounded_test: Skip
 return_type_test: Skip
 rewrite_implicit_this_test: Skip
 setter4_test: Skip
@@ -213,4 +201,3 @@ switch_label_test: RuntimeError # Issue 29920
 # classes to invert negative test status in the same way our other tools do.
 
 [ $compiler == dartdevc && $system == windows ]
-raw_string_test: RuntimeError # Issue 30336

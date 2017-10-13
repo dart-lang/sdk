@@ -901,6 +901,8 @@ return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 setter_override2_test/none: CompileTimeError
 setter4_test: MissingCompileTimeError
+recursive_generic_test: RuntimeError
+recursive_mixin_test: RuntimeError
 vm/regress_27671_test: Skip # Unsupported
 vm/optimized_stacktrace_test: Skip # Issue 30198
 export_double_same_main_test: Skip # Issue 29895

@@ -21,7 +21,5 @@ main() {
   Expect.equals(x.a, 42);
   Expect.equals(x.b, 0);
 
-  var y = new A.f(42, 43);
-  Expect.equals(y.a, 42);
-  Expect.equals(y.b, 43);
+  var y = new A.f(42, 43); //# 03: compile-time error
 }

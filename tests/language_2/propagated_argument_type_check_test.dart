@@ -9,7 +9,7 @@ main() {
 }
 
 foo(y) {
-  var x = 3;
+  dynamic x = 3;
   for (int i = 0; i < 2; i++) {
     // Make sure that we don't think that the type of x is necessarily
     // a number and optimize the x + y expression based on that. The

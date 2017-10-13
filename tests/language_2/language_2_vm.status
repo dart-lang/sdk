@@ -527,6 +527,8 @@ prefix16_test/01: MissingCompileTimeError
 prefix22_test/00: MissingCompileTimeError
 prefix23_test/00: MissingCompileTimeError
 regress_19413_test: MissingCompileTimeError
+recursive_generic_test: RuntimeError
+recursive_mixin_test: RuntimeError
 regress_22936_test: MissingCompileTimeError
 regress_23089_test: MissingCompileTimeError
 regress_23408_test: RuntimeError
@@ -974,6 +976,7 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type_alias2_test: RuntimeError
 factory_implementation_test/00: Fail
+recursive_mixin_test: Crash
 
 # The VM and does not implement the Dart 2.0 runtime checks yet unless
 # --checked is explicitly passed).

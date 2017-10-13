@@ -287,6 +287,9 @@ malformed_inheritance_test/06: CompileTimeError
 malformed2_test/00: CompileTimeError
 malbounded_type_literal_test: CompileTimeError
 malbounded_type_cast_test: CompileTimeError
+malbounded_redirecting_factory_test/none: CompileTimeError
+malbounded_redirecting_factory_test/01: CompileTimeError
+malbounded_instantiation_test/01: CompileTimeError
 private_access_test/03: CompileTimeError
 private_access_test/04: CompileTimeError
 list_literal_syntax_test/03: CompileTimeError
@@ -329,6 +332,7 @@ mixin_invalid_bound2_test/07: CompileTimeError
 regress_22438_test: CompileTimeError
 regress_13462_1_test: CompileTimeError
 regress_18535_test: CompileTimeError
+redirecting_factory_incompatible_signature_test: CompileTimeError
 redirecting_factory_reflection_test: CompileTimeError
 regress_13462_0_test: CompileTimeError
 regress_12561_test: CompileTimeError
