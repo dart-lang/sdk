@@ -11,6 +11,7 @@ isolate/message3_test/constMap: Crash
 isolate/message3_test/fun: Crash
 isolate/message3_test/none: Crash
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
+html/*: SkipByDesign # dart:html not supported on VM.
 isolate/typed_message_test: Crash
 
 [ $compiler == dartk || $compiler == dartkp ]
