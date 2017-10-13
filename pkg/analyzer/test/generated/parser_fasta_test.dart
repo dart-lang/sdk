@@ -146,6 +146,8 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   void test_constConstructorWithBody() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, found 0
+    //
+    // This error is produced by kernel, rather than in the parser.
     super.test_constConstructorWithBody();
   }
 
@@ -267,30 +269,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // Expected 1 errors of type ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, found 0;
     // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 2 (1, 11)
     super.test_covariantTopLevelDeclaration_typedef();
-  }
-
-  @override
-  @failingTest
-  void test_defaultValueInFunctionType_named_colon() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, found 0
-    super.test_defaultValueInFunctionType_named_colon();
-  }
-
-  @override
-  @failingTest
-  void test_defaultValueInFunctionType_named_equal() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, found 0
-    super.test_defaultValueInFunctionType_named_equal();
-  }
-
-  @override
-  @failingTest
-  void test_defaultValueInFunctionType_positional() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, found 0
-    super.test_defaultValueInFunctionType_positional();
   }
 
   @override
@@ -4033,16 +4011,16 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
+  void test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter() {
+    // Fasta correctly parses these, while analyzer does not.
+    super.test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter();
+  }
+
+  @override
   @failingTest
   void test_parseCompilationUnit_exportAsPrefix() {
     // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_exportAsPrefix();
-  }
-
-  @override
-  void test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter() {
-    // Fasta correctly parses these, while analyzer does not.
-    super.test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter();
   }
 
   @override

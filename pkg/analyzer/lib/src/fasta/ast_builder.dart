@@ -2125,6 +2125,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COVARIANT_AND_STATIC, offset, length);
         return;
+      case "DEFAULT_VALUE_IN_FUNCTION_TYPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, offset, length);
+        return;
       case "DEFERRED_AFTER_PREFIX":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DEFERRED_AFTER_PREFIX, offset, length);

@@ -627,6 +627,7 @@ AssertAsExpression:
 
 FunctionTypeDefaultValue:
   template: "Can't have a default value in a function type."
+  analyzerCode: DEFAULT_VALUE_IN_FUNCTION_TYPE
   dart2jsCode: "*ignored*"
 
 PrivateNamedParameter:

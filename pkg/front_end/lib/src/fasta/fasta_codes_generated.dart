@@ -1495,6 +1495,7 @@ const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFunctionTypeDefaultValue = const MessageCode(
     "FunctionTypeDefaultValue",
+    analyzerCode: "DEFAULT_VALUE_IN_FUNCTION_TYPE",
     dart2jsCode: "*ignored*",
     message: r"""Can't have a default value in a function type.""");
 
