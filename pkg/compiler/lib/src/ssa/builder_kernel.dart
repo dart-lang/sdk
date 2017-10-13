@@ -1065,10 +1065,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitForInStatement(ir.ForInStatement forInStatement) {
     if (forInStatement.isAsync) {
       _buildAsyncForIn(forInStatement);
-    }
-    // If the expression being iterated over is a JS indexable type, we can
-    // generate an optimized version of for-in that uses indexing.
-    if (_typeInferenceMap.isJsIndexableIterator(forInStatement, closedWorld)) {
+    } else if (_typeInferenceMap.isJsIndexableIterator(
+        forInStatement, closedWorld)) {
+      // If the expression being iterated over is a JS indexable type, we can
+      // generate an optimized version of for-in that uses indexing.
       _buildForInIndexable(forInStatement);
     } else {
       _buildForInIterator(forInStatement);

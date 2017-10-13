@@ -337,23 +337,14 @@ switch_case_warn_test: SKIP # Analyzer only, see language_analyzer2.status
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_syntax_test/a06a: RuntimeError
-async_await_syntax_test/b06a: RuntimeError
-async_await_syntax_test/c06a: RuntimeError
-async_await_syntax_test/d06a: RuntimeError
 async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_no_cancel2_test: RuntimeError
 async_star_no_cancel_test: RuntimeError
-async_star_pause_test: RuntimeError
 async_star_regression_fisk_test: RuntimeError
-async_star_stream_take_test: RuntimeError
-async_star_take_reyield_test: RuntimeError
-async_star_test: RuntimeError
 await_exceptions_test: RuntimeError
 await_for_test: RuntimeError
-await_for_use_local_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -692,7 +683,6 @@ regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
-regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
@@ -700,7 +690,6 @@ regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
 regress_28278_test: CompileTimeError
-regress_29349_test: CompileTimeError
 setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_declaration_negative_test: Fail
 setter_override_test/00: MissingCompileTimeError
@@ -734,23 +723,14 @@ type_checks_in_factory_method_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_syntax_test/a06a: RuntimeError
-async_await_syntax_test/b06a: RuntimeError
-async_await_syntax_test/c06a: RuntimeError
-async_await_syntax_test/d06a: RuntimeError
 async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_no_cancel2_test: RuntimeError
 async_star_no_cancel_test: RuntimeError
-async_star_pause_test: RuntimeError
 async_star_regression_fisk_test: RuntimeError
-async_star_stream_take_test: RuntimeError
-async_star_take_reyield_test: RuntimeError
-async_star_test: RuntimeError
 await_exceptions_test: RuntimeError
 await_for_test: RuntimeError
-await_for_use_local_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -1102,7 +1082,6 @@ regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
-regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant

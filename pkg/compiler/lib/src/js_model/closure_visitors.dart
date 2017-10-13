@@ -262,9 +262,18 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   void visitForInStatement(ir.ForInStatement node) {
+    // We need to set `inTry` to true if this is an async for-in because we
+    // desugar it into a try-finally in the SSA phase.
+    bool oldInTry = _inTry;
+    if (node.isAsync) {
+      _inTry = true;
+    }
     enterNewScope(node, () {
       node.visitChildren(this);
     });
+    if (node.isAsync) {
+      _inTry = oldInTry;
+    }
   }
 
   void visitWhileStatement(ir.WhileStatement node) {
