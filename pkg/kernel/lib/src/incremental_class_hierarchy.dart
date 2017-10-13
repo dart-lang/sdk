@@ -64,24 +64,6 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  void forEachCrossOverridePair(Class node,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter),
-      {bool crossGettersSetters: false}) {
-    _ClassInfo info = _getInfo(node);
-    for (var supertype in node.supers) {
-      var superNode = supertype.classNode;
-      var superInfo = _getInfo(superNode);
-
-      var superGetters = superInfo.interfaceGettersAndCalls;
-      var superSetters = superInfo.interfaceSetters;
-
-      _reportOverrides(info.declaredGettersAndCalls, superSetters, callback);
-      _reportOverrides(info.declaredSetters, superGetters, callback,
-          isSetter: true);
-    }
-  }
-
-  @override
   Supertype getClassAsInstanceOf(Class node, Class superclass) {
     if (identical(node, superclass)) return node.asThisSupertype;
     _ClassInfo info = _getInfo(node);

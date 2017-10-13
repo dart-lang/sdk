@@ -218,88 +218,6 @@ abstract class _ClassHierarchyTest {
     program.libraries.add(library);
   }
 
-  void test_forEachOverridePair_crossGetterSetter_extends() {
-    var int = coreTypes.intClass.rawType;
-    var a = addClass(new Class(name: 'A', supertype: objectSuper, procedures: [
-      newEmptySetter('foo', type: int),
-      newEmptyGetter('bar', returnType: int)
-    ]));
-    var b = addClass(new Class(
-        name: 'B',
-        supertype: a.asThisSupertype,
-        procedures: [newEmptyGetter('foo'), newEmptySetter('bar')]));
-
-    _assertTestLibraryText('''
-class A {
-  set foo(core::int _) → void {}
-  get bar() → core::int {
-    return null;
-  }
-}
-class B extends self::A {
-  get foo() → dynamic {
-    return null;
-  }
-  set bar(dynamic _) → void {}
-}
-''');
-
-    // No overrides of getters with getters, or setters with setters.
-    _assertOverridePairs(b, []);
-
-    // Has cross-overrides between getters and setters.
-    _assertOverridePairs(
-        b,
-        [
-          'test::B::foo overrides test::A::foo=',
-          'test::B::bar= overrides test::A::bar'
-        ],
-        crossGettersSetters: true);
-  }
-
-  void test_forEachOverridePair_crossGetterSetter_implements() {
-    var int = coreTypes.intClass.rawType;
-    var double = coreTypes.doubleClass.rawType;
-    var a = addClass(new Class(name: 'A', supertype: objectSuper, procedures: [
-      newEmptySetter('foo', type: int),
-    ]));
-    var b = addClass(new Class(name: 'B', supertype: objectSuper, procedures: [
-      newEmptySetter('foo', type: double),
-    ]));
-    var c = addClass(new Class(
-        name: 'C',
-        supertype: objectSuper,
-        implementedTypes: [a.asThisSupertype, b.asThisSupertype],
-        procedures: [newEmptyGetter('foo')]));
-
-    _assertTestLibraryText('''
-class A {
-  set foo(core::int _) → void {}
-}
-class B {
-  set foo(core::double _) → void {}
-}
-class C implements self::A, self::B {
-  get foo() → dynamic {
-    return null;
-  }
-}
-''');
-
-    // No overrides of getters with getters, or setters with setters.
-    _assertOverridePairs(c, []);
-
-    // Has cross-overrides between getters and setters.
-    // Even if these overrides are incompatible with each other.
-    _assertOverridePairs(
-        c,
-        [
-          'test::C::foo overrides test::A::foo=',
-          'test::C::foo overrides test::B::foo=',
-        ],
-        crossGettersSetters: true);
-  }
-
   /// 2. A non-abstract member is inherited from a superclass, and in the
   /// context of this class, it overrides an abstract member inheritable through
   /// one of its superinterfaces.
@@ -1404,30 +1322,18 @@ class B<T> extends self::A<self::B::T, core::bool> {}
         new InterfaceType(objectClass));
   }
 
-  void _assertOverridePairs(Class class_, List<String> expected,
-      {bool crossGettersSetters: false}) {
+  void _assertOverridePairs(Class class_, List<String> expected) {
     List<String> overrideDescriptions = [];
     void callback(
         Member declaredMember, Member interfaceMember, bool isSetter) {
-      String declaredSuffix;
-      String interfaceSuffix;
-      declaredSuffix = isSetter ? '=' : '';
-      if (crossGettersSetters) {
-        interfaceSuffix = isSetter ? '' : '=';
-      } else {
-        interfaceSuffix = isSetter ? '=' : '';
-      }
-      String declaredName = '$declaredMember$declaredSuffix';
-      String interfaceName = '$interfaceMember$interfaceSuffix';
+      var suffix = isSetter ? '=' : '';
+      String declaredName = '$declaredMember$suffix';
+      String interfaceName = '$interfaceMember$suffix';
       var desc = '$declaredName overrides $interfaceName';
       overrideDescriptions.add(desc);
     }
 
-    if (crossGettersSetters) {
-      hierarchy.forEachCrossOverridePair(class_, callback);
-    } else {
-      hierarchy.forEachOverridePair(class_, callback);
-    }
+    hierarchy.forEachOverridePair(class_, callback);
     expect(overrideDescriptions, unorderedEquals(expected));
   }
 
