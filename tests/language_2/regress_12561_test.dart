@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Regression test for issue 19413.
+import "package:expect/expect.dart";
 
-import 'regress_19413_foo.dart' as foo;
-import 'regress_19413_bar.dart' as foo;
+class C {
+  noSuchMethod(int x, int y) => x + y; /*@compile-error=unspecified*/
+}
 
 main() {
-  foo.f(); //# 01: static type warning, runtime error
+  Expect.throws(() => new C().foo, (e) => e is Error); /*@compile-error=unspecified*/
 }

@@ -156,17 +156,6 @@ redirecting_factory_incompatible_signature_test: Skip
 redirecting_factory_infinite_steps_test: Skip
 redirecting_factory_long_test: Skip
 redirecting_factory_malbounded_test: Skip
-ref_before_declaration_test: Skip
-regress_12561_test: Skip
-regress_13494_test: Skip
-regress_14348_test: Skip
-regress_17382_test: Skip
-regress_19413_test: Skip
-regress_19728_test: Skip
-regress_20394_test: Skip
-regress_21793_test: Skip
-regress_21912_test: Skip
-regress_22438_test: Skip
 return_type_test: Skip
 rewrite_implicit_this_test: Skip
 setter4_test: Skip
@@ -240,6 +229,8 @@ mint_arithmetic_test: RuntimeError # Issue 29920
 nan_identical_test: RuntimeError # Issue 29920
 nested_switch_label_test: RuntimeError # Issue 29920
 regress_16640_test: RuntimeError # Issue 29920
+stack_overflow_stacktrace_test: RuntimeError # Issue 29920
+stack_overflow_test: RuntimeError # Issue 29920
 switch_label2_test: RuntimeError # Issue 29920
 switch_label_test: RuntimeError # Issue 29920
 

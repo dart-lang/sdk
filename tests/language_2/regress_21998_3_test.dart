@@ -16,6 +16,6 @@ class C {
 
   m() {
     return max(
-        Math.max/*<num>*/(lib2_max(1, 2), lib1.max('a', 'b', 'cd').length));
+        Math.max<num>(lib2_max(1, 2), lib1.max('a', 'b', 'cd').length));
   }
 }

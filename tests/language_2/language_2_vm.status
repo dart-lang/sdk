@@ -470,6 +470,7 @@ prefix16_test/00: MissingCompileTimeError
 prefix16_test/01: MissingCompileTimeError
 prefix22_test/00: MissingCompileTimeError
 prefix23_test/00: MissingCompileTimeError
+regress_19413_test: MissingCompileTimeError
 regress_22936_test: MissingCompileTimeError
 regress_23089_test: MissingCompileTimeError
 regress_23408_test: RuntimeError
@@ -747,6 +748,15 @@ generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_reuse_type_variables_test: RuntimeError
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
+regress_12561_test: MissingCompileTimeError
+regress_13494_test: MissingCompileTimeError
+regress_17382_test: MissingCompileTimeError
+regress_19413_test: MissingCompileTimeError
+regress_19728_test: MissingCompileTimeError
+regress_21793_test/01: MissingCompileTimeError
+regress_21912_test/01: MissingCompileTimeError
+regress_21912_test/02: MissingCompileTimeError
+regress_22438_test: MissingCompileTimeError
 
 [ ($compiler == none || $compiler == app_jit) && $runtime == vm && $mode != product ]
 vm/type_vm_test: RuntimeError
@@ -972,8 +982,15 @@ constructor_call_as_function_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 const_native_factory_test: MissingCompileTimeError
-generic_function_bounds_test: CompileTimeError
 export_ambiguous_main_test: Pass
+generic_function_bounds_test: CompileTimeError
+regress_12561_test: MissingCompileTimeError
+regress_13494_test: MissingCompileTimeError
+regress_17382_test: MissingCompileTimeError
+regress_19728_test: MissingCompileTimeError
+regress_21912_test/01: MissingCompileTimeError
+regress_21912_test/02: MissingCompileTimeError
+regress_22438_test: MissingCompileTimeError
 
 [ $compiler == none && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError

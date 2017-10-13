@@ -8,8 +8,8 @@ class C<T extends dynamic> {
   T field;
 
   test() {
-    field = 0;
-    int i = field;
+    field = 0; /*@compile-error=unspecified*/
+    int i = field; /*@compile-error=unspecified*/
   }
 }
 

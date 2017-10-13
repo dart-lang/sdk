@@ -977,6 +977,13 @@ final_attempt_reinitialization_test.dart: Skip # Issue 29659
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 15101
+ref_before_declaration_test/00: MissingCompileTimeError
+ref_before_declaration_test/01: MissingCompileTimeError
+ref_before_declaration_test/02: MissingCompileTimeError
+ref_before_declaration_test/03: MissingCompileTimeError
+ref_before_declaration_test/04: MissingCompileTimeError
+ref_before_declaration_test/05: MissingCompileTimeError
+ref_before_declaration_test/06: MissingCompileTimeError
 regress_28341_test: Fail # Issue 28340
 truncdiv_test: RuntimeError # Issue 15246
 
@@ -1060,6 +1067,15 @@ setter4_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime == d8 ]
 setter4_test: MissingCompileTimeError
+regress_12561_test: MissingCompileTimeError
+regress_13494_test: MissingCompileTimeError
+regress_17382_test: MissingCompileTimeError
+regress_19413_test: MissingCompileTimeError
+regress_19728_test: MissingCompileTimeError
+regress_21793_test/01: MissingCompileTimeError
+regress_21912_test/01: MissingCompileTimeError
+regress_21912_test/02: MissingCompileTimeError
+regress_22438_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime == drt && $checked && !$dart2js_with_kernel ]
 regress_30339_test: RuntimeError # Issue 30393
@@ -1552,6 +1568,10 @@ mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_issue10216_2_test: RuntimeError
+redirecting_factory_reflection_test: RuntimeError
+regress_13494_test: RuntimeError
+regress_17382_test: RuntimeError
+regress_20394_test/01: MissingCompileTimeError
 super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
@@ -1971,6 +1991,11 @@ mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_issue10216_2_test: RuntimeError
+redirecting_factory_reflection_test: RuntimeError
+regress_13494_test: RuntimeError
+regress_17382_test: RuntimeError
+regress_20394_test/01: MissingCompileTimeError
+regress_21795_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
@@ -2052,6 +2077,10 @@ regress_28255_test: Fail # mirrors not supported
 super_call4_test: CompileTimeError
 super_getter_setter_test: CompileTimeError
 vm/reflect_core_vm_test: Fail # mirrors not supported
+redirecting_factory_reflection_test: Fail # mirrors not supported
+regress_13462_0_test: Fail # mirrors not supported
+regress_13462_1_test: Fail # mirrors not supported
+regress_18535_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos && !$dart2js_with_kernel ]
 await_future_test: Pass, Timeout # Issue 26735

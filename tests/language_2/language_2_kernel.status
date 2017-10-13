@@ -19,6 +19,8 @@ generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 library_env_test/has_no_mirror_support: RuntimeError
+regress_19413_test: MissingCompileTimeError
+regress_21793_test/01: MissingCompileTimeError
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
@@ -32,6 +34,7 @@ syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
 type_variable_bounds4_test/01: MissingCompileTimeError
+redirecting_factory_reflection_test: Crash, Pass
 
 [ $compiler == dartk && $runtime == vm ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -232,6 +235,7 @@ initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 issue_1751477_test: RuntimeError
 no_main_test/01: DartkCrash
+redirecting_factory_reflection_test: RuntimeError
 static_field1_test/01: MissingCompileTimeError
 static_field1a_test/01: MissingCompileTimeError
 type_literal_test: RuntimeError
@@ -569,25 +573,26 @@ constructor_duplicate_final_test/02: MissingCompileTimeError
 const_syntax_test/08: Crash
 const_syntax_test/09: Crash
 const_syntax_test/10: Crash
-implicit_closure1_test: Crash
+export_double_same_main_test: Crash # Issue 29895
+factory3_test: Crash
 final_syntax_test/09: Crash
 generic_function_dcall_test: CompileTimeError
 generic_function_bounds_test: CompileTimeError
+implicit_closure1_test: Crash
 named_parameters_type_test/01: Crash
 named_parameters_type_test/02: Crash
 named_parameters_type_test/03: Crash
+positional_parameters_type_test/01: Crash
+positional_parameters_type_test/02: Crash
+positional_parameters_type_test/none: Crash
+setter_declaration2_negative_test: Crash
+setter_declaration_negative_test: Crash
+stacktrace_demangle_ctors_test: RuntimeError
 type_checks_in_factory_method_test: Crash
 vm/integer_type_propagation_test: Crash
 vm/optimized_stacktrace_test: Crash
 vm/regress_27671_test: Crash
 vm/type_vm_test: Crash
-positional_parameters_type_test/01: Crash
-positional_parameters_type_test/02: Crash
-positional_parameters_type_test/none: Crash
-factory3_test: Crash
-setter_declaration2_negative_test: Crash
-setter_declaration_negative_test: Crash
-stacktrace_demangle_ctors_test: RuntimeError
 
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError
@@ -599,6 +604,7 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeE
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
+regress_20394_test/01: MissingCompileTimeError # Fasta bug: Illegal access to private constructor.
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 # Non-contractive types are not supported in the vm.

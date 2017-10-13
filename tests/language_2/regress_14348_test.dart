@@ -9,5 +9,5 @@ import "package:collection/equality.dart";
 main() {
   const Equality<Iterable> eq = const UnorderedIterableEquality();
   const Equality<Map<dynamic, Iterable>> mapeq =
-      const MapEquality<dynamic, dynamic>(values: eq);
+      const MapEquality<dynamic, Iterable>(values: eq);
 }

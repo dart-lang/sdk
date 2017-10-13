@@ -16,7 +16,7 @@ class A {}
 main() {
   bool caught = false;
   try {
-    A.unknown = p(2);
+    A.unknown = p(2); /*@compile-error=unspecified*/
   } catch (_) {
     caught = true;
   }

@@ -15,7 +15,7 @@ m(x) {
 
 main() {
   try {
-    tl(m(0));
+    tl(m(0)); /*@compile-error=unspecified*/
   } catch (e) {}
   Expect.isTrue(mCalled);
 }

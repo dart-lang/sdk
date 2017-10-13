@@ -43,9 +43,9 @@ class C {
 
   void test4() {
     void Q() {
-      P(); // Refers to non-existing top-level function P
+      P(); // Refers to non-existing top-level function P  // //# 06: compile-time error
     }
-    void P() { // //# 06: compile-time error
+    void P() { // //# 06: continued
       Q(); //     //# 06: continued
     } //          //# 06: continued
 

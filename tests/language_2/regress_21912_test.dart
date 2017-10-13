@@ -17,7 +17,7 @@ void main() {
     Function2<Function2<A, B>, Function2<B, A>> t1;
     Function2<AToB, BToA> t2;
     Function2<Function2<int, double>, Function2<int, double>> left;
-    left = t1; //# 01: static type warning
-    left = t2; //# 02: static type warning
+    left = t1; //# 01: compile-time error
+    left = t2; //# 02: compile-time error
   }
 }

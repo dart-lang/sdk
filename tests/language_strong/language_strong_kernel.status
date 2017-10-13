@@ -28,7 +28,6 @@ function_type_alias4_test: RuntimeError
 inferrer_closure_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 recursive_generic_test: RuntimeError
-redirecting_factory_reflection_test: RuntimeError
 regress_r24720_test: RuntimeError
 reify_typevar_static_test/00: MissingCompileTimeError
 reify_typevar_test: RuntimeError

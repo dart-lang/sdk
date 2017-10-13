@@ -6,4 +6,4 @@ library regress_21998_lib3;
 
 import 'dart:math' as math;
 
-lib3_max(a, b) => math.max/*<num>*/(a, b);
+lib3_max(a, b) => math.max<num>(a, b);

@@ -758,6 +758,10 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
+redirecting_factory_reflection_test: SkipByDesign
+regress_13462_0_test: SkipByDesign
+regress_13462_1_test: SkipByDesign
+regress_18535_test: SkipByDesign
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError

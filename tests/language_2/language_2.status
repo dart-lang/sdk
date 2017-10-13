@@ -204,6 +204,7 @@ deferred_inheritance_constraints_test/redirecting_constructor: Crash
 library_env_test/has_no_mirror_support: RuntimeError, OK
 
 [ $minified && !$dart2js_with_kernel ]
+regress_21795_test: RuntimeError # Issue 12605
 stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 
 [ $compiler != dart2analyzer]

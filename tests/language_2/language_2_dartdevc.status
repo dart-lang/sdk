@@ -306,6 +306,7 @@ number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
 overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 prefix10_negative_test: Skip # Issue 29920
+regress_16640_test: RuntimeError # Issue 29920
 regress_29784_test/02: Crash # assert initializers not implemented
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920
 stack_overflow_test: RuntimeError # Issue 29920
