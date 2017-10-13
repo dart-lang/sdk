@@ -266,6 +266,7 @@ if_null_precedence_test/07: MissingCompileTimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
+import_combinators2_test/00: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
@@ -1225,7 +1226,7 @@ covariant_subtyping_test: Crash # NoSuchMethodError: The method 'accept' was cal
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
-cyclic_constructor_test/01: Crash # Issue 30856 
+cyclic_constructor_test/01: Crash # Issue 30856
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError

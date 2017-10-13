@@ -222,6 +222,7 @@ if_null_precedence_test/none: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
+import_combinators2_test/00: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
 inferrer_synthesized_constructor_test: RuntimeError

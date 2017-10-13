@@ -170,6 +170,7 @@ if_null_evaluation_order_test: Pass
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
+import_combinators2_test/00: MissingCompileTimeError
 main_not_a_function_test: DartkCrash
 malbounded_type_cast_test/00: MissingCompileTimeError
 malbounded_type_cast_test/01: MissingCompileTimeError
