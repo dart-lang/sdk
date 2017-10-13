@@ -33,20 +33,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31062')
-  test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
-    return super.test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31062')
-  test_undefinedGetter_wrongNumberOfTypeArguments_tooMany() async {
-    return super.test_undefinedGetter_wrongNumberOfTypeArguments_tooMany();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
   test_undefinedMethodWithConstructor() async {
     return super.test_undefinedMethodWithConstructor();

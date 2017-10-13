@@ -54,19 +54,11 @@ import '../builder/builder.dart' show LibraryBuilder;
 
 List<DartType> computeDefaultTypeArguments(LibraryBuilder library,
     List<TypeParameter> typeParameters, List<DartType> arguments) {
-  // TODO(ahe): Not sure what to do if `arguments.length !=
-  // cls.typeParameters.length`.
-  if (arguments == null) {
+  // TODO(scheglov): Use TypeSchemaEnvironment.instantiateToBounds
+  if (arguments == null || arguments.length != typeParameters.length) {
+    // TODO(scheglov): Check that we report a warning.
     return new List<DartType>.filled(
         typeParameters.length, const DynamicType());
-  }
-  if (arguments.length < typeParameters.length) {
-    arguments = new List<DartType>.from(arguments);
-    for (int i = arguments.length; i < typeParameters.length; i++) {
-      arguments.add(const DynamicType());
-    }
-  } else if (arguments.length > typeParameters.length) {
-    return arguments.sublist(0, typeParameters.length);
   }
   return arguments;
 }

@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C<T extends core::Object> extends core::Object {
-  field self::C<core::String> field = null;
+  field self::C<dynamic> field = null;
   default constructor •() → void
     : super core::Object::•()
     ;

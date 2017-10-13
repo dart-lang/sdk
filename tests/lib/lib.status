@@ -474,11 +474,9 @@ mirrors/redirecting_factory_test/none: Crash
 mirrors/reflect_class_test/01: RuntimeError
 mirrors/reflect_class_test/02: RuntimeError
 mirrors/reflect_class_test/none: RuntimeError
-mirrors/reflected_type_classes_test/01: RuntimeError
 mirrors/reflected_type_function_type_test: RuntimeError
 mirrors/reflected_type_generics_test/01: RuntimeError
 mirrors/reflected_type_generics_test/02: RuntimeError
-mirrors/reflected_type_test/01: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
