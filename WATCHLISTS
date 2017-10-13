@@ -21,6 +21,9 @@
     'front_end': {
       'filepath': '^pkg/front_end',
     },
+    'kernel': {
+      'filepath': '^pkg/kernel'
+    },
     'messages_review': {
       'filepath': (
         '^('
@@ -55,6 +58,7 @@
   'WATCHLISTS': {
     'build': [ 'zra@google.com' ],
     'front_end': [ 'dart-fe-team+reviews@google.com' ],
+    'kernel': [ 'karlklose@google.com', 'jensj@google.com', 'kmillikin@google.com' ],
     'messages_review': [ 'dart-uxr+reviews@google.com' ],
     'mirrors' : [ 'rmacnak@google.com' ],
     'observatory': [ 'turnidge@google.com', 'rmacnak@google.com' ],
