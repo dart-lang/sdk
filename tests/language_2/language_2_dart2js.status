@@ -646,6 +646,8 @@ regress_23089_test: MissingCompileTimeError
 regress_23408_test: RuntimeError
 regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
+return_type_test: MissingCompileTimeError
+rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 setter_override2_test/none: CompileTimeError
 static_field1_test/01: MissingCompileTimeError
@@ -868,6 +870,7 @@ deferred_constraints_type_annotation_test/type_annotation_top_level: MissingComp
 deferred_not_loaded_check_test: Fail # Issue 27577
 double_int_to_string_test: RuntimeError # Issue 1533
 enum_test: Fail # Issue 28340
+final_attempt_reinitialization_test.dart: Skip # Issue 29659
 final_field_override_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_field_mixin4_test: Crash # Issue 18651
@@ -964,6 +967,8 @@ final_attempt_reinitialization_test.dart: Skip # Issue 29659
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 15101
+regress_28341_test: Fail # Issue 28340
+truncdiv_test: RuntimeError # Issue 15246
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 covariant_subtyping_tearoff1_test: RuntimeError
@@ -1272,6 +1277,7 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
+final_field_initialization_order_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -1447,6 +1453,7 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
+regress_28278_test: CompileTimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ko).
 setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
@@ -1846,6 +1853,7 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
+regress_28278_test: CompileTimeError
 regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: Crash # Issue 29784
 setter_declaration_negative_test: Fail
@@ -1979,7 +1987,6 @@ async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 covariant_subtyping_test: CompileTimeError
 default_factory2_test/01: Fail # Issue 14121
-regress_26133_test: RuntimeError # Issue 26429
 malbounded_type_cast_test: Fail # Issue 14121
 malbounded_type_test_test/03: Fail # Issue 14121
 malbounded_type_test_test/04: Fail # Issue 14121
@@ -1987,6 +1994,8 @@ malbounded_redirecting_factory_test/02: Fail # Issue 12825
 malbounded_redirecting_factory_test/03: Fail # Issue 12825
 malbounded_instantiation_test/01: Fail # Issue 12702
 malbounded_type_cast2_test: Fail # Issue 14121
+regress_26133_test: RuntimeError # Issue 26429
+regress_29405_test: Fail # Issue 29422
 
 [ $compiler == dart2js && !$checked ]
 type_argument_in_super_type_test: RuntimeError

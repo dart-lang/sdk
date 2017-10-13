@@ -54,6 +54,13 @@ getter_setter_in_lib_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
+local_function2_test/none: RuntimeError
+local_function3_test/none: RuntimeError
+local_function_test/none: RuntimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
+mock_writable_final_private_field_test: CompileTimeError # Issue 30848
+multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 interceptor6_test: CompileTimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
@@ -66,13 +73,6 @@ library_env_test/has_no_mirror_support: RuntimeError # Issue 30907
 library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_io_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
-local_function2_test/none: RuntimeError
-local_function3_test/none: RuntimeError
-local_function_test/none: RuntimeError
-mixin_super_2_test/01: MissingCompileTimeError
-mixin_super_2_test/03: MissingCompileTimeError
-mock_writable_final_private_field_test: CompileTimeError # Issue 30848
-multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 no_such_method_test: RuntimeError
 override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
@@ -118,6 +118,7 @@ regress_27617_test/1: MissingCompileTimeError
 setter_override2_test/none: CompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 31089
 string_interpolate_test: CompileTimeError
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 super_call4_test: RuntimeError
 super_no_such_method1_test: RuntimeError
 super_no_such_method2_test: RuntimeError
@@ -152,6 +153,12 @@ multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/none: RuntimeError
+regress_29025_test: CompileTimeError # Issue 29081
+regress_29349_test: CompileTimeError # Issue 31093
+regress_29405_test: CompileTimeError # Issue 29421
+regress_29784_test/02: CompileTimeError, Crash # Issue 27809
+regress_29949_test: RuntimeError # Issue 31086
+regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 string_interpolation_and_buffer_test: RuntimeError
 string_literals_test: RuntimeError

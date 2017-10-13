@@ -815,9 +815,9 @@ enum_syntax_test/05: Fail # Issue 21649
 enum_syntax_test/06: Fail # Issue 21649
 field3_test/01: MissingCompileTimeError
 final_syntax_test/01: Fail # Issue 11124
-final_syntax_test/04: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
+final_syntax_test/04: Fail # Issue 11124
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_list_checked_test: StaticWarning
@@ -932,6 +932,13 @@ private_member3_negative_test: fail # Issue 14021
 prefix7_negative_test: CompileTimeError
 regress_27617_test/1: MissingCompileTimeError
 regress_23408_test: Skip # don't care about the static warning.
+regress_29025_test: CompileTimeError # Issue 29081
+regress_29405_test: CompileTimeError # Issue 29421
+regress_29349_test: CompileTimeError # Issue 29744
+regress_30121_test: CompileTimeError # Issue 31087
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
+static_call_wrong_argument_count_negative_test: fail # Issue 12156
+syntax_test/none: fail # Issue 11575
 test_negative_test: CompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
@@ -1459,6 +1466,7 @@ instantiate_type_variable_test/01: CompileTimeError
 no_main_test/01: MissingStaticWarning # Issue 28823
 no_such_method_negative_test: CompileTimeError
 string_interpolate_test: CompileTimeError
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
 
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.

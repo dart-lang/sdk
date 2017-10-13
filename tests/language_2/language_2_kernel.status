@@ -21,6 +21,7 @@ hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 library_env_test/has_no_mirror_support: RuntimeError
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
+rewrite_implicit_this_test/01: MissingCompileTimeError
 setter_declaration2_negative_test: DartkCrash
 setter_declaration_negative_test: Fail
 setter_override2_test/none: CompileTimeError
@@ -169,6 +170,7 @@ if_null_evaluation_order_test: Pass
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
+main_not_a_function_test: DartkCrash
 malbounded_type_cast_test/00: MissingCompileTimeError
 malbounded_type_cast_test/01: MissingCompileTimeError
 malbounded_type_cast_test/02: MissingCompileTimeError
@@ -250,7 +252,6 @@ super_no_such_method5_test/01: MissingCompileTimeError
 super_operator_index5_test/01: MissingCompileTimeError
 super_operator_index5_test/02: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
-main_not_a_function_test: DartkCrash
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -402,6 +403,8 @@ deferred_type_dependency_test/is: CompileTimeError # Fasta/KernelVM bug: Deferre
 deferred_type_dependency_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/type_annotation: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
+final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29900
+final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29900
 function_type/function_type0_test: RuntimeError
 function_type/function_type10_test: RuntimeError
 function_type/function_type11_test: RuntimeError
@@ -528,8 +531,7 @@ regress_23408_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kern
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/none: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
-final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29900
-final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29900
+regress_28278_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError
@@ -625,3 +627,4 @@ regress_22728_test: Fail # Dartk Issue 28498
 malbounded_type_cast_test: Crash
 external_test/13: Crash
 final_syntax_test/09: Crash
+regress_29025_test: Crash

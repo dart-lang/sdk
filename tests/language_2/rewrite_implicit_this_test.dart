@@ -10,7 +10,7 @@ class Foo {
   String x = 'x';
 
   easy(z) {
-        return x + y + z; //# 01: static type warning
+        return x + y + z; //# 01: compile-time error
   }
 
   // Shadow the 'y' field in various ways

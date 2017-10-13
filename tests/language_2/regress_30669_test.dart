@@ -29,5 +29,5 @@ main() {
 testComparable(Comparable<Object> c) {
   Expect.equals(c.compareTo(42), 1, '$c');
   Expect.equals(c.compareTo(41), -1, '$c');
-  Expect.throwsTypeError(() => c.compareTo('42'));
+  Expect.throws(() => c.compareTo('42'));
 }

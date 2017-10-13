@@ -956,3 +956,6 @@ vm/regress_28325_test:Skip
 
 [$compiler == precompiler && $runtime == dart_precompiled ]
 stacktrace_demangle_ctors_test: RuntimeError
+
+[ $compiler == precompiler && $runtime == dart_precompiled && $mode == debug ]
+regress_29025_test: Crash  # Issue dartbug.com/29331
