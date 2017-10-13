@@ -280,6 +280,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charEndOffset);
 
   void addFunctionTypeAlias(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,

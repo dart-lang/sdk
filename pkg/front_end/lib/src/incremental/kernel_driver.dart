@@ -12,6 +12,7 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
+import 'package:front_end/src/fasta/kernel/metadata_collector.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
@@ -71,6 +72,9 @@ class KernelDriver {
   /// reading the file contents.
   final KernelDriverFileAddedFn _fileAddedFn;
 
+  /// Factory for working with metadata.
+  final MetadataFactory _metadataFactory;
+
   /// The optional SDK outline loaded from [_sdkOutlineBytes].
   /// Might be `null` if the bytes are not provided, or if not loaded yet.
   Program _sdkOutline;
@@ -89,12 +93,15 @@ class KernelDriver {
   final _TestView _testView = new _TestView();
 
   KernelDriver(this._options, this._uriTranslator,
-      {List<int> sdkOutlineBytes, KernelDriverFileAddedFn fileAddedFn})
+      {List<int> sdkOutlineBytes,
+      KernelDriverFileAddedFn fileAddedFn,
+      MetadataFactory metadataFactory})
       : _logger = _options.logger,
         _fileSystem = _options.fileSystem,
         _byteStore = _options.byteStore,
         _sdkOutlineBytes = sdkOutlineBytes,
-        _fileAddedFn = fileAddedFn {
+        _fileAddedFn = fileAddedFn,
+        _metadataFactory = metadataFactory {
     _computeSalt();
 
     Future<Null> onFileAdded(Uri uri) {
@@ -245,8 +252,14 @@ class KernelDriver {
       if (bytes != null) {
         return _logger.runAsync('Read serialized libraries', () async {
           var program = new Program(nameRoot: nameRoot);
-          var reader = new BinaryBuilder(bytes);
-          reader.readProgram(program);
+
+          if (_metadataFactory != null) {
+            var repository = _metadataFactory.newRepositoryForReading();
+            program.addMetadataRepository(repository);
+            new BinaryBuilderWithMetadata(bytes).readSingleFileProgram(program);
+          } else {
+            new BinaryBuilder(bytes).readProgram(program);
+          }
 
           await appendNewDillLibraries(program);
 
@@ -256,7 +269,8 @@ class KernelDriver {
 
       // Create KernelTarget and configure it for compiling the cycle URIs.
       KernelTarget kernelTarget = new KernelTarget(
-          _fsState.fileSystemView, true, dillTarget, _uriTranslator);
+          _fsState.fileSystemView, true, dillTarget, _uriTranslator,
+          metadataCollector: _metadataFactory?.newCollector());
       for (FileState library in cycle.libraries) {
         kernelTarget.read(library.uri);
       }
@@ -305,6 +319,9 @@ class KernelDriver {
     saltBuilder.addBool(_options.strongMode);
     if (_sdkOutlineBytes != null) {
       saltBuilder.addBytes(_sdkOutlineBytes);
+    }
+    if (_metadataFactory != null) {
+      saltBuilder.addInt(_metadataFactory.version);
     }
     _salt = saltBuilder.toByteList();
   }
@@ -404,6 +421,22 @@ class LibraryCycleResult {
   final List<Library> kernelLibraries;
 
   LibraryCycleResult(this.cycle, this.signature, this.kernelLibraries);
+}
+
+/// Factory for creating [MetadataCollector]s and [MetadataRepository]s.
+abstract class MetadataFactory {
+  /// This version is mixed into the signatures of cached compilation result,
+  /// because content of these results depends on whether we write additional
+  /// metadata or not.
+  int get version;
+
+  /// Return a new [MetadataCollector] to write metadata to while compiling a
+  /// new library cycle.
+  MetadataCollector newCollector();
+
+  /// Return a new [MetadataRepository] instance to read metadata while
+  /// reading a [Program] for a library cycle.
+  MetadataRepository newRepositoryForReading();
 }
 
 @visibleForTesting

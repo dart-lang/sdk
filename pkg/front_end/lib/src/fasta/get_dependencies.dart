@@ -51,7 +51,8 @@ Future<List<Uri>> getDependencies(Uri script,
       dillTarget.loader.appendLibraries(platformProgram);
     }
     KernelTarget kernelTarget = new KernelTarget(
-        fileSystem, false, dillTarget, uriTranslator, c.uriToSource);
+        fileSystem, false, dillTarget, uriTranslator,
+        uriToSource: c.uriToSource);
 
     kernelTarget.read(script);
     await dillTarget.buildOutlines();

@@ -688,6 +688,7 @@ class KernelLibraryBuilder
   }
 
   void addFunctionTypeAlias(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
@@ -695,6 +696,8 @@ class KernelLibraryBuilder
       int charOffset) {
     KernelFunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
         metadata, name, typeVariables, type, this, charOffset);
+    loader.target.metadataCollector
+        ?.setDocumentationComment(typedef.target, documentationComment);
     checkTypeVariables(typeVariables, typedef);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration("#typedef").resolveTypes(typeVariables, this);

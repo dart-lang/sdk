@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
@@ -5283,6 +5284,10 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   String get documentationComment {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.documentationComment;
+    }
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef.documentationComment?.text;
     }

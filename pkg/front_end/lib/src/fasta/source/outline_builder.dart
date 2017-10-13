@@ -242,7 +242,7 @@ class OutlineBuilder extends UnhandledListener {
       pop();
       super.handleIdentifier(token, context);
       push(token.charOffset);
-      String documentationComment = _getDocumentationComment(token);
+      String documentationComment = getDocumentationComment(token);
       push(documentationComment ?? NullValue.DocumentationComment);
     } else {
       super.handleIdentifier(token, context);
@@ -315,7 +315,7 @@ class OutlineBuilder extends UnhandledListener {
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
     popCharOffset();
-    String documentationComment = _getDocumentationComment(libraryKeyword);
+    String documentationComment = getDocumentationComment(libraryKeyword);
     Object name = pop();
     List<MetadataBuilder> metadata = pop();
     library.documentationComment = documentationComment;
@@ -352,7 +352,7 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("endClassDeclaration");
-    String documentationComment = _getDocumentationComment(beginToken);
+    String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
     TypeBuilder supertype = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -395,7 +395,7 @@ class OutlineBuilder extends UnhandledListener {
     int modifiers =
         Modifier.validate(pop(), isAbstract: kind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = _getDocumentationComment(beginToken);
+    String documentationComment = getDocumentationComment(beginToken);
     checkEmpty(beginToken.charOffset);
     library.addProcedure(
         documentationComment,
@@ -525,7 +525,7 @@ class OutlineBuilder extends UnhandledListener {
       modifiers &= ~abstractMask;
     }
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = _getDocumentationComment(beginToken);
+    String documentationComment = getDocumentationComment(beginToken);
     library.addProcedure(
         documentationComment,
         metadata,
@@ -556,7 +556,7 @@ class OutlineBuilder extends UnhandledListener {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
-    String documentationComment = _getDocumentationComment(beginToken);
+    String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     TypeBuilder mixinApplication = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -720,7 +720,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
-    String documentationComment = _getDocumentationComment(enumKeyword);
+    String documentationComment = getDocumentationComment(enumKeyword);
     List constantNamesAndOffsets = popList(count * 3);
     int charOffset = pop();
     String name = pop();
@@ -774,6 +774,7 @@ class OutlineBuilder extends UnhandledListener {
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("endFunctionTypeAlias");
+    String documentationComment = getDocumentationComment(typedefKeyword);
     List<TypeVariableBuilder> typeVariables;
     String name;
     int charOffset;
@@ -808,8 +809,8 @@ class OutlineBuilder extends UnhandledListener {
       }
     }
     List<MetadataBuilder> metadata = pop();
-    library.addFunctionTypeAlias(
-        metadata, name, typeVariables, functionType, charOffset);
+    library.addFunctionTypeAlias(documentationComment, metadata, name,
+        typeVariables, functionType, charOffset);
     checkEmpty(typedefKeyword.charOffset);
     silenceParserErrors = true;
   }
@@ -821,7 +822,7 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = _getDocumentationComment(beginToken);
+    String documentationComment = getDocumentationComment(beginToken);
     library.addFields(
         documentationComment, metadata, modifiers, type, fieldsInfo);
     checkEmpty(beginToken.charOffset);
@@ -834,7 +835,7 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = _getDocumentationComment(beginToken);
+    String documentationComment = getDocumentationComment(beginToken);
     library.addFields(
         documentationComment, metadata, modifiers, type, fieldsInfo);
   }
@@ -897,7 +898,7 @@ class OutlineBuilder extends UnhandledListener {
     var name = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = _getDocumentationComment(beginToken);
+    String documentationComment = getDocumentationComment(beginToken);
     library.addFactoryMethod(
         documentationComment,
         metadata,
@@ -1000,7 +1001,7 @@ class OutlineBuilder extends UnhandledListener {
 
   /// Return the documentation comment for the entity that starts at the
   /// given [token], or `null` if there is no preceding documentation comment.
-  static String _getDocumentationComment(Token token) {
+  static String getDocumentationComment(Token token) {
     Token docToken = token.precedingComments;
     if (docToken == null) return null;
     bool inSlash = false;

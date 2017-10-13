@@ -21,7 +21,7 @@ class AnalyzerTarget extends KernelTarget {
       DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode,
       [Map<String, Source> uriToSource])
       : super(PhysicalFileSystem.instance, false, dillTarget, uriTranslator,
-            uriToSource);
+            uriToSource: uriToSource);
 
   @override
   AnalyzerLoader<Library> createLoader() => new AnalyzerLoader<Library>(this);

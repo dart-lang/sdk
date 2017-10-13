@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -102,7 +103,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       ..logger = new PerformanceLog(null)
       ..fileSystem = new _FileSystemAdaptor(resourceProvider)
       ..byteStore = new MemoryByteStore());
-    var driver = new KernelDriver(options, uriTranslator);
+    var driver = new KernelDriver(options, uriTranslator,
+        metadataFactory: new AnalyzerMetadataFactory());
 
     KernelResult kernelResult = await driver.getKernel(testUri);
 
@@ -382,13 +384,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @potentialAnalyzerProblem
-  test_typedef_documented() async {
-    // TODO(scheglov): implement
-    await super.test_typedef_documented();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
   test_typedef_generic_asFieldType() async {
     await super.test_typedef_generic_asFieldType();
   }

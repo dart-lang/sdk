@@ -33,7 +33,8 @@ Future main(List<String> args) {
     var uriTranslator = await c.options.getUriTranslator();
     var dillTarget = new DillTarget(ticker, uriTranslator, c.options.target);
     var kernelTarget = new KernelTarget(
-        c.fileSystem, false, dillTarget, uriTranslator, c.uriToSource);
+        c.fileSystem, false, dillTarget, uriTranslator,
+        uriToSource: c.uriToSource);
     for (var input in c.options.inputs) {
       kernelTarget.read(input);
     }
