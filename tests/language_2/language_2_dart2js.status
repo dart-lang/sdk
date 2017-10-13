@@ -1973,7 +1973,15 @@ async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
 field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
+regress_13494_test: MissingCompileTimeError
+regress_12561_test: MissingCompileTimeError
+regress_17382_test: MissingCompileTimeError
+regress_19413_test: MissingCompileTimeError
 regress_19728_test: MissingRuntimeError
+regress_21793_test/01: MissingCompileTimeError
+regress_21912_test/01: MissingCompileTimeError
+regress_21912_test/02: MissingCompileTimeError
+regress_22438_test: MissingCompileTimeError
 setter4_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime == chrome ]
