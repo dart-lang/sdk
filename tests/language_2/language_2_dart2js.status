@@ -2250,7 +2250,7 @@ regress_13494_test: MissingCompileTimeError
 regress_12561_test: MissingCompileTimeError
 regress_17382_test: MissingCompileTimeError
 regress_19413_test: MissingCompileTimeError
-regress_19728_test: MissingRuntimeError
+regress_19728_test: MissingCompileTimeError
 regress_21793_test/01: MissingCompileTimeError
 regress_21912_test/01: MissingCompileTimeError
 regress_21912_test/02: MissingCompileTimeError
