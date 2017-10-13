@@ -341,19 +341,29 @@ class Library extends NamedNode implements Comparable<Library> {
     }
   }
 
+  void addAnnotation(Expression node) {
+    node.parent = this;
+    annotations.add(node);
+  }
+
   void addClass(Class class_) {
     class_.parent = this;
     classes.add(class_);
   }
 
+  void addField(Field field) {
+    field.parent = this;
+    fields.add(field);
+  }
+
+  void addProcedure(Procedure procedure) {
+    procedure.parent = this;
+    procedures.add(procedure);
+  }
+
   void addTypedef(Typedef typedef_) {
     typedef_.parent = this;
     typedefs.add(typedef_);
-  }
-
-  void addAnnotation(Expression node) {
-    node.parent = this;
-    annotations.add(node);
   }
 
   void computeCanonicalNames() {

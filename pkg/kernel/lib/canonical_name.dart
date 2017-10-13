@@ -89,6 +89,10 @@ class CanonicalName {
   Iterable<CanonicalName> get children =>
       _children?.values ?? const <CanonicalName>[];
 
+  bool hasChild(String name) {
+    return _children != null && _children.containsKey(name);
+  }
+
   CanonicalName getChild(String name) {
     var map = _children ??= <String, CanonicalName>{};
     return map[name] ??= new CanonicalName._(this, name);
