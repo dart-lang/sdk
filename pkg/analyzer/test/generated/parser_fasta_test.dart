@@ -2503,38 +2503,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_unterminatedString_at_eof() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
-    super.test_unterminatedString_at_eof();
-  }
-
-  @override
-  @failingTest
-  void test_unterminatedString_multiline_at_eof_3_quotes() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
-    super.test_unterminatedString_multiline_at_eof_3_quotes();
-  }
-
-  @override
-  @failingTest
-  void test_unterminatedString_multiline_at_eof_4_quotes() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
-    super.test_unterminatedString_multiline_at_eof_4_quotes();
-  }
-
-  @override
-  @failingTest
-  void test_unterminatedString_multiline_at_eof_5_quotes() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
-    super.test_unterminatedString_multiline_at_eof_5_quotes();
-  }
-
-  @override
-  @failingTest
   void test_useOfUnaryPlusOperator() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0

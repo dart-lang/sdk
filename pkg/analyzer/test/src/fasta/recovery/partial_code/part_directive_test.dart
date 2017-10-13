@@ -22,11 +22,9 @@ class PartDirectivesTest extends PartialCodeTest {
               "part '';",
               allFailing: true),
           new TestDescriptor('emptyUri', "part ''",
-              [ParserErrorCode.EXPECTED_TOKEN], "part '';",
-              allFailing: true),
+              [ParserErrorCode.EXPECTED_TOKEN], "part '';"),
           new TestDescriptor('uri', "part 'a.dart'",
-              [ParserErrorCode.EXPECTED_TOKEN], "part 'a.dart';",
-              allFailing: true),
+              [ParserErrorCode.EXPECTED_TOKEN], "part 'a.dart';"),
         ],
         PartialCodeTest.postPartSuffixes);
   }

@@ -12,6 +12,21 @@ main() {
 
 class LibraryDirectivesTest extends PartialCodeTest {
   buildAll() {
+    List<bool> exceptAtEof = [
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ];
     buildTests(
         'library_directive',
         [
@@ -23,10 +38,9 @@ class LibraryDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'library _s_;',
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor('name', 'library lib',
-              [ParserErrorCode.EXPECTED_TOKEN], 'library lib;',
-              allFailing: true),
+              [ParserErrorCode.EXPECTED_TOKEN], 'library lib;'),
           new TestDescriptor(
               'nameDot',
               'library lib.',
@@ -35,10 +49,9 @@ class LibraryDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'library lib._s_;',
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor('nameDotName', 'library lib.a',
-              [ParserErrorCode.EXPECTED_TOKEN], 'library lib.a;',
-              allFailing: true),
+              [ParserErrorCode.EXPECTED_TOKEN], 'library lib.a;'),
         ],
         PartialCodeTest.prePartSuffixes);
   }

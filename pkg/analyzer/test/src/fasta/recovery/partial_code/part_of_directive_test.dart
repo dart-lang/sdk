@@ -12,6 +12,18 @@ main() {
 
 class PartOfDirectivesTest extends PartialCodeTest {
   buildAll() {
+    List<bool> exceptAtEof = [
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ];
     buildTests(
         'part_of_directive',
         [
@@ -35,16 +47,13 @@ class PartOfDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'part of lib._s_;',
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor('nameDotName', 'part of lib.a',
-              [ParserErrorCode.EXPECTED_TOKEN], 'part of lib.a;',
-              allFailing: true),
+              [ParserErrorCode.EXPECTED_TOKEN], 'part of lib.a;'),
           new TestDescriptor('emptyUri', "part of ''",
-              [ParserErrorCode.EXPECTED_TOKEN], "part of '';",
-              allFailing: true),
+              [ParserErrorCode.EXPECTED_TOKEN], "part of '';"),
           new TestDescriptor('uri', "part of 'a.dart'",
-              [ParserErrorCode.EXPECTED_TOKEN], "part of 'a.dart';",
-              allFailing: true),
+              [ParserErrorCode.EXPECTED_TOKEN], "part of 'a.dart';"),
         ],
         PartialCodeTest.declarationSuffixes);
   }

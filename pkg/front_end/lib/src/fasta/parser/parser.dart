@@ -416,10 +416,9 @@ class Parser {
     assert(optional('library', token));
     token = parseQualified(token.next, IdentifierContext.libraryName,
         IdentifierContext.libraryNameContinuation);
-    Token semicolon = token;
-    token = expect(';', token);
+    Token semicolon = ensureSemicolon(token);
     listener.endLibraryName(libraryKeyword, semicolon);
-    return token;
+    return semicolon.next;
   }
 
   Token parseImportPrefixOpt(Token token) {
@@ -591,6 +590,9 @@ class Parser {
 
   Token parseDottedName(Token token) {
     listener.beginDottedName(token);
+    // TODO(brianwilkerson): If `token` is not an identifier, then a synthetic
+    // identifier will be inserted, but `endDottedName` will be called with the
+    // wrong token.
     Token firstIdentifier = token;
     token = parseIdentifier(token, IdentifierContext.dottedName);
     int count = 1;
@@ -656,6 +658,9 @@ class Parser {
 
   /// identifier (, identifier)*
   Token parseIdentifierList(Token token) {
+    // TODO(brianwilkerson): If `token` is not an identifier, then a synthetic
+    // identifier will be inserted, but `beginIdentifierList` will be called
+    // with the wrong token.
     listener.beginIdentifierList(token);
     token = parseIdentifier(token, IdentifierContext.combinator);
     int count = 1;
@@ -696,10 +701,9 @@ class Parser {
     listener.beginPart(token);
     assert(optional('part', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
-    Token semicolon = token;
-    token = expect(';', token);
+    Token semicolon = ensureSemicolon(token);
     listener.endPart(partKeyword, semicolon);
-    return token;
+    return semicolon.next;
   }
 
   Token parsePartOf(Token token) {
@@ -716,14 +720,15 @@ class Parser {
     } else {
       token = parseLiteralStringOrRecoverExpression(token);
     }
-    Token semicolon = token;
-    token = expect(';', token);
+    Token semicolon = ensureSemicolon(token);
     listener.endPartOf(partKeyword, ofKeyword, semicolon, hasName);
-    return token;
+    return semicolon.next;
   }
 
   Token parseMetadataStar(Token token) {
     token = listener.injectGenericCommentTypeAssign(token);
+    // TODO(brianwilkerson): Remove the `token` because we cannot make any
+    // guarantee about which token it will be.
     listener.beginMetadataStar(token);
     int count = 0;
     while (optional('@', token)) {
@@ -780,8 +785,9 @@ class Parser {
       token = parseTypeVariablesOpt(token);
       token = parseFormalParameters(token, MemberKind.FunctionTypeAlias);
     }
-    listener.endFunctionTypeAlias(typedefKeyword, equals, token);
-    return expect(';', token);
+    Token semicolon = ensureSemicolon(token);
+    listener.endFunctionTypeAlias(typedefKeyword, equals, semicolon);
+    return semicolon.next;
   }
 
   /// Parse a mixin application starting from `with`. Assumes that the first
@@ -1097,9 +1103,10 @@ class Parser {
       implementsKeyword = token;
       token = parseTypeList(token.next);
     }
+    Token semicolon = ensureSemicolon(token);
     listener.endNamedMixinApplication(
-        begin, classKeyword, equals, implementsKeyword, token);
-    return expect(';', token);
+        begin, classKeyword, equals, implementsKeyword, semicolon);
+    return semicolon.next;
   }
 
   Token parseClass(Token token, Token begin, Token classKeyword) {
@@ -2233,14 +2240,13 @@ class Parser {
           parseFieldInitializerOpt(token, name, varFinalOrConst, isTopLevel);
       ++fieldCount;
     }
-    Token semicolon = token;
-    token = expectSemicolon(token);
+    Token semicolon = ensureSemicolon(token);
     if (isTopLevel) {
       listener.endTopLevelFields(fieldCount, start, semicolon);
     } else {
       listener.endFields(fieldCount, start, semicolon);
     }
-    return token;
+    return semicolon.next;
   }
 
   Token parseTopLevelMethod(Token start, Link<Token> modifiers, Token type,
@@ -2289,10 +2295,8 @@ class Parser {
     }
     token = parseFunctionBody(token, false, externalModifier != null);
     asyncState = savedAsyncModifier;
-    Token endToken = token;
-    token = token.next;
-    listener.endTopLevelMethod(start, getOrSet, endToken);
-    return token;
+    listener.endTopLevelMethod(start, getOrSet, token);
+    return token.next;
   }
 
   void checkFormals(bool isGetter, Token name, Token token) {
@@ -3077,10 +3081,9 @@ class Parser {
     assert(optional('=', token));
     Token equals = token;
     token = parseConstructorReference(token.next);
-    Token semicolon = token;
-    expectSemicolon(token);
+    Token semicolon = ensureSemicolon(token);
     listener.endRedirectingFactoryBody(equals, semicolon);
-    return token;
+    return semicolon;
   }
 
   Token skipFunctionBody(Token token, bool isExpression, bool allowAbstract) {
@@ -3154,7 +3157,7 @@ class Parser {
       Token begin = token;
       token = parseExpression(token.next);
       if (!ofFunctionExpression) {
-        expectSemicolon(token);
+        token = ensureSemicolon(token);
         listener.handleExpressionFunctionBody(begin, token);
       } else {
         listener.handleExpressionFunctionBody(begin, null);
@@ -3170,7 +3173,7 @@ class Parser {
       reportRecoverableError(token, fasta.messageExpectedBody);
       token = parseExpression(token.next);
       if (!ofFunctionExpression) {
-        expectSemicolon(token);
+        token = ensureSemicolon(token);
         listener.handleExpressionFunctionBody(begin, token);
       } else {
         listener.handleExpressionFunctionBody(begin, null);
@@ -3350,26 +3353,28 @@ class Parser {
       token = token.next;
     }
     token = parseExpression(token);
-    listener.endYieldStatement(begin, starToken, token);
-    return expectSemicolon(token);
+    Token semicolon = ensureSemicolon(token);
+    listener.endYieldStatement(begin, starToken, semicolon);
+    return semicolon.next;
   }
 
   Token parseReturnStatement(Token token) {
     Token begin = token;
     listener.beginReturnStatement(begin);
-    assert(identical('return', token.stringValue));
+    assert(optional('return', token));
     token = token.next;
     if (optional(';', token)) {
       listener.endReturnStatement(false, begin, token);
-    } else {
-      token = parseExpression(token);
-      listener.endReturnStatement(true, begin, token);
-      if (inGenerator) {
-        listener.handleInvalidStatement(
-            token, fasta.messageGeneratorReturnsValue);
-      }
+      return token.next;
     }
-    return expectSemicolon(token);
+    token = parseExpression(token);
+    Token semicolon = ensureSemicolon(token);
+    listener.endReturnStatement(true, begin, semicolon);
+    if (inGenerator) {
+      listener.handleInvalidStatement(
+          begin, fasta.messageGeneratorReturnsValue);
+    }
+    return semicolon.next;
   }
 
   Token parseExpressionStatementOrDeclaration(Token token) {
@@ -3412,8 +3417,9 @@ class Parser {
     // statement.
     listener.beginExpressionStatement(token);
     token = parseExpression(token);
-    listener.endExpressionStatement(token);
-    return ensureSemicolon(token).next;
+    Token semicolon = ensureSemicolon(token);
+    listener.endExpressionStatement(semicolon);
+    return semicolon.next;
   }
 
   Token skipExpression(Token token) {
@@ -3839,6 +3845,8 @@ class Parser {
       return expect(']', token);
     }
     // Looking at '[]'.
+    // TODO(brianwilkerson): Split the token into two tokens. Otherwise we're
+    // passing the wrong tokens to `handleLiteralList`.
     listener.handleLiteralList(0, token, constKeyword, token);
     return token.next;
   }
@@ -4215,10 +4223,9 @@ class Parser {
       ++count;
     }
     if (endWithSemicolon) {
-      Token semicolon = token;
-      token = expectSemicolon(semicolon);
+      Token semicolon = ensureSemicolon(token);
       listener.endVariablesDeclaration(count, semicolon);
-      return token;
+      return semicolon.next;
     } else {
       listener.endVariablesDeclaration(count, null);
       return token;
@@ -4285,8 +4292,8 @@ class Parser {
   }
 
   Token parseForRest(Token forToken, Token leftParenthesis, Token token) {
-    Token leftSeparator = token;
-    token = expectSemicolon(token);
+    Token leftSeparator = ensureSemicolon(token);
+    token = leftSeparator.next;
     if (optional(';', token)) {
       token = parseEmptyStatement(token);
     } else {
@@ -4351,8 +4358,9 @@ class Parser {
     Token whileToken = token;
     token = expect('while', token);
     token = parseParenthesizedExpression(token);
-    listener.endDoWhileStatement(doToken, whileToken, token);
-    return expectSemicolon(token);
+    Token semicolon = ensureSemicolon(token);
+    listener.endDoWhileStatement(doToken, whileToken, semicolon);
+    return semicolon.next;
   }
 
   Token parseBlock(Token token) {
@@ -4407,8 +4415,9 @@ class Parser {
     } else {
       token = expect('rethrow', token);
     }
-    listener.endRethrowStatement(throwToken, token);
-    return expectSemicolon(token);
+    Token semicolon = ensureSemicolon(token);
+    listener.endRethrowStatement(throwToken, semicolon);
+    return semicolon.next;
   }
 
   Token parseTryStatement(Token token) {
@@ -4594,8 +4603,9 @@ class Parser {
       token = parseIdentifier(token, IdentifierContext.labelReference);
       hasTarget = true;
     }
-    listener.handleBreakStatement(hasTarget, breakKeyword, token);
-    return expectSemicolon(token);
+    Token semicolon = ensureSemicolon(token);
+    listener.handleBreakStatement(hasTarget, breakKeyword, semicolon);
+    return semicolon.next;
   }
 
   Token parseAssert(Token token, Assert kind) {
@@ -4644,7 +4654,7 @@ class Parser {
 
   Token parseAssertStatement(Token token) {
     token = parseAssert(token, Assert.Statement);
-    return expectSemicolon(token);
+    return ensureSemicolon(token).next;
   }
 
   Token parseContinueStatement(Token token) {
@@ -4656,13 +4666,15 @@ class Parser {
       token = parseIdentifier(token, IdentifierContext.labelReference);
       hasTarget = true;
     }
-    listener.handleContinueStatement(hasTarget, continueKeyword, token);
-    return expectSemicolon(token);
+    Token semicolon = ensureSemicolon(token);
+    listener.handleContinueStatement(hasTarget, continueKeyword, semicolon);
+    return semicolon.next;
   }
 
   Token parseEmptyStatement(Token token) {
-    listener.handleEmptyStatement(token);
-    return expectSemicolon(token);
+    Token semicolon = ensureSemicolon(token);
+    listener.handleEmptyStatement(semicolon);
+    return semicolon.next;
   }
 
   /// Don't call this method. Should only be used as a last resort when there

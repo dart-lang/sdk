@@ -71,13 +71,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31059')
-  test_genericMethod_functionExpressionInvocation_explicit() async {
-    return super.test_genericMethod_functionExpressionInvocation_explicit();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_recursion() async {
     return super.test_instantiateToBounds_class_error_recursion();

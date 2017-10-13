@@ -12,6 +12,30 @@ main() {
 
 class TopLevelVariableTest extends PartialCodeTest {
   buildAll() {
+    List<bool> exceptAtEof = [
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ];
+    List<bool> afterComma = [
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true
+    ];
     buildTests(
         'top_level_variable',
         [
@@ -38,7 +62,7 @@ class TopLevelVariableTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "const a, _s_;",
-              allFailing: true),
+              failing: afterComma),
           new TestDescriptor(
               'constTypeNameComma',
               'const int a,',
@@ -47,13 +71,11 @@ class TopLevelVariableTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "const int a, _s_;",
-              allFailing: true),
+              failing: afterComma),
           new TestDescriptor('constNameCommaName', 'const a, b',
-              [ParserErrorCode.EXPECTED_TOKEN], "const a, b;",
-              allFailing: true),
+              [ParserErrorCode.EXPECTED_TOKEN], "const a, b;"),
           new TestDescriptor('constTypeNameCommaName', 'const int a, b',
-              [ParserErrorCode.EXPECTED_TOKEN], "const int a, b;",
-              allFailing: true),
+              [ParserErrorCode.EXPECTED_TOKEN], "const int a, b;"),
           new TestDescriptor(
               'final',
               'final',
@@ -101,7 +123,7 @@ class TopLevelVariableTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "var a = _s_;",
-              allFailing: true),
+              failing: exceptAtEof),
           new TestDescriptor(
               'varNameEqualsExpression',
               'var a = b',

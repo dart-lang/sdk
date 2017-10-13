@@ -77,7 +77,7 @@ inference/downward_inference_miscellaneous: Crash
 inference/downwards_inference_annotations: Crash
 inference/downwards_inference_annotations_class_members: Crash
 inference/downwards_inference_annotations_for_loop_variable: Crash
-inference/downwards_inference_annotations_locals: Fail
+inference/downwards_inference_annotations_locals: Crash
 inference/downwards_inference_annotations_locals_referring_to_locals: Crash
 inference/downwards_inference_annotations_parameter: Fail
 inference/downwards_inference_annotations_parameter_local: Crash
@@ -386,6 +386,7 @@ rasta/issue_000012: Crash
 rasta/issue_000025: Crash
 rasta/issue_000026: Crash
 rasta/issue_000031: Crash
+rasta/issue_000036: Crash
 rasta/issue_000039: Crash
 rasta/issue_000041: Crash
 rasta/issue_000042: Crash
