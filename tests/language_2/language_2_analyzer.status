@@ -935,7 +935,6 @@ regress_23408_test: Skip # don't care about the static warning.
 regress_29025_test: CompileTimeError # Issue 29081
 regress_29405_test: CompileTimeError # Issue 29421
 regress_29349_test: CompileTimeError # Issue 29744
-regress_30121_test: CompileTimeError # Issue 31087
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
 static_call_wrong_argument_count_negative_test: fail # Issue 12156
 syntax_test/none: fail # Issue 11575
@@ -1289,6 +1288,10 @@ regress_22936_test: MissingCompileTimeError
 regress_23089_test: MissingCompileTimeError
 regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
+regress_29025_test: StaticWarning
+regress_29405_test: StaticWarning
+return_type_test: MissingCompileTimeError
+rewrite_implicit_this_test/01: MissingCompileTimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_call_test/01: StaticWarning
 setter_override2_test/none: CompileTimeError
