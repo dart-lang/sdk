@@ -1001,7 +1001,15 @@ type_parameter_test/05: MissingCompileTimeError
 [ $compiler == app_jit && $runtime == vm ]
 generic_methods_reuse_type_variables_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
+regress_12561_test: MissingCompileTimeError
+regress_13494_test: MissingCompileTimeError
+regress_17382_test: MissingCompileTimeError
+regress_19728_test: MissingCompileTimeError
+regress_21793_test/01: MissingCompileTimeError
+regress_21912_test/01: MissingCompileTimeError
+regress_21912_test/02: MissingCompileTimeError
 regress_23408_test: Crash
+regress_22438_test: MissingCompileTimeError
 
 [ $compiler == app_jit && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
