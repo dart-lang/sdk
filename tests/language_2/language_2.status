@@ -64,6 +64,8 @@ regress_28278_test: Crash # Requires deferred libraries
 static_closure_identical_test: Pass, Fail # Closure identity
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 vm/optimized_stacktrace_test: Pass, Slow
+conditional_import_test: Crash # Requires deferred libraries
+conditional_import_string_test: Crash # Requires deferred libraries
 
 [ $checked && ! $strong ]
 type_parameter_test/05: Pass

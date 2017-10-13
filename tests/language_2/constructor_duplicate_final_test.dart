@@ -7,13 +7,13 @@
 class Class {
   final f = 10;
 
-  Class(v) : f = v; //# 01: compile-time error, static type warning, runtime error
+  Class(v) : f = v; //# 01: compile-time error
 
-  Class(this.f); //# 02: compile-time error, static type warning, runtime error
+  Class(this.f); //# 02: compile-time error
 
   // If a field is initialized multiple times in the initializer
   // list, it's a compile time error.
-  Class(this.f) : f = 0; //# 03: compile-time error, static type warning, runtime error
+  Class(this.f) : f = 0; //# 03: compile-time error
 }
 
 main() {

@@ -9,6 +9,7 @@ int main() {
   switch (a) {
     case 0.0: //           //# 01: compile-time error
       print("illegal"); // //# 01: continued
+      break; //            //# 01: continued
     case 1:
       print("OK");
   }

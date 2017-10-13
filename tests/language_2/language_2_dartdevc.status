@@ -21,6 +21,13 @@ bit_operations_test/04: MissingCompileTimeError
 black_listed_test/none: fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
+config_import_corelib_test: CompileTimeError
+conflicting_type_variable_and_setter_test: CompileTimeError
+const_for_in_variable_test/01: MissingCompileTimeError
+const_types_test/07: MissingCompileTimeError
+const_types_test/08: MissingCompileTimeError
+const_types_test/14: MissingCompileTimeError
+const_types_test/15: MissingCompileTimeError
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 export_private_test/01: MissingCompileTimeError # Issue 29920
 field_initialization_order_test/none: RuntimeError
@@ -232,6 +239,9 @@ call_test: RuntimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 compile_time_constant_d_test: RuntimeError # Issue 30876
 compile_time_constant_e_test: RuntimeError # Issue 30876
+config_import_test: RuntimeError
+const_list_test: RuntimeError
+const_map4_test: RuntimeError
 const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
 constructor12_test: RuntimeError # Issue 29920
@@ -261,7 +271,6 @@ expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 field_increment_bailout_test: RuntimeError # Issue 29920
 field_optimization3_test: RuntimeError # Issue 29920
-first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 flatten_test/05: MissingRuntimeError # Issue 29920
 flatten_test/08: MissingRuntimeError # Issue 29920
 flatten_test/09: MissingRuntimeError # Issue 29920
@@ -321,3 +330,15 @@ switch_try_catch_test: RuntimeError # Issue 29920
 truncdiv_test: RuntimeError # Issue 29920
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out
+list_is_test: RuntimeError # Issue 29920
+prefix10_negative_test: Skip # Issue 29920
+lazy_static3_test: RuntimeError # Issue 30852
+lazy_static8_test: RuntimeError # Issue 30852
+left_shift_test: RuntimeError # Ints and doubles are unified.
+expect_test: RuntimeError # Issue 29920
+f_bounded_quantification3_test: RuntimeError # Issue 29920
+truncdiv_test: RuntimeError # Issue 29920
+field_optimization3_test: RuntimeError # Issue 29920
+first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
+stacktrace_test: RuntimeError # Issue 29920
+const_evaluation_test/01: RuntimeError # Issue 29920

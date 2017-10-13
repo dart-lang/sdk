@@ -7,6 +7,8 @@
 
 [ $compiler == dartk ]
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+const_error_multiply_initialized_test/02: MissingCompileTimeError
+const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
@@ -34,6 +36,9 @@ syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
 type_variable_bounds4_test/01: MissingCompileTimeError
+const_locals_test: RuntimeError
+const_string_test: RuntimeError
+const_syntax_test/08: MissingCompileTimeError
 redirecting_factory_reflection_test: Crash, Pass
 
 [ $compiler == dartk && $runtime == vm ]
@@ -42,6 +47,9 @@ assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
+conditional_import_string_test: DartkCompileTimeError
+conditional_import_test: DartkCompileTimeError
+const_locals_test: RuntimeError
 const_nested_test: RuntimeError
 const_string_test: RuntimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
@@ -339,10 +347,16 @@ assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 async_await_test: RuntimeError
 compile_time_constant_checked_test/02: MissingCompileTimeError
+const_constructor2_test/20: MissingCompileTimeError
+const_constructor2_test/22: MissingCompileTimeError
+const_constructor2_test/24: MissingCompileTimeError
+const_init2_test/02: MissingCompileTimeError
 default_factory2_test/01: Fail
 function_type2_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
+setter_override_test/01: MissingCompileTimeError
+setter_override_test/02: MissingCompileTimeError
 type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/none: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
@@ -543,6 +557,25 @@ regress_23408_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kern
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/none: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
+final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29900
+final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29900
+conditional_import_string_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+conditional_import_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+config_import_corelib_test: RuntimeError # KernelVM bug: Configurable imports.
+config_import_test: RuntimeError # KernelVM bug: Configurable imports.
+const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
+const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+const_syntax_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+compile_time_constant_o_test/01: RuntimeError # KernelVM bug: Constant map duplicated key.
+compile_time_constant_o_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
+const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
+const_factory_with_body_test/01: MissingCompileTimeError # Fasta bug: Const factory with body.
+const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instance field.
+const_optional_args_negative_test: Fail # Fasta bug: Default parameter values must be const.
+const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: Non-const expression in field initializer.
+const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 regress_28278_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 switch_bad_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -585,6 +618,13 @@ named_parameters_type_test/03: Crash
 positional_parameters_type_test/01: Crash
 positional_parameters_type_test/02: Crash
 positional_parameters_type_test/none: Crash
+factory3_test: Crash
+export_double_same_main_test: Crash # Issue 29895
+final_syntax_test/09: Crash
+const_conditional_test/08: Crash
+const_syntax_test/08: Crash
+const_syntax_test/09: Crash
+const_syntax_test/10: Crash
 setter_declaration2_negative_test: Crash
 setter_declaration_negative_test: Crash
 stacktrace_demangle_ctors_test: RuntimeError
@@ -616,6 +656,7 @@ duplicate_export_negative_test: Fail # Issue 6134
 example_constructor_test: Fail, OK
 field_initialization_order_test: Fail, OK
 no_main_test/01: Skip
+constructor3_test: Fail, OK
 main_not_a_function_test: Skip
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
@@ -629,6 +670,7 @@ cyclic_type_variable_test/04: Crash
 cyclic_type_variable_test/none: Crash
 type_parameter_test/04: Crash
 type_parameter_test/05: Crash
+const_instance_field_test/01: Crash
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 constructor3_test: Fail, OK, Pass

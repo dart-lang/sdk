@@ -38,7 +38,6 @@ method_override7_test/03: Fail # Issue 11497
 external_test/21: Fail
 external_test/24: Fail
 external_test/25: Fail
-constructor_duplicate_final_test/03: Fail
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
 
 multiline_newline_test/01: CompileTimeError # Issue 23888

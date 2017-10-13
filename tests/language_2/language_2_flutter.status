@@ -301,6 +301,20 @@ f_bounded_quantification_test/01: CompileTimeError
 f_bounded_quantification_test/02: CompileTimeError
 f_bounded_quantification5_test: CompileTimeError
 field_override_test/01: CompileTimeError
+conditional_import_string_test: CompileTimeError
+const_evaluation_test/none: CompileTimeError
+const_evaluation_test/01: CompileTimeError
+conditional_import_test: CompileTimeError
+const_types_test/01: CompileTimeError
+const_types_test/02: CompileTimeError
+const_types_test/03: CompileTimeError
+const_types_test/04: CompileTimeError
+const_types_test/05: CompileTimeError
+const_types_test/06: CompileTimeError
+const_types_test/13: CompileTimeError
+const_types_test/35: CompileTimeError
+const_types_test/40: CompileTimeError
+config_import_test: RuntimeError # Flutter Issue 9110
 malbounded_redirecting_factory_test/none: CompileTimeError
 malbounded_redirecting_factory_test/01: CompileTimeError
 malbounded_instantiation_test/01: CompileTimeError

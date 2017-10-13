@@ -22,34 +22,6 @@ body_less_constructor_wrong_arg_negative_test: Skip
 callable_test: Skip
 check_member_static_test: Skip
 check_method_override_test: Skip
-compile_time_constant_o_test: Skip
-compile_time_constant_p_test: Skip
-compile_time_constant_r_test: Skip
-compile_time_constant_test: Skip
-conditional_method_invocation_test: Skip
-conditional_property_access_test: Skip
-conditional_property_assignment_test: Skip
-conditional_property_increment_decrement_test: Skip
-const_conditional_test: Skip
-const_constructor2_test: Skip
-const_constructor3_test: Skip
-const_constructor_mixin2_test: Skip
-const_constructor_mixin3_test: Skip
-const_constructor_mixin_test: Skip
-const_constructor_nonconst_field_test: Skip
-const_constructor_super_test: Skip
-const_constructor_syntax_test: Skip
-const_constructor_test: Skip
-const_counter_negative_test: Skip
-const_dynamic_type_literal_test: Skip
-const_error_multiply_initialized_test: Skip
-const_factory_with_body_test: Skip
-const_init2_test: Skip
-const_instance_field_test: Skip
-const_list_test: Skip
-const_map2_test: Skip
-const_map3_test: Skip
-const_map4_test: Skip
 constructor_name_test: Skip
 constructor_named_arguments_test: Skip
 constructor_redirect1_negative_test: Skip
@@ -212,7 +184,6 @@ bit_operations_test/none: RuntimeError # No bigints on web.
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.
 call_closurization_test: RuntimeError # Issue 29920
-const_evaluation_test/01: RuntimeError # Issue 29920
 dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?
 double_int_to_string_test: RuntimeError # Issue 29920

@@ -8,6 +8,8 @@ assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
 [$compiler == dartk && $runtime == vm && !$checked]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+const_error_multiply_initialized_test/02: MissingCompileTimeError # Issue 29900
+const_error_multiply_initialized_test/04: MissingCompileTimeError # Issue 29900
 
 [$compiler == dartk && $runtime == vm && $checked]
 assertion_initializer_const_function_test/01: RuntimeError
@@ -87,8 +89,6 @@ deferred_type_dependency_test/as: CompileTimeError # Fasta/KernelVM bug: Deferre
 deferred_type_dependency_test/is: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/type_annotation: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-const_error_multiply_initialized_test/02: MissingCompileTimeError # Issue 29900
-const_error_multiply_initialized_test/04: MissingCompileTimeError # Issue 29900
 final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29900
 final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29900
 issue_1751477_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.

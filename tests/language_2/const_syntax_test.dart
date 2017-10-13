@@ -35,7 +35,7 @@ main() {
 
   const cf1 = identical(const Point(1, 2), const Point(1, 2));
 
-  const cf2 = identical( const Point(1, 2), new Point(1, 2)); //# 11: compile-time error
+  const cf2 = identical(const Point(1, 2), new Point(1, 2)); //# 11: compile-time error
 
   var f4 = B4; //# 12: compile-time error
   var f5 = B5;
