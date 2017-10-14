@@ -342,6 +342,3 @@ field_optimization3_test: RuntimeError # Issue 29920
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 stacktrace_test: RuntimeError # Issue 29920
 const_evaluation_test/01: RuntimeError # Issue 29920
-
-[ $compiler == dartdevc && $system == windows ]
-raw_string_test: RuntimeError # Issue 30336
