@@ -3516,7 +3516,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     DartType typeValue =
         localsHandler.substInContext(_elementMap.getDartType(type));
 
-    if (type is ir.FunctionType) {
+    if (typeValue is FunctionType) {
       HInstruction representation =
           typeBuilder.analyzeTypeArgument(typeValue, sourceElement);
       List<HInstruction> inputs = <HInstruction>[
@@ -3530,7 +3530,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    if (type is ir.TypeParameterType) {
+    if (typeValue is TypeVariableType) {
       HInstruction runtimeType =
           typeBuilder.addTypeVariableReference(typeValue, sourceElement);
       _pushStaticInvocation(_commonElements.checkSubtypeOfRuntimeType,

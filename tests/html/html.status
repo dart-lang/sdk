@@ -329,8 +329,6 @@ audiobuffersourcenode_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements
 audiocontext_test/supported: RuntimeError
 audiocontext_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 audioelement_test: RuntimeError
-b_element_test: RuntimeError
-blob_constructor_test: RuntimeError
 cache_test/ApplicationCache: RuntimeError
 cache_test/supported: RuntimeError
 cache_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -356,7 +354,6 @@ cross_domain_iframe_test: RuntimeError
 crypto_test/functional: RuntimeError
 crypto_test/supported: RuntimeError
 crypto_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-css_rule_list_test: RuntimeError
 css_test/functional: RuntimeError
 css_test/supportsPointConversions: RuntimeError
 css_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -441,8 +438,6 @@ element_types_constructors4_test/constructors: RuntimeError
 element_types_constructors4_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 element_types_constructors5_test/constructors: RuntimeError
 element_types_constructors5_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-element_types_constructors6_test/constructors: RuntimeError
-element_types_constructors6_test/ul: RuntimeError
 element_types_constructors6_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 element_types_test/supported_content: RuntimeError
 element_types_test/supported_datalist: RuntimeError
@@ -466,7 +461,6 @@ fileapi_test/entry: RuntimeError
 fileapi_test/fileEntry: RuntimeError
 fileapi_test/getDirectory: RuntimeError
 fileapi_test/getFile: RuntimeError
-fileapi_test/supported: RuntimeError
 fileapi_test/unsupported_throws: RuntimeError
 fileapi_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 filereader_test: RuntimeError
@@ -514,14 +508,12 @@ instance_of_test: RuntimeError
 isolates_test: RuntimeError
 js_array_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 js_array_test: RuntimeError
-js_dart_to_string_test: RuntimeError
 js_dispatch_property_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 js_dispatch_property_test: RuntimeError
 js_function_getter_test/call getter as function: RuntimeError
 js_function_getter_test: CompileTimeError
 js_function_getter_trust_types_test/trust types: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 js_function_getter_trust_types_test: CompileTimeError
-js_interop_1_test: RuntimeError
 js_interop_constructor_name_test/HTMLDivElement-methods: RuntimeError
 js_interop_constructor_name_test/HTMLDivElement-types-erroneous1: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 js_interop_constructor_name_test/HTMLDivElement-types-erroneous2: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
@@ -551,7 +543,6 @@ js_type_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed
 js_typed_interop_anonymous2_exp_test: RuntimeError
 js_typed_interop_anonymous2_test: RuntimeError
 js_typed_interop_anonymous_exp_test: RuntimeError
-js_typed_interop_anonymous_test: RuntimeError
 js_typed_interop_anonymous_unreachable_exp_test: RuntimeError
 js_typed_interop_anonymous_unreachable_test: RuntimeError
 js_typed_interop_bind_this_test/bind this: RuntimeError
@@ -577,14 +568,6 @@ js_typed_interop_test/static_method_tearoff_1: RuntimeError
 js_typed_interop_test/static_method_tearoff_2: RuntimeError
 js_typed_interop_test/type check: RuntimeError
 js_typed_interop_test: CompileTimeError
-js_typed_interop_type1_test/01: RuntimeError
-js_typed_interop_type1_test/none: RuntimeError
-js_typed_interop_type2_test/01: RuntimeError
-js_typed_interop_type2_test/none: RuntimeError
-js_typed_interop_type3_test/01: RuntimeError
-js_typed_interop_type3_test/02: RuntimeError
-js_typed_interop_type3_test/none: RuntimeError
-js_typed_interop_type_test: RuntimeError
 js_typed_interop_window_property_test/bind this: RuntimeError
 js_typed_interop_window_property_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 js_util_test/callConstructor: RuntimeError
@@ -646,7 +629,6 @@ postmessage_structured_test/primitives: RuntimeError
 postmessage_structured_test/typed_arrays: RuntimeError
 postmessage_structured_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 query_test: RuntimeError
-queryall_test: RuntimeError
 range_test/functional: RuntimeError
 range_test/supported: RuntimeError
 range_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -726,7 +708,6 @@ typed_arrays_4_test: RuntimeError
 typed_arrays_5_test: RuntimeError
 typed_arrays_arraybuffer_test: RuntimeError
 typed_arrays_dataview_test: RuntimeError
-typed_arrays_range_checks_test: RuntimeError
 typed_arrays_simd_test: RuntimeError
 typing_test: RuntimeError
 unknownelement_test: RuntimeError
@@ -734,15 +715,12 @@ uri_test: RuntimeError
 url_test: RuntimeError
 webgl_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 webgl_extensions_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-websocket_test/supported: RuntimeError
-websocket_test/websocket: RuntimeError
 websocket_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 websql_test/functional: RuntimeError
 websql_test/supported: RuntimeError
 websql_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 wheelevent_test: RuntimeError
 window_eq_test: RuntimeError
-window_mangling_test: RuntimeError
 window_nosuchmethod_test: RuntimeError
 window_test: RuntimeError
 worker_api_test: RuntimeError
@@ -972,8 +950,6 @@ js_test/JavaScriptFunction: RuntimeError
 js_test/JsArray: RuntimeError
 js_test/JsFunction and callMethod: RuntimeError
 js_test/JsObject.fromBrowserObject(): RuntimeError
-js_test/JsObject.fromBrowserObject(): RuntimeError
-js_test/JsObject.jsify(): RuntimeError
 js_test/JsObject.jsify(): RuntimeError
 js_test/JsObject_methods: RuntimeError
 js_test/caching: RuntimeError
@@ -1019,9 +995,6 @@ js_typed_interop_type1_test/01: RuntimeError
 js_typed_interop_type1_test/none: RuntimeError
 js_typed_interop_type2_test/01: RuntimeError
 js_typed_interop_type2_test/none: RuntimeError
-js_typed_interop_type3_test/01: RuntimeError
-js_typed_interop_type3_test/02: RuntimeError
-js_typed_interop_type3_test/none: RuntimeError
 js_typed_interop_type_test: RuntimeError
 js_typed_interop_window_property_test/bind this: RuntimeError
 js_typed_interop_window_property_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -1030,7 +1003,6 @@ js_util_test/callMethod: RuntimeError
 js_util_test/getProperty: RuntimeError
 js_util_test/hasProperty: RuntimeError
 js_util_test/instanceof: RuntimeError
-js_util_test/js_util.jsify(): RuntimeError
 js_util_test/js_util.jsify(): RuntimeError
 js_util_test/js_util.newObject: RuntimeError
 js_util_test/setProperty: RuntimeError
