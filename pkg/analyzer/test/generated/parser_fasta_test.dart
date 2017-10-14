@@ -958,14 +958,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_invalidAwaitInFor() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.INVALID_AWAIT_IN_FOR, found 0
-    super.test_invalidAwaitInFor();
-  }
-
-  @override
-  @failingTest
   void test_invalidCodePoint() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.
@@ -1577,22 +1569,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingFunctionParameters_topLevel_nonVoid_block() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_topLevel_nonVoid_block();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionParameters_topLevel_nonVoid_expression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_topLevel_nonVoid_expression();
-  }
-
-  @override
-  @failingTest
   void test_missingFunctionParameters_topLevel_void_block() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
@@ -1784,19 +1760,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
     //   test/generated/parser_fasta_test.dart 3016:35                      FastaParserTestCase.parseCompilationUnit
     super.test_missingNameInPartOfDirective();
-  }
-
-  @override
-  @failingTest
-  void test_missingStartAfterSync() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: an object with length of <1>
-    //   Actual: <Instance of 'Stack'>
-    //   Which: has length of <0>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3596:7                       ParserProxy._run
-    super.test_missingStartAfterSync();
   }
 
   @override
@@ -3701,21 +3664,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_incompleteTypeParameters() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteTypeParameters();
-  }
-
-  @override
-  @failingTest
-  void test_invalidFunctionBodyModifier() {
-    // TODO(brianwilkerson) exception:
-    //   NoSuchMethodError: Class '_KernelLibraryBuilder' has no instance method 'addCompileTimeError'.
-    //   Receiver: Instance of '_KernelLibraryBuilder'
-    //   Tried calling: addCompileTimeError(Instance of 'MessageCode', 5, Instance of '_Uri')
-    //   dart:core                                                          Object.noSuchMethod
-    //   package:analyzer/src/generated/parser_fasta.dart 20:60             _KernelLibraryBuilder.noSuchMethod
-    //   package:analyzer/src/fasta/ast_builder.dart 1956:13                AstBuilder.addCompileTimeError
-    //   package:front_end/src/fasta/source/stack_listener.dart 271:5       StackListener.handleRecoverableError
-    //   package:front_end/src/fasta/parser/parser.dart 4078:16             Parser.reportRecoverableError
-    super.test_invalidFunctionBodyModifier();
   }
 
   @override

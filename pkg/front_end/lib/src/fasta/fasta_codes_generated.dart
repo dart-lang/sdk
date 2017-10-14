@@ -153,6 +153,7 @@ const Code<Null> codeAwaitForNotAsync = messageAwaitForNotAsync;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitForNotAsync = const MessageCode(
     "AwaitForNotAsync",
+    analyzerCode: "INVALID_AWAIT_IN_FOR",
     dart2jsCode: "*ignored*",
     message:
         r"""Asynchronous for-loop can only be used in 'async' or 'async*' methods.""");
@@ -1505,6 +1506,7 @@ const Code<Null> codeGeneratorReturnsValue = messageGeneratorReturnsValue;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageGeneratorReturnsValue = const MessageCode(
     "GeneratorReturnsValue",
+    analyzerCode: "RETURN_IN_GENERATOR",
     dart2jsCode: "*ignored*",
     message: r"""'sync*' and 'async*' can't return a value.""");
 
@@ -2099,6 +2101,7 @@ const Code<Null> codeInvalidSyncModifier = messageInvalidSyncModifier;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidSyncModifier = const MessageCode(
     "InvalidSyncModifier",
+    analyzerCode: "MISSING_STAR_AFTER_SYNC",
     dart2jsCode: "INVALID_SYNC_MODIFIER",
     message: r"""Invalid modifier 'sync'.""",
     tip: r"""Try replacing 'sync' with 'sync*'.""");
@@ -2334,6 +2337,7 @@ const Code<Null> codeNamedFunctionExpression = messageNamedFunctionExpression;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNamedFunctionExpression = const MessageCode(
     "NamedFunctionExpression",
+    analyzerCode: "NAMED_FUNCTION_EXPRESSION",
     dart2jsCode: "*ignored*",
     message: r"""A function expression can't have a name.""");
 
@@ -2362,7 +2366,7 @@ const Template<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(Token token)> codeNoFormals =
     const Code<Message Function(Token token)>("NoFormals", templateNoFormals,
-        dart2jsCode: "*ignored*");
+        analyzerCode: "MISSING_FUNCTION_PARAMETERS", dart2jsCode: "*ignored*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNoFormals(Token token) {
@@ -3090,6 +3094,7 @@ const Code<Null> codeSetterNotSync = messageSetterNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSetterNotSync = const MessageCode("SetterNotSync",
+    analyzerCode: "INVALID_MODIFIER_ON_SETTER",
     dart2jsCode: "*ignored*",
     message: r"""Setters can't use 'async', 'async*', or 'sync*'.""");
 
@@ -3125,6 +3130,7 @@ const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
+    analyzerCode: "INVALID_OPERATOR_FOR_SUPER",
     dart2jsCode: "*ignored*",
     message: r"""'super' can't be null.""",
     tip: r"""Try replacing '?.' with '.'""");
@@ -3618,5 +3624,6 @@ const Code<Null> codeYieldNotGenerator = messageYieldNotGenerator;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageYieldNotGenerator = const MessageCode(
     "YieldNotGenerator",
+    analyzerCode: "YIELD_IN_NON_GENERATOR",
     dart2jsCode: "*ignored*",
     message: r"""'yield' can only be used in 'sync*' or 'async*' methods.""");

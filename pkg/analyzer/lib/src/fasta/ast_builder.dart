@@ -2209,6 +2209,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
         return;
+      case "INVALID_AWAIT_IN_FOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_AWAIT_IN_FOR, offset, length);
+        return;
       case "IMPLEMENTS_BEFORE_EXTENDS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, offset, length);
@@ -2222,6 +2226,14 @@ class AstBuilder extends ScopeListener {
             ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
             offset,
             length);
+        return;
+      case "INVALID_MODIFIER_ON_SETTER":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, offset, length);
+        return;
+      case "INVALID_OPERATOR_FOR_SUPER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, offset, length);
         return;
       case "LIBRARY_DIRECTIVE_NOT_FIRST":
         errorReporter?.reportErrorForOffset(
@@ -2247,6 +2259,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
         return;
+      case "MISSING_STAR_AFTER_SYNC":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_STAR_AFTER_SYNC, offset, length);
+        return;
       case "MULTIPLE_EXTENDS_CLAUSES":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, offset, length);
@@ -2263,6 +2279,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_FUNCTION_BODY, offset, length);
         return;
+      case "MISSING_FUNCTION_PARAMETERS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_FUNCTION_PARAMETERS, offset, length);
+        return;
       case "MISSING_IDENTIFIER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_IDENTIFIER, offset, length);
@@ -2274,6 +2294,10 @@ class AstBuilder extends ScopeListener {
       case "MULTIPLE_PART_OF_DIRECTIVES":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, offset, length);
+        return;
+      case "NAMED_FUNCTION_EXPRESSION":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.NAMED_FUNCTION_EXPRESSION, offset, length);
         return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
@@ -2291,6 +2315,10 @@ class AstBuilder extends ScopeListener {
       case "PREFIX_AFTER_COMBINATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
+        return;
+      case "RETURN_IN_GENERATOR":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);
         return;
       case "STATIC_AFTER_FINAL":
         errorReporter?.reportErrorForOffset(
@@ -2331,6 +2359,10 @@ class AstBuilder extends ScopeListener {
             ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
             offset,
             length);
+        return;
+      case "YIELD_IN_NON_GENERATOR":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.YIELD_IN_NON_GENERATOR, offset, length);
         return;
       default:
       // fall through

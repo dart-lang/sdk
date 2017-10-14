@@ -399,6 +399,7 @@ InvalidAwaitFor:
 InvalidSyncModifier:
   template: "Invalid modifier 'sync'."
   tip: "Try replacing 'sync' with 'sync*'."
+  analyzerCode: MISSING_STAR_AFTER_SYNC
   dart2jsCode: INVALID_SYNC_MODIFIER
   script: "main() sync {}"
 
@@ -575,6 +576,7 @@ BuiltInIdentifierInDeclaration:
 
 AwaitForNotAsync:
   template: "Asynchronous for-loop can only be used in 'async' or 'async*' methods."
+  analyzerCode: INVALID_AWAIT_IN_FOR
   dart2jsCode: "*ignored*"
 
 FactoryNotSync:
@@ -583,6 +585,7 @@ FactoryNotSync:
 
 GeneratorReturnsValue:
   template: "'sync*' and 'async*' can't return a value."
+  analyzerCode: RETURN_IN_GENERATOR
   dart2jsCode: "*ignored*"
 
 InvalidInlineFunctionType:
@@ -593,6 +596,7 @@ InvalidInlineFunctionType:
 
 SetterNotSync:
   template: "Setters can't use 'async', 'async*', or 'sync*'."
+  analyzerCode: INVALID_MODIFIER_ON_SETTER
   dart2jsCode: "*ignored*"
 
 YieldAsIdentifier:
@@ -602,6 +606,7 @@ YieldAsIdentifier:
 
 YieldNotGenerator:
   template: "'yield' can only be used in 'sync*' or 'async*' methods."
+  analyzerCode: YIELD_IN_NON_GENERATOR
   dart2jsCode: "*ignored*"
 
 OnlyTry:
@@ -637,6 +642,7 @@ PrivateNamedParameter:
 NoFormals:
   template: "A function should have formal parameters."
   tip: "Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter."
+  analyzerCode: MISSING_FUNCTION_PARAMETERS
   dart2jsCode: "*ignored*"
 
 GetterWithFormals:
@@ -653,6 +659,7 @@ CatchSyntax:
 SuperNullAware:
   template: "'super' can't be null."
   tip: "Try replacing '?.' with '.'"
+  analyzerCode: INVALID_OPERATOR_FOR_SUPER
   dart2jsCode: "*ignored*"
 
 ConstFieldWithoutInitializer:
@@ -780,6 +787,7 @@ FastaCLIArgumentRequired:
 
 NamedFunctionExpression:
   template: "A function expression can't have a name."
+  analyzerCode: NAMED_FUNCTION_EXPRESSION
   dart2jsCode: "*ignored*"
 
 NativeClauseShouldBeAnnotation:
