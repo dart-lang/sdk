@@ -1271,7 +1271,6 @@ vm/async_await_catch_stacktrace_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_no_cancel2_test: RuntimeError
@@ -1283,7 +1282,6 @@ async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
-async_star_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 await_exceptions_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -1461,18 +1459,11 @@ factory_redirection_test/07: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError
-field_override3_test/00: MissingCompileTimeError
-field_override3_test/01: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
-field_override3_test/02: MissingCompileTimeError
-field_override3_test/03: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
-final_attempt_reinitialization_test/01: MissingCompileTimeError
-final_attempt_reinitialization_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
@@ -1501,7 +1492,7 @@ function_type_alias2_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
-generic_field_mixin4_test: Crash # Assertion failure: No local for j:field(M_closure._captured_T_0).
+generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_field_mixin6_test/none: RuntimeError
 generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
@@ -1529,7 +1520,7 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError
-interface_test/00: Crash # 'package:front_end/src/fasta/kernel/body_builder.dart': Failed assertion: line 2192 pos 14: '!target.enclosingClass.isAbstract': is not true.
+interface_test/00: Crash # 'package:front_end/src/fasta/kernel/body_builder.dart': Failed assertion: line 2218 pos 14: '!target.enclosingClass.isAbstract': is not true.
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
 invocation_mirror2_test: RuntimeError
 issue21079_test: RuntimeError
@@ -1546,8 +1537,6 @@ list_literal4_test/05: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
-local_function3_test/none: RuntimeError
-local_function_test: RuntimeError
 malformed2_test/00: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 map_literal8_test: RuntimeError
@@ -1688,8 +1677,6 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
-regress_13494_test: RuntimeError
-regress_17382_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22443_test: CompileTimeError
 regress_22976_test/01: CompileTimeError
@@ -1697,7 +1684,6 @@ regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError
-regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
@@ -1713,7 +1699,6 @@ setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
 stacktrace_test: RuntimeError
 super_call4_test: Crash # Assertion failure: Missing scope info for j:method(E.boz).
-super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
@@ -1729,17 +1714,7 @@ syntax_test/33: Crash # type 'KernelConstructorBuilder' is not a subtype of type
 tearoff_dynamic_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
-type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/js_backend/constant_emitter.dart': Failed assertion: line 287 pos 14: 'type is DynamicType': is not true.
-type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/04: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/05: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/06: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/07: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/08: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
+type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_mixins.dart': Failed assertion: line 673 pos 14: 'functionType.typedef != null': is not true.
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
@@ -1934,18 +1909,11 @@ factory_redirection_test/07: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError
-field_override3_test/00: MissingCompileTimeError
-field_override3_test/01: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
-field_override3_test/02: MissingCompileTimeError
-field_override3_test/03: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
-final_attempt_reinitialization_test/01: MissingCompileTimeError
-final_attempt_reinitialization_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
@@ -1974,9 +1942,7 @@ function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
-generic_closure_test/01: RuntimeError
-generic_closure_test/none: RuntimeError
-generic_field_mixin4_test: Crash # Assertion failure: No local for j:field(M_closure._captured_T_0).
+generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_field_mixin6_test/none: RuntimeError
 generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
@@ -2021,9 +1987,6 @@ list_literal4_test/05: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
-local_function3_test/none: RuntimeError
-local_function_test: RuntimeError
-malformed2_test/00: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 map_literal8_test: RuntimeError
@@ -2081,14 +2044,7 @@ mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_issue10216_2_test: RuntimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
-mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: RuntimeError
-mixin_mixin6_test: RuntimeError
 mixin_mixin7_test: RuntimeError
-mixin_mixin_bound2_test: RuntimeError
-mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
@@ -2169,15 +2125,14 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
-regress_13494_test: RuntimeError
-regress_17382_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
 regress_22443_test: CompileTimeError
-regress_22976_test: CompileTimeError
+regress_22976_test/01: CompileTimeError
+regress_22976_test/02: CompileTimeError
+regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
-regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
@@ -2197,7 +2152,6 @@ stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
 stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
@@ -2212,21 +2166,9 @@ syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-top_level_getter_no_setter1_test/01: RuntimeError
-top_level_getter_no_setter2_test/01: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
-type_parameter_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/04: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/05: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/06: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/07: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/08: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
-type_parameter_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#))in j:closure_call(A_A_closure.call).
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
@@ -2266,8 +2208,6 @@ regress_22438_test: MissingCompileTimeError
 recursive_generic_test: RuntimeError
 recursive_mixin_test: RuntimeError
 setter4_test: MissingCompileTimeError
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
 
 [ $compiler == dart2js && $runtime == chrome ]
 field_override_optimization_test: RuntimeError
@@ -2324,7 +2264,7 @@ null_test/0*: Pass # mirrors not supported, fails for the wrong reason
 null_test/none: Fail # mirrors not supported
 overridden_no_such_method_test: Fail # mirrors not supported
 regress_28255_test: Fail # mirrors not supported
-super_call4_test: CompileTimeError
+super_call4_test: Fail # mirrors not supported
 super_getter_setter_test: CompileTimeError
 vm/reflect_core_vm_test: Fail # mirrors not supported
 redirecting_factory_reflection_test: Fail # mirrors not supported
