@@ -12,6 +12,19 @@ main() {
 
 class PartDirectivesTest extends PartialCodeTest {
   buildAll() {
+    List<bool> onlyConstAndFinal = <bool>[
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ];
     buildTests(
         'part_directive',
         [
@@ -22,9 +35,11 @@ class PartDirectivesTest extends PartialCodeTest {
               "part '';",
               allFailing: true),
           new TestDescriptor('emptyUri', "part ''",
-              [ParserErrorCode.EXPECTED_TOKEN], "part '';"),
+              [ParserErrorCode.EXPECTED_TOKEN], "part '';",
+              failing: onlyConstAndFinal),
           new TestDescriptor('uri', "part 'a.dart'",
-              [ParserErrorCode.EXPECTED_TOKEN], "part 'a.dart';"),
+              [ParserErrorCode.EXPECTED_TOKEN], "part 'a.dart';",
+              failing: onlyConstAndFinal),
         ],
         PartialCodeTest.postPartSuffixes);
   }

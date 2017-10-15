@@ -502,15 +502,30 @@ const MessageCode messageConstConstructorWithBody = const MessageCode(
     message: r"""A const constructor can't have a body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstFieldWithoutInitializer =
-    messageConstFieldWithoutInitializer;
+const Template<
+    Message Function(
+        String
+            name)> templateConstFieldWithoutInitializer = const Template<
+        Message Function(String name)>(
+    messageTemplate: r"""The const variable '#name' must be initialized.""",
+    tipTemplate:
+        r"""Try adding an initializer ('= <expression>') to the declaration.""",
+    withArguments: _withArgumentsConstFieldWithoutInitializer);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstFieldWithoutInitializer = const MessageCode(
-    "ConstFieldWithoutInitializer",
-    dart2jsCode: "*ignored*",
-    message: r"""A 'const' field must be initialized.""",
-    tip: r"""Try adding '= <initializer>'.""");
+const Code<Message Function(String name)> codeConstFieldWithoutInitializer =
+    const Code<Message Function(String name)>(
+        "ConstFieldWithoutInitializer", templateConstFieldWithoutInitializer,
+        analyzerCode: "CONST_NOT_INITIALIZED", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstFieldWithoutInitializer(String name) {
+  return new Message(codeConstFieldWithoutInitializer,
+      message: """The const variable '$name' must be initialized.""",
+      tip:
+          """Try adding an initializer ('= <expression>') to the declaration.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConstructorNotFound =
@@ -1433,15 +1448,30 @@ const MessageCode messageFinalAndVar = const MessageCode("FinalAndVar",
     tip: r"""Try removing the keyword 'var'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFinalFieldWithoutInitializer =
-    messageFinalFieldWithoutInitializer;
+const Template<
+    Message Function(
+        String
+            name)> templateFinalFieldWithoutInitializer = const Template<
+        Message Function(String name)>(
+    messageTemplate: r"""The final variable '#name' must be initialized.""",
+    tipTemplate:
+        r"""Try adding an initializer ('= <expression>') to the declaration.""",
+    withArguments: _withArgumentsFinalFieldWithoutInitializer);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFinalFieldWithoutInitializer = const MessageCode(
-    "FinalFieldWithoutInitializer",
-    dart2jsCode: "*ignored*",
-    message: r"""A 'final' field must be initialized.""",
-    tip: r"""Try adding '= <initializer>'.""");
+const Code<Message Function(String name)> codeFinalFieldWithoutInitializer =
+    const Code<Message Function(String name)>(
+        "FinalFieldWithoutInitializer", templateFinalFieldWithoutInitializer,
+        analyzerCode: "FINAL_NOT_INITIALIZED", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalFieldWithoutInitializer(String name) {
+  return new Message(codeFinalFieldWithoutInitializer,
+      message: """The final variable '$name' must be initialized.""",
+      tip:
+          """Try adding an initializer ('= <expression>') to the declaration.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>

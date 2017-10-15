@@ -24,6 +24,18 @@ class PartOfDirectivesTest extends PartialCodeTest {
       true,
       true
     ];
+    List<bool> onlyConstAndFinal = <bool>[
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ];
     buildTests(
         'part_of_directive',
         [
@@ -49,11 +61,14 @@ class PartOfDirectivesTest extends PartialCodeTest {
               'part of lib._s_;',
               failing: exceptAtEof),
           new TestDescriptor('nameDotName', 'part of lib.a',
-              [ParserErrorCode.EXPECTED_TOKEN], 'part of lib.a;'),
+              [ParserErrorCode.EXPECTED_TOKEN], 'part of lib.a;',
+              failing: onlyConstAndFinal),
           new TestDescriptor('emptyUri', "part of ''",
-              [ParserErrorCode.EXPECTED_TOKEN], "part of '';"),
+              [ParserErrorCode.EXPECTED_TOKEN], "part of '';",
+              failing: onlyConstAndFinal),
           new TestDescriptor('uri', "part of 'a.dart'",
-              [ParserErrorCode.EXPECTED_TOKEN], "part of 'a.dart';"),
+              [ParserErrorCode.EXPECTED_TOKEN], "part of 'a.dart';",
+              failing: onlyConstAndFinal),
         ],
         PartialCodeTest.declarationSuffixes);
   }

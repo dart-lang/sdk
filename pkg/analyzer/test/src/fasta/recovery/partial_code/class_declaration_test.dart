@@ -24,6 +24,18 @@ class ClassDeclarationTest extends PartialCodeTest {
       true,
       true
     ];
+    List<bool> onlyConstAndFinal = <bool>[
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ];
     buildTests(
         'class_declaration',
         [
@@ -37,7 +49,8 @@ class ClassDeclarationTest extends PartialCodeTest {
               'class _s_ {}',
               failing: exceptAtEof),
           new TestDescriptor('named', 'class A',
-              [ParserErrorCode.MISSING_CLASS_BODY], 'class A {}'),
+              [ParserErrorCode.MISSING_CLASS_BODY], 'class A {}',
+              failing: onlyConstAndFinal),
           new TestDescriptor(
               'extends',
               'class A extends',

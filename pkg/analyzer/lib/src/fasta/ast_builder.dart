@@ -2113,6 +2113,11 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, offset, length);
         return;
+      case "CONST_NOT_INITIALIZED":
+        String name = arguments['name'];
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.CONST_NOT_INITIALIZED, offset, length, [name]);
+        return;
       case "COVARIANT_AFTER_FINAL":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COVARIANT_AFTER_FINAL, offset, length);
@@ -2200,6 +2205,11 @@ class AstBuilder extends ScopeListener {
       case "FINAL_AND_VAR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.FINAL_AND_VAR, offset, length);
+        return;
+      case "FINAL_NOT_INITIALIZED":
+        String name = arguments['name'];
+        errorReporter?.reportErrorForOffset(
+            StaticWarningCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
         return;
       case "GETTER_WITH_PARAMETERS":
         errorReporter?.reportErrorForOffset(

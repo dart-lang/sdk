@@ -12,6 +12,21 @@ main() {
 
 class ImportDirectivesTest extends PartialCodeTest {
   buildAll() {
+    List<bool> onlyConstAndFinal = <bool>[
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ];
     buildTests(
         'import_directive',
         [
@@ -22,9 +37,11 @@ class ImportDirectivesTest extends PartialCodeTest {
               "import '';",
               allFailing: true),
           new TestDescriptor('emptyUri', "import ''",
-              [ParserErrorCode.EXPECTED_TOKEN], "import '';"),
+              [ParserErrorCode.EXPECTED_TOKEN], "import '';",
+              failing: onlyConstAndFinal),
           new TestDescriptor('fullUri', "import 'a.dart'",
-              [ParserErrorCode.EXPECTED_TOKEN], "import 'a.dart';"),
+              [ParserErrorCode.EXPECTED_TOKEN], "import 'a.dart';",
+              failing: onlyConstAndFinal),
         ],
         PartialCodeTest.prePartSuffixes);
   }

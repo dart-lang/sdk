@@ -24,18 +24,6 @@ class TopLevelVariableTest extends PartialCodeTest {
       true,
       true
     ];
-    List<bool> afterComma = [
-      false,
-      false,
-      true,
-      true,
-      true,
-      false,
-      false,
-      false,
-      true,
-      true
-    ];
     buildTests(
         'top_level_variable',
         [
@@ -62,7 +50,7 @@ class TopLevelVariableTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "const a, _s_;",
-              failing: afterComma),
+              allFailing: true),
           new TestDescriptor(
               'constTypeNameComma',
               'const int a,',
@@ -71,11 +59,13 @@ class TopLevelVariableTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "const int a, _s_;",
-              failing: afterComma),
+              allFailing: true),
           new TestDescriptor('constNameCommaName', 'const a, b',
-              [ParserErrorCode.EXPECTED_TOKEN], "const a, b;"),
+              [ParserErrorCode.EXPECTED_TOKEN], "const a, b;",
+              allFailing: true),
           new TestDescriptor('constTypeNameCommaName', 'const int a, b',
-              [ParserErrorCode.EXPECTED_TOKEN], "const int a, b;"),
+              [ParserErrorCode.EXPECTED_TOKEN], "const int a, b;",
+              allFailing: true),
           new TestDescriptor(
               'final',
               'final',

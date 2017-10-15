@@ -1223,25 +1223,6 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.body, isNotNull);
   }
 
-  void test_parseClassMember_operator_lessThan() {
-    createParser('bool operator <(other) => false;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, new isInstanceOf<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name.name, '<');
-    expect(method.operatorKeyword, isNotNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
   void test_parseClassMember_operator_index() {
     createParser('int operator [](int i) {}');
     ClassMember member = parser.parseClassMember('C');
@@ -1274,6 +1255,25 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNotNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_operator_lessThan() {
+    createParser('bool operator <(other) => false;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name.name, '<');
     expect(method.operatorKeyword, isNotNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -2343,21 +2343,21 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_constAndCovariant() {
-    createParser('covariant const C f;');
+    createParser('covariant const C f = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrorsWithCodes([ParserErrorCode.CONST_AND_COVARIANT]);
   }
 
   void test_constAndFinal() {
-    createParser('const final int x;');
+    createParser('const final int x = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrorsWithCodes([ParserErrorCode.CONST_AND_FINAL]);
   }
 
   void test_constAndVar() {
-    createParser('const var x;');
+    createParser('const var x = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrorsWithCodes([ParserErrorCode.CONST_AND_VAR]);
@@ -2582,7 +2582,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_duplicatedModifier_const() {
-    createParser('const const m;');
+    createParser('const const m = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrorsWithCodes([ParserErrorCode.DUPLICATED_MODIFIER]);
@@ -2603,7 +2603,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_duplicatedModifier_final() {
-    createParser('final final m;');
+    createParser('final final m = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrorsWithCodes([ParserErrorCode.DUPLICATED_MODIFIER]);
@@ -3040,14 +3040,14 @@ class Foo {
   }
 
   void test_finalAndCovariant() {
-    createParser('covariant final f;');
+    createParser('covariant final f = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrorsWithCodes([ParserErrorCode.FINAL_AND_COVARIANT]);
   }
 
   void test_finalAndVar() {
-    createParser('final var x;');
+    createParser('final var x = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrorsWithCodes([ParserErrorCode.FINAL_AND_VAR]);

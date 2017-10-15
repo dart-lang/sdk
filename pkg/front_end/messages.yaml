@@ -663,13 +663,15 @@ SuperNullAware:
   dart2jsCode: "*ignored*"
 
 ConstFieldWithoutInitializer:
-  template: "A 'const' field must be initialized."
-  tip: "Try adding '= <initializer>'."
+  template: "The const variable '#name' must be initialized."
+  tip: "Try adding an initializer ('= <expression>') to the declaration."
+  analyzerCode: CONST_NOT_INITIALIZED
   dart2jsCode: "*ignored*"
 
 FinalFieldWithoutInitializer:
-  template: "A 'final' field must be initialized."
-  tip: "Try adding '= <initializer>'."
+  template: "The final variable '#name' must be initialized."
+  tip: "Try adding an initializer ('= <expression>') to the declaration."
+  analyzerCode: FINAL_NOT_INITIALIZED
   dart2jsCode: "*ignored*"
 
 MetadataTypeArguments:

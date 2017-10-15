@@ -2538,10 +2538,14 @@ class Parser {
       if (varFinalOrConst != null) {
         if (optional("const", varFinalOrConst)) {
           reportRecoverableError(
-              name, fasta.messageConstFieldWithoutInitializer);
+              name,
+              fasta.templateConstFieldWithoutInitializer
+                  .withArguments(name.lexeme));
         } else if (isTopLevel && optional("final", varFinalOrConst)) {
           reportRecoverableError(
-              name, fasta.messageFinalFieldWithoutInitializer);
+              name,
+              fasta.templateFinalFieldWithoutInitializer
+                  .withArguments(name.lexeme));
         }
       }
       listener.handleNoFieldInitializer(token);

@@ -27,6 +27,21 @@ class LibraryDirectivesTest extends PartialCodeTest {
       true,
       true
     ];
+    List<bool> onlyConstAndFinal = <bool>[
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ];
     buildTests(
         'library_directive',
         [
@@ -40,7 +55,8 @@ class LibraryDirectivesTest extends PartialCodeTest {
               'library _s_;',
               failing: exceptAtEof),
           new TestDescriptor('name', 'library lib',
-              [ParserErrorCode.EXPECTED_TOKEN], 'library lib;'),
+              [ParserErrorCode.EXPECTED_TOKEN], 'library lib;',
+              failing: onlyConstAndFinal),
           new TestDescriptor(
               'nameDot',
               'library lib.',
@@ -51,7 +67,8 @@ class LibraryDirectivesTest extends PartialCodeTest {
               'library lib._s_;',
               failing: exceptAtEof),
           new TestDescriptor('nameDotName', 'library lib.a',
-              [ParserErrorCode.EXPECTED_TOKEN], 'library lib.a;'),
+              [ParserErrorCode.EXPECTED_TOKEN], 'library lib.a;',
+              failing: onlyConstAndFinal),
         ],
         PartialCodeTest.prePartSuffixes);
   }
