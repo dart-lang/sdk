@@ -102,8 +102,8 @@ class ValidatingInstrumentation implements Instrumentation {
 
     // Apply the fixes in reverse order so that offsets don't need to be
     // adjusted after each fix.
-    fixes.sort((a, b) => b.offset.compareTo(a.offset));
-    for (var fix in fixes) {
+    fixes.sort((a, b) => a.offset.compareTo(b.offset));
+    for (var fix in fixes.reversed) {
       bytes.replaceRange(convertOffset(fix.offset),
           convertOffset(fix.offset + fix.length), UTF8.encode(fix.replacement));
     }
