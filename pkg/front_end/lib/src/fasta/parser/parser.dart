@@ -2328,8 +2328,9 @@ class Parser {
       // If the modifiers form a partial top level directive or declaration
       // and we have found the start of a new top level declaration
       // then return to parse that new declaration.
-      if (context.endToken != null) {
-        listener.handleInvalidTopLevelDeclaration(context.endToken);
+      if (context.endInvalidTopLevelDeclarationToken != null) {
+        listener.handleInvalidTopLevelDeclaration(
+            context.endInvalidTopLevelDeclarationToken);
         return token;
       }
 
