@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "./infer_types_on_generic_instantiations_in_library_cycle_a.dart" as inf;
 
 abstract class A<E extends core::Object> extends core::Object implements inf::I<self::A::E> {
-  generic-covariant-impl generic-covariant-interface final field self::A::E value = null;
+  final field self::A::E value = null;
   const constructor •() → void
     : super core::Object::•()
     ;

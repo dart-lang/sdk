@@ -18,8 +18,7 @@ import 'package:kernel/ast.dart'
         Location,
         TypeParameter,
         TypeParameterType,
-        TypedefType,
-        VariableDeclaration;
+        TypedefType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 
@@ -186,10 +185,6 @@ abstract class TypeInferenceEngine {
 
   TypeSchemaEnvironment get typeSchemaEnvironment;
 
-  /// Annotates the formal parameters of any methods in [cls] to indicate the
-  /// circumstances in which they require runtime type checks.
-  void computeFormalSafety(Class cls);
-
   /// Creates a disabled type inferrer (intended for debugging and profiling
   /// only).
   TypeInferrer createDisabledTypeInferrer();
@@ -250,96 +245,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   TypeSchemaEnvironment typeSchemaEnvironment;
 
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
-
-  @override
-  void computeFormalSafety(Class cls) {
-    // If any method in the class has a formal parameter whose type depends on
-    // one of the class's type parameters, then there may be a mismatch between
-    // the type guarantee made by the caller and the type guarantee expected by
-    // the callee.  For instance, consider the code:
-    //
-    // class A<T> {
-    //   foo(List<T> argument) {}
-    // }
-    // class B extends A<num> {
-    //   foo(List<num> argument) {}
-    // }
-    // class C extends B {
-    //   foo(List<Object> argument) {}
-    // }
-    // void bar(A<Object> a) {
-    //   a.foo(<Object>[1, 2.0, 'hi']);
-    // }
-    // void baz(B b) {
-    //   b.foo(<Object>[1, 2.0, 'hi']); // Compile-time error
-    // }
-    //
-    //
-    // At the call site in `bar`, we know that the value passed to `foo` is an
-    // instance of `List<Object>`.  But `bar` might have been called as
-    // `bar(new A<num>())`, in which case passing `List<Object>` to `a.foo` would
-    // violate soundness.  Therefore `A.foo` will have to check the type of its
-    // argument at runtime (unless the back end can prove the check is
-    // unnecessary, e.g. through whole program analysis).
-    //
-    // The same check needs to be compiled into `B.foo`, since it's possible
-    // that `bar` might have been called as `bar(new B())`.
-    //
-    // However, if the call to `foo` occurs via the interface target `B.foo`,
-    // no check is needed, since the class B is not generic, so the front end is
-    // able to check the types completely at compile time and issue an error if
-    // they don't match, as illustrated in `baz`.
-    //
-    // We represent this by marking A.foo's argument as both "semi-typed" and
-    // "semi-safe", whereas B.foo's argument is simply "semi-safe".  The rule is
-    // that a check only needs to be performed if the interface target's
-    // parameter is marked as "semi-typed" AND the actual target's parameter is
-    // marked as "semi-safe".
-    //
-    // A parameter is marked as "semi-typed" if it refers to one of the class's
-    // generic parameters in a covariant position; a parameter is marked as
-    // "semi-safe" if it is semi-typed or it overrides a parameter that is
-    // semi-safe.  (In other words, the "semi-safe" annotation is inherited).
-    //
-    // Note that this a slightly conservative analysis; it mark C.foo's argument
-    // as "semi-safe" even though technically it's not necessary to do so (since
-    // every possible call to C.foo is guaranteed to pass in a subtype of
-    // List<Object>).  In principle we could improve on this, but it would
-    // require a lot of bookkeeping, and it doesn't seem worth it.
-    if (cls.typeParameters.isNotEmpty) {
-      var needsCheckVisitor =
-          new IncludesTypeParametersCovariantly(cls.typeParameters);
-      for (var procedure in cls.procedures) {
-        if (procedure.isStatic) continue;
-
-        void handleParameter(VariableDeclaration formal) {
-          if (formal.type.accept(needsCheckVisitor)) {
-            formal.isGenericCovariantImpl = true;
-            formal.isGenericCovariantInterface = true;
-          }
-        }
-
-        void handleTypeParameter(TypeParameter typeParameter) {
-          if (typeParameter.bound.accept(needsCheckVisitor)) {
-            typeParameter.isGenericCovariantImpl = true;
-            typeParameter.isGenericCovariantInterface = true;
-          }
-        }
-
-        procedure.function.positionalParameters.forEach(handleParameter);
-        procedure.function.namedParameters.forEach(handleParameter);
-        procedure.function.typeParameters.forEach(handleTypeParameter);
-      }
-      for (var field in cls.fields) {
-        if (field.isStatic) continue;
-
-        if (field.type.accept(needsCheckVisitor)) {
-          field.isGenericCovariantImpl = true;
-          field.isGenericCovariantInterface = true;
-        }
-      }
-    }
-  }
 
   @override
   void finishTopLevelFields() {
