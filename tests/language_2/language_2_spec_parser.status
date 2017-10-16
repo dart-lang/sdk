@@ -770,7 +770,6 @@ assertion_initializer_test: Skip # Not yet supported.
 assertion_initializer_const_error_test: Skip # Not yet supported.
 assertion_initializer_const_error2_test: Skip # Not yet supported.
 assertion_initializer_const_function_test: Skip # Not yet supported.
-assertion_initializer_const_function_error_test: Skip # Not yet supported.
 
 # Tests using debug break (which is not Dart syntax).
 vm/debug_break_enabled_vm_test/01: Fail # Uses debug break.

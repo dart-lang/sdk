@@ -17,6 +17,7 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
+assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_test: RuntimeError # Issue 30326
 assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError
@@ -947,7 +948,6 @@ assertion_initializer_const_error2_test/cc10: Pass, OK
 assertion_initializer_const_error2_test/cc11: Pass, OK
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 generic_field_mixin6_test/none: RuntimeError
 tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError

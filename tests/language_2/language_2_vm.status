@@ -17,6 +17,7 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
+assertion_initializer_const_function_test/01: MissingCompileTimeError
 assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError
 assign_static_type_test/03: MissingCompileTimeError
@@ -1068,7 +1069,6 @@ regress_22438_test: MissingCompileTimeError
 [ $compiler == none && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 type_parameter_test/05: MissingCompileTimeError
 
 [ $compiler == app_jit && $runtime == vm ]
@@ -1087,7 +1087,6 @@ regress_22438_test: MissingCompileTimeError
 [ $compiler == app_jit && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/04: MissingRuntimeError

@@ -43,7 +43,7 @@ redirecting_factory_reflection_test: Crash, Pass
 
 [ $compiler == dartk && $runtime == vm ]
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_test/01: MissingCompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
@@ -317,13 +317,10 @@ typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $checked ]
 assertion_initializer_const_error2_test/cc02: Crash
 assertion_initializer_const_error_test/none: Crash
-assertion_initializer_const_function_error_test/01: Crash
-assertion_initializer_const_function_error_test/none: Crash
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_const_function_test/none: Crash
 regress_30339_test: Crash
