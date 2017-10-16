@@ -139,10 +139,7 @@ class Erasure extends Transformer {
       }
     }
 
-    if (node.parent.parent is Library || node.parent.parent is Class) {
-      usableTypeParameters.addAll(node.typeParameters);
-    }
-
+    usableTypeParameters.addAll(node.typeParameters);
     node.transformChildren(this);
     usableTypeParameters.removeAll(node.typeParameters);
     node.typeParameters.forEach(substitution.remove);

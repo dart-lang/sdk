@@ -792,6 +792,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
 
   ActiveClassScope active_class_scope(&active_class_, &klass);
   ActiveMemberScope active_member(&active_class_, &outermost_function);
+  ActiveTypeParametersScope active_type_params(&active_class_, function, Z);
 
   LocalScope* enclosing_scope = NULL;
   if (function.IsLocalFunction()) {
@@ -1855,8 +1856,7 @@ void StreamingScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   intptr_t offset = builder_->ReaderOffset();
 
   FunctionNodeHelper function_node_helper(builder_);
-  function_node_helper.ReadUntilExcluding(
-      FunctionNodeHelper::kPositionalParameters);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
   LocalScope* saved_function_scope = current_function_scope_;
   FunctionNodeHelper::AsyncMarker saved_function_async_marker =
@@ -1871,7 +1871,21 @@ void StreamingScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
     result_->function_scopes.Add(function_scope);
   }
 
+  int num_type_params = 0;
+  {
+    AlternativeReadingScope _(builder_->reader_);
+    num_type_params = builder_->ReadListLength();
+  }
+  // Adding this scope here informs the type translator the type parameters of
+  // this function are now in scope, although they are not defined and will be
+  // filled in with dynamic. This is OK, since their definitions are not needed
+  // for scope building of the enclosing function.
+  StreamingDartTypeTranslator::TypeParameterScope scope(&type_translator_,
+                                                        num_type_params);
+
   // read positional_parameters and named_parameters.
+  function_node_helper.ReadUntilExcluding(
+      FunctionNodeHelper::kPositionalParameters);
   AddPositionalAndNamedParameters();
 
   // "Peek" is now done.
@@ -2343,9 +2357,8 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
       // WARNING: This is a little hackish:
       //
       // We have a static factory constructor. The kernel IR gives the factory
-      // constructor function it's own type parameters (which are equal in name
-      // and number to the ones of the enclosing class).
-      // I.e.,
+      // constructor function its own type parameters (which are equal in name
+      // and number to the ones of the enclosing class). I.e.,
       //
       //   class A<T> {
       //     factory A.x() { return new B<T>(); }
@@ -2383,7 +2396,20 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
     }
   }
 
-  if (type_parameter_scope_ != NULL && parameter_index >= 0 &&
+  if (active_class_->local_type_parameters != NULL) {
+    if (parameter_index < active_class_->local_type_parameters->Length()) {
+      if (FLAG_reify_generic_functions) {
+        result_ ^=
+            active_class_->local_type_parameters->TypeAt(parameter_index);
+      } else {
+        result_ ^= Type::DynamicType();
+      }
+      return;
+    }
+    parameter_index -= active_class_->local_type_parameters->Length();
+  }
+
+  if (type_parameter_scope_ != NULL &&
       parameter_index < type_parameter_scope_->outer_parameter_count() +
                             type_parameter_scope_->parameter_count()) {
     result_ ^= Type::DynamicType();
@@ -3823,6 +3849,34 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
       body += StoreLocal(TokenPosition::kNoSource, type_args_slot);
     }
     body += Drop();
+  } else if (dart_function.IsClosureFunction() && dart_function.IsGeneric() &&
+             dart_function.NumParentTypeParameters() > 0 &&
+             FLAG_reify_generic_functions) {
+    LocalVariable* closure =
+        parsed_function()->node_sequence()->scope()->VariableAt(0);
+    LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
+    ASSERT(fn_type_args != NULL && closure != NULL);
+
+    body += LoadLocal(fn_type_args);
+    body += PushArgument();
+    body += LoadLocal(closure);
+    body += LoadField(Closure::function_type_arguments_offset());
+    body += PushArgument();
+    body += IntConstant(dart_function.NumTypeParameters() +
+                        dart_function.NumParentTypeParameters());
+    body += PushArgument();
+
+    const Library& dart_internal =
+        Library::Handle(Z, Library::InternalLibrary());
+    const Function& prepend_function =
+        Function::ZoneHandle(Z, dart_internal.LookupFunctionAllowPrivate(
+                                    Symbols::PrependTypeArguments()));
+    ASSERT(!prepend_function.IsNull());
+
+    body += StaticCall(TokenPosition::kNoSource, prepend_function, 3,
+                       ICData::kStatic);
+    body += StoreLocal(TokenPosition::kNoSource, fn_type_args);
+    body += Drop();
   }
 
   if (!dart_function.is_native())
@@ -4121,6 +4175,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
 
   ActiveClassScope active_class_scope(active_class(), &klass);
   ActiveMemberScope active_member(active_class(), &outermost_function);
+  ActiveTypeParametersScope active_type_params(active_class(), function, Z);
 
   // The IR builder will create its own local variables and scopes, and it
   // will not need an AST.  The code generator will assume that there is a
@@ -7863,8 +7918,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   intptr_t offset = ReaderOffset();
 
   FunctionNodeHelper function_node_helper(this);
-  function_node_helper.ReadUntilExcluding(
-      FunctionNodeHelper::kTotalParameterCount);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
   TokenPosition position = function_node_helper.position_;
 
   bool declaration = name_index >= 0;
@@ -7931,7 +7985,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));
       function.set_context_scope(context_scope);
       function.set_kernel_offset(offset);
-      SetupFunctionParameters(Class::Handle(Z), function,
+      SetupFunctionParameters(active_class(), Class::Handle(Z), function,
                               false,  // is_method
                               true,   // is_closure
                               &function_node_helper);
@@ -7991,7 +8045,77 @@ RawScript* StreamingFlowGraphBuilder::Script() {
   return script_;
 }
 
+void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
+    ActiveClass* active_class,
+    const Object& set_on,
+    intptr_t type_parameter_count,
+    const Function& parameterized_function) {
+  ASSERT(type_parameter_count >= 0);
+  if (type_parameter_count == 0) {
+    return;
+  }
+  ASSERT(set_on.IsClass() || set_on.IsFunction());
+  bool set_on_class = set_on.IsClass();
+  ASSERT(set_on_class == parameterized_function.IsNull());
+
+  // First setup the type parameters, so if any of the following code uses it
+  // (in a recursive way) we're fine.
+  TypeArguments& type_parameters =
+      TypeArguments::Handle(Z, TypeArguments::null());
+  TypeParameter& parameter = TypeParameter::Handle(Z);
+  const Type& null_bound = Type::Handle(Z, Type::null());
+
+  // Step a) Create array of [TypeParameter] objects (without bound).
+  type_parameters = TypeArguments::New(type_parameter_count);
+  {
+    AlternativeReadingScope alt(reader_);
+    for (intptr_t i = 0; i < type_parameter_count; i++) {
+      SkipFlags();
+      SkipListOfExpressions();  // read annotations.
+      parameter = TypeParameter::New(
+          set_on_class ? *active_class->klass : Class::Handle(Z, Class::null()),
+          parameterized_function, i,
+          H.DartSymbol(ReadStringReference()),  // read ith name index.
+          null_bound, TokenPosition::kNoSource);
+      type_parameters.SetTypeAt(i, parameter);
+      SkipDartType();  // read guard.
+    }
+  }
+
+  if (set_on.IsClass()) {
+    Class::Cast(set_on).set_type_parameters(type_parameters);
+  } else {
+    Function::Cast(set_on).set_type_parameters(type_parameters);
+  }
+
+  ActiveTypeParametersScope(active_class, type_parameters, Z);
+
+  // Step b) Fill in the bounds of all [TypeParameter]s.
+  for (intptr_t i = 0; i < type_parameter_count; i++) {
+    SkipFlags();
+    SkipListOfExpressions();  // read annotations.
+    SkipStringReference();    // read ith name index.
+
+    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
+    // by the frontend.
+    parameter ^= type_parameters.TypeAt(i);
+    const Tag tag = PeekTag();  // peek ith bound type.
+    if (tag == kDynamicType) {
+      SkipDartType();  // read ith bound.
+      parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
+    } else {
+      AbstractType& bound =
+          T.BuildTypeWithoutFinalization();  // read ith bound.
+      if (bound.IsMalformedOrMalbounded()) {
+        bound = I->object_store()->object_type();
+      }
+      parameter.set_bound(bound);
+    }
+  }
+}
+
 void StreamingFlowGraphBuilder::SetupFunctionParameters(
+    ActiveClass* active_class,
     const Class& klass,
     const Function& function,
     bool is_method,
@@ -8000,6 +8124,15 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
   ASSERT(!(is_method && is_closure));
   bool is_factory = function.IsFactory();
   intptr_t extra_parameters = (is_method || is_closure || is_factory) ? 1 : 0;
+
+  if (!is_factory) {
+    LoadAndSetupTypeParameters(active_class, function, ReadListLength(),
+                               function);
+    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
+  }
+
+  ActiveTypeParametersScope scope(
+      active_class, TypeArguments::Handle(Z, function.type_parameters()), Z);
 
   function_node_helper->ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
