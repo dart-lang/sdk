@@ -2273,33 +2273,6 @@ class C {
 ''');
   }
 
-  test_class_setter_invalid_too_many_parameters() async {
-    var library = await checkLibrary('class C { void set x(a, b) {} }');
-    checkElementText(library, r'''
-class C {
-  void set x(dynamic a, dynamic b) {}
-}
-''');
-  }
-
-  test_class_setter_invalid_optional_parameter() async {
-    var library = await checkLibrary('class C { void set x([a]) {} }');
-    checkElementText(library, r'''
-class C {
-  void set x([dynamic a]) {}
-}
-''');
-  }
-
-  test_class_setter_invalid_named_parameter() async {
-    var library = await checkLibrary('class C { void set x({a}) {} }');
-    checkElementText(library, r'''
-class C {
-  void set x({dynamic a}) {}
-}
-''');
-  }
-
   test_class_setter_static() async {
     var library =
         await checkLibrary('class C { static void set x(int value) {} }');

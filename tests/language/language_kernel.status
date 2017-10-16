@@ -209,6 +209,8 @@ hello_dart_test: Crash
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
+setter_declaration2_negative_test: DartkCrash
+setter_declaration_negative_test: Fail
 vm/lazy_deopt_vm_test: Pass, Slow, Timeout
 vm/optimized_stacktrace_test: Skip # Issue 28788
 
@@ -237,6 +239,8 @@ positional_parameters_type_test/none: Crash
 ref_before_declaration_test/none: Pass
 final_syntax_test/09: MissingCompileTimeError
 ref_before_declaration_test/none: Crash
+setter_declaration2_negative_test: Crash
+setter_declaration_negative_test: Crash
 stacktrace_demangle_ctors_test: RuntimeError
 type_checks_in_factory_method_test: Crash
 vm/integer_type_propagation_test: Crash

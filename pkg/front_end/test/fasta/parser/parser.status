@@ -125,6 +125,8 @@ pkg/dev_compiler/test/codegen/language/private_member3_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/regress_23051_test: Fail
 pkg/dev_compiler/test/codegen/language/script1_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/script2_negative_test: Fail
+pkg/dev_compiler/test/codegen/language/setter_declaration2_negative_test: Fail
+pkg/dev_compiler/test/codegen/language/setter_declaration_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/source_self_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/static_call_wrong_argument_count_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/static_parameter_test: Fail
@@ -1927,6 +1929,8 @@ tests/language/private_member3_negative_test: Fail
 tests/language/regress_23051_test: Fail
 tests/language/script1_negative_test: Fail
 tests/language/script2_negative_test: Fail
+tests/language/setter_declaration2_negative_test: Fail
+tests/language/setter_declaration_negative_test: Fail
 tests/language/source_self_negative_test: Fail
 tests/language/static_call_wrong_argument_count_negative_test: Fail
 tests/language/static_parameter_test: Fail
@@ -2081,6 +2085,8 @@ tests/language_strong/private_member3_negative_test: Fail
 tests/language_strong/regress_23051_test: Fail
 tests/language_strong/script1_negative_test: Fail
 tests/language_strong/script2_negative_test: Fail
+tests/language_strong/setter_declaration2_negative_test: Fail
+tests/language_strong/setter_declaration_negative_test: Fail
 tests/language_strong/source_self_negative_test: Fail
 tests/language_strong/static_call_wrong_argument_count_negative_test: Fail
 tests/language_strong/static_parameter_test: Fail

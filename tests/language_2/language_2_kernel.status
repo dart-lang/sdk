@@ -26,6 +26,8 @@ regress_21793_test/01: MissingCompileTimeError
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
+setter_declaration2_negative_test: DartkCrash
+setter_declaration_negative_test: Fail
 setter_override2_test/none: CompileTimeError
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
@@ -627,6 +629,8 @@ const_conditional_test/08: Crash
 const_syntax_test/08: Crash
 const_syntax_test/09: Crash
 const_syntax_test/10: Crash
+setter_declaration2_negative_test: Crash
+setter_declaration_negative_test: Crash
 stacktrace_demangle_ctors_test: RuntimeError
 type_checks_in_factory_method_test: Crash
 vm/integer_type_propagation_test: Crash

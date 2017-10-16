@@ -2372,12 +2372,6 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.WITH_WITHOUT_EXTENDS, offset, length);
         return;
-      case "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-            offset,
-            length);
-        return;
       case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,

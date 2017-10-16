@@ -18,11 +18,7 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        messageNativeClauseShouldBeAnnotation,
-        messageSetterWithWrongNumberOfFormals;
+    show LocatedMessage, Message, messageNativeClauseShouldBeAnnotation;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -600,28 +596,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     _typeInferrer.inferFunctionBody(
         _computeReturnTypeContext(member), asyncModifier, body);
     KernelFunctionBuilder builder = member;
-    if (builder.kind == ProcedureKind.Setter) {
-      bool oneParameter = formals != null &&
-          formals.required.length == 1 &&
-          (formals.optional == null || formals.optional.formals.length == 0);
-      if (!oneParameter) {
-        if (builder.formals != null) {
-          // Illegal parameters were removed by the function builder.
-          // Add them as local variable to put them in scope of the body.
-          List<Statement> statements = <Statement>[];
-          for (KernelFormalParameterBuilder parameter in builder.formals) {
-            statements.add(parameter.target);
-          }
-          statements.add(body);
-          body = new Block(statements);
-        }
-        if (formals != null) {
-          body.fileOffset = formals.charOffset;
-        }
-        body = wrapInCompileTimeErrorStatement(
-            body, messageSetterWithWrongNumberOfFormals);
-      }
-    }
     builder.body = body;
     Member target = builder.target;
     _typeInferrer.inferMetadata(annotations);

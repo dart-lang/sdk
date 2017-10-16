@@ -30,7 +30,6 @@ import 'package:path/path.dart' as pathos;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context/mock_sdk.dart';
-import 'element_text.dart';
 import 'resynthesize_common.dart';
 
 main() {
@@ -137,46 +136,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_class_constructor_field_formal_multiple_matching_fields() async {
     await super.test_class_constructor_field_formal_multiple_matching_fields();
-  }
-
-  @override
-  test_class_setter_invalid_no_parameter() async {
-    var library = await checkLibrary('class C { void set x() {} }');
-    checkElementText(library, r'''
-class C {
-  void set x(dynamic #synthetic) {}
-}
-''');
-  }
-
-  @override
-  test_class_setter_invalid_too_many_parameters() async {
-    var library = await checkLibrary('class C { void set x(a, b) {} }');
-    checkElementText(library, r'''
-class C {
-  void set x(dynamic #synthetic) {}
-}
-''');
-  }
-
-  @override
-  test_class_setter_invalid_optional_parameter() async {
-    var library = await checkLibrary('class C { void set x([a]) {} }');
-    checkElementText(library, r'''
-class C {
-  void set x(dynamic #synthetic) {}
-}
-''');
-  }
-
-  @override
-  test_class_setter_invalid_named_parameter() async {
-    var library = await checkLibrary('class C { void set x({a}) {} }');
-    checkElementText(library, r'''
-class C {
-  void set x(dynamic #synthetic) {}
-}
-''');
   }
 
   @failingTest
