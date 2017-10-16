@@ -87,13 +87,13 @@ exposeThis3() => new Class3();
 // Expose this in the constructor of a super class.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field4:[null|exact=Class4]*/
-var _field4;
+/*element: field4:[null|exact=Class4]*/
+var field4;
 
 abstract class Super4 {
   /*element: Super4.:[exact=Class4]*/
   Super4() {
-    _field4 = this;
+    field4 = this;
   }
 }
 

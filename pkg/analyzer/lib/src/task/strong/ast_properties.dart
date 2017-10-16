@@ -16,8 +16,6 @@ const String _implicitCast = '_implicitCast';
 const String _isDynamicInvoke = '_isDynamicInvoke';
 const String _classCovariantParameters = '_classCovariantParameters';
 const String _superclassCovariantParameters = '_superclassCovariantParameters';
-const String _covariantGenericReturn = '_covariantGenericReturn';
-const String _covariantPrivateFields = '_covariantPrivateFields';
 const String _covariantPrivateMembers = '_covariantPrivateMembers';
 
 /// If this expression needs an implicit cast on a subexpression that cannot be

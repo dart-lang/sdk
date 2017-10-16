@@ -82,8 +82,8 @@ exposeThis3() => new Class3();
 // Expose this through a static field assignment.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field1:[null|exact=Class4]*/
-var _field1;
+/*element: field1:[null|exact=Class4]*/
+var field1;
 
 class Class4 {
   /*element: Class4.field:[null|exact=JSUInt31]*/
@@ -91,7 +91,7 @@ class Class4 {
 
   /*element: Class4.:[exact=Class4]*/
   Class4() {
-    _field1 = this;
+    field1 = this;
     /*update: [exact=Class4]*/ field = 42;
   }
 }

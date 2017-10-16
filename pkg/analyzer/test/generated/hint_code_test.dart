@@ -3638,6 +3638,46 @@ class A {
     verify([source]);
   }
 
+  test_unusedElement_topLevelVariable_isUsed() async {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+int _a = 1;
+main() {
+  _a;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_unusedElement_topLevelVariable_isUsed_plusPlus() async {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+int _a = 0;
+main() {
+  var b = _a++;
+  b;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_unusedElement_topLevelVariable_notUsed() async {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+int _a = 1;
+main() {
+  _a = 2;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
   test_unusedField_isUsed_argument() async {
     enableUnusedElement = true;
     Source source = addSource(r'''
