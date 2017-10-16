@@ -392,6 +392,8 @@ InvalidAwaitFor:
   tip: "Try removing the keyword, or use a for-each statement."
   analyzerCode: INVALID_AWAIT_IN_FOR
   dart2jsCode: INVALID_AWAIT_FOR
+  script:
+    - "f() async {await for (int i = 0; i < 5; i++) {}}"
 
 InvalidSyncModifier:
   template: "Invalid modifier 'sync'."
