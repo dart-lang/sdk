@@ -1845,14 +1845,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_multipleLibraryDirectives() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, found 0
-    super.test_multipleLibraryDirectives();
-  }
-
-  @override
-  @failingTest
   void test_multipleNamedParameterGroups() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, found 0

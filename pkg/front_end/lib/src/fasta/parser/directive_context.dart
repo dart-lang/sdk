@@ -61,7 +61,9 @@ class DirectiveContext {
       return;
     }
     // Recovery
-    if (state == DirectiveState.PartOf) {
+    if (state == DirectiveState.Library) {
+      parser.reportRecoverableError(token, messageMultipleLibraryDirectives);
+    } else if (state == DirectiveState.PartOf) {
       parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
     } else {
       parser.reportRecoverableError(token, messageLibraryDirectiveNotFirst);

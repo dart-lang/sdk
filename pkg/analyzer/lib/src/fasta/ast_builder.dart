@@ -2297,6 +2297,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, offset, length);
         return;
+      case "MULTIPLE_LIBRARY_DIRECTIVES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, offset, length);
+        return;
       case "MULTIPLE_WITH_CLAUSES":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_WITH_CLAUSES, offset, length);

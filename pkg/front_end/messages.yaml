@@ -140,6 +140,12 @@ ExpectedButGot:
     - "main() => true ? 1;"
     - "main() => foo(x: 1 y: 2);"
 
+MultipleLibraryDirectives:
+  template: "Only one library directive may be declared in a file."
+  tip: "Try removing all but one of the library directives."
+  analyzerCode: MULTIPLE_LIBRARY_DIRECTIVES
+  dart2jsCode: "*ignored*"
+
 MultipleExtends:
   template: "Each class definition can have at most one extends clause."
   tip: "Try choosing one superclass and define your class to implement (or mix in) the others."

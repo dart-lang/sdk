@@ -2370,6 +2370,18 @@ const MessageCode messageMultipleImplements = const MessageCode(
         r"""Try combining all of the implements clauses into a single clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMultipleLibraryDirectives =
+    messageMultipleLibraryDirectives;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMultipleLibraryDirectives = const MessageCode(
+    "MultipleLibraryDirectives",
+    analyzerCode: "MULTIPLE_LIBRARY_DIRECTIVES",
+    dart2jsCode: "*ignored*",
+    message: r"""Only one library directive may be declared in a file.""",
+    tip: r"""Try removing all but one of the library directives.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleWith = messageMultipleWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
