@@ -6,6 +6,7 @@
 # generating analyzer ASTs and connecting up type inference information.
 DeltaBlue: Crash
 accessors: Crash
+annotation_top: Crash
 argument_mismatch: Crash
 arithmetic: Crash
 bad_store: Crash

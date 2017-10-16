@@ -278,7 +278,10 @@ class DietListener extends StackListener {
   @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
-    discard(2); // Name and metadata.
+    pop(); // name
+
+    Token metadata = pop();
+    parseMetadata(library, metadata, (library.target as Library).addAnnotation);
   }
 
   @override
@@ -705,7 +708,7 @@ class DietListener extends StackListener {
     // printEvent('DietListener: $name');
   }
 
-  void parseMetadata(Builder builder, Token metadata,
+  void parseMetadata(ModifierBuilder builder, Token metadata,
       void addAnnotation(Expression annotation)) {
     if (metadata != null) {
       var listener = createListener(builder, memberScope, false);

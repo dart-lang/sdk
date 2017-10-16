@@ -90,7 +90,6 @@ mirrors/library_imports_prefixed_test: RuntimeError
 mirrors/library_imports_prefixed_test: RuntimeError
 mirrors/library_imports_shown_test: RuntimeError
 mirrors/library_imports_shown_test: RuntimeError
-mirrors/library_metadata2_test/01: MissingCompileTimeError
 mirrors/library_metadata_test: RuntimeError
 mirrors/list_constructor_test/01: Crash
 mirrors/list_constructor_test/none: Crash
