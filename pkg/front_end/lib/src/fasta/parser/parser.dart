@@ -4450,28 +4450,42 @@ class Parser {
     return expect('}', token);
   }
 
+  /// awaitExpression:
+  ///   'await' unaryExpression
+  /// ;
   Token parseAwaitExpression(Token token, bool allowCascades) {
+    assert(optional('await', token));
     Token awaitToken = token;
     listener.beginAwaitExpression(awaitToken);
-    token = expect('await', token);
     if (!inAsync) {
       reportRecoverableError(awaitToken, fasta.messageAwaitNotAsync);
     }
-    token = parsePrecedenceExpression(token, POSTFIX_PRECEDENCE, allowCascades);
+    token = parsePrecedenceExpression(
+        token.next, POSTFIX_PRECEDENCE, allowCascades);
     listener.endAwaitExpression(awaitToken, token);
     return token;
   }
 
+  /// throwExpression:
+  ///   'throw' expression
+  /// ;
+  ///
+  /// throwExpressionWithoutCascade:
+  ///   'throw' expressionWithoutCascade
+  /// ;
   Token parseThrowExpression(Token token, bool allowCascades) {
+    assert(optional('throw', token));
     Token throwToken = token;
-    token = expect('throw', token);
     token = allowCascades
-        ? parseExpression(token)
-        : parseExpressionWithoutCascade(token);
+        ? parseExpression(token.next)
+        : parseExpressionWithoutCascade(token.next);
     listener.handleThrowExpression(throwToken, token);
     return token;
   }
 
+  /// rethrowStatement:
+  ///   'rethrow' ';'
+  /// ;
   Token parseRethrowStatement(Token token) {
     Token throwToken = token;
     listener.beginRethrowStatement(throwToken);
@@ -4486,6 +4500,22 @@ class Parser {
     return semicolon.next;
   }
 
+  /// tryStatement:
+  ///   'try' block (onPart+ finallyPart? | finallyPart)
+  /// ;
+  ///
+  /// onPart:
+  ///   catchPart block |
+  ///   'on' type catchPart? block
+  /// ;
+  ///
+  /// catchPart:
+  ///   'catch' '(' identifier (',' identifier)? ')'
+  /// ;
+  ///
+  /// finallyPart:
+  ///   'finally' block
+  /// ;
   Token parseTryStatement(Token token) {
     assert(optional('try', token));
     Token tryKeyword = token;
@@ -4551,6 +4581,9 @@ class Parser {
     return token;
   }
 
+  /// switchStatement:
+  ///   'switch' parenthesizedExpression switchBlock
+  /// ;
   Token parseSwitchStatement(Token token) {
     assert(optional('switch', token));
     Token switchKeyword = token;
@@ -4561,6 +4594,9 @@ class Parser {
     return token.next;
   }
 
+  /// switchBlock:
+  ///   '{' switchCase* defaultCase? '}'
+  /// ;
   Token parseSwitchBlock(Token token) {
     Token begin = token;
     listener.beginSwitchBlock(begin);
@@ -4590,6 +4626,14 @@ class Parser {
 
   /// Parse a group of labels, cases and possibly a default keyword and the
   /// statements that they select.
+  ///
+  /// switchCase:
+  ///   label* 'case' expression ‘:’ statements
+  /// ;
+  ///
+  /// defaultCase:
+  ///   label* 'default' ‘:’ statements
+  /// ;
   Token parseSwitchCase(Token token) {
     Token begin = token;
     Token defaultKeyword = null;
@@ -4660,6 +4704,9 @@ class Parser {
     return token;
   }
 
+  /// breakStatement:
+  ///   'break' identifier? ';'
+  /// ;
   Token parseBreakStatement(Token token) {
     assert(optional('break', token));
     Token breakKeyword = token;
@@ -4674,7 +4721,11 @@ class Parser {
     return semicolon.next;
   }
 
+  /// assertion:
+  ///   'assert' '(' expression (',' expression)? ','? ')'
+  /// ;
   Token parseAssert(Token token, Assert kind) {
+    assert(optional('assert', token));
     listener.beginAssert(token, kind);
     Token assertKeyword = token;
     Token commaToken = null;
@@ -4718,11 +4769,18 @@ class Parser {
     return token;
   }
 
+  /// assertStatement:
+  ///   assertion ';'
+  /// ;
   Token parseAssertStatement(Token token) {
+    assert(optional('assert', token));
     token = parseAssert(token, Assert.Statement);
     return ensureSemicolon(token).next;
   }
 
+  /// continueStatement:
+  ///   'continue' identifier? ';'
+  /// ;
   Token parseContinueStatement(Token token) {
     assert(optional('continue', token));
     Token continueKeyword = token;
@@ -4737,10 +4795,13 @@ class Parser {
     return semicolon.next;
   }
 
+  /// emptyStatement:
+  ///   ';'
+  /// ;
   Token parseEmptyStatement(Token token) {
-    Token semicolon = ensureSemicolon(token);
-    listener.handleEmptyStatement(semicolon);
-    return semicolon.next;
+    assert(optional(';', token));
+    listener.handleEmptyStatement(token);
+    return token.next;
   }
 
   /// Don't call this method. Should only be used as a last resort when there
