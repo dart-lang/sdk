@@ -3754,13 +3754,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-//  @failingTest
-  void test_parseReturnType_void() {
-    // TODO(brianwilkerson) Passes, but ought to fail.
-    super.test_parseReturnType_void();
-  }
-
-  @override
   @failingTest
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
     super.test_parseTypeParameterList_parameterizedWithTrailingEquals();

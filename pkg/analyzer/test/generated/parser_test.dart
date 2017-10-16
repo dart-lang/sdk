@@ -12087,37 +12087,6 @@ class C {}
     expect(statement.semicolon, isNotNull);
   }
 
-  void test_parseReturnType_function() {
-    // TODO(eernst): `parseReturnType` eliminated, delete this test?
-    createParser('A<B> Function<B>(B)');
-    GenericFunctionType type = parser.parseTypeAnnotation(false);
-    expectNotNullIfNoErrors(type);
-    listener.assertNoErrors();
-    expect(type.returnType, isNotNull);
-    expect(type.typeParameters, isNotNull);
-    expect(type.parameters, isNotNull);
-  }
-
-  void test_parseReturnType_named() {
-    // TODO(eernst): `parseReturnType` eliminated, delete this test?
-    createParser('A<B>');
-    TypeName typeName = parser.parseTypeAnnotation(false);
-    expectNotNullIfNoErrors(typeName);
-    listener.assertNoErrors();
-    expect(typeName.name, isNotNull);
-    expect(typeName.typeArguments, isNotNull);
-  }
-
-  void test_parseReturnType_void() {
-    // TODO(eernst): `parseReturnType` eliminated, delete this test?
-    createParser('void');
-    TypeName typeName = parser.parseTypeAnnotation(false);
-    expectNotNullIfNoErrors(typeName);
-    listener.assertNoErrors();
-    expect(typeName.name, isNotNull);
-    expect(typeName.typeArguments, isNull);
-  }
-
   void test_parseStatement_function_noReturnType() {
     createParser('''
 Function<A>(core.List<core.int> x) m() => null;
