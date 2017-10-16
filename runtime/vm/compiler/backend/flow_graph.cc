@@ -1869,6 +1869,12 @@ void FlowGraph::WidenSmiToInt32() {
           defn->AsPhi()->set_representation(kUnboxedInt32);
           ASSERT(defn->Type()->IsInt());
         }
+
+        // Since we widened the integer representation we've to clear out type
+        // propagation information (e.g. it might no longer be a _Smi).
+        for (intptr_t k = 0; k < defn->InputCount(); ++k) {
+          defn->InputAt(k)->SetReachingType(NULL);
+        }
       }
     }
   }
