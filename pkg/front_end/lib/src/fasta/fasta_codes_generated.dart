@@ -1341,6 +1341,18 @@ const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
     message: r"""Factories can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFactoryTopLevelDeclaration =
+    messageFactoryTopLevelDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFactoryTopLevelDeclaration = const MessageCode(
+    "FactoryTopLevelDeclaration",
+    analyzerCode: "FACTORY_TOP_LEVEL_DECLARATION",
+    dart2jsCode: "*ignored*",
+    message: r"""Top-level declarations can't be declared to be 'factory'.""",
+    tip: r"""Try removing the keyword 'factory'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateFastaCLIArgumentRequired =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Expected value after '#name'.""",
@@ -3374,6 +3386,18 @@ const Code<Null> codeThisAsIdentifier = messageThisAsIdentifier;
 const MessageCode messageThisAsIdentifier = const MessageCode(
     "ThisAsIdentifier",
     message: r"""Expected identifier, but got 'this'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTopLevelOperator = messageTopLevelOperator;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTopLevelOperator = const MessageCode(
+    "TopLevelOperator",
+    analyzerCode: "TOP_LEVEL_OPERATOR",
+    dart2jsCode: "*ignored*",
+    message: r"""Operators must be declared within a class.""",
+    tip:
+        r"""Try removing the operator, moving it to a class, or converting it to be a function.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTypeAfterVar = messageTypeAfterVar;

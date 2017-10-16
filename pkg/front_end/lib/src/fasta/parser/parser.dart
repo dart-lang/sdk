@@ -75,7 +75,11 @@ import 'listener.dart' show Listener;
 
 import 'member_kind.dart' show MemberKind;
 
-import 'modifier_context.dart' show ModifierContext, ModifierRecoveryContext;
+import 'modifier_context.dart'
+    show
+        ModifierContext,
+        ModifierRecoveryContext,
+        TopLevelMethodModifierRecoveryContext;
 
 import 'recovery_listeners.dart'
     show ClassHeaderRecoveryListener, ImportRecoveryListener;
@@ -2250,10 +2254,11 @@ class Parser {
         if (identical(token.kind, EOF_TOKEN)) return token;
       }
     }
-    var modifiers = identifiers.reverse();
+    Token afterModifiers =
+        identifiers.isNotEmpty ? identifiers.head.next : start;
     return isField
-        ? parseFields(start, modifiers, type, name, true)
-        : parseTopLevelMethod(start, modifiers, type, getOrSet, name);
+        ? parseFields(start, identifiers.reverse(), type, name, true)
+        : parseTopLevelMethod(start, afterModifiers, type, getOrSet, name);
   }
 
   Token parseFields(Token start, Link<Token> modifiers, Token type, Token name,
@@ -2299,25 +2304,44 @@ class Parser {
     return semicolon.next;
   }
 
-  Token parseTopLevelMethod(Token start, Link<Token> modifiers, Token type,
+  Token parseTopLevelMethod(Token start, Token afterModifiers, Token type,
       Token getOrSet, Token name) {
-    listener.beginTopLevelMethod(start, name);
-    Token externalModifier;
-    // TODO(johnniwinther): Move error reporting to resolution to give more
-    // specific error messages.
-    for (Token modifier in modifiers) {
-      if (externalModifier == null && optional('external', modifier)) {
-        externalModifier = modifier;
-      } else {
-        reportRecoverableErrorWithToken(
-            modifier, fasta.templateExtraneousModifier);
-      }
-    }
-    if (externalModifier != null) {
-      parseModifier(externalModifier);
-      listener.handleModifiers(1);
-    } else {
+    Token token = start;
+
+    // Parse modifiers
+    Token externalToken;
+    if (token == afterModifiers) {
+      listener.beginTopLevelMethod(start, name);
       listener.handleModifiers(0);
+    } else if (optional('external', token) && token.next == afterModifiers) {
+      listener.beginTopLevelMethod(start, name);
+      externalToken = token;
+      parseModifier(externalToken);
+      listener.handleModifiers(1);
+      token = token.next;
+    } else {
+      // If there are modifiers other than or in addition to `external`
+      // then we need to recover.
+      final context = new TopLevelMethodModifierRecoveryContext(this);
+      token = context.parseRecovery(token, afterModifiers);
+
+      // If the modifiers form a partial top level directive or declaration
+      // and we have found the start of a new top level declaration
+      // then return to parse that new declaration.
+      if (context.endToken != null) {
+        listener.handleInvalidTopLevelDeclaration(context.endToken);
+        return token;
+      }
+
+      listener.beginTopLevelMethod(start, name);
+      externalToken = context.externalToken;
+      if (externalToken == null) {
+        listener.handleModifiers(0);
+      } else {
+        parseModifier(externalToken);
+        listener.handleModifiers(1);
+      }
+      // Fall through to continue parsing the top level method.
     }
 
     if (type == null) {
@@ -2325,7 +2349,7 @@ class Parser {
     } else {
       parseType(type, TypeContinuation.Optional);
     }
-    Token token =
+    token =
         parseIdentifier(name, IdentifierContext.topLevelFunctionDeclaration);
 
     bool isGetter = false;
@@ -2343,7 +2367,7 @@ class Parser {
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
-    token = parseFunctionBody(token, false, externalModifier != null);
+    token = parseFunctionBody(token, false, externalToken != null);
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(start, getOrSet, token);
     return token.next;

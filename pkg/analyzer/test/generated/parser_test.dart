@@ -4245,25 +4245,55 @@ m() {
     expect(function.functionExpression.parameters, isNull);
   }
 
+  void test_topLevelOperator_withoutOperator() {
+    createParser('+(bool x, bool y) => x | y;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expectNotNullIfNoErrors(member);
+    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_EXECUTABLE]);
+  }
+
   void test_topLevelOperator_withoutType() {
     createParser('operator +(bool x, bool y) => x | y;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.TOP_LEVEL_OPERATOR]);
+    if (usingFastaParser) {
+      listener.assertErrorsWithCodes([
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.TOP_LEVEL_OPERATOR
+      ]);
+    } else {
+      listener.assertErrorsWithCodes([ParserErrorCode.TOP_LEVEL_OPERATOR]);
+    }
   }
 
   void test_topLevelOperator_withType() {
     createParser('bool operator +(bool x, bool y) => x | y;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.TOP_LEVEL_OPERATOR]);
+    if (usingFastaParser) {
+      listener.assertErrorsWithCodes([
+        ParserErrorCode.EXTRANEOUS_MODIFIER,
+        ParserErrorCode.TOP_LEVEL_OPERATOR,
+        ParserErrorCode.MISSING_IDENTIFIER
+      ]);
+    } else {
+      listener.assertErrorsWithCodes([ParserErrorCode.TOP_LEVEL_OPERATOR]);
+    }
   }
 
   void test_topLevelOperator_withVoid() {
     createParser('void operator +(bool x, bool y) => x | y;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.TOP_LEVEL_OPERATOR]);
+    if (usingFastaParser) {
+      listener.assertErrorsWithCodes([
+        ParserErrorCode.EXTRANEOUS_MODIFIER,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.TOP_LEVEL_OPERATOR
+      ]);
+    } else {
+      listener.assertErrorsWithCodes([ParserErrorCode.TOP_LEVEL_OPERATOR]);
+    }
   }
 
   void test_topLevelVariable_withMetadata() {
@@ -4469,11 +4499,19 @@ void main() {
   }
 
   void test_varClass() {
-    parseCompilationUnit("var class C {}", [ParserErrorCode.VAR_CLASS]);
+    parseCompilationUnit(
+        "var class C {}",
+        usingFastaParser
+            ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
+            : [ParserErrorCode.VAR_CLASS]);
   }
 
   void test_varEnum() {
-    parseCompilationUnit("var enum E {ONE}", [ParserErrorCode.VAR_ENUM]);
+    parseCompilationUnit(
+        "var enum E {ONE}",
+        usingFastaParser
+            ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
+            : [ParserErrorCode.VAR_ENUM]);
   }
 
   void test_varReturnType() {
@@ -4484,7 +4522,11 @@ void main() {
   }
 
   void test_varTypedef() {
-    parseCompilationUnit("var typedef F();", [ParserErrorCode.VAR_TYPEDEF]);
+    parseCompilationUnit(
+        "var typedef F();",
+        usingFastaParser
+            ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
+            : [ParserErrorCode.VAR_TYPEDEF]);
   }
 
   void test_voidParameter() {

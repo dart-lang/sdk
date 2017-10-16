@@ -2198,6 +2198,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTRANEOUS_MODIFIER, offset, length, [text]);
         return;
+      case "FACTORY_TOP_LEVEL_DECLARATION":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, offset, length);
+        return;
       case "FINAL_AND_COVARIANT":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.FINAL_AND_COVARIANT, offset, length);
@@ -2333,6 +2337,10 @@ class AstBuilder extends ScopeListener {
       case "STATIC_AFTER_FINAL":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_AFTER_FINAL, offset, length);
+        return;
+      case "TOP_LEVEL_OPERATOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.TOP_LEVEL_OPERATOR, offset, length);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();

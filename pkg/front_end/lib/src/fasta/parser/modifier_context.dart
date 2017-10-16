@@ -12,9 +12,11 @@ import '../messages.dart'
         messageCovariantAfterFinal,
         messageCovariantAfterVar,
         messageCovariantAndStatic,
+        messageFactoryTopLevelDeclaration,
         messageFinalAndCovariant,
         messageFinalAndVar,
         messageStaticAfterFinal,
+        messageTopLevelOperator,
         templateDuplicatedModifier,
         templateExtraneousModifier;
 import 'formal_parameter_kind.dart' show FormalParameterKind;
@@ -401,5 +403,54 @@ class ModifierRecoveryContext extends ModifierContext {
       return token.next;
     }
     return super.parseVar(token);
+  }
+}
+
+class TopLevelMethodModifierRecoveryContext {
+  final Parser parser;
+  Token externalToken;
+
+  /// If recovery finds the beginning of a new declaration,
+  /// then this is set to the last token in the prior declaration.
+  Token endToken;
+
+  TopLevelMethodModifierRecoveryContext(this.parser);
+
+  /// Parse modifiers from [token] up to but not including [afterModifiers].
+  /// If a new declaration start is found in the sequence of tokens,
+  /// then set [endToken] to be the last token in the current declaration
+  /// and return the first token in the new declaration.
+  Token parseRecovery(Token token, Token afterModifiers) {
+    while (token != afterModifiers) {
+      if (optional('external', token)) {
+        if (externalToken == null) {
+          externalToken = token;
+        } else {
+          parser.reportRecoverableErrorWithToken(
+              token, templateDuplicatedModifier);
+        }
+      } else if (optional('operator', token)) {
+        parser.reportRecoverableError(token, messageTopLevelOperator);
+        // If the next token is a top level keyword, then
+        // Indicate to the caller that the next token should be
+        // parsed as a new top level declaration.
+        if (token.next.isTopLevelKeyword) {
+          endToken = token;
+          return token.next;
+        }
+      } else if (optional('factory', token)) {
+        parser.reportRecoverableError(token, messageFactoryTopLevelDeclaration);
+        // Indicate to the caller that the next token should be
+        // parsed as a new top level declaration.
+        endToken = token;
+        return token.next;
+      } else {
+        // TODO(danrubel): report more specific analyzer error codes
+        parser.reportRecoverableErrorWithToken(
+            token, templateExtraneousModifier);
+      }
+      token = token.next;
+    }
+    return token;
   }
 }
