@@ -935,6 +935,7 @@ mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
+nested_generic_closure_test: CompileTimeError
 operator1_negative_test: CompileTimeError
 operator2_negative_test: CompileTimeError
 setter_declaration2_negative_test: CompileTimeError

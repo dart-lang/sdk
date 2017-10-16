@@ -79,6 +79,7 @@ library_env_test/has_no_mirror_support: RuntimeError # Issue 30907
 library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_io_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
+nested_generic_closure_test: CompileTimeError
 no_such_method_test: RuntimeError
 override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError

@@ -3861,8 +3861,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // The index of the type parameters is adjusted upon finalization.
         error = Error::null();
         interface_args = interface_args.InstantiateFrom(
-            type_arguments, Object::null_type_arguments(), &error, NULL,
-            bound_trail, space);
+            type_arguments, Object::null_type_arguments(), kNoneFree, &error,
+            NULL, bound_trail, space);
         if (!error.IsNull()) {
           // Return the first bound error to the caller if it requests it.
           if ((bound_error != NULL) && bound_error->IsNull()) {
@@ -4904,11 +4904,12 @@ bool TypeArguments::IsBounded() const {
 RawTypeArguments* TypeArguments::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
     Heap::Space space) const {
-  ASSERT(!IsInstantiated());
+  ASSERT(!IsInstantiated(kAny, num_free_fun_type_params));
   if (!instantiator_type_arguments.IsNull() && IsUninstantiatedIdentity() &&
       (instantiator_type_arguments.Length() == Length())) {
     return instantiator_type_arguments.raw();
@@ -4925,9 +4926,11 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
     // during finalization of V, which is also the instantiator. T depends
     // solely on the type parameters of A and will be replaced by a non-null
     // type before A is marked as finalized.
-    if (!type.IsNull() && !type.IsInstantiated()) {
+    if (!type.IsNull() &&
+        !type.IsInstantiated(kAny, num_free_fun_type_params)) {
       type = type.InstantiateFrom(instantiator_type_arguments,
-                                  function_type_arguments, bound_error,
+                                  function_type_arguments,
+                                  num_free_fun_type_params, bound_error,
                                   instantiation_trail, bound_trail, space);
     }
     instantiated_array.SetTypeAt(i, type);
@@ -4967,7 +4970,7 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   // Cache lookup failed. Instantiate the type arguments.
   TypeArguments& result = TypeArguments::Handle();
   result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
-                           bound_error, NULL, NULL, Heap::kOld);
+                           kAllFree, bound_error, NULL, NULL, Heap::kOld);
   if ((bound_error != NULL) && !bound_error->IsNull()) {
     return result.raw();
   }
@@ -6304,7 +6307,7 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   // in the signature to dynamic before the test.
   // Note that type parameters declared by a generic signature are preserved.
   Function& this_fun = Function::Handle(raw());
-  if (!this_fun.HasInstantiatedSignature()) {
+  if (!this_fun.HasInstantiatedSignature(kCurrentClass)) {
     // HasCompatibleParametersWith is called at compile time to check for bad
     // overrides and can only detect some obviously wrong overrides, but it
     // should never give false negatives.
@@ -6314,18 +6317,20 @@ bool Function::HasCompatibleParametersWith(const Function& other,
       // It is better to skip the test than to give a false negative.
       return true;
     }
-    this_fun = this_fun.InstantiateSignatureFrom(Object::null_type_arguments(),
-                                                 Object::null_type_arguments(),
-                                                 Heap::kOld);
+    this_fun = this_fun.InstantiateSignatureFrom(
+        Object::null_type_arguments(), Object::null_type_arguments(),
+        kNoneFree,  // Keep function type parameters, do not map to dynamic.
+        Heap::kOld);
   }
   Function& other_fun = Function::Handle(other.raw());
-  if (!other_fun.HasInstantiatedSignature()) {
+  if (!other_fun.HasInstantiatedSignature(kCurrentClass)) {
     if (FLAG_strong) {
       // See comment above.
       return true;
     }
     other_fun = other_fun.InstantiateSignatureFrom(
         Object::null_type_arguments(), Object::null_type_arguments(),
+        kNoneFree,  // Keep function type parameters, do not map to dynamic.
         Heap::kOld);
   }
   if (!this_fun.TypeTest(kIsSubtypeOf, other_fun, bound_error, NULL,
@@ -6356,13 +6361,29 @@ bool Function::HasCompatibleParametersWith(const Function& other,
 RawFunction* Function::InstantiateSignatureFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   const Object& owner = Object::Handle(zone, RawOwner());
   // Note that parent pointers in newly instantiated signatures still points to
   // the original uninstantiated parent signatures. That is not a problem.
   const Function& parent = Function::Handle(zone, parent_function());
-  ASSERT(!HasInstantiatedSignature());
+  ASSERT(!HasInstantiatedSignature(kAny, num_free_fun_type_params));
+
+  // A generic typedef may declare a non-generic function type and get
+  // instantiated with unrelated function type parameters. In that case, its
+  // signature is still uninstantiated, because these type parameters are
+  // free (they are not declared by the typedef).
+  // For that reason, we only adjust num_free_fun_type_params if this
+  // signature is generic or has a generic parent.
+  if (IsGeneric() || HasGenericParent()) {
+    // We only consider the function type parameters declared by the parents
+    // of this signature function as free.
+    const int num_parent_type_params = NumParentTypeParameters();
+    if (num_parent_type_params < num_free_fun_type_params) {
+      num_free_fun_type_params = num_parent_type_params;
+    }
+  }
 
   Function& sig = Function::Handle(zone, Function::null());
   if (IsConvertedClosureFunction()) {
@@ -6380,10 +6401,10 @@ RawFunction* Function::InstantiateSignatureFrom(
   }
 
   AbstractType& type = AbstractType::Handle(zone, result_type());
-  if (!type.IsInstantiated()) {
-    type =
-        type.InstantiateFrom(instantiator_type_arguments,
-                             function_type_arguments, NULL, NULL, NULL, space);
+  if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
+    type = type.InstantiateFrom(
+        instantiator_type_arguments, function_type_arguments,
+        num_free_fun_type_params, NULL, NULL, NULL, space);
   }
   sig.set_result_type(type);
   const intptr_t num_params = NumParameters();
@@ -6393,10 +6414,10 @@ RawFunction* Function::InstantiateSignatureFrom(
   sig.set_parameter_types(Array::Handle(Array::New(num_params, space)));
   for (intptr_t i = 0; i < num_params; i++) {
     type = ParameterTypeAt(i);
-    if (!type.IsInstantiated()) {
-      type = type.InstantiateFrom(instantiator_type_arguments,
-                                  function_type_arguments, NULL, NULL, NULL,
-                                  space);
+    if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
+      type = type.InstantiateFrom(
+          instantiator_type_arguments, function_type_arguments,
+          num_free_fun_type_params, NULL, NULL, NULL, space);
     }
     sig.SetParameterTypeAt(i, type);
   }
@@ -7243,8 +7264,6 @@ bool Function::HasInstantiatedSignature(Genericity genericity,
         num_free_fun_type_params = num_parent_type_params;
       }
     }
-    // TODO(regis): Should we check the owners of the function type parameters
-    // in addition to their indexes to decide if they are free or not?
   }
   AbstractType& type = AbstractType::Handle(result_type());
   if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
@@ -15417,8 +15436,8 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
           TypeArguments::Handle(Closure::Cast(*this).function_type_arguments());
       // No bound error possible, since the instance exists.
       type ^= type.InstantiateFrom(instantiator_type_arguments,
-                                   function_type_arguments, NULL, NULL, NULL,
-                                   space);
+                                   function_type_arguments, kAllFree, NULL,
+                                   NULL, NULL, space);
     }
     type ^= type.Canonicalize();
     return type.raw();
@@ -15481,7 +15500,7 @@ bool Instance::IsInstanceOf(
     if (!other.IsInstantiated()) {
       instantiated_other = other.InstantiateFrom(
           other_instantiator_type_arguments, other_function_type_arguments,
-          bound_error, NULL, NULL, Heap::kOld);
+          kAllFree, bound_error, NULL, NULL, Heap::kOld);
       if ((bound_error != NULL) && !bound_error->IsNull()) {
         ASSERT(Isolate::Current()->type_checks());
         return false;
@@ -15507,8 +15526,9 @@ bool Instance::IsInstanceOf(
           zone, Closure::Cast(*this).instantiator_type_arguments());
       const TypeArguments& function_type_arguments = TypeArguments::Handle(
           zone, Closure::Cast(*this).function_type_arguments());
-      sig_fun = sig_fun.InstantiateSignatureFrom(
-          instantiator_type_arguments, function_type_arguments, Heap::kOld);
+      sig_fun = sig_fun.InstantiateSignatureFrom(instantiator_type_arguments,
+                                                 function_type_arguments,
+                                                 kAllFree, Heap::kOld);
     }
     return sig_fun.IsSubtypeOf(other_signature, bound_error, NULL, Heap::kOld);
   }
@@ -15534,7 +15554,7 @@ bool Instance::IsInstanceOf(
   if (!other.IsInstantiated()) {
     instantiated_other = other.InstantiateFrom(
         other_instantiator_type_arguments, other_function_type_arguments,
-        bound_error, NULL, NULL, Heap::kOld);
+        kAllFree, bound_error, NULL, NULL, Heap::kOld);
     if ((bound_error != NULL) && !bound_error->IsNull()) {
       ASSERT(Isolate::Current()->type_checks());
       return false;
@@ -15557,17 +15577,17 @@ bool Instance::IsInstanceOf(
       if (other_is_dart_function) {
         return true;
       }
-      if (!sig_fun.HasInstantiatedSignature()) {
-        // The following signature instantiation of sig_fun with its own type
-        // parameters only works if sig_fun has no generic parent, which is
-        // guaranteed to be the case, since the looked up call() function
-        // cannot be nested. It is most probably not even generic.
+      if (!sig_fun.HasInstantiatedSignature(kCurrentClass)) {
+        // The following signature instantiation of sig_fun does not instantiate
+        // its own function type parameters, i.e there are 0 free function type
+        // params. Note that sig_fun has no generic parent, which is guaranteed
+        // to be the case, since the looked up call() function cannot be nested.
+        // It is most probably not even generic.
         ASSERT(!sig_fun.HasGenericParent());
-        const TypeArguments& function_type_arguments =
-            TypeArguments::Handle(zone, sig_fun.type_parameters());
         // No bound error possible, since the instance exists.
         sig_fun = sig_fun.InstantiateSignatureFrom(
-            type_arguments, function_type_arguments, Heap::kOld);
+            type_arguments, Object::null_type_arguments(), kNoneFree,
+            Heap::kOld);
       }
       const Function& other_signature =
           Function::Handle(zone, Type::Cast(instantiated_other).signature());
@@ -15898,6 +15918,7 @@ void AbstractType::SetScopeFunction(const Function& function) const {
 RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -16604,7 +16625,7 @@ bool Type::IsInstantiated(Genericity genericity,
   if (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) {
     return true;
   }
-  if ((genericity == kAny) && (num_free_fun_type_params == kMaxInt32) &&
+  if ((genericity == kAny) && (num_free_fun_type_params == kAllFree) &&
       (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated)) {
     return false;
   }
@@ -16648,6 +16669,7 @@ bool Type::IsInstantiated(Genericity genericity,
 RawAbstractType* Type::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -16673,8 +16695,9 @@ RawAbstractType* Type::InstantiateFrom(
     // parameterization of a generic typedef. They are otherwise ignored.
     ASSERT(type_arguments.Length() == cls.NumTypeArguments());
     type_arguments = type_arguments.InstantiateFrom(
-        instantiator_type_arguments, function_type_arguments, bound_error,
-        instantiation_trail, bound_trail, space);
+        instantiator_type_arguments, function_type_arguments,
+        num_free_fun_type_params, bound_error, instantiation_trail, bound_trail,
+        space);
   }
   // This uninstantiated type is not modified, as it can be instantiated
   // with different instantiators. Allocate a new instantiated version of it.
@@ -16693,9 +16716,10 @@ RawAbstractType* Type::InstantiateFrom(
     // even while checking bounds of recursive types.
     if (IsFinalized()) {
       // A generic typedef may actually declare an instantiated signature.
-      if (!sig_fun.HasInstantiatedSignature()) {
+      if (!sig_fun.HasInstantiatedSignature(kAny, num_free_fun_type_params)) {
         sig_fun = sig_fun.InstantiateSignatureFrom(
-            instantiator_type_arguments, function_type_arguments, space);
+            instantiator_type_arguments, function_type_arguments,
+            num_free_fun_type_params, space);
       }
     } else {
       // The Kernel frontend does not keep the information that a function type
@@ -17377,6 +17401,7 @@ void TypeRef::SetScopeFunction(const Function& function) const {
 RawTypeRef* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -17393,8 +17418,9 @@ RawTypeRef* TypeRef::InstantiateFrom(
   ASSERT(!ref_type.IsNull() && !ref_type.IsTypeRef());
   AbstractType& instantiated_ref_type = AbstractType::Handle();
   instantiated_ref_type = ref_type.InstantiateFrom(
-      instantiator_type_arguments, function_type_arguments, bound_error,
-      instantiation_trail, bound_trail, space);
+      instantiator_type_arguments, function_type_arguments,
+      num_free_fun_type_params, bound_error, instantiation_trail, bound_trail,
+      space);
   ASSERT(!instantiated_ref_type.IsTypeRef());
   instantiated_type_ref.set_type(instantiated_ref_type);
   return instantiated_type_ref.raw();
@@ -17592,22 +17618,19 @@ void TypeParameter::set_bound(const AbstractType& value) const {
 RawAbstractType* TypeParameter::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
     Heap::Space space) const {
   ASSERT(IsFinalized());
   if (IsFunctionTypeParameter()) {
-    // We make the distinction between a null function_type_arguments vector,
-    // which instantiates every function type parameter to dynamic, and a
-    // (possibly empty) function_type_arguments vector of length N, which only
-    // instantiates function type parameters with indices below N.
-    if (function_type_arguments.IsNull()) {
-      return Type::DynamicType();
-    }
-    if (index() >= function_type_arguments.Length()) {
+    if (index() >= num_free_fun_type_params) {
       // Return uninstantiated type parameter unchanged.
       return raw();
+    }
+    if (function_type_arguments.IsNull()) {
+      return Type::DynamicType();
     }
     return function_type_arguments.TypeAt(index());
   }
@@ -17926,6 +17949,7 @@ void BoundedType::set_type_parameter(const TypeParameter& value) const {
 RawAbstractType* BoundedType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -17935,10 +17959,11 @@ RawAbstractType* BoundedType::InstantiateFrom(
   ASSERT(bounded_type.IsFinalized());
   AbstractType& instantiated_bounded_type =
       AbstractType::Handle(bounded_type.raw());
-  if (!bounded_type.IsInstantiated()) {
+  if (!bounded_type.IsInstantiated(kAny, num_free_fun_type_params)) {
     instantiated_bounded_type = bounded_type.InstantiateFrom(
-        instantiator_type_arguments, function_type_arguments, bound_error,
-        instantiation_trail, bound_trail, space);
+        instantiator_type_arguments, function_type_arguments,
+        num_free_fun_type_params, bound_error, instantiation_trail, bound_trail,
+        space);
     // In case types of instantiator_type_arguments are not finalized
     // (or instantiated), then the instantiated_bounded_type is not finalized
     // (or instantiated) either.
@@ -17952,10 +17977,12 @@ RawAbstractType* BoundedType::InstantiateFrom(
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
     AbstractType& instantiated_upper_bound =
         AbstractType::Handle(upper_bound.raw());
-    if (upper_bound.IsFinalized() && !upper_bound.IsInstantiated()) {
+    if (upper_bound.IsFinalized() &&
+        !upper_bound.IsInstantiated(kAny, num_free_fun_type_params)) {
       instantiated_upper_bound = upper_bound.InstantiateFrom(
-          instantiator_type_arguments, function_type_arguments, bound_error,
-          instantiation_trail, bound_trail, space);
+          instantiator_type_arguments, function_type_arguments,
+          num_free_fun_type_params, bound_error, instantiation_trail,
+          bound_trail, space);
       // The instantiated_upper_bound may not be finalized or instantiated.
       // See comment above.
     }

@@ -2104,9 +2104,10 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     TypeArguments& function_type_args = TypeArguments::Handle();
     function_type_args ^= constant_function_type_args->value().raw();
     Error& bound_error = Error::Handle();
-    AbstractType& new_dst_type = AbstractType::Handle(
-        dst_type().InstantiateFrom(instantiator_type_args, function_type_args,
-                                   &bound_error, NULL, NULL, Heap::kOld));
+    AbstractType& new_dst_type =
+        AbstractType::Handle(dst_type().InstantiateFrom(
+            instantiator_type_args, function_type_args, kAllFree, &bound_error,
+            NULL, NULL, Heap::kOld));
     if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
       return this;
     }

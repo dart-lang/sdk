@@ -2011,6 +2011,12 @@ class ICData : public Object {
   friend class Deserializer;
 };
 
+// Often used constants for number of free function type parameters.
+enum {
+  kNoneFree = 0,
+  kAllFree = kMaxInt32,
+};
+
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
@@ -2041,6 +2047,7 @@ class Function : public Object {
   RawFunction* InstantiateSignatureFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Heap::Space space) const;
 
   // Build a string of the form '<T>(T, {B b, C c}) => R' representing the
@@ -2064,7 +2071,7 @@ class Function : public Object {
   // its signature uninstantiated, only type parameters declared by parent
   // generic functions or class type parameters.
   bool HasInstantiatedSignature(Genericity genericity = kAny,
-                                intptr_t num_free_fun_type_params = kMaxInt32,
+                                intptr_t num_free_fun_type_params = kAllFree,
                                 TrailPtr trail = NULL) const;
 
   // Reloading support:
@@ -5582,7 +5589,7 @@ class TypeArguments : public Instance {
 
   // Check if the vector is instantiated (it must not be null).
   bool IsInstantiated(Genericity genericity = kAny,
-                      intptr_t num_free_fun_type_params = kMaxInt32,
+                      intptr_t num_free_fun_type_params = kAllFree,
                       TrailPtr trail = NULL) const {
     return IsSubvectorInstantiated(0, Length(), genericity,
                                    num_free_fun_type_params, trail);
@@ -5590,7 +5597,7 @@ class TypeArguments : public Instance {
   bool IsSubvectorInstantiated(intptr_t from_index,
                                intptr_t len,
                                Genericity genericity = kAny,
-                               intptr_t num_free_fun_type_params = kMaxInt32,
+                               intptr_t num_free_fun_type_params = kAllFree,
                                TrailPtr trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
@@ -5632,6 +5639,7 @@ class TypeArguments : public Instance {
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -5747,7 +5755,7 @@ class AbstractType : public Instance {
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const;
   virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kMaxInt32,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
@@ -5773,13 +5781,13 @@ class AbstractType : public Instance {
   // type parameter T and function type parameter B. When instantiating the
   // function type of foo for a particular value of T, function type parameter B
   // must remain uninstantiated, because only T is a free variable in this type.
-  // TODO(regis): Add a num_free_fun_type_params argument to this call.
   //
   // Return a new type, or return 'this' if it is already instantiated.
   // If bound_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -5981,7 +5989,7 @@ class Type : public AbstractType {
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kMaxInt32,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
@@ -5998,6 +6006,7 @@ class Type : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6134,7 +6143,7 @@ class TypeRef : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kMaxInt32,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
@@ -6142,6 +6151,7 @@ class TypeRef : public AbstractType {
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6220,7 +6230,7 @@ class TypeParameter : public AbstractType {
                   Heap::Space space) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kMaxInt32,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
@@ -6228,6 +6238,7 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6315,7 +6326,7 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kMaxInt32,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const {
     // It is not possible to encounter an instantiated bounded type with an
     // uninstantiated upper bound. Therefore, we do not need to check if the
@@ -6330,6 +6341,7 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,

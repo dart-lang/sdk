@@ -13944,11 +13944,11 @@ void Parser::ParseConstructorClosurization(Function* constructor,
       if (!type.IsInstantiated()) {
         ASSERT(type.IsInstantiated(kFunctions));  // No generic constructors.
         Error& error = Error::Handle(Z);
-        type ^= type.InstantiateFrom(*type_arguments,
-                                     Object::null_type_arguments(), &error,
-                                     NULL,  // instantiation_trail
-                                     NULL,  // bound_trail
-                                     Heap::kOld);
+        type ^= type.InstantiateFrom(
+            *type_arguments, Object::null_type_arguments(), kNoneFree, &error,
+            NULL,  // instantiation_trail
+            NULL,  // bound_trail
+            Heap::kOld);
         ASSERT(error.IsNull());
       }
       *type_arguments = type.arguments();
@@ -14114,7 +14114,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         // type arguments of the parsed type of the 'new' or 'const' expression.
         Error& error = Error::Handle(Z);
         redirect_type ^= redirect_type.InstantiateFrom(
-            type_arguments, Object::null_type_arguments(), &error,
+            type_arguments, Object::null_type_arguments(), kNoneFree, &error,
             NULL,  // instantiation_trail
             NULL,  // bound_trail
             Heap::kOld);

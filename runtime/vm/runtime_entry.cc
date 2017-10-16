@@ -294,7 +294,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
   Error& bound_error = Error::Handle(zone);
   type =
       type.InstantiateFrom(instantiator_type_arguments, function_type_arguments,
-                           &bound_error, NULL, NULL, Heap::kOld);
+                           kAllFree, &bound_error, NULL, NULL, Heap::kOld);
   if (!bound_error.IsNull()) {
     // Throw a dynamic type error.
     const TokenPosition location = GetCallerLocation();
@@ -409,8 +409,8 @@ static void PrintTypeCheck(const char* message,
     Error& bound_error = Error::Handle();
     const AbstractType& instantiated_type =
         AbstractType::Handle(type.InstantiateFrom(
-            instantiator_type_arguments, function_type_arguments, &bound_error,
-            NULL, NULL, Heap::kOld));
+            instantiator_type_arguments, function_type_arguments, kAllFree,
+            &bound_error, NULL, NULL, Heap::kOld));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message, String::Handle(instance_type.Name()).ToCString(),
                  (result.raw() == Bool::True().raw()) ? "is" : "is !",
@@ -538,8 +538,8 @@ static void UpdateTypeTestCache(
     if (!test_type.IsInstantiated()) {
       Error& bound_error = Error::Handle();
       test_type = type.InstantiateFrom(instantiator_type_arguments,
-                                       function_type_arguments, &bound_error,
-                                       NULL, NULL, Heap::kNew);
+                                       function_type_arguments, kAllFree,
+                                       &bound_error, NULL, NULL, Heap::kNew);
       ASSERT(bound_error.IsNull());  // Malbounded types are not optimized.
     }
     OS::PrintErr(
@@ -660,8 +660,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
       dst_type = dst_type.InstantiateFrom(instantiator_type_arguments,
-                                          function_type_arguments, NULL, NULL,
-                                          NULL, Heap::kNew);
+                                          function_type_arguments, kAllFree,
+                                          NULL, NULL, NULL, Heap::kNew);
       // Note that instantiated dst_type may be malbounded.
     }
     String& bound_error_message = String::Handle(zone);

@@ -452,9 +452,9 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
       ASSERT(target_type.IsInstantiated(kFunctions));
       const TypeArguments& type_args = TypeArguments::Handle(type.arguments());
       Error& bound_error = Error::Handle();
-      target_type ^=
-          target_type.InstantiateFrom(type_args, Object::null_type_arguments(),
-                                      &bound_error, NULL, NULL, Heap::kOld);
+      target_type ^= target_type.InstantiateFrom(
+          type_args, Object::null_type_arguments(), kNoneFree, &bound_error,
+          NULL, NULL, Heap::kOld);
       if (bound_error.IsNull()) {
         target_type ^= FinalizeType(cls, target_type);
       } else {
@@ -664,7 +664,7 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
   }
   // Consider mutually recursive and uninstantiated types pending finalization
   // with the same type class and report an error if they are not equal in their
-  // raw form, i.e. where each type parameter is substituted with dynamic.
+  // raw form, i.e. where each class type parameter is substituted with dynamic.
   // This test eliminates divergent types without restricting recursive types
   // typically found in the wild.
   TypeArguments& pending_arguments = TypeArguments::Handle(zone);
@@ -684,14 +684,16 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
-            zone, arguments.InstantiateFrom(Object::null_type_arguments(),
-                                            Object::null_type_arguments(), NULL,
-                                            NULL, NULL, Heap::kNew));
+            zone,
+            arguments.InstantiateFrom(Object::null_type_arguments(),
+                                      Object::null_type_arguments(), kNoneFree,
+                                      NULL, NULL, NULL, Heap::kNew));
         const TypeArguments& instantiated_pending_arguments =
-            TypeArguments::Handle(zone, pending_arguments.InstantiateFrom(
-                                            Object::null_type_arguments(),
-                                            Object::null_type_arguments(), NULL,
-                                            NULL, NULL, Heap::kNew));
+            TypeArguments::Handle(
+                zone, pending_arguments.InstantiateFrom(
+                          Object::null_type_arguments(),
+                          Object::null_type_arguments(), kNoneFree, NULL, NULL,
+                          NULL, Heap::kNew));
         if (!instantiated_pending_arguments.IsSubvectorEquivalent(
                 instantiated_arguments, first_type_param, num_type_params)) {
           const String& type_name = String::Handle(zone, type.Name());
@@ -944,7 +946,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
           }
           Error& error = Error::Handle();
           super_type_arg = super_type_arg.InstantiateFrom(
-              arguments, Object::null_type_arguments(), &error,
+              arguments, Object::null_type_arguments(), kNoneFree, &error,
               instantiation_trail, NULL, Heap::kOld);
           if (!error.IsNull()) {
             // InstantiateFrom does not report an error if the type is still
@@ -1062,8 +1064,8 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
         instantiated_bound = declared_bound.raw();
       } else {
         instantiated_bound = declared_bound.InstantiateFrom(
-            arguments, Object::null_type_arguments(), &error, NULL, NULL,
-            Heap::kOld);
+            arguments, Object::null_type_arguments(), kNoneFree, &error, NULL,
+            NULL, Heap::kOld);
       }
       if (!instantiated_bound.IsFinalized()) {
         // The bound refers to type parameters, creating a cycle; postpone
@@ -1281,10 +1283,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
           }
           const TypeArguments& instantiator_type_arguments =
               TypeArguments::Handle(zone, fun_type.arguments());
-          const TypeArguments& function_type_arguments =
-              TypeArguments::Handle(zone, signature.type_parameters());
           signature = signature.InstantiateSignatureFrom(
-              instantiator_type_arguments, function_type_arguments, Heap::kOld);
+              instantiator_type_arguments, Object::null_type_arguments(),
+              kNoneFree, Heap::kOld);
           // Note that if instantiator_type_arguments contains type parameters,
           // as in F<K>, the signature is still uninstantiated (the typedef type
           // parameters were substituted in the signature with typedef type
@@ -1940,8 +1941,8 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
               param.set_bound(param_bound);  // In case part of recursive type.
             }
             param_bound = param_bound.InstantiateFrom(
-                instantiator, Object::null_type_arguments(), &bound_error, NULL,
-                NULL, Heap::kOld);
+                instantiator, Object::null_type_arguments(), kNoneFree,
+                &bound_error, NULL, NULL, Heap::kOld);
             // The instantiator contains only TypeParameter objects and no
             // BoundedType objects, so no bound error may occur.
             ASSERT(!param_bound.IsBoundedType());
@@ -2175,23 +2176,23 @@ void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class,
         if (type.IsBoundedType()) {
           bounded_type = BoundedType::Cast(type).type();
           bounded_type = bounded_type.InstantiateFrom(
-              instantiator, Object::null_type_arguments(), &bound_error, NULL,
-              NULL, Heap::kOld);
+              instantiator, Object::null_type_arguments(), kNoneFree,
+              &bound_error, NULL, NULL, Heap::kOld);
           // The instantiator contains only TypeParameter objects and no
           // BoundedType objects, so no bound error may occur.
           ASSERT(bound_error.IsNull());
           upper_bound = BoundedType::Cast(type).bound();
           upper_bound = upper_bound.InstantiateFrom(
-              instantiator, Object::null_type_arguments(), &bound_error, NULL,
-              NULL, Heap::kOld);
+              instantiator, Object::null_type_arguments(), kNoneFree,
+              &bound_error, NULL, NULL, Heap::kOld);
           ASSERT(bound_error.IsNull());
           type_parameter = BoundedType::Cast(type).type_parameter();
           // The type parameter that declared the bound does not change.
           type = BoundedType::New(bounded_type, upper_bound, type_parameter);
         } else {
-          type =
-              type.InstantiateFrom(instantiator, Object::null_type_arguments(),
-                                   &bound_error, NULL, NULL, Heap::kOld);
+          type = type.InstantiateFrom(instantiator,
+                                      Object::null_type_arguments(), kNoneFree,
+                                      &bound_error, NULL, NULL, Heap::kOld);
           ASSERT(bound_error.IsNull());
         }
       }

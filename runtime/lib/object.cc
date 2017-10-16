@@ -237,8 +237,8 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
     if (!type.IsInstantiated()) {
       // Instantiate type before reporting the error.
       type = type.InstantiateFrom(instantiator_type_arguments,
-                                  function_type_arguments, NULL, NULL, NULL,
-                                  Heap::kNew);
+                                  function_type_arguments, kAllFree, NULL, NULL,
+                                  NULL, Heap::kNew);
       // Note that the instantiated type may be malformed.
     }
     if (bound_error.IsNull()) {
