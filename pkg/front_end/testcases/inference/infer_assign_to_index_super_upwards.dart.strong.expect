@@ -27,6 +27,8 @@ abstract class Test1 extends self::Base<core::int, core::int> {
     core::int v10 = let final core::String #t21 = "x" in let final core::int #t22 = super.{self::Base::[]}(#t21).{core::num::+}(1) in let final void #t23 = super.{self::Base::[]=}(#t21, #t22) in #t22;
     core::int v11 = let final core::String #t24 = "x" in let final core::int #t25 = super.{self::Base::[]}(#t24) in let final void #t26 = super.{self::Base::[]=}(#t24, #t25.{core::num::+}(1)) in #t25;
   }
+  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::int v) → void;
+  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::int v) → void;
 }
 abstract class Test2 extends self::Base<core::int, core::num> {
   default constructor •() → void
@@ -45,6 +47,8 @@ abstract class Test2 extends self::Base<core::int, core::num> {
     core::num v10 = let final core::String #t57 = "x" in let final core::num #t58 = super.{self::Base::[]}(#t57).{core::num::+}(1) in let final void #t59 = super.{self::Base::[]=}(#t57, #t58) in #t58;
     core::num v11 = let final core::String #t60 = "x" in let final core::int #t61 = super.{self::Base::[]}(#t60) in let final void #t62 = super.{self::Base::[]=}(#t60, #t61.{core::num::+}(1)) in #t61;
   }
+  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::num v) → void;
+  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::num v) → void;
 }
 abstract class Test3 extends self::Base<core::int, core::double> {
   default constructor •() → void
@@ -61,6 +65,8 @@ abstract class Test3 extends self::Base<core::int, core::double> {
     core::double v10 = let final core::String #t86 = "x" in let final core::double #t87 = super.{self::Base::[]}(#t86).{core::double::+}(1) in let final void #t88 = super.{self::Base::[]=}(#t86, #t87) in #t87;
     core::double v11 = let final core::String #t89 = "x" in let final core::int #t90 = super.{self::Base::[]}(#t89) in let final void #t91 = super.{self::Base::[]=}(#t89, #t90.{core::double::+}(1)) in #t90;
   }
+  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::double v) → void;
+  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::double v) → void;
 }
 abstract class Test4 extends self::Base<core::num, core::int> {
   default constructor •() → void
@@ -76,6 +82,8 @@ abstract class Test4 extends self::Base<core::num, core::int> {
     core::int v10 = let final core::String #t112 = "x" in let final core::int #t113 = super.{self::Base::[]}(#t112).{core::num::+}(1) in let final void #t114 = super.{self::Base::[]=}(#t112, #t113) in #t113;
     core::int v11 = let final core::String #t115 = "x" in let final core::num #t116 = super.{self::Base::[]}(#t115) in let final void #t117 = super.{self::Base::[]=}(#t115, #t116.{core::num::+}(1)) in #t116;
   }
+  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::int v) → void;
+  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::int v) → void;
 }
 abstract class Test5 extends self::Base<core::num, core::num> {
   default constructor •() → void
@@ -94,6 +102,8 @@ abstract class Test5 extends self::Base<core::num, core::num> {
     core::num v10 = let final core::String #t148 = "x" in let final core::num #t149 = super.{self::Base::[]}(#t148).{core::num::+}(1) in let final void #t150 = super.{self::Base::[]=}(#t148, #t149) in #t149;
     core::num v11 = let final core::String #t151 = "x" in let final core::num #t152 = super.{self::Base::[]}(#t151) in let final void #t153 = super.{self::Base::[]=}(#t151, #t152.{core::num::+}(1)) in #t152;
   }
+  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::num v) → void;
+  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::num v) → void;
 }
 abstract class Test6 extends self::Base<core::num, core::double> {
   default constructor •() → void
@@ -110,6 +120,8 @@ abstract class Test6 extends self::Base<core::num, core::double> {
     core::double v10 = let final core::String #t177 = "x" in let final core::double #t178 = super.{self::Base::[]}(#t177).{core::double::+}(1) in let final void #t179 = super.{self::Base::[]=}(#t177, #t178) in #t178;
     core::double v11 = let final core::String #t180 = "x" in let final core::num #t181 = super.{self::Base::[]}(#t180) in let final void #t182 = super.{self::Base::[]=}(#t180, #t181.{core::double::+}(1)) in #t181;
   }
+  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::double v) → void;
+  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::double v) → void;
 }
 abstract class Test7 extends self::Base<core::double, core::int> {
   default constructor •() → void
@@ -125,6 +137,8 @@ abstract class Test7 extends self::Base<core::double, core::int> {
     core::int v10 = let final core::String #t203 = "x" in let final core::int #t204 = super.{self::Base::[]}(#t203).{core::num::+}(1) in let final void #t205 = super.{self::Base::[]=}(#t203, #t204) in #t204;
     core::int v11 = let final core::String #t206 = "x" in let final core::double #t207 = super.{self::Base::[]}(#t206) in let final void #t208 = super.{self::Base::[]=}(#t206, #t207.{core::num::+}(1)) in #t207;
   }
+  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::int v) → void;
+  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::int v) → void;
 }
 abstract class Test8 extends self::Base<core::double, core::num> {
   default constructor •() → void
@@ -143,6 +157,8 @@ abstract class Test8 extends self::Base<core::double, core::num> {
     core::num v10 = let final core::String #t239 = "x" in let final core::num #t240 = super.{self::Base::[]}(#t239).{core::num::+}(1) in let final void #t241 = super.{self::Base::[]=}(#t239, #t240) in #t240;
     core::num v11 = let final core::String #t242 = "x" in let final core::double #t243 = super.{self::Base::[]}(#t242) in let final void #t244 = super.{self::Base::[]=}(#t242, #t243.{core::num::+}(1)) in #t243;
   }
+  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::num v) → void;
+  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::num v) → void;
 }
 abstract class Test9 extends self::Base<core::double, core::double> {
   default constructor •() → void
@@ -159,6 +175,8 @@ abstract class Test9 extends self::Base<core::double, core::double> {
     core::double v10 = let final core::String #t268 = "x" in let final core::double #t269 = super.{self::Base::[]}(#t268).{core::double::+}(1) in let final void #t270 = super.{self::Base::[]=}(#t268, #t269) in #t269;
     core::double v11 = let final core::String #t271 = "x" in let final core::double #t272 = super.{self::Base::[]}(#t271) in let final void #t273 = super.{self::Base::[]=}(#t271, #t272.{core::double::+}(1)) in #t272;
   }
+  abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::double v) → void;
+  abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::double v) → void;
 }
 static method getInt() → core::int
   return 0;

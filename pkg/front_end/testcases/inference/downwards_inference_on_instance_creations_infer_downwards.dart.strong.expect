@@ -35,8 +35,7 @@ class D<S extends core::Object, T extends core::Object> extends self::B<self::D:
   constructor named(self::D::T a) → void
     : super self::B::named(a, 3)
     ;
-  forwarding-stub set x(core::int _) → void
-    return super.{self::A::x} = _;
+  abstract forwarding-stub set x(generic-covariant-impl core::int _) → void;
 }
 class E<S extends core::Object, T extends core::Object> extends self::A<self::C<self::E::S>, self::E::T> {
   constructor •(self::E::T a) → void

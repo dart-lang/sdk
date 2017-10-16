@@ -25,9 +25,17 @@ class C<T> {
   F<T> g4() => this.f;
 }
 
-class D extends C<int> {}
+class
+/*@forwardingStub=void f(covariance=(genericImpl) int x)*/
+/*@forwardingStub=void g1(covariance=(genericImpl) int x)*/
+/*@forwardingStub=void g2(covariance=(genericImpl) int x)*/
+/*@forwardingStub=void g3(covariance=(genericImpl) C<int> c, covariance=(genericImpl) int x)*/
+    D extends C<int> {}
 
-class E extends C<num> {
+class /*@forwardingStub=void g1(covariance=(genericImpl) num x)*/
+/*@forwardingStub=void g2(covariance=(genericImpl) num x)*/
+/*@forwardingStub=void g3(covariance=(genericImpl) C<num> c, covariance=(genericImpl) num x)*/
+    E extends C<num> {
   void f(covariant int /*@covariance=explicit*/ x) {}
 }
 

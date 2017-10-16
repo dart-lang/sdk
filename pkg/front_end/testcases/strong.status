@@ -159,7 +159,6 @@ runtime_checks/contravariant_generic_return_tear_off: Fail
 runtime_checks/contravariant_getter: Fail
 runtime_checks/field_forwarding_stub_generic_covariant: Fail
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
-runtime_checks_new/derived_class_typed: Fail
 runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Fail
 runtime_checks_new/field_forwarding_stub_explicit_covariant: Fail
 

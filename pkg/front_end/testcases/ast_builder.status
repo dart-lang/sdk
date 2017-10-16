@@ -435,7 +435,6 @@ reorder_super: Crash
 runtime_checks/call_kinds: Crash
 runtime_checks/call_kinds_get: Crash
 runtime_checks/call_kinds_set: Crash
-runtime_checks/call_through_this: Crash
 runtime_checks/contravariant_generic_method_type_parameter: Crash
 runtime_checks/contravariant_generic_return: Crash
 runtime_checks/contravariant_generic_return_tear_off: Crash
@@ -453,7 +452,8 @@ runtime_checks/field_forwarding_stub_generic_covariant: Crash
 runtime_checks/forwarding_stub_with_default_values: Crash
 runtime_checks/generic_covariance_inheritance_setter_field: Crash
 runtime_checks/generic_vs_explicit_covariance: Crash
-runtime_checks_new/derived_class_typed: Fail
+runtime_checks_new/call_through_this: Crash
+runtime_checks_new/derived_class_typed: Crash
 runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Crash
 runtime_checks_new/field_forwarding_stub_explicit_covariant: Crash
 runtime_checks_new/generic_covariance_based_on_inference: Crash

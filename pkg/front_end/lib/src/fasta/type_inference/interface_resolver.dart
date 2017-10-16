@@ -171,104 +171,109 @@ class ForwardingNode extends Procedure {
       isImplCreated = true;
     }
 
-    if (class_.typeParameters.isNotEmpty) {
-      IncludesTypeParametersCovariantly needsCheckVisitor =
-          ShadowClass.getClassInferenceInfo(class_).needsCheckVisitor ??=
-              new IncludesTypeParametersCovariantly(class_.typeParameters);
-      bool needsCheck(DartType type) =>
-          substitution.substituteType(type).accept(needsCheckVisitor);
-      for (int i = 0; i < interfacePositionalParameters.length; i++) {
-        var parameter = interfacePositionalParameters[i];
-        var isCovariant = needsCheck(parameter.type);
-        if (isCovariant != parameter.isGenericCovariantInterface) {
-          fixes.add((FunctionNode function) => function.positionalParameters[i]
-              .isGenericCovariantInterface = isCovariant);
+    IncludesTypeParametersCovariantly needsCheckVisitor =
+        class_.typeParameters.isEmpty
+            ? null
+            : ShadowClass.getClassInferenceInfo(class_).needsCheckVisitor ??=
+                new IncludesTypeParametersCovariantly(class_.typeParameters);
+    bool needsCheck(DartType type) => needsCheckVisitor == null
+        ? false
+        : substitution.substituteType(type).accept(needsCheckVisitor);
+    for (int i = 0; i < interfacePositionalParameters.length; i++) {
+      var parameter = interfacePositionalParameters[i];
+      var isGenericCovariantInterface = needsCheck(parameter.type);
+      if (isGenericCovariantInterface !=
+          parameter.isGenericCovariantInterface) {
+        fixes.add((FunctionNode function) => function.positionalParameters[i]
+            .isGenericCovariantInterface = isGenericCovariantInterface);
+      }
+      var isGenericCovariantImpl =
+          isGenericCovariantInterface || parameter.isGenericCovariantImpl;
+      var isCovariant = parameter.isCovariant;
+      for (int j = _start; j < _end; j++) {
+        var otherMember = _candidates[j];
+        if (identical(otherMember, interfaceMember)) continue;
+        var otherPositionalParameters =
+            otherMember.function.positionalParameters;
+        if (otherPositionalParameters.length <= i) continue;
+        var otherParameter = otherPositionalParameters[i];
+        if (otherParameter.isGenericCovariantImpl) {
+          isGenericCovariantImpl = true;
         }
-        if (isCovariant != parameter.isGenericCovariantImpl) {
-          createImplIfNeeded();
-          fixes.add((FunctionNode function) => function
-              .positionalParameters[i].isGenericCovariantImpl = isCovariant);
+        if (otherParameter.isCovariant) {
+          isCovariant = true;
         }
       }
-      for (int i = 0; i < interfaceNamedParameters.length; i++) {
-        var parameter = interfaceNamedParameters[i];
-        var isCovariant = needsCheck(parameter.type);
-        if (isCovariant != parameter.isGenericCovariantInterface) {
-          fixes.add((FunctionNode function) => function
-              .namedParameters[i].isGenericCovariantInterface = isCovariant);
-        }
-        if (isCovariant != parameter.isGenericCovariantImpl) {
-          createImplIfNeeded();
-          fixes.add((FunctionNode function) =>
-              function.namedParameters[i].isGenericCovariantImpl = isCovariant);
-        }
+      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
+        createImplIfNeeded();
+        fixes.add((FunctionNode function) => function.positionalParameters[i]
+            .isGenericCovariantImpl = isGenericCovariantImpl);
       }
-      for (int i = 0; i < interfaceTypeParameters.length; i++) {
-        var typeParameter = interfaceTypeParameters[i];
-        var isCovariant = needsCheck(typeParameter.bound);
-        if (isCovariant != typeParameter.isGenericCovariantInterface) {
-          fixes.add((FunctionNode function) => function
-              .typeParameters[i].isGenericCovariantInterface = isCovariant);
-        }
-        if (isCovariant != typeParameter.isGenericCovariantImpl) {
-          createImplIfNeeded();
-          fixes.add((FunctionNode function) =>
-              function.typeParameters[i].isGenericCovariantImpl = isCovariant);
-        }
+      if (isCovariant != parameter.isCovariant) {
+        createImplIfNeeded();
+        fixes.add((FunctionNode function) =>
+            function.positionalParameters[i].isCovariant = isCovariant);
       }
     }
-    for (int i = _start; i < _end; i++) {
-      var otherMember = _candidates[i];
-      if (identical(otherMember, interfaceMember)) continue;
-      var otherFunction = otherMember.function;
-      var otherPositionalParameters = otherFunction.positionalParameters;
-      for (int j = 0;
-          j < interfacePositionalParameters.length &&
-              j < otherPositionalParameters.length;
-          j++) {
-        var parameter = interfacePositionalParameters[j];
-        var otherParameter = otherPositionalParameters[j];
-        if (otherParameter.isGenericCovariantImpl &&
-            !parameter.isGenericCovariantImpl) {
-          createImplIfNeeded();
-          fixes.add((FunctionNode function) =>
-              function.positionalParameters[j].isGenericCovariantImpl = true);
+    for (int i = 0; i < interfaceNamedParameters.length; i++) {
+      var parameter = interfaceNamedParameters[i];
+      var isGenericCovariantInterface = needsCheck(parameter.type);
+      if (isGenericCovariantInterface !=
+          parameter.isGenericCovariantInterface) {
+        fixes.add((FunctionNode function) => function.namedParameters[i]
+            .isGenericCovariantInterface = isGenericCovariantInterface);
+      }
+      var isGenericCovariantImpl =
+          isGenericCovariantInterface || parameter.isGenericCovariantImpl;
+      var isCovariant = parameter.isCovariant;
+      for (int j = _start; j < _end; j++) {
+        var otherMember = _candidates[j];
+        if (identical(otherMember, interfaceMember)) continue;
+        var otherParameter =
+            getNamedFormal(otherMember.function, parameter.name);
+        if (otherParameter == null) continue;
+        if (otherParameter.isGenericCovariantImpl) {
+          isGenericCovariantImpl = true;
         }
-        if (otherParameter.isCovariant && !parameter.isCovariant) {
-          createImplIfNeeded();
-          fixes.add((FunctionNode function) =>
-              function.positionalParameters[j].isCovariant = true);
+        if (otherParameter.isCovariant) {
+          isCovariant = true;
         }
       }
-      for (int j = 0; j < interfaceNamedParameters.length; j++) {
-        var parameter = interfaceNamedParameters[j];
-        var otherParameter = getNamedFormal(otherFunction, parameter.name);
-        if (otherParameter != null) {
-          if (otherParameter.isGenericCovariantImpl &&
-              !parameter.isGenericCovariantImpl) {
-            createImplIfNeeded();
-            fixes.add((FunctionNode function) =>
-                function.namedParameters[j].isGenericCovariantImpl = true);
-          }
-          if (otherParameter.isCovariant && !parameter.isCovariant) {
-            createImplIfNeeded();
-            fixes.add((FunctionNode function) =>
-                function.namedParameters[j].isCovariant = true);
-          }
+      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
+        createImplIfNeeded();
+        fixes.add((FunctionNode function) => function.namedParameters[i]
+            .isGenericCovariantImpl = isGenericCovariantImpl);
+      }
+      if (isCovariant != parameter.isCovariant) {
+        createImplIfNeeded();
+        fixes.add((FunctionNode function) =>
+            function.namedParameters[i].isCovariant = isCovariant);
+      }
+    }
+    for (int i = 0; i < interfaceTypeParameters.length; i++) {
+      var typeParameter = interfaceTypeParameters[i];
+      var isGenericCovariantInterface = needsCheck(typeParameter.bound);
+      if (isGenericCovariantInterface !=
+          typeParameter.isGenericCovariantInterface) {
+        fixes.add((FunctionNode function) => function.typeParameters[i]
+            .isGenericCovariantInterface = isGenericCovariantInterface);
+      }
+      var isGenericCovariantImpl =
+          isGenericCovariantInterface || typeParameter.isGenericCovariantImpl;
+      for (int j = _start; j < _end; j++) {
+        var otherMember = _candidates[j];
+        if (identical(otherMember, interfaceMember)) continue;
+        var otherTypeParameters = otherMember.function.typeParameters;
+        if (otherTypeParameters.length <= i) continue;
+        var otherTypeParameter = otherTypeParameters[i];
+        if (otherTypeParameter.isGenericCovariantImpl) {
+          isGenericCovariantImpl = true;
         }
       }
-      var otherTypeParameters = otherFunction.typeParameters;
-      for (int j = 0;
-          j < interfaceTypeParameters.length && j < otherTypeParameters.length;
-          j++) {
-        var typeParameter = interfaceTypeParameters[j];
-        var otherTypeParameter = otherTypeParameters[j];
-        if (otherTypeParameter.isGenericCovariantImpl &&
-            !typeParameter.isGenericCovariantImpl) {
-          createImplIfNeeded();
-          fixes.add((FunctionNode function) =>
-              function.typeParameters[j].isGenericCovariantImpl = true);
-        }
+      if (isGenericCovariantImpl != typeParameter.isGenericCovariantImpl) {
+        createImplIfNeeded();
+        fixes.add((FunctionNode function) => function
+            .typeParameters[i].isGenericCovariantImpl = isGenericCovariantImpl);
       }
     }
 
@@ -345,7 +350,10 @@ class ForwardingNode extends Procedure {
   Procedure _createForwardingStub(Substitution substitution, Procedure target) {
     VariableDeclaration copyParameter(VariableDeclaration parameter) {
       return new VariableDeclaration(parameter.name,
-          type: substitution.substituteType(parameter.type));
+          type: substitution.substituteType(parameter.type),
+          isCovariant: parameter.isCovariant)
+        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl
+        ..isGenericCovariantInterface = parameter.isGenericCovariantInterface;
     }
 
     var targetTypeParameters = target.function.typeParameters;
@@ -356,7 +364,10 @@ class ForwardingNode extends Procedure {
       var additionalSubstitution = <TypeParameter, DartType>{};
       for (int i = 0; i < targetTypeParameters.length; i++) {
         var targetTypeParameter = targetTypeParameters[i];
-        var typeParameter = new TypeParameter(targetTypeParameter.name, null);
+        var typeParameter = new TypeParameter(targetTypeParameter.name, null)
+          ..isGenericCovariantImpl = targetTypeParameter.isGenericCovariantImpl
+          ..isGenericCovariantInterface =
+              targetTypeParameter.isGenericCovariantInterface;
         typeParameters[i] = typeParameter;
         additionalSubstitution[targetTypeParameter] =
             new TypeParameterType(typeParameter);
