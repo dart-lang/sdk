@@ -266,6 +266,7 @@ inference/inferred_type_via_closure_multiple_levels_of_nesting: Crash
 inference/inferred_type_via_closure_type_depends_on_args: Crash
 inference/inferred_type_via_closure_type_independent_of_args_field: Crash
 inference/inferred_type_via_closure_type_independent_of_args_top_level: Crash
+inference/inheritance_does_not_imply_circularity: Crash
 inference/lambda_does_not_have_propagated_type_hint: Crash
 inference/lambda_void_context: Crash
 inference/list_literal_typed: Crash

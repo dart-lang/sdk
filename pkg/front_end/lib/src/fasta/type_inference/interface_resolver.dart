@@ -60,7 +60,7 @@ class AccessorInferenceNode extends MemberInferenceNode {
       var candidate = _candidates[i];
       Member resolvedCandidate;
       if (candidate is ForwardingNode) {
-        _candidates[i] = resolvedCandidate = candidate.resolve();
+        resolvedCandidate = candidate.resolve();
       } else {
         resolvedCandidate = candidate;
       }
@@ -127,6 +127,10 @@ class ForwardingNode extends Procedure {
   /// `null`.
   Member _resolution;
 
+  /// The result of finalizing this node (if the node has been finalized);
+  /// otherwise `null`.
+  Member _finalResolution;
+
   /// If this forwarding node represents a member that needs type inference, the
   /// corresponding [InferenceNode]; otherwise `null`.
   InferenceNode _inferenceNode;
@@ -137,8 +141,13 @@ class ForwardingNode extends Procedure {
     parent = class_;
   }
 
-  /// Returns the inherited member, or the forwarding stub, which this node
-  /// resolves to.
+  /// Finishes handling of this node by propagating covariance and creating
+  /// forwarding stubs if necessary.
+  Member finalize() => _finalResolution ??= _finalize();
+
+  /// Returns the declared or inherited member this node resolves to.
+  ///
+  /// Does not create forwarding stubs.
   Member resolve() => _resolution ??= _resolve();
 
   /// Determines which covariance fixes need to be applied to the given
@@ -191,7 +200,7 @@ class ForwardingNode extends Procedure {
           isGenericCovariantInterface || parameter.isGenericCovariantImpl;
       var isCovariant = parameter.isCovariant;
       for (int j = _start; j < _end; j++) {
-        var otherMember = _candidates[j];
+        var otherMember = _finalizedCandidate(j);
         if (identical(otherMember, interfaceMember)) continue;
         var otherPositionalParameters =
             otherMember.function.positionalParameters;
@@ -227,7 +236,7 @@ class ForwardingNode extends Procedure {
           isGenericCovariantInterface || parameter.isGenericCovariantImpl;
       var isCovariant = parameter.isCovariant;
       for (int j = _start; j < _end; j++) {
-        var otherMember = _candidates[j];
+        var otherMember = _finalizedCandidate(j);
         if (identical(otherMember, interfaceMember)) continue;
         var otherParameter =
             getNamedFormal(otherMember.function, parameter.name);
@@ -261,7 +270,7 @@ class ForwardingNode extends Procedure {
       var isGenericCovariantImpl =
           isGenericCovariantInterface || typeParameter.isGenericCovariantImpl;
       for (int j = _start; j < _end; j++) {
-        var otherMember = _candidates[j];
+        var otherMember = _finalizedCandidate(j);
         if (identical(otherMember, interfaceMember)) continue;
         var otherTypeParameters = otherMember.function.typeParameters;
         if (otherTypeParameters.length <= i) continue;
@@ -397,6 +406,47 @@ class ForwardingNode extends Procedure {
       ..parent = enclosingClass;
   }
 
+  /// Creates a forwarding stubs for this node if necessary, and propagates
+  /// covariance information.
+  Member _finalize() {
+    var inheritedMember = resolve();
+    var inheritedMemberSubstitution =
+        _interfaceResolver._substitutionFor(inheritedMember, enclosingClass);
+    bool isDeclaredInThisClass =
+        identical(inheritedMember.enclosingClass, enclosingClass);
+
+    // Now decide whether we need a forwarding stub or not, and propagate
+    // covariance.
+    var covarianceFixes = <_CovarianceFix>[];
+    if (_interfaceResolver.strongMode) {
+      _computeCovarianceFixes(
+          inheritedMemberSubstitution, inheritedMember, covarianceFixes);
+    }
+    if (!isDeclaredInThisClass &&
+        (!identical(inheritedMember, _resolvedCandidate(_start)) ||
+            covarianceFixes.isNotEmpty)) {
+      var stub =
+          _createForwardingStub(inheritedMemberSubstitution, inheritedMember);
+      var function = stub.function;
+      for (var fix in covarianceFixes) {
+        fix(function);
+      }
+      return stub;
+    } else {
+      var function = inheritedMember.function;
+      for (var fix in covarianceFixes) {
+        fix(function);
+      }
+      return inheritedMember;
+    }
+  }
+
+  /// Returns the [i]th element of [_candidates], finalizing it if necessary.
+  Member _finalizedCandidate(int i) {
+    var candidate = _candidates[i];
+    return candidate is ForwardingNode ? candidate.finalize() : candidate;
+  }
+
   /// Returns a string describing the signature of [procedure], along with the
   /// class it's in.
   ///
@@ -420,13 +470,13 @@ class ForwardingNode extends Procedure {
   /// type inference.
   Member _resolve() {
     var inheritedMember = _candidates[_start];
-    var inheritedMemberSubstitution = Substitution.empty;
     bool isDeclaredInThisClass =
         identical(inheritedMember.enclosingClass, enclosingClass);
-    _resolveInheritedCandidates();
     if (isDeclaredInThisClass) {
-      _inferenceNode?.resolve();
-      _inferenceNode = null;
+      if (_inferenceNode != null) {
+        _inferenceNode.resolve();
+        _inferenceNode = null;
+      }
     } else {
       // If there are multiple inheritance candidates, the inherited member is
       // the member whose type is a subtype of all the others.  We can find it
@@ -440,15 +490,15 @@ class ForwardingNode extends Procedure {
       // recently visited candidate in the case where the types are the same.
       // We want to favor earlier candidates, so we visit the candidate list
       // backwards.
-      inheritedMember = _candidates[_end - 1];
-      inheritedMemberSubstitution =
+      inheritedMember = _resolvedCandidate(_end - 1);
+      var inheritedMemberSubstitution =
           _interfaceResolver._substitutionFor(inheritedMember, enclosingClass);
       var inheritedMemberType = inheritedMemberSubstitution.substituteType(
           kind == ProcedureKind.Setter
               ? inheritedMember.setterType
               : inheritedMember.getterType);
       for (int i = _end - 2; i >= _start; i--) {
-        var candidate = _candidates[i];
+        var candidate = _resolvedCandidate(i);
         var substitution =
             _interfaceResolver._substitutionFor(candidate, enclosingClass);
         bool isBetter;
@@ -474,41 +524,13 @@ class ForwardingNode extends Procedure {
       // the other potentially inherited members.
       // TODO(paulberry): implement this.
     }
-
-    // Now decide whether we need a forwarding stub or not, and propagate
-    // covariance.
-    var covarianceFixes = <_CovarianceFix>[];
-    if (_interfaceResolver.strongMode) {
-      _computeCovarianceFixes(
-          inheritedMemberSubstitution, inheritedMember, covarianceFixes);
-    }
-    if (!isDeclaredInThisClass &&
-        (!identical(inheritedMember, _candidates[_start]) ||
-            covarianceFixes.isNotEmpty)) {
-      var stub =
-          _createForwardingStub(inheritedMemberSubstitution, inheritedMember);
-      var function = stub.function;
-      for (var fix in covarianceFixes) {
-        fix(function);
-      }
-      return stub;
-    } else {
-      var function = inheritedMember.function;
-      for (var fix in covarianceFixes) {
-        fix(function);
-      }
-      return inheritedMember;
-    }
+    return inheritedMember;
   }
 
-  void _resolveInheritedCandidates() {
-    for (int i = _start; i < _end; i++) {
-      var candidate = _candidates[i];
-      if (identical(candidate.enclosingClass, enclosingClass)) continue;
-      if (candidate is ForwardingNode) {
-        _candidates[i] = candidate.resolve();
-      }
-    }
+  /// Returns the [i]th element of [_candidates], resolving it if necessary.
+  Member _resolvedCandidate(int i) {
+    var candidate = _candidates[i];
+    return candidate is ForwardingNode ? candidate.resolve() : candidate;
   }
 
   static void createForwardingImplIfNeededForTesting(
@@ -616,8 +638,8 @@ class InterfaceResolver {
             getterStart,
             getterEnd);
         if (!forwardingNode.isGetter) {
-          // Methods and operators can be resolved immediately.
-          getters[getterIndex++] = forwardingNode.resolve();
+          // Methods and operators can be finalized immediately.
+          getters[getterIndex++] = forwardingNode.finalize();
         } else {
           // Getters need to be resolved later, as part of type
           // inference, so just save the forwarding node for now.
@@ -663,7 +685,7 @@ class InterfaceResolver {
       var member = apiMembers[i];
       Member resolution;
       if (member is ForwardingNode) {
-        apiMembers[i] = resolution = member.resolve();
+        apiMembers[i] = resolution = member.finalize();
       } else {
         resolution = member;
       }

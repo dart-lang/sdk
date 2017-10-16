@@ -98,6 +98,8 @@ class SourceLoader<L> extends Loader<L> {
 
   Instrumentation instrumentation;
 
+  List<ClassBuilder> orderedClasses;
+
   SourceLoader(this.fileSystem, this.includeComments, KernelTarget target)
       : super(target);
 
@@ -502,11 +504,12 @@ class SourceLoader<L> extends Loader<L> {
     // builder.prepareTopLevelInference causes further class hierarchy queries
     // to be made which would otherwise result in a concurrent modification
     // exception.
-    var orderedClasses = hierarchy
+    orderedClasses = hierarchy
         .getOrderedClasses(sourceClasses.map((builder) => builder.target))
+        .map((class_) => ShadowClass.getClassInferenceInfo(class_).builder)
         .toList();
-    for (ShadowClass class_ in orderedClasses) {
-      var builder = ShadowClass.getClassInferenceInfo(class_).builder;
+    for (var builder in orderedClasses) {
+      ShadowClass class_ = builder.target;
       builder.prepareTopLevelInference(builder.library, builder);
       class_.setupApiMembers(interfaceResolver);
     }
@@ -518,11 +521,12 @@ class SourceLoader<L> extends Loader<L> {
   /// assign their types.
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     typeInferenceEngine.finishTopLevelFields();
-    for (var builder in sourceClasses) {
-      ShadowClass target = builder.target;
-      target.finalizeCovariance(interfaceResolver);
-      ShadowClass.clearClassInferenceInfo(target);
+    for (var builder in orderedClasses) {
+      ShadowClass class_ = builder.target;
+      class_.finalizeCovariance(interfaceResolver);
+      ShadowClass.clearClassInferenceInfo(class_);
     }
+    orderedClasses = null;
     typeInferenceEngine.finishTopLevelInitializingFormals();
     if (instrumentation != null) {
       builders.forEach((Uri uri, LibraryBuilder library) {

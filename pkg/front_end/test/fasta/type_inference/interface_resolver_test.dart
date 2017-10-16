@@ -584,7 +584,7 @@ class InterfaceResolverTest {
         makeClass(typeParameters: [typeParameter], procedures: [method]);
     var node = getForwardingNode(class_, false);
     ShadowClass.setBuilder(class_, null);
-    var resolvedMethod = node.resolve();
+    var resolvedMethod = node.finalize();
     expect(resolvedMethod, same(method));
     expect(u.isGenericCovariantImpl, isTrue);
     expect(u.isGenericCovariantInterface, isTrue);
@@ -602,7 +602,7 @@ class InterfaceResolverTest {
     var class_ = makeClass(typeParameters: [typeParameter], fields: [field]);
     var node = getForwardingNode(class_, true);
     ShadowClass.setBuilder(class_, null);
-    var resolvedAccessor = node.resolve() as SyntheticAccessor;
+    var resolvedAccessor = node.finalize() as SyntheticAccessor;
     expect(SyntheticAccessor.getField(resolvedAccessor), same(field));
     expect(field.isGenericCovariantImpl, isTrue);
     expect(field.isGenericCovariantInterface, isTrue);
@@ -616,7 +616,7 @@ class InterfaceResolverTest {
     var b = makeClass(
         name: 'B', implementedTypes: [a.asThisSupertype], fields: [fieldB]);
     var node = getForwardingNode(b, true);
-    var resolvedAccessor = node.resolve() as SyntheticAccessor;
+    var resolvedAccessor = node.finalize() as SyntheticAccessor;
     expect(SyntheticAccessor.getField(resolvedAccessor), same(fieldB));
     expect(fieldB.isGenericCovariantImpl, isFalse);
     expect(fieldB.isGenericCovariantInterface, isFalse);
@@ -637,7 +637,7 @@ class InterfaceResolverTest {
       fieldB
     ]);
     var node = getForwardingNode(b, true);
-    var resolvedAccessor = node.resolve() as SyntheticAccessor;
+    var resolvedAccessor = node.finalize() as SyntheticAccessor;
     expect(SyntheticAccessor.getField(resolvedAccessor), same(fieldB));
     expect(fieldB.isGenericCovariantImpl, isTrue);
     expect(fieldB.isGenericCovariantInterface, isFalse);
@@ -709,7 +709,7 @@ class InterfaceResolverTest {
         supertype: a.asThisSupertype,
         implementedTypes: [b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    var stub = node.resolve() as Procedure;
+    var stub = node.finalize() as Procedure;
     var x = stub.function.positionalParameters[0];
     expect(x.isGenericCovariantImpl, isFalse);
     expect(x.isGenericCovariantInterface, isFalse);
@@ -753,7 +753,7 @@ class InterfaceResolverTest {
       new Supertype(b, [numType])
     ]);
     var node = getForwardingNode(c, false);
-    var stub = node.resolve() as Procedure;
+    var stub = node.finalize() as Procedure;
     var u = stub.function.typeParameters[0];
     expect(u.isGenericCovariantImpl, isTrue);
     expect(u.isGenericCovariantInterface, isFalse);
@@ -816,7 +816,7 @@ class InterfaceResolverTest {
     var b = makeClass(
         name: 'B', supertype: a.asThisSupertype, procedures: [methodB]);
     var node = getForwardingNode(b, false);
-    expect(node.resolve(), same(methodB));
+    expect(node.finalize(), same(methodB));
   }
 
   void test_resolve_favor_first() {
@@ -828,7 +828,7 @@ class InterfaceResolverTest {
     var c = makeClass(
         name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    expect(node.resolve(), same(methodA));
+    expect(node.finalize(), same(methodA));
   }
 
   void test_resolve_field() {
@@ -836,7 +836,7 @@ class InterfaceResolverTest {
     var a = makeClass(name: 'A', fields: [field]);
     var b = makeClass(name: 'B', supertype: a.asThisSupertype);
     var node = getForwardingNode(b, false);
-    var accessor = node.resolve() as SyntheticAccessor;
+    var accessor = node.finalize() as SyntheticAccessor;
     expect(SyntheticAccessor.getField(accessor), same(field));
   }
 
@@ -848,7 +848,7 @@ class InterfaceResolverTest {
     var c = makeClass(
         name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    expect(node.resolve(), same(methodA));
+    expect(node.finalize(), same(methodA));
   }
 
   void test_resolve_second() {
@@ -859,7 +859,7 @@ class InterfaceResolverTest {
     var c = makeClass(
         name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    var stub = node.resolve();
+    var stub = node.finalize();
     expect(getStubTarget(stub), isNull);
     expect(stub.function.returnType, intType);
   }
@@ -877,7 +877,7 @@ class InterfaceResolverTest {
       c.asThisSupertype
     ]);
     var node = getForwardingNode(d, true);
-    var stub = node.resolve();
+    var stub = node.finalize();
     expect(getStubTarget(stub), isNull);
     expect(stub.function.positionalParameters[0].type, objectType);
   }
@@ -907,7 +907,7 @@ class InterfaceResolverTest {
     ]);
     var node = getForwardingNode(c, false);
     expect(methodC.function.body, isNull);
-    var resolvedMethod = node.resolve();
+    var resolvedMethod = node.finalize();
     expect(resolvedMethod, same(methodC));
     expect(methodC.function.body, isNotNull);
     expect(getStubTarget(methodC), same(methodA));
@@ -937,7 +937,7 @@ class InterfaceResolverTest {
           new Supertype(c, [numType])
         ]);
     var node = getForwardingNode(d, false);
-    var stub = node.resolve();
+    var stub = node.finalize();
     expect(getStubTarget(stub), isNull);
     expect(stub.function.returnType, intType);
   }
