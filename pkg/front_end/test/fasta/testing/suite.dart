@@ -26,6 +26,7 @@ import 'package:testing/testing.dart'
     show
         Chain,
         ChainContext,
+        Expectation,
         ExpectationSet,
         Result,
         Step,
@@ -97,6 +98,7 @@ class FastaContext extends ChainContext {
   final List<Step> steps;
   final Uri vm;
   final bool strongMode;
+  final bool onlyCrashes;
   final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
   Uri sdk;
   Uri platformUri;
@@ -105,10 +107,13 @@ class FastaContext extends ChainContext {
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
+  Expectation verificationError;
 
   FastaContext(
       this.vm,
       this.strongMode,
+      this.onlyCrashes,
+      bool ignoreExpectations,
       bool updateExpectations,
       bool updateComments,
       bool skipVm,
@@ -121,12 +126,15 @@ class FastaContext extends ChainContext {
           const Print(),
           new Verify(fullCompile)
         ] {
+    verificationError = expectationSet["VerificationError"];
     if (astKind != AstKind.Analyzer) {
-      steps.add(new MatchExpectation(
-          fullCompile
-              ? ".${generateExpectationName(strongMode)}.expect"
-              : ".outline.expect",
-          updateExpectations: updateExpectations));
+      if (!ignoreExpectations) {
+        steps.add(new MatchExpectation(
+            fullCompile
+                ? ".${generateExpectationName(strongMode)}.expect"
+                : ".outline.expect",
+            updateExpectations: updateExpectations));
+      }
       if (fullCompile && !skipVm) {
         steps.add(const Transform());
         steps.add(const WriteDill());
@@ -153,6 +161,19 @@ class FastaContext extends ChainContext {
     return outline;
   }
 
+  @override
+  Result processTestResult(
+      TestDescription description, Result result, bool last) {
+    if (onlyCrashes) {
+      Expectation outcome = result.outcome;
+      if (outcome == Expectation.Crash || outcome == verificationError) {
+        return result;
+      }
+      return result.copyWithOutcome(Expectation.Pass);
+    }
+    return super.processTestResult(description, result, last);
+  }
+
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) async {
     Uri sdk = Uri.base.resolve("sdk/");
@@ -163,6 +184,8 @@ class FastaContext extends ChainContext {
       ..packagesFileUri = packages);
     UriTranslator uriTranslator = await options.getUriTranslator();
     bool strongMode = environment.containsKey(STRONG_MODE);
+    bool onlyCrashes = environment["onlyCrashes"] == "true";
+    bool ignoreExpectations = environment["ignoreExpectations"] == "true";
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
     bool skipVm = environment["skipVm"] == "true";
@@ -172,6 +195,8 @@ class FastaContext extends ChainContext {
     return new FastaContext(
         vm,
         strongMode,
+        onlyCrashes,
+        ignoreExpectations,
         updateExpectations,
         updateComments,
         skipVm,

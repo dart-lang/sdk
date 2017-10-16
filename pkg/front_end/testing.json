@@ -119,14 +119,14 @@
     },
 
     {
-      "name": "language",
+      "name": "sdk",
       "kind": "Chain",
       "source": "test/fasta/sdk_test.dart",
-      "path": "../../tests/language/",
-      "status": "testcases/language.status",
+      "path": "../../tests/",
+      "status": "testcases/sdk.status",
       "process-multitests": true,
       "pattern": [
-        "_test\\.dart$"
+        "/sdk/tests/language(|_2|_strong)/.*_test\\.dart$"
       ],
       "": "deep_nesting{1,2}_negative_test are ignored because they cause a",
       "": "crash that we're ignoring for now (it was fixed in Rasta).",
@@ -134,15 +134,39 @@
       "": "subtest name in multi test.",
       "": "Tracked by: https://github.com/dart-lang/sdk/issues/28436",
       "exclude": [
-        "/sdk/tests/language/deep_nesting1_negative_test\\.dart$",
-        "/sdk/tests/language/deep_nesting2_negative_test\\.dart$",
-        "/sdk/tests/language/async_switch_test\\.dart$",
         "/sdk/tests/language/arg_param_trailing_comma_test\\.dart$",
         "/sdk/tests/language/assert_initializer_test\\.dart$",
+        "/sdk/tests/language/async_switch_test\\.dart$",
+        "/sdk/tests/language/case_expression_with_assignment_test\\.dart$",
+        "/sdk/tests/language/deep_nesting1_negative_test\\.dart$",
+        "/sdk/tests/language/deep_nesting2_negative_test\\.dart$",
         "/sdk/tests/language/deferred_type_dependency_test\\.dart$",
         "/sdk/tests/language/mixin_of_mixin_test\\.dart$",
         "/sdk/tests/language/regress_23996_test\\.dart$",
-        "/sdk/tests/language/round_test\\.dart$"
+        "/sdk/tests/language/regress_28217_test\\.dart$",
+        "/sdk/tests/language/round_test\\.dart$",
+        "/sdk/tests/language_2/arg_param_trailing_comma_test\\.dart$",
+        "/sdk/tests/language_2/async_switch_test\\.dart$",
+        "/sdk/tests/language_2/case_expression_with_assignment_test\\.dart$",
+        "/sdk/tests/language_2/constructor_redirect1_negative_test\\.dart$",
+        "/sdk/tests/language_2/deferred_type_dependency_test\\.dart$",
+        "/sdk/tests/language_2/factory_redirection_test\\.dart$",
+        "/sdk/tests/language_2/factory2_test\\.dart$",
+        "/sdk/tests/language_2/factory3_test\\.dart$",
+        "/sdk/tests/language_2/field_initialization_order_test\\.dart$",
+        "/sdk/tests/language_2/field_override_test\\.dart$",
+        "/sdk/tests/language_2/field3_test\\.dart$",
+        "/sdk/tests/language_2/map_literal11_test\\.dart$",
+        "/sdk/tests/language_2/round_test\\.dart$",
+        "/sdk/tests/language_2/regress_23996_test\\.dart$",
+        "/sdk/tests/language_2/regress_28217_test\\.dart$",
+        "/sdk/tests/language_2/regress_30669_test\\.dart$",
+        "/sdk/tests/language_2/regress_30927_test\\.dart$",
+        "/sdk/tests/language_2/runtime_type_function_test\\.dart$",
+        "/sdk/tests/language_2/setter_override_test\\.dart$",
+        "/sdk/tests/language_strong/function_type_alias10_test\\.dart$",
+        "/sdk/tests/language_strong/regress_30669_test\\.dart$",
+        "/sdk/tests/language_strong/regress_30927_test\\.dart$"
       ]
     },
 
