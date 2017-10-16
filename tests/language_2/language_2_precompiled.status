@@ -553,10 +553,14 @@ prefix16_test/00: MissingCompileTimeError
 prefix16_test/01: MissingCompileTimeError
 prefix22_test/00: MissingCompileTimeError
 prefix23_test/00: MissingCompileTimeError
+regress_12561_test: MissingCompileTimeError
+regress_13494_test: MissingCompileTimeError
+regress_19728_test: MissingCompileTimeError
+regress_21793_test/01: MissingCompileTimeError
 regress_22936_test: MissingCompileTimeError
 regress_23089_test: MissingCompileTimeError
-regress_27572_test: MissingCompileTimeError
 regress_26133_test: MissingCompileTimeError
+regress_27572_test: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 static_field1_test/01: MissingCompileTimeError
