@@ -390,7 +390,7 @@ void printFailingTest(TestExpectationResult result, int index) {
       .toArgs(includeSelectors: false)
       .map((arg) => arg.replaceAll("--", ""));
 
-  var extPrint = new ExtendedPrinter(preceeding: "\t");
+  var extPrint = new ExtendedPrinter(preceding: "\t");
   if (index > 0) {
     extPrint.printLinePattern("-");
   }

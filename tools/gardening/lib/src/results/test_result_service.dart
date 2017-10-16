@@ -40,7 +40,8 @@ class TestResultService {
       {CreateCacheFunction createCache}) async {
     int buildNumber = (await getLatestBuildNumbersForBuilders([name]))[name];
     if (buildNumber == 0) {
-      throw new Exception("Could not find builder with name $name.");
+      print("Could not get any results for builder with name $name.");
+      return new TestResult();
     }
     return forBuild(project, name, buildNumber, createCache: createCache);
   }

@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'logger.dart';
-import 'util.dart';
 
 typedef Future<String> FetchDataFunction();
 typedef Future<String> WithCacheFunction(FetchDataFunction fetchData,
@@ -107,7 +106,6 @@ class Cache {
     }
 
     logger.debug('Found $path in file cache');
-
     try {
       String text = await file.readAsString();
       memoryCache[path] = text;
