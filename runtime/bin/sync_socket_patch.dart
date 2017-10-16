@@ -64,7 +64,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
 
   static _NativeSynchronousSocket connectSync(host, int port) {
     if (host == null) {
-      throw ArgumentError("Parameter host cannot be null");
+      throw new ArgumentError("Parameter host cannot be null");
     }
     List<_InternetAddress> addresses = null;
     var error = null;

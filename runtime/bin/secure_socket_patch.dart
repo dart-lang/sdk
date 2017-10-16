@@ -24,14 +24,9 @@ class X509Certificate {
 }
 
 class _SecureSocket extends _Socket implements SecureSocket {
-  _SecureSocket(RawSecureSocket raw) : super(raw);
+  _RawSecureSocket get _raw => super._raw as _RawSecureSocket;
 
-  void set onBadCertificate(bool callback(X509Certificate certificate)) {
-    if (_raw == null) {
-      throw new StateError("onBadCertificate called on destroyed SecureSocket");
-    }
-    _raw.onBadCertificate = callback;
-  }
+  _SecureSocket(RawSecureSocket raw) : super(raw);
 
   void renegotiate(
       {bool useSessionCache: true,
