@@ -297,28 +297,16 @@ class DateTime {
     }
 
     if (!isUtc) {
-      // Note that we can't literally follow the ECMAScript spec (which this
-      // code is based on), because it leads to incorrect computations at
-      // the DST transition points.
-      //
-      // See V8's comment here:
-      // https://github.com/v8/v8/blob/089dd7d2447d6eaf57c8ba6d8f37957f3a269777/src/date.h#L118
-
-      // We need to remove the local timezone adjustment before asking for the
-      // correct zone offset.
+      // Note that we need to remove the local timezone adjustment before
+      // asking for the correct zone offset.
       int adjustment = _localTimeZoneAdjustmentInSeconds() *
           Duration.MICROSECONDS_PER_SECOND;
       // The adjustment is independent of the actual date and of the daylight
       // saving time. It is positive east of the Prime Meridian and negative
       // west of it, e.g. -28800 sec for America/Los_Angeles timezone.
 
-      // We remove one hour to ensure that we have the correct offset at
-      // DST transitioning points. This is a temporary solution and only
-      // correct in timezones that shift for exactly one hour.
-      adjustment += Duration.MICROSECONDS_PER_HOUR;
       int zoneOffset =
           _timeZoneOffsetInSeconds(microsecondsSinceEpoch - adjustment);
-
       // The zoneOffset depends on the actual date and reflects any daylight
       // saving time and/or historical deviation relative to UTC time.
       // It is positive east of the Prime Meridian and negative west of it,
