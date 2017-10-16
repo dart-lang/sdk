@@ -5,7 +5,8 @@
 // part of "mirrors_patch.dart";
 
 var _dirty = false;
-final _emptyList = new UnmodifiableListView([]);
+// Note: _emtpyList needs to be assignable to List<T> for any T hence Null.
+final _emptyList = new UnmodifiableListView<Null>([]);
 
 class _InternalMirrorError {
   final String _msg;
@@ -80,7 +81,7 @@ class _AccessorCacheAssociation {
  * associations that have not been used since the last growth when needing to
  * grow again. Implemented as an open addressing hash table.
  */
-class _AccessorCache {
+class _AccessorCache<T extends Function> {
   List table;
   int shift;
   int mask;
@@ -179,7 +180,7 @@ class _AccessorCache {
     if (needToGrow) grow();
   }
 
-  operator []=(String key, Function value) {
+  operator []=(String key, T value) {
     int index = scanFor(key);
     var assoc = table[index];
     if (null != assoc) {
@@ -201,7 +202,7 @@ class _AccessorCache {
     }
   }
 
-  Function operator [](String key) {
+  T operator [](String key) {
     var index = scanFor(key);
     var assoc = table[index];
     if (null == assoc) return null;
@@ -421,8 +422,11 @@ class _LocalInstanceMirror extends _LocalObjectMirror
     return identityHashCode(_reflectee) ^ 0x36363636;
   }
 
-  static var _getFieldClosures = new _AccessorCache.withInitialShift(4);
-  static var _setFieldClosures = new _AccessorCache.withInitialShift(4);
+  static var _getFieldClosures =
+      new _AccessorCache<dynamic Function(dynamic)>.withInitialShift(4);
+  static var _setFieldClosures =
+      new _AccessorCache<dynamic Function(dynamic, dynamic)>.withInitialShift(
+          4);
 
   _createGetterClosure(unwrapped) {
     var atPosition = unwrapped.indexOf('@');
@@ -556,7 +560,12 @@ class _LocalClosureMirror extends _LocalInstanceMirror
   static _computeFunction(reflectee) native 'ClosureMirror_function';
 }
 
-class _LocalClassMirror extends _LocalObjectMirror implements ClassMirror {
+abstract class _LocalTypeMirror {
+  Type get _reflectedType;
+}
+
+class _LocalClassMirror extends _LocalObjectMirror
+    implements ClassMirror, _LocalTypeMirror {
   final Type _reflectedType;
   Symbol _simpleName;
   DeclarationMirror _owner;
@@ -623,8 +632,8 @@ class _LocalClassMirror extends _LocalObjectMirror implements ClassMirror {
     return _location(_reflectee);
   }
 
-  ClassMirror _trueSuperclassField;
-  ClassMirror get _trueSuperclass {
+  _LocalClassMirror _trueSuperclassField;
+  _LocalClassMirror get _trueSuperclass {
     if (_trueSuperclassField == null) {
       Type supertype = isOriginalDeclaration
           ? _supertype(_reflectedType)
@@ -751,8 +760,8 @@ class _LocalClassMirror extends _LocalObjectMirror implements ClassMirror {
     var decls = new Map<Symbol, DeclarationMirror>();
 
     var whoseMembers = _isMixinAlias ? _trueSuperclass : this;
-    var members =
-        mixin._computeMembers(_instantiator, whoseMembers.mixin._reflectee);
+    var members = (mixin as _LocalClassMirror)._computeMembers(
+        _instantiator, (whoseMembers.mixin as _LocalClassMirror)._reflectee);
     for (var member in members) {
       decls[member.simpleName] = member;
     }
@@ -862,14 +871,16 @@ class _LocalClassMirror extends _LocalObjectMirror implements ClassMirror {
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _subtypeTest(_reflectedType, other._reflectedType);
+    return _subtypeTest(
+        _reflectedType, (other as _LocalTypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _subtypeTest(_reflectedType, other._reflectedType) ||
-        _subtypeTest(other._reflectedType, _reflectedType);
+    final otherReflectedType = (other as _LocalTypeMirror)._reflectedType;
+    return _subtypeTest(_reflectedType, otherReflectedType) ||
+        _subtypeTest(otherReflectedType, _reflectedType);
   }
 
   bool isSubclassOf(ClassMirror other) {
@@ -967,7 +978,7 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   }
 
   bool get isOriginalDeclaration => true;
-  get originalDeclaration => this;
+  ClassMirror get originalDeclaration => this;
   get typeVariables => _emptyList;
   get typeArguments => _emptyList;
   get metadata => _emptyList;
@@ -1023,14 +1034,15 @@ abstract class _LocalDeclarationMirror extends _LocalMirror
 }
 
 class _LocalTypeVariableMirror extends _LocalDeclarationMirror
-    implements TypeVariableMirror {
+    implements TypeVariableMirror, _LocalTypeMirror {
   _LocalTypeVariableMirror(reflectee, String simpleName, this._owner)
       : super(reflectee, _s(simpleName));
 
   DeclarationMirror _owner;
   DeclarationMirror get owner {
     if (_owner == null) {
-      _owner = _TypeVariableMirror_owner(_reflectee).originalDeclaration;
+      _owner = (_TypeVariableMirror_owner(_reflectee) as TypeMirror)
+          .originalDeclaration;
     }
     return _owner;
   }
@@ -1072,14 +1084,16 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _subtypeTest(_reflectedType, other._reflectedType);
+    return _subtypeTest(
+        _reflectedType, (other as _LocalTypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _subtypeTest(_reflectedType, other._reflectedType) ||
-        _subtypeTest(other._reflectedType, _reflectedType);
+    final otherReflectedType = (other as _LocalTypeMirror)._reflectedType;
+    return _subtypeTest(_reflectedType, otherReflectedType) ||
+        _subtypeTest(otherReflectedType, _reflectedType);
   }
 
   static DeclarationMirror _TypeVariableMirror_owner(reflectee)
@@ -1090,7 +1104,7 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
 }
 
 class _LocalTypedefMirror extends _LocalDeclarationMirror
-    implements TypedefMirror {
+    implements TypedefMirror, _LocalTypeMirror {
   final Type _reflectedType;
   final bool _isGeneric;
   final bool _isGenericDeclaration;
@@ -1110,8 +1124,8 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
     return _owner;
   }
 
-  TypeMirror _referent = null;
-  TypeMirror get referent {
+  _LocalFunctionTypeMirror _referent = null;
+  FunctionTypeMirror get referent {
     if (_referent == null) {
       _referent = _nativeReferent(_reflectedType);
       _referent._instantiator = _reflectedType;
@@ -1171,14 +1185,16 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _subtypeTest(_reflectedType, other._reflectedType);
+    return _subtypeTest(
+        _reflectedType, (other as _LocalTypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _subtypeTest(_reflectedType, other._reflectedType) ||
-        _subtypeTest(other._reflectedType, _reflectedType);
+    final otherReflectedType = (other as _LocalTypeMirror)._reflectedType;
+    return _subtypeTest(_reflectedType, otherReflectedType) ||
+        _subtypeTest(otherReflectedType, _reflectedType);
   }
 
   static _nativeReferent(reflectedType) native "TypedefMirror_referent";
@@ -1462,7 +1478,16 @@ class _LocalVariableMirror extends _LocalDeclarationMirror
   bool get isTopLevel => owner is LibraryMirror;
 
   Type get _instantiator {
-    return owner._instantiator;
+    final o = owner; // Note: need local variable for promotion to happen.
+    if (o is _LocalClassMirror) {
+      return o._instantiator;
+    } else if (o is _LocalMethodMirror) {
+      return o._instantiator;
+    } else if (o is _LocalLibraryMirror) {
+      return o._instantiator;
+    } else {
+      throw new UnsupportedError("unexpected owner ${owner}");
+    }
   }
 
   TypeMirror _type;
@@ -1528,10 +1553,6 @@ class _LocalParameterMirror extends _LocalVariableMirror
   List<InstanceMirror> get metadata {
     if (_unmirroredMetadata == null) return _emptyList;
     return new UnmodifiableListView(_unmirroredMetadata.map(reflect));
-  }
-
-  Type get _instantiator {
-    return owner._instantiator;
   }
 
   TypeMirror _type = null;
@@ -1617,7 +1638,8 @@ class _Mirrors {
   static Type instantiateGenericType(Type key, typeArguments)
       native "Mirrors_instantiateGenericType";
 
-  static Expando<ClassMirror> _declarationCache = new Expando("ClassMirror");
+  static Expando<_LocalClassMirror> _declarationCache =
+      new Expando("ClassMirror");
   static Expando<TypeMirror> _instantiationCache = new Expando("TypeMirror");
 
   static ClassMirror reflectClass(Type key) {
@@ -1640,7 +1662,7 @@ class _Mirrors {
     if (typeMirror == null) {
       typeMirror = makeLocalTypeMirror(key);
       _instantiationCache[key] = typeMirror;
-      if (typeMirror is ClassMirror && !typeMirror._isGeneric) {
+      if (typeMirror is _LocalClassMirror && !typeMirror._isGeneric) {
         _declarationCache[key] = typeMirror;
       }
     }

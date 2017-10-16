@@ -82,7 +82,9 @@ class MirrorSystem {
         ((name.length > 0) && (name[0] == '_') && (library == null))) {
       throw new ArgumentError(library);
     }
-    if (library != null) name = _mangleName(name, library._reflectee);
+    if (library != null) {
+      name = _mangleName(name, (library as _LocalLibraryMirror)._reflectee);
+    }
     return new internal.Symbol.unvalidated(name);
   }
 
