@@ -23,20 +23,6 @@ class StaticTypeWarningCodeTest_Kernel
     extends StaticTypeWarningCodeTest_Driver {
   @override
   bool get enableKernelDriver => true;
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_typeArgumentNotMatchingBounds_redirectingConstructor() async {
-    return super.test_typeArgumentNotMatchingBounds_redirectingConstructor();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_undefinedMethodWithConstructor() async {
-    return super.test_undefinedMethodWithConstructor();
-  }
 }
 
 @reflectiveTest

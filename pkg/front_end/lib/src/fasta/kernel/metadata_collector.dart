@@ -10,5 +10,7 @@ abstract class MetadataCollector {
   /// to a program, metadata is serialized with the program.
   MetadataRepository get repository;
 
+  void setConstructorNameOffset(Member node, Object name);
+
   void setDocumentationComment(NamedNode node, String comment);
 }

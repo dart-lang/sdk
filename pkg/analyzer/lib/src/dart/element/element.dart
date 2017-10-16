@@ -2398,6 +2398,18 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  int get nameOffset {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      if (metadata != null && metadata.constructorNameOffset != -1) {
+        return metadata.constructorNameOffset;
+      }
+      return _kernel.fileOffset;
+    }
+    return super.nameOffset;
+  }
+
+  @override
   int get periodOffset {
     if (serializedExecutable != null) {
       if (serializedExecutable.name.isNotEmpty) {

@@ -30,48 +30,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_conflictingConstructorNameAndMember_field() async {
-    return super.test_conflictingConstructorNameAndMember_field();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_conflictingConstructorNameAndMember_getter() async {
-    return super.test_conflictingConstructorNameAndMember_getter();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_conflictingConstructorNameAndMember_method() async {
-    return super.test_conflictingConstructorNameAndMember_method();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_constConstructor_redirect_generic() async {
-    return super.test_constConstructor_redirect_generic();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_constDeferredClass_namedConstructor() async {
-    return super.test_constDeferredClass_namedConstructor();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_constWithUndefinedConstructorDefault() async {
-    return super.test_constWithUndefinedConstructorDefault();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30997')
   test_deferredImportWithInvalidUri() async {
     return super.test_deferredImportWithInvalidUri();
@@ -164,38 +122,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_implicitThisReferenceInInitializer_redirectingConstructorInvocation() async {
-    return super
-        .test_implicitThisReferenceInInitializer_redirectingConstructorInvocation();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   test_importOfNonLibrary() async {
     return super.test_importOfNonLibrary();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_instanceMemberAccessFromFactory_named() async {
-    return super.test_instanceMemberAccessFromFactory_named();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_instanceMemberAccessFromFactory_unnamed() async {
-    return super.test_instanceMemberAccessFromFactory_unnamed();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_invalidAnnotationFromDeferredLibrary_namedConstructor() async {
-    return super.test_invalidAnnotationFromDeferredLibrary_namedConstructor();
   }
 
   @override
@@ -249,13 +178,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_mixinHasNoConstructors_mixinClass_namedSuperCall() async {
-    return super.test_mixinHasNoConstructors_mixinClass_namedSuperCall();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31005')
   test_mixinOfNonClass_typeAlias() async {
     return super.test_mixinOfNonClass_typeAlias();
@@ -273,136 +195,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30982')
   test_multipleSuperInitializers() async {
     return super.test_multipleSuperInitializers();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorExplicit_MixinAppWithDirectSuperCall() async {
-    return super
-        .test_noDefaultSuperConstructorExplicit_MixinAppWithDirectSuperCall();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorExplicit_mixinAppWithNamedParam() async {
-    return super
-        .test_noDefaultSuperConstructorExplicit_mixinAppWithNamedParam();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorExplicit_MixinAppWithNamedSuperCall() async {
-    return super
-        .test_noDefaultSuperConstructorExplicit_MixinAppWithNamedSuperCall();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorExplicit_mixinAppWithOptionalParam() async {
-    return super
-        .test_noDefaultSuperConstructorExplicit_mixinAppWithOptionalParam();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorExplicit_MixinWithDirectSuperCall() async {
-    return super
-        .test_noDefaultSuperConstructorExplicit_MixinWithDirectSuperCall();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorExplicit_mixinWithNamedParam() async {
-    return super.test_noDefaultSuperConstructorExplicit_mixinWithNamedParam();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorExplicit_MixinWithNamedSuperCall() async {
-    return super
-        .test_noDefaultSuperConstructorExplicit_MixinWithNamedSuperCall();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorExplicit_mixinWithOptionalParam() async {
-    return super
-        .test_noDefaultSuperConstructorExplicit_mixinWithOptionalParam();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorImplicit_mixinAppWithNamedParam() async {
-    return super
-        .test_noDefaultSuperConstructorImplicit_mixinAppWithNamedParam();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorImplicit_mixinAppWithOptionalParam() async {
-    return super
-        .test_noDefaultSuperConstructorImplicit_mixinAppWithOptionalParam();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorImplicit_mixinWithNamedParam() async {
-    return super.test_noDefaultSuperConstructorImplicit_mixinWithNamedParam();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorImplicit_mixinWithOptionalParam() async {
-    return super
-        .test_noDefaultSuperConstructorImplicit_mixinWithOptionalParam();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_noDefaultSuperConstructorImplicit_superOnlyNamed() async {
-    return super.test_noDefaultSuperConstructorImplicit_superOnlyNamed();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_nonConstantAnnotationConstructor_named() async {
-    return super.test_nonConstantAnnotationConstructor_named();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_nonConstValueInInitializer_redirecting() async {
-    return super.test_nonConstValueInInitializer_redirecting();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_nonConstValueInInitializerFromDeferredLibrary_redirecting() async {
-    return super
-        .test_nonConstValueInInitializerFromDeferredLibrary_redirecting();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_nonGenerativeConstructor_explicit() async {
-    return super.test_nonGenerativeConstructor_explicit();
   }
 
   @override
@@ -442,20 +234,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_recursiveConstructorRedirect() async {
-    return super.test_recursiveConstructorRedirect();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_recursiveFactoryRedirect_named() async {
-    return super.test_recursiveFactoryRedirect_named();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_recursiveInterfaceInheritance_mixin() async {
     return super.test_recursiveInterfaceInheritance_mixin();
@@ -466,27 +244,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_recursiveInterfaceInheritanceBaseCaseWith() async {
     return super.test_recursiveInterfaceInheritanceBaseCaseWith();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_redirectGenerativeToNonGenerativeConstructor() async {
-    return super.test_redirectGenerativeToNonGenerativeConstructor();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_redirectToMissingConstructor_unnamed() async {
-    return super.test_redirectToMissingConstructor_unnamed();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_redirectToNonConstConstructor() async {
-    return super.test_redirectToNonConstConstructor();
   }
 
   @override
@@ -551,20 +308,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
     return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_undefinedConstructorInInitializer_explicit_unnamed() async {
-    return super.test_undefinedConstructorInInitializer_explicit_unnamed();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_undefinedConstructorInInitializer_implicit() async {
-    return super.test_undefinedConstructorInInitializer_implicit();
   }
 
   @override

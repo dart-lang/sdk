@@ -31,6 +31,7 @@ import 'package:kernel/text/ast_to_text.dart' as kernel;
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as pathos;
+import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
 
 /**
  * Support for resynthesizing element model from Kernel.
@@ -128,7 +129,8 @@ class KernelContext {
         ..logger = logger
         ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
         ..byteStore = byteStore);
-      var driver = new KernelDriver(options, uriTranslator);
+      var driver = new KernelDriver(options, uriTranslator,
+          metadataFactory: new AnalyzerMetadataFactory());
 
       Uri targetUri = targetLibrary.uri;
       KernelResult kernelResult = await driver.getKernel(targetUri);

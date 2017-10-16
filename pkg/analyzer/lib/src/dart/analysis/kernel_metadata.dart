@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:front_end/src/fasta/builder/qualified_name.dart';
 import 'package:front_end/src/fasta/kernel/metadata_collector.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
@@ -11,6 +12,10 @@ import 'package:kernel/kernel.dart' as kernel;
 /// Additional information that Analyzer needs for nodes.
 class AnalyzerMetadata {
   final kernel.Node parent;
+
+  /// If the node is a named constructor, the offset of the name.
+  /// Otherwise `-1`.
+  int constructorNameOffset = -1;
 
   /// Optional documentation comment, may be `null`.
   String documentationComment;
@@ -33,6 +38,14 @@ class AnalyzerMetadataCollector implements MetadataCollector {
   @override
   final AnalyzerMetadataRepository repository =
       new AnalyzerMetadataRepository();
+
+  @override
+  void setConstructorNameOffset(kernel.Member node, Object name) {
+    if (name is QualifiedName) {
+      var metadata = repository._forWriting(node);
+      metadata.constructorNameOffset = name.charOffset;
+    }
+  }
 
   @override
   void setDocumentationComment(kernel.NamedNode node, String comment) {
@@ -73,18 +86,24 @@ class AnalyzerMetadataRepository
   AnalyzerMetadata readFromBinary(kernel.BinarySource source) {
     var parent = source.readNodeReference();
     return new AnalyzerMetadata(parent)
+      ..constructorNameOffset = _readOffset(source)
       ..documentationComment = _readOptionalString(source);
   }
 
   @override
   void writeToBinary(AnalyzerMetadata metadata, kernel.BinarySink sink) {
     sink.writeNodeReference(metadata.parent);
+    _writeOffset(sink, metadata.constructorNameOffset);
     _writeOptionalString(sink, metadata.documentationComment);
   }
 
   /// Return the existing or new [AnalyzerMetadata] instance for the [node].
   AnalyzerMetadata _forWriting(kernel.Node node) {
     return mapping[node] ??= new AnalyzerMetadata(node);
+  }
+
+  int _readOffset(kernel.BinarySource source) {
+    return source.readUint32() - 1;
   }
 
   String _readOptionalString(kernel.BinarySource source) {
@@ -95,6 +114,12 @@ class AnalyzerMetadataRepository
     } else {
       return null;
     }
+  }
+
+  /// The [offset] value must be `>= -1`.
+  void _writeOffset(kernel.BinarySink sink, int offset) {
+    assert(offset >= -1);
+    sink.writeUInt32(1 + offset);
   }
 
   void _writeOptionalString(kernel.BinarySink sink, String str) {

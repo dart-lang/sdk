@@ -31,13 +31,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @override
   @failingTest
-  test_deprecatedAnnotationUse_instanceCreation_namedConstructor() async {
-    return super
-        .test_deprecatedAnnotationUse_instanceCreation_namedConstructor();
-  }
-
-  @override
-  @failingTest
   test_deprecatedAnnotationUse_named() async {
     return super.test_deprecatedAnnotationUse_named();
   }
@@ -46,13 +39,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @failingTest
   test_deprecatedAnnotationUse_positional() async {
     return super.test_deprecatedAnnotationUse_positional();
-  }
-
-  @override
-  @failingTest
-  test_deprecatedAnnotationUse_superConstructor_namedConstructor() async {
-    return super
-        .test_deprecatedAnnotationUse_superConstructor_namedConstructor();
   }
 
   @override
@@ -150,11 +136,5 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @failingTest
   test_required_typedef_function_param() async {
     return super.test_required_typedef_function_param();
-  }
-
-  @override
-  @failingTest
-  test_unusedElement_class_notUsed_inConstructorName() async {
-    return super.test_unusedElement_class_notUsed_inConstructorName();
   }
 }

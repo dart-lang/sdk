@@ -58,6 +58,7 @@ import 'kernel_builder.dart'
         KernelEnumBuilder,
         KernelFieldBuilder,
         KernelFormalParameterBuilder,
+        KernelFunctionBuilder,
         KernelFunctionTypeAliasBuilder,
         KernelFunctionTypeBuilder,
         KernelInvalidTypeBuilder,
@@ -89,7 +90,7 @@ class KernelLibraryBuilder
 
   final List<List> argumentsWithMissingDefaultValues = <List>[];
 
-  final List<KernelProcedureBuilder> nativeMethods = <KernelProcedureBuilder>[];
+  final List<KernelFunctionBuilder> nativeMethods = <KernelFunctionBuilder>[];
 
   final List<KernelTypeVariableBuilder> boundlessTypeVariables =
       <KernelTypeVariableBuilder>[];
@@ -575,7 +576,7 @@ class KernelLibraryBuilder
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
-      Object name,
+      final Object name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
@@ -587,17 +588,18 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
     endNestedDeclaration("#method").resolveTypes(typeVariables, this);
+    String procedureName;
     ProcedureBuilder procedure;
     String constructorName =
         isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {
-      name = constructorName;
+      procedureName = constructorName;
       procedure = new KernelConstructorBuilder(
           documentationComment,
           metadata,
           modifiers & ~abstractMask,
           returnType,
-          name,
+          constructorName,
           typeVariables,
           formals,
           this,
@@ -605,7 +607,11 @@ class KernelLibraryBuilder
           charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
+      loader.target.metadataCollector
+          ?.setConstructorNameOffset(procedure.target, name);
     } else {
+      assert(name is String);
+      procedureName = name;
       procedure = new KernelProcedureBuilder(
           documentationComment,
           metadata,
@@ -622,7 +628,7 @@ class KernelLibraryBuilder
           nativeMethodName);
     }
     checkTypeVariables(typeVariables, procedure);
-    addBuilder(name, procedure, charOffset);
+    addBuilder(procedureName, procedure, charOffset);
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
     }
@@ -645,18 +651,24 @@ class KernelLibraryBuilder
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration("#factory_method");
     Object name = constructorNameReference.name;
+
+    // Prepare the simple procedure name.
+    String procedureName;
     String constructorName =
         computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {
-      name = constructorName;
+      procedureName = constructorName;
+    } else {
+      procedureName = name;
     }
+
     assert(constructorNameReference.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
         documentationComment,
         metadata,
         staticMask | modifiers,
         returnType,
-        name,
+        procedureName,
         <TypeVariableBuilder>[],
         formals,
         ProcedureKind.Factory,
@@ -666,8 +678,13 @@ class KernelLibraryBuilder
         charEndOffset,
         nativeMethodName,
         redirectionTarget);
+
+    // Record the named constructor name offset.
+    loader.target.metadataCollector
+        ?.setConstructorNameOffset(procedure.target, name);
+
     currentDeclaration.addFactoryDeclaration(procedure, factoryDeclaration);
-    addBuilder(name, procedure, charOffset);
+    addBuilder(procedureName, procedure, charOffset);
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
     }
@@ -931,12 +948,12 @@ class KernelLibraryBuilder
     return argumentsWithMissingDefaultValues.length;
   }
 
-  void addNativeMethod(KernelProcedureBuilder method) {
+  void addNativeMethod(KernelFunctionBuilder method) {
     nativeMethods.add(method);
   }
 
   int finishNativeMethods() {
-    for (KernelProcedureBuilder method in nativeMethods) {
+    for (KernelFunctionBuilder method in nativeMethods) {
       method.becomeNative(loader);
     }
     return nativeMethods.length;

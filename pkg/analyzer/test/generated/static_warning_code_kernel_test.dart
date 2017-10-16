@@ -24,13 +24,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_argumentTypeNotAssignable_annotation_namedConstructor() async {
-    return super.test_argumentTypeNotAssignable_annotation_namedConstructor();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
   test_finalNotInitialized_inConstructor_1() async {
     return super.test_finalNotInitialized_inConstructor_1();
@@ -69,19 +62,5 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
   test_invalidOverride_nonDefaultOverridesDefault_named() async {
     return super.test_invalidOverride_nonDefaultOverridesDefault_named();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_newWithUndefinedConstructorDefault() async {
-    return super.test_newWithUndefinedConstructorDefault();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_redirectToMissingConstructor_unnamed() async {
-    return super.test_redirectToMissingConstructor_unnamed();
   }
 }
