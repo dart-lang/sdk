@@ -11877,7 +11877,7 @@ AstNode* Parser::LoadTypeParameter(PrimaryNode* primary) {
       Type& type = Type::ZoneHandle(Z, Type::DynamicType());
       return new (Z) TypeNode(primary_pos, type);
     }
-    if (FunctionLevel() > 0) {
+    if ((FunctionLevel() > 0) && innermost_function().HasGenericParent()) {
       // Make sure that the parent function type arguments are captured.
       CaptureFunctionTypeArguments();
     }
@@ -13008,6 +13008,10 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
         }
         ASSERT(type_parameter.IsFinalized());
         ASSERT(!type_parameter.IsMalformed());
+        if ((FunctionLevel() > 0) && innermost_function().HasGenericParent()) {
+          // Make sure that the parent function type arguments are captured.
+          CaptureFunctionTypeArguments();
+        }
         return new (Z) TypeNode(ident_pos, type_parameter);
       }
     }
@@ -13018,8 +13022,19 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
       TypeParameter& type_parameter = TypeParameter::ZoneHandle(
           Z, current_class().LookupTypeParameter(ident));
       if (!type_parameter.IsNull()) {
+        if (ParsingStaticMember()) {
+          const String& name = String::Handle(Z, type_parameter.name());
+          ReportError(ident_pos,
+                      "cannot access type parameter '%s' "
+                      "from static function",
+                      name.ToCString());
+        }
         type_parameter ^= CanonicalizeType(type_parameter);
         ASSERT(!type_parameter.IsMalformed());
+        if (FunctionLevel() > 0) {
+          // Make sure that the class instantiator is captured.
+          CaptureInstantiator();
+        }
         return new (Z) TypeNode(ident_pos, type_parameter);
       }
     }

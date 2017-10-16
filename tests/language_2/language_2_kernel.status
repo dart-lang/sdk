@@ -578,6 +578,7 @@ const_optional_args_negative_test: Fail # Fasta bug: Default parameter values mu
 const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: Non-const expression in field initializer.
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 regress_28278_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+regress_31057_test: CompileTimeError
 switch_bad_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
