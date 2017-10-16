@@ -11,7 +11,7 @@
 
 import 'dart:io';
 
-import 'package:dev_compiler/src/compiler/command.dart';
+import 'package:dev_compiler/src/analyzer/command.dart';
 
 main(List<String> arguments) {
   var args = ['--no-source-map', '--no-emit-metadata'];

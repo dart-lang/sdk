@@ -27,7 +27,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:dev_compiler/src/analyzer/context.dart';
-import 'package:dev_compiler/src/compiler/compiler.dart'
+import 'package:dev_compiler/src/analyzer/module_compiler.dart'
     show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
 import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat, addModuleFormatOptions, parseModuleFormatOption;

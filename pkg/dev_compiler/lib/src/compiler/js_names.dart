@@ -299,3 +299,22 @@ bool invalidStaticFieldName(String name) {
   }
   return false;
 }
+
+/// See ES6 spec (and `Object.getOwnPropertyNames(Object.prototype)`):
+///
+/// http://www.ecma-international.org/ecma-262/6.0/#sec-properties-of-the-object-prototype-object
+/// http://www.ecma-international.org/ecma-262/6.0/#sec-additional-properties-of-the-object.prototype-object
+final objectProperties = <String>[
+  "constructor",
+  "toString",
+  "toLocaleString",
+  "valueOf",
+  "hasOwnProperty",
+  "isPrototypeOf",
+  "propertyIsEnumerable",
+  "__defineGetter__",
+  "__lookupGetter__",
+  "__defineSetter__",
+  "__lookupSetter__",
+  "__proto__"
+].toSet();

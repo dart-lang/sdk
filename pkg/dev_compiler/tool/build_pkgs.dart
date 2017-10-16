@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-import 'package:dev_compiler/src/compiler/command.dart';
+import 'package:dev_compiler/src/analyzer/command.dart';
 
 final String scriptDirectory = p.dirname(p.fromUri(Platform.script));
 String outputDirectory;
