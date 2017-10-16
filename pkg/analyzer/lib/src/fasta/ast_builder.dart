@@ -2089,6 +2089,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, offset, length);
         return;
+      case "ASYNC_FOR_IN_WRONG_CONTEXT":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, offset, length);
+        return;
       case "ASYNC_KEYWORD_USED_AS_IDENTIFIER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, offset, length);

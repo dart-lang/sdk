@@ -153,10 +153,12 @@ const Code<Null> codeAwaitForNotAsync = messageAwaitForNotAsync;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitForNotAsync = const MessageCode(
     "AwaitForNotAsync",
-    analyzerCode: "INVALID_AWAIT_IN_FOR",
+    analyzerCode: "ASYNC_FOR_IN_WRONG_CONTEXT",
     dart2jsCode: "*ignored*",
     message:
-        r"""Asynchronous for-loop can only be used in 'async' or 'async*' methods.""");
+        r"""The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.""",
+    tip:
+        r"""Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAwaitNotAsync = messageAwaitNotAsync;
@@ -2097,11 +2099,11 @@ const Code<Null> codeInvalidAwaitFor = messageInvalidAwaitFor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidAwaitFor = const MessageCode("InvalidAwaitFor",
+    analyzerCode: "INVALID_AWAIT_IN_FOR",
     dart2jsCode: "INVALID_AWAIT_FOR",
     message:
-        r"""'await' is only supported in methods with an 'async' or 'async*' body modifier.""",
-    tip:
-        r"""Try adding 'async' or 'async*' to the method body or removing the 'await' keyword.""");
+        r"""The keyword 'await' isn't allowed for a normal 'for' statement.""",
+    tip: r"""Try removing the keyword, or use a for-each statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidInlineFunctionType =

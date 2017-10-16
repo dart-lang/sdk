@@ -3377,9 +3377,6 @@ class Parser {
     } else if (identical(value, 'if')) {
       return parseIfStatement(token);
     } else if (identical(value, 'await') && optional('for', token.next)) {
-      if (!inAsync) {
-        reportRecoverableError(token, fasta.messageAwaitForNotAsync);
-      }
       return parseForStatement(token, token.next);
     } else if (identical(value, 'for')) {
       return parseForStatement(null, token);
@@ -4358,9 +4355,15 @@ class Parser {
     token = expect('(', token);
     token = parseVariablesDeclarationOrExpressionOpt(token);
     if (optional('in', token)) {
+      if (awaitToken != null && !inAsync) {
+        reportRecoverableError(token, fasta.messageAwaitForNotAsync);
+      }
       return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
     } else if (optional(':', token)) {
       reportRecoverableError(token, fasta.messageColonInPlaceOfIn);
+      if (awaitToken != null && !inAsync) {
+        reportRecoverableError(token, fasta.messageAwaitForNotAsync);
+      }
       return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
     } else {
       if (awaitToken != null) {

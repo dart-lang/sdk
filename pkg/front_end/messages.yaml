@@ -388,13 +388,10 @@ StaticAfterFinal:
     - "class C { final static int f; }"
 
 InvalidAwaitFor:
-  template: "'await' is only supported in methods with an 'async' or 'async*' body modifier."
-  tip: "Try adding 'async' or 'async*' to the method body or removing the 'await' keyword."
+  template: "The keyword 'await' isn't allowed for a normal 'for' statement."
+  tip: "Try removing the keyword, or use a for-each statement."
+  analyzerCode: INVALID_AWAIT_IN_FOR
   dart2jsCode: INVALID_AWAIT_FOR
-  script: >
-    main(o) sync* {
-      await for (var e in o) {}
-    }
 
 InvalidSyncModifier:
   template: "Invalid modifier 'sync'."
@@ -575,9 +572,14 @@ BuiltInIdentifierInDeclaration:
   dart2jsCode: GENERIC
 
 AwaitForNotAsync:
-  template: "Asynchronous for-loop can only be used in 'async' or 'async*' methods."
-  analyzerCode: INVALID_AWAIT_IN_FOR
+  template: "The asynchronous for-in can only be used in functions marked with 'async' or 'async*'."
+  tip: "Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop."
+  analyzerCode: ASYNC_FOR_IN_WRONG_CONTEXT
   dart2jsCode: "*ignored*"
+  script: >
+    main(o) sync* {
+      await for (var e in o) {}
+    }
 
 FactoryNotSync:
   template: "Factories can't use 'async', 'async*', or 'sync*'."
