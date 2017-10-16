@@ -11,8 +11,6 @@ import '../transformations/mixin_full_resolution.dart' as transformMixins
     show transformLibraries;
 import '../transformations/continuation.dart' as transformAsync
     show transformLibraries;
-import '../transformations/erasure.dart' as tranformErasure
-    show transformLibraries;
 
 import 'targets.dart';
 
@@ -63,12 +61,6 @@ class VmTarget extends Target {
       {void logger(String msg)}) {
     transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries);
     logger?.call("Transformed mixin applications");
-
-    // TODO(ahe): Don't generate type variables in the first place.
-    if (!strongMode) {
-      tranformErasure.transformLibraries(coreTypes, libraries);
-      logger?.call("Erased type variables in generic methods");
-    }
 
     // TODO(kmillikin): Make this run on a per-method basis.
     transformAsync.transformLibraries(coreTypes, libraries);
