@@ -30,34 +30,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_covarianceChecks_returnFunction() async {
-    return super.test_covarianceChecks_returnFunction();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_generic_partial() async {
-    return super.test_generic_partial();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_instanceCreation() async {
-    return super.test_instanceCreation();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30812')
-  test_redirectingConstructor_propagation() async {
-    return super.test_redirectingConstructor_propagation();
-  }
 }
 
 @reflectiveTest

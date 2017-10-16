@@ -52,7 +52,7 @@ class LimitedBinaryPrinter extends BinaryPrinter {
   @override
   void writeNode(Node node) {
     if (node is Library && !predicate(node)) return;
-    node.accept(this);
+    super.writeNode(node);
   }
 
   @override
