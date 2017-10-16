@@ -563,8 +563,6 @@ script1_negative_test: Fail
 script2_negative_test: Fail
 setter0_test: Fail
 setter4_test: Fail
-setter_declaration2_negative_test: Fail
-setter_declaration_negative_test: Fail
 setter_override_test/01_generated: Fail
 setter_override_test/02_generated: Fail
 setter_override_test/none_generated: Fail

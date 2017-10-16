@@ -651,6 +651,11 @@ GetterWithFormals:
   analyzerCode: GETTER_WITH_PARAMETERS
   dart2jsCode: "*ignored*"
 
+SetterWithWrongNumberOfFormals:
+  template: "A setter should have exactly one formal parameter."
+  analyzerCode: WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
+  dart2jsCode: "*ignored*"
+
 CatchSyntax:
   template: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   tip: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."

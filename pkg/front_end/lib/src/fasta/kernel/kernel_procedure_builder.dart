@@ -73,7 +73,7 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         isRedirectingGenerativeConstructorImplementation;
 
-import 'kernel_shadow_ast.dart' show ShadowProcedure;
+import 'kernel_shadow_ast.dart' show ShadowProcedure, ShadowVariableDeclaration;
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
@@ -144,6 +144,18 @@ abstract class KernelFunctionBuilder
           result.requiredParameterCount++;
         }
       }
+    }
+    if (isSetter && (formals?.length != 1 || formals[0].isOptional)) {
+      // Replace illegal parameters by single dummy parameter.
+      // Do this after building the parameters, since the diet listener
+      // assumes that parameters are built, even if illegal in number.
+      VariableDeclaration parameter =
+          new ShadowVariableDeclaration("#synthetic", 0);
+      result.positionalParameters.clear();
+      result.positionalParameters.add(parameter);
+      parameter.parent = result;
+      result.namedParameters.clear();
+      result.requiredParameterCount = 1;
     }
     if (returnType != null) {
       result.returnType = returnType.build(library);
