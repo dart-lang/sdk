@@ -563,8 +563,9 @@ AwaitNotAsync:
   dart2jsCode: "*ignored*"
 
 BuiltInIdentifierAsType:
-  template: "Can't use '#lexeme' as a type."
-  analyzerCode: EXPECTED_TYPE_NAME
+  template: "The built-in identifier '#lexeme' can't be used as a type."
+  tip: "Try correcting the name to match an existing type."
+  analyzerCode: BUILT_IN_IDENTIFIER_AS_TYPE
   dart2jsCode: EXTRANEOUS_MODIFIER
 
 BuiltInIdentifierInDeclaration:

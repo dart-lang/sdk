@@ -3876,20 +3876,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     super.test_parseCompilationUnit_exportAsPrefix_parameterized();
   }
 
-  @failingTest
-  void test_parseCompilationUnit_operatorAsPrefix_parameterized2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseCompilationUnit_operatorAsPrefix_parameterized();
-    assertNoErrors();
-  }
-
-  @failingTest
-  void test_parseCompilationUnit_typedefAsPrefix2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseCompilationUnit_typedefAsPrefix();
-    assertNoErrors();
-  }
-
   @override
   @failingTest
   void test_parseCompilationUnitMember_abstractAsPrefix() {

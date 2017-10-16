@@ -171,20 +171,24 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateBuiltInIdentifierAsType =
     const Template<Message Function(Token token)>(
-        messageTemplate: r"""Can't use '#lexeme' as a type.""",
+        messageTemplate:
+            r"""The built-in identifier '#lexeme' can't be used as a type.""",
+        tipTemplate: r"""Try correcting the name to match an existing type.""",
         withArguments: _withArgumentsBuiltInIdentifierAsType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(Token token)> codeBuiltInIdentifierAsType =
     const Code<Message Function(Token token)>(
         "BuiltInIdentifierAsType", templateBuiltInIdentifierAsType,
-        analyzerCode: "EXPECTED_TYPE_NAME", dart2jsCode: "EXTRANEOUS_MODIFIER");
+        analyzerCode: "BUILT_IN_IDENTIFIER_AS_TYPE",
+        dart2jsCode: "EXTRANEOUS_MODIFIER");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBuiltInIdentifierAsType(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeBuiltInIdentifierAsType,
-      message: """Can't use '$lexeme' as a type.""",
+      message: """The built-in identifier '$lexeme' can't be used as a type.""",
+      tip: """Try correcting the name to match an existing type.""",
       arguments: {'token': token});
 }
 

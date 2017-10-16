@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
@@ -14119,8 +14120,9 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
     var errorCodes = <ErrorCode>[];
     if (usingFastaParser) {
-      // built-in "abstract" cannot be used as a type
-      errorCodes.add(ParserErrorCode.EXPECTED_TYPE_NAME);
+      // This used to be deferred to later in the pipeline, but is now being
+      // reported by the parser.
+      errorCodes.add(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
     }
     CompilationUnit unit = parseCompilationUnit(
         'abstract<dynamic> _abstract = new abstract.A();', errorCodes);
@@ -14206,8 +14208,9 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
     if (usingFastaParser) {
-      // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.EXPECTED_TYPE_NAME]);
+      // This used to be deferred to later in the pipeline, but is now being
+      // reported by the parser.
+      assertErrorsWithCodes([CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     } else {
       assertNoErrors();
     }
@@ -14255,8 +14258,9 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
     if (usingFastaParser) {
-      // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.EXPECTED_TYPE_NAME]);
+      // This used to be deferred to later in the pipeline, but is now being
+      // reported by the parser.
+      assertErrorsWithCodes([CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     } else {
       assertNoErrors();
     }

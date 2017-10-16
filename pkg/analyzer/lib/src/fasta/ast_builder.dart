@@ -2097,6 +2097,14 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, offset, length);
         return;
+      case "BUILT_IN_IDENTIFIER_AS_TYPE":
+        String name = stringOrTokenLexeme();
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+            offset,
+            length,
+            [name]);
+        return;
       case "COLON_IN_PLACE_OF_IN":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
