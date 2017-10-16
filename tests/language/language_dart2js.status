@@ -706,12 +706,6 @@ switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-syntax_test/28: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/29: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/30: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/31: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/32: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/33: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
 syntax_test/none: CompileTimeError
 top_level_getter_no_setter1_test/01: RuntimeError
 top_level_getter_no_setter2_test/01: RuntimeError

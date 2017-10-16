@@ -1162,6 +1162,7 @@ vm/async_await_catch_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
@@ -1536,6 +1537,7 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
+nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
 nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
@@ -1598,12 +1600,12 @@ switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
-syntax_test/28: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/29: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/30: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/31: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/32: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
-syntax_test/33: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
+syntax_test/28: MissingCompileTimeError
+syntax_test/29: MissingCompileTimeError
+syntax_test/30: MissingCompileTimeError
+syntax_test/31: MissingCompileTimeError
+syntax_test/32: MissingCompileTimeError
+syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
@@ -1612,6 +1614,7 @@ typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
@@ -1982,6 +1985,7 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
+nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 no_such_method_native_test: RuntimeError
