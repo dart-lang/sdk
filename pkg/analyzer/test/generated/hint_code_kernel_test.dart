@@ -19,18 +19,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @override
   @failingTest
-  test_deprecatedAnnotationUse_export() async {
-    return super.test_deprecatedAnnotationUse_export();
-  }
-
-  @override
-  @failingTest
-  test_deprecatedAnnotationUse_import() async {
-    return super.test_deprecatedAnnotationUse_import();
-  }
-
-  @override
-  @failingTest
   test_deprecatedAnnotationUse_named() async {
     return super.test_deprecatedAnnotationUse_named();
   }
@@ -70,12 +58,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @failingTest
   test_invalidRequiredParam_valid() async {
     return super.test_invalidRequiredParam_valid();
-  }
-
-  @override
-  @failingTest
-  test_js_lib_OK() async {
-    return super.test_js_lib_OK();
   }
 
   @override

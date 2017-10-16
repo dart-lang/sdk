@@ -6633,11 +6633,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_unlinkedDefiningUnit != null) {
-      _metadata ??= _buildAnnotations(
-          _definingCompilationUnit as CompilationUnitElementImpl,
-          _unlinkedDefiningUnit.libraryAnnotations);
-      return _metadata;
+    if (_metadata == null) {
+      if (_kernelContext != null) {
+        CompilationUnitElementImpl definingUnit = _definingCompilationUnit;
+        _metadata = definingUnit._kernelContext
+            .buildAnnotations(_kernelContext.library.annotations);
+      }
+      if (_unlinkedDefiningUnit != null) {
+        _metadata = _buildAnnotations(
+            _definingCompilationUnit as CompilationUnitElementImpl,
+            _unlinkedDefiningUnit.libraryAnnotations);
+        return _metadata;
+      }
     }
     return super.metadata;
   }

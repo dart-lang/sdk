@@ -334,12 +334,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
-  test_metadata_libraryDirective() async {
-    await super.test_metadata_libraryDirective();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
   test_metadata_partDirective() async {
     await super.test_metadata_partDirective();
   }

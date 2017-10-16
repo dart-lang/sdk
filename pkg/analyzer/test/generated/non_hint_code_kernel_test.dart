@@ -24,13 +24,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_deprecatedMemberUse_inDeprecatedLibrary() async {
-    return super.test_deprecatedMemberUse_inDeprecatedLibrary();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_unusedImport_annotationOnDirective() async {
     return super.test_unusedImport_annotationOnDirective();
   }
