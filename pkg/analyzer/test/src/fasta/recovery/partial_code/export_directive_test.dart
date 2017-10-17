@@ -12,36 +12,21 @@ main() {
 
 class ExportDirectivesTest extends PartialCodeTest {
   buildAll() {
-    List<bool> allExceptEof = <bool>[
-      false,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true
+    List<String> allExceptEof = <String>[
+      'import',
+      'export',
+      'part',
+      'class',
+      'typedef',
+      'functionVoid',
+      'functionNonVoid',
+      'var',
+      'const',
+      'final',
+      'getter',
+      'setter'
     ];
-    List<bool> onlyConstAndFinal = <bool>[
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      false
-    ];
+    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'export_directive',
         [

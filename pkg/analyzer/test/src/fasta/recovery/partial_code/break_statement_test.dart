@@ -17,24 +17,7 @@ class BreakStatementTest extends PartialCodeTest {
         [
           new TestDescriptor(
               'keyword', 'break', [ParserErrorCode.EXPECTED_TOKEN], "break;",
-              failing: [
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                true,
-                true,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false
-              ]),
+              failing: ['labeled', 'localFunctionNonVoid']),
           new TestDescriptor(
               'label', 'break a', [ParserErrorCode.EXPECTED_TOKEN], "break a;"),
         ],

@@ -12,19 +12,7 @@ main() {
 
 class PartDirectivesTest extends PartialCodeTest {
   buildAll() {
-    List<bool> onlyConstAndFinal = <bool>[
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      false
-    ];
+    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'part_directive',
         [

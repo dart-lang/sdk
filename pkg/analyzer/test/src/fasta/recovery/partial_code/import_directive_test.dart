@@ -12,21 +12,7 @@ main() {
 
 class ImportDirectivesTest extends PartialCodeTest {
   buildAll() {
-    List<bool> onlyConstAndFinal = <bool>[
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      false
-    ];
+    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'import_directive',
         [

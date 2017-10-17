@@ -12,36 +12,21 @@ main() {
 
 class LibraryDirectivesTest extends PartialCodeTest {
   buildAll() {
-    List<bool> exceptAtEof = [
-      false,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true
+    List<String> allExceptEof = <String>[
+      'import',
+      'export',
+      'part',
+      'class',
+      'typedef',
+      'functionVoid',
+      'functionNonVoid',
+      'var',
+      'const',
+      'final',
+      'getter',
+      'setter'
     ];
-    List<bool> onlyConstAndFinal = <bool>[
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      false
-    ];
+    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'library_directive',
         [
@@ -53,7 +38,7 @@ class LibraryDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'library _s_;',
-              failing: exceptAtEof),
+              failing: allExceptEof),
           new TestDescriptor('name', 'library lib',
               [ParserErrorCode.EXPECTED_TOKEN], 'library lib;',
               failing: onlyConstAndFinal),
@@ -65,7 +50,7 @@ class LibraryDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'library lib._s_;',
-              failing: exceptAtEof),
+              failing: allExceptEof),
           new TestDescriptor('nameDotName', 'library lib.a',
               [ParserErrorCode.EXPECTED_TOKEN], 'library lib.a;',
               failing: onlyConstAndFinal),

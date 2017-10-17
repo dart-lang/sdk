@@ -108,6 +108,14 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
           _buildTestForDescriptorAndSuffix(
               descriptor, suffixes[i], i + 1, head, tail);
         }
+        if (descriptor.failing != null) {
+          test('${descriptor.name}_failingList', () {
+            Set<String> failing = new Set.from(descriptor.failing);
+            failing.remove('eof');
+            failing.removeAll(suffixes.map((TestSuffix suffix) => suffix.name));
+            expect(failing, isEmpty);
+          });
+        }
       }
     });
   }
@@ -142,8 +150,9 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       //
       // Run the test.
       //
-      List<bool> failing = descriptor.failing;
-      if (descriptor.allFailing || (failing != null && failing[suffixIndex])) {
+      List<String> failing = descriptor.failing;
+      if (descriptor.allFailing ||
+          (failing != null && failing.contains(suffix.name))) {
         bool failed = false;
         try {
           testRecovery(
@@ -194,10 +203,10 @@ class TestDescriptor {
   final bool allFailing;
 
   /**
-   * A list containing one flag per expected test that indicates whether that
-   * specific test is expected to fail.
+   * A list containing the names of the suffixes for which the test is expected
+   * to fail.
    */
-  final List<bool> failing;
+  final List<String> failing;
 
   /**
    * Initialize a newly created test descriptor.
