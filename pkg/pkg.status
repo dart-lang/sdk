@@ -48,6 +48,7 @@ front_end/test/fasta/compile_test: Pass, Slow
 front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/fasta/outline_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
+front_end/tool/incremental_perf_test: Slow, Pass
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
@@ -108,7 +109,6 @@ kernel/test/metadata_test: Skip # Issue 28629
 
 [ $runtime == vm && ! $use_sdk ]
 front_end/tool/perf_test: Skip # Issue 28698
-front_end/tool/incremental_perf_test: Slow, Pass
 
 [ $runtime == vm && $use_sdk ]
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
