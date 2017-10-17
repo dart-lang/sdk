@@ -51,7 +51,7 @@ function update_suite {
   echo "  - host-checked tests"
   ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch \
     --host-checked \
-    --dart2js-options="--kernel-binaries=$binaries_dir" \
+    --dart2js-options="--platform-binaries=$binaries_dir" \
     --dart2js-with-kernel \
     $suite > $tmp/$suite-checked.txt
   $dart $update_script checked $tmp/$suite-checked.txt
