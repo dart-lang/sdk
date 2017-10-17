@@ -39,16 +39,21 @@ class FieldInitializerInferenceNode extends InferenceNode {
   void resolveInternal() {
     if (_typeInferenceEngine.strongMode) {
       var typeInferrer = _typeInferenceEngine.getFieldTypeInferrer(field);
-      var inferredType = typeInferrer.inferDeclarationType(
-          typeInferrer.inferFieldTopLevel(field, null, true));
-      if (isCircular) {
-        // TODO(paulberry): report the appropriate error.
-        inferredType = const DynamicType();
+      // Note: in the event that there is erroneous code, it's possible for
+      // typeInferrer to be null.  If this happens, just skip type inference for
+      // this field.
+      if (typeInferrer != null) {
+        var inferredType = typeInferrer.inferDeclarationType(
+            typeInferrer.inferFieldTopLevel(field, null, true));
+        if (isCircular) {
+          // TODO(paulberry): report the appropriate error.
+          inferredType = const DynamicType();
+        }
+        field.setInferredType(
+            _typeInferenceEngine, typeInferrer.uri, inferredType);
+        // TODO(paulberry): if type != null, then check that the type of the
+        // initializer is assignable to it.
       }
-      field.setInferredType(
-          _typeInferenceEngine, typeInferrer.uri, inferredType);
-      // TODO(paulberry): if type != null, then check that the type of the
-      // initializer is assignable to it.
     }
     // TODO(paulberry): the following is a hack so that outlines don't contain
     // initializers.  But it means that we rebuild the initializers when doing

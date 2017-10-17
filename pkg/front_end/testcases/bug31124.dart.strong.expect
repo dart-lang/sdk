@@ -1,0 +1,6 @@
+library;
+import self as self;
+
+static method #main() → dynamic {
+  throw "pkg/front_end/testcases/bug31124.dart:1:1: Error: Duplicated name: a\nvar a = () => 'b';a();\n^";
+}

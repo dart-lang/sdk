@@ -1,0 +1,5 @@
+library;
+import self as self;
+
+static field dynamic a;
+static abstract method a() → dynamic;

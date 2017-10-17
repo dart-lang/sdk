@@ -11,6 +11,7 @@ accessors: Fail
 async_function: Fail
 await: Fail
 bug30695: RuntimeError
+bug31124: RuntimeError # Test has an intentional error
 call: Fail
 cascade: Fail
 casts: Fail
