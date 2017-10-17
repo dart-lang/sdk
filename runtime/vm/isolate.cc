@@ -1830,40 +1830,29 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     api_state()->VisitObjectPointers(visitor);
   }
 
-  // Visit the current tag which is stored in the isolate.
+  // Visit the objects directly referenced from the isolate structure.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&current_tag_));
-
-  // Visit the default tag which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&default_tag_));
-
-  // Visit the tag table which is stored in the isolate.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
-
-  if (background_compiler() != NULL) {
-    background_compiler()->VisitPointers(visitor);
-  }
-
-  // Visit the deoptimized code array which is stored in the isolate.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
-
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
-
 #if !defined(PRODUCT)
-  // Visit the pending service extension calls.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
-
-  // Visit the registered service extension handlers.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&registered_service_extension_handlers_));
 #endif  // !defined(PRODUCT)
-
   // Visit the boxed_field_list_.
   // 'boxed_field_list_' access via mutator and background compilation threads
   // is guarded with a monitor. This means that we can visit it only
   // when at safepoint or the field_list_mutex_ lock has been taken.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&boxed_field_list_));
+
+  if (background_compiler() != NULL) {
+    background_compiler()->VisitPointers(visitor);
+  }
 
 #if !defined(PRODUCT)
   // Visit objects in the debugger.
