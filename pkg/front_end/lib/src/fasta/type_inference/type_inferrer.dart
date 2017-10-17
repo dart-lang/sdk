@@ -20,6 +20,7 @@ import 'package:kernel/ast.dart'
         BottomType,
         Class,
         DartType,
+        DispatchCategory,
         DynamicType,
         Expression,
         Field,
@@ -850,38 +851,62 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       isOverloadedArithmeticOperator = typeSchemaEnvironment
           .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
     }
+    var calleeType =
+        getCalleeFunctionType(interfaceMember, receiverType, !isImplicitCall);
+    DispatchCategory callKind;
+    if (interfaceMember is Field ||
+        interfaceMember is Procedure &&
+            interfaceMember.kind == ProcedureKind.Getter) {
+      var getType = getCalleeType(interfaceMember, receiverType);
+      if (getType is DynamicType) {
+        callKind = DispatchCategory.dynamicDispatch;
+      } else {
+        callKind = DispatchCategory.closure;
+      }
+    } else if (receiver is ThisExpression) {
+      callKind = DispatchCategory.viaThis;
+    } else if (identical(interfaceMember, 'call')) {
+      callKind = DispatchCategory.closure;
+    } else if (interfaceMember == null) {
+      callKind = DispatchCategory.dynamicDispatch;
+    } else {
+      callKind = DispatchCategory.interface;
+    }
+    desugaredInvocation?.dispatchCategory = callKind;
+    bool checkReturn = false;
+    if (callKind == DispatchCategory.interface &&
+        interfaceMember is Procedure) {
+      checkReturn = interfaceMember.isGenericContravariant;
+    }
+    var inferredType = inferInvocation(typeContext, typeNeeded || checkReturn,
+        fileOffset, calleeType, calleeType.returnType, arguments,
+        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        receiverType: receiverType);
     if (instrumentation != null) {
       int offset = arguments.fileOffset == -1
           ? expression.fileOffset
           : arguments.fileOffset;
-      if (interfaceMember is Field ||
-          interfaceMember is Procedure &&
-              interfaceMember.kind == ProcedureKind.Getter) {
-        var getType = getCalleeType(interfaceMember, receiverType);
-        if (getType is DynamicType) {
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
-              new InstrumentationValueLiteral('dynamic'));
-        } else {
+      switch (callKind) {
+        case DispatchCategory.closure:
           instrumentation.record(Uri.parse(uri), offset, 'callKind',
               new InstrumentationValueLiteral('closure'));
-        }
-      } else if (receiver is ThisExpression) {
-        instrumentation.record(Uri.parse(uri), offset, 'callKind',
-            new InstrumentationValueLiteral('this'));
-      } else if (identical(interfaceMember, 'call')) {
-        instrumentation.record(Uri.parse(uri), offset, 'callKind',
-            new InstrumentationValueLiteral('closure'));
-      } else if (interfaceMember == null) {
-        instrumentation.record(Uri.parse(uri), offset, 'callKind',
-            new InstrumentationValueLiteral('dynamic'));
+          break;
+        case DispatchCategory.dynamicDispatch:
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('dynamic'));
+          break;
+        case DispatchCategory.viaThis:
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('this'));
+          break;
+        default:
+          break;
+      }
+      if (checkReturn) {
+        instrumentation.record(Uri.parse(uri), offset, 'checkReturn',
+            new InstrumentationValueForType(inferredType));
       }
     }
-    var calleeType =
-        getCalleeFunctionType(interfaceMember, receiverType, !isImplicitCall);
-    var inferredType = inferInvocation(typeContext, typeNeeded, fileOffset,
-        calleeType, calleeType.returnType, arguments,
-        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
-        receiverType: receiverType);
     listener.methodInvocationExit(
         expression, arguments, isImplicitCall, inferredType);
     return inferredType;

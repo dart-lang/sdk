@@ -17,7 +17,7 @@ class C<T extends core::Object> extends core::Object {
   method g3(generic-covariant-impl generic-covariant-interface self::C<self::C::T> c, generic-covariant-impl generic-covariant-interface self::C::T x) → void {
     c.{self::C::f}(x);
   }
-  method g4() → (self::C::T) → dynamic
+  generic-contravariant method g4() → (self::C::T) → dynamic
     return this.{self::C::f};
 }
 class D extends self::C<core::int> {
@@ -27,6 +27,7 @@ class D extends self::C<core::int> {
   abstract forwarding-stub method f(generic-covariant-impl core::int x) → void;
   abstract forwarding-stub method g1(generic-covariant-impl core::int x) → void;
   abstract forwarding-stub method g2(generic-covariant-impl core::int x) → void;
+  abstract forwarding-stub method g4() → (core::int) → dynamic;
   abstract forwarding-stub method g3(generic-covariant-impl self::C<core::int> c, generic-covariant-impl core::int x) → void;
 }
 class E extends self::C<core::num> {
@@ -36,10 +37,11 @@ class E extends self::C<core::num> {
   method f(covariant generic-covariant-impl core::int x) → void {}
   abstract forwarding-stub method g1(generic-covariant-impl core::num x) → void;
   abstract forwarding-stub method g2(generic-covariant-impl core::num x) → void;
+  abstract forwarding-stub method g4() → (core::num) → dynamic;
   abstract forwarding-stub method g3(generic-covariant-impl self::C<core::num> c, generic-covariant-impl core::num x) → void;
 }
 static method test() → dynamic {
-  (core::Object) → dynamic x = new self::D::•().{self::C::g4}() as (core::Object) → dynamic;
+  (core::Object) → dynamic x = new self::D::•().{self::D::g4}() as (core::Object) → dynamic;
   x.call("hi");
   new self::E::•().{self::E::g1}(1.5);
 }

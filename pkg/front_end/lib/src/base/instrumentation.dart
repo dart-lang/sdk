@@ -62,6 +62,9 @@ class InstrumentationValueForForwardingStub extends InstrumentationValue {
     }
 
     var function = procedure.function;
+    if (procedure.isGenericContravariant) {
+      buffer.write('genericContravariant ');
+    }
     buffer.write(function.returnType);
     buffer.write(' ');
     switch (procedure.kind) {

@@ -68,7 +68,7 @@ class FieldInitializerInferenceNode extends InferenceNode {
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a covariant fashion.
 class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
-  bool _inCovariantContext = true;
+  bool inCovariantContext = true;
 
   final List<TypeParameter> _typeParametersToSearchFor;
 
@@ -81,7 +81,7 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
   bool visitFunctionType(FunctionType node) {
     if (node.returnType.accept(this)) return true;
     try {
-      _inCovariantContext = !_inCovariantContext;
+      inCovariantContext = !inCovariantContext;
       for (var parameter in node.positionalParameters) {
         if (parameter.accept(this)) return true;
       }
@@ -90,7 +90,7 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
       }
       return false;
     } finally {
-      _inCovariantContext = !_inCovariantContext;
+      inCovariantContext = !inCovariantContext;
     }
   }
 
@@ -109,7 +109,7 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return _inCovariantContext &&
+    return inCovariantContext &&
         _typeParametersToSearchFor.contains(node.parameter);
   }
 }
