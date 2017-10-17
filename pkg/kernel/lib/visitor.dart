@@ -6,6 +6,8 @@ library kernel.ast.visitor;
 import 'ast.dart';
 
 abstract class ExpressionVisitor<R> {
+  const ExpressionVisitor();
+
   R defaultExpression(Expression node) => null;
   R defaultBasicLiteral(BasicLiteral node) => defaultExpression(node);
 
@@ -62,6 +64,8 @@ abstract class ExpressionVisitor<R> {
 }
 
 abstract class StatementVisitor<R> {
+  const StatementVisitor();
+
   R defaultStatement(Statement node) => null;
 
   R visitInvalidStatement(InvalidStatement node) => defaultStatement(node);
@@ -91,6 +95,8 @@ abstract class StatementVisitor<R> {
 }
 
 abstract class MemberVisitor<R> {
+  const MemberVisitor();
+
   R defaultMember(Member node) => null;
 
   R visitConstructor(Constructor node) => defaultMember(node);
@@ -99,6 +105,8 @@ abstract class MemberVisitor<R> {
 }
 
 abstract class InitializerVisitor<R> {
+  const InitializerVisitor();
+
   R defaultInitializer(Initializer node) => null;
 
   R visitInvalidInitializer(InvalidInitializer node) =>
@@ -116,6 +124,8 @@ class TreeVisitor<R>
         StatementVisitor<R>,
         MemberVisitor<R>,
         InitializerVisitor<R> {
+  const TreeVisitor();
+
   R defaultTreeNode(TreeNode node) => null;
 
   // Expressions
@@ -249,6 +259,8 @@ class DartTypeVisitor<R> {
 }
 
 class MemberReferenceVisitor<R> {
+  const MemberReferenceVisitor();
+
   R defaultMemberReference(Member node) => null;
 
   R visitFieldReference(Field node) => defaultMemberReference(node);
@@ -258,6 +270,8 @@ class MemberReferenceVisitor<R> {
 
 class Visitor<R> extends TreeVisitor<R>
     implements DartTypeVisitor<R>, MemberReferenceVisitor<R> {
+  const Visitor();
+
   /// The catch-all case, except for references.
   R defaultNode(Node node) => null;
   R defaultTreeNode(TreeNode node) => defaultNode(node);
@@ -290,6 +304,8 @@ class Visitor<R> extends TreeVisitor<R>
 }
 
 class RecursiveVisitor<R> extends Visitor<R> {
+  const RecursiveVisitor();
+
   R defaultNode(Node node) {
     node.visitChildren(this);
     return null;
@@ -321,6 +337,8 @@ class RecursiveVisitor<R> extends Visitor<R> {
 ///     }
 ///
 class Transformer extends TreeVisitor<TreeNode> {
+  const Transformer();
+
   /// Replaces a use of a type.
   ///
   /// By default, recursion stops at this point.
@@ -335,6 +353,8 @@ class Transformer extends TreeVisitor<TreeNode> {
 }
 
 abstract class ExpressionVisitor1<R, T> {
+  const ExpressionVisitor1();
+
   R defaultExpression(Expression node, T arg) => null;
   R defaultBasicLiteral(BasicLiteral node, T arg) =>
       defaultExpression(node, arg);
@@ -407,6 +427,8 @@ abstract class ExpressionVisitor1<R, T> {
 }
 
 abstract class StatementVisitor1<R, T> {
+  const StatementVisitor1();
+
   R defaultStatement(Statement node, T arg) => null;
 
   R visitInvalidStatement(InvalidStatement node, T arg) =>
