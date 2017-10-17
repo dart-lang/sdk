@@ -104,6 +104,8 @@ Future _main(List<String> argv) async {
   var sdkOut = path.join(outDir, 'lib');
   var packagesFile = argv[4];
 
+  await new Directory.fromUri(outDirUri).delete(recursive: true);
+
   // Parse libraries.dart
   var libContents = readInputFile(path.join(
       sdkLibIn, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'));
