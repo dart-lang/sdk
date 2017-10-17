@@ -254,6 +254,13 @@ super method declares ${superParameter.type}
       return;
     }
 
+    // Permit any invocation on Function type.
+    if (receiver == environment.rawFunctionType &&
+        where is MethodInvocation &&
+        where.name.name == 'call') {
+      return;
+    }
+
     fail(where, 'Unresolved method invocation');
   }
 
