@@ -192,20 +192,8 @@ abstract class ChainContext {
               return doStep(result.output);
             }
           }
-          if (description.multitestExpectations != null) {
-            if (isError(description.multitestExpectations)) {
-              result = toNegativeTestResult(
-                  result, description.multitestExpectations);
-            }
-          } else if (lastStep == lastStepRun &&
-              description.shortName.endsWith("negative_test")) {
-            if (result.outcome == Expectation.Pass) {
-              result.addLog("Negative test didn't report an error.\n");
-            } else if (result.outcome == Expectation.Fail) {
-              result.addLog("Negative test reported an error as expeceted.\n");
-            }
-            result = toNegativeTestResult(result);
-          }
+          result =
+              processTestResult(description, result, lastStep == lastStepRun);
           if (!expectedOutcomes.contains(result.outcome) &&
               !expectedOutcomes.contains(result.outcome.canonical)) {
             result.addLog("$sb");
@@ -260,6 +248,24 @@ abstract class ChainContext {
     } else {
       throw "${suite.uri} isn't a directory";
     }
+  }
+
+  Result processTestResult(
+      TestDescription description, Result result, bool last) {
+    if (description.multitestExpectations != null) {
+      if (isError(description.multitestExpectations)) {
+        result =
+            toNegativeTestResult(result, description.multitestExpectations);
+      }
+    } else if (last && description.shortName.endsWith("negative_test")) {
+      if (result.outcome == Expectation.Pass) {
+        result.addLog("Negative test didn't report an error.\n");
+      } else if (result.outcome == Expectation.Fail) {
+        result.addLog("Negative test reported an error as expeceted.\n");
+      }
+      result = toNegativeTestResult(result);
+    }
+    return result;
   }
 
   Result toNegativeTestResult(Result result, [Set<String> expectations]) {
