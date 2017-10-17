@@ -1587,8 +1587,6 @@ regress_28278_test: CompileTimeError
 regress_28341_test: RuntimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ko).
-setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-setter_declaration_negative_test: Fail
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
@@ -2037,8 +2035,6 @@ regress_28278_test: CompileTimeError
 regress_28341_test: RuntimeError
 regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: Crash # Issue 29784
-setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-setter_declaration_negative_test: Fail
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stack_trace_test: RuntimeError

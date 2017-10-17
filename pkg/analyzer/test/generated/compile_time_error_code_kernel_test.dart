@@ -330,6 +330,62 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_uriWithInterpolation_nonConstant() async {
     return super.test_uriWithInterpolation_nonConstant();
   }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_function_named() async {
+    return super.test_wrongNumberOfParametersForSetter_function_named();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_function_optional() async {
+    return super.test_wrongNumberOfParametersForSetter_function_optional();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_function_tooFew() async {
+    return super.test_wrongNumberOfParametersForSetter_function_tooFew();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_function_tooMany() async {
+    return super.test_wrongNumberOfParametersForSetter_function_tooMany();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_method_named() async {
+    return super.test_wrongNumberOfParametersForSetter_method_named();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_method_optional() async {
+    return super.test_wrongNumberOfParametersForSetter_method_optional();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_method_tooFew() async {
+    return super.test_wrongNumberOfParametersForSetter_method_tooFew();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_method_tooMany() async {
+    return super.test_wrongNumberOfParametersForSetter_method_tooMany();
+  }
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.

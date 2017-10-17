@@ -3159,6 +3159,17 @@ const MessageCode messageSetterNotSync = const MessageCode("SetterNotSync",
     message: r"""Setters can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSetterWithWrongNumberOfFormals =
+    messageSetterWithWrongNumberOfFormals;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSetterWithWrongNumberOfFormals = const MessageCode(
+    "SetterWithWrongNumberOfFormals",
+    analyzerCode: "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER",
+    dart2jsCode: "*ignored*",
+    message: r"""A setter should have exactly one formal parameter.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStackOverflow = messageStackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -28,12 +28,6 @@ Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t06
 Language/Classes/Constructors/Generative_Constructors/syntax_t04: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/syntax_t05: MissingCompileTimeError
 Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
-Language/Classes/Setters/parameter_t01: MissingCompileTimeError
-Language/Classes/Setters/parameter_t02: MissingCompileTimeError
-Language/Classes/Setters/parameter_t03: MissingCompileTimeError
-Language/Classes/Setters/parameter_t04: MissingCompileTimeError
-Language/Classes/Setters/parameter_t06: MissingCompileTimeError
-Language/Classes/Setters/parameter_t08: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
@@ -140,8 +134,6 @@ Language/Classes/Instance_Variables/constant_t01: Crash
 
 # dartk: JIT failures
 [ $compiler == dartk ]
-Language/Classes/Setters/parameter_t05: MissingCompileTimeError
-Language/Classes/Setters/parameter_t07: DartkCrash
 Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError
