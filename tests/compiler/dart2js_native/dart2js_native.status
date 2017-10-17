@@ -29,7 +29,6 @@ bound_closure_super_test: RuntimeError
 compute_this_script_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/types.dart': Failed assertion: line 63 pos 12: '!result.isEmpty': is not true.
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
-native_exceptions1_frog_test: Crash # type 'KernelConstructorBuilder' is not a subtype of type 'KernelProcedureBuilder' of 'method' where
 native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: RuntimeError
 native_mirror_test: RuntimeError
