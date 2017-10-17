@@ -30,7 +30,8 @@ class DirectCallMetadataRepository
   final String tag = 'vm.direct-call.metadata';
 
   @override
-  final Map<Node, DirectCallMetadata> mapping = <Node, DirectCallMetadata>{};
+  final Map<TreeNode, DirectCallMetadata> mapping =
+      <TreeNode, DirectCallMetadata>{};
 
   @override
   void writeToBinary(DirectCallMetadata metadata, BinarySink sink) {

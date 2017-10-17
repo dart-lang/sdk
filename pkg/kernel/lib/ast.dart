@@ -5010,7 +5010,7 @@ abstract class MetadataRepository<T> {
   String get tag;
 
   /// Mutable mapping between nodes and their metadata.
-  Map<Node, T> get mapping;
+  Map<TreeNode, T> get mapping;
 
   /// Write the given metadata object into the given [BinarySink].
   ///
@@ -5026,7 +5026,7 @@ abstract class MetadataRepository<T> {
   ///
   /// Currently due to binary format specifics Catch and MapEntry nodes
   /// can't have metadata attached to them.
-  static bool isSupported(Node node) {
+  static bool isSupported(TreeNode node) {
     return !(node is MapEntry || node is Catch);
   }
 }

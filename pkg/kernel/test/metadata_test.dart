@@ -16,13 +16,11 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 /// Test metadata: to each node we attach a metadata that contains
 /// a reference to this node's parent and this node formatted as string.
 class Metadata {
-  final Node parent;
+  final TreeNode parent;
   final String self;
 
-  Metadata.forNode(Node n)
-      : parent = n is TreeNode && MetadataRepository.isSupported(n.parent)
-            ? n.parent
-            : null,
+  Metadata.forNode(TreeNode n)
+      : parent = MetadataRepository.isSupported(n.parent) ? n.parent : null,
         self = n.toString();
 
   Metadata(this.parent, this.self);
@@ -33,7 +31,7 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
 
   final String tag = kTag;
 
-  final Map<Node, Metadata> mapping = <Node, Metadata>{};
+  final Map<TreeNode, Metadata> mapping = <TreeNode, Metadata>{};
 
   void writeToBinary(Metadata metadata, BinarySink sink) {
     sink.writeNodeReference(metadata.parent);
@@ -67,8 +65,8 @@ class Annotator extends RecursiveVisitor<Null> {
   Annotator(Program program)
       : repository = program.metadata[TestMetadataRepository.kTag];
 
-  defaultNode(Node node) {
-    super.defaultNode(node);
+  defaultTreeNode(TreeNode node) {
+    super.defaultTreeNode(node);
     if (MetadataRepository.isSupported(node)) {
       repository.mapping[node] = new Metadata.forNode(node);
     }
@@ -88,8 +86,8 @@ class Validator extends RecursiveVisitor<Null> {
   Validator(Program program)
       : repository = program.metadata[TestMetadataRepository.kTag];
 
-  defaultNode(Node node) {
-    super.defaultNode(node);
+  defaultTreeNode(TreeNode node) {
+    super.defaultTreeNode(node);
     if (MetadataRepository.isSupported(node)) {
       final m = repository.mapping[node];
       final expected = new Metadata.forNode(node);

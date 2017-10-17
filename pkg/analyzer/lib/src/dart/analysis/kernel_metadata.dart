@@ -79,8 +79,8 @@ class AnalyzerMetadataRepository
   final String tag = TAG;
 
   @override
-  final Map<kernel.Node, AnalyzerMetadata> mapping =
-      <kernel.Node, AnalyzerMetadata>{};
+  final Map<kernel.TreeNode, AnalyzerMetadata> mapping =
+      <kernel.TreeNode, AnalyzerMetadata>{};
 
   @override
   AnalyzerMetadata readFromBinary(kernel.BinarySource source) {
@@ -98,7 +98,7 @@ class AnalyzerMetadataRepository
   }
 
   /// Return the existing or new [AnalyzerMetadata] instance for the [node].
-  AnalyzerMetadata _forWriting(kernel.Node node) {
+  AnalyzerMetadata _forWriting(kernel.TreeNode node) {
     return mapping[node] ??= new AnalyzerMetadata(node);
   }
 
