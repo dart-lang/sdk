@@ -34,8 +34,20 @@ abstract class Completer<T> {
   bool get isCompleted;
 }
 
-class _StreamIterator<T> implements StreamIterator<T> {}
-class _AsyncStarStreamController {}
+class _StreamIterator<T> implements StreamIterator<T> {
+  T get current;
+  Future<bool> moveNext();
+  Future cancel();
+}
+
+class _AsyncStarStreamController<T> {
+  Stream<T> get stream;
+  bool add(T event);
+  bool addStream(Stream<T> stream);
+  void addError(Object error, StackTrace stackTrace);
+  close();
+}
+
 Object _asyncStackTraceHelper(Function async_op) { }
 Function _asyncThenWrapperHelper(continuation) {}
 Function _asyncErrorWrapperHelper(continuation) {}
@@ -226,7 +238,13 @@ external bool identical(Object a, Object b);
 
 void print(Object o) {}
 
-abstract class _SyncIterable implements Iterable {}
+abstract class _SyncIterable<T> implements Iterable<T> {}
+
+class _SyncIterator<T> implements Iterator<T> {
+  bool isYieldEach;
+  T _current;
+}
+
 class _InvocationMirror {}
 ''';
 

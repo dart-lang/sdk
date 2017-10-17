@@ -14,8 +14,8 @@ import "dart:core" as core;
 
 typedef ControllerCallback = () → void;
 typedef ControllerCancelCallback = () → dynamic;
-class _AsyncStarStreamController extends core::Object {
-  field self::StreamController<dynamic> controller;
+class _AsyncStarStreamController<T extends core::Object> extends core::Object {
+  field self::StreamController<self::_AsyncStarStreamController::T> controller;
   field core::Function asyncStarBody;
   field core::bool isAdding;
   field core::bool onListenReceived;
@@ -23,12 +23,12 @@ class _AsyncStarStreamController extends core::Object {
   field core::bool isSuspendedAtYield;
   field self::Completer<dynamic> cancellationCompleter;
   constructor •(core::Function asyncStarBody) → void;
-  get stream() → self::Stream<dynamic>;
+  get stream() → self::Stream<self::_AsyncStarStreamController::T>;
   method runBody() → void;
   method scheduleGenerator() → void;
-  method add(dynamic event) → core::bool;
-  method addStream(self::Stream<dynamic> stream) → core::bool;
-  method addError(dynamic error, dynamic stackTrace) → void;
+  method add(self::_AsyncStarStreamController::T event) → core::bool;
+  method addStream(self::Stream<self::_AsyncStarStreamController::T> stream) → core::bool;
+  method addError(core::Object error, core::StackTrace stackTrace) → void;
   method close() → dynamic;
   method onListen() → dynamic;
   method onResume() → dynamic;
@@ -194,9 +194,9 @@ import "dart:_internal" as _in;
 import "dart:math" as math;
 
 typedef _SyncGeneratorCallback = (self::Iterator<dynamic>) → self::bool;
-class _SyncIterable extends col::IterableBase<dynamic> {
+class _SyncIterable<T extends self::Object> extends col::IterableBase<self::_SyncIterable::T> {
   const constructor •((self::Iterator<dynamic>) → self::bool _moveNextFn) → void;
-  get iterator() → dynamic;
+  get iterator() → self::Iterator<self::_SyncIterable::T>;
 }
 class _InvocationMirror extends self::Object implements self::Invocation {
   constructor •(self::String _functionName, self::List<dynamic> _argumentsDescriptor, self::List<dynamic> _arguments, self::bool _isSuperInvocation) → void;

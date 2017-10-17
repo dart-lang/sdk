@@ -77,6 +77,8 @@ class CoreTypes {
   Class _completerClass;
   Class _futureOrClass;
   Procedure _completerSyncConstructor;
+  Procedure _completerComplete;
+  Procedure _completerCompleteError;
   Procedure _futureMicrotaskConstructor;
   Constructor _syncIterableDefaultConstructor;
   Constructor _streamIteratorDefaultConstructor;
@@ -100,9 +102,37 @@ class CoreTypes {
     return _asyncLibrary ??= _index.getLibrary('dart:async');
   }
 
+  Member get asyncStarStreamControllerAdd {
+    return _index.getMember('dart:async', '_AsyncStarStreamController', 'add');
+  }
+
+  Member get asyncStarStreamControllerAddError {
+    return _index.getMember(
+        'dart:async', '_AsyncStarStreamController', 'addError');
+  }
+
+  Member get asyncStarStreamControllerAddStream {
+    return _index.getMember(
+        'dart:async', '_AsyncStarStreamController', 'addStream');
+  }
+
+  Class get asyncStarStreamControllerClass {
+    return _index.getClass('dart:async', '_AsyncStarStreamController');
+  }
+
+  Member get asyncStarStreamControllerClose {
+    return _index.getMember(
+        'dart:async', '_AsyncStarStreamController', 'close');
+  }
+
   Constructor get asyncStarStreamControllerDefaultConstructor {
     return _asyncStarStreamControllerDefaultConstructor ??=
         _index.getMember('dart:async', '_AsyncStarStreamController', '');
+  }
+
+  Member get asyncStarStreamControllerStream {
+    return _index.getMember(
+        'dart:async', '_AsyncStarStreamController', 'get:stream');
   }
 
   Procedure get asyncStackTraceHelperProcedure {
@@ -131,6 +161,20 @@ class CoreTypes {
   Procedure get completerSyncConstructor {
     return _completerSyncConstructor ??=
         _index.getMember('dart:async', 'Completer', 'sync');
+  }
+
+  Procedure get completerComplete {
+    return _completerComplete ??=
+        _index.getMember('dart:async', 'Completer', 'complete');
+  }
+
+  Procedure get completerCompleteError {
+    return _completerCompleteError ??=
+        _index.getMember('dart:async', 'Completer', 'completeError');
+  }
+
+  Member get completerFuture {
+    return _index.getMember('dart:async', 'Completer', 'get:future');
   }
 
   Library get coreLibrary {
@@ -255,9 +299,25 @@ class CoreTypes {
     return _streamClass ??= _index.getClass('dart:async', 'Stream');
   }
 
+  Member get streamIteratorCancel {
+    return _index.getMember('dart:async', '_StreamIterator', 'cancel');
+  }
+
+  Class get streamIteratorClass {
+    return _index.getClass('dart:async', '_StreamIterator');
+  }
+
   Constructor get streamIteratorDefaultConstructor {
     return _streamIteratorDefaultConstructor ??=
         _index.getMember('dart:async', '_StreamIterator', '');
+  }
+
+  Member get streamIteratorMoveNext {
+    return _index.getMember('dart:async', '_StreamIterator', 'moveNext');
+  }
+
+  Member get streamIteratorCurrent {
+    return _index.getMember('dart:async', '_StreamIterator', 'get:current');
   }
 
   Class get stringClass {
@@ -271,6 +331,18 @@ class CoreTypes {
   Constructor get syncIterableDefaultConstructor {
     return _syncIterableDefaultConstructor ??=
         _index.getMember('dart:core', '_SyncIterable', '');
+  }
+
+  Class get syncIteratorClass {
+    return _index.getClass('dart:core', '_SyncIterator');
+  }
+
+  Member get syncIteratorCurrent {
+    return _index.getMember('dart:core', '_SyncIterator', '_current');
+  }
+
+  Member get syncIteratorIsYieldEach {
+    return _index.getMember('dart:core', '_SyncIterator', 'isYieldEach');
   }
 
   Class get typeClass {

@@ -92,24 +92,27 @@ class _EnumHelper {
 
 typedef bool _SyncGeneratorCallback(Iterator iterator);
 
-class _SyncIterable extends IterableBase {
+class _SyncIterable<T> extends IterableBase<T> {
   // _moveNextFn is the closurized body of the generator function.
   final _SyncGeneratorCallback _moveNextFn;
 
   const _SyncIterable(this._moveNextFn);
 
-  get iterator {
-    return new _SyncIterator(_moveNextFn._clone());
+  Iterator<T> get iterator {
+    // Note: _Closure._clone returns _Closure which is not related to
+    // _SyncGeneratorCallback, which means we need explicit cast.
+    return new _SyncIterator<T>(
+        (_moveNextFn as _Closure)._clone() as _SyncGeneratorCallback);
   }
 }
 
-class _SyncIterator implements Iterator {
+class _SyncIterator<T> implements Iterator<T> {
   bool isYieldEach; // Set by generated code for the yield* statement.
-  Iterator yieldEachIterator;
-  var _current; // Set by generated code for the yield and yield* statement.
+  Iterator<T> yieldEachIterator;
+  T _current; // Set by generated code for the yield and yield* statement.
   _SyncGeneratorCallback _moveNextFn;
 
-  get current =>
+  T get current =>
       yieldEachIterator != null ? yieldEachIterator.current : _current;
 
   _SyncIterator(this._moveNextFn);
@@ -135,7 +138,7 @@ class _SyncIterator implements Iterator {
       if (isYieldEach) {
         // Spec mandates: it is a dynamic error if the class of [the object
         // returned by yield*] does not implement Iterable.
-        yieldEachIterator = (_current as Iterable).iterator;
+        yieldEachIterator = (_current as Iterable<T>).iterator;
         _current = null;
         continue;
       }
