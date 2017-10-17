@@ -12,11 +12,11 @@ import 'private_other_mixin2.lib';
 void main() {
   var c1;
   c1 = new C1();
-  Expect.throws(() => c1._field, (e) => e is NoSuchMethodError);
-  Expect.throws(() => c1.field, (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c1._field);
+  Expect.throwsNoSuchMethodError(() => c1.field);
 
   var c2;
   c2 = new C2();
-  Expect.throws(() => c2._field, (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c2._field);
   Expect.equals(42, c2.field);
 }

@@ -62,29 +62,26 @@ libraryFunction() {
   throw new MyException();
 }
 
+bool isMyException(e) => e is MyException;
+
 main() {
   InstanceMirror im = reflect(new Class.noException());
-  Expect.throws(() => im.getField(#getter), (e) => e is MyException);
-  Expect.throws(() => im.setField(#setter, ['arg']), (e) => e is MyException);
-  Expect.throws(() => im.invoke(#method, []), (e) => e is MyException);
-  Expect.throws(
-      () => im.invoke(#triggerNoSuchMethod, []), (e) => e is MyException);
+  Expect.throws(() => im.getField(#getter), isMyException);
+  Expect.throws(() => im.setField(#setter, ['arg']), isMyException);
+  Expect.throws(() => im.invoke(#method, []), isMyException);
+  Expect.throws(() => im.invoke(#triggerNoSuchMethod, []), isMyException);
 
   ClassMirror cm = reflectClass(Class);
-  Expect.throws(() => cm.getField(#staticGetter), (e) => e is MyException);
-  Expect.throws(
-      () => cm.setField(#staticSetter, ['arg']), (e) => e is MyException);
-  Expect.throws(() => cm.invoke(#staticFunction, []), (e) => e is MyException);
-  Expect.throws(() => cm.newInstance(#generative, []), (e) => e is MyException);
-  Expect.throws(
-      () => cm.newInstance(#redirecting, []), (e) => e is MyException);
-  Expect.throws(() => cm.newInstance(#faktory, []), (e) => e is MyException);
-  Expect.throws(
-      () => cm.newInstance(#redirectingFactory, []), (e) => e is MyException);
+  Expect.throws(() => cm.getField(#staticGetter), isMyException);
+  Expect.throws(() => cm.setField(#staticSetter, ['arg']), isMyException);
+  Expect.throws(() => cm.invoke(#staticFunction, []), isMyException);
+  Expect.throws(() => cm.newInstance(#generative, []), isMyException);
+  Expect.throws(() => cm.newInstance(#redirecting, []), isMyException);
+  Expect.throws(() => cm.newInstance(#faktory, []), isMyException);
+  Expect.throws(() => cm.newInstance(#redirectingFactory, []), isMyException);
 
   LibraryMirror lm = reflectClass(Class).owner;
-  Expect.throws(() => lm.getField(#libraryGetter), (e) => e is MyException);
-  Expect.throws(
-      () => lm.setField(#librarySetter, ['arg']), (e) => e is MyException);
-  Expect.throws(() => lm.invoke(#libraryFunction, []), (e) => e is MyException);
+  Expect.throws(() => lm.getField(#libraryGetter), isMyException);
+  Expect.throws(() => lm.setField(#librarySetter, ['arg']), isMyException);
+  Expect.throws(() => lm.invoke(#libraryFunction, []), isMyException);
 }

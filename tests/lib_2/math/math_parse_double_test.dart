@@ -10,7 +10,7 @@ library math_parse_double_test;
 import "package:expect/expect.dart";
 
 void parseDoubleThrowsFormatException(str) {
-  Expect.throws(() => double.parse(str), (e) => e is FormatException);
+  Expect.throwsFormatException(() => double.parse(str));
 }
 
 void runTest(double expected, String input) {

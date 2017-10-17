@@ -5,8 +5,7 @@
 import 'package:expect/expect.dart';
 
 main() {
-  Expect.throws(() => double.INFINITY.floor(), (e) => e is UnsupportedError);
-  Expect.throws(
-      () => double.NEGATIVE_INFINITY.floor(), (e) => e is UnsupportedError);
-  Expect.throws(() => double.NAN.floor(), (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => double.INFINITY.floor());
+  Expect.throwsUnsupportedError(() => double.NEGATIVE_INFINITY.floor());
+  Expect.throwsUnsupportedError(() => double.NAN.floor());
 }

@@ -98,10 +98,11 @@ function B(foo) {
 void expectValueOrTypeError(f(), value) {
   try {
     dynamic i = 0;
+    // TODO(rnystrom): Revisit this now that checked mode is gone in 2.0.
     String s = i; // Test for checked mode.
     Expect.equals(f(), value);
   } on TypeError catch (error) {
-    Expect.throws(f, (ex) => ex is TypeError);
+    Expect.throwsTypeError(f);
   }
 }
 

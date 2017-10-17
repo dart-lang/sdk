@@ -14,10 +14,10 @@ class Malbounded2 extends Super
 
 main() {
   var m = new Malbounded1();
-  Expect.throws(() => m as Super<int>, (e) => e is CastError);
+  Expect.throwsCastError(() => m as Super<int>);
   var s = new Super<int>();
-  Expect.throws(() => s as Malbounded1, (e) => e is CastError);
-  Expect.throws(() => s as Malbounded2, (e) => e is CastError);
+  Expect.throwsCastError(() => s as Malbounded1);
+  Expect.throwsCastError(() => s as Malbounded2);
   s as Super
       <String> //# 02: compile-time error
       ;

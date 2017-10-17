@@ -7,9 +7,9 @@ import "package:expect/expect.dart";
 
 main() {
   var v = 0.0;
-  Expect.throws(() => v.toStringAsFixed(-1), (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsFixed(21), (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsFixed(null), (e) => e is ArgumentError);
+  Expect.throwsRangeError(() => v.toStringAsFixed(-1));
+  Expect.throwsRangeError(() => v.toStringAsFixed(21));
+  Expect.throwsArgumentError(() => v.toStringAsFixed(null));
   v.toStringAsFixed(1.5);//# 01: compile-time error
   v.toStringAsFixed("string");//# 02: compile-time error
   v.toStringAsFixed("3");//# 03: compile-time error

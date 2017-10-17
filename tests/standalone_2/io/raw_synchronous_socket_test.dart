@@ -428,28 +428,23 @@ Future testInvalidReadWriteOperations() {
         RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, server.port);
 
     // Invalid writeFromSync invocations
-    Expect.throws(() => socket.writeFromSync(data, data.length + 1),
-        (e) => e is RangeError);
-    Expect.throws(() => socket.writeFromSync(data, 0, data.length + 1),
-        (e) => e is RangeError);
-    Expect.throws(
-        () => socket.writeFromSync(data, 1, 0), (e) => e is RangeError);
-    Expect.throws(
-        () => socket.writeFromSync(data, null), (e) => e is ArgumentError);
+    Expect.throwsRangeError(() => socket.writeFromSync(data, data.length + 1));
+    Expect
+        .throwsRangeError(() => socket.writeFromSync(data, 0, data.length + 1));
+    Expect.throwsRangeError(() => socket.writeFromSync(data, 1, 0));
+    Expect.throwsArgumentError(() => socket.writeFromSync(data, null));
 
     // Invalid readIntoSync invocations
     List<int> buffer = new List<int>(10);
-    Expect.throws(() => socket.readIntoSync(buffer, buffer.length + 1),
-        (e) => e is RangeError);
-    Expect.throws(() => socket.readIntoSync(buffer, 0, buffer.length + 1),
-        (e) => e is RangeError);
-    Expect.throws(
-        () => socket.readIntoSync(buffer, 1, 0), (e) => e is RangeError);
-    Expect.throws(
-        () => socket.readIntoSync(buffer, null), (e) => e is ArgumentError);
+    Expect
+        .throwsRangeError(() => socket.readIntoSync(buffer, buffer.length + 1));
+    Expect.throwsRangeError(
+        () => socket.readIntoSync(buffer, 0, buffer.length + 1));
+    Expect.throwsRangeError(() => socket.readIntoSync(buffer, 1, 0));
+    Expect.throwsArgumentError(() => socket.readIntoSync(buffer, null));
 
     // Invalid readSync invocation
-    Expect.throws(() => socket.readSync(-1), (e) => e is ArgumentError);
+    Expect.throwsArgumentError(() => socket.readSync(-1));
 
     server.close();
     socket.closeSync();

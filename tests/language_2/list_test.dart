@@ -66,7 +66,7 @@ class ListTest {
     });
     a[1] = 1;
     Expect.equals(1, a[1]);
-    Expect.throws(() => a[len], (e) => e is RangeError);
+    Expect.throwsRangeError(() => a[len]);
 
     Expect.throws(() {
       List a = new List(4);
@@ -78,10 +78,10 @@ class ListTest {
       a.setRange(1, 2, const [1, 2, 3, 4], null);
     });
 
-    Expect.throws(() {
+    Expect.throwsRangeError(() {
       List a = new List(4);
       a.setRange(10, 11, a, 1);
-    }, (e) => e is RangeError);
+    });
 
     a = new List(4);
     List b = new List(4);
@@ -121,7 +121,7 @@ class ListTest {
     Expect.throws(() => new List(0x7fffffffffffffff));
 
     List list = new List();
-    Expect.throws(list.removeLast, (e) => e is RangeError);
+    Expect.throwsRangeError(list.removeLast);
     Expect.equals(0, list.length);
   }
 }

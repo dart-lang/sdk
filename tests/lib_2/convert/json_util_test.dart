@@ -89,7 +89,7 @@ void testParse() {
 
 void testParseInvalid() {
   void testString(String s) {
-    Expect.throws(() => JSON.decode(s), (e) => e is FormatException);
+    Expect.throwsFormatException(() => JSON.decode(s));
   }
 
   // Scalars

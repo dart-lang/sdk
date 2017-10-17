@@ -37,8 +37,8 @@ testInstanceBase() {
   Expect.equals('3 C 11 12 13 null', c.closureOpt(11, 12, 13));
   Expect.equals('4 C 14 15 null 16', c.closureNamed(14, 15, w: 16));
   Expect.equals('DNU', c.doesNotExist(17, 18));
-  Expect.throws(() => c.closure('wrong arity'), (e) => e is NoSuchMethodError);
-  Expect.throws(() => c.notAClosure(), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.closure('wrong arity'));
+  Expect.throwsNoSuchMethodError(() => c.notAClosure());
 }
 
 testInstanceReflective() {
@@ -52,10 +52,8 @@ testInstanceReflective() {
   Expect.equals('4 C 14 15 null 16', //                                       //# named: ok
                 im.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee); //   //# named: continued
   Expect.equals('DNU', im.invoke(#doesNotExist, [17, 18]).reflectee);
-  Expect.throws(() => im.invoke(#closure, ['wrong arity']),
-      (e) => e is NoSuchMethodError);
-  Expect.throws(
-      () => im.invoke(#notAClosure, []), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => im.invoke(#closure, ['wrong arity']));
+  Expect.throwsNoSuchMethodError(() => im.invoke(#notAClosure, []));
 }
 
 class D {
@@ -73,7 +71,7 @@ testClassBase() {
   Expect.equals('2 9 10', D.closure(9, 10));
   Expect.equals('3 11 12 13 null', D.closureOpt(11, 12, 13));
   Expect.equals('4 14 15 null 16', D.closureNamed(14, 15, w: 16));
-  Expect.throws(() => D.closure('wrong arity'), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => D.closure('wrong arity'));
 }
 
 testClassReflective() {
@@ -86,8 +84,7 @@ testClassReflective() {
       '3 11 12 13 null', cm.invoke(#closureOpt, [11, 12, 13]).reflectee);
   Expect.equals('4 14 15 null 16', //                                        //# named: continued
                 cm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee); //  //# named: continued
-  Expect.throws(() => cm.invoke(#closure, ['wrong arity']),
-      (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => cm.invoke(#closure, ['wrong arity']));
 }
 
 get fakeFunctionCall => new FakeFunctionCall();
@@ -103,7 +100,7 @@ testLibraryBase() {
   Expect.equals('2 9 10', closure(9, 10));
   Expect.equals('3 11 12 13 null', closureOpt(11, 12, 13));
   Expect.equals('4 14 15 null 16', closureNamed(14, 15, w: 16));
-  Expect.throws(() => closure('wrong arity'), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => closure('wrong arity'));
 }
 
 testLibraryReflective() {
@@ -116,8 +113,7 @@ testLibraryReflective() {
       '3 11 12 13 null', lm.invoke(#closureOpt, [11, 12, 13]).reflectee);
   Expect.equals('4 14 15 null 16', //                                       //# named: continued
                 lm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee); // //# named: continued
-  Expect.throws(() => lm.invoke(#closure, ['wrong arity']),
-      (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => lm.invoke(#closure, ['wrong arity']));
 }
 
 main() {

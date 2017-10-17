@@ -48,16 +48,16 @@ main() {
   Expect.equals((D).runtimeType, (D).runtimeType.runtimeType);
 
   // Test that operator calls on class literals go to Type.
-  Expect.throws(() => C = 1, (e) => e is NoSuchMethodError); //# 03: compile-time error
-  Expect.throws(() => C++, (e) => e is NoSuchMethodError); //# 04: compile-time error
-  Expect.throws(() => C + 1, (e) => e is NoSuchMethodError); //# 05: compile-time error
-  Expect.throws(() => C[2], (e) => e is NoSuchMethodError); //# 06: compile-time error
-  Expect.throws(() => C[2] = 'hest', (e) => e is NoSuchMethodError); //# 07: compile-time error
-  Expect.throws(() => dynamic = 1, (e) => e is NoSuchMethodError); //# 08: compile-time error
-  Expect.throws(() => dynamic++, (e) => e is NoSuchMethodError); //# 09: compile-time error
-  Expect.throws(() => dynamic + 1, (e) => e is NoSuchMethodError); //# 10: compile-time error
-  Expect.throws(() => dynamic[2], (e) => e is NoSuchMethodError); //# 11: compile-time error
-  Expect.throws(() => dynamic[2] = 'hest', (e) => e is NoSuchMethodError); //# 12: compile-time error
+  Expect.throwsNoSuchMethodError(() => C = 1); //# 03: compile-time error
+  Expect.throwsNoSuchMethodError(() => C++); //# 04: compile-time error
+  Expect.throwsNoSuchMethodError(() => C + 1); //# 05: compile-time error
+  Expect.throwsNoSuchMethodError(() => C[2]); //# 06: compile-time error
+  Expect.throwsNoSuchMethodError(() => C[2] = 'hest'); //# 07: compile-time error
+  Expect.throwsNoSuchMethodError(() => dynamic = 1); //# 08: compile-time error
+  Expect.throwsNoSuchMethodError(() => dynamic++); //# 09: compile-time error
+  Expect.throwsNoSuchMethodError(() => dynamic + 1); //# 10: compile-time error
+  Expect.throwsNoSuchMethodError(() => dynamic[2]); //# 11: compile-time error
+  Expect.throwsNoSuchMethodError(() => dynamic[2] = 'hest'); //# 12: compile-time error
 
   Expect.equals((dynamic).toString(), 'dynamic');
 }

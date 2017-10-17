@@ -11,8 +11,6 @@ bad() {
   Expect.fail('Should not be executed');
 }
 
-noMethod(e) => e is NoSuchMethodError;
-
 class B {}
 
 class C extends B {
@@ -59,6 +57,6 @@ main() {
   h?.topLevelFunction(); //# 11: compile-time error
 
   // Nor can it be used to access the toString method on the class Type.
-  Expect.throws(() => C?.toString(), noMethod); //# 12: compile-time error
-  Expect.throws(() => h.C?.toString(), noMethod); //# 13: compile-time error
+  Expect.throwsNoSuchMethodError(() => C?.toString()); //# 12: compile-time error
+  Expect.throwsNoSuchMethodError(() => h.C?.toString()); //# 13: compile-time error
 }

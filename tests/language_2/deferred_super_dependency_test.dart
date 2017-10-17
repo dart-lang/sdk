@@ -11,5 +11,5 @@ import "deferred_super_dependency_lib.dart" deferred as lib; //# 01: compile-tim
 
 main() async {
   await lib.loadLibrary(); //# 01: continued
-  Expect.throws(() => new lib.C().foo(), (e) => e is NoSuchMethodError); //# 01: continued
+  Expect.throwsNoSuchMethodError(() => new lib.C().foo()); //# 01: continued
 }

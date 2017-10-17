@@ -68,9 +68,8 @@ void testConstructor() {
   Expect.equals(InternetAddressType.IP_V6, multicast6.type);
   Expect.isTrue(multicast6.isMulticast);
 
-  Expect.throws(() => new InternetAddress("1.2.3"), (e) => e is ArgumentError);
-  Expect.throws(
-      () => new InternetAddress("::FFFF::1"), (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => new InternetAddress("1.2.3"));
+  Expect.throwsArgumentError(() => new InternetAddress("::FFFF::1"));
 }
 
 void testEquality() {

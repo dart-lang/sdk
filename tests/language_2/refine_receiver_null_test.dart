@@ -18,5 +18,5 @@ main() {
 @DontInline()
 foo(a) {
   var f = () => 42;
-  Expect.throws(() => a + 42, (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => a + 42);
 }

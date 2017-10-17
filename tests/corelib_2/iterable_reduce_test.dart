@@ -110,9 +110,8 @@ main() {
     "".runes,
     new MyList([]),
   ]) {
-    Expect.throws(() {
-      iterable.reduce((x, y) => throw "Unreachable");
-    }, (e) => e is StateError);
+    Expect.throwsStateError(
+        () => iterable.reduce((x, y) => throw "Unreachable"));
   }
 
   // Singleton iterables not calling reduce function.

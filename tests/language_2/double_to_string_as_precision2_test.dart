@@ -7,9 +7,9 @@ import "package:expect/expect.dart";
 
 main() {
   var v = 0.0;
-  Expect.throws(() => v.toStringAsPrecision(0), (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsPrecision(22), (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsPrecision(null), (e) => e is ArgumentError);
+  Expect.throwsRangeError(() => v.toStringAsPrecision(0));
+  Expect.throwsRangeError(() => v.toStringAsPrecision(22));
+  Expect.throwsArgumentError(() => v.toStringAsPrecision(null));
   v.toStringAsPrecision(1.5); //# 01: compile-time error
   v.toStringAsPrecision("string"); //# 02: compile-time error
   v.toStringAsPrecision("3"); //# 03: compile-time error

@@ -7,8 +7,8 @@ import "package:expect/expect.dart";
 
 main() {
   var v = 1.0;
-  Expect.throws(() => v.toStringAsExponential(-1), (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsExponential(21), (e) => e is RangeError);
+  Expect.throwsRangeError(() => v.toStringAsExponential(-1));
+  Expect.throwsRangeError(() => v.toStringAsExponential(21));
   v.toStringAsExponential(1.5); //# 01: compile-time error
   v.toStringAsExponential("string"); //# 02: compile-time error
   v.toStringAsExponential("3"); //# 03: compile-time error

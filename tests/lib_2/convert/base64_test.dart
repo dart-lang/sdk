@@ -144,12 +144,9 @@ void testRoundtrip(List<int> list, String name) {
   }
 }
 
-bool isFormatException(e) => e is FormatException;
-bool isArgumentError(e) => e is ArgumentError;
-
 void testErrors() {
   void badChunkDecode(List<String> list) {
-    Expect.throws(() {
+    Expect.throwsFormatException(() {
       var sink = new ChunkedConversionSink<List<int>>.withCallback((v) {
         Expect.fail("Should have thrown: chunk $list");
       });
@@ -158,12 +155,12 @@ void testErrors() {
         c.add(string);
       }
       c.close();
-    }, isFormatException, "chunk $list");
+    }, "chunk $list");
   }
 
   void badDecode(String string) {
-    Expect.throws(() => BASE64.decode(string), isFormatException, string);
-    Expect.throws(() => BASE64URL.decode(string), isFormatException, string);
+    Expect.throwsFormatException(() => BASE64.decode(string), string);
+    Expect.throwsFormatException(() => BASE64URL.decode(string), string);
     badChunkDecode([string]);
     badChunkDecode(["", string]);
     badChunkDecode([string, ""]);
@@ -233,7 +230,7 @@ void testErrors() {
   badChunkEncode(List<int> list) {
     for (int i = 0; i < list.length; i++) {
       for (int j = 0; j < list.length; j++) {
-        Expect.throws(() {
+        Expect.throwsArgumentError(() {
           var sink = new ChunkedConversionSink<String>.withCallback((v) {
             Expect.fail("Should have thrown: chunked $list");
           });
@@ -242,12 +239,12 @@ void testErrors() {
           c.add(list.sublist(i, j));
           c.add(list.sublist(j, list.length));
           c.close();
-        }, isArgumentError, "chunk $list");
+        }, "chunk $list");
       }
     }
     for (int i = 0; i < list.length; i++) {
       for (int j = 0; j < list.length; j++) {
-        Expect.throws(() {
+        Expect.throwsArgumentError(() {
           var sink = new ChunkedConversionSink<String>.withCallback((v) {
             Expect.fail("Should have thrown: chunked $list");
           });
@@ -255,18 +252,15 @@ void testErrors() {
           c.addSlice(list, 0, i, false);
           c.addSlice(list, i, j, false);
           c.addSlice(list, j, list.length, true);
-        }, isArgumentError, "chunk $list");
+        }, "chunk $list");
       }
     }
   }
 
   void badEncode(int invalid) {
-    Expect.throws(() {
-      BASE64.encode([invalid]);
-    }, isArgumentError, "$invalid");
-    Expect.throws(() {
-      BASE64.encode([0, invalid, 0]);
-    }, isArgumentError, "$invalid");
+    Expect.throwsArgumentError(() => BASE64.encode([invalid]), "$invalid");
+    Expect.throwsArgumentError(
+        () => BASE64.encode([0, invalid, 0]), "$invalid");
     badChunkEncode([invalid]);
     badChunkEncode([0, invalid]);
     badChunkEncode([0, 0, invalid]);

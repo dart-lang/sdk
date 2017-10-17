@@ -1201,32 +1201,32 @@ void testDateStrings() {
   Expect.equals(9, dt1.millisecond);
   Expect.equals(true, dt1.isUtc);
 
-  Expect.throws(() => DateTime.parse("bad"), (e) => e is FormatException);
+  Expect.throwsFormatException(() => DateTime.parse("bad"));
   var bad_year =
       1970 + (_MAX_MILLISECONDS ~/ (1000 * 60 * 60 * 24 * 365.2425)) + 1;
-  Expect.throws(() => DateTime.parse(bad_year.toString() + "-01-01"),
-      (e) => e is FormatException);
+  Expect.throwsFormatException(
+      () => DateTime.parse(bad_year.toString() + "-01-01"));
   // The last valid time; should not throw.
   dt1 = DateTime.parse("275760-09-13T00:00:00.000Z");
-  Expect.throws(() => DateTime.parse("275760-09-14T00:00:00.000Z"),
-      (e) => e is FormatException);
-  Expect.throws(() => DateTime.parse("275760-09-13T00:00:00.001Z"),
-      (e) => e is FormatException);
+  Expect.throwsFormatException(
+      () => DateTime.parse("275760-09-14T00:00:00.000Z"));
+  Expect.throwsFormatException(
+      () => DateTime.parse("275760-09-13T00:00:00.001Z"));
   if (supportsMicroseconds) {
-    Expect.throws(() => DateTime.parse("275760-09-13T00:00:00.000001Z"),
-        (e) => e is FormatException);
+    Expect.throwsFormatException(
+        () => DateTime.parse("275760-09-13T00:00:00.000001Z"));
   } else {
     dt1 = DateTime.parse("275760-09-13T00:00:00.000001Z");
   }
 
   // first valid time; should not throw.
   dt1 = DateTime.parse("-271821-04-20T00:00:00.000Z");
-  Expect.throws(() => DateTime.parse("-271821-04-19T23:59:59.999Z"),
-      (e) => e is FormatException);
+  Expect.throwsFormatException(
+      () => DateTime.parse("-271821-04-19T23:59:59.999Z"));
 
   if (supportsMicroseconds) {
-    Expect.throws(() => DateTime.parse("-271821-04-19T23:59:59.999999Z"),
-        (e) => e is FormatException);
+    Expect.throwsFormatException(
+        () => DateTime.parse("-271821-04-19T23:59:59.999999Z"));
   }
 }
 

@@ -78,6 +78,8 @@ void testConstructor() {
     Expect.equals(length, list.length);
   }
 
+  // TODO(rnystrom): Checked-mode specific behavior does not apply to Dart 2.0.
+  // Revisit this.
   bool checked = false;
   assert((checked = true));
   testThrowsOrTypeError(fn, test, [name]) {
@@ -91,11 +93,10 @@ void testConstructor() {
   testGrowable(new List<int>());
   testGrowable(new List<int>()..length = 5);
   testGrowable(new List<int>.filled(5, null, growable: true));
-  Expect.throws(() => new List<int>(-1), (e) => e is ArgumentError, "-1");
+  Expect.throwsArgumentError(() => new List<int>(-1), "-1");
   // There must be limits. Fix this test if we ever allow 10^30 elements.
-  Expect.throws(() => new List<int>(0x7fffffffffffffff),
-      (e) => e is ArgumentError, "bignum");
-  Expect.throws(() => new List<int>(null), (e) => e is ArgumentError, "null");
+  Expect.throwsArgumentError(() => new List<int>(0x7fffffffffffffff), "bignum");
+  Expect.throwsArgumentError(() => new List<int>(null), "null");
   testThrowsOrTypeError(
       () => new List([] as Object), // Cast to avoid warning.
       (e) => e is ArgumentError,

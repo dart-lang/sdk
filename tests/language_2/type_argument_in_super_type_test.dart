@@ -20,5 +20,5 @@ class B extends A<C> {
 main() {
   B b = new B();
   Expect.equals(b.field, b.foo());
-  Expect.throws(b.bar, (e) => e is TypeError);
+  Expect.throwsTypeError(b.bar);
 }

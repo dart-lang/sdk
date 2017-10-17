@@ -7,8 +7,6 @@ library json_test;
 import "package:expect/expect.dart";
 import "dart:convert";
 
-bool badFormat(e) => e is FormatException;
-
 jsonTest(testName, expect, action(sink)) {
   var sink = new ChunkedConversionSink.withCallback((values) {
     var value = values[0];
@@ -23,9 +21,7 @@ jsonThrowsTest(testName, action(sink)) {
     Expect.fail("Should have thrown: $testName");
   });
   var decoderSink = JSON.decoder.startChunkedConversion(sink);
-  Expect.throws(() {
-    action(decoderSink);
-  }, (e) => e is FormatException, testName);
+  Expect.throwsFormatException(() => action(decoderSink), testName);
 }
 
 main() {

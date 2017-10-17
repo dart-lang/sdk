@@ -83,21 +83,15 @@ main() {
   test(new MyList([1, 2, 3]), 2, [4].map((x) => x));
   test(new MyList([1, 2, 3]), 3, [].map((x) => x));
 
-  expectRE(() => test([1, 2, 3], -1, [4, 5]));
-  expectRE(() => test([1, 2, 3].toList(growable: false), -1, [4, 5]));
-  expectRE(() => test([1, 2, 3], 1, [4, 5, 6]));
-  expectRE(() => test([1, 2, 3].toList(growable: false), 1, [4, 5, 6]));
-  expectRE(() => test(new MyList([1, 2, 3]), -1, [4, 5]));
-  expectRE(() => test(new MyList([1, 2, 3]), 1, [4, 5, 6]));
-  expectUE(() => test(const [1, 2, 3], 0, [4, 5]));
-  expectUE(() => test(const [1, 2, 3], -1, [4, 5]));
-  expectUE(() => test(const [1, 2, 3], 1, [4, 5, 6]));
-}
-
-void expectRE(void f()) {
-  Expect.throws(f, (e) => e is RangeError);
-}
-
-void expectUE(void f()) {
-  Expect.throws(f, (e) => e is UnsupportedError);
+  Expect.throwsRangeError(() => test([1, 2, 3], -1, [4, 5]));
+  Expect.throwsRangeError(
+      () => test([1, 2, 3].toList(growable: false), -1, [4, 5]));
+  Expect.throwsRangeError(() => test([1, 2, 3], 1, [4, 5, 6]));
+  Expect.throwsRangeError(
+      () => test([1, 2, 3].toList(growable: false), 1, [4, 5, 6]));
+  Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), -1, [4, 5]));
+  Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), 1, [4, 5, 6]));
+  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], 0, [4, 5]));
+  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], -1, [4, 5]));
+  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], 1, [4, 5, 6]));
 }

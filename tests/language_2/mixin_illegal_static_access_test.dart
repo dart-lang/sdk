@@ -18,6 +18,6 @@ main() {
   Expect.equals(42, S.foo());
   Expect.equals(87, M.bar());
 
-  Expect.throws(() => C.foo(), (e) => e is NoSuchMethodError); //# 01: compile-time error
-  Expect.throws(() => C.bar(), (e) => e is NoSuchMethodError); //# 02: compile-time error
+  Expect.throwsNoSuchMethodError(() => C.foo()); //# 01: compile-time error
+  Expect.throwsNoSuchMethodError(() => C.bar()); //# 02: compile-time error
 }

@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:expect/expect.dart';
 
-bool isTypeError(e) => e is TypeError;
-
 class Fields<T> {
   T x;
   T _y;
@@ -21,14 +19,10 @@ class Fields<T> {
 
 testField() {
   Fields<Object> c = new Fields<int>();
-  Expect.throws(() {
-    c.x = 'hello';
-  }, isTypeError);
+  Expect.throwsTypeError(() => c.x = 'hello');
 
   Fields<dynamic> d = new Fields<int>();
-  Expect.throws(() {
-    c.x = 'hello';
-  }, isTypeError);
+  Expect.throwsTypeError(() => c.x = 'hello');
 }
 
 testPrivateFields() {
@@ -39,9 +33,7 @@ testPrivateFields() {
   Fields<Object> c2 = new Fields<String>()..x = 'hi';
   c2.n(c2);
   Expect.equals(c2._z, 'hi');
-  Expect.throws(() {
-    c.n(c2);
-  }, isTypeError);
+  Expect.throwsTypeError(() => c.n(c2));
   Expect.equals(c2._z, 'hi');
 }
 
@@ -61,9 +53,7 @@ testClassBounds() {
   NumBounds<num> d = new MethodTakesNum();
   Expect.equals(d.m(-1.1), true);
   d = new MethodTakesInt();
-  Expect.throws(() {
-    d.m(-1.1);
-  }, isTypeError);
+  Expect.throwsTypeError(() => d.m(-1.1));
 }
 
 typedef void F<T>(T t);
@@ -84,11 +74,11 @@ class FnChecks<T> {
 testReturnOfFunctionType() {
   FnChecks<int> cInt = new FnChecks<int>();
   FnChecks<Object> cObj = cInt;
-  Expect.throws(() => cObj.setterForT(), isTypeError);
-  Expect.throws(() => (cObj.setterForT() as F<Object>), isTypeError);
+  Expect.throwsTypeError(() => cObj.setterForT());
+  Expect.throwsTypeError(() => (cObj.setterForT() as F<Object>));
   FnChecks<dynamic> cDyn = cInt;
   cDyn.setterForT(); // allowed fuzzy arrow
-  Expect.throws(() => cDyn.setterForT()('hi'), isTypeError); // dcall throws
+  Expect.throwsTypeError(() => cDyn.setterForT()('hi')); // dcall throws
   cInt.setterForT()(42);
   Expect.equals(cObj.getT(), 42);
 }
@@ -97,45 +87,41 @@ testTearoffReturningFunctionType() {
   FnChecks<int> cInt = new FnChecks<int>();
   FnChecks<Object> cObj = cInt;
 
-  Expect.throws(
-      () => cObj.setterForT, isTypeError, 'unsound tear-off throws at runtime');
+  Expect.throwsTypeError(
+      () => cObj.setterForT, 'unsound tear-off throws at runtime');
   Expect.equals(cInt.setterForT, cInt.setterForT, 'sound tear-off works');
 }
 
 testFieldOfFunctionType() {
   FnChecks<Object> c = new FnChecks<String>()..f = (String b) {};
-  Expect.throws(() {
+  Expect.throwsTypeError(() {
     F<Object> f = c.f;
-  }, isTypeError);
-  Expect.throws(() {
+  });
+  Expect.throwsTypeError(() {
     Object f = c.f;
-  }, isTypeError);
-  Expect.throws(() => c.f, isTypeError);
-  Expect.throws(() => c.f(42), isTypeError);
-  Expect.throws(() => c.f('hi'), isTypeError);
+  });
+  Expect.throwsTypeError(() => c.f);
+  Expect.throwsTypeError(() => c.f(42));
+  Expect.throwsTypeError(() => c.f('hi'));
   FnChecks<String> cStr = c;
   cStr.f('hi');
   FnChecks<dynamic> cDyn = c;
   cDyn.f; // allowed fuzzy arrow
-  Expect.throws(() => cDyn.f(42), isTypeError); // dcall throws
+  Expect.throwsTypeError(() => cDyn.f(42)); // dcall throws
 }
 
 testFieldOfGenericFunctionType() {
   FnChecks<Object> c = new FnChecks<num>()
     ..g = <S extends num>(S s) => s.isNegative;
 
-  Expect.throws(() {
+  Expect.throwsTypeError(() {
     G<Object> g = c.g;
-  }, isTypeError);
-  Expect.throws(() {
+  });
+  Expect.throwsTypeError(() {
     var g = c.g;
-  }, isTypeError);
-  Expect.throws(() {
-    c.g<String>('hi');
-  }, isTypeError);
-  Expect.throws(() {
-    c.g<int>(42);
-  }, isTypeError);
+  });
+  Expect.throwsTypeError(() => c.g<String>('hi'));
+  Expect.throwsTypeError(() => c.g<int>(42));
   FnChecks<num> cNum = c;
   cNum.g(42);
 }
@@ -161,15 +147,9 @@ testMixinApplication() {
   I<Object> i = new ExtendsBase();
   I<Object> j = new MixinBase();
   I<Object> k = new MixinBase2();
-  Expect.throws(() {
-    i.add('hi');
-  }, isTypeError);
-  Expect.throws(() {
-    j.add('hi');
-  }, isTypeError);
-  Expect.throws(() {
-    k.add('hi');
-  }, isTypeError);
+  Expect.throwsTypeError(() => i.add('hi'));
+  Expect.throwsTypeError(() => j.add('hi'));
+  Expect.throwsTypeError(() => k.add('hi'));
 }
 
 class GenericMethodBounds<T> {
@@ -192,16 +172,16 @@ GenericMethodBounds<E> Function<E extends T>() genericFunctionWithBounds<T>() {
 
 testGenericMethodBounds() {
   test(GenericMethodBounds<Object> g) {
-    Expect.throws(() => g.foo<String>(), isTypeError);
-    Expect.throws(() => g.foo(), isTypeError);
+    Expect.throwsTypeError(() => g.foo<String>());
+    Expect.throwsTypeError(() => g.foo());
     Expect.equals(g.foo<Null>().t, Null);
     Expect.equals(g.foo<int>().t, int);
     Expect.isFalse(g.foo<int>() is GenericMethodBounds<double>);
     g.bar<Function(Object)>();
     dynamic d = g;
     d.bar<Function(num)>();
-    Expect.throws(() => d.bar<Function(String)>(), isTypeError);
-    Expect.throws(() => d.bar<Function(Null)>(), isTypeError);
+    Expect.throwsTypeError(() => d.bar<Function(String)>());
+    Expect.throwsTypeError(() => d.bar<Function(Null)>());
   }
 
   test(new GenericMethodBounds<num>());
@@ -222,9 +202,7 @@ testCallMethod() {
   ClassF<Object> ca = cc; // An upcast, per covariance.
   F<Object> f = ca;
   Expect.equals(f.runtimeType.toString(), 'ClassF<int>');
-  Expect.throws(() {
-    f(new Object());
-  }, isTypeError);
+  Expect.throwsTypeError(() => f(new Object()));
 }
 
 class TearOff<T> {

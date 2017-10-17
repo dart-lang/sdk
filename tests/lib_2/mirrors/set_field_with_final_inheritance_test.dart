@@ -80,8 +80,8 @@ main() {
 
   c = new C();
   im = reflect(c);
-  Expect.throws(() => im.setField(#finalWithInheritedFinal, 23),
-      (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(
+      () => im.setField(#finalWithInheritedFinal, 23));
   Expect.equals(14, c.finalWithInheritedFinal);
   Expect.equals(5, c.superFinalWithInheritedFinal);
   Expect.equals(0, c.sideEffect);

@@ -187,51 +187,32 @@ void testNormalization() {
       uri.toString());
 }
 
-bool badArgument(e) => e is ArgumentError;
-bool badFormat(e) => e is FormatException;
-
 void testErrors() {
   // Invalid constructor parameters.
-  Expect.throws(() {
-    new UriData.fromBytes([], mimeType: "noslash");
-  }, badArgument);
-  Expect.throws(() {
-    new UriData.fromBytes([257]);
-  }, badArgument);
-  Expect.throws(() {
-    new UriData.fromBytes([-1]);
-  }, badArgument);
-  Expect.throws(() {
-    new UriData.fromBytes([0x10000000]);
-  }, badArgument);
-  Expect.throws(() {
-    new UriData.fromString("", mimeType: "noslash");
-  }, badArgument);
+  Expect.throwsArgumentError(
+      () => new UriData.fromBytes([], mimeType: "noslash"));
+  Expect.throwsArgumentError(() => new UriData.fromBytes([257]));
+  Expect.throwsArgumentError(() => new UriData.fromBytes([-1]));
+  Expect.throwsArgumentError(() => new UriData.fromBytes([0x10000000]));
+  Expect.throwsArgumentError(
+      () => new UriData.fromString("", mimeType: "noslash"));
 
-  Expect.throws(() {
-    new Uri.dataFromBytes([], mimeType: "noslash");
-  }, badArgument);
-  Expect.throws(() {
-    new Uri.dataFromBytes([257]);
-  }, badArgument);
-  Expect.throws(() {
-    new Uri.dataFromBytes([-1]);
-  }, badArgument);
-  Expect.throws(() {
-    new Uri.dataFromBytes([0x10000000]);
-  }, badArgument);
-  Expect.throws(() {
-    new Uri.dataFromString("", mimeType: "noslash");
-  }, badArgument);
+  Expect.throwsArgumentError(
+      () => new Uri.dataFromBytes([], mimeType: "noslash"));
+  Expect.throwsArgumentError(() => new Uri.dataFromBytes([257]));
+  Expect.throwsArgumentError(() => new Uri.dataFromBytes([-1]));
+  Expect.throwsArgumentError(() => new Uri.dataFromBytes([0x10000000]));
+  Expect.throwsArgumentError(
+      () => new Uri.dataFromString("", mimeType: "noslash"));
 
   // Empty parameters allowed, not an error.
   var uri = new UriData.fromString("", mimeType: "", parameters: {});
   Expect.equals("data:,", "$uri");
   // Empty parameter key or value is an error.
-  Expect.throws(
-      () => new UriData.fromString("", parameters: {"": "X"}), badArgument);
-  Expect.throws(
-      () => new UriData.fromString("", parameters: {"X": ""}), badArgument);
+  Expect.throwsArgumentError(
+      () => new UriData.fromString("", parameters: {"": "X"}));
+  Expect.throwsArgumentError(
+      () => new UriData.fromString("", parameters: {"X": ""}));
 
   // Not recognizing charset is an error.
   uri = UriData.parse("data:;charset=arglebargle,X");
@@ -242,36 +223,21 @@ void testErrors() {
   Expect.equals("X", uri.contentAsString(encoding: ASCII));
 
   // Parse format.
-  Expect.throws(() {
-    UriData.parse("notdata:,");
-  }, badFormat);
-  Expect.throws(() {
-    UriData.parse("text/plain,noscheme");
-  }, badFormat);
-  Expect.throws(() {
-    UriData.parse("data:noseparator");
-  }, badFormat);
-  Expect.throws(() {
-    UriData.parse("data:noslash,text");
-  }, badFormat);
-  Expect.throws(() {
-    UriData.parse("data:type/sub;noequals,text");
-  }, badFormat);
-  Expect.throws(() {
-    UriData.parse("data:type/sub;knocomma=");
-  }, badFormat);
-  Expect.throws(() {
-    UriData.parse("data:type/sub;k=v;nocomma");
-  }, badFormat);
-  Expect.throws(() {
-    UriData.parse("data:type/sub;k=nocomma");
-  }, badFormat);
-  Expect.throws(() {
-    UriData.parse("data:type/sub;k=v;base64");
-  }, badFormat);
+  Expect.throwsFormatException(() => UriData.parse("notdata:,"));
+  Expect.throwsFormatException(() => UriData.parse("text/plain,noscheme"));
+  Expect.throwsFormatException(() => UriData.parse("data:noseparator"));
+  Expect.throwsFormatException(() => UriData.parse("data:noslash,text"));
+  Expect.throwsFormatException(
+      () => UriData.parse("data:type/sub;noequals,text"));
+  Expect.throwsFormatException(() => UriData.parse("data:type/sub;knocomma="));
+  Expect.throwsFormatException(
+      () => UriData.parse("data:type/sub;k=v;nocomma"));
+  Expect.throwsFormatException(() => UriData.parse("data:type/sub;k=nocomma"));
+  Expect.throwsFormatException(() => UriData.parse("data:type/sub;k=v;base64"));
 
   void formatError(String input) {
-    Expect.throws(() => UriData.parse("data:;base64,$input"), badFormat, input);
+    Expect.throwsFormatException(() => UriData.parse("data:;base64,$input"),
+        input);
   }
 
   // Invalid base64 format (detected when parsed).

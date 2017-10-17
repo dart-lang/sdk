@@ -18,5 +18,5 @@ foo() {
 }
 
 main() {
-  Expect.throws(() => foo(), (e) => e is RangeError);
+  Expect.throwsRangeError(() => foo());
 }

@@ -15,5 +15,5 @@ main() {
   var a = [new A(), new B()];
   var b = a[0];
   b = b as A;
-  Expect.throws(() => b as B, (e) => e is CastError);
+  Expect.throwsCastError(() => b as B);
 }

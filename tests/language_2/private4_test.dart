@@ -11,7 +11,7 @@ import 'other_library.dart';
 
 main() {
   Expect.equals(42, foo(new A()));
-  Expect.throws(() => foo(new B()), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => foo(new B()));
 }
 
 class B {

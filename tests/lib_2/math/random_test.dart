@@ -57,7 +57,7 @@ void checkSequence() {
   Expect.equals(1639629168, rnd.nextInt(i *= 2));
   Expect.equals(0x100000000, i);
   // If max is too large expect an ArgumentError.
-  Expect.throws(() => rnd.nextInt(i + 1), (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => rnd.nextInt(i + 1));
 
   rnd = new Random(6790);
   Expect.approxEquals(0.1202733131, rnd.nextDouble());

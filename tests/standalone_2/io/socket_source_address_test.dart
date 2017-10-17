@@ -38,8 +38,7 @@ Future testArguments(connectFunction) async {
   asyncStart();
   // Illegal type for sourceAddress.
   for (sourceAddress in ['www.google.com', 'abc']) {
-    await throws(
-        () => connectFunction('127.0.0.1', server.port,
+    await throws(() => connectFunction('127.0.0.1', server.port,
             sourceAddress: sourceAddress),
         (e) => e is ArgumentError);
   }

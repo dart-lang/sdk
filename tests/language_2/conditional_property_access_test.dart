@@ -8,8 +8,6 @@
 import "package:expect/expect.dart";
 import "conditional_access_helper.dart" as h;
 
-noMethod(e) => e is NoSuchMethodError;
-
 class B {}
 
 class C extends B {
@@ -52,6 +50,6 @@ main() {
   var x = h?.topLevelVar; //# 09: compile-time error
 
   // Nor can it be used to access the hashCode getter on the class Type.
-  Expect.throws(() => C?.hashCode, noMethod); //# 10: compile-time error
-  Expect.throws(() => h.C?.hashCode, noMethod); //# 11: compile-time error
+  Expect.throwsNoSuchMethodError(() => C?.hashCode); //# 10: compile-time error
+  Expect.throwsNoSuchMethodError(() => h.C?.hashCode); //# 11: compile-time error
 }

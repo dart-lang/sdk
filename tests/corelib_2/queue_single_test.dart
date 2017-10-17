@@ -15,6 +15,6 @@ main() {
   Queue queue3 = new Queue();
 
   Expect.equals(42, queue1.single);
-  Expect.throws(() => queue2.single, (e) => e is StateError);
-  Expect.throws(() => queue3.single, (e) => e is StateError);
+  Expect.throwsStateError(() => queue2.single);
+  Expect.throwsStateError(() => queue3.single);
 }

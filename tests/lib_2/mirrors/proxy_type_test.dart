@@ -70,7 +70,7 @@ main() {
 
   Alice alice2 = new Alice();
   alice2.sayFooAttenuated();
-  Expect.throws(() => alice2.sayBar(), (e) => e is NoSuchMethodError,
+  Expect.throwsNoSuchMethodError(() => alice2.sayBar(),
       'Authority should have been attenuated');
 
   // At the base level, a caretaker for a Carol masquerades as a Carol.

@@ -518,11 +518,7 @@ class Naming2Test {
 
   static void main(args) {
     var a = new Naming2Test() as dynamic;
-    Expect.throws(
-        () => a.foo(2),
-        // We check for both exceptions because the exact exception to
-        // throw is hard to compute on some browsers.
-        (e) => e is NoSuchMethodError);
+    Expect.throwsNoSuchMethodError(() => a.foo(2));
   }
 }
 

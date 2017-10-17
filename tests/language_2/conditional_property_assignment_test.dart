@@ -12,8 +12,6 @@ bad() {
   Expect.fail('Should not be executed');
 }
 
-noMethod(e) => e is NoSuchMethodError;
-
 class B {}
 
 class C extends B {

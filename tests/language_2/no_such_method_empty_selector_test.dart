@@ -19,7 +19,7 @@ main() {
   // receiver type is empty. This used to make dart2js generate a
   // [noSuchMethod] handler for [hashCode] on the Object class, which
   // would override the actual implementation.
-  Expect.throws(() => a[0].hashCode, (e) => e is RangeError);
+  Expect.throwsRangeError(() => a[0].hashCode);
 
   // This code calls the [hashCode] method put on the [Object] class,
   // which used to be a [noSuchMethod] handler method.

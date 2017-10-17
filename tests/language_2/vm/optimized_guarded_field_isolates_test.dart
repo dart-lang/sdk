@@ -67,7 +67,7 @@ test_list_length() {
   Expect.equals(null, test_c(c));
   Future<C> item = receive_port.first;
   item.then((C value) {
-    Expect.throws(() => test_c(value), (e) => e is RangeError);
+    Expect.throwsRangeError(() => test_c(value));
     receive_port.close();
     asyncEnd();
   });

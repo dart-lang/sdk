@@ -42,14 +42,14 @@ main() {
   Expect.equals("M1-bar", e.bar);
   Expect.equals("M1-bar", f.bar);
 
-  Expect.throws(() => c.baz, (error) => error is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.baz);
   Expect.equals("M2-baz", d.baz);
   Expect.equals("M2-baz", e.baz);
   Expect.equals("M2-baz", f.baz);
 
-  Expect.throws(() => c.fez, (error) => error is NoSuchMethodError);
-  Expect.throws(() => d.fez, (error) => error is NoSuchMethodError);
-  Expect.throws(() => e.fez, (error) => error is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.fez);
+  Expect.throwsNoSuchMethodError(() => d.fez);
+  Expect.throwsNoSuchMethodError(() => e.fez);
   Expect.equals("F-fez", f.fez);
 
   c.foo = "S-foo-c";
@@ -76,47 +76,47 @@ main() {
   Expect.equals("S-foo-e", e.foo);
   Expect.equals("S-foo-f", f.foo);
 
-  Expect.throws(() => c.bar = 0, (error) => error is NoSuchMethodError);
-  Expect.throws(() => d.bar = 0, (error) => error is NoSuchMethodError);
-  Expect.throws(() => e.bar = 0, (error) => error is NoSuchMethodError);
-  Expect.throws(() => f.bar = 0, (error) => error is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.bar = 0);
+  Expect.throwsNoSuchMethodError(() => d.bar = 0);
+  Expect.throwsNoSuchMethodError(() => e.bar = 0);
+  Expect.throwsNoSuchMethodError(() => f.bar = 0);
   Expect.equals("M1-bar", c.bar);
   Expect.equals("M1-bar", d.bar);
   Expect.equals("M1-bar", e.bar);
   Expect.equals("M1-bar", f.bar);
 
-  Expect.throws(() => c.baz = 0, (error) => error is NoSuchMethodError);
-  Expect.throws(() => c.baz, (error) => error is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.baz = 0);
+  Expect.throwsNoSuchMethodError(() => c.baz);
   Expect.equals("M2-baz", d.baz);
   Expect.equals("M2-baz", e.baz);
   Expect.equals("M2-baz", f.baz);
 
   d.baz = "M2-baz-d";
-  Expect.throws(() => c.baz, (error) => error is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.baz);
   Expect.equals("M2-baz-d", d.baz);
   Expect.equals("M2-baz", e.baz);
   Expect.equals("M2-baz", f.baz);
   Expect.equals("M2-baz", f.baz);
 
   e.baz = "M2-baz-e";
-  Expect.throws(() => c.baz, (error) => error is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.baz);
   Expect.equals("M2-baz-d", d.baz);
   Expect.equals("M2-baz-e", e.baz);
   Expect.equals("M2-baz", f.baz);
 
   f.baz = "M2-baz-f";
-  Expect.throws(() => c.baz, (error) => error is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.baz);
   Expect.equals("M2-baz-d", d.baz);
   Expect.equals("M2-baz-e", e.baz);
   Expect.equals("M2-baz-f", f.baz);
 
-  Expect.throws(() => c.fez = 0, (error) => error is NoSuchMethodError);
-  Expect.throws(() => d.fez = 0, (error) => error is NoSuchMethodError);
-  Expect.throws(() => e.fez = 0, (error) => error is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.fez = 0);
+  Expect.throwsNoSuchMethodError(() => d.fez = 0);
+  Expect.throwsNoSuchMethodError(() => e.fez = 0);
 
   f.fez = "F-fez-f";
-  Expect.throws(() => c.fez, (error) => error is NoSuchMethodError);
-  Expect.throws(() => d.fez, (error) => error is NoSuchMethodError);
-  Expect.throws(() => e.fez, (error) => error is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.fez);
+  Expect.throwsNoSuchMethodError(() => d.fez);
+  Expect.throwsNoSuchMethodError(() => e.fez);
   Expect.equals("F-fez-f", f.fez);
 }

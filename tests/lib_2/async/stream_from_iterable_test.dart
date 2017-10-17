@@ -79,9 +79,7 @@ main() {
   test("iterable-single-subscription", () {
     Stream stream = new Stream.fromIterable(iter);
     stream.listen((x) {});
-    Expect.throws(() {
-      stream.listen((x) {});
-    }, (e) => e is StateError);
+    Expect.throwsStateError(() => stream.listen((x) {}));
   });
 
   test("regression-14332", () {

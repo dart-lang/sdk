@@ -5,21 +5,12 @@
 import "package:expect/expect.dart";
 
 testGetRange(list, start, end, bool isModifiable) {
-  expectRE(() {
-    list.getRange(-1, 0);
-  });
-  expectRE(() {
-    list.getRange(0, -1);
-  });
-  expectRE(() {
-    list.getRange(1, 0);
-  });
-  expectRE(() {
-    list.getRange(0, list.length + 1);
-  });
-  expectRE(() {
-    list.getRange(list.length + 1, list.length + 1);
-  });
+  Expect.throwsRangeError(() => list.getRange(-1, 0));
+  Expect.throwsRangeError(() => list.getRange(0, -1));
+  Expect.throwsRangeError(() => list.getRange(1, 0));
+  Expect.throwsRangeError(() => list.getRange(0, list.length + 1));
+  Expect.throwsRangeError(
+      () => list.getRange(list.length + 1, list.length + 1));
   Iterable iterable = list.getRange(start, end);
   Expect.isFalse(iterable is List);
   if (start == end) {
@@ -60,9 +51,9 @@ main() {
   testGetRange("abcd".codeUnits, 0, 0, false);
   testGetRange("abcd".codeUnits, 1, 3, false);
 
-  expectRE(() => [1].getRange(-1, 1));
-  expectRE(() => [3].getRange(0, -1));
-  expectRE(() => [4].getRange(1, 0));
+  Expect.throwsRangeError(() => [1].getRange(-1, 1));
+  Expect.throwsRangeError(() => [3].getRange(0, -1));
+  Expect.throwsRangeError(() => [4].getRange(1, 0));
 
   var list = [1, 2, 3, 4];
   var iterable = list.getRange(1, 3);
@@ -75,8 +66,4 @@ main() {
   list.add(499);
   Expect.equals(499, iterable.last);
   Expect.equals(2, iterable.length);
-}
-
-void expectRE(void f()) {
-  Expect.throws(f, (e) => e is RangeError);
 }

@@ -33,10 +33,6 @@ get libraryGetter => 'lget $libraryField';
 set librarySetter(v) => libraryField = 'lset $v';
 libraryFunction(x, y) => '$x$y';
 
-bool isNoSuchMethodError(e) {
-  return e is NoSuchMethodError;
-}
-
 testSync() {
   var result;
 
@@ -74,18 +70,18 @@ testSync() {
   ClassMirror cm = reflectClass(C);
   result = cm.invoke(const Symbol('staticFunction'), [3, 4]);
   Expect.equals('(3,4)', result.reflectee);
-  Expect.throws(() => cm.invoke(const Symbol('doesntExist'), [3, 4]),
-      isNoSuchMethodError, 'Not defined');
-  Expect.throws(() => cm.invoke(const Symbol('staticFunction'), [3]),
-      isNoSuchMethodError, 'Wrong arity');
+  Expect.throwsNoSuchMethodError(
+      () => cm.invoke(const Symbol('doesntExist'), [3, 4]), 'Not defined');
+  Expect.throwsNoSuchMethodError(
+      () => cm.invoke(const Symbol('staticFunction'), [3]), 'Wrong arity');
 
   // ClassMirror invokeGetter
   result = cm.getField(const Symbol('staticGetter'));
   Expect.equals('sget initial', result.reflectee);
   result = cm.getField(const Symbol('staticField'));
   Expect.equals('initial', result.reflectee);
-  Expect.throws(() => cm.getField(const Symbol('doesntExist')),
-      isNoSuchMethodError, 'Not defined');
+  Expect.throwsNoSuchMethodError(
+      () => cm.getField(const Symbol('doesntExist')), 'Not defined');
 
   // ClassMirror invokeSetter
   result = cm.setField(const Symbol('staticSetter'), 'sfoo');
@@ -97,8 +93,8 @@ testSync() {
   Expect.equals('sbar', result.reflectee);
   Expect.equals('sbar', C.staticField);
   Expect.equals('sbar', cm.getField(const Symbol('staticField')).reflectee);
-  Expect.throws(() => cm.setField(const Symbol('doesntExist'), 'sbar'),
-      isNoSuchMethodError, 'Not defined');
+  Expect.throwsNoSuchMethodError(
+      () => cm.setField(const Symbol('doesntExist'), 'sbar'), 'Not defined');
 
   // ClassMirror invokeConstructor
   result = cm.newInstance(const Symbol(''), []);
@@ -107,27 +103,28 @@ testSync() {
   result = cm.newInstance(const Symbol('named'), ['my value']);
   Expect.isTrue(result.reflectee is C);
   Expect.equals('my value', result.reflectee.field);
-  Expect.throws(() => cm.newInstance(const Symbol('doesntExist'), ['my value']),
-      isNoSuchMethodError, 'Not defined');
-  Expect.throws(() => cm.newInstance(const Symbol('named'), []),
-      isNoSuchMethodError, 'Wrong arity');
+  Expect.throwsNoSuchMethodError(
+      () => cm.newInstance(const Symbol('doesntExist'), ['my value']),
+      'Not defined');
+  Expect.throwsNoSuchMethodError(
+      () => cm.newInstance(const Symbol('named'), []), 'Wrong arity');
 
   // LibraryMirror invoke
   LibraryMirror lm = cm.owner;
   result = lm.invoke(const Symbol('libraryFunction'), [':', ')']);
   Expect.equals(':)', result.reflectee);
-  Expect.throws(() => lm.invoke(const Symbol('doesntExist'), [':', ')']),
-      isNoSuchMethodError, 'Not defined');
-  Expect.throws(() => lm.invoke(const Symbol('libraryFunction'), [':']),
-      isNoSuchMethodError, 'Wrong arity');
+  Expect.throwsNoSuchMethodError(
+      () => lm.invoke(const Symbol('doesntExist'), [':', ')']), 'Not defined');
+  Expect.throwsNoSuchMethodError(
+      () => lm.invoke(const Symbol('libraryFunction'), [':']), 'Wrong arity');
 
   // LibraryMirror invokeGetter
   result = lm.getField(const Symbol('libraryGetter'));
   Expect.equals('lget a priori', result.reflectee);
   result = lm.getField(const Symbol('libraryField'));
   Expect.equals('a priori', result.reflectee);
-  Expect.throws(() => lm.getField(const Symbol('doesntExist')),
-      isNoSuchMethodError, 'Not defined');
+  Expect.throwsNoSuchMethodError(() => lm.getField(const Symbol('doesntExist')),
+      'Not defined');
 
   // LibraryMirror invokeSetter
   result = lm.setField(const Symbol('librarySetter'), 'lfoo');
@@ -139,8 +136,8 @@ testSync() {
   Expect.equals('lbar', result.reflectee);
   Expect.equals('lbar', libraryField);
   Expect.equals('lbar', lm.getField(const Symbol('libraryField')).reflectee);
-  Expect.throws(() => lm.setField(const Symbol('doesntExist'), 'lbar'),
-      isNoSuchMethodError, 'Not defined');
+  Expect.throwsNoSuchMethodError(
+      () => lm.setField(const Symbol('doesntExist'), 'lbar'), 'Not defined');
 }
 
 main() {

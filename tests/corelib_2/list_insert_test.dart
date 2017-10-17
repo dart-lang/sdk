@@ -22,25 +22,12 @@ class MyList extends ListBase {
 
 // l1 must be a modifiable list with 5 elements from 0 to 4.
 void testModifiableList(l1) {
-  bool checkedMode = false;
-  assert(checkedMode = true);
-
   // Index must be integer and in range.
-  Expect.throws(() {
-    l1.insert(-1, 5);
-  }, (e) => e is RangeError, "negative");
-  Expect.throws(() {
-    l1.insert(6, 5);
-  }, (e) => e is RangeError, "too large");
-  Expect.throws(() {
-    l1.insert(null, 5);
-  });
-  Expect.throws(() {
-    l1.insert("1", 5);
-  });
-  Expect.throws(() {
-    l1.insert(1.5, 5);
-  });
+  Expect.throwsRangeError(() => l1.insert(-1, 5), "negative");
+  Expect.throwsRangeError(() => l1.insert(6, 5), "too large");
+  Expect.throws(() => l1.insert(null, 5));
+  Expect.throws(() => l1.insert("1", 5));
+  Expect.throws(() => l1.insert(1.5, 5));
 
   l1.insert(5, 5);
   Expect.equals(6, l1.length);
@@ -61,15 +48,11 @@ void main() {
   // Fixed size list.
   var l2 = new List(5);
   for (var i = 0; i < 5; i++) l2[i] = i;
-  Expect.throws(() {
-    l2.insert(2, 5);
-  }, (e) => e is UnsupportedError, "fixed-length");
+  Expect.throwsUnsupportedError(() => l2.insert(2, 5), "fixed-length");
 
   // Unmodifiable list.
   var l3 = const [0, 1, 2, 3, 4];
-  Expect.throws(() {
-    l3.insert(2, 5);
-  }, (e) => e is UnsupportedError, "unmodifiable");
+  Expect.throwsUnsupportedError(() => l3.insert(2, 5), "unmodifiable");
 
   // Empty list is not special.
   var l4 = [];

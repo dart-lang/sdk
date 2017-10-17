@@ -11,8 +11,6 @@ import 'package:expect/expect.dart';
 import 'model.dart';
 import 'stringify.dart';
 
-bool isNoSuchMethodError(e) => e is NoSuchMethodError;
-
 variablesOf(ClassMirror cm) {
   var result = new Map();
   cm.declarations.forEach((k, v) {
@@ -134,17 +132,11 @@ main() {
   Expect.equals('aMethod', b.invoke(aMethod, []).reflectee);
   Expect.equals('aMethod', c.invoke(aMethod, []).reflectee);
 
-  Expect.throws(() {
-    a.invoke(bMethod, []);
-  }, isNoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => a.invoke(bMethod, []));
   Expect.equals('bMethod', b.invoke(bMethod, []).reflectee);
   Expect.equals('bMethod', c.invoke(bMethod, []).reflectee);
 
-  Expect.throws(() {
-    a.invoke(cMethod, []);
-  }, isNoSuchMethodError);
-  Expect.throws(() {
-    b.invoke(cMethod, []);
-  }, isNoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => a.invoke(cMethod, []));
+  Expect.throwsNoSuchMethodError(() => b.invoke(cMethod, []));
   Expect.equals('cMethod', c.invoke(cMethod, []).reflectee);
 }

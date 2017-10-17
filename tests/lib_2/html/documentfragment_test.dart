@@ -25,21 +25,6 @@ main() {
     return out;
   }
 
-  ;
-
-  assertConstError(void fn()) {
-    try {
-      fn();
-    } catch (e) {
-      if (e is UnsupportedError) {
-        return;
-      }
-    }
-    expect(true, isFalse, reason: 'Expected immutability error');
-  }
-
-  ;
-
   void expectEmptyStyleDeclaration(CssStyleDeclaration style) {
     expect(style.cssText, equals(''));
     expect(style.getPropertyPriority('color'), equals(''));

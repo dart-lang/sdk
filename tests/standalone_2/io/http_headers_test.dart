@@ -300,8 +300,7 @@ void testContentType() {
   Expect.equals("", contentType.primaryType);
   Expect.equals("", contentType.subType);
   Expect.equals("/", contentType.value);
-  Expect.throws(() => contentType.parameters["xxx"] = "yyy",
-      (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => contentType.parameters["xxx"] = "yyy");
 
   contentType = ContentType.parse("text/html");
   check(contentType, "text", "html");
@@ -309,8 +308,7 @@ void testContentType() {
   contentType = new ContentType("text", "html", charset: "utf-8");
   check(contentType, "text", "html", {"charset": "utf-8"});
   Expect.equals("text/html; charset=utf-8", contentType.toString());
-  Expect.throws(() => contentType.parameters["xxx"] = "yyy",
-      (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => contentType.parameters["xxx"] = "yyy");
 
   contentType = new ContentType("text", "html",
       parameters: {"CHARSET": "UTF-8", "xxx": "YYY"});
@@ -321,8 +319,7 @@ void testContentType() {
   Expect.isTrue(expectedToString);
   contentType = ContentType.parse("text/html; CHARSET=UTF-8; xxx=YYY");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "YYY"});
-  Expect.throws(() => contentType.parameters["xxx"] = "yyy",
-      (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => contentType.parameters["xxx"] = "yyy");
 
   contentType = new ContentType("text", "html",
       charset: "ISO-8859-1", parameters: {"CHARSET": "UTF-8", "xxx": "yyy"});
@@ -525,13 +522,10 @@ void testHeaderLists() {
 void testInvalidFieldName() {
   void test(String field) {
     _HttpHeaders headers = new _HttpHeaders("1.1");
-    Expect.throws(
-        () => headers.add(field, "value"), (e) => e is FormatException);
-    Expect.throws(
-        () => headers.set(field, "value"), (e) => e is FormatException);
-    Expect.throws(
-        () => headers.remove(field, "value"), (e) => e is FormatException);
-    Expect.throws(() => headers.removeAll(field), (e) => e is FormatException);
+    Expect.throwsFormatException(() => headers.add(field, "value"));
+    Expect.throwsFormatException(() => headers.set(field, "value"));
+    Expect.throwsFormatException(() => headers.remove(field, "value"));
+    Expect.throwsFormatException(() => headers.removeAll(field));
   }
 
   test('\r');
@@ -543,13 +537,10 @@ void testInvalidFieldName() {
 void testInvalidFieldValue() {
   void test(value, {bool remove: true}) {
     _HttpHeaders headers = new _HttpHeaders("1.1");
-    Expect.throws(
-        () => headers.add("field", value), (e) => e is FormatException);
-    Expect.throws(
-        () => headers.set("field", value), (e) => e is FormatException);
+    Expect.throwsFormatException(() => headers.add("field", value));
+    Expect.throwsFormatException(() => headers.set("field", value));
     if (remove) {
-      Expect.throws(
-          () => headers.remove("field", value), (e) => e is FormatException);
+      Expect.throwsFormatException(() => headers.remove("field", value));
     }
   }
 

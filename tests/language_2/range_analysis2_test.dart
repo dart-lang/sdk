@@ -11,5 +11,5 @@ main() {
   var a = 0;
   var b = [1];
   foo() => b[a--] + b[a];
-  Expect.throws(foo, (e) => e is RangeError);
+  Expect.throwsRangeError(foo);
 }

@@ -16,9 +16,7 @@ class ListLiteral3Test {
     Expect.identical(joke[0], canonicalJoke[0]);
 
     // Lists from literals are immutable.
-    Expect.throws(() {
-      joke[0] = "sock";
-    }, (e) => e is UnsupportedError);
+    Expect.throwsUnsupportedError(() => joke[0] = "sock");
     Expect.identical(joke[0], joke[1]);
 
     // Make sure lists allocated at runtime are mutable and are
@@ -37,9 +35,7 @@ class ListLiteral3Test {
     ];
     Expect.identical(a[0], a[1]);
     Expect.identical(a[0][0], a[1][0]);
-    Expect.throws(() {
-      a[0][0] = 42;
-    }, (e) => e is UnsupportedError);
+    Expect.throwsUnsupportedError(() => a[0][0] = 42);
 
     List<List<double>> b = const [
       const [1.0, 2.0],
@@ -48,9 +44,7 @@ class ListLiteral3Test {
     Expect.identical(b[0], b[1]);
     Expect.equals(true, b[0][0] == 1.0);
     Expect.identical(b[0][0], b[1][0]);
-    Expect.throws(() {
-      b[0][0] = 42.0;
-    }, (e) => e is UnsupportedError);
+    Expect.throwsUnsupportedError(() => b[0][0] = 42.0);
   }
 }
 

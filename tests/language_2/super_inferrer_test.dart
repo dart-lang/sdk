@@ -28,5 +28,5 @@ analyzeFirst() {
 }
 
 analyzeSecond() {
-  Expect.throws(() => new B().bar(), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => new B().bar());
 }

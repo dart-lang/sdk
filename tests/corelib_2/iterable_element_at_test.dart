@@ -16,24 +16,24 @@ main() {
   Expect.equals(2, list1.elementAt(1));
   Expect.equals(3, list1.elementAt(2));
   list1.elementAt("2"); //# static: compile-time error
-  Expect.throws(() => list1.elementAt(-1), (e) => e is ArgumentError);
-  Expect.throws(() => list1.elementAt(3), (e) => e is RangeError);
+  Expect.throwsArgumentError(() => list1.elementAt(-1));
+  Expect.throwsRangeError(() => list1.elementAt(3));
 
   Expect.equals(4, list2.elementAt(0));
   Expect.equals(5, list2.elementAt(1));
   Expect.equals(6, list2.elementAt(2));
   list2.elementAt("2"); //# static: compile-time error
-  Expect.throws(() => list2.elementAt(-1), (e) => e is ArgumentError);
-  Expect.throws(() => list2.elementAt(3), (e) => e is RangeError);
+  Expect.throwsArgumentError(() => list2.elementAt(-1));
+  Expect.throwsRangeError(() => list2.elementAt(3));
 
   Expect.isTrue(set1.contains(set1.elementAt(0)));
   Expect.isTrue(set1.contains(set1.elementAt(1)));
   Expect.isTrue(set1.contains(set1.elementAt(2)));
-  Expect.throws(() => set1.elementAt(-1), (e) => e is ArgumentError);
-  Expect.throws(() => set1.elementAt(3), (e) => e is RangeError);
+  Expect.throwsArgumentError(() => set1.elementAt(-1));
+  Expect.throwsRangeError(() => set1.elementAt(3));
 
   set2.elementAt("2"); //# static: compile-time error
-  Expect.throws(() => set2.elementAt(-1), (e) => e is ArgumentError);
-  Expect.throws(() => set2.elementAt(0), (e) => e is RangeError);
-  Expect.throws(() => set2.elementAt(1), (e) => e is RangeError);
+  Expect.throwsArgumentError(() => set2.elementAt(-1));
+  Expect.throwsRangeError(() => set2.elementAt(0));
+  Expect.throwsRangeError(() => set2.elementAt(1));
 }

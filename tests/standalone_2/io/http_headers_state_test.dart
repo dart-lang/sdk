@@ -21,10 +21,8 @@ void test(int totalConnections, [String body]) {
         if (body != null) {
           response.write(body);
           // Cannot change state or reason when data has been sent.
-          Expect.throws(
-              () => response.statusCode = 200, (e) => e is StateError);
-          Expect.throws(
-              () => response.reasonPhrase = "OK", (e) => e is StateError);
+          Expect.throwsStateError(() => response.statusCode = 200);
+          Expect.throwsStateError(() => response.reasonPhrase = "OK");
           // Cannot mutate response headers when data has been sent.
           Expect.throws(
               () => response.headers.add("X-Request-Header", "value2"),
@@ -32,9 +30,8 @@ void test(int totalConnections, [String body]) {
         }
         response..close();
         // Cannot change state or reason after connection is closed.
-        Expect.throws(() => response.statusCode = 200, (e) => e is StateError);
-        Expect.throws(
-            () => response.reasonPhrase = "OK", (e) => e is StateError);
+        Expect.throwsStateError(() => response.statusCode = 200);
+        Expect.throwsStateError(() => response.reasonPhrase = "OK");
         // Cannot mutate response headers after connection is closed.
         Expect.throws(() => response.headers.add("X-Request-Header", "value3"),
             (e) => e is HttpException);

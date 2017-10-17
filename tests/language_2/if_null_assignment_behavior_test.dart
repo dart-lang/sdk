@@ -66,14 +66,6 @@ void check(expectedValue, f(), expectedOperations) {
   h.operations = [];
 }
 
-void checkThrows(expectedException, f(), expectedOperations) {
-  Expect.throws(f, expectedException);
-  Expect.listEquals(expectedOperations, h.operations);
-  h.operations = [];
-}
-
-noMethod(e) => e is NoSuchMethodError;
-
 class C {
   final String s;
 

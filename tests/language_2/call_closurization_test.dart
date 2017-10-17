@@ -43,9 +43,7 @@ main() {
     Expect.equals("4455", named_arg_tearOff.call(x: 44, y: 55));
   }
 
-  Expect.throws(() => bar_tearOff.call(), (e) => e is NoSuchMethodError);
-  Expect.throws(
-      () => opt_arg_tearOff.call(x: "p"), (e) => e is NoSuchMethodError);
-  Expect.throws(
-      () => named_arg_tearOff.call("p", "q"), (e) => e is NoSuchMethodError);
+  Expect.throws(() => bar_tearOff.call());
+  Expect.throwsNoSuchMethodError(() => opt_arg_tearOff.call(x: "p"));
+  Expect.throwsNoSuchMethodError(() => named_arg_tearOff.call("p", "q"));
 }
