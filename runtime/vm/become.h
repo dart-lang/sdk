@@ -80,11 +80,6 @@ class Become : public AllStatic {
   // Useful for atomically applying behavior and schema changes.
   static void ElementsForwardIdentity(const Array& before, const Array& after);
 
-  // Update any references pointing to forwarding objects to point the
-  // forwarding objects' targets. Used by the implementation of become and the
-  // simplistic compactor.
-  static void FollowForwardingPointers(Thread* thread);
-
   // Convert and instance object into a dummy object,
   // making the instance independent of its class.
   // (used for morphic instances during reload).

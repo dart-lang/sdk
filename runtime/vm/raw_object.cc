@@ -543,13 +543,11 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&raw_obj->ptr()->info_array_));
   const intptr_t len = raw_obj->ptr()->length_;
-  RawTypedData* info_array = raw_obj->ptr()->info_array_;
-  ASSERT(!info_array->IsForwardingCorpse());
-
+  RawTypedData* info_array = raw_obj->ptr()->info_array_->ptr();
   Entry* first = raw_obj->first_entry();
   for (intptr_t i = 0; i < len; ++i) {
     ObjectPool::EntryType entry_type =
-        static_cast<ObjectPool::EntryType>(info_array->ptr()->data()[i]);
+        static_cast<ObjectPool::EntryType>(info_array->data()[i]);
     if (entry_type == ObjectPool::kTaggedObject) {
       visitor->VisitPointer(&(first + i)->raw_obj_);
     }

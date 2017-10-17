@@ -76,7 +76,8 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
   explicit ForwardPointersVisitor(Thread* thread)
       : ObjectPointerVisitor(thread->isolate()),
         thread_(thread),
-        visiting_object_(NULL) {}
+        visiting_object_(NULL),
+        count_(0) {}
 
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** p = first; p <= last; p++) {
@@ -88,6 +89,7 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
         } else {
           visiting_object_->StorePointer(p, new_target);
         }
+        count_++;
       }
     }
   }
@@ -101,9 +103,12 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
     }
   }
 
+  intptr_t count() const { return count_; }
+
  private:
   Thread* thread_;
   RawObject* visiting_object_;
+  intptr_t count_;
 
   DISALLOW_COPY_AND_ASSIGN(ForwardPointersVisitor);
 };
@@ -126,18 +131,23 @@ class ForwardHeapPointersVisitor : public ObjectVisitor {
 
 class ForwardHeapPointersHandleVisitor : public HandleVisitor {
  public:
-  explicit ForwardHeapPointersHandleVisitor(Thread* thread)
-      : HandleVisitor(thread) {}
+  ForwardHeapPointersHandleVisitor()
+      : HandleVisitor(Thread::Current()), count_(0) {}
 
   virtual void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     if (IsForwardingObject(handle->raw())) {
       *handle->raw_addr() = GetForwardedObject(handle->raw());
+      count_++;
     }
   }
 
+  intptr_t count() const { return count_; }
+
  private:
+  int count_;
+
   DISALLOW_COPY_AND_ASSIGN(ForwardHeapPointersHandleVisitor);
 };
 
@@ -216,7 +226,7 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   Heap* heap = isolate->heap();
 
   TIMELINE_FUNCTION_GC_DURATION(thread, "Become::ElementsForwardIdentity");
-  SafepointOperationScope safepoint(thread);
+  HeapIterationScope his(thread);
 
   // Setup forwarding pointers.
   ASSERT(before.Length() == after.Length());
@@ -251,53 +261,48 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
 
     ForwardObjectTo(before_obj, after_obj);
     heap->ForwardWeakEntries(before_obj, after_obj);
+
 #if defined(HASH_IN_OBJECT_HEADER)
     Object::SetCachedHash(after_obj, Object::GetCachedHash(before_obj));
 #endif
   }
 
-  FollowForwardingPointers(thread);
+  {
+    // Follow forwarding pointers.
+
+    // Clear the store buffer; will be rebuilt as we forward the heap.
+    isolate->PrepareForGC();  // Have all threads flush their store buffers.
+    isolate->store_buffer()->Reset();  // Drop all store buffers.
+
+    // C++ pointers
+    ForwardPointersVisitor pointer_visitor(thread);
+    isolate->VisitObjectPointers(&pointer_visitor, true);
+
+    // Weak persistent handles.
+    ForwardHeapPointersHandleVisitor handle_visitor;
+    isolate->VisitWeakPersistentHandles(&handle_visitor);
+
+    //   Heap pointers (may require updating the remembered set)
+    {
+      WritableCodeLiteralsScope writable_code(heap);
+      ForwardHeapPointersVisitor object_visitor(&pointer_visitor);
+      heap->VisitObjects(&object_visitor);
+      pointer_visitor.VisitingObject(NULL);
+    }
+
+#if !defined(PRODUCT)
+    tds.SetNumArguments(2);
+    tds.FormatArgument(0, "Remapped objects", "%" Pd, before.Length());
+    tds.FormatArgument(1, "Remapped references", "%" Pd,
+                       pointer_visitor.count() + handle_visitor.count());
+#endif
+  }
 
 #if defined(DEBUG)
   for (intptr_t i = 0; i < before.Length(); i++) {
     ASSERT(before.At(i) == after.At(i));
   }
 #endif
-}
-
-void Become::FollowForwardingPointers(Thread* thread) {
-  // N.B.: We forward the heap before forwarding the stack. This limits the
-  // amount of following of forwarding pointers needed to get at stack maps.
-  Isolate* isolate = thread->isolate();
-  Heap* heap = isolate->heap();
-
-  // Clear the store buffer; will be rebuilt as we forward the heap.
-  isolate->PrepareForGC();  // Have all threads flush their store buffers.
-  isolate->store_buffer()->Reset();  // Drop all store buffers.
-
-  ForwardPointersVisitor pointer_visitor(thread);
-
-  {
-    // Heap pointers.
-    WritableCodeLiteralsScope writable_code(heap);
-    ForwardHeapPointersVisitor object_visitor(&pointer_visitor);
-    heap->VisitObjects(&object_visitor);
-    pointer_visitor.VisitingObject(NULL);
-  }
-
-  // C++ pointers.
-  isolate->VisitObjectPointers(&pointer_visitor, true);
-#ifndef PRODUCT
-  if (FLAG_support_service) {
-    ObjectIdRing* ring = isolate->object_id_ring();
-    ASSERT(ring != NULL);
-    ring->VisitPointers(&pointer_visitor);
-  }
-#endif  // !PRODUCT
-
-  // Weak persistent handles.
-  ForwardHeapPointersHandleVisitor handle_visitor(thread);
-  isolate->VisitWeakPersistentHandles(&handle_visitor);
 }
 
 }  // namespace dart
