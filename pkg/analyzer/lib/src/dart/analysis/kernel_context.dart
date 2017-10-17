@@ -148,10 +148,8 @@ class KernelContext {
       }
 
       if (DEBUG) {
-        print('----------- ${targetLibrary.uriStr}');
         var libraryKernel = libraryMap[targetLibrary.uriStr];
         print(_getLibraryText(libraryKernel));
-        print('--------------------------------------');
       }
 
       // Create and configure a new context.

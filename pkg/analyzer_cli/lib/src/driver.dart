@@ -650,8 +650,7 @@ class Driver implements CommandLineStarter {
           new FileContentOverlay(),
           null,
           context.sourceFactory,
-          context.analysisOptions,
-          enableKernelDriver: options.previewDart2);
+          context.analysisOptions);
       analysisDriver.results.listen((_) {});
       analysisDriver.exceptions.listen((_) {});
       scheduler.start();
