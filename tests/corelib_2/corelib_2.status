@@ -419,6 +419,7 @@ iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type
 regexp/no-extensions_test: RuntimeError
 regexp/lookahead_test: RuntimeError
 regexp/overflow_test: RuntimeError
+date_time11_test: RuntimeError, OK # Bug in Safari.
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
