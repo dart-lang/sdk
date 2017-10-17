@@ -143,6 +143,7 @@ class FieldHelper {
     kPosition,
     kEndPosition,
     kFlags,
+    kFlags2,
     kName,
     kSourceUriIndex,
     kDocumentationCommentIndex,

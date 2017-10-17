@@ -745,6 +745,7 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
+    int flags2 = readByte();
     var name = readName();
     var fileUri = readUriReference();
     var documentationComment = readStringOrNullIfEmpty();
@@ -758,6 +759,7 @@ class BinaryBuilder {
       node.fileOffset = fileOffset;
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
+      node.flags2 = flags2;
       node.name = name;
       node.fileUri = fileUri;
       node.documentationComment = documentationComment;

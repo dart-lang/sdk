@@ -304,6 +304,7 @@ type Field extends Member {
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
               isCovariant, isGenericCovariantImpl, isGenericCovariantInterface);
+  Byte flags2 (isGenericContravariant);
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
@@ -342,7 +343,8 @@ type Procedure extends Member {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
-  Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub);
+  Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
+              isGenericContravariant);
   Name name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;

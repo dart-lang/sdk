@@ -138,6 +138,9 @@ void FieldHelper::ReadUntilExcluding(Field field,
     case kFlags:
       flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
+    case kFlags2:
+      builder_->ReadFlags();
+      if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
       if (++next_read_ == field) return;
