@@ -113,12 +113,14 @@ class KernelLoader {
 
   RawArray* MakeFunctionsArray();
 
+  RawScript* LoadScriptAt(intptr_t index);
+
   // If klass's script is not the script at the uri index, return a PatchClass
   // for klass whose script corresponds to the uri index.
   // Otherwise return klass.
   const Object& ClassForScriptAt(const Class& klass, intptr_t source_uri_index);
-  Script& ScriptAt(intptr_t source_uri_index,
-                   StringIndex import_uri = StringIndex());
+  RawScript* ScriptAt(intptr_t source_uri_index,
+                      StringIndex import_uri = StringIndex());
 
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
@@ -138,11 +140,11 @@ class KernelLoader {
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
-  Array& scripts_;
   Array& patch_classes_;
   ActiveClass active_class_;
   intptr_t library_kernel_offset_;
   TypedData& library_kernel_data_;
+  KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
   StreamingFlowGraphBuilder builder_;
 

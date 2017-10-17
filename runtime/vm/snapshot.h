@@ -488,7 +488,7 @@ class SnapshotReader : public BaseReader {
   friend class GrowableObjectArray;
   friend class ICData;
   friend class ImmutableArray;
-  friend class RegExp;
+  friend class KernelProgramInfo;
   friend class LanguageError;
   friend class Library;
   friend class LibraryPrefix;
@@ -499,6 +499,7 @@ class SnapshotReader : public BaseReader {
   friend class Namespace;
   friend class PatchClass;
   friend class RedirectionData;
+  friend class RegExp;
   friend class Script;
   friend class SignatureData;
   friend class SubtypeTestCache;

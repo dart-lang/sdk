@@ -1274,6 +1274,42 @@ void RawNamespace::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 }
 
+RawKernelProgramInfo* KernelProgramInfo::ReadFrom(SnapshotReader* reader,
+                                                  intptr_t object_id,
+                                                  intptr_t tags,
+                                                  Snapshot::Kind kind,
+                                                  bool as_reference) {
+  ASSERT(reader != NULL);
+  ASSERT(kind == Snapshot::kScript);
+
+  KernelProgramInfo& info =
+      KernelProgramInfo::ZoneHandle(reader->zone(), KernelProgramInfo::New());
+  reader->AddBackRef(object_id, &info, kIsDeserialized);
+
+  // Set all the object fields.
+  READ_OBJECT_FIELDS(info, info.raw()->from(), info.raw()->to(), kAsReference);
+  return info.raw();
+}
+
+void RawKernelProgramInfo::WriteTo(SnapshotWriter* writer,
+                                   intptr_t object_id,
+                                   Snapshot::Kind kind,
+                                   bool as_reference) {
+  ASSERT(writer != NULL);
+  ASSERT(kind == Snapshot::kScript);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kKernelProgramInfoCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer, kAsReference);
+  visitor.VisitPointers(from(), to());
+}
+
 RawCode* Code::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         intptr_t tags,

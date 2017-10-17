@@ -127,10 +127,10 @@ KernelLoader::KernelLoader(Program* program)
       thread_(Thread::Current()),
       zone_(thread_->zone()),
       isolate_(thread_->isolate()),
-      scripts_(Array::ZoneHandle(zone_)),
       patch_classes_(Array::ZoneHandle(zone_)),
       library_kernel_offset_(-1),
       library_kernel_data_(TypedData::ZoneHandle(zone_)),
+      kernel_program_info_(KernelProgramInfo::ZoneHandle(zone_)),
       translation_helper_(this, thread_),
       builder_(&translation_helper_,
                zone_,
@@ -140,8 +140,10 @@ KernelLoader::KernelLoader(Program* program)
   T.active_class_ = &active_class_;
   T.finalize_ = false;
 
-  scripts_ = Array::New(builder_.SourceTableSize(), Heap::kOld);
-  patch_classes_ = Array::New(builder_.SourceTableSize(), Heap::kOld);
+  const intptr_t source_table_size = builder_.SourceTableSize();
+  const Array& scripts =
+      Array::Handle(Z, Array::New(source_table_size, Heap::kOld));
+  patch_classes_ = Array::New(source_table_size, Heap::kOld);
 
   // Copy the Kernel string offsets out of the binary and into the VM's heap.
   ASSERT(program->string_table_offset() >= 0);
@@ -206,6 +208,15 @@ KernelLoader::KernelLoader(Program* program)
   H.SetCanonicalNames(names);
   H.SetMetadataPayloads(metadata_payloads);
   H.SetMetadataMappings(metadata_mappings);
+
+  kernel_program_info_ = KernelProgramInfo::New(
+      offsets, data, names, metadata_payloads, metadata_mappings, scripts);
+
+  Script& script = Script::Handle(Z);
+  for (intptr_t index = 0; index < source_table_size; ++index) {
+    script = LoadScriptAt(index);
+    scripts.SetAt(index, script);
+  }
 }
 
 Object& KernelLoader::LoadProgram() {
@@ -330,7 +341,8 @@ void KernelLoader::LoadLibrary(intptr_t index) {
   StringIndex import_uri_index =
       H.CanonicalNameString(library_helper.canonical_name_);
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
-  Script& script = ScriptAt(library_helper.source_uri_index_, import_uri_index);
+  const Script& script = Script::Handle(
+      Z, ScriptAt(library_helper.source_uri_index_, import_uri_index));
 
   library_helper.ReadUntilExcluding(LibraryHelper::kDependencies);
   LoadLibraryImportsAndExports(&library);
@@ -551,7 +563,8 @@ Class& KernelLoader::LoadClass(const Library& library,
   // a script to detect test functions that should not be optimized.
   if (klass.script() == Script::null()) {
     class_helper.ReadUntilIncluding(ClassHelper::kSourceUriIndex);
-    Script& script = ScriptAt(class_helper.source_uri_index_);
+    const Script& script =
+        Script::Handle(Z, ScriptAt(class_helper.source_uri_index_));
     klass.set_script(script);
   }
   if (klass.token_pos() == TokenPosition::kNoSource) {
@@ -843,7 +856,7 @@ void KernelLoader::LoadProcedure(const Library& library,
 
 const Object& KernelLoader::ClassForScriptAt(const Class& klass,
                                              intptr_t source_uri_index) {
-  Script& correct_script = ScriptAt(source_uri_index);
+  const Script& correct_script = Script::Handle(Z, ScriptAt(source_uri_index));
   if (klass.script() != correct_script.raw()) {
     // Use cache for patch classes. This works best for in-order usages.
     PatchClass& patch_class = PatchClass::ZoneHandle(Z);
@@ -859,29 +872,27 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
   return klass;
 }
 
-Script& KernelLoader::ScriptAt(intptr_t index, StringIndex import_uri) {
-  Script& script = Script::ZoneHandle(Z);
-  script ^= scripts_.At(index);
-  if (script.IsNull()) {
-    // Create script with correct uri(s).
-    String& uri_string = builder_.SourceTableUriFor(index);
-    String& import_uri_string =
-        import_uri == -1 ? uri_string : H.DartString(import_uri, Heap::kOld);
-    script = Script::New(import_uri_string, uri_string,
-                         builder_.GetSourceFor(index), RawScript::kKernelTag);
-    script.set_kernel_script_index(index);
-    script.set_kernel_string_offsets(H.string_offsets());
-    script.set_kernel_string_data(H.string_data());
-    script.set_kernel_canonical_names(H.canonical_names());
-    script.set_kernel_metadata_mappings(H.metadata_mappings());
-    script.set_kernel_metadata_payloads(H.metadata_payloads());
-    scripts_.SetAt(index, script);
+RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
+  const String& uri_string = builder_.SourceTableUriFor(index);
+  const Script& script =
+      Script::Handle(Z, Script::New(uri_string, builder_.GetSourceFor(index),
+                                    RawScript::kKernelTag));
+  script.set_kernel_script_index(index);
+  script.set_kernel_program_info(kernel_program_info_);
+  script.set_line_starts(builder_.GetLineStartsFor(index));
+  script.set_debug_positions(Array::Handle(Array::null()));
+  script.set_yield_positions(Array::Handle(Array::null()));
+  return script.raw();
+}
 
-    script.set_line_starts(builder_.GetLineStartsFor(index));
-    script.set_debug_positions(Array::Handle(Array::null()));
-    script.set_yield_positions(Array::Handle(Array::null()));
+RawScript* KernelLoader::ScriptAt(intptr_t index, StringIndex import_uri) {
+  if (import_uri != -1) {
+    const Script& script =
+        Script::Handle(Z, kernel_program_info_.ScriptAt(index));
+    script.set_url(H.DartString(import_uri, Heap::kOld));
+    return script.raw();
   }
-  return script;
+  return kernel_program_info_.ScriptAt(index);
 }
 
 void KernelLoader::GenerateFieldAccessors(const Class& klass,

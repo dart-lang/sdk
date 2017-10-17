@@ -177,6 +177,7 @@ class ObjectPointerVisitor;
   V(LibraryClass, "Library")                                                   \
   V(LibraryPrefix, "LibraryPrefix")                                            \
   V(Namespace, "Namespace")                                                    \
+  V(KernelProgramInfo, "KernelProgramInfo")                                    \
   V(Code, "Code")                                                              \
   V(Instructions, "Instructions")                                              \
   V(ObjectPool, "ObjectPool")                                                  \

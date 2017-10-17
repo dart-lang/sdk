@@ -157,6 +157,8 @@ RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::kernel_program_info_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -653,6 +655,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<Namespace>();
   namespace_class_ = cls.raw();
 
+  cls = Class::New<KernelProgramInfo>();
+  kernel_program_info_class_ = cls.raw();
+
   cls = Class::New<Code>();
   code_class_ = cls.raw();
 
@@ -1074,6 +1079,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(script, Script);
   SET_CLASS_NAME(library, LibraryClass);
   SET_CLASS_NAME(namespace, Namespace);
+  SET_CLASS_NAME(kernel_program_info, KernelProgramInfo);
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
   SET_CLASS_NAME(object_pool, ObjectPool);
@@ -3438,6 +3444,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::LibraryPrefix().raw();
     case kNamespaceCid:
       return Symbols::Namespace().raw();
+    case kKernelProgramInfoCid:
+      return Symbols::KernelProgramInfo().raw();
     case kCodeCid:
       return Symbols::Code().raw();
     case kInstructionsCid:
@@ -9143,30 +9151,19 @@ void Script::set_compile_time_constants(const Array& value) const {
   StorePointer(&raw_ptr()->compile_time_constants_, value.raw());
 }
 
+void Script::set_kernel_program_info(const KernelProgramInfo& info) const {
+  StorePointer(&raw_ptr()->kernel_program_info_, info.raw());
+}
+
 void Script::set_kernel_script_index(const intptr_t kernel_script_index) const {
   StoreNonPointer(&raw_ptr()->kernel_script_index_, kernel_script_index);
 }
 
-void Script::set_kernel_string_offsets(const TypedData& offsets) const {
-  StorePointer(&raw_ptr()->kernel_string_offsets_, offsets.raw());
-}
-
-void Script::set_kernel_string_data(const TypedData& data) const {
-  StorePointer(&raw_ptr()->kernel_string_data_, data.raw());
-}
-
-void Script::set_kernel_canonical_names(const TypedData& names) const {
-  StorePointer(&raw_ptr()->kernel_canonical_names_, names.raw());
-}
-
-void Script::set_kernel_metadata_payloads(
-    const TypedData& metadata_payloads) const {
-  StorePointer(&raw_ptr()->kernel_metadata_payloads_, metadata_payloads.raw());
-}
-
-void Script::set_kernel_metadata_mappings(
-    const TypedData& metadata_mappings) const {
-  StorePointer(&raw_ptr()->kernel_metadata_mappings_, metadata_mappings.raw());
+RawTypedData* Script::kernel_string_offsets() const {
+  KernelProgramInfo& program_info =
+      KernelProgramInfo::Handle(kernel_program_info());
+  ASSERT(!program_info.IsNull());
+  return program_info.string_offsets();
 }
 
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
@@ -11850,6 +11847,42 @@ RawNamespace* Namespace::New(const Library& library,
   result.StorePointer(&result.raw_ptr()->show_names_, show_names.raw());
   result.StorePointer(&result.raw_ptr()->hide_names_, hide_names.raw());
   return result.raw();
+}
+
+RawKernelProgramInfo* KernelProgramInfo::New() {
+  RawObject* raw =
+      Object::Allocate(KernelProgramInfo::kClassId,
+                       KernelProgramInfo::InstanceSize(), Heap::kOld);
+  return reinterpret_cast<RawKernelProgramInfo*>(raw);
+}
+
+RawKernelProgramInfo* KernelProgramInfo::New(const TypedData& string_offsets,
+                                             const TypedData& string_data,
+                                             const TypedData& canonical_names,
+                                             const TypedData& metadata_payloads,
+                                             const TypedData& metadata_mappings,
+                                             const Array& scripts) {
+  const KernelProgramInfo& info =
+      KernelProgramInfo::Handle(KernelProgramInfo::New());
+  info.StorePointer(&info.raw_ptr()->string_offsets_, string_offsets.raw());
+  info.StorePointer(&info.raw_ptr()->string_data_, string_data.raw());
+  info.StorePointer(&info.raw_ptr()->canonical_names_, canonical_names.raw());
+  info.StorePointer(&info.raw_ptr()->metadata_payloads_,
+                    metadata_payloads.raw());
+  info.StorePointer(&info.raw_ptr()->metadata_mappings_,
+                    metadata_mappings.raw());
+  info.StorePointer(&info.raw_ptr()->scripts_, scripts.raw());
+  return info.raw();
+}
+
+const char* KernelProgramInfo::ToCString() const {
+  return OS::SCreate(Thread::Current()->zone(), "[KernelProgramInfo]");
+}
+
+RawScript* KernelProgramInfo::ScriptAt(intptr_t index) const {
+  const Array& all_scripts = Array::Handle(scripts());
+  RawObject* script = all_scripts.At(index);
+  return Script::RawCast(script);
 }
 
 RawError* Library::CompileAll() {

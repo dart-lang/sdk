@@ -520,6 +520,9 @@ class Object {
   static RawClass* script_class() { return script_class_; }
   static RawClass* library_class() { return library_class_; }
   static RawClass* namespace_class() { return namespace_class_; }
+  static RawClass* kernel_program_info_class() {
+    return kernel_program_info_class_;
+  }
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* object_pool_class() { return object_pool_class_; }
@@ -779,6 +782,8 @@ class Object {
   static RawClass* script_class_;        // Class of the Script vm object.
   static RawClass* library_class_;       // Class of the Library vm object.
   static RawClass* namespace_class_;     // Class of Namespace vm object.
+  static RawClass* kernel_program_info_class_;  // Class of KernelProgramInfo vm
+                                                // object.
   static RawClass* code_class_;          // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
@@ -3406,6 +3411,7 @@ class TokenStream : public Object {
 class Script : public Object {
  public:
   RawString* url() const { return raw_ptr()->url_; }
+  void set_url(const String& value) const;
 
   // The actual url which was loaded from disk, if provided by the embedder.
   RawString* resolved_url() const { return raw_ptr()->resolved_url_; }
@@ -3428,35 +3434,17 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
+  RawKernelProgramInfo* kernel_program_info() const {
+    return raw_ptr()->kernel_program_info_;
+  }
+  void set_kernel_program_info(const KernelProgramInfo& info) const;
+
   intptr_t kernel_script_index() const {
     return raw_ptr()->kernel_script_index_;
   }
   void set_kernel_script_index(const intptr_t kernel_script_index) const;
 
-  RawTypedData* kernel_string_offsets() const {
-    return raw_ptr()->kernel_string_offsets_;
-  }
-  void set_kernel_string_offsets(const TypedData& offsets) const;
-
-  RawTypedData* kernel_string_data() const {
-    return raw_ptr()->kernel_string_data_;
-  }
-  void set_kernel_string_data(const TypedData& data) const;
-
-  RawTypedData* kernel_canonical_names() const {
-    return raw_ptr()->kernel_canonical_names_;
-  }
-  void set_kernel_canonical_names(const TypedData& names) const;
-
-  RawTypedData* kernel_metadata_payloads() const {
-    return raw_ptr()->kernel_metadata_payloads_;
-  }
-  void set_kernel_metadata_payloads(const TypedData& metadata_payloads) const;
-
-  RawTypedData* kernel_metadata_mappings() const {
-    return raw_ptr()->kernel_metadata_mappings_;
-  }
-  void set_kernel_metadata_mappings(const TypedData& metadata_mappings) const;
+  RawTypedData* kernel_string_offsets() const;
 
   RawTokenStream* tokens() const {
     ASSERT(kind() != RawScript::kKernelTag);
@@ -3515,7 +3503,6 @@ class Script : public Object {
                         RawScript::Kind kind);
 
  private:
-  void set_url(const String& value) const;
   void set_resolved_url(const String& value) const;
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
@@ -3916,6 +3903,44 @@ class Namespace : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
   friend class Precompiler;
+};
+
+class KernelProgramInfo : public Object {
+ public:
+  static RawKernelProgramInfo* New(const TypedData& string_offsets,
+                                   const TypedData& string_data,
+                                   const TypedData& canonical_names,
+                                   const TypedData& metadata_payload,
+                                   const TypedData& metadata_mappings,
+                                   const Array& scripts);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawKernelProgramInfo));
+  }
+
+  RawTypedData* string_offsets() const { return raw_ptr()->string_offsets_; }
+
+  RawTypedData* string_data() const { return raw_ptr()->string_data_; }
+
+  RawTypedData* canonical_names() const { return raw_ptr()->canonical_names_; }
+
+  RawTypedData* metadata_payloads() const {
+    return raw_ptr()->metadata_payloads_;
+  }
+
+  RawTypedData* metadata_mappings() const {
+    return raw_ptr()->metadata_mappings_;
+  }
+
+  RawArray* scripts() const { return raw_ptr()->scripts_; }
+
+  RawScript* ScriptAt(intptr_t index) const;
+
+ private:
+  static RawKernelProgramInfo* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo, Object);
+  friend class Class;
 };
 
 // ObjectPool contains constants, immediates and addresses embedded in code

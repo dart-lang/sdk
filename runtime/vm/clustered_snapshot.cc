@@ -1535,6 +1535,101 @@ class NamespaceDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+// KernelProgramInfo objects are not written into a full AOT snapshot.
+class KernelProgramInfoSerializationCluster : public SerializationCluster {
+ public:
+  KernelProgramInfoSerializationCluster() {}
+  virtual ~KernelProgramInfoSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) {
+    if (s->kind() == Snapshot::kFullAOT) {
+      return;
+    }
+
+    RawKernelProgramInfo* info = KernelProgramInfo::RawCast(object);
+    objects_.Add(info);
+
+    RawObject** from = info->from();
+    RawObject** to = info->to();
+    for (RawObject** p = from; p <= to; p++) {
+      s->Push(*p);
+    }
+  }
+
+  void WriteAlloc(Serializer* s) {
+    if (s->kind() == Snapshot::kFullAOT) {
+      return;
+    }
+
+    s->WriteCid(kKernelProgramInfoCid);
+    intptr_t count = objects_.length();
+    s->Write<int32_t>(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawKernelProgramInfo* info = objects_[i];
+      s->AssignRef(info);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    if (s->kind() == Snapshot::kFullAOT) {
+      return;
+    }
+
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawKernelProgramInfo* info = objects_[i];
+      RawObject** from = info->from();
+      RawObject** to = info->to();
+      for (RawObject** p = from; p <= to; p++) {
+        s->WriteRef(*p);
+      }
+    }
+  }
+
+ private:
+  GrowableArray<RawKernelProgramInfo*> objects_;
+};
+
+// Since KernelProgramInfo objects are not written into full AOT snapshots,
+// one will never need to read them from a full AOT snapshot.
+class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
+ public:
+  KernelProgramInfoDeserializationCluster() {}
+  virtual ~KernelProgramInfoDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    ASSERT(d->kind() != Snapshot::kFullAOT);
+
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    intptr_t count = d->Read<int32_t>();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, KernelProgramInfo::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    ASSERT(d->kind() != Snapshot::kFullAOT);
+
+    bool is_vm_object = d->isolate() == Dart::vm_isolate();
+
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawKernelProgramInfo* info =
+          reinterpret_cast<RawKernelProgramInfo*>(d->Ref(id));
+      Deserializer::InitializeHeader(info, kKernelProgramInfoCid,
+                                     KernelProgramInfo::InstanceSize(),
+                                     is_vm_object);
+      RawObject** from = info->from();
+      RawObject** to = info->to();
+      for (RawObject** p = from; p <= to; p++) {
+        *p = d->ReadRef();
+      }
+    }
+  }
+};
+
 class CodeSerializationCluster : public SerializationCluster {
  public:
   CodeSerializationCluster() {}
@@ -4503,6 +4598,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) LibrarySerializationCluster();
     case kNamespaceCid:
       return new (Z) NamespaceSerializationCluster();
+    case kKernelProgramInfoCid:
+      return new (Z) KernelProgramInfoSerializationCluster();
     case kCodeCid:
       return new (Z) CodeSerializationCluster();
     case kObjectPoolCid:
@@ -4977,6 +5074,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) LibraryDeserializationCluster();
     case kNamespaceCid:
       return new (Z) NamespaceDeserializationCluster();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    case kKernelProgramInfoCid:
+      return new (Z) KernelProgramInfoDeserializationCluster();
+#endif  // !DART_PRECOMPILED_RUNTIME
     case kCodeCid:
       return new (Z) CodeDeserializationCluster();
     case kObjectPoolCid:

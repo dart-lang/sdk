@@ -151,11 +151,20 @@ TranslationHelper::TranslationHelper(Thread* thread)
       metadata_mappings_(TypedData::Handle(Z)) {}
 
 void TranslationHelper::InitFromScript(const Script& script) {
-  SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
-  SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-  SetCanonicalNames(TypedData::Handle(Z, script.kernel_canonical_names()));
-  SetMetadataPayloads(TypedData::Handle(Z, script.kernel_metadata_payloads()));
-  SetMetadataMappings(TypedData::Handle(Z, script.kernel_metadata_mappings()));
+  KernelProgramInfo& info =
+      KernelProgramInfo::Handle(Z, script.kernel_program_info());
+  if (info.IsNull()) {
+    // If there is no kernel data associated with the script, then
+    // do not bother initializing!.
+    // This can happen with few special functions like
+    // NoSuchMethodDispatcher and InvokeFieldDispatcher.
+    return;
+  }
+  SetStringOffsets(TypedData::Handle(Z, info.string_offsets()));
+  SetStringData(TypedData::Handle(Z, info.string_data()));
+  SetCanonicalNames(TypedData::Handle(Z, info.canonical_names()));
+  SetMetadataPayloads(TypedData::Handle(Z, info.metadata_payloads()));
+  SetMetadataMappings(TypedData::Handle(Z, info.metadata_mappings()));
 }
 
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {

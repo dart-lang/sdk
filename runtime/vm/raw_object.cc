@@ -494,6 +494,13 @@ intptr_t RawNamespace::VisitNamespacePointers(RawNamespace* raw_obj,
   return Namespace::InstanceSize();
 }
 
+intptr_t RawKernelProgramInfo::VisitKernelProgramInfoPointers(
+    RawKernelProgramInfo* raw_obj,
+    ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return KernelProgramInfo::InstanceSize();
+}
+
 bool RawCode::ContainsPC(RawObject* raw_obj, uword pc) {
   uint32_t tags = raw_obj->ptr()->tags_;
   if (RawObject::ClassIdTag::decode(tags) == kCodeCid) {

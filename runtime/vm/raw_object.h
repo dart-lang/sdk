@@ -30,6 +30,7 @@ namespace dart {
   V(Script)                                                                    \
   V(Library)                                                                   \
   V(Namespace)                                                                 \
+  V(KernelProgramInfo)                                                         \
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(ObjectPool)                                                                \
@@ -1080,13 +1081,7 @@ class RawScript : public RawObject {
   RawArray* line_starts_;
   RawArray* debug_positions_;
   RawArray* yield_positions_;
-  // TODO(alexmarkov): Extract kernel-specific fields to a separate
-  // RawKernelData class and share its instances among the scripts.
-  RawTypedData* kernel_string_offsets_;
-  RawTypedData* kernel_string_data_;
-  RawTypedData* kernel_canonical_names_;
-  RawTypedData* kernel_metadata_payloads_;
-  RawTypedData* kernel_metadata_mappings_;
+  RawKernelProgramInfo* kernel_program_info_;
   RawTokenStream* tokens_;
   RawString* source_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
@@ -1188,6 +1183,23 @@ class RawNamespace : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->metadata_field_);
   }
+};
+
+class RawKernelProgramInfo : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->string_offsets_);
+  }
+
+  RawTypedData* string_offsets_;
+  RawTypedData* string_data_;
+  RawTypedData* canonical_names_;
+  RawTypedData* metadata_payloads_;
+  RawTypedData* metadata_mappings_;
+  RawArray* scripts_;
+
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->scripts_); }
 };
 
 class RawCode : public RawObject {
