@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
+import 'package:compiler/src/filenames.dart';
 import 'package:front_end/front_end.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -25,11 +26,14 @@ main(List<String> args) async {
     ..target = new Dart2jsTarget(new TargetFlags())
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..setExitCodeOnProblem = true
-    ..linkedDependencies = [Uri.base.resolve(flags['platform'])];
+    ..linkedDependencies = [
+      Uri.base.resolve(nativeToUriPath(flags['platform']))
+    ];
 
   if (flags.rest.isEmpty) {
     var script = relativizeUri(Platform.script);
-    var platform = relativizeUri(Uri.base.resolve(flags['platform']));
+    var platform =
+        relativizeUri(Uri.base.resolve(nativeToUriPath(flags['platform'])));
     print('usage: ${Platform.executable} $script '
         '[--platform=$platform] [--out=out.dill] program.dart');
     exit(1);
