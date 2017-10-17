@@ -37,6 +37,9 @@ import 'package:front_end/compiler_options.dart' show CompilerOptions;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/deprecated_problems.dart'
@@ -98,7 +101,7 @@ class FastaContext extends ChainContext {
   final Uri vm;
   final bool strongMode;
   final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
-  Uri sdk;
+  Uri platformBinaries;
   Uri platformUri;
   Uri outlineUri;
   Program outline;
@@ -136,11 +139,11 @@ class FastaContext extends ChainContext {
   }
 
   Future ensurePlatformUris() async {
-    if (sdk == null) {
-      sdk = Uri.base.resolve(Platform.resolvedExecutable).resolve(".");
-      platformUri = sdk.resolve("vm_platform.dill");
-      outlineUri = sdk
-          .resolve(strongMode ? 'vm_outline_strong.dill' : 'vm_outline.dill');
+    if (platformBinaries == null) {
+      platformBinaries = computePlatformBinariesLocation();
+      platformUri = platformBinaries.resolve("vm_platform.dill");
+      outlineUri = platformBinaries
+          .resolve(strongMode ? "vm_outline_strong.dill" : "vm_outline.dill");
     }
   }
 
@@ -197,9 +200,8 @@ class Run extends Step<Uri, int, FastaContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      var sdkPath = context.sdk.toFilePath();
       var args = [
-        '--kernel-binaries=$sdkPath',
+        '--kernel-binaries=${context.platformBinaries.toFilePath()}',
         generated.path,
         "Hello, World!"
       ];

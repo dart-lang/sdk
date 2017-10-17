@@ -10,6 +10,8 @@ import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:test/test.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
 /// Test metadata: to each node we attach a metadata that contains
 /// a reference to this node's parent and this node formatted as string.
@@ -118,9 +120,8 @@ List<int> toBinary(Program p) {
 
 main() {
   test('annotate-serialize-deserialize-validate', () async {
-    final Uri platform = Uri.base
-        .resolve(Platform.resolvedExecutable)
-        .resolve("vm_platform.dill");
+    final Uri platform =
+        computePlatformBinariesLocation().resolve("vm_platform.dill");
     final List<int> platformBinary =
         await new File(platform.toFilePath()).readAsBytes();
 

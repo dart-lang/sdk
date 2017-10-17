@@ -30,6 +30,8 @@ import 'package:front_end/front_end.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/testing/hybrid_file_system.dart';
 import 'package:kernel/kernel.dart' show Program;
@@ -157,11 +159,10 @@ Future _processLoadRequest(request) async {
   final Uri script = Uri.base.resolve(inputFileUri);
   final Uri platformKernel = request[3] != null
       ? Uri.base.resolveUri(new Uri.file(request[3]))
-      : Uri.base
-          .resolveUri(new Uri.file(Platform.resolvedExecutable))
-          // TODO(sigmund): use vm_outline.dill when the mixin transformer is
+      : computePlatformBinariesLocation().resolve(
+          // TODO(sigmund): use `vm_outline.dill` when the mixin transformer is
           // modular.
-          .resolve('vm_platform.dill');
+          'vm_platform.dill');
 
   final bool incremental = request[4];
 

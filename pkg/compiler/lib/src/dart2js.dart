@@ -8,6 +8,9 @@ import 'dart:async' show Future;
 import 'dart:convert' show UTF8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
 import 'package:package_config/discovery.dart' show findPackages;
 
 import '../compiler_new.dart' as api;
@@ -132,6 +135,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool showHints;
   bool enableColors;
   bool useKernel = false;
+  Uri platformBinaries = computePlatformBinariesLocation();
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
   bool hasDisallowUnsafeEval = false;
@@ -287,6 +291,11 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough(argument);
   }
 
+  void setPlatformBinaries(String argument) {
+    platformBinaries =
+        currentDirectory.resolve(extractPath(argument, isDirectory: true));
+  }
+
   void handleThrowOnError(String argument) {
     throwOnError = true;
     String parameter = extractParameter(argument, isOptionalArgument: true);
@@ -336,6 +345,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
     new OptionHandler(Flags.useKernel, setUseKernel),
+    new OptionHandler(Flags.platformBinaries, setPlatformBinaries),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
@@ -586,6 +596,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
       libraryRoot: libraryRoot,
       packageRoot: packageRoot,
       packageConfig: packageConfig,
+      platformBinaries: platformBinaries,
       packagesDiscoveryProvider: findPackages,
       resolutionInputs: resolutionInputs,
       resolutionOutput: resolveOnly ? resolutionOutput : null,

@@ -31,7 +31,7 @@ fi
 repodir=$(cd $(dirname ${BASH_SOURCE[0]})/../../../../; pwd)
 dart="out/ReleaseX64/dart"
 update_script=$(dirname ${BASH_SOURCE[0]})/update_from_log.dart
-sdk="out/ReleaseX64/dart-sdk"
+binaries_dir=out/ReleaseX64
 
 tmp=$(mktemp -d)
 
@@ -49,8 +49,10 @@ function update_suite {
   $dart $update_script minified $tmp/$suite-minified.txt
 
   echo "  - host-checked tests"
-  ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch --host-checked \
-    --dart2js-options="--library-root=$sdk" --dart2js-with-kernel \
+  ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch \
+    --host-checked \
+    --dart2js-options="--kernel-binaries=$binaries_dir" \
+    --dart2js-with-kernel \
     $suite > $tmp/$suite-checked.txt
   $dart $update_script checked $tmp/$suite-checked.txt
 }

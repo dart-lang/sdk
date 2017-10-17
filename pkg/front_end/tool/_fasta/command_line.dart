@@ -4,12 +4,15 @@
 
 library fasta.tool.command_line;
 
-import 'dart:io' show Platform, exit;
+import 'dart:io' show exit;
 
 import 'package:front_end/compiler_options.dart' show CompilerOptions;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
+
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -316,9 +319,7 @@ ProcessedOptions analyzeCommandLine(
   final Uri platform = compileSdk
       ? null
       : (options["--platform"] ??
-          Uri.base
-              .resolve(Platform.resolvedExecutable)
-              .resolve("vm_platform.dill"));
+          computePlatformBinariesLocation().resolve("vm_platform.dill"));
 
   CompilerOptions compilerOptions = new CompilerOptions()
     ..compileSdk = compileSdk

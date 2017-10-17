@@ -9,7 +9,7 @@ library fasta.testing.kernel_chain;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show Directory, File, IOSink, Platform;
+import 'dart:io' show Directory, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
@@ -40,6 +40,9 @@ import 'package:front_end/front_end.dart';
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
+
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
 class Print extends Step<Program, Program, ChainContext> {
   const Print();
@@ -211,9 +214,7 @@ class Compile extends Step<TestDescription, Program, CompileContext> {
       // too.
     } else {
       options.linkedDependencies = [
-        Uri.base
-            .resolve(Platform.resolvedExecutable)
-            .resolve('vm_platform.dill')
+        computePlatformBinariesLocation().resolve("vm_platform.dill"),
       ];
     }
     Program p = await kernelForProgram(description.uri, options);

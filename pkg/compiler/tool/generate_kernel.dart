@@ -13,6 +13,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:front_end/front_end.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/util/relativize.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
@@ -45,7 +47,6 @@ ArgParser _argParser = new ArgParser()
   ..addOption('out',
       abbr: 'o', help: 'output location', defaultsTo: 'out.dill');
 
-String _defaultPlatform = Uri
-    .parse(Platform.resolvedExecutable)
+String _defaultPlatform = computePlatformBinariesLocation()
     .resolve('dart2js_platform.dill')
     .toString();

@@ -166,6 +166,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Location of the platform configuration file.
   final Uri platformConfigUri;
 
+  /// Location of the kernel platform `.dill` files.
+  final Uri platformBinaries;
+
   /// Whether to emit URIs in the reflection metadata.
   final bool preserveUris;
 
@@ -260,6 +263,7 @@ class CompilerOptions implements DiagnosticOptions {
       Uri libraryRoot,
       Uri packageRoot,
       Uri packageConfig,
+      Uri platformBinaries,
       List<Uri> resolutionInputs,
       Uri resolutionOutput,
       PackagesDiscoveryProvider packagesDiscoveryProvider,
@@ -308,6 +312,7 @@ class CompilerOptions implements DiagnosticOptions {
         outputUri: _extractUriOption(options, '--out='),
         platformConfigUri:
             _resolvePlatformConfigFromOptions(libraryRoot, options),
+        platformBinaries: platformBinaries,
         preserveComments: _hasOption(options, Flags.preserveComments),
         preserveUris: _hasOption(options, Flags.preserveUris),
         resolutionInputs: resolutionInputs,
@@ -372,6 +377,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool kernelGlobalInference: false,
       Uri outputUri: null,
       Uri platformConfigUri: null,
+      Uri platformBinaries: null,
       bool preserveComments: false,
       bool preserveUris: false,
       List<Uri> resolutionInputs: null,
@@ -413,6 +419,11 @@ class CompilerOptions implements DiagnosticOptions {
             "with ${Flags.analyzeOnly}");
       }
     }
+    if (useKernel && platformBinaries == null) {
+      throw new ArgumentError(
+          "${Flags.useKernel} is only supported in combination "
+          "with ${Flags.platformBinaries}");
+    }
     return new CompilerOptions._(entryPoint, libraryRoot, packageRoot,
         packageConfig, packagesDiscoveryProvider, environment,
         allowMockCompilation: allowMockCompilation,
@@ -446,6 +457,7 @@ class CompilerOptions implements DiagnosticOptions {
         outputUri: outputUri,
         platformConfigUri: platformConfigUri ??
             _resolvePlatformConfig(libraryRoot, null, const []),
+        platformBinaries: platformBinaries,
         preserveComments: preserveComments,
         preserveUris: preserveUris,
         resolutionInputs: resolutionInputs,
@@ -496,6 +508,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.generateSourceMap: true,
       this.outputUri: null,
       this.platformConfigUri: null,
+      this.platformBinaries: null,
       this.preserveComments: false,
       this.preserveUris: false,
       this.resolutionInputs: null,
@@ -555,6 +568,7 @@ class CompilerOptions implements DiagnosticOptions {
       kernelGlobalInference,
       outputUri,
       platformConfigUri,
+      platformBinaries,
       preserveComments,
       preserveUris,
       resolutionInputs,
@@ -621,6 +635,7 @@ class CompilerOptions implements DiagnosticOptions {
         generateSourceMap: generateSourceMap ?? options.generateSourceMap,
         outputUri: outputUri ?? options.outputUri,
         platformConfigUri: platformConfigUri ?? options.platformConfigUri,
+        platformBinaries: platformBinaries ?? options.platformBinaries,
         preserveComments: preserveComments ?? options.preserveComments,
         preserveUris: preserveUris ?? options.preserveUris,
         resolutionInputs: resolutionInputs ?? options.resolutionInputs,

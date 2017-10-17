@@ -5,22 +5,15 @@
 /// Test to ensure that incremental_perf.dart is running without errors.
 
 import 'dart:io';
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 import 'incremental_perf.dart' as m;
 
 /// Run the incremental compiler on a couple examples.
 main() async {
-  // Derive the outline.dill location from the vm.  Depending on whether tests
-  // are run with --use-sdk, we resolve the outline file slightly differently.
-  var dartVm = Uri.parse(Platform.resolvedExecutable);
-  var dir = dartVm.resolve('.');
-  var sdkOutline;
-  if (dir.path.endsWith('dart-sdk/bin/')) {
-    sdkOutline = dir.resolve('../lib/_internal/vm_outline.dill');
-  } else {
-    // TODO(sigmund): switch to outline.dill (issue #29881)
-    sdkOutline = dir.resolve('vm_platform.dill');
-  }
-
+  var sdkOutline = computePlatformBinariesLocation().resolve(
+      // TODO(sigmund): switch to `vm_outline.dill` (issue #29881).
+      "vm_platform.dill");
   var tmp = Directory.systemTemp.createTempSync();
   await runSmallExample(sdkOutline, tmp.uri);
   await runLargeExample(sdkOutline, tmp.uri);

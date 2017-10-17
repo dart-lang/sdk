@@ -26,8 +26,8 @@ main(List<String> arguments) {
         "-v",
         "dart:core",
         librariesJson,
-        tmp.resolve("platform.dill").toFilePath(),
-        tmp.resolve("platform-outline.dill").toFilePath(),
+        tmp.resolve("vm_platform.dill").toFilePath(),
+        tmp.resolve("vm_outline.dill").toFilePath(),
       ]);
       print("Successfully compiled $librariesJson.\n\n");
 
@@ -41,8 +41,8 @@ main(List<String> arguments) {
           "-v",
           "dart:core",
           "sdk/lib/libraries.json",
-          tmp.resolve("platform.dill").toFilePath(),
-          tmp.resolve("platform-outline.dill").toFilePath(),
+          tmp.resolve("vm_platform.dill").toFilePath(),
+          tmp.resolve("vm_outline.dill").toFilePath(),
         ]);
       } on String catch (e) {
         Expect.isTrue(

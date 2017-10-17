@@ -116,9 +116,6 @@ front_end/test/kernel_generator_test: SkipByDesign # depends on patched_sdk whic
 front_end/test/summary_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 front_end/test/mixin_export_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 
-[ $runtime == vm && $use_sdk && $checked ]
-front_end/tool/incremental_perf_test: RuntimeError # Issue 29881
-
 [ $runtime == vm && $system == windows]
 analysis_server/*: Skip # Issue 27557
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
