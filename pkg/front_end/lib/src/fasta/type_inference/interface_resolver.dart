@@ -202,6 +202,7 @@ class ForwardingNode extends Procedure {
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
         if (identical(otherMember, interfaceMember)) continue;
+        if (otherMember is ForwardingNode) continue;
         var otherPositionalParameters =
             otherMember.function.positionalParameters;
         if (otherPositionalParameters.length <= i) continue;
@@ -238,6 +239,7 @@ class ForwardingNode extends Procedure {
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
         if (identical(otherMember, interfaceMember)) continue;
+        if (otherMember is ForwardingNode) continue;
         var otherParameter =
             getNamedFormal(otherMember.function, parameter.name);
         if (otherParameter == null) continue;
@@ -272,6 +274,7 @@ class ForwardingNode extends Procedure {
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
         if (identical(otherMember, interfaceMember)) continue;
+        if (otherMember is ForwardingNode) continue;
         var otherTypeParameters = otherMember.function.typeParameters;
         if (otherTypeParameters.length <= i) continue;
         var otherTypeParameter = otherTypeParameters[i];
@@ -444,7 +447,10 @@ class ForwardingNode extends Procedure {
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
   Member _finalizedCandidate(int i) {
     var candidate = _candidates[i];
-    return candidate is ForwardingNode ? candidate.finalize() : candidate;
+    return candidate is ForwardingNode &&
+            _interfaceResolver.isTypeInferencePrepared
+        ? candidate.finalize()
+        : candidate;
   }
 
   /// Returns a string describing the signature of [procedure], along with the
@@ -493,10 +499,12 @@ class ForwardingNode extends Procedure {
       inheritedMember = _resolvedCandidate(_end - 1);
       var inheritedMemberSubstitution =
           _interfaceResolver._substitutionFor(inheritedMember, enclosingClass);
-      var inheritedMemberType = inheritedMemberSubstitution.substituteType(
-          kind == ProcedureKind.Setter
-              ? inheritedMember.setterType
-              : inheritedMember.getterType);
+      var inheritedMemberType = inheritedMember is ForwardingNode
+          ? const DynamicType()
+          : inheritedMemberSubstitution.substituteType(
+              kind == ProcedureKind.Setter
+                  ? inheritedMember.setterType
+                  : inheritedMember.getterType);
       for (int i = _end - 2; i >= _start; i--) {
         var candidate = _resolvedCandidate(i);
         var substitution =
@@ -504,13 +512,17 @@ class ForwardingNode extends Procedure {
         bool isBetter;
         DartType type;
         if (kind == ProcedureKind.Setter) {
-          type = substitution.substituteType(candidate.setterType);
+          type = candidate is ForwardingNode
+              ? const DynamicType()
+              : substitution.substituteType(candidate.setterType);
           // Setters are contravariant in their setter type, so we have to
           // reverse the check.
           isBetter = _interfaceResolver._typeEnvironment
               .isSubtypeOf(inheritedMemberType, type);
         } else {
-          type = substitution.substituteType(candidate.getterType);
+          type = candidate is ForwardingNode
+              ? const DynamicType()
+              : substitution.substituteType(candidate.getterType);
           isBetter = _interfaceResolver._typeEnvironment
               .isSubtypeOf(type, inheritedMemberType);
         }
@@ -530,7 +542,10 @@ class ForwardingNode extends Procedure {
   /// Returns the [i]th element of [_candidates], resolving it if necessary.
   Member _resolvedCandidate(int i) {
     var candidate = _candidates[i];
-    return candidate is ForwardingNode ? candidate.resolve() : candidate;
+    return candidate is ForwardingNode &&
+            _interfaceResolver.isTypeInferencePrepared
+        ? candidate.resolve()
+        : candidate;
   }
 
   static void createForwardingImplIfNeededForTesting(
@@ -568,6 +583,10 @@ class InterfaceResolver {
 
   InterfaceResolver(this._typeInferenceEngine, this._typeEnvironment,
       this._instrumentation, this.strongMode);
+
+  /// Indicates whether the "prepare" phase of type inference is complete.
+  bool get isTypeInferencePrepared =>
+      _typeInferenceEngine.isTypeInferencePrepared;
 
   /// Populates [apiMembers] with a list of the implemented and inherited
   /// members of the given [class_]'s interface.

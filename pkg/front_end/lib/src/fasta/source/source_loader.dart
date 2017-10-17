@@ -513,6 +513,7 @@ class SourceLoader<L> extends Loader<L> {
       builder.prepareTopLevelInference(builder.library, builder);
       class_.setupApiMembers(interfaceResolver);
     }
+    typeInferenceEngine.isTypeInferencePrepared = true;
     ticker.logMs("Prepared top level inference");
   }
 

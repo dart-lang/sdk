@@ -183,6 +183,9 @@ abstract class TypeInferenceEngine {
 
   CoreTypes get coreTypes;
 
+  /// Indicates whether the "prepare" phase of type inference is complete.
+  void set isTypeInferencePrepared(bool value);
+
   TypeSchemaEnvironment get typeSchemaEnvironment;
 
   /// Creates a disabled type inferrer (intended for debugging and profiling
@@ -243,6 +246,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   ClassHierarchy classHierarchy;
 
   TypeSchemaEnvironment typeSchemaEnvironment;
+
+  @override
+  bool isTypeInferencePrepared = false;
 
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
 
