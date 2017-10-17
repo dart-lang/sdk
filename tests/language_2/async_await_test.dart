@@ -8,8 +8,8 @@ import "package:unittest/unittest.dart";
 import "dart:async";
 
 main() {
-  bool checkedMode = false;
-  assert((checkedMode = true));
+  bool assertionsEnabled = false;
+  assert((assertionsEnabled = true));
 
   group("basic", () {
     test("async w/o await", () {
@@ -131,7 +131,7 @@ main() {
       return throwsErr(f());
     });
 
-    if (checkedMode) {
+    if (assertionsEnabled) {
       test("assert before await", () {
         f(v) async {
           assert(v == 87);
@@ -232,7 +232,7 @@ main() {
       });
     });
 
-    if (checkedMode) {
+    if (assertionsEnabled) {
       test("await for w/ await, asseert", () {
         f(Stream<int> s) async {
           int i = 0;
@@ -1913,7 +1913,7 @@ main() {
       return expect42(f());
     });
 
-    if (!checkedMode) return;
+    if (!assertionsEnabled) return;
 
     test("inside assert, true", () { //                      //# 03: ok
       f() async { //                                         //# 03: continued

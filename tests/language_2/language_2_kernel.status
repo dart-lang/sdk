@@ -273,6 +273,8 @@ recursive_generic_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+checked_setter_test: RuntimeError
+checked_setter3_test: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError

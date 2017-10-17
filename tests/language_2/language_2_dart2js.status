@@ -80,11 +80,9 @@ call_type_literal_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
-checked_setter2_test: MissingCompileTimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
-checked_setter_test: MissingCompileTimeError
 class_literal_test/01: MissingCompileTimeError
 class_literal_test/02: MissingCompileTimeError
 class_literal_test/03: MissingCompileTimeError
@@ -968,6 +966,9 @@ regress_28341_test: Fail # Issue 28340
 truncdiv_test: RuntimeError # Issue 15246
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
+checked_setter_test: RuntimeError
+checked_setter2_test: RuntimeError
+checked_setter3_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
 covariant_subtyping_tearoff3_test: RuntimeError

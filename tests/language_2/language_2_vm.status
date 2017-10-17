@@ -81,11 +81,6 @@ call_type_literal_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
-checked_setter2_test: MissingCompileTimeError
-checked_setter3_test/01: MissingCompileTimeError
-checked_setter3_test/02: MissingCompileTimeError
-checked_setter3_test/03: MissingCompileTimeError
-checked_setter_test: MissingCompileTimeError
 class_literal_test/01: MissingCompileTimeError
 class_literal_test/02: MissingCompileTimeError
 class_literal_test/03: MissingCompileTimeError
@@ -902,6 +897,9 @@ recursive_mixin_test: Crash
 [ $runtime == vm && !$checked ]
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
+checked_setter2_test: RuntimeError
+checked_setter3_test: RuntimeError
+checked_setter_test: RuntimeError
 const_constructor2_test/13: MissingCompileTimeError
 const_constructor2_test/14: MissingCompileTimeError
 const_constructor2_test/15: MissingCompileTimeError

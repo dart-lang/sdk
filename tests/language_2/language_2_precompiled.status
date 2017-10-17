@@ -87,11 +87,9 @@ call_type_literal_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
-checked_setter2_test: MissingCompileTimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
-checked_setter_test: MissingCompileTimeError
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 class_literal_test/01: MissingCompileTimeError
 class_literal_test/02: MissingCompileTimeError
@@ -956,6 +954,9 @@ generic_methods_generic_function_parameter_test: Pass # Issue 25869
 assertion_initializer_const_error2_test/cc02: CompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+checked_setter2_test: RuntimeError
+checked_setter3_test: RuntimeError
+checked_setter_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError

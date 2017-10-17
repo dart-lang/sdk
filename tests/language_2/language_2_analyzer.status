@@ -1167,8 +1167,6 @@ assertion_initializer_const_function_test/01: MissingStaticWarning
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
-checked_setter_test: MissingCompileTimeError
-checked_setter2_test: MissingCompileTimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
