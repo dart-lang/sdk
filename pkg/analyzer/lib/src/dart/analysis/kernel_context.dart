@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -31,7 +32,55 @@ import 'package:kernel/text/ast_to_text.dart' as kernel;
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as pathos;
-import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
+
+/**
+ * Create a new [KernelDriver] for the given configuration.
+ */
+KernelDriver createKernelDriver(
+    PerformanceLog logger,
+    ByteStore byteStore,
+    AnalysisOptions analysisOptions,
+    SourceFactory sourceFactory,
+    FileSystemState fsState,
+    pathos.Context pathContext) {
+  // Prepare SDK libraries.
+  Map<String, LibraryInfo> dartLibraries = {};
+  {
+    DartSdk dartSdk = sourceFactory.dartSdk;
+    dartSdk.sdkLibraries.forEach((sdkLibrary) {
+      var dartUri = sdkLibrary.shortName;
+      var name = Uri.parse(dartUri).path;
+      var path = dartSdk.mapDartUri(dartUri).fullName;
+      var fileUri = pathContext.toUri(path);
+      dartLibraries[name] = new LibraryInfo(name, fileUri, const []);
+    });
+  }
+
+  // Prepare packages.
+  Packages packages = Packages.noPackages;
+  {
+    Map<String, List<Folder>> packageMap = sourceFactory.packageMap;
+    if (packageMap != null) {
+      var map = <String, Uri>{};
+      for (var name in packageMap.keys) {
+        map[name] = packageMap[name].first.toUri();
+      }
+      packages = new MapPackages(map);
+    }
+  }
+
+  var uriTranslator = new UriTranslatorImpl(
+      new TargetLibrariesSpecification('none', dartLibraries), packages);
+  var options = new ProcessedOptions(new CompilerOptions()
+    ..target = new _AnalysisTarget(
+        new TargetFlags(strongMode: analysisOptions.strongMode))
+    ..reportMessages = false
+    ..logger = logger
+    ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
+    ..byteStore = byteStore);
+  return new KernelDriver(options, uriTranslator,
+      metadataFactory: new AnalyzerMetadataFactory());
+}
 
 /**
  * Support for resynthesizing element model from Kernel.
@@ -87,51 +136,12 @@ class KernelContext {
   static Future<KernelContext> forSingleLibrary(
       FileState targetLibrary,
       PerformanceLog logger,
-      ByteStore byteStore,
       AnalysisOptions analysisOptions,
       DeclaredVariables declaredVariables,
       SourceFactory sourceFactory,
       FileSystemState fsState,
-      pathos.Context pathContext) async {
+      KernelDriver driver) async {
     return logger.runAsync('Create kernel context', () async {
-      // Prepare SDK libraries.
-      Map<String, LibraryInfo> dartLibraries = {};
-      {
-        DartSdk dartSdk = sourceFactory.dartSdk;
-        dartSdk.sdkLibraries.forEach((sdkLibrary) {
-          var dartUri = sdkLibrary.shortName;
-          var name = Uri.parse(dartUri).path;
-          var path = dartSdk.mapDartUri(dartUri).fullName;
-          var fileUri = pathContext.toUri(path);
-          dartLibraries[name] = new LibraryInfo(name, fileUri, const []);
-        });
-      }
-
-      // Prepare packages.
-      Packages packages = Packages.noPackages;
-      {
-        Map<String, List<Folder>> packageMap = sourceFactory.packageMap;
-        if (packageMap != null) {
-          var map = <String, Uri>{};
-          for (var name in packageMap.keys) {
-            map[name] = packageMap[name].first.toUri();
-          }
-          packages = new MapPackages(map);
-        }
-      }
-
-      var uriTranslator = new UriTranslatorImpl(
-          new TargetLibrariesSpecification('none', dartLibraries), packages);
-      var options = new ProcessedOptions(new CompilerOptions()
-        ..target = new _AnalysisTarget(
-            new TargetFlags(strongMode: analysisOptions.strongMode))
-        ..reportMessages = false
-        ..logger = logger
-        ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
-        ..byteStore = byteStore);
-      var driver = new KernelDriver(options, uriTranslator,
-          metadataFactory: new AnalyzerMetadataFactory());
-
       Uri targetUri = targetLibrary.uri;
       KernelResult kernelResult = await driver.getKernel(targetUri);
 

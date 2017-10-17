@@ -43,6 +43,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/kernel_driver.dart' show KernelDriver;
 import 'package:meta/meta.dart';
 
 /**
@@ -172,6 +173,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The salt to mix into all hashes used as keys for serialized data.
    */
   final Uint32List _salt = new Uint32List(1 + AnalysisOptions.signatureLength);
+
+  /**
+   * If [enableKernelDriver], then the instance of [KernelDriver].
+   * Otherwise `null`.
+   */
+  KernelDriver _kernelDriver;
 
   /**
    * The set of priority files, that should be analyzed sooner.
@@ -344,6 +351,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
     _createFileTracker();
+    _createKernelDriver();
     _scheduler.add(this);
     _search = new Search(this);
   }
@@ -565,6 +573,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     Iterable<String> addedFiles = _fileTracker.addedFiles;
     _createFileTracker();
     _fileTracker.addFiles(addedFiles);
+    _createKernelDriver();
   }
 
   @override
@@ -1172,12 +1181,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             kernelContext = await KernelContext.forSingleLibrary(
                 library,
                 _logger,
-                _byteStore,
                 _analysisOptions,
                 declaredVariables,
                 _sourceFactory,
                 fsState,
-                _resourceProvider.pathContext);
+                _kernelDriver);
             analyzer = new LibraryAnalyzer(
                 analysisOptions,
                 declaredVariables,
@@ -1308,6 +1316,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _resourceProvider, sourceFactory, analysisOptions, _salt,
         externalSummaries: _externalSummaries);
     _fileTracker = new FileTracker(_logger, _fsState, _changeHook);
+  }
+
+  /**
+   * Creates a new [KernelDriver] in [_kernelDriver].
+   *
+   * This is used both on initial construction and whenever the configuration
+   * changes.
+   */
+  void _createKernelDriver() {
+    if (enableKernelDriver) {
+      _kernelDriver = createKernelDriver(_logger, _byteStore, analysisOptions,
+          sourceFactory, fsState, _resourceProvider.pathContext);
+    }
   }
 
   /**
