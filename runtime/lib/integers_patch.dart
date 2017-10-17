@@ -11,6 +11,14 @@ class int {
   const factory int.fromEnvironment(String name, {int defaultValue})
       native "Integer_fromEnvironment";
 
+  _Bigint _toBigint();
+  int _shrFromInt(int other);
+  int _shlFromInt(int other);
+  int _bitAndFromSmi(_Smi other);
+  int _bitAndFromInteger(int other);
+  int _bitOrFromInteger(int other);
+  int _bitXorFromInteger(int other);
+
   static int _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
     var ix = first;
@@ -54,7 +62,7 @@ class int {
     return _parse(source, radix, onError);
   }
 
-  static int _parse(String source, int radix, onError) {
+  static int _parse(_StringBase source, int radix, onError) {
     int end = source._lastNonWhitespace() + 1;
     if (end == 0) {
       return _throwFormatException(onError, source, source.length, radix);

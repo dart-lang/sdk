@@ -46,7 +46,7 @@
 // meaningful, so that pairs of digits can be processed as 64-bit unsigned
 // numbers on a 64-bit platform. This requires the initialization of a leading
 // zero if the number of used digits is odd.
-class _Bigint extends _IntegerImplementation implements int {
+class _Bigint extends _IntegerImplementation {
   // Bits per digit.
   static const int _DIGIT_BITS = 32;
   static const int _LOG2_DIGIT_BITS = 5;
@@ -1293,7 +1293,7 @@ class _Bigint extends _IntegerImplementation implements int {
     return other._toBigintOrDouble()._mulFromInteger(this);
   }
 
-  num operator ~/(num other) {
+  int operator ~/(num other) {
     return other._toBigintOrDouble()._truncDivFromInteger(this);
   }
 
@@ -1302,23 +1302,23 @@ class _Bigint extends _IntegerImplementation implements int {
   }
 
   int operator &(int other) {
-    return other._toBigintOrDouble()._bitAndFromInteger(this);
+    return other._toBigint()._bitAndFromInteger(this);
   }
 
   int operator |(int other) {
-    return other._toBigintOrDouble()._bitOrFromInteger(this);
+    return other._toBigint()._bitOrFromInteger(this);
   }
 
   int operator ^(int other) {
-    return other._toBigintOrDouble()._bitXorFromInteger(this);
+    return other._toBigint()._bitXorFromInteger(this);
   }
 
   int operator >>(int other) {
-    return other._toBigintOrDouble()._shrFromInt(this);
+    return other._toBigint()._shrFromInt(this);
   }
 
   int operator <<(int other) {
-    return other._toBigintOrDouble()._shlFromInt(this);
+    return other._toBigint()._shlFromInt(this);
   }
   // End of operator shortcuts.
 
@@ -1368,7 +1368,7 @@ class _Bigint extends _IntegerImplementation implements int {
     return str;
   }
 
-  int _bitAndFromSmi(int other) => _bitAndFromInteger(other);
+  int _bitAndFromSmi(_Smi other) => _bitAndFromInteger(other);
 
   int _bitAndFromInteger(int other) {
     return other._toBigint()._and(this)._toValidInt();
@@ -1442,16 +1442,16 @@ class _Bigint extends _IntegerImplementation implements int {
     if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
-    m = m._toBigint();
-    final m_used = m._used;
+    final mAsBigint = m._toBigint();
+    final m_used = mAsBigint._used;
     final m_used2p4 = 2 * m_used + 4;
     final e_bitlen = e.bitLength;
     if (e_bitlen <= 0) return 1;
-    final bool cannotUseMontgomery = m.isEven || _abs() >= m;
+    final bool cannotUseMontgomery = mAsBigint.isEven || _abs() >= mAsBigint;
     if (cannotUseMontgomery || e_bitlen < 64) {
       _Reduction z = (cannotUseMontgomery || e_bitlen < 8)
-          ? new _Classic(m)
-          : new _Montgomery(m);
+          ? new _Classic(mAsBigint)
+          : new _Montgomery(mAsBigint);
       // TODO(regis): Should we use Barrett reduction for an even modulus and a
       // large exponent?
       var r_digits = new Uint32List(m_used2p4);
@@ -1481,7 +1481,7 @@ class _Bigint extends _IntegerImplementation implements int {
       }
       return z._revert(r_digits, r_used)._toValidInt();
     }
-    e = e._toBigint();
+    final eAsBigint = e._toBigint();
     var k;
     if (e_bitlen < 18)
       k = 1;
@@ -1493,7 +1493,7 @@ class _Bigint extends _IntegerImplementation implements int {
       k = 5;
     else
       k = 6;
-    _Reduction z = new _Montgomery(m);
+    _Reduction z = new _Montgomery(mAsBigint);
     var n = 3;
     final k1 = k - 1;
     final km = (1 << k) - 1;
@@ -1517,8 +1517,8 @@ class _Bigint extends _IntegerImplementation implements int {
     var r_used = _ONE._used;
     var r2_digits = new Uint32List(m_used2p4);
     var r2_used;
-    var e_digits = e._digits;
-    var j = e._used - 1;
+    var e_digits = eAsBigint._digits;
+    var j = eAsBigint._used - 1;
     var i = _nbits(e_digits[j]) - 1;
     while (j >= 0) {
       if (i >= k1) {
@@ -1841,13 +1841,13 @@ class _Bigint extends _IntegerImplementation implements int {
     }
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
-    m = m._toBigint();
+    final mAsBigint = m._toBigint();
     var t = this;
-    if (t._neg || (t._absCompare(m) >= 0)) {
-      t %= m;
+    if (t._neg || (t._absCompare(mAsBigint) >= 0)) {
+      t %= mAsBigint;
       t = t._toBigint();
     }
-    return _binaryGcd(m, t, true);
+    return _binaryGcd(mAsBigint, t, true);
   }
 
   // Returns gcd of abs(this) and abs(other).
@@ -1876,7 +1876,7 @@ class _Reduction {
 
 // Montgomery reduction on _Bigint.
 class _Montgomery implements _Reduction {
-  _Bigint _m; // Modulus.
+  final _Bigint _m; // Modulus.
   int _mused2p2;
   Uint32List _args;
   int _digits_per_step; // Number of digits processed in one step. 1 or 2.
@@ -1887,8 +1887,7 @@ class _Montgomery implements _Reduction {
   static const int _MU = 4; // Index of mu.
   static const int _MU_HI = 5; // Index of high 32-bits of mu (64-bit only).
 
-  _Montgomery(m) {
-    _m = m._toBigint();
+  _Montgomery(this._m) {
     _mused2p2 = 2 * _m._used + 2;
     _args = new Uint32List(6);
     // Determine if we can process digit pairs by calling an intrinsic.
@@ -2044,7 +2043,7 @@ class _Montgomery implements _Reduction {
 
 // Modular reduction using "classic" algorithm.
 class _Classic implements _Reduction {
-  _Bigint _m; // Modulus.
+  final _Bigint _m; // Modulus.
   _Bigint _norm_m; // Normalized _m.
   Uint32List _neg_norm_m_digits; // Negated _norm_m digits.
   int _m_nsh; // Normalization shift amount.
@@ -2052,8 +2051,7 @@ class _Classic implements _Reduction {
   // estimated quotient digit(s).
   Uint32List _t_digits; // Temporary digits used during reduction.
 
-  _Classic(int m) {
-    _m = m._toBigint();
+  _Classic(this._m) {
     // Preprocess arguments to _remDigits.
     var nsh = _Bigint._DIGIT_BITS - _Bigint._nbits(_m._digits[_m._used - 1]);
     // For 64-bit processing, make sure _norm_m_digits has an even number of

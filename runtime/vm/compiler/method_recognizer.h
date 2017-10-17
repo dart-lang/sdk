@@ -143,7 +143,7 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, Smi, 0x6574c6b0)                                   \
   V(_Smi, get:bitLength, Smi_bitLength, Smi, 0x25b356ab)                       \
-  V(_Smi, _bitAndFromSmi, Smi_bitAndFromSmi, Smi, 0x490a4da1)                  \
+  V(_Smi, _bitAndFromSmi, Smi_bitAndFromSmi, Smi, 0x562d5047)                  \
   V(_Bigint, _lsh, Bigint_lsh, Dynamic, 0x40d9f1cc)                            \
   V(_Bigint, _rsh, Bigint_rsh, Dynamic, 0x703f1a40)                            \
   V(_Bigint, _absAdd, Bigint_absAdd, Dynamic, 0x50fb1e47)                      \
@@ -197,16 +197,16 @@ namespace dart {
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
   V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger,           \
     Dynamic, 0x6a10c54a)                                                       \
-  V(_IntegerImplementation, +, Integer_add, Dynamic, 0x5125faaa)               \
+  V(_IntegerImplementation, +, Integer_add, Dynamic, 0x1bb7f19d)               \
   V(_IntegerImplementation, _subFromInteger, Integer_subFromInteger, Dynamic,  \
     0x3fa4b1ed)                                                                \
-  V(_IntegerImplementation, -, Integer_sub, Dynamic, 0x0c94540b)               \
+  V(_IntegerImplementation, -, Integer_sub, Dynamic, 0x649b007e)               \
   V(_IntegerImplementation, _mulFromInteger, Integer_mulFromInteger,           \
     Dynamic, 0x3216e299)                                                       \
-  V(_IntegerImplementation, *, Integer_mul, Dynamic, 0x4535624c)               \
+  V(_IntegerImplementation, *, Integer_mul, Dynamic, 0x0c74b07f)               \
   V(_IntegerImplementation, _moduloFromInteger, Integer_moduloFromInteger,     \
     Dynamic, 0x6348b974)                                                       \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, Dynamic, 0x1f48f4c9)      \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, Dynamic, 0x305174bc)      \
   V(_IntegerImplementation, unary-, Integer_negate, Dynamic, 0x4e346e3b)       \
   V(_IntegerImplementation, _bitAndFromInteger, Integer_bitAndFromInteger,     \
     Dynamic, 0x395b1678)                                                       \
@@ -471,10 +471,10 @@ namespace dart {
   V(_Double, -, Double_sub, 0x76768546)                                        \
   V(_Double, *, Double_mul, 0x66c66e3d)                                        \
   V(_Double, /, Double_div, 0x034b9f08)                                        \
-  V(_IntegerImplementation, +, Integer_add, 0x5125faaa)                        \
-  V(_IntegerImplementation, -, Integer_sub, 0x0c94540b)                        \
-  V(_IntegerImplementation, *, Integer_mul, 0x4535624c)                        \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x1f48f4c9)               \
+  V(_IntegerImplementation, +, Integer_add, 0x1bb7f19d)                        \
+  V(_IntegerImplementation, -, Integer_sub, 0x649b007e)                        \
+  V(_IntegerImplementation, *, Integer_mul, 0x0c74b07f)                        \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x305174bc)               \
   V(_IntegerImplementation, unary-, Integer_negate, 0x4e346e3b)                \
   V(_IntegerImplementation, &, Integer_bitAnd, 0x01b79186)                     \
   V(_IntegerImplementation, |, Integer_bitOr, 0x71c6af64)                      \

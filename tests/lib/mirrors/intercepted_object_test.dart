@@ -27,6 +27,13 @@ checkImplements(object, String name) {
     cls = cls.superclass;
   }
 
+  // The VM implements int through an intermediate abstract
+  // class.
+  if (object is int &&
+      stringify(cls.superclass.simpleName) == 's(_IntegerImplementation)') {
+    cls = cls.superclass;
+  }
+
   List<ClassMirror> superinterfaces = cls.superinterfaces;
   String symName = 's($name)';
   for (ClassMirror superinterface in superinterfaces) {

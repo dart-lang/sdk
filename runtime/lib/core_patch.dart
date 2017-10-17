@@ -78,6 +78,19 @@ import "dart:typed_data" show Uint8List, Int64List, Uint16List, Uint32List;
 // part "uri_patch.dart";
 // part "weak_property.dart";
 
+@patch
+class num {
+  num _addFromInteger(int other);
+  num _subFromInteger(int other);
+  num _mulFromInteger(int other);
+  int _truncDivFromInteger(int other);
+  num _moduloFromInteger(int other);
+  num _remainderFromInteger(int other);
+  bool _greaterThanFromInteger(int other);
+  bool _equalToInteger(int other);
+  num _toBigintOrDouble();
+}
+
 // The members of this class are cloned and added to each class that
 // represents an enum type.
 class _EnumHelper {
