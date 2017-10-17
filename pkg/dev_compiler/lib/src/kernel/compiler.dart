@@ -70,7 +70,7 @@ class ProgramCompiler
 
   /// The global extension type table.
   // TODO(jmesserly): rename to `_nativeTypes`
-  final NativeTypeSet _extensionTypes;
+  final NativeTypeSet nativeTypes;
 
   final CoreTypes types;
 
@@ -79,7 +79,7 @@ class ProgramCompiler
   JSTypeRep _typeRep;
 
   ProgramCompiler(NativeTypeSet nativeTypes)
-      : _extensionTypes = nativeTypes,
+      : nativeTypes = nativeTypes,
         types = nativeTypes.types,
         rules = new TypeSchemaEnvironment(
             nativeTypes.types, new IncrementalClassHierarchy(), true);
@@ -811,7 +811,7 @@ class ProgramCompiler
     return e.accept(this);
   }
 
-  JS.Expression _visitAndMarkExpression(Expression e) {
+  JS.Expression visitAndMarkExpression(Expression e) {
     // TODO(jmesserly): attach source mapping to expressions if needed
     return e.accept(this);
   }
