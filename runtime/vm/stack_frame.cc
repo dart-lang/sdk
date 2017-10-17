@@ -5,6 +5,7 @@
 #include "vm/stack_frame.h"
 
 #include "platform/memory_sanitizer.h"
+#include "vm/become.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/deopt_instructions.h"
 #include "vm/isolate.h"
@@ -238,12 +239,19 @@ RawCode* StackFrame::LookupDartCode() const {
 }
 
 RawCode* StackFrame::GetCodeObject() const {
-  const uword pc_marker =
-      *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
+  RawObject* pc_marker = *(
+      reinterpret_cast<RawObject**>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
   ASSERT(pc_marker != 0);
-  ASSERT(reinterpret_cast<RawObject*>(pc_marker)->GetClassId() == kCodeCid ||
-         reinterpret_cast<RawObject*>(pc_marker) == Object::null());
-  return reinterpret_cast<RawCode*>(pc_marker);
+  // When forwarding the stack, we look at the pc marker to get the frame's
+  // stack map before we've forwarded the pc marker.
+  if (pc_marker->GetClassId() == kForwardingCorpse) {
+    const uword addr = reinterpret_cast<uword>(pc_marker) - kHeapObjectTag;
+    ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
+    pc_marker = forwarder->target();
+  }
+  ASSERT((pc_marker == Object::null()) ||
+         (pc_marker->GetClassId() == kCodeCid));
+  return static_cast<RawCode*>(pc_marker);
 }
 
 bool StackFrame::FindExceptionHandler(Thread* thread,

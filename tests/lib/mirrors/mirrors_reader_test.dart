@@ -4,6 +4,9 @@
 
 // Test that everything reachable from a [MirrorSystem] can be accessed.
 
+// VMOptions=
+// VMOptions=--use_compactor
+
 library test.mirrors.reader;
 
 import 'dart:mirrors';

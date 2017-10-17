@@ -1380,13 +1380,15 @@ void IsolateReloadContext::Commit() {
   RehashConstants();
 
 #ifdef DEBUG
-  // Verify that all canonical instances are correctly setup in the
-  // corresponding canonical tables.
-  Thread* thread = Thread::Current();
-  I->heap()->CollectAllGarbage();
-  HeapIterationScope iteration(thread);
-  VerifyCanonicalVisitor check_canonical(thread);
-  iteration.IterateObjects(&check_canonical);
+  {
+    // Verify that all canonical instances are correctly setup in the
+    // corresponding canonical tables.
+    Thread* thread = Thread::Current();
+    I->heap()->CollectAllGarbage();
+    HeapIterationScope iteration(thread);
+    VerifyCanonicalVisitor check_canonical(thread);
+    iteration.IterateObjects(&check_canonical);
+  }
 #endif  // DEBUG
 
   if (FLAG_identity_reload) {
