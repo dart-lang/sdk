@@ -1863,6 +1863,13 @@ void FlowGraph::WidenSmiToInt32() {
         Definition* defn = worklist.definitions()[j];
         ASSERT(defn->IsPhi() || defn->IsBinarySmiOp());
 
+        // Since we widen the integer representation we've to clear out type
+        // propagation information (e.g. it might no longer be a _Smi).
+        for (Value::Iterator it(defn->input_use_list()); !it.Done();
+             it.Advance()) {
+          it.Current()->SetReachingType(NULL);
+        }
+
         if (defn->IsBinarySmiOp()) {
           BinarySmiOpInstr* smi_op = defn->AsBinarySmiOp();
           BinaryInt32OpInstr* int32_op = new (Z) BinaryInt32OpInstr(
@@ -1873,12 +1880,6 @@ void FlowGraph::WidenSmiToInt32() {
         } else if (defn->IsPhi()) {
           defn->AsPhi()->set_representation(kUnboxedInt32);
           ASSERT(defn->Type()->IsInt());
-        }
-
-        // Since we widened the integer representation we've to clear out type
-        // propagation information (e.g. it might no longer be a _Smi).
-        for (intptr_t k = 0; k < defn->InputCount(); ++k) {
-          defn->InputAt(k)->SetReachingType(NULL);
         }
       }
     }
