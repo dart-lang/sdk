@@ -58,7 +58,7 @@ def main():
       print >> sys.stderr, "ERROR: Can't locate Dart VM executable."
       return -1
 
-  arguments[0] = os.path.relpath(dart_executable)
+  arguments[0] = os.path.abspath(dart_executable)
   if verbose:
     print "Running:", " ".join(arguments)
   return subprocess.call(arguments)

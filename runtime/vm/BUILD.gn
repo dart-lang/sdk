@@ -16,6 +16,7 @@ import("../../sdk/lib/mirrors/mirrors_sources.gni")
 import("../../sdk/lib/profiler/profiler_sources.gni")
 import("../../sdk/lib/typed_data/typed_data_sources.gni")
 import("../../sdk/lib/vmservice/vmservice_sources.gni")
+import("../../utils/compile_platform.gni")
 import("../../utils/generate_patch_sdk.gni")
 import("../bin/io_sources.gni")
 import("../lib/async_sources.gni")
@@ -562,9 +563,7 @@ generate_vm_patched_sdk("patched_sdk") {
   ]
 }
 
-action("compile_platform") {
-  script = "../../tools/compile_platform.py"
-
+compile_platform("vm_legacy_platform") {
   sources = [
     "$root_out_dir/patched_sdk/lib/libraries.json",
   ]
@@ -574,21 +573,14 @@ action("compile_platform") {
     "$root_out_dir/vm_outline.dill",
   ]
 
-  inputs = []
-
   deps = [
     ":patched_sdk",
   ]
 
-  depfile = "$root_out_dir/vm_platform.dill.d"
-
-  args = [ "dart:core" ] + rebase_path(sources, root_build_dir) +
-         rebase_path(outputs, root_build_dir)
+  args = [ "dart:core" ]
 }
 
-action("compile_strong_platform") {
-  script = "../../tools/compile_platform.py"
-
+compile_platform("vm_platform") {
   sources = [
     "$root_out_dir/patched_sdk/lib/libraries.json",
   ]
@@ -598,24 +590,17 @@ action("compile_strong_platform") {
     "$root_out_dir/vm_outline_strong.dill",
   ]
 
-  inputs = []
-
   deps = [
     ":patched_sdk",
   ]
 
-  depfile = "$root_out_dir/vm_platform_strong.dill.d"
-
   args = [
-           "--strong-mode",
-           "dart:core",
-         ] + rebase_path(sources, root_build_dir) +
-         rebase_path(outputs, root_build_dir)
+    "--strong-mode",
+    "dart:core",
+  ]
 }
 
-action("compile_vmservice") {
-  script = "../../tools/compile_platform.py"
-
+compile_platform("vmservice_dill") {
   sources = [
     "../../sdk/lib/vmservice_libraries.json",
   ]
@@ -630,23 +615,19 @@ action("compile_vmservice") {
   ]
 
   deps = [
-    ":compile_platform",
+    ":vm_legacy_platform",
   ]
 
-  depfile = "$root_out_dir/vmservice_io.dill.d"
-
   args = [
-           "--platform=" +
-               rebase_path("$root_out_dir/vm_platform.dill", root_build_dir),
-           "dart:vmservice_io",
-         ] + rebase_path(sources, root_build_dir) +
-         rebase_path(outputs, root_build_dir)
+    "--platform=" + rebase_path(inputs[0], root_build_dir),
+    "dart:vmservice_io",
+  ]
 }
 
 group("kernel_platform_files") {
   public_deps = [
-    ":compile_platform",
-    ":compile_strong_platform",
-    ":compile_vmservice",
+    ":vm_legacy_platform",
+    ":vm_platform",
+    ":vmservice_dill",
   ]
 }

@@ -4,6 +4,7 @@
 
 import("../../build/compiled_action.gni")
 import("../../build/prebuilt_dart_sdk.gni")
+import("../../utils/compile_platform.gni")
 import("../../utils/generate_patch_sdk.gni")
 import("../create_timestamp.gni")
 import("../application_snapshot.gni")
@@ -95,9 +96,7 @@ generate_patched_sdk("patched_dart2js_sdk") {
   ]
 }
 
-action("compile_dart2js_platform") {
-  script = "../../tools/compile_platform.py"
-
+compile_platform("compile_dart2js_platform") {
   sources = [
     "$root_out_dir/patched_dart2js_sdk/lib/libraries.json",
   ]
@@ -107,17 +106,12 @@ action("compile_dart2js_platform") {
     "$root_out_dir/dart2js_outline.dill",
   ]
 
-  inputs = []
-
   deps = [
     ":patched_dart2js_sdk",
   ]
 
-  depfile = "$root_out_dir/dart2js_platform.dill.d"
-
   args = [
-           "--target=dart2js",
-           "dart:core",
-         ] + rebase_path(sources, root_build_dir) +
-         rebase_path(outputs, root_build_dir)
+    "--target=dart2js",
+    "dart:core",
+  ]
 }
