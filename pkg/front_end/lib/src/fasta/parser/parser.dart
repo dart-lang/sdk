@@ -1157,6 +1157,15 @@ class Parser {
     return semicolon.next;
   }
 
+  /// Parse the portion of a class declaration (not a mixin application) that
+  /// follows the end of the type parameters.
+  ///
+  /// classDefinition:
+  ///   metadata abstract? 'class' identifier typeParameters?
+  ///       (superclass mixins?)? interfaces?
+  ///       '{' (metadata classMemberDefinition)* '}' |
+  ///   metadata abstract? 'class' mixinApplicationClass
+  /// ;
   Token parseClass(Token token, Token begin, Token classKeyword) {
     Token start = token;
     token = parseClassHeader(token, begin, classKeyword);
@@ -1164,7 +1173,7 @@ class Parser {
       // Recovery
       token = parseClassHeaderRecovery(start, begin, classKeyword);
     }
-    token = parseClassBody(token);
+    token = parseClassBody(token, start);
     listener.endClassDeclaration(begin, token);
     return token.next;
   }
@@ -1221,8 +1230,8 @@ class Parser {
           return reportUnrecoverableError(
               token, fasta.messageWithWithoutExtends);
         }
-        rewriter.insertTokenBefore(extendsKeyword, token);
-        rewriter.insertTokenBefore(superclassToken, token);
+        rewriter.insertToken(begin, extendsKeyword, token);
+        rewriter.insertToken(begin, superclassToken, token);
         token = parseType(superclassToken);
         token = parseMixinApplicationRest(token);
         listener.handleClassExtends(extendsKeyword);
@@ -2652,6 +2661,8 @@ class Parser {
   Token rewriteAndRecover(Token token, Message message, Token newToken) {
     if (firstToken == null) return reportUnrecoverableError(token, message);
     reportRecoverableError(token, message);
+    // TODO(brianwilkerson) Replace the invocation of [insertTokenBefore] with
+    // an invocation of [insertToken].
     return rewriter.insertTokenBefore(newToken, token);
   }
 
@@ -2786,9 +2797,12 @@ class Parser {
   ///   '{' classMember* '}'
   /// ;
   ///
+  /// The [beforeBody] token is required to be a token that appears somewhere
+  /// before the [token] in the token stream.
+  ///
   /// Note: unlike most parse methods, this method returns the last token parsed
   /// (the closing brace) rather than the next token to be parsed.
-  Token parseClassBody(Token token) {
+  Token parseClassBody(Token token, Token beforeBody) {
     Token begin = token;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
@@ -2799,8 +2813,8 @@ class Parser {
       Token end =
           new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset);
       (begin as BeginToken).endGroup = end;
-      rewriter.insertTokenBefore(begin, token);
-      rewriter.insertTokenBefore(end, token);
+      rewriter.insertToken(beforeBody, begin, token);
+      rewriter.insertToken(beforeBody, end, token);
       token = begin;
     }
     token = token.next;

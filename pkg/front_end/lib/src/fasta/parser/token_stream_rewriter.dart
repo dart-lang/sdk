@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../scanner/token.dart' show BeginToken, SimpleToken, Token;
-
-import '../problems.dart' show internalProblem;
-
+import '../../scanner/token.dart'
+    show BeginToken, SimpleToken, Token, TokenType;
 import '../fasta_codes.dart' show messageInternalProblemPreviousTokenNotFound;
+import '../problems.dart' show internalProblem;
 
 /// Provides the capability of inserting tokens into a token stream by rewriting
 /// the previous token to point to the inserted token.
@@ -35,6 +34,23 @@ class TokenStreamRewriter {
   /// was passed to the constructor, if something was inserted before it).
   Token get firstToken => _head.next;
 
+  /// Insert the chain of tokens starting at the [insertedToken] immediately
+  /// before the [followingToken]. The [followingToken] is assumed to be
+  /// reachable from, but not the same as, the [previousToken].
+  Token insertToken(
+      Token previousToken, Token insertedToken, Token followingToken) {
+    _lastPreviousToken = previousToken;
+    previousToken = _findPreviousToken(followingToken);
+    previousToken.next = insertedToken;
+    insertedToken.previous = previousToken;
+
+    Token lastReplacement = _lastTokenInChain(insertedToken);
+    lastReplacement.next = followingToken;
+    followingToken.previous = lastReplacement;
+
+    return insertedToken;
+  }
+
   /// Inserts [newToken] into the token stream just before [insertionPoint], and
   /// fixes up all "next" and "previous" pointers. Returns [newToken].
   ///
@@ -56,7 +72,7 @@ class TokenStreamRewriter {
   }
 
   /// Replace the single [replacedToken] with the chain of tokens starting at
-  /// the [replacementToken]. The replaced token is assumed to be reachable
+  /// the [replacementToken]. The [replacedToken] is assumed to be reachable
   /// from, but not the same as, the [previousToken].
   Token replaceToken(
       Token previousToken, Token replacedToken, Token replacementToken) {
@@ -68,7 +84,7 @@ class TokenStreamRewriter {
     (replacementToken as SimpleToken).precedingComments =
         replacedToken.precedingComments;
 
-    Token lastReplacement = _lastReplacementToken(replacementToken);
+    Token lastReplacement = _lastTokenInChain(replacementToken);
     lastReplacement.next = replacedToken.next;
     replacedToken.next.previous = lastReplacement;
 
@@ -105,8 +121,9 @@ class TokenStreamRewriter {
 
   /// Given a chain of tokens to be inserted, return the last token in the
   /// chain.
-  Token _lastReplacementToken(Token firstReplacementToken) {
-    while (firstReplacementToken.next != null) {
+  Token _lastTokenInChain(Token firstReplacementToken) {
+    while (firstReplacementToken.next != null &&
+        firstReplacementToken.next.type != TokenType.EOF) {
       firstReplacementToken = firstReplacementToken.next;
     }
     return firstReplacementToken;

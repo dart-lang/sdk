@@ -46,6 +46,62 @@ abstract class TokenStreamRewriterTest {
     expect(b.previous, same(a));
   }
 
+  void test_insertToken_multiple() {
+    var a = _makeToken(0, 'a');
+    var b = _makeToken(1, 'b');
+    var c = _makeToken(2, 'c');
+    var d = _makeToken(3, 'd');
+    var e = _makeToken(4, 'e');
+    _link([a, b, e]);
+    _link([c, d]);
+    var rewriter = new TokenStreamRewriter(a);
+    rewriter.insertToken(a, c, e);
+    expect(a.next, same(b));
+    expect(b.next, same(c));
+    expect(c.next, same(d));
+    expect(d.next, same(e));
+  }
+
+  void test_insertToken_single() {
+    var a = _makeToken(0, 'a');
+    var b = _makeToken(1, 'b');
+    var c = _makeToken(2, 'c');
+    _link([a, c]);
+    var rewriter = new TokenStreamRewriter(a);
+    rewriter.insertToken(a, b, c);
+    expect(a.next, same(b));
+    expect(b.next, same(c));
+  }
+
+  void test_replaceToken_multiple() {
+    var a = _makeToken(0, 'a');
+    var b = _makeToken(1, 'b');
+    var c = _makeToken(2, 'c');
+    var d = _makeToken(3, 'd');
+    var e = _makeToken(4, 'e');
+    var f = _makeToken(5, 'f');
+    _link([a, b, e, f]);
+    _link([c, d]);
+    var rewriter = new TokenStreamRewriter(a);
+    rewriter.replaceToken(a, e, c);
+    expect(a.next, same(b));
+    expect(b.next, same(c));
+    expect(c.next, same(d));
+    expect(d.next, same(f));
+  }
+
+  void test_replaceToken_single() {
+    var a = _makeToken(0, 'a');
+    var b = _makeToken(1, 'b');
+    var c = _makeToken(2, 'c');
+    var d = _makeToken(3, 'd');
+    _link([a, b, d]);
+    var rewriter = new TokenStreamRewriter(a);
+    rewriter.replaceToken(a, b, c);
+    expect(a.next, same(c));
+    expect(c.next, same(d));
+  }
+
   void test_resume_at_previous_insertion_point() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
