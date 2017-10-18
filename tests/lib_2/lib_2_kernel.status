@@ -251,3 +251,12 @@ isolate/message3_test/int32x4: Crash
 isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_function_custom_class_test: Pass, Timeout
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
+isolate/raw_port_test: Crash
+isolate/nested_spawn_test: Crash
+isolate/static_function_test: Crash
+isolate/mandel_isolate_test: Crash
+isolate/nested_spawn2_test: Crash
+isolate/cross_isolate_message_test: Crash
+isolate/unresolved_ports_test: Crash
+isolate/function_send_test: Crash
+
