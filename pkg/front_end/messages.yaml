@@ -708,6 +708,12 @@ AssertExtraneousArgument:
   template: "`assert` can't have more than two arguments."
   dart2jsCode: "*fatal*"
 
+PositionalAfterNamedArgument:
+  template: "Place positional arguments before named arguments."
+  tip: "Try moving the positional argument before the named arguments, or add a name to the argument."
+  analyzerCode: POSITIONAL_AFTER_NAMED_ARGUMENT
+  dart2jsCode: "*ignored*"
+
 AssertAsExpression:
   template: "`assert` can't be used as an expression."
   dart2jsCode: "*fatal*"

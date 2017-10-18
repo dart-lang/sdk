@@ -4292,24 +4292,27 @@ class Parser {
     Token begin = token;
     listener.beginArguments(begin);
     int argumentCount = 0;
-    if (optional(')', token.next)) {
-      listener.endArguments(argumentCount, begin, token.next);
-      return token.next.next;
-    }
+    bool hasSeenNamedArgument = false;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     do {
-      if (optional(')', token.next)) {
-        token = token.next;
+      token = token.next;
+      if (optional(')', token)) {
         break;
       }
       Token colon = null;
-      if (optional(':', token.next.next)) {
-        token = parseIdentifier(
-            token.next, IdentifierContext.namedArgumentReference);
+      if (optional(':', token.next)) {
+        token =
+            parseIdentifier(token, IdentifierContext.namedArgumentReference);
         colon = token;
+        token = token.next;
+        hasSeenNamedArgument = true;
+      } else if (hasSeenNamedArgument) {
+        // Positional argument after named argument.
+        reportRecoverableError(
+            token, fasta.messagePositionalAfterNamedArgument);
       }
-      token = parseExpression(token.next);
+      token = parseExpression(token);
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
     } while (optional(',', token));

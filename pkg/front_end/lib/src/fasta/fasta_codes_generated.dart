@@ -3039,6 +3039,19 @@ const MessageCode messagePlatformPrivateLibraryAccess = const MessageCode(
     message: r"""Can't access platform private library.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePositionalAfterNamedArgument =
+    messagePositionalAfterNamedArgument;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePositionalAfterNamedArgument = const MessageCode(
+    "PositionalAfterNamedArgument",
+    analyzerCode: "POSITIONAL_AFTER_NAMED_ARGUMENT",
+    dart2jsCode: "*ignored*",
+    message: r"""Positional arguments must occur before named arguments.""",
+    tip:
+        r"""Try moving all of the positional arguments before the named arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePositionalParameterWithEquals =
     messagePositionalParameterWithEquals;
 

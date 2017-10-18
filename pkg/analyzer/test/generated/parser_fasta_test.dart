@@ -1930,14 +1930,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_positionalAfterNamedArgument() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, found 0
-    super.test_positionalAfterNamedArgument();
-  }
-
-  @override
-  @failingTest
   void test_positionalParameterOutsideGroup() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, found 0

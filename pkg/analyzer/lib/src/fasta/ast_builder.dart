@@ -2367,6 +2367,10 @@ class AstBuilder extends ScopeListener {
               ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, offset, length);
         }
         return;
+      case "POSITIONAL_AFTER_NAMED_ARGUMENT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, offset, length);
+        return;
       case "PREFIX_AFTER_COMBINATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
