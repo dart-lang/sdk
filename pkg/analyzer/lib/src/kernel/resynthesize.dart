@@ -15,11 +15,13 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart' as kernel;
 import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
+import 'package:path/path.dart' as pathos;
 
 /**
  * Object that can resynthesize analyzer [LibraryElement] from Kernel.
@@ -663,10 +665,18 @@ class _KernelLibraryResynthesizerContextImpl
   @override
   final kernel.Library library;
 
+  /**
+   * The relative URI of the directory with the [library] file.
+   * E.g. `sdk/lib/core` for `sdk/lib/core/core.dart`.
+   */
+  String libraryDirectoryUri;
+
   Source librarySource;
   LibraryElementImpl libraryElement;
 
-  _KernelLibraryResynthesizerContextImpl(this.resynthesizer, this.library);
+  _KernelLibraryResynthesizerContextImpl(this.resynthesizer, this.library) {
+    libraryDirectoryUri = pathos.url.dirname(library.fileUri);
+  }
 
   @override
   kernel.Library get coreLibrary => resynthesizer._kernelMap['dart:core'];
@@ -725,8 +735,23 @@ class _KernelLibraryResynthesizerContextImpl
         libraryElement, unitContext, '<no name>');
     unitContext.unit = unitElement;
     unitElement.librarySource = librarySource;
-    unitElement.source =
-        fileUri != null ? resynthesizer._getSource(fileUri) : librarySource;
+
+    if (fileUri != null) {
+      // Compute the URI relative to the library directory.
+      // E.g. when the library directory URI is `sdk/lib/core`, and the unit
+      // URI is `sdk/lib/core/bool.dart`, the result is `bool.dart`.
+      var relativeUri = pathos.url.relative(fileUri, from: libraryDirectoryUri);
+      // Compute the absolute URI.
+      // When the absolute library URI is `dart:core`, and the relative
+      // URI is `bool.dart`, the result is `dart:core/bool.dart`.
+      Uri absoluteUri =
+          resolveRelativeUri(librarySource.uri, Uri.parse(relativeUri));
+      String absoluteUriStr = absoluteUri.toString();
+      unitElement.source = resynthesizer._getSource(absoluteUriStr);
+    } else {
+      unitElement.source = librarySource;
+    }
+
     unitContext.unit = unitElement;
     return unitContext;
   }

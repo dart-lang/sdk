@@ -825,8 +825,7 @@ class KernelLibraryBuilder
     for (var part in parts) {
       // TODO(scheglov): Add support for annotations, see
       // https://github.com/dart-lang/sdk/issues/30284.
-      String fileUri = part.fileUri.toString();
-      library.addPart(new LibraryPart(<Expression>[], fileUri));
+      library.addPart(new LibraryPart(<Expression>[], part.relativeFileUri));
     }
 
     loader.target.metadataCollector
