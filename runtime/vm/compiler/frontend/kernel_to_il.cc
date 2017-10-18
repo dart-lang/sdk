@@ -1739,9 +1739,6 @@ void FlowGraphBuilder::InlineBailout(const char* reason) {
 
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   const Function& function = parsed_function_->function();
-
-  if (function.IsConstructorClosureFunction()) return NULL;
-
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
       this, TypedData::Handle(Z, function.KernelData()),
       function.KernelDataProgramOffset());

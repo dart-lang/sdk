@@ -15,11 +15,6 @@ class Symbol {
   static getUnmangledName(Symbol symbol) {
     String string = Symbol.getName(symbol);
 
-    // Remove closurization hash mark
-    // #foo -> foo
-    if (string.startsWith('#')) {
-      string = string.substring(1);
-    }
     // get:foo -> foo
     // set:foo -> foo=
     // get:_foo@xxx -> _foo

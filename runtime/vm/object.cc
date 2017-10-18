@@ -6631,11 +6631,6 @@ bool Function::IsImplicitStaticClosureFunction(RawFunction* func) {
          StaticBit::decode(kind_tag);
 }
 
-bool Function::IsConstructorClosureFunction() const {
-  return IsClosureFunction() &&
-         String::Handle(name()).StartsWith(Symbols::ConstructorClosurePrefix());
-}
-
 RawFunction* Function::New(Heap::Space space) {
   ASSERT(Object::function_class() != Class::null());
   RawObject* raw =

@@ -656,7 +656,6 @@ class Parser : public ValueObject {
   SequenceNode* ParseNoSuchMethodDispatcher(const Function& func);
   SequenceNode* ParseInvokeFieldDispatcher(const Function& func);
   SequenceNode* ParseImplicitClosure(const Function& func);
-  SequenceNode* ParseConstructorClosure(const Function& func);
 
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc);
@@ -822,7 +821,6 @@ class Parser : public ValueObject {
   AstNode* ParseUnaryExpr();
   AstNode* ParsePostfixExpr();
   AstNode* ParseSelectors(AstNode* primary, bool is_cascade);
-  AstNode* ParseClosurization(AstNode* primary);
   AstNode* ParseCascades(AstNode* expr);
   AstNode* ParsePrimary();
   AstNode* ParseStringLiteral(bool allow_interpolation);
@@ -836,11 +834,7 @@ class Parser : public ValueObject {
                            bool is_const,
                            const TypeArguments& type_arguments);
 
-  RawFunction* BuildConstructorClosureFunction(const Function& ctr,
-                                               TokenPosition token_pos);
   AstNode* ParseNewOperator(Token::Kind op_kind);
-  void ParseConstructorClosurization(Function* constructor,
-                                     TypeArguments* type_arguments);
 
   // An implicit argument, if non-null, is prepended to the returned list.
   ArgumentListNode* ParseActualParameters(ArgumentListNode* implicit_arguments,

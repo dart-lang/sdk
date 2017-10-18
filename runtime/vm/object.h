@@ -2578,8 +2578,6 @@ class Function : public Object {
     return IsImplicitClosureFunction() && !is_static();
   }
 
-  bool IsConstructorClosureFunction() const;
-
   // Returns true if this function represents a local function.
   bool IsLocalFunction() const { return parent_function() != Function::null(); }
 

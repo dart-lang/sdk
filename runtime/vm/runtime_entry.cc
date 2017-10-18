@@ -1495,44 +1495,9 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
 
   const bool is_getter = Field::IsGetterName(target_name);
   if (is_getter) {
-    // o.foo (o.get:foo) failed, closurize o.foo() if it exists. Or,
-    // o#foo (o.get:#foo) failed, closurizee o.foo or o.foo(), whichever is
-    // encountered first on the inheritance chain. Or,
-    // o#foo= (o.get:#set:foo) failed, closurize o.foo= if it exists.
+    // o.foo (o.get:foo) failed, closurize o.foo() if it exists.
     String& field_name =
         String::Handle(zone, Field::NameFromGetter(target_name));
-
-    const bool is_extractor = field_name.CharAt(0) == '#';
-    if (is_extractor) {
-      field_name = String::SubString(field_name, 1);
-      ASSERT(!Field::IsGetterName(field_name));
-      field_name = Symbols::New(thread, field_name);
-
-      if (!Field::IsSetterName(field_name)) {
-        const String& getter_name =
-            String::Handle(Field::GetterName(field_name));
-
-        // Zigzagged lookup: closure either a regular method or a getter.
-        while (!cls.IsNull()) {
-          function ^= cls.LookupDynamicFunction(field_name);
-          if (!function.IsNull()) {
-            CLOSURIZE(function);
-            return;
-          }
-          function ^= cls.LookupDynamicFunction(getter_name);
-          if (!function.IsNull()) {
-            CLOSURIZE(function);
-            return;
-          }
-          cls = cls.SuperClass();
-        }
-        NO_SUCH_METHOD();
-        return;
-      } else {
-        // Fall through for non-ziggaged lookup for o#foo=.
-      }
-    }
-
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(field_name);
       if (!function.IsNull()) {
