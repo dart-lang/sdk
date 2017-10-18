@@ -33,10 +33,6 @@ Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/declarations_t06: MissingCompileTimeError
 Language/Classes/declarations_t08: MissingCompileTimeError
-Language/Classes/declarations_t25: MissingCompileTimeError
-Language/Classes/declarations_t26: MissingCompileTimeError
-Language/Classes/declarations_t27: MissingCompileTimeError
-Language/Classes/declarations_t28: MissingCompileTimeError
 Language/Classes/declarations_t33: MissingCompileTimeError
 Language/Classes/definition_t23: CompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash

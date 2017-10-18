@@ -259,6 +259,48 @@ AbstractClassMember:
     - "abstract class C {abstract f;}"
     - "abstract class C {abstract static f;}"
 
+ClassInClass:
+  template: "Classes can't be declared inside other classes."
+  tip: "Try moving the class to the top-level."
+  analyzerCode: CLASS_IN_CLASS
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { class B {} }"
+
+EnumInClass:
+  template: "Enums can't be declared inside classes."
+  tip: "Try moving the enum to the top-level."
+  analyzerCode: ENUM_IN_CLASS
+  dart2jsCode: "*fatal*"
+  script:
+    - "class Foo { enum Bar { Bar1, Bar2, Bar3 } }"
+
+TypedefInClass:
+  template: "Typedefs can't be declared inside classes."
+  tip: "Try moving the typedef to the top-level."
+  analyzerCode: TYPEDEF_IN_CLASS
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { typedef int F(int x); }"
+
+CovariantMember:
+  template: "Getters, setters and methods can't be declared to be 'covariant'."
+  tip: "Try removing the 'covariant' keyword."
+  analyzerCode: COVARIANT_MEMBER
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "static covariant get x => 0;"
+    - "covariant int m() => 0;"
+
+VarReturnType:
+  template: "The return type can't be 'var'."
+  tip: "Try removing the keyword 'var', or replacing it with the name of the return type."
+  analyzerCode: VAR_RETURN_TYPE
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { var m() {} }"
+    - "class C { var C() {} }"
+
 ConstClass:
   template: "Classes can't be declared to be 'const'."
   tip: "Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s)."
@@ -330,6 +372,22 @@ DuplicatedModifier:
     - "class C { static static var m; }"
     - "class C { var var m; }"
 
+ExternalAfterConst:
+  template: "The modifier 'external' should be before the modifier 'const'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: EXTERNAL_AFTER_CONST
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { const external C(); }"
+
+ExternalAfterStatic:
+  template: "The modifier 'external' should be before the modifier 'static'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: EXTERNAL_AFTER_STATIC
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { static external f(); }"
+
 ExtraneousModifier:
   template: "Can't have modifier '#lexeme' here."
   tip: "Try removing '#lexeme'."
@@ -384,6 +442,14 @@ FinalAndVar:
   script:
     - "class C { final var x; }"
     - "class C { var final x; }"
+
+StaticAfterConst:
+  template: "The modifier 'static' should be before the modifier 'const'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: STATIC_AFTER_CONST
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { const static int f; }"
 
 StaticAfterFinal:
   template: "The modifier 'static' should be before the modifier 'final'."

@@ -77,9 +77,10 @@ import 'member_kind.dart' show MemberKind;
 
 import 'modifier_context.dart'
     show
+        ClassMethodModifierContext,
         ModifierContext,
         ModifierRecoveryContext,
-        TopLevelMethodModifierRecoveryContext;
+        TopLevelMethodModifierContext;
 
 import 'recovery_listeners.dart'
     show ClassHeaderRecoveryListener, ImportRecoveryListener;
@@ -2322,7 +2323,7 @@ class Parser {
     } else {
       // If there are modifiers other than or in addition to `external`
       // then we need to recover.
-      final context = new TopLevelMethodModifierRecoveryContext(this);
+      final context = new TopLevelMethodModifierContext(this);
       token = context.parseRecovery(token, afterModifiers);
 
       // If the modifiers form a partial top level directive or declaration
@@ -2915,79 +2916,77 @@ class Parser {
       }
     }
 
-    var modifiers = identifiers.reverse();
+    Token afterModifiers =
+        identifiers.isNotEmpty ? identifiers.head.next : start;
     token = isField
-        ? parseFields(start, modifiers, type, name, false)
-        : parseMethod(start, modifiers, type, getOrSet, name);
+        ? parseFields(start, identifiers.reverse(), type, name, false)
+        : parseMethod(start, afterModifiers, type, getOrSet, name);
     listener.endMember();
     return token;
   }
 
-  Token parseMethod(Token start, Link<Token> modifiers, Token type,
+  Token parseMethod(Token token, Token afterModifiers, Token type,
       Token getOrSet, Token name) {
+    Token start = token;
     listener.beginMethod(start, name);
 
     Token externalModifier;
     Token staticModifier;
-    // TODO(ahe): Consider using [parseModifiers] instead.
-    void parseModifierList(Link<Token> tokens) {
-      int count = 0;
-      int currentOrder = -1;
-      for (; !tokens.isEmpty; tokens = tokens.tail) {
-        Token token = tokens.head;
-        int order = modifierOrder(token);
-        if (order < 3) {
-          if (order > currentOrder) {
-            currentOrder = order;
-            if (optional("var", token)) {
-              reportRecoverableErrorWithToken(
-                  token, fasta.templateExtraneousModifier);
-            } else if (optional("const", token)) {
-              if (getOrSet != null) {
-                reportRecoverableErrorWithToken(
-                    token, fasta.templateExtraneousModifier);
-                continue;
-              }
-            } else if (optional("external", token)) {
-              externalModifier = token;
-            } else if (optional("static", token)) {
-              staticModifier = token;
-            } else if (optional("covariant", token)) {
-              if (staticModifier != null ||
-                  getOrSet == null ||
-                  optional("get", getOrSet)) {
-                reportRecoverableErrorWithToken(
-                    token, fasta.templateExtraneousModifier);
-                continue;
+    if (token != afterModifiers) {
+      int modifierCount = 0;
+      if (optional('external', token)) {
+        externalModifier = token;
+        parseModifier(externalModifier);
+        ++modifierCount;
+        token = token.next;
+      }
+      if (token != afterModifiers) {
+        if (optional('static', token)) {
+          staticModifier = token;
+          parseModifier(staticModifier);
+          ++modifierCount;
+          token = token.next;
+        }
+        if (token != afterModifiers) {
+          if (getOrSet == null) {
+            if (optional("const", token)) {
+              if (token.next == afterModifiers) {
+                parseModifier(token);
+                ++modifierCount;
+                token = token.next;
               }
             }
-          } else {
-            reportRecoverableErrorWithToken(
-                token, fasta.templateExtraneousModifier);
-            continue;
+          } else if (optional('set', getOrSet)) {
+            if (staticModifier == null && optional('covariant', token)) {
+              if (token.next == afterModifiers) {
+                parseModifier(token);
+                ++modifierCount;
+                token = token.next;
+              }
+            }
           }
-        } else if (order == 3) {
-          assert(optional('abstract', token));
-          reportRecoverableError(token, fasta.messageAbstractClassMember);
-          continue;
-        } else {
-          reportUnexpectedToken(token);
-          break; // Skip the remaining modifiers.
+          // If the next token is a modifier,
+          // then it's probably out of order and we need to recover from that.
+          if (token != afterModifiers) {
+            final context = new ClassMethodModifierContext(this);
+            token = context.parseRecovery(token, externalModifier,
+                staticModifier, getOrSet, afterModifiers);
+            externalModifier = context.externalToken;
+            staticModifier = context.staticToken;
+            modifierCount = context.modifierCount;
+          }
         }
-        parseModifier(token);
-        count++;
       }
-      listener.handleModifiers(count);
+      listener.handleModifiers(modifierCount);
+    } else {
+      listener.handleModifiers(0);
     }
-
-    parseModifierList(modifiers);
 
     if (type == null) {
       listener.handleNoType(name);
     } else {
       parseType(type, TypeContinuation.Optional);
     }
-    Token token;
     if (optional('operator', name)) {
       token = parseOperatorName(name);
       if (staticModifier != null) {

@@ -2105,6 +2105,10 @@ class AstBuilder extends ScopeListener {
             length,
             [name]);
         return;
+      case "CLASS_IN_CLASS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CLASS_IN_CLASS, offset, length);
+        return;
       case "COLON_IN_PLACE_OF_IN":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
@@ -2146,6 +2150,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, offset, length);
         return;
+      case "COVARIANT_MEMBER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.COVARIANT_MEMBER, offset, length);
+        return;
       case "DEFERRED_AFTER_PREFIX":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DEFERRED_AFTER_PREFIX, offset, length);
@@ -2171,6 +2179,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EMPTY_ENUM_BODY, offset, length);
         return;
+      case "ENUM_IN_CLASS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.ENUM_IN_CLASS, offset, length);
+        return;
       case "EXPECTED_EXECUTABLE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_EXECUTABLE, offset, length);
@@ -2188,6 +2200,14 @@ class AstBuilder extends ScopeListener {
             ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
             offset,
             length);
+        return;
+      case "EXTERNAL_AFTER_CONST":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_AFTER_CONST, offset, length);
+        return;
+      case "EXTERNAL_AFTER_STATIC":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_AFTER_STATIC, offset, length);
         return;
       case "EXTERNAL_CLASS":
         errorReporter?.reportErrorForOffset(
@@ -2350,6 +2370,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);
         return;
+      case "STATIC_AFTER_CONST":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.STATIC_AFTER_CONST, offset, length);
+        return;
       case "STATIC_AFTER_FINAL":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_AFTER_FINAL, offset, length);
@@ -2357,6 +2381,10 @@ class AstBuilder extends ScopeListener {
       case "TOP_LEVEL_OPERATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TOP_LEVEL_OPERATOR, offset, length);
+        return;
+      case "TYPEDEF_IN_CLASS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.TYPEDEF_IN_CLASS, offset, length);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();
@@ -2379,6 +2407,10 @@ class AstBuilder extends ScopeListener {
       case "VAR_AND_TYPE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.VAR_AND_TYPE, offset, length);
+        return;
+      case "VAR_RETURN_TYPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.VAR_RETURN_TYPE, offset, length);
         return;
       case "WITH_BEFORE_EXTENDS":
         errorReporter?.reportErrorForOffset(

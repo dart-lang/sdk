@@ -320,6 +320,16 @@ const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
         r"""No types are needed, the first is given by 'on', the second is always 'StackTrace'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeClassInClass = messageClassInClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageClassInClass = const MessageCode("ClassInClass",
+    analyzerCode: "CLASS_IN_CLASS",
+    dart2jsCode: "*fatal*",
+    message: r"""Classes can't be declared inside other classes.""",
+    tip: r"""Try moving the class to the top-level.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeColonInPlaceOfIn = messageColonInPlaceOfIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -610,6 +620,17 @@ const MessageCode messageCovariantAndStatic = const MessageCode(
     message:
         r"""Members can't be declared to be both 'covariant' and 'static'.""",
     tip: r"""Try removing either the 'covariant' or 'static' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCovariantMember = messageCovariantMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCovariantMember = const MessageCode("CovariantMember",
+    analyzerCode: "COVARIANT_MEMBER",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message:
+        r"""Getters, setters and methods can't be declared to be 'covariant'.""",
+    tip: r"""Try removing the 'covariant' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
@@ -959,6 +980,16 @@ const MessageCode messageEnumDeclarationEmpty = const MessageCode(
     message: r"""An enum declaration can't be empty.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumInClass = messageEnumInClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumInClass = const MessageCode("EnumInClass",
+    analyzerCode: "ENUM_IN_CLASS",
+    dart2jsCode: "*fatal*",
+    message: r"""Enums can't be declared inside classes.""",
+    tip: r"""Try moving the enum to the top-level.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedAnInitializer = messageExpectedAnInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1274,6 +1305,30 @@ Message _withArgumentsExtendingRestricted(String name) {
           """'$name' is restricted and can't be extended or implemented.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalAfterConst = messageExternalAfterConst;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalAfterConst = const MessageCode(
+    "ExternalAfterConst",
+    analyzerCode: "EXTERNAL_AFTER_CONST",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message:
+        r"""The modifier 'external' should be before the modifier 'const'.""",
+    tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalAfterStatic = messageExternalAfterStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalAfterStatic = const MessageCode(
+    "ExternalAfterStatic",
+    analyzerCode: "EXTERNAL_AFTER_STATIC",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message:
+        r"""The modifier 'external' should be before the modifier 'static'.""",
+    tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalClass = messageExternalClass;
@@ -3177,6 +3232,18 @@ const MessageCode messageStackOverflow = const MessageCode("StackOverflow",
     dart2jsCode: "GENERIC", message: r"""Stack overflow.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticAfterConst = messageStaticAfterConst;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticAfterConst = const MessageCode(
+    "StaticAfterConst",
+    analyzerCode: "STATIC_AFTER_CONST",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message:
+        r"""The modifier 'static' should be before the modifier 'const'.""",
+    tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticAfterFinal = messageStaticAfterFinal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3540,6 +3607,16 @@ const MessageCode messageTypeVariableSameNameAsEnclosing = const MessageCode(
         r"""A type variable can't have the same name as its enclosing declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefInClass = messageTypedefInClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefInClass = const MessageCode("TypedefInClass",
+    analyzerCode: "TYPEDEF_IN_CLASS",
+    dart2jsCode: "*fatal*",
+    message: r"""Typedefs can't be declared inside classes.""",
+    tip: r"""Try moving the typedef to the top-level.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTypedefNotFunction = messageTypedefNotFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3667,6 +3744,17 @@ const MessageCode messageUnterminatedToken = const MessageCode(
     "UnterminatedToken",
     dart2jsCode: "UNTERMINATED_TOKEN",
     message: r"""Incomplete token.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeVarReturnType = messageVarReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
+    analyzerCode: "VAR_RETURN_TYPE",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message: r"""The return type can't be 'var'.""",
+    tip:
+        r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeWithBeforeExtends = messageWithBeforeExtends;
