@@ -38,7 +38,7 @@ class TestResultService {
   /// Gets the latest result from a builder with [name] in a [project].
   Future<TestResult> latestForBuilder(String project, String name,
       {CreateCacheFunction createCache}) async {
-    int buildNumber = (await getLatestBuildNumbersForBuilders([name]))[name];
+    int buildNumber = (await latestBuildNumbersForBuilders([name]))[name];
     if (buildNumber == 0) {
       print("Could not get any results for builder with name $name.");
       return new TestResult();
@@ -115,21 +115,13 @@ class TestResultService {
   /// Get test results for a build [buildNumber] on a builder with [name] in a
   /// [project].
   Future<TestResult> forBuild(String project, String name, int buildNumber,
-      {CreateCacheFunction createCache}) {
-    var cacheCreater = createCache ?? standardCache;
-    var cache = cacheCreater(duration: new Duration(days: 365));
-    var logdog = new LogdogRpc();
+      {CreateCacheFunction createCache}) async {
     logger.info('Querying $name for logs in $buildNumber...');
-    return logdog
-        .query(
-            "chromium",
-            "bb/client.dart/$name/$buildNumber/+"
-            "/recipes/steps/**/result.log/0",
-            cache)
-        .then((streams) {
-      return fromStreams(project, streams, cache);
-    }).then((testResults) {
-      return new TestResult()..combineWith(testResults);
+    Iterable<BuildStepTestResult> steps = await fromPrefix(
+        "chromium", "bb/client.dart/$name/$buildNumber", false,
+        createCache: createCache);
+    return steps.fold<TestResult>(new TestResult(), (acc, buildStep) {
+      return acc..combineWith([buildStep.testResult]);
     });
   }
 
@@ -145,7 +137,7 @@ class TestResultService {
     List<String> builders =
         await getBuildersInBuilderGroup(luciApi, "client.dart", cache, name)
             .whenComplete(() => luciApi.close());
-    var buildNumbers = await getLatestBuildNumbersForBuilders(builders);
+    var buildNumbers = await latestBuildNumbersForBuilders(builders);
     var testResults = await Future.wait(builders.map((builder) {
       int buildNumber = buildNumbers[builder];
       if (buildNumber == 0) {
@@ -167,33 +159,43 @@ class TestResultService {
   Future<Iterable<BuildBucketTestResult>> fromBuildBucketBuilds(
       Iterable<BuildBucketBuild> builds,
       {CreateCacheFunction createCache}) async {
-    if (builds == null || builds.length == 0) {
-      return [];
-    }
-    var cacheCreater = createCache ?? standardCache;
-    var cache = cacheCreater(duration: new Duration(minutes: 1));
-    var longCache = cacheCreater(duration: new Duration(days: 365));
-    var logdog = new LogdogRpc();
-    var futureTestResults = Future.wait(builds.map((build) {
+    Iterable<Iterable<BuildStepTestResult>> testResults =
+        await Future.wait(builds.map((build) {
       logger.debug('Querying ${build.builder} for logs...');
-      return logdog
-          .query(
-              "dart",
-              "buildbucket/cr-buildbucket.appspot.com/${build.id}/+"
-              "/steps/**/result.log/0",
-              cache)
-          .then((List<LogdogStream> streams) =>
-              fromStreams("dart", streams, longCache))
+      String prefix = "buildbucket/cr-buildbucket.appspot.com/${build.id}";
+      return fromPrefix("dart", prefix, true, createCache: createCache)
           .catchError(errorLogger(logger, null, []));
     }));
 
-    return futureTestResults.then((testResults) {
-      return zipWith<BuildBucketTestResult, BuildBucketBuild, List<TestResult>>(
-          builds, testResults, (build, testResults) {
-        return new BuildBucketTestResult(
-            build, new TestResult()..combineWith(testResults));
+    return zipWith(builds, testResults,
+        (BuildBucketBuild build, Iterable<BuildStepTestResult> steps) {
+      TestResult result = steps.fold(new TestResult(), (acc, buildStep) {
+        return acc..combineWith([buildStep.testResult]);
       });
+      return new BuildBucketTestResult(build, result);
     });
+  }
+
+  /// Gets [BuildStepTestResult]s by querying logdog for information from
+  /// a given [prefix].
+  Future<Iterable<BuildStepTestResult>> fromPrefix(
+      String project, String prefix, bool buildBucket,
+      {CreateCacheFunction createCache}) async {
+    var cacheCreater = createCache ?? standardCache;
+    var cache = cacheCreater(duration: new Duration(minutes: 1));
+    var longCache = cacheCreater(duration: new Duration(days: 365));
+    LogdogRpc logdog = new LogdogRpc();
+    String recipes = buildBucket ? "" : "recipes/";
+    List<LogdogStream> streams = await logdog.query(
+        project, "$prefix/+/${recipes}steps/**/result.log/0", cache);
+    RegExp stepNameRegExp =
+        new RegExp(r"^.*\/steps\/read_results_of_(.*)\/0\/logs\/.*");
+    return await Future.wait(streams.map((stream) async {
+      String name = stepNameRegExp.firstMatch(stream.path).group(1);
+      List<TestResult> results =
+          await fromStreams(project, [stream], longCache);
+      return new BuildStepTestResult(name.replaceAll("_", " "), results[0]);
+    }));
   }
 
   /// Gets [BuildBucketTestResult]s from a specific from [swarmTaskId].
@@ -228,4 +230,11 @@ class BuildBucketTestResult {
   final BuildBucketBuild build;
   final TestResult testResult;
   BuildBucketTestResult(this.build, this.testResult);
+}
+
+/// Class that keeps track of a test step and test result.
+class BuildStepTestResult {
+  final String name;
+  final TestResult testResult;
+  BuildStepTestResult(this.name, this.testResult);
 }

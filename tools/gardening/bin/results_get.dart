@@ -326,7 +326,7 @@ class GetTestMatrix extends Command {
     var logdog = new LogdogRpc();
     var testResultService = new TestResultService(logger, createCache);
 
-    return getLatestBuildNumbers(cache).then((buildNumbers) {
+    return latestBuildNumbers(cache).then((buildNumbers) {
       // Get steps for this builder and build number.
       // Shards run in the same configuration.
       return buildNumbers.keys.where((builder) {

@@ -22,6 +22,35 @@ Future<List<BuildBucketBuild>> buildsFromSwarmingTaskId(String swarmingTaskId) {
   return result.then(JSON.decode).then(_buildsFromJson);
 }
 
+/// Gets builds from a [builder] in descending order.
+Future<List<BuildBucketBuild>> buildsFromBuilder(String builder,
+    {maxBuilds = 1, String bucket}) {
+  var api = new BuildBucketApi();
+  var result = api.searchExtended("builder:$builder",
+      bucket: bucket,
+      maxBuilds: maxBuilds,
+      fields: "builds(id,tags)",
+      status: "COMPLETED",
+      result: "SUCCESS");
+  return result.then(JSON.decode).then(_buildsFromJson);
+}
+
+/// Fetches all builders from a specific [clientBucket].
+Future<Iterable<Builder>> fetchBuilders(String clientBucket) async {
+  BuildBucketApi api = new BuildBucketApi();
+  String result = await api.builders();
+  var json = JSON.decode(result);
+  var buckets = json["buckets"].where((bucket) {
+    return bucket["name"] == clientBucket;
+  });
+  if (buckets.length == 0) {
+    return null;
+  }
+  return buckets.first["builders"].map((builder) {
+    return new Builder(builder["category"], builder["name"]);
+  });
+}
+
 List<BuildBucketBuild> _buildsFromJson(Map json) {
   if (json == null || !json.containsKey("builds")) {
     return null;
@@ -56,4 +85,11 @@ class BuildBucketBuild {
   final String swarmingTaskId;
   BuildBucketBuild(
       this.id, this.builder, this.master, this.pool, this.swarmingTaskId);
+}
+
+/// [Builder] holds information about a specific builder.
+class Builder {
+  final String category;
+  final String name;
+  Builder(this.category, this.name);
 }

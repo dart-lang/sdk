@@ -9,8 +9,7 @@ import 'cache_new.dart';
 /// Gets latest build numbers of completed runs from the last completed runs.
 /// This works if one assumes that the bots we are interested in also completes
 /// runs regularly.
-Future<Map<String, int>> getLatestBuildNumbers(
-    WithCacheFunction withCache) async {
+Future<Map<String, int>> latestBuildNumbers(WithCacheFunction withCache) async {
   var logdog = new LogdogRpc();
   // This queries logdog for all logs that wrote recipe_result, which is the
   // last step of any recipe. The ** searches the last incoming commits that
@@ -31,7 +30,7 @@ Future<Map<String, int>> getLatestBuildNumbers(
 }
 
 /// Gets latest build number for each builder in [builders].
-Future<Map<String, int>> getLatestBuildNumbersForBuilders(
+Future<Map<String, int>> latestBuildNumbersForBuilders(
     Iterable<String> builders) {
   var logdog = new LogdogRpc();
   // This queries logdog for all logs that wrote recipe_result, which is the
