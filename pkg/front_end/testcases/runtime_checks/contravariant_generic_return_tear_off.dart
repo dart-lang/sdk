@@ -11,7 +11,7 @@ typedef F<T> G<T>();
 class C<T> {
   F<T> _x;
   C(this._x);
-  F<T> f() => _x;
+  F<T> f() => /*@callKind=this*/ _x;
 }
 
 G<num> g(C<num> c) {

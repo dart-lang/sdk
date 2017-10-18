@@ -16,8 +16,8 @@ class B {
   }
 
   void check(Object expectedValue) {
-    if (_x != expectedValue) {
-      throw 'Expected _x == $expectedValue; got $_x';
+    if (/*@callKind=this*/ _x != expectedValue) {
+      throw 'Expected _x == $expectedValue; got ${/*@callKind=this*/_x}';
     }
   }
 }

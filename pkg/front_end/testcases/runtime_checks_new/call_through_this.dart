@@ -22,7 +22,7 @@ class C<T> {
     c.f(x);
   }
 
-  F<T> g4() => this.f;
+  F<T> g4() => this. /*@callKind=this*/ f;
 }
 
 class

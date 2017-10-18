@@ -129,8 +129,34 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     super.visitPrefixedIdentifier(node);
-    if (node.identifier.staticElement is MethodElement) {
+    var staticElement = node.identifier.staticElement;
+    if (staticElement is MethodElement) {
       _annotateTearOff(node, node.identifier.offset);
+    }
+    if (node.identifier.inGetterContext()) {
+      var target = node.prefix;
+      var isThis = target is ThisExpression || target == null;
+      _annotateCallKind(
+          staticElement,
+          isThis,
+          target.staticType is DynamicTypeImpl,
+          target.staticType,
+          null,
+          node.identifier.offset);
+    }
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    super.visitSimpleIdentifier(node);
+    var staticElement = node.staticElement;
+    if (node.parent is! MethodInvocation &&
+        node.parent is! PrefixedIdentifier &&
+        !node.inDeclarationContext() &&
+        node.inGetterContext() &&
+        staticElement is PropertyAccessorElement &&
+        staticElement.isGetter) {
+      _annotateCallKind(staticElement, true, false, null, null, node.offset);
     }
   }
 
