@@ -2853,11 +2853,25 @@ class IsExpression extends Expression {
 
 /// Expression of form `x as T`.
 class AsExpression extends Expression {
+  int flags = 0;
   Expression operand;
   DartType type;
 
   AsExpression(this.operand, this.type) {
     operand?.parent = this;
+  }
+
+  // Must match serialized bit positions.
+  static const int FlagTypeError = 1 << 0;
+
+  /// Indicates the type of error that should be thrown if the check fails.
+  ///
+  /// `true` means that a TypeError should be thrown.  `false` means that a
+  /// CastError should be thrown.
+  bool get isTypeError => flags & FlagTypeError != 0;
+
+  void set isTypeError(bool value) {
+    flags = value ? (flags | FlagTypeError) : (flags & ~FlagTypeError);
   }
 
   DartType getStaticType(TypeEnvironment types) => type;

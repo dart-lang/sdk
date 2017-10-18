@@ -956,6 +956,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
   visitAsExpression(AsExpression node) {
     writeByte(Tag.AsExpression);
     writeOffset(node.fileOffset);
+    writeByte(node.flags);
     writeNode(node.operand);
     writeNode(node.type);
   }

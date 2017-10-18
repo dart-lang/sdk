@@ -646,6 +646,7 @@ type IsExpression extends Expression {
 type AsExpression extends Expression {
   Byte tag = 38;
   FileOffset fileOffset;
+  Byte flags (isTypeError);
   Expression operand;
   DartType type;
 }

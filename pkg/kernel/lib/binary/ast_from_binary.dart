@@ -1110,8 +1110,10 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.AsExpression:
         int offset = readOffset();
+        int flags = readByte();
         return new AsExpression(readExpression(), readDartType())
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.StringLiteral:
         return new StringLiteral(readStringReference());
       case Tag.SpecializedIntLiteral:

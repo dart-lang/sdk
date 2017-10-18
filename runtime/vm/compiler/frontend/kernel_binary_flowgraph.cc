@@ -1303,6 +1303,7 @@ void StreamingScopeBuilder::VisitExpression() {
       return;
     case kAsExpression:
       builder_->ReadPosition();  // read position.
+      builder_->ReadFlags();     // read flags.
       VisitExpression();         // read operand.
       VisitDartType();           // read type.
       return;
@@ -4751,6 +4752,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kAsExpression:
       ReadPosition();    // read position.
+      SkipFlags();       // read flags.
       SkipExpression();  // read operand.
       SkipDartType();    // read type.
       return;
@@ -6529,6 +6531,8 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
 Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
+
+  ReadFlags();  // read flags.
 
   Fragment instructions = BuildExpression();  // read operand.
 

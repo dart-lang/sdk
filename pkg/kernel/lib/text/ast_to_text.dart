@@ -980,7 +980,7 @@ class Printer extends Visitor<Null> {
 
   visitAsExpression(AsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
-    writeSpaced('as');
+    writeSpaced(node.isTypeError ? 'as{TypeError}' : 'as');
     writeType(node.type);
   }
 
