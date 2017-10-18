@@ -3907,11 +3907,16 @@ class Parser {
     return token;
   }
 
-  /// '[' (expressionList ','?)? ']'.
+  /// This method parses the portion of a list literal starting with the left
+  /// square bracket.
   ///
-  /// Provide [constKeyword] if preceded by 'const', null if not.
-  /// This is a suffix parser because it is assumed that type arguments have
-  /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
+  /// listLiteral:
+  ///   'const'? typeArguments? '[' (expressionList ','?)? ']'
+  /// ;
+  ///
+  /// Provide a [constKeyword] if the literal is preceded by 'const', or `null`
+  /// if not. This is a suffix parser because it is assumed that type arguments
+  /// have been parsed, or `listener.handleNoTypeArguments` has been executed.
   Token parseLiteralListSuffix(Token token, Token constKeyword) {
     assert(optional('[', token) || optional('[]', token));
     Token beginToken = token;
@@ -3938,11 +3943,16 @@ class Parser {
     return token.next;
   }
 
-  /// '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'.
+  /// This method parses the portion of a map literal that starts with the left
+  /// curly brace.
   ///
-  /// Provide token for [constKeyword] if preceded by 'const', null if not.
-  /// This is a suffix parser because it is assumed that type arguments have
-  /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
+  /// mapLiteral:
+  ///   'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
+  /// ;
+  ///
+  /// Provide a [constKeyword] if the literal is preceded by 'const', or `null`
+  /// if not. This is a suffix parser because it is assumed that type arguments
+  /// have been parsed, or `listener.handleNoTypeArguments` has been executed.
   Token parseLiteralMapSuffix(Token token, Token constKeyword) {
     assert(optional('{', token));
     Token beginToken = token;
@@ -4011,9 +4021,14 @@ class Parser {
     }
   }
 
+  /// mapLiteralEntry:
+  ///   expression ':' expression
+  /// ;
   Token parseMapLiteralEntry(Token token) {
     listener.beginLiteralMapEntry(token);
     // Assume the listener rejects non-string keys.
+    // TODO(brianwilkerson) Change the assumption above by moving error checking
+    // into the parser, making it possible to recover.
     token = parseExpression(token);
     Token colon = token;
     token = expect(':', token);
@@ -4050,10 +4065,24 @@ class Parser {
     return token;
   }
 
+  /// This method parses a list or map literal that is known to start with the
+  /// keyword 'const'.
+  ///
+  /// listLiteral:
+  ///   'const'? typeArguments? '[' (expressionList ','?)? ']'
+  /// ;
+  ///
+  /// mapLiteral:
+  ///   'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
+  /// ;
+  ///
+  /// mapLiteralEntry:
+  ///   expression ':' expression
+  /// ;
   Token parseConstExpression(Token token) {
+    assert(optional('const', token));
     Token constKeyword = token;
-    token = expect('const', token);
-    token = listener.injectGenericCommentTypeList(token);
+    token = listener.injectGenericCommentTypeList(token.next);
     final String value = token.stringValue;
     if ((identical(value, '[')) || (identical(value, '[]'))) {
       listener.beginConstLiteral(token);
@@ -4082,17 +4111,30 @@ class Parser {
     return token;
   }
 
+  /// intLiteral:
+  ///   integer
+  /// ;
   Token parseLiteralInt(Token token) {
+    assert(identical(token.kind, INT_TOKEN) ||
+        identical(token.kind, HEXADECIMAL_TOKEN));
     listener.handleLiteralInt(token);
     return token.next;
   }
 
+  /// doubleLiteral:
+  ///   double
+  /// ;
   Token parseLiteralDouble(Token token) {
+    assert(identical(token.kind, DOUBLE_TOKEN));
     listener.handleLiteralDouble(token);
     return token.next;
   }
 
+  /// stringLiteral:
+  ///   (multilineString | singleLineString)+
+  /// ;
   Token parseLiteralString(Token token) {
+    assert(identical(token.kind, STRING_TOKEN));
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     token = parseSingleLiteralString(token);
@@ -4108,7 +4150,11 @@ class Parser {
     return token;
   }
 
+  /// symbolLiteral:
+  ///   '#' (operator | (identifier ('.' identifier)*))
+  /// ;
   Token parseLiteralSymbol(Token token) {
+    assert(optional('#', token));
     Token hashToken = token;
     listener.beginLiteralSymbol(hashToken);
     token = token.next;
@@ -4123,7 +4169,7 @@ class Parser {
     } else {
       int count = 1;
       token = parseIdentifier(token, IdentifierContext.literalSymbol);
-      while (identical(token.stringValue, '.')) {
+      while (optional('.', token)) {
         count++;
         token = parseIdentifier(
             token.next, IdentifierContext.literalSymbolContinuation);
@@ -4133,7 +4179,6 @@ class Parser {
     }
   }
 
-  /// Only called when `identical(token.kind, STRING_TOKEN)`.
   Token parseSingleLiteralString(Token token) {
     listener.beginLiteralString(token);
     // Parsing the prefix, for instance 'x of 'x${id}y${id}z'
@@ -4162,12 +4207,21 @@ class Parser {
     return token;
   }
 
+  /// booleanLiteral:
+  ///   'true' |
+  ///   'false'
+  /// ;
   Token parseLiteralBool(Token token) {
+    assert(optional('false', token) || optional('true', token));
     listener.handleLiteralBool(token);
     return token.next;
   }
 
+  /// nullLiteral:
+  ///   'null'
+  /// ;
   Token parseLiteralNull(Token token) {
+    assert(optional('null', token));
     listener.handleLiteralNull(token);
     return token.next;
   }
@@ -4204,8 +4258,20 @@ class Parser {
     }
   }
 
+  /// arguments:
+  ///   '(' (argumentList ','?)? ')'
+  /// ;
+  ///
+  /// argumentList:
+  ///   namedArgument (',' namedArgument)* |
+  ///   expressionList (',' namedArgument)*
+  /// ;
+  ///
+  /// namedArgument:
+  ///   label expression
+  /// ;
   Token parseArguments(Token token) {
-    assert(identical('(', token.stringValue));
+    assert(optional('(', token));
     Token begin = token;
     listener.beginArguments(begin);
     int argumentCount = 0;
@@ -4328,11 +4394,14 @@ class Parser {
     return token;
   }
 
+  /// ifStatement:
+  ///   'if' '(' expression ')' statement ('else' statement)?
+  /// ;
   Token parseIfStatement(Token token) {
+    assert(optional('if', token));
     Token ifToken = token;
     listener.beginIfStatement(ifToken);
-    token = expect('if', token);
-    token = parseParenthesizedExpression(token);
+    token = parseParenthesizedExpression(token.next);
     listener.beginThenStatement(token);
     token = parseStatementOpt(token);
     listener.endThenStatement(token);
@@ -4347,6 +4416,15 @@ class Parser {
     return token;
   }
 
+  /// forStatement:
+  ///   'await'? 'for' '(' forLoopParts ')' statement
+  /// ;
+  ///
+  /// forLoopParts:
+  ///   forInitializerStatement expression? ';' expressionList? |
+  ///   declaredIdentifier 'in' expression |
+  ///   identifier 'in' expression
+  /// ;
   Token parseForStatement(Token awaitToken, Token token) {
     Token forKeyword = token;
     listener.beginForStatement(forKeyword);
@@ -4373,6 +4451,10 @@ class Parser {
     }
   }
 
+  /// forInitializerStatement:
+  ///   localVariableDeclaration |
+  ///   expression? ';'
+  /// ;
   Token parseVariablesDeclarationOrExpressionOpt(Token token) {
     final String value = token.stringValue;
     if (identical(value, ';')) {
@@ -4384,6 +4466,14 @@ class Parser {
     return parseType(token, TypeContinuation.VariablesDeclarationOrExpression);
   }
 
+  /// This method parses the portion of the forLoopParts that starts with the
+  /// first semicolon (the one that terminates the forInitializerStatement).
+  ///
+  /// forLoopParts:
+  ///   forInitializerStatement expression? ';' expressionList? |
+  ///   declaredIdentifier 'in' expression |
+  ///   identifier 'in' expression
+  /// ;
   Token parseForRest(Token forToken, Token leftParenthesis, Token token) {
     Token leftSeparator = ensureSemicolon(token);
     token = leftSeparator.next;
@@ -4412,6 +4502,15 @@ class Parser {
     return token;
   }
 
+  /// This method parses the portion of the forLoopParts that starts with the
+  /// keyword 'in'. For the sake of recovery, we accept a colon in place of the
+  /// keyword.
+  ///
+  /// forLoopParts:
+  ///   forInitializerStatement expression? ';' expressionList? |
+  ///   declaredIdentifier 'in' expression |
+  ///   identifier 'in' expression
+  /// ;
   Token parseForInRest(
       Token awaitToken, Token forKeyword, Token leftParenthesis, Token token) {
     assert(optional('in', token) || optional(':', token));
@@ -4429,11 +4528,14 @@ class Parser {
     return token;
   }
 
+  /// whileStatement:
+  ///   'while' '(' expression ')' statement
+  /// ;
   Token parseWhileStatement(Token token) {
+    assert(optional('while', token));
     Token whileToken = token;
     listener.beginWhileStatement(whileToken);
-    token = expect('while', token);
-    token = parseParenthesizedExpression(token);
+    token = parseParenthesizedExpression(token.next);
     listener.beginWhileStatementBody(token);
     token = parseStatementOpt(token);
     listener.endWhileStatementBody(token);
@@ -4441,10 +4543,14 @@ class Parser {
     return token;
   }
 
+  /// doStatement:
+  ///   'do' statement 'while' '(' expression ')' ';'
+  /// ;
   Token parseDoWhileStatement(Token token) {
+    assert(optional('do', token));
     Token doToken = token;
     listener.beginDoWhileStatement(doToken);
-    token = expect('do', token);
+    token = token.next;
     listener.beginDoWhileStatementBody(token);
     token = parseStatementOpt(token);
     listener.endDoWhileStatementBody(token);
@@ -4456,6 +4562,9 @@ class Parser {
     return semicolon.next;
   }
 
+  /// block:
+  ///   '{' statement* '}'
+  /// ;
   Token parseBlock(Token token) {
     Token begin = token;
     listener.beginBlock(begin);
