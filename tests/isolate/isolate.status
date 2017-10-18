@@ -94,6 +94,9 @@ isolate_current_test: Fail  # please triage
 deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 
+[ $compiler == dart2js && $runtime == chrome ]
+function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
+
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
 

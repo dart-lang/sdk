@@ -741,6 +741,9 @@ isolate/kill_self_synchronously_test: RuntimeError
 html/fileapi_entry_test: Pass, Fail # TODO(dart2js-team): Please triage this failure.
 html/fileapi_directory_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/fileapi_file_test: Fail # TODO(dart2js-team): Please triage this failure.
+html/messageevent_test: RuntimeError # Please triage this error. New in Chrome 62.
+html/serialized_script_value_test: RuntimeError # Please triage this error. New in Chrome 62.
+isolate/function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
 
 [ $compiler == dart2js && $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050

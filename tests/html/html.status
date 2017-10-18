@@ -52,6 +52,7 @@ fontface_test: Fail # Fontface not supported on these.
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 
 [ $compiler == dart2js && $runtime == chrome ]
+element_animate_test/timing_dict: RuntimeError # Issue 26730
 element_classes_test: RuntimeError # Issue 30291
 element_types_test/supported_keygen: RuntimeError # Issue 29055
 fileapi_test/entry: Pass, Fail # TODO(dart2js-team): Please triage this failure.
@@ -59,7 +60,10 @@ fileapi_test/getDirectory: Fail # TODO(dart2js-team): Please triage this failure
 fileapi_test/getFile: Fail # TODO(dart2js-team): Please triage this failure.
 media_stream_test/supported_MediaStreamEvent: RuntimeError # Please triage.
 media_stream_test/supported_MediaStreamTrackEvent: RuntimeError # Please triage.
+messageevent_test: RuntimeError # Please triage this error. New in Chrome 62.
+serialized_script_value_test: RuntimeError # Please triage this error. New in Chrome 62.
 speechrecognition_test/types: RuntimeError # Please triage.
+touchevent_test/supported: Fail # Touch events are only supported on touch devices
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.
@@ -86,10 +90,6 @@ xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 [ $runtime == safarimobilesim ]
 element_offset_test/offset: RuntimeError # Issue 18573
 element_types_test/supported_meter: RuntimeError # Issue 18573
-
-[ $runtime == chrome ]
-touchevent_test/supported: Fail # Touch events are only supported on touch devices
-element_animate_test/timing_dict: RuntimeError # Issue 26730
 
 [ $runtime == chrome && $system == macos ]
 canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
