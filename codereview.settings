@@ -1,3 +1,4 @@
+GERRIT_HOST: True
 CODE_REVIEW_SERVER: https://dart-review.googlesource.com
 CC_LIST: whesse@google.com
 VIEW_VC: https://dart.googlesource.com/sdk/+/
