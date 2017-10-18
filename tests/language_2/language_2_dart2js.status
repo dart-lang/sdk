@@ -2064,6 +2064,11 @@ try_catch_test/01: MissingCompileTimeError
 type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
 typevariable_substitution2_test/02: RuntimeError
 
+[ $compiler == dart2js && $dart2js_with_kernel ]
+checked_setter_test: RuntimeError # Issue 31128
+checked_setter2_test: RuntimeError # Issue 31128
+checked_setter3_test: RuntimeError # Issue 31128
+
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
 typedef_is_test: Crash
