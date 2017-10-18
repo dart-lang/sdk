@@ -10,6 +10,9 @@ vm/*: Skip # Issue 12699
 assertion_initializer_test: Crash
 generalized_void_syntax_test: CompileTimeError
 
+[ $compiler == dart2js && $arch == ia32 && $runtime == d8 ]
+new_expression2_negative_test: Pass, Crash # Flaky, issue 31131
+
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
