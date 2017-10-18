@@ -3845,6 +3845,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
+    assert(optional('(', token));
     Token nextToken = closeBraceTokenFor(token).next;
     int kind = nextToken.kind;
     if (mayParseFunctionExpressions &&
@@ -3865,12 +3866,28 @@ class Parser {
   }
 
   Token parseParenthesizedExpression(Token token) {
-    // We expect [begin] to be of type [BeginToken], but we don't know for
-    // sure until after calling expect.
-    dynamic begin = token;
-    token = expect('(', token);
-    // [begin] is now known to have type [BeginToken].
-    token = parseExpression(token);
+    if (!optional('(', token)) {
+      // Recover
+      if (firstToken != null) {
+        reportRecoverableError(
+            token, fasta.templateExpectedToken.withArguments('('));
+        reportRecoverableError(
+            token, fasta.templateExpectedToken.withArguments(')'));
+        Token closeToken = rewriter.insertTokenBefore(
+            new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset), token);
+        token = rewriter.insertTokenBefore(
+            new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
+            closeToken);
+        (token as BeginToken).endGroup = closeToken;
+      } else {
+        reportUnrecoverableError(
+            token, fasta.templateExpectedToken.withArguments('('));
+        reportUnrecoverableError(
+            token, fasta.templateExpectedToken.withArguments(')'));
+      }
+    }
+    BeginToken begin = token;
+    token = parseExpression(token.next);
     if (!identical(begin.endGroup, token)) {
       reportUnexpectedToken(token).next;
       token = begin.endGroup;

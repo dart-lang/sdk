@@ -24,7 +24,7 @@ class IfStatementTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "if (_s_)",
-              allFailing: true),
+              failing: ['eof']),
           new TestDescriptor(
               'leftParen',
               'if (',

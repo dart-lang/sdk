@@ -24,7 +24,7 @@ class WhileStatementTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "while (_s_)",
-              allFailing: true),
+              failing: ['eof']),
           new TestDescriptor(
               'leftParen',
               'while (',

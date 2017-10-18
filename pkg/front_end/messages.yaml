@@ -241,6 +241,11 @@ ExpectedString:
   analyzerCode: EXPECTED_STRING_LITERAL
   dart2jsCode: "*fatal*"
 
+ExpectedToken:
+  template: "Expected to find '#string'."
+  analyzerCode: EXPECTED_TOKEN
+  dart2jsCode: GENERIC
+
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
   analyzerCode: EXPECTED_TYPE_NAME

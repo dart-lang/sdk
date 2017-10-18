@@ -2191,6 +2191,11 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_STRING_LITERAL, offset, length);
         return;
+      case "EXPECTED_TOKEN":
+        String text = stringOrTokenLexeme();
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPECTED_TOKEN, offset, length, [text]);
+        return;
       case "EXPECTED_TYPE_NAME":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, offset, length);

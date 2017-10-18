@@ -1200,6 +1200,25 @@ Message _withArgumentsExpectedString(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateExpectedToken =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Expected to find '#string'.""",
+        withArguments: _withArgumentsExpectedToken);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExpectedToken =
+    const Code<Message Function(String string)>(
+        "ExpectedToken", templateExpectedToken,
+        analyzerCode: "EXPECTED_TOKEN", dart2jsCode: "GENERIC");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedToken(String string) {
+  return new Message(codeExpectedToken,
+      message: """Expected to find '$string'.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedType =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Expected a type, but got '#lexeme'.""",
