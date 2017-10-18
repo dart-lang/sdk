@@ -300,7 +300,6 @@ big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
 bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
-const_list_literal_test: RuntimeError
 double_parse_test/01: RuntimeError
 error_stack_trace1_test: Pass # Issue 27394
 hash_set_test/01: RuntimeError
@@ -315,16 +314,14 @@ iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
 map_test: Crash # Issue 27394
 nan_infinity_test/01: RuntimeError
-queue_test: RuntimeError
-regexp/regexp_kde_test: RuntimeError
 regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-symbol_reserved_word_test/03: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply3_test: RuntimeError
@@ -346,7 +343,6 @@ big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
 bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
-const_list_literal_test: RuntimeError
 double_parse_test/01: RuntimeError
 error_stack_trace1_test: RuntimeError
 hash_set_test/01: RuntimeError
@@ -361,16 +357,14 @@ iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
 map_test: Crash # Issue 27394
 nan_infinity_test/01: RuntimeError
-queue_test: RuntimeError
-regexp/regexp_kde_test: RuntimeError
 regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_operator_test/none: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-symbol_reserved_word_test/03: RuntimeError
 

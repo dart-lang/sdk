@@ -341,13 +341,7 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_no_cancel2_test: RuntimeError
-async_star_no_cancel_test: RuntimeError
-async_star_regression_fisk_test: RuntimeError
-await_exceptions_test: RuntimeError
-await_for_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -460,7 +454,6 @@ dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
 enum_mirror_test: RuntimeError
 example_constructor_test: RuntimeError
-execute_finally7_test: RuntimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -508,8 +501,6 @@ library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 list_literal4_test: RuntimeError
-local_function3_test: RuntimeError
-local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
@@ -718,13 +709,7 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_no_cancel2_test: RuntimeError
-async_star_no_cancel_test: RuntimeError
-async_star_regression_fisk_test: RuntimeError
-await_exceptions_test: RuntimeError
-await_for_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -842,7 +827,6 @@ dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
 enum_mirror_test: RuntimeError
 example_constructor_test: RuntimeError
-execute_finally7_test: RuntimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -896,8 +880,6 @@ library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 list_literal4_test: RuntimeError
-local_function3_test: RuntimeError
-local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
