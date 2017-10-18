@@ -1,0 +1,16 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  core::int i = 0;
+  for (final dynamic #t1 = i = i.{core::num::+}(1); i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+  }
+  for (final dynamic #t2 = i = i.{core::num::+}(1); i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+  }
+  for (final dynamic #t3 = i = i.{core::num::-}(1); i.{core::num::>=}(0); i = i.{core::num::-}(1)) {
+  }
+  for (final dynamic #t4 = i = i.{core::num::-}(1); i.{core::num::>=}(0); i = i.{core::num::-}(1)) {
+  }
+}
+static method main() → dynamic {}

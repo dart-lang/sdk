@@ -2168,6 +2168,12 @@ class ShadowVariableDeclaration extends VariableDeclaration
             isFieldFormal: isFieldFormal,
             isCovariant: isCovariant);
 
+  ShadowVariableDeclaration.forEffect(
+      Expression initializer, this._functionNestingLevel)
+      : _implicitlyTyped = false,
+        _isLocalFunction = false,
+        super.forValue(initializer);
+
   ShadowVariableDeclaration.forValue(
       Expression initializer, this._functionNestingLevel)
       : _implicitlyTyped = true,

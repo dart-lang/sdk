@@ -1583,12 +1583,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (variableOrExpression == null) {
       variables = <VariableDeclaration>[];
     } else if (variableOrExpression is Expression) {
-      VariableDeclaration variable =
-          new VariableDeclaration.forValue(variableOrExpression);
+      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
+          variableOrExpression, functionNestingLevel);
       variables = <VariableDeclaration>[variable];
     } else if (variableOrExpression is ExpressionStatement) {
-      VariableDeclaration variable =
-          new VariableDeclaration.forValue(variableOrExpression.expression);
+      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
+          variableOrExpression.expression, functionNestingLevel);
       variables = <VariableDeclaration>[variable];
     } else {
       return unhandled("${variableOrExpression.runtimeType}", "endForStatement",
