@@ -195,6 +195,8 @@ generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30930
 generic_function_type_as_type_argument_test/03: CompileTimeError # Issue 30930
 generic_function_typedef2_test/04: MissingCompileTimeError
+generic_method_types_test/01: RuntimeError
+generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_closure_test: RuntimeError
@@ -205,6 +207,7 @@ generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30208
 generic_methods_named_parameters_test: RuntimeError
+generic_methods_new_test: RuntimeError
 generic_methods_optional_parameters_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_overriding_test/03: MissingCompileTimeError

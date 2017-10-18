@@ -314,6 +314,9 @@ string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: MissingCompileTimeError
 
+[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) && $mode == debug]
+list_test/*: Crash
+
 [ $compiler == dartkp ]
 apply3_test: Crash
 from_environment_const_type_test/02: MissingCompileTimeError

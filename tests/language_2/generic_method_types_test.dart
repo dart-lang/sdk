@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--generic-method-syntax --no-reify-generic-functions
-
 import 'package:expect/expect.dart';
 
-typedef O Convert<I, O>(I input);
+typedef Convert1<O> = O Function<I>(I input);
+typedef Convert2<I> = O Function<O>(I input);
+typedef Convert3 = O Function<I, O>(I input);
 typedef Other(a, b);
 
 class Mixin<E> {
@@ -17,32 +17,31 @@ class Class<F> extends Object with Mixin<F> {
   O convert2<O>(F input) => null;
 }
 
-O convert<I, O>(I input) => null;
+O convert3<I, O>(I input) => null;
 
 test1() {
   var val = new Class<String>();
-  Expect.isTrue(val.convert1 is Convert);
-  Expect.isTrue(val.convert1 is Convert<String, String>);
-  Expect.isTrue(val.convert1 is Convert<int, String>);
-  Expect.isFalse(val.convert1 is Convert<String, int>);
+  Expect.isTrue(val.convert1 is Convert1);
+  Expect.isFalse(val.convert1 is Convert2);
+  Expect.isTrue(val.convert1 is Convert1<String>);
+  Expect.isFalse(val.convert1 is Convert1<int>);
+  Expect.isFalse(val.convert1 is Convert2<String>);
   Expect.isFalse(val.convert1 is Other);
 }
 
 test2() {
   var val = new Class<String>();
-  Expect.isTrue(val.convert2 is Convert);
-  Expect.isTrue(val.convert2 is Convert<String, String>);
-  Expect.isTrue(val.convert2 is Convert<String, int>);
-  Expect.isFalse(val.convert2 is Convert<int, String>);
+  Expect.isTrue(val.convert2 is Convert2);
+  Expect.isFalse(val.convert2 is Convert1);
+  Expect.isTrue(val.convert2 is Convert2<String>);
+  Expect.isFalse(val.convert2 is Convert2<int>);
+  Expect.isFalse(val.convert2 is Convert1<String>);
   Expect.isFalse(val.convert2 is Other);
 }
 
 test3() {
-  Expect.isTrue(convert is Convert);
-  Expect.isTrue(convert is Convert<String, String>);
-  Expect.isTrue(convert is Convert<String, int>);
-  Expect.isTrue(convert is Convert<int, String>);
-  Expect.isFalse(convert is Other);
+  Expect.isTrue(convert3 is Convert3);
+  Expect.isFalse(convert3 is Other);
 }
 
 main() {

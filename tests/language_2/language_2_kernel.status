@@ -129,9 +129,6 @@ generic_methods_optional_parameters_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_overriding_test/03: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
-generic_methods_reuse_type_variables_test: RuntimeError
-generic_methods_simple_as_expression_test/02: MissingRuntimeError
-generic_methods_simple_is_expression_test: RuntimeError
 generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_tearoff_test: CompileTimeError
@@ -674,6 +671,11 @@ cyclic_type_variable_test/none: Crash
 type_parameter_test/04: Crash
 type_parameter_test/05: Crash
 const_instance_field_test/01: Crash
+generic_function_typedef_test/none: Crash
+generic_function_typedef_test/01: Crash
+generic_local_functions_test: Crash
+generic_methods_closure_test: Crash
+generic_typedef_test: Crash
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 constructor3_test: Fail, OK, Pass

@@ -820,6 +820,13 @@ class StandardTestSuite extends TestSuite {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
+      // TODO(rnystrom): Hack. When running the 2.0 tests, always implicitly
+      // turn on reified generics in the VM.
+      // Note that VMOptions=--no-reify-generic-functions in test is ignored.
+      if (suiteName.endsWith("_2")) {
+        allVmOptions = allVmOptions.toList()..add("--reify-generic-functions");
+      }
+
       var commands =
           makeCommands(info, vmOptionsVariant, allVmOptions, commonArguments);
       enqueueNewTestCase(new TestCase(
