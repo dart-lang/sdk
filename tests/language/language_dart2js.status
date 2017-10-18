@@ -373,7 +373,6 @@ class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
 closure_in_field_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
 closure_in_field_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
@@ -393,7 +392,7 @@ constants_test/05: MissingCompileTimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
-constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
+constructor6_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Issue 30856
 constructor_redirect2_negative_test: Crash # Issue 30856
@@ -751,7 +750,6 @@ class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
 closure_in_field_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
 closure_in_field_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
@@ -770,7 +768,7 @@ constants_test/05: MissingCompileTimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
-constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
+constructor6_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Issue 30856
 constructor_redirect2_negative_test: Crash # Issue 30856

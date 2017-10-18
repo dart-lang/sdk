@@ -389,6 +389,10 @@ custom_element_method_clash_test/test: RuntimeError
 custom_element_method_clash_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 custom_element_name_clash_test/test: RuntimeError
 custom_element_name_clash_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+custom_elements_23127_test/baseline: RuntimeError
+custom_elements_23127_test/c1t: RuntimeError
+custom_elements_23127_test/c2: RuntimeError
+custom_elements_23127_test/c2t: RuntimeError
 custom_elements_23127_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 custom_elements_test/innerHtml: RuntimeError
 custom_elements_test/lifecycle: RuntimeError
@@ -717,7 +721,6 @@ webgl_1_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed
 webgl_extensions_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 websocket_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 websql_test/functional: RuntimeError
-websql_test/supported: RuntimeError
 websql_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 wheelevent_test: RuntimeError
 window_eq_test: RuntimeError
@@ -812,6 +815,10 @@ custom_element_method_clash_test/test: RuntimeError
 custom_element_method_clash_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 custom_element_name_clash_test/test: RuntimeError
 custom_element_name_clash_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+custom_elements_23127_test/baseline: RuntimeError
+custom_elements_23127_test/c1t: RuntimeError
+custom_elements_23127_test/c2: RuntimeError
+custom_elements_23127_test/c2t: RuntimeError
 custom_elements_23127_test: Crash # Assertion failure: Cannot find value local(B2T.created#a) in (type_variable_local(B2T.T), local(C2T.created#a), local(C2T.created#b), local(C2T.created#c), BoxLocal(_box_0)) for j:constructor(C2T.created).
 custom_elements_test/innerHtml: RuntimeError
 custom_elements_test/lifecycle: RuntimeError

@@ -26,7 +26,7 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
-import '../js_model/locals.dart' show JumpVisitor;
+import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
 import '../kernel/element_map.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -90,7 +90,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   SourceInformationBuilder sourceInformationBuilder;
   final KernelToElementMapForBuilding _elementMap;
   final KernelToTypeInferenceMap _typeInferenceMap;
-  final KernelToLocalsMap localsMap;
+  final GlobalLocalsMap _globalLocalsMap;
+  KernelToLocalsMap _localsMap;
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
 
@@ -110,7 +111,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.compiler,
       this._elementMap,
       this._typeInferenceMap,
-      this.localsMap,
+      this._globalLocalsMap,
       this.closedWorld,
       this._worldBuilder,
       this.registry,
@@ -119,6 +120,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
       this.sourceInformationBuilder,
       this.functionNode) {
+    _localsMap = _globalLocalsMap.getLocalsMap(targetElement);
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new KernelTypeBuilder(this, _elementMap);
     graph.element = targetElement;
@@ -128,6 +130,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         instanceType, nativeData, interceptorData);
     _targetStack.add(targetElement);
   }
+
+  KernelToLocalsMap get localsMap => _localsMap;
 
   CommonElements get _commonElements => _elementMap.commonElements;
 
@@ -384,6 +388,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       ConstructorEntity constructorElement = _elementMap.getConstructor(body);
 
+      KernelToLocalsMap oldLocalsMap = _localsMap;
+      _localsMap = _globalLocalsMap.getLocalsMap(constructorElement);
+
       void handleParameter(ir.VariableDeclaration node) {
         Local parameter = localsMap.getLocalVariable(node);
         // If [parameter] is boxed, it will be a field in the box passed as the
@@ -419,6 +426,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
 
       _invokeConstructorBody(body, bodyCallInputs);
+      _localsMap = oldLocalsMap;
     }
 
     closeAndGotoExit(new HReturn(newObject, null));
@@ -678,6 +686,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       Map<FieldEntity, HInstruction> fieldValues,
       ir.Constructor caller) {
     var index = 0;
+
+    KernelToLocalsMap oldLocalsMap = _localsMap;
+    ConstructorEntity element = _elementMap.getConstructor(constructor);
+    _localsMap = _globalLocalsMap.getLocalsMap(element);
     void handleParameter(ir.VariableDeclaration node) {
       Local parameter = localsMap.getLocalVariable(node);
       HInstruction argument = arguments[index++];
@@ -694,7 +706,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ..forEach(handleParameter);
 
     // Set the locals handler state as if we were inlining the constructor.
-    ConstructorEntity element = _elementMap.getConstructor(constructor);
     ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
     ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(element);
     localsHandler.scopeInfo = newScopeInfo;
@@ -703,6 +714,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _buildInitializers(constructor, constructorChain, fieldValues);
     });
     localsHandler.scopeInfo = oldScopeInfo;
+    _localsMap = oldLocalsMap;
   }
 
   /// Builds generative constructor body.
