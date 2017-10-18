@@ -22,8 +22,10 @@ html/custom/regress_194523002_test: Crash # Issue 29922
 html/deferred_multi_app_htmltest: Skip # Issue 29919
 html/fontface_loaded_test: RuntimeError
 html/gamepad_test: RuntimeError # Issue 31029
+html/messageevent_test: Skip # Issue 31144
 html/no_linked_scripts_htmltest: Skip # Issue 29919
 html/scripts_htmltest: Skip # Issue 29919
+html/serialized_script_value_test: Skip # Issue 31144
 html/transferables_test: CompileTimeError # Issue 30975
 html/two_scripts_htmltest: Skip # Issue 29919
 html/websql_test: Pass, RuntimeError # Issue 31036
