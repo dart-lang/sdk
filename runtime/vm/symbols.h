@@ -177,6 +177,7 @@ class ObjectPointerVisitor;
   V(LibraryClass, "Library")                                                   \
   V(LibraryPrefix, "LibraryPrefix")                                            \
   V(Namespace, "Namespace")                                                    \
+  V(KernelProgramInfo, "KernelProgramInfo")                                    \
   V(Code, "Code")                                                              \
   V(Instructions, "Instructions")                                              \
   V(ObjectPool, "ObjectPool")                                                  \
@@ -353,7 +354,6 @@ class ObjectPointerVisitor;
   V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \
   V(_as, "_as")                                                                \
   V(GetterPrefix, "get:")                                                      \
-  V(ClosurizePrefix, "get:#")                                                  \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
   V(Index, "index")                                                            \
@@ -423,7 +423,6 @@ class ObjectPointerVisitor;
   V(last, "last")                                                              \
   V(removeLast, "removeLast")                                                  \
   V(add, "add")                                                                \
-  V(ConstructorClosurePrefix, "new#")                                          \
   V(ConstructorStacktracePrefix, "new ")                                       \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data' show Uint32List;
-import 'dart:_internal' as internal;
+// part of "collection_patch.dart";
 
 // Hash table with open addressing that separates the index from keys/values.
 

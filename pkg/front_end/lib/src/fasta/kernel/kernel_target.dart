@@ -88,6 +88,8 @@ import 'kernel_builder.dart'
         TypeDeclarationBuilder,
         TypeVariableBuilder;
 
+import 'metadata_collector.dart' show MetadataCollector;
+
 import 'verifier.dart' show verifyProgram;
 
 class KernelTarget extends TargetImplementation {
@@ -101,6 +103,9 @@ class KernelTarget extends TargetImplementation {
 
   /// Shared with [CompilerContext].
   final Map<String, Source> uriToSource;
+
+  /// The [MetadataCollector] to write metadata to.
+  final MetadataCollector metadataCollector;
 
   SourceLoader<Library> loader;
 
@@ -117,9 +122,10 @@ class KernelTarget extends TargetImplementation {
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator,
-      [Map<String, Source> uriToSource])
+      {Map<String, Source> uriToSource, MetadataCollector metadataCollector})
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
+        metadataCollector = metadataCollector,
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     resetCrashReporting();
     loader = createLoader();
@@ -249,11 +255,13 @@ class KernelTarget extends TargetImplementation {
       loader.finishTypeVariables(objectClassBuilder);
       program =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
+      if (metadataCollector != null) {
+        program.addMetadataRepository(metadataCollector.repository);
+      }
       loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
       loader.prepareTopLevelInference(sourceClasses);
       loader.performTopLevelInference(sourceClasses);
-      loader.computeFormalSafety(sourceClasses);
     } on deprecated_InputError catch (e) {
       handleInputError(e, isFullProgram: false);
     } catch (e, s) {

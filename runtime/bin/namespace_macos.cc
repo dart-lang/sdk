@@ -16,15 +16,17 @@
 namespace dart {
 namespace bin {
 
+Namespace* Namespace::Create(intptr_t namespc) {
+  return new Namespace(NULL);
+}
+
 Namespace* Namespace::Create(const char* path) {
   UNIMPLEMENTED();
   return NULL;
 }
 
 Namespace::~Namespace() {
-  if (namespc_ != kNone) {
-    VOID_TEMP_FAILURE_RETRY(close(namespc_));
-  }
+  ASSERT(namespc_ == NULL);
 }
 
 intptr_t Namespace::Default() {
@@ -44,12 +46,11 @@ bool Namespace::SetCurrent(Namespace* namespc, const char* path) {
   return (result == 0);
 }
 
-bool Namespace::ResolvePath(Namespace* namespc,
+void Namespace::ResolvePath(Namespace* namespc,
                             const char* path,
                             intptr_t* dirfd,
                             const char** resolved_path) {
   UNIMPLEMENTED();
-  return false;
 }
 
 NamespaceScope::NamespaceScope(Namespace* namespc, const char* path) {

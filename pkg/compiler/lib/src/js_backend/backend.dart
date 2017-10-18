@@ -37,7 +37,6 @@ import '../js/js.dart' show js;
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_emitter/sorter.dart' show Sorter;
-import '../kernel/task.dart';
 import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
@@ -54,7 +53,7 @@ import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
-import 'annotations.dart';
+import 'annotations.dart' as optimizerHints;
 import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'backend_usage.dart';
@@ -323,8 +322,6 @@ class JavaScriptBackend {
   /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
 
-  final OptimizerHintsForTests optimizerHints;
-
   FunctionCompiler functionCompiler;
 
   CodeEmitterTask emitter;
@@ -362,7 +359,6 @@ class JavaScriptBackend {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
     result.add(patchResolverTask);
-    result.add(kernelTask);
     return result;
   }
 
@@ -395,9 +391,6 @@ class JavaScriptBackend {
 
   /// Codegen support for computing reflectable elements.
   MirrorsCodegenAnalysis _mirrorsCodegenAnalysis;
-
-  /// Builds kernel representation for the program.
-  KernelTask kernelTask;
 
   /// The compiler task responsible for the compilation of constants for both
   /// the frontend and the backend.
@@ -437,12 +430,8 @@ class JavaScriptBackend {
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
       bool useMultiSourceInfo: false,
-      bool useNewSourceInfo: false,
-      bool useKernelInSsa: false})
-      : optimizerHints = new OptimizerHintsForTests(
-            compiler.frontendStrategy.elementEnvironment,
-            compiler.frontendStrategy.commonElements),
-        this.sourceInformationStrategy =
+      bool useNewSourceInfo: false})
+      : this.sourceInformationStrategy =
             compiler.backendStrategy.sourceInformationStrategy,
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler) {
@@ -459,7 +448,6 @@ class JavaScriptBackend {
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
-    kernelTask = new KernelTask(compiler);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = new SsaFunctionCompiler(
         this, compiler.measurer, sourceInformationStrategy);
@@ -607,7 +595,7 @@ class JavaScriptBackend {
     frontendStrategy.elementEnvironment.forEachClassMember(objectClass,
         (_, MemberEntity member) {
       MemberEntity interceptorMember = frontendStrategy.elementEnvironment
-          .lookupClassMember(interceptorClass, member.name);
+          .lookupLocalClassMember(interceptorClass, member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
       assert(
@@ -700,8 +688,7 @@ class JavaScriptBackend {
     NativeBasicData nativeBasicData = compiler.frontendStrategy.nativeBasicData;
     RuntimeTypesNeedBuilder rtiNeedBuilder =
         compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, commonElements);
+    BackendImpacts impacts = new BackendImpacts(commonElements);
     TypeVariableResolutionAnalysis typeVariableResolutionAnalysis =
         new TypeVariableResolutionAnalysis(
             compiler.frontendStrategy.elementEnvironment,
@@ -761,8 +748,7 @@ class JavaScriptBackend {
             mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
             _nativeResolutionEnqueuer,
-            compiler.deferredLoadTask,
-            kernelTask),
+            compiler.deferredLoadTask),
         compiler.frontendStrategy.createResolutionWorldBuilder(
             nativeBasicData,
             _nativeDataBuilder,
@@ -782,8 +768,7 @@ class JavaScriptBackend {
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, commonElements);
+    BackendImpacts impacts = new BackendImpacts(commonElements);
     _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
         closedWorld.elementEnvironment, this, commonElements, mirrorsData);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
@@ -977,8 +962,7 @@ class JavaScriptBackend {
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, closedWorld.commonElements);
+    BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
     _rti = new RuntimeTypesImpl(
         closedWorld.elementEnvironment, closedWorld.dartTypes);
     _codegenImpactTransformer = new CodegenImpactTransformer(
@@ -1036,7 +1020,8 @@ class JavaScriptBackend {
     }
 
     if (element.isFunction || element.isConstructor) {
-      if (optimizerHints.noInline(element)) {
+      if (optimizerHints.noInline(
+          elementEnvironment, commonElements, element)) {
         inlineCache.markAsNonInlinable(element);
       }
     }

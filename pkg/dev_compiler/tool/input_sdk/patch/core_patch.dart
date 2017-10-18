@@ -11,7 +11,7 @@ import 'dart:_js_helper'
         checkInt,
         getRuntimeType,
         getTraceFromException,
-        JsLinkedHashMap,
+        LinkedMap,
         JSSyntaxRegExp,
         NoInline,
         notNull,
@@ -337,6 +337,7 @@ class List<E> {
             "Length must be a non-negative integer: $_length");
       }
       list = JS('', 'new Array(#)', length);
+      JS('', '#.fill(null)', list);
       JSArray.markFixedList(list);
     }
     return new JSArray<E>.of(list);
@@ -345,13 +346,7 @@ class List<E> {
   @patch
   factory List.filled(@nullCheck int length, E fill, {bool growable: false}) {
     var list = new JSArray<E>.of(JS('', 'new Array(#)', length));
-    if (length != 0 && fill != null) {
-      @notNull
-      var length = list.length;
-      for (int i = 0; i < length; i++) {
-        list[i] = fill;
-      }
-    }
+    JS('', '#.fill(#)', list, fill);
     if (!growable) JSArray.markFixedList(list);
     return list;
   }
@@ -390,7 +385,7 @@ class Map<K, V> {
   }
 
   @patch
-  factory Map() = JsLinkedHashMap<K, V>.es6;
+  factory Map() = LinkedMap<K, V>;
 }
 
 @patch

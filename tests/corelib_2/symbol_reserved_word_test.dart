@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 void checkBadSymbol(String s) {
-  Expect.throws(() => new Symbol(s), (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => new Symbol(s));
 }
 
 main() {

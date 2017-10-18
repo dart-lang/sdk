@@ -12,6 +12,7 @@ http_sdk_sources = [
   "http_impl.dart",
   "http_parser.dart",
   "http_session.dart",
+  "overrides.dart",
   "websocket.dart",
   "websocket_impl.dart",
 ]

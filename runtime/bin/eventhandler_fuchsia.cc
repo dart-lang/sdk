@@ -172,7 +172,7 @@ bool IOHandle::AsyncWaitLocked(zx_handle_t port,
   // The call to __fdio_fd_to_io() in the DescriptorInfo constructor may have
   // returned NULL. If it did, propagate the problem up to Dart.
   if (fdio_ == NULL) {
-    LOG_ERR("__fdio_fd_to_io(%d) returned NULL\n", fd_);
+    LOG_ERR("__fdio_fd_to_io(%ld) returned NULL\n", fd_);
     return false;
   }
 

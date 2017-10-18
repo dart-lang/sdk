@@ -41,7 +41,8 @@ import 'package:front_end/front_end.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
-import 'patched_sdk_location.dart' show computePatchedSdk;
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
 class Print extends Step<Program, Program, ChainContext> {
   const Print();
@@ -199,7 +200,7 @@ class Compile extends Step<TestDescription, Program, CompileContext> {
       result ??= fail(null, error.message);
     }
 
-    Uri sdk = await computePatchedSdk();
+    Uri sdk = Uri.base.resolve("sdk/");
     var options = new CompilerOptions()
       ..sdkRoot = sdk
       ..compileSdk = true
@@ -212,7 +213,9 @@ class Compile extends Step<TestDescription, Program, CompileContext> {
       // ensures that if target defines extra libraries that those get included
       // too.
     } else {
-      options.linkedDependencies = [sdk.resolve('platform.dill')];
+      options.linkedDependencies = [
+        computePlatformBinariesLocation().resolve("vm_platform.dill"),
+      ];
     }
     Program p = await kernelForProgram(description.uri, options);
     return result ??= pass(p);

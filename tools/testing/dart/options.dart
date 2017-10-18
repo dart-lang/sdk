@@ -12,6 +12,7 @@ import 'utils.dart';
 const _defaultTestSelectors = const [
   'samples',
   'standalone',
+  'standalone_2',
   'corelib',
   'corelib_2',
   'co19',
@@ -108,7 +109,10 @@ dartk:         Compile the Dart source into Kernel before running
 
 dartkp:        Compile the Dart source into Kernel and then Kernel
                into AOT snapshot before running the test.
-               (Only valid with runtime dart_precompiled.)''',
+               (Only valid with runtime dart_precompiled.)
+
+spec_parser:   Parse Dart code by running the specification parser.
+               (Only valid with runtime none.)''',
         abbr: 'c',
         values: Compiler.names,
         defaultsTo: Compiler.none.name),
@@ -183,8 +187,6 @@ simdbc, simdbc64''',
     // TODO(sigmund): replace dart2js_with_kernel with preview-dart-2.
     new _Option.bool(
         'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.'),
-    new _Option.bool('dart2js_with_kernel_in_ssa',
-        'Pass the --use-kernel-in-ssa flag to dart2js.'),
     new _Option.bool('hot_reload', 'Run hot reload stress tests.'),
     new _Option.bool(
         'hot_reload_rollback', 'Run hot reload rollback stress tests.'),
@@ -614,8 +616,6 @@ compiler.''')
                 useFastStartup: data["fast_startup"] as bool,
                 useEnableAsserts: data["enable_asserts"] as bool,
                 useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
-                useDart2JSWithKernelInSsa:
-                    data["dart2js_with_kernel_in_ssa"] as bool,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 writeResultLog: data["write_result_log"] as bool,

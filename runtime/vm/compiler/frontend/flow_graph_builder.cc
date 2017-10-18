@@ -1415,12 +1415,6 @@ Value* EffectGraphVisitor::BuildNullValue(TokenPosition token_pos) {
       new (Z) ConstantInstr(Object::ZoneHandle(Z, Object::null()), token_pos));
 }
 
-Value* EffectGraphVisitor::BuildEmptyTypeArguments(TokenPosition token_pos) {
-  return Bind(new (Z) ConstantInstr(
-      TypeArguments::ZoneHandle(Z, Object::empty_type_arguments().raw()),
-      token_pos));
-}
-
 // Used for testing incoming arguments.
 AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
     TokenPosition token_pos,
@@ -2745,23 +2739,8 @@ Value* EffectGraphVisitor::BuildFunctionTypeArguments(TokenPosition token_pos) {
   LocalVariable* function_type_arguments_var =
       owner()->parsed_function().function_type_arguments();
   if (function_type_arguments_var == NULL) {
-    // We encountered an uninstantiated type referring to type parameters of a
-    // signature that is local to the function being compiled. The type remains
-    // uninstantiated. Example: Foo(f<T>(T t)) => null;
-    // Foo is non-generic, but takes a generic function f as argument.
-    // The uninstantiated function type of f cannot be instantiated from within
-    // Foo and should not be instantiated. It is used in uninstantiated form to
-    // check incoming closures for assignability. We pass an empty function
-    // type argument vector.
-    return BuildEmptyTypeArguments(token_pos);
-
-    // Note that the function type could also get partially instantiated:
-    // Bar<B>(B g<T>(T t)) => null;
-    // In this case, function_type_arguments_var will not be null, since Bar
-    // is generic, and will be used to partially instantiate the type of g, more
-    // specifically the result type of g. Note that the instantiator vector will
-    // have length 1, and type parameters with indices above 0, e.g. T, must
-    // remain uninstantiated.
+    ASSERT(!FLAG_reify_generic_functions);
+    return BuildNullValue(token_pos);
   }
   return Bind(BuildLoadLocal(*function_type_arguments_var, token_pos));
 }

@@ -135,14 +135,75 @@ String sanitizeCategory(String category) {
   return match != null ? match.group(1) : category;
 }
 
+/// Returns a function (dynamic, StackTrace) -> Void, useful for printing
+/// exceptions.
 exceptionPrint(String message) {
-  return (dynamic ex, StackTrace st) {
+  return (dynamic ex, {StackTrace st}) {
     if (message != null) {
       print(message);
     }
     print(ex);
     if (st != null) {
       print(st);
+    } else if (ex is Error) {
+      print(ex.stackTrace);
     }
   };
+}
+
+/// Zips two iterables to a new list, by calling [f]. [second] has to be at
+/// least the same length as [first].
+Iterable<T> zipWith<T, X, Y>(
+    Iterable<X> first, Iterable<Y> second, T f(X x, Y y)) sync* {
+  var yIterator = second.iterator;
+  for (var x in first) {
+    if (!yIterator.moveNext()) {
+      throw new Exception("second have to be at least the same length of xs.");
+    }
+    yield f(x, yIterator.current);
+  }
+}
+
+typedef T ErrorLogger<T>(e);
+
+/// errorLogger with a return-value, which can be used for onError and
+/// catchError in futures.
+ErrorLogger<T> errorLogger<T>(Logger logger, String message, T returnValue) {
+  return (dynamic e) {
+    logger.error(message, e);
+    return returnValue;
+  };
+}
+
+/// Iterates over [items] and spawns [concurrent] x futures, by calling [f].
+/// When a future completes it will try to take the next in the list. The
+/// function will complete when all items has been processed.
+Future<Iterable<S>> waitWithThrottle<T, S>(
+    Iterable items, int concurrent, Future<S> f(T item)) async {
+  // Listify the items, to make sure length is constant.
+  var inputs = items.toList();
+  List<S> results = new List<S>(inputs.length);
+  var current = 0;
+
+  await Future.wait(new Iterable.generate(
+      concurrent,
+      (int _) => Future.doWhile(() async {
+            if (current >= inputs.length) {
+              return false;
+            }
+            int index = current++;
+            results[index] = await f(inputs[index]);
+            return true;
+          })));
+
+  return results;
+}
+
+/// Similar to Iterable.where, except, the function [f] returns a future boolean.
+Future<Iterable<T>> futureWhere<T>(
+    Iterable<T> items, Future<bool> f(T item)) async {
+  List<bool> results =
+      (await Future.wait(items.map((item) => f(item)))).toList();
+  var index = 0;
+  return items.where((item) => results[index++]).toList();
 }

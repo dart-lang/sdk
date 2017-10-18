@@ -16,9 +16,11 @@
 namespace dart {
 namespace kernel {
 
-static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
+// Keep in sync with package:kernel/lib/binary/tag.dart.
 
-// Keep in sync with package:dynamo/lib/binary/tag.dart
+static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
+static const uint32_t kBinaryFormatVersion = 1;
+
 enum Tag {
   kNothing = 0,
   kSomething = 1,
@@ -136,6 +138,9 @@ static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
 static const int SourceTableFieldCountFromFirstLibraryOffset = 3;
 
+static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
+static const int MetadataPayloadOffset = HeaderSize;  // Right after header.
+
 class Reader {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
@@ -158,16 +163,21 @@ class Reader {
     return result;
   }
 
+  uint32_t ReadUInt32At(intptr_t offset) {
+    set_offset(offset);
+    return ReadUInt32();
+  }
+
   uint32_t ReadFromIndexNoReset(intptr_t end_offset,
                                 intptr_t fields_before,
                                 intptr_t list_size,
                                 intptr_t list_index) {
-    set_offset(end_offset - (fields_before + list_size - list_index) * 4);
-    return ReadUInt32();
+    return ReadUInt32At(end_offset -
+                        (fields_before + list_size - list_index) * 4);
   }
 
   uint32_t ReadUInt32() {
-    ASSERT(offset_ + 4 <= size_);
+    ASSERT((size_ >= 4) && (offset_ >= 0) && (offset_ <= size_ - 4));
 
     const uint8_t* buffer = this->buffer();
     uint32_t value = (buffer[offset_ + 0] << 24) | (buffer[offset_ + 1] << 16) |
@@ -177,7 +187,7 @@ class Reader {
   }
 
   uint32_t ReadUInt() {
-    ASSERT(offset_ + 1 <= size_);
+    ASSERT((size_ >= 1) && (offset_ >= 0) && (offset_ <= size_ - 1));
 
     const uint8_t* buffer = this->buffer();
     uint8_t byte0 = buffer[offset_];
@@ -187,13 +197,13 @@ class Reader {
       return byte0;
     } else if ((byte0 & 0xc0) == 0x80) {
       // 10...
-      ASSERT(offset_ + 2 <= size_);
+      ASSERT((size_ >= 2) && (offset_ >= 0) && (offset_ <= size_ - 2));
       uint32_t value = ((byte0 & ~0x80) << 8) | (buffer[offset_ + 1]);
       offset_ += 2;
       return value;
     } else {
       // 11...
-      ASSERT(offset_ + 4 <= size_);
+      ASSERT((size_ >= 4) && (offset_ >= 0) && (offset_ <= size_ - 4));
       uint32_t value = ((byte0 & ~0xc0) << 24) | (buffer[offset_ + 1] << 16) |
                        (buffer[offset_ + 2] << 8) | (buffer[offset_ + 3] << 0);
       offset_ += 4;
@@ -289,17 +299,11 @@ class Reader {
   const uint8_t* raw_buffer() { return raw_buffer_; }
   void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
 
-  TypedData& CopyDataToVMHeap(Zone* zone,
-                              intptr_t from_byte,
-                              intptr_t to_byte) {
-    intptr_t size = to_byte - from_byte;
-    TypedData& data = TypedData::Handle(
-        zone, TypedData::New(kTypedDataUint8ArrayCid, size, Heap::kOld));
-    {
-      NoSafepointScope no_safepoint;
-      memmove(data.DataAddr(0), buffer() + from_byte, size);
-    }
-    return data;
+  void CopyDataToVMHeap(const TypedData& typed_data,
+                        intptr_t offset,
+                        intptr_t size) {
+    NoSafepointScope no_safepoint;
+    memmove(typed_data.DataAddr(0), buffer() + offset, size);
   }
 
   uint8_t* CopyDataIntoZone(Zone* zone, intptr_t offset, intptr_t length) {

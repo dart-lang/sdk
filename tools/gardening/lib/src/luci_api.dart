@@ -7,7 +7,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:archive/archive.dart';
-import 'try.dart';
 import 'cache_new.dart';
 
 const String LUCI_HOST = "luci-milo.appspot.com";
@@ -28,30 +27,32 @@ class LuciApi {
 
   /// [getJsonFromChromeBuildExtract] gets json from Cbe, with information
   /// about all bots and current builds.
-  Future<Try<dynamic>> getJsonFromChromeBuildExtract(
+  Future<dynamic> getJsonFromChromeBuildExtract(
       String client, WithCacheFunction withCache) async {
-    var result = await tryStartAsync(() => withCache(
-        () => _makeGetRequest(new Uri(
-            scheme: 'https', host: CBE_HOST, path: "/get_master/${client}")),
-        "cbe"));
-    return result.bind((str) => JSON.decode(str));
+    return withCache(
+            () => _makeGetRequest(new Uri(
+                scheme: 'https',
+                host: CBE_HOST,
+                path: "/get_master/${client}")),
+            "cbe")
+        .then(JSON.decode);
   }
 
   /// [getMaster] fetches master information for all bots.
-  Future<Try<Object>> getMaster(
-      String client, WithCacheFunction withCache) async {
+  Future<dynamic> getMaster(String client, WithCacheFunction withCache) async {
     var uri = new Uri(
         scheme: "https",
         host: LUCI_HOST,
         path: "prpc/milo.Buildbot/GetCompressedMasterJSON");
     var body = {"name": client};
-    var result = await tryStartAsync(() => withCache(
-        () => _makePostRequest(uri, JSON.encode(body), {
-              HttpHeaders.CONTENT_TYPE: "application/json",
-              HttpHeaders.ACCEPT: "application/json"
-            }),
-        '${uri.path}'));
-    return result.bind((str) => JSON.decode(str)).bind((json) {
+    return withCache(
+            () => _makePostRequest(uri, JSON.encode(body), {
+                  HttpHeaders.CONTENT_TYPE: "application/json",
+                  HttpHeaders.ACCEPT: "application/json"
+                }),
+            '${uri.path}')
+        .then(JSON.decode)
+        .then((json) {
       var data = JSON.decode(UTF8
           .decode(new GZipDecoder().decodeBytes(BASE64.decode(json["data"]))));
       return data;
@@ -60,7 +61,7 @@ class LuciApi {
 
   /// Calling the Milo Api to get latest builds for this bot,
   /// where the field [amount] is the number of recent builds to fetch.
-  Future<Try<List<BuildDetail>>> getBuildBotDetails(
+  Future<List<BuildDetail>> getBuildBotDetails(
       String client, String botName, WithCacheFunction withCache,
       [int amount = 20]) async {
     var uri = new Uri(
@@ -73,13 +74,14 @@ class LuciApi {
       "limit": amount,
       "includeCurrent": true
     };
-    var result = await tryStartAsync(() => withCache(
-        () => _makePostRequest(uri, JSON.encode(body), {
-              HttpHeaders.CONTENT_TYPE: "application/json",
-              HttpHeaders.ACCEPT: "application/json"
-            }),
-        '${uri.path}_${botName}_$amount'));
-    return result.bind((str) => JSON.decode(str)).bind((json) {
+    return withCache(
+            () => _makePostRequest(uri, JSON.encode(body), {
+                  HttpHeaders.CONTENT_TYPE: "application/json",
+                  HttpHeaders.ACCEPT: "application/json"
+                }),
+            '${uri.path}_${botName}_$amount')
+        .then(JSON.decode)
+        .then((json) {
       return json["builds"].map((b) {
         var build = JSON.decode(UTF8.decode(BASE64.decode(b["data"])));
         return getBuildDetailFromJson(client, botName, build);
@@ -89,20 +91,21 @@ class LuciApi {
 
   /// Calling the Milo Api to get information about a specific build
   /// where the field [buildNumber] is the build number to fetch.
-  Future<Try<BuildDetail>> getBuildBotBuildDetails(String client,
-      String botName, int buildNumber, WithCacheFunction withCache) async {
+  Future<BuildDetail> getBuildBotBuildDetails(String client, String botName,
+      int buildNumber, WithCacheFunction withCache) async {
     var uri = new Uri(
         scheme: "https",
         host: LUCI_HOST,
         path: "prpc/milo.Buildbot/GetBuildbotBuildJSON");
     var body = {"master": client, "builder": botName, "buildNum": buildNumber};
-    var result = await tryStartAsync(() => withCache(
-        () => _makePostRequest(uri, JSON.encode(body), {
-              HttpHeaders.CONTENT_TYPE: "application/json",
-              HttpHeaders.ACCEPT: "application/json"
-            }),
-        '${uri.path}_${botName}_$buildNumber'));
-    return result.bind((str) => JSON.decode(str)).bind((json) {
+    return withCache(
+            () => _makePostRequest(uri, JSON.encode(body), {
+                  HttpHeaders.CONTENT_TYPE: "application/json",
+                  HttpHeaders.ACCEPT: "application/json"
+                }),
+            '${uri.path}_${botName}_$buildNumber')
+        .then(JSON.decode)
+        .then((json) {
       var build = JSON.decode(UTF8.decode(BASE64.decode(json["data"])));
       return getBuildDetailFromJson(client, botName, build);
     });

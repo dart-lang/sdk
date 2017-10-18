@@ -19,8 +19,6 @@ void acceptsObject(Object o) {}
 
 void acceptsNum(num n) {}
 
-bool isTypeError(e) => e is TypeError;
-
 void g(I<F<num>> i) {
   i.f(acceptsObject);
   // i.f has static type (F<num>)->void, or ((num)->void)->void.  Which means we
@@ -29,9 +27,7 @@ void g(I<F<num>> i) {
   // its argument to be F<Object>.  This means that passing acceptsNum to f
   // would violate soundness (since acceptsNum has type F<num>, and F<num> is a
   // supertype of F<Object>).  So we expect a type error here.
-  Expect.throws(() {
-    i.f(acceptsNum);
-  }, isTypeError);
+  Expect.throwsTypeError(() => i.f(acceptsNum));
 }
 
 void main() {

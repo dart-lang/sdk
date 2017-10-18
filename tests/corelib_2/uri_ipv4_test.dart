@@ -10,8 +10,7 @@ void testParseIPv4Address() {
   }
 
   void fail(String host) {
-    Expect.throws(
-        () => Uri.parseIPv4Address(host), (e) => e is FormatException);
+    Expect.throwsFormatException(() => Uri.parseIPv4Address(host));
   }
 
   pass('127.0.0.1', [127, 0, 0, 1]);

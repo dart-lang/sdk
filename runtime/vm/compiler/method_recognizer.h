@@ -54,9 +54,9 @@ namespace dart {
   V(Float32x4, Float32x4., Float32x4Constructor, Float32x4, 0x5640679a)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, Float32x4, 0x2f0b7925)           \
   V(Float32x4, Float32x4.splat, Float32x4Splat, Float32x4, 0x750512c4)         \
-  V(Float32x4, Float32x4.fromInt32x4Bits, Float32x4FromInt32x4Bits, Float32x4, \
+  V(Float32x4, Float32x4.fromInt32x4Bits, Int32x4ToFloat32x4, Float32x4,       \
     0x3b197ab4)                                                                \
-  V(Float32x4, Float32x4.fromFloat64x2, Float32x4FromFloat64x2, Float32x4,     \
+  V(Float32x4, Float32x4.fromFloat64x2, Float64x2ToFloat32x4, Float32x4,       \
     0x5ca3f7f1)                                                                \
   V(_Float32x4, shuffle, Float32x4Shuffle, Float32x4, 0x7829101f)              \
   V(_Float32x4, shuffleMix, Float32x4ShuffleMix, Float32x4, 0x4182c06b)        \
@@ -77,7 +77,7 @@ namespace dart {
     0x6264bfe8)                                                                \
   V(_Float32x4, reciprocal, Float32x4Reciprocal, Float32x4, 0x3cd7e819)        \
   V(_Float32x4, unary-, Float32x4Negate, Float32x4, 0x35f7f2b3)                \
-  V(_Float32x4, abs, Float32x4Absolute, Float32x4, 0x471cdd87)                 \
+  V(_Float32x4, abs, Float32x4Abs, Float32x4, 0x471cdd87)                      \
   V(_Float32x4, clamp, Float32x4Clamp, Float32x4, 0x2cb30492)                  \
   V(_Float32x4, withX, Float32x4WithX, Float32x4, 0x4e336aff)                  \
   V(_Float32x4, withY, Float32x4WithY, Float32x4, 0x0a72b910)                  \
@@ -86,7 +86,7 @@ namespace dart {
   V(Float64x2, Float64x2., Float64x2Constructor, Float64x2, 0x2e2098de)        \
   V(Float64x2, Float64x2.zero, Float64x2Zero, Float64x2, 0x631002be)           \
   V(Float64x2, Float64x2.splat, Float64x2Splat, Float64x2, 0x1f056dd1)         \
-  V(Float64x2, Float64x2.fromFloat32x4, Float64x2FromFloat32x4, Float64x2,     \
+  V(Float64x2, Float64x2.fromFloat32x4, Float32x4ToFloat64x2, Float64x2,       \
     0x238d44c5)                                                                \
   V(_Float64x2, get:x, Float64x2GetX, Double, 0x58c027f9)                      \
   V(_Float64x2, get:y, Float64x2GetY, Double, 0x3cf57159)                      \
@@ -101,7 +101,7 @@ namespace dart {
   V(_Float64x2, max, Float64x2Max, Float64x2, 0x0bd74e5b)                      \
   V(Int32x4, Int32x4., Int32x4Constructor, Int32x4, 0x775b77a8)                \
   V(Int32x4, Int32x4.bool, Int32x4BoolConstructor, Int32x4, 0x690007a2)        \
-  V(Int32x4, Int32x4.fromFloat32x4Bits, Int32x4FromFloat32x4Bits, Int32x4,     \
+  V(Int32x4, Int32x4.fromFloat32x4Bits, Float32x4ToInt32x4, Int32x4,           \
     0x72cbc76b)                                                                \
   V(_Int32x4, get:flagX, Int32x4GetFlagX, Bool, 0x5638f823)                    \
   V(_Int32x4, get:flagY, Int32x4GetFlagY, Bool, 0x446fd2d9)                    \
@@ -143,7 +143,7 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, Smi, 0x6574c6b0)                                   \
   V(_Smi, get:bitLength, Smi_bitLength, Smi, 0x25b356ab)                       \
-  V(_Smi, _bitAndFromSmi, Smi_bitAndFromSmi, Smi, 0x490a4da1)                  \
+  V(_Smi, _bitAndFromSmi, Smi_bitAndFromSmi, Smi, 0x562d5047)                  \
   V(_Bigint, _lsh, Bigint_lsh, Dynamic, 0x40d9f1cc)                            \
   V(_Bigint, _rsh, Bigint_rsh, Dynamic, 0x703f1a40)                            \
   V(_Bigint, _absAdd, Bigint_absAdd, Dynamic, 0x50fb1e47)                      \
@@ -189,6 +189,7 @@ namespace dart {
     0x604ec475)                                                                \
   V(_OneByteString, ==, OneByteString_equality, Bool, 0x4719e83f)              \
   V(_TwoByteString, ==, TwoByteString_equality, Bool, 0x4719e83f)              \
+  V(_Type, get:hashCode, Type_getHashCode, Smi, 0x18d0dde0)                    \
   V(::, _getHash, Object_getHash, Smi, 0x2827856d)                             \
   V(::, _setHash, Object_setHash, Object, 0x302d1fe8)                          \
 
@@ -196,16 +197,16 @@ namespace dart {
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
   V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger,           \
     Dynamic, 0x6a10c54a)                                                       \
-  V(_IntegerImplementation, +, Integer_add, Dynamic, 0x5125faaa)               \
+  V(_IntegerImplementation, +, Integer_add, Dynamic, 0x1bb7f19d)               \
   V(_IntegerImplementation, _subFromInteger, Integer_subFromInteger, Dynamic,  \
     0x3fa4b1ed)                                                                \
-  V(_IntegerImplementation, -, Integer_sub, Dynamic, 0x0c94540b)               \
+  V(_IntegerImplementation, -, Integer_sub, Dynamic, 0x649b007e)               \
   V(_IntegerImplementation, _mulFromInteger, Integer_mulFromInteger,           \
     Dynamic, 0x3216e299)                                                       \
-  V(_IntegerImplementation, *, Integer_mul, Dynamic, 0x4535624c)               \
+  V(_IntegerImplementation, *, Integer_mul, Dynamic, 0x0c74b07f)               \
   V(_IntegerImplementation, _moduloFromInteger, Integer_moduloFromInteger,     \
     Dynamic, 0x6348b974)                                                       \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, Dynamic, 0x1f48f4c9)      \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, Dynamic, 0x305174bc)      \
   V(_IntegerImplementation, unary-, Integer_negate, Dynamic, 0x4e346e3b)       \
   V(_IntegerImplementation, _bitAndFromInteger, Integer_bitAndFromInteger,     \
     Dynamic, 0x395b1678)                                                       \
@@ -470,10 +471,10 @@ namespace dart {
   V(_Double, -, Double_sub, 0x76768546)                                        \
   V(_Double, *, Double_mul, 0x66c66e3d)                                        \
   V(_Double, /, Double_div, 0x034b9f08)                                        \
-  V(_IntegerImplementation, +, Integer_add, 0x5125faaa)                        \
-  V(_IntegerImplementation, -, Integer_sub, 0x0c94540b)                        \
-  V(_IntegerImplementation, *, Integer_mul, 0x4535624c)                        \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x1f48f4c9)               \
+  V(_IntegerImplementation, +, Integer_add, 0x1bb7f19d)                        \
+  V(_IntegerImplementation, -, Integer_sub, 0x649b007e)                        \
+  V(_IntegerImplementation, *, Integer_mul, 0x0c74b07f)                        \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x305174bc)               \
   V(_IntegerImplementation, unary-, Integer_negate, 0x4e346e3b)                \
   V(_IntegerImplementation, &, Integer_bitAnd, 0x01b79186)                     \
   V(_IntegerImplementation, |, Integer_bitOr, 0x71c6af64)                      \

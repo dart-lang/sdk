@@ -924,8 +924,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleConditionalExpression(Token question, Token colon) {
-    listener?.handleConditionalExpression(question, colon);
+  void beginConditionalExpression() {
+    listener?.beginConditionalExpression();
+  }
+
+  @override
+  void handleConditionalExpressionColon() {
+    listener?.handleConditionalExpressionColon();
+  }
+
+  @override
+  void endConditionalExpression(Token question, Token colon) {
+    listener?.endConditionalExpression(question, colon);
   }
 
   @override
@@ -1168,6 +1178,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleRecoverClassHeader() {
+    listener?.handleRecoverClassHeader();
+  }
+
+  @override
   void handleRecoverExpression(Token token, Message message) {
     listener?.handleRecoverExpression(token, message);
   }
@@ -1175,6 +1190,11 @@ class ForwardingListener implements Listener {
   @override
   void handleRecoverableError(Token token, Message message) {
     listener?.handleRecoverableError(token, message);
+  }
+
+  @override
+  void handleInvalidStatement(Token token, Message message) {
+    listener?.handleInvalidStatement(token, message);
   }
 
   @override

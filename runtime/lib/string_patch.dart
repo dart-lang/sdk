@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 const int _maxAscii = 0x7f;
 const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
@@ -53,7 +55,7 @@ class String {
  * [_StringBase] contains common methods used by concrete String
  * implementations, e.g., _OneByteString.
  */
-abstract class _StringBase {
+abstract class _StringBase implements String {
   bool _isWhitespace(int codeUnit);
 
   // Constants used by replaceAll encoding of string slices between matches.
@@ -918,7 +920,7 @@ abstract class _StringBase {
       native "String_concatRange";
 }
 
-class _OneByteString extends _StringBase implements String {
+class _OneByteString extends _StringBase {
   factory _OneByteString._uninstantiable() {
     throw new UnsupportedError(
         "_OneByteString can only be allocated by the VM");
@@ -1215,7 +1217,7 @@ class _OneByteString extends _StringBase implements String {
   }
 }
 
-class _TwoByteString extends _StringBase implements String {
+class _TwoByteString extends _StringBase {
   factory _TwoByteString._uninstantiable() {
     throw new UnsupportedError(
         "_TwoByteString can only be allocated by the VM");
@@ -1235,7 +1237,7 @@ class _TwoByteString extends _StringBase implements String {
   }
 }
 
-class _ExternalOneByteString extends _StringBase implements String {
+class _ExternalOneByteString extends _StringBase {
   factory _ExternalOneByteString._uninstantiable() {
     throw new UnsupportedError(
         "_ExternalOneByteString can only be allocated by the VM");
@@ -1250,11 +1252,9 @@ class _ExternalOneByteString extends _StringBase implements String {
   bool operator ==(Object other) {
     return super == other;
   }
-
-  static int _getCid() native "ExternalOneByteString_getCid";
 }
 
-class _ExternalTwoByteString extends _StringBase implements String {
+class _ExternalTwoByteString extends _StringBase {
   factory _ExternalTwoByteString._uninstantiable() {
     throw new UnsupportedError(
         "_ExternalTwoByteString can only be allocated by the VM");

@@ -2,7 +2,7 @@
 
 Author: eernst@.
 
-Version: 0.2 (2017-08-30)
+Version: 0.3 (2017-09-08)
 
 Status: Under implementation.
 
@@ -95,14 +95,24 @@ feature is eliminated in this transformation step.*
 We need to treat expressions differently in different locations, hence the
 following definition, which is identical to the one in
 [optional const](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-const.md):
+
 An expression _e_ is said to *occur in a constant context*,
 
-- if _e_ is an immediate subexpression of a constant list literal or a
-  constant map literal.
-- if _e_ is an immediate subexpression of a constant object expression.
+- if _e_ is an element of a constant list literal, or a key or value of
+  an entry of a constant map literal.
+- if _e_ is an actual argument of a constant object expression or of a
+  metadata annotation.
 - if _e_ is the initializing expression of a constant variable declaration.
-- if _e_ is an immediate subexpression of an expression which occurs in a
-  constant context.
+- if _e_ is a switch case expression.
+- if _e_ is an immediate subexpression of an expression _e1_ which occurs in
+  a constant context, unless _e1_ is a `throw` expression or a function
+  literal.
+
+*This roughly means that everything which is inside a syntactically
+constant expression is in a constant context. A `throw` expression is
+currently not allowed in a constant expression, but extensions affecting
+that status may be considered. A similar situation arises for function
+literals.*
 
 We define *new/const insertion* as the following transformation:
 
@@ -118,8 +128,9 @@ assignableExpressionTail ::=
     arguments assignableSelector (arguments* assignableSelector)*
 ```
 
-An expression on one of the following forms must be modified to be or
-contain a `constantObjectExpression` or `newExpression` as described:
+An expression on one of the following forms must be modified in top-down
+order to be or contain a `constantObjectExpression` or `newExpression`
+as described:
 
 With a `postfixExpression` _e_,
 
@@ -160,6 +171,10 @@ With an `assignableExpression` _e_,
   `typeIdentifier` denotes a class _C_ exported by _L_, and `identifier2`
   is the name of a named constructor in _C_ then replace _e_ by `new` _e_.
 
+For a list literal _e_ occurring in a constant context, replace _e_ by
+`const` _e_. For a map literal _e_ occurring in a constant context,
+replace _e_ by `const` _e_.
+
 *In short, add `const` in const contexts and otherwise add `new`. With
 `assignableExpression` we always add `new`, because such an expression
 can never be a subexpression of a correct constant expression. It is easy
@@ -184,6 +199,10 @@ may be considered as background material.
 
 
 ## Revisions
+
+- 0.3 (2017-09-08) Included missing rule for transformation of composite
+  literals (lists and maps). Eliminated the notion of an immediate
+  subexpression, for improved precision.
 
 - 0.2 (2017-07-30) Updated the document to specify the previously missing
   transformations for `assignableExpression`, and to specify a no-magic

@@ -389,11 +389,14 @@ template("build_gen_snapshot_dart_io") {
                  "..:dart_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
+    deps = []
+
     if (is_fuchsia) {
+      deps += [ "//garnet/public/lib/netstack/c" ]
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
-    deps = [
+    deps += [
       "$dart_zlib_path",
     ]
 
@@ -484,6 +487,7 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
+      deps += [ "//garnet/public/lib/netstack/c" ]
       libs = [ "launchpad" ]
     }
 

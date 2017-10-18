@@ -617,6 +617,10 @@ void Namespace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
+void KernelProgramInfo::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
 void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);

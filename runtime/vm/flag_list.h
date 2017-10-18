@@ -52,6 +52,7 @@
     "Stress test system: stop background compiler often.")                     \
   R(break_at_isolate_spawn, false, bool, false,                                \
     "Insert a one-time breakpoint at the entrypoint for all spawned isolates") \
+  P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   C(collect_code, false, true, bool, true,                                     \
     "Attempt to GC infrequently used code.")                                   \
   P(collect_dynamic_function_names, bool, true,                                \
@@ -146,7 +147,6 @@
   P(reify_generic_functions, bool, false,                                      \
     "Enable reification of generic functions (not yet supported).")            \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
-  P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
   P(strong, bool, false, "Use strong mode in type checks.")                    \

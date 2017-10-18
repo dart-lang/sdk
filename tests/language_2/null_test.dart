@@ -144,7 +144,7 @@ void test() {
   Expect.equals(null, null as Null);
   Expect.equals(null, null as Object);
   Expect.equals(null, null as int);
-  Expect.throws(() => 42 as Null, (e) => e is CastError);
+  Expect.throwsCastError(() => 42 as Null);
   Expect.equals(null, new Generic<Null>().cast(null));
   Expect.equals(null, new Generic<Object>().cast(null));
   Expect.equals(null, new Generic<int>().cast(null));

@@ -8,7 +8,8 @@ import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
-import '../../base/instrumentation.dart' show InstrumentationValueLiteral;
+import '../../base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueLiteral;
 
 import '../../scanner/token.dart' show Token;
 
@@ -25,6 +26,7 @@ import '../builder/builder.dart'
         NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
+        QualifiedName,
         Scope,
         TypeBuilder,
         TypeDeclarationBuilder,
@@ -124,7 +126,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   List<T> get types => libraryDeclaration.types;
 
-  T addNamedType(String name, List<T> arguments, int charOffset);
+  T addNamedType(Object name, List<T> arguments, int charOffset);
 
   T addMixinApplication(T supertype, List<T> mixins, int charOffset);
 
@@ -136,7 +138,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   T addVoidType(int charOffset);
 
   ConstructorReferenceBuilder addConstructorReference(
-      String name, List<T> typeArguments, String suffix, int charOffset) {
+      Object name, List<T> typeArguments, String suffix, int charOffset) {
     ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
         name, typeArguments, suffix, this, charOffset);
     constructorReferences.add(ref);
@@ -259,7 +261,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<MetadataBuilder> metadata,
       int modifiers,
       T returnType,
-      String name,
+      Object name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
@@ -278,6 +280,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charEndOffset);
 
   void addFunctionTypeAlias(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
@@ -581,6 +584,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   @override
+  void instrumentTopLevelInference(Instrumentation instrumentation) {
+    forEach((String name, Builder member) {
+      member.instrumentTopLevelInference(instrumentation);
+    });
+  }
+
+  @override
   void addWarning(Message message, int charOffset, Uri uri,
       {bool silent: false, LocatedMessage context}) {
     super
@@ -675,7 +685,10 @@ class DeclarationBuilder<T extends TypeBuilder> {
         map[builder.name] = builder;
       }
       for (T type in types) {
-        String name = type.name;
+        Object nameOrQualified = type.name;
+        String name = nameOrQualified is QualifiedName
+            ? nameOrQualified.prefix
+            : nameOrQualified;
         TypeVariableBuilder builder;
         if (name != null) {
           builder = map[name];
@@ -684,6 +697,9 @@ class DeclarationBuilder<T extends TypeBuilder> {
           // Since name didn't resolve in this scope, propagate it to the
           // parent declaration.
           parent.addType(type);
+        } else if (nameOrQualified is QualifiedName) {
+          // Attempt to use type variable as prefix.
+          type.bind(type.buildInvalidType());
         } else {
           type.bind(builder);
         }

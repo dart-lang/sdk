@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:kernel/ast.dart';
 
 /// Base class for [TypeInferenceListener] that defines the API for debugging.
@@ -10,8 +9,6 @@ import 'package:kernel/ast.dart';
 /// By default no debug info is printed.  To enable debug printing, mix in
 /// [TypeInferenceDebugging].
 class TypeInferenceBase {
-  void debugDependency(AccessorNode accessorNode) {}
-
   bool genericExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
     return false;
@@ -34,10 +31,6 @@ class TypeInferenceBase {
 /// Mixin which can be applied to [TypeInferenceListener] to cause debug info to
 /// be printed.
 class TypeInferenceDebugging implements TypeInferenceBase {
-  void debugDependency(AccessorNode accessorNode) {
-    print('Dependency $accessorNode');
-  }
-
   bool genericExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
     print('Enter $expressionType($expression) (context=$typeContext)');
@@ -322,9 +315,6 @@ class TypeInferenceListener
 
   void propertySetExit(PropertySet expression, DartType inferredType) =>
       genericExpressionExit("propertySet", expression, inferredType);
-
-  void recordDependency(AccessorNode accessorNode) =>
-      debugDependency(accessorNode);
 
   void redirectingInitializerEnter(RedirectingInitializer initializer) =>
       genericInitializerEnter("redirectingInitializer", initializer);

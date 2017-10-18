@@ -7,6 +7,39 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
+io/raw_socket_test: Pass, RuntimeError # Issue 28288
+io/http_close_test: Pass, RuntimeError # Issue 28380
+packages_file_test: Skip # Issue 26715
+packages_file_test/none: Skip   # contains no tests.
+
+package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
+package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Fail, OK # CompileTimeErrors intentionally
+package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, OK # CompileTimeErrors intentionally
+package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK # CompileTimeErrors intentionally
+package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
+package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
+
+issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
+
+[$runtime == vm && $compiler == none && $system == fuchsia]
+*: Skip  # Not yet triaged.
+
+[ ($runtime != vm && $runtime != dart_precompiled && $compiler != none) ]
+no_assert_test: Fail, OK # This is testing a vm flag.
+env_test: Skip # This is testing a vm command line parsing scenario.
+
+[ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter ]
+package/package_isolate_test: Fail # Issue 12474
+package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
+# This test checks that the test runner correctly detects and reports non-utf8
+# output from a test.
+io/non_utf8_output_test: NonUtf8Output, OK
+# Failures in secure networking while NSS is replaced with BoringSSL
+io/https_client_certificate_test: RuntimeError # Issue 24070
+io/secure_socket_renegotiate_test: RuntimeError
+io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
+
+
 # All static_tests have expected compile-time errors.
 [ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
 float_array_static_test: MissingCompileTimeError
@@ -18,8 +51,32 @@ float_array_static_test: MissingCompileTimeError
 no_assert_test: Fail, Ok
 env_test: Skip
 
+[ ($runtime == vm || $runtime == dart_precompiled) && $system == macos ]
+# This test fails with "Too many open files" on the Mac OS buildbot.
+# This is expected as MacOS by default runs with a very low number
+# of allowed open files ('ulimit -n' says something like 256).
+io/socket_many_connections_test: Skip
+# Re-enable once the bots have been updated. Issue #26057
+io/secure_server_client_certificate_test: Skip
+io/socket_test: Pass, Timeout # Issue 27453
+
+# This test sometimes hangs on Mac.
+io/raw_server_socket_cancel_test: Skip # Issue 28182
+io/raw_secure_server_socket_test: Pass, Crash # Issue 29524
+
 [ ((($runtime == vm) || ($runtime == flutter)) && ($system == linux)) ]
 io/http_launch_test: Pass, Slow, Timeout # Issue 28046
+# These tests have started timing out and issue 25649 has been filed to
+# investigate, skipping these tests temporarily to get the bots to be
+# green again.
+io/http_proxy_test: Skip
+io/secure_builtin_roots_test: Skip
+
+# These tests might be slow on an opt counter threshold bot.
+# They also time out on the bot occasionally => flaky test issue 28046
+io/http_basic_test: Pass, Slow, Timeout  # Issue 28046
+io/http_launch_test: Pass, Slow, Timeout  # Issue 28046
+
 
 [ (((($runtime != vm) || ($arch == arm)) || ($arch == arm64)) || (($system == windows) && ($mode == debug))) ]
 fragmentation_test: Skip
@@ -39,8 +96,16 @@ assert_test: SkipByDesign
 no_assert_test: SkipByDesign
 
 [ ($mode == product) ]
+no_profiler_test: SkipByDesign
+no_support_coverage_test: SkipByDesign
+no_support_debugger_test: SkipByDesign
+no_support_disassembler_test: SkipByDesign
+no_support_il_printer_test: SkipByDesign
+no_support_service_test: SkipByDesign
+no_support_timeline_test: SkipByDesign
+io/stdio_implicit_close_test: Skip # SkipByDesign
 dart_developer_env_test: SkipByDesign
-dart_developer_env_test: SkipByDesign
+verbose_gc_to_bmu_test: SkipByDesign  # No verbose_gc in product mode
 
 [ (($runtime == dart_precompiled) && ($mode == product)) ]
 dwarf_stack_trace_test: Pass, RuntimeError
@@ -50,16 +115,61 @@ deferred_transitive_import_error_test: Skip
 
 [ (($hot_reload) || ($hot_reload_rollback)) ]
 deferred_transitive_import_error_test: Crash
+package/*: SkipByDesign # Launches VMs in interesting ways.
+io/raw_datagram_read_all_test: Pass, Fail # Timing dependent.
+io/test_runner_test: Pass, Slow # Slow.
+io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
+
+[ $builder_tag == no_ipv6 ]
+io/socket_source_address_test: SkipByDesign
+io/socket_bind_test: SkipByDesign
+io/http_loopback_test: SkipByDesign
+io/http_proxy_advanced_test: SkipByDesign
+io/http_ipv6_test: SkipByDesign
+io/socket_ipv6_test: SkipByDesign
+io/socket_info_ipv6_test: SkipByDesign
+
+[ $runtime == vm && $system == macos && $mode == release ]
+io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
+
+[ $system == macos && $builder_tag == swarming ]
+io/*: Skip # Issue 30618
+
+[ $builder_tag == asan ]
+io/process_detached_test: Pass, Slow
+io/named_pipe_script_test: RuntimeError
 
 [ (($compiler == dartk) || ($compiler == dartkp)) ]
 assert_test: RuntimeError
+io/http_client_connect_test: Skip # Flaky.
+io/http_content_length_test: Skip # Flaky.
+io/http_proxy_test: Skip # Flaky.
+io/http_response_deadline_test: Skip # Flaky.
+io/http_reuse_server_port_test: Skip # Flaky.
+io/http_server_close_response_after_error_test: Skip # Flaky.
+io/http_shutdown_test: Skip # Flaky.
+io/raw_secure_server_closing_test: Skip # Flaky
+io/raw_secure_server_closing_test: Skip # Flaky.
+io/secure_multiple_client_server_test: Skip # Flaky.
+io/secure_server_closing_test: Skip # Flaky.
+io/secure_server_socket_test: Skip # Flaky.
+io/web_socket_error_test: Skip # Flaky
+io/web_socket_ping_test: Skip # Flaky.
+io/web_socket_test: Skip # Flaky.
+no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
+regress_29350_test: MissingCompileTimeError
+assert_test: RuntimeError
+io/compile_all_test: Skip # Crashes
+map_insert_remove_oom_test: Skip # Crashes
+package/package1_test: CompileTimeError
+package/package_test: CompileTimeError
+package/scenarios/invalid/invalid_utf8_test: CompileTimeError
+package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
+package/scenarios/invalid/same_package_twice_test: CompileTimeError
 
 [ ($compiler == dartkp) ]
-causal_async_stack_test: Fail
+causal_async_stack_test: Skip # Flaky.
 
-[ ($runtime == flutter) ]
-io/addlatexhash_test: RuntimeError # Issue 9115
-http_launch_test: Skip # Issue 9115
-dart_developer_disabled_env_test: RuntimeError # Issue 9115
-dart_developer_disabled_env_test: RuntimeError # Issue 9115
+[ $compiler == dart2js || $compiler == dartdevc ]
+*: SkipByDesign
 

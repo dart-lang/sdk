@@ -44,12 +44,8 @@ class CallThroughGetterTest {
     Expect.equals(87, (a.field)());
 
     a.field = 99;
-    Expect.throwsNoSuchMethodError(() {
-      a.field();
-    });
-    Expect.throwsNoSuchMethodError(() {
-      (a.field)();
-    });
+    Expect.throwsNoSuchMethodError(() => a.field());
+    Expect.throwsNoSuchMethodError(() => (a.field)());
   }
 
   static void testGetter() {
@@ -63,12 +59,8 @@ class CallThroughGetterTest {
     Expect.equals(87, (a.getter)());
 
     a.field = 99;
-    Expect.throwsNoSuchMethodError(() {
-      a.getter();
-    });
-    Expect.throwsNoSuchMethodError(() {
-      (a.getter)();
-    });
+    Expect.throwsNoSuchMethodError(() => a.getter());
+    Expect.throwsNoSuchMethodError(() => (a.getter)());
   }
 
   static void testMethod() {

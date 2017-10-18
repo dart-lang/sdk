@@ -5463,9 +5463,8 @@ class SsaAstGraphBuilder extends ast.Visitor
           buildBody);
     }, () {
       pushInvokeDynamic(node, Selectors.cancel, null, [streamIterator]);
-      push(new HAwait(pop(),
+      add(new HAwait(pop(),
           new TypeMask.subclass(commonElements.objectClass, closedWorld)));
-      pop();
     });
   }
 

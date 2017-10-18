@@ -17,11 +17,11 @@ main() {
 /// Static set of an uninitialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field1:[null|exact=JSUInt31]*/
-var _field1;
+/*element: field1:[null|exact=JSUInt31]*/
+var field1;
 
 /*element: setTopLevelFieldUninitialized:[exact=JSUInt31]*/
-setTopLevelFieldUninitialized() => _field1 = 42;
+setTopLevelFieldUninitialized() => field1 = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static set of an uninitialized static field.
@@ -39,11 +39,11 @@ setStaticFieldUninitialized() => Class1.field = 42;
 /// Static set of an initialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field2:Union of [[exact=JSString], [exact=JSUInt31]]*/
-dynamic _field2 = '';
+/*element: field2:Union of [[exact=JSString], [exact=JSUInt31]]*/
+dynamic field2 = '';
 
 /*element: setTopLevelFieldInitialized:[exact=JSUInt31]*/
-setTopLevelFieldInitialized() => _field2 = 42;
+setTopLevelFieldInitialized() => field2 = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static set of an initialized static field.

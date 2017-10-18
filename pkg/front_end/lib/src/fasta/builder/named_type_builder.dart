@@ -9,12 +9,13 @@ import 'builder.dart'
         Builder,
         InvalidTypeBuilder,
         PrefixBuilder,
+        QualifiedName,
         Scope,
         TypeBuilder,
         TypeDeclarationBuilder;
 
 abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
-  final String name;
+  final Object name;
 
   final List<T> arguments;
 
@@ -23,7 +24,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
   NamedTypeBuilder(this.name, this.arguments, int charOffset, Uri fileUri)
       : super(charOffset, fileUri);
 
-  InvalidTypeBuilder<T, R> buildInvalidType(String name);
+  InvalidTypeBuilder<T, R> buildInvalidType();
 
   void bind(TypeDeclarationBuilder builder) {
     this.builder = builder;
@@ -31,25 +32,21 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
 
   void resolveIn(Scope scope) {
     if (builder != null) return;
-    Builder member = scope.lookup(name, charOffset, fileUri);
+    final name = this.name;
+    Builder member;
+    if (name is QualifiedName) {
+      var prefix = scope.lookup(name.prefix, charOffset, fileUri);
+      if (prefix is PrefixBuilder) {
+        member = prefix.lookup(name.suffix, name.charOffset, fileUri);
+      }
+    } else {
+      member = scope.lookup(name, charOffset, fileUri);
+    }
     if (member is TypeDeclarationBuilder) {
       builder = member;
       return;
     }
-    if (name.contains(".")) {
-      int index = name.lastIndexOf(".");
-      String first = name.substring(0, index);
-      String last = name.substring(name.lastIndexOf(".") + 1);
-      var prefix = scope.lookup(first, charOffset, fileUri);
-      if (prefix is PrefixBuilder) {
-        member = prefix.lookup(last, charOffset, fileUri);
-      }
-      if (member is TypeDeclarationBuilder) {
-        builder = member;
-        return;
-      }
-    }
-    builder = buildInvalidType(name);
+    builder = buildInvalidType();
   }
 
   String get debugName => "NamedTypeBuilder";

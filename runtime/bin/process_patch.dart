@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 @patch
 class _WindowsCodePageDecoder {
   @patch
@@ -281,14 +283,11 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
     if (mode != ProcessStartMode.DETACHED) {
       // stdin going to process.
-      _stdin = new _StdSink(new _Socket._writePipe());
-      _stdin._sink._owner = this;
+      _stdin = new _StdSink(new _Socket._writePipe().._owner = this);
       // stdout coming from process.
-      _stdout = new _StdStream(new _Socket._readPipe());
-      _stdout._stream._owner = this;
+      _stdout = new _StdStream(new _Socket._readPipe().._owner = this);
       // stderr coming from process.
-      _stderr = new _StdStream(new _Socket._readPipe());
-      _stderr._stream._owner = this;
+      _stderr = new _StdStream(new _Socket._readPipe().._owner = this);
     }
     if (mode == ProcessStartMode.NORMAL) {
       _exitHandler = new _Socket._readPipe();
@@ -296,6 +295,13 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     _ended = false;
     _started = false;
   }
+
+  _NativeSocket get _stdinNativeSocket =>
+      (_stdin._sink as _Socket)._nativeSocket;
+  _NativeSocket get _stdoutNativeSocket =>
+      (_stdout._stream as _Socket)._nativeSocket;
+  _NativeSocket get _stderrNativeSocket =>
+      (_stderr._stream as _Socket)._nativeSocket;
 
   static String _getShellCommand() {
     if (Platform.isWindows) {
@@ -398,15 +404,9 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
           _workingDirectory,
           _environment,
           _mode.index,
-          _mode == ProcessStartMode.DETACHED
-              ? null
-              : _stdin._sink._nativeSocket,
-          _mode == ProcessStartMode.DETACHED
-              ? null
-              : _stdout._stream._nativeSocket,
-          _mode == ProcessStartMode.DETACHED
-              ? null
-              : _stderr._stream._nativeSocket,
+          _mode == ProcessStartMode.DETACHED ? null : _stdinNativeSocket,
+          _mode == ProcessStartMode.DETACHED ? null : _stdoutNativeSocket,
+          _mode == ProcessStartMode.DETACHED ? null : _stderrNativeSocket,
           _mode != ProcessStartMode.NORMAL ? null : _exitHandler._nativeSocket,
           status);
       if (!success) {
@@ -436,7 +436,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
             _ended = true;
             _exitCode.complete(exitCode(exitDataBuffer));
             // Kill stdin, helping hand if the user forgot to do it.
-            _stdin._sink.destroy();
+            (_stdin._sink as _Socket).destroy();
             _resourceInfo.stopped();
           }
 
@@ -464,9 +464,9 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
         _workingDirectory,
         _environment,
         ProcessStartMode.NORMAL.index,
-        _stdin._sink._nativeSocket,
-        _stdout._stream._nativeSocket,
-        _stderr._stream._nativeSocket,
+        _stdinNativeSocket,
+        _stdoutNativeSocket,
+        _stderrNativeSocket,
         _exitHandler._nativeSocket,
         status);
     if (!success) {
@@ -476,11 +476,8 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
     _resourceInfo = new _ProcessResourceInfo(this);
 
-    var result = _wait(
-        _stdin._sink._nativeSocket,
-        _stdout._stream._nativeSocket,
-        _stderr._stream._nativeSocket,
-        _exitHandler._nativeSocket);
+    var result = _wait(_stdinNativeSocket, _stdoutNativeSocket,
+        _stderrNativeSocket, _exitHandler._nativeSocket);
 
     getOutput(output, encoding) {
       if (encoding == null) return output;
@@ -546,7 +543,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
   _StdSink _stdin;
   _StdStream _stdout;
   _StdStream _stderr;
-  Socket _exitHandler;
+  _Socket _exitHandler;
   bool _ended;
   bool _started;
   Completer<int> _exitCode;

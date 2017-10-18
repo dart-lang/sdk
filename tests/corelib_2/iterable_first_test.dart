@@ -14,9 +14,9 @@ main() {
 
   Expect.equals(1, list1.first);
   Expect.equals(4, list2.first);
-  Expect.throws(() => list3.first, (e) => e is StateError);
+  Expect.throwsStateError(() => list3.first);
 
   Expect.isTrue(set1.contains(set1.first));
 
-  Expect.throws(() => set2.first, (e) => e is StateError);
+  Expect.throwsStateError(() => set2.first);
 }

@@ -12,7 +12,6 @@ import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/annotations.dart';
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_model/locals.dart';
@@ -50,7 +49,6 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
         _compiler.progress,
         _compiler.reporter,
         _compiler.outputProvider,
-        _compiler.backend.optimizerHints,
         _elementMap,
         _globalLocalsMap,
         _closureDataLookup,
@@ -103,7 +101,6 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       Progress progress,
       DiagnosticReporter reporter,
       CompilerOutput compilerOutput,
-      OptimizerHintsForTests optimizerHints,
       this._elementMap,
       this._globalLocalsMap,
       this._closureDataLookup,
@@ -117,7 +114,6 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
             progress,
             reporter,
             compilerOutput,
-            optimizerHints,
             closedWorld,
             closedWorldRefiner,
             mirrorsData,
@@ -181,12 +177,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       case MemberKind.regular:
         ir.Member node = definition.node;
         if (node is ir.Field) {
-          if (node.isInstanceMember &&
-              !node.isFinal &&
-              node.initializer is ir.NullLiteral) {
-            return null;
-          }
-          return node.initializer;
+          return getFieldInitializer(_elementMap, member);
         } else if (node is ir.Procedure) {
           return node.function;
         }
@@ -451,4 +442,20 @@ class KernelGlobalTypeInferenceElementData
     if (_sendMap == null) return null;
     return _sendMap[node];
   }
+}
+
+/// Returns the initializer for [field].
+///
+/// If [field] is an instance field with a null literal initializer `null` is
+/// returned, otherwise the initializer of the [ir.Field] is returned.
+ir.Node getFieldInitializer(
+    KernelToElementMapForBuilding elementMap, FieldEntity field) {
+  MemberDefinition definition = elementMap.getMemberDefinition(field);
+  ir.Field node = definition.node;
+  if (node.isInstanceMember &&
+      !node.isFinal &&
+      node.initializer is ir.NullLiteral) {
+    return null;
+  }
+  return node.initializer;
 }

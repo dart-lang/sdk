@@ -32,13 +32,15 @@ import 'builder.dart'
         Builder,
         ClassBuilder,
         DynamicTypeBuilder,
+        ModifierBuilder,
         PrefixBuilder,
         Scope,
         ScopeBuilder,
         TypeBuilder,
         VoidTypeBuilder;
 
-abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
+abstract class LibraryBuilder<T extends TypeBuilder, R>
+    extends ModifierBuilder {
   final Scope scope;
 
   final Scope exportScope;
@@ -67,7 +69,13 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
+  @override
+  String get debugName => "LibraryBuilder";
+
   Loader get loader;
+
+  @override
+  int get modifiers => 0;
 
   @override
   R get target;

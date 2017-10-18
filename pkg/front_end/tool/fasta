@@ -52,7 +52,7 @@ case "${1//_/-}" in
   kernel-service)
     shift
     PATCHED_SDK_DIR=$(
-      ls -d {xcodebuild,out}/${DART_CONFIGURATION}/patched_sdk 2>/dev/null \
+      ls -d {xcodebuild,out}/${DART_CONFIGURATION} 2>/dev/null \
         | head -1)
     exec "${DART_VM}" -DDFE_VERBOSE=true \
          --kernel-binaries=${PATCHED_SDK_DIR} \

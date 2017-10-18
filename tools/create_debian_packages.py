@@ -46,13 +46,7 @@ def RunBuildPackage(opt, cwd, toolchain=None):
     env["TOOLCHAIN"] = '--toolchain=' + toolchain
   cmd = ['dpkg-buildpackage', '-j%d' % HOST_CPUS]
   cmd.extend(opt)
-  process = subprocess.Popen(cmd,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             cwd=cwd, env=env)
-  (stdout, stderr) = process.communicate()
-  if process.returncode != 0:
-    raise Exception('Command \'%s\' failed: %s\nSTDOUT: %s' %
-                    (' '.join(cmd), stderr, stdout))
+  process = subprocess.check_call(cmd, cwd=cwd, env=env)
 
 def BuildDebianPackage(tarball, out_dir, arch, toolchain):
   version = utils.GetVersion()

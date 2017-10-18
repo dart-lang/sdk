@@ -187,6 +187,11 @@ class MiniAstBuilder extends StackListener {
     push(popList(memberCount));
   }
 
+  @override
+  void handleRecoverClassHeader() {
+    pop(); // superclass
+  }
+
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
     List<ClassMember> members = pop();
@@ -420,8 +425,9 @@ class MiniAstBuilder extends StackListener {
 
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
-      var comment = new Comment(token.precedingComments);
-      push(new EnumConstantDeclaration(comment, null, token.lexeme));
+      List<Annotation> metadata = pop();
+      Comment comment = pop();
+      push(new EnumConstantDeclaration(comment, metadata, token.lexeme));
     } else {
       push(token.lexeme);
     }

@@ -2,7 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" hide Symbol;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:async" which contains all the imports used
+/// by patches of that library. We plan to change this when we have a shared
+/// front end and simply use parts.
+
+import "dart:_internal" show VMLibraryHooks, patch;
+
+/// These are the additional parts of this patch library:
+// part "deferred_load_patch.dart";
+// part "schedule_microtask_patch.dart";
+// part "timer_patch.dart";
 
 // Equivalent of calling FATAL from C++ code.
 _fatal(msg) native "DartAsync_fatal";
@@ -87,8 +97,8 @@ void _asyncStarMoveNextHelper(var stream) {
 
 // _AsyncStarStreamController is used by the compiler to implement
 // async* generator functions.
-class _AsyncStarStreamController {
-  StreamController controller;
+class _AsyncStarStreamController<T> {
+  StreamController<T> controller;
   Function asyncStarBody;
   bool isAdding = false;
   bool onListenReceived = false;
@@ -96,12 +106,11 @@ class _AsyncStarStreamController {
   bool isSuspendedAtYield = false;
   Completer cancellationCompleter = null;
 
-  Stream get stream {
-    Stream local = controller.stream;
-    if (local is! _StreamImpl) {
-      return local;
+  Stream<T> get stream {
+    final Stream<T> local = controller.stream;
+    if (local is _StreamImpl<T>) {
+      local._generator = asyncStarBody;
     }
-    local._generator = asyncStarBody;
     return local;
   }
 
@@ -129,7 +138,7 @@ class _AsyncStarStreamController {
   // controller.add(e);
   // suspend;
   // if (controller.isCancelled) return;
-  bool add(event) {
+  bool add(T event) {
     if (!onListenReceived) _fatal("yield before stream is listened to");
     if (isSuspendedAtYield) _fatal("unexpected yield");
     // If stream is cancelled, tell caller to exit the async generator.
@@ -147,13 +156,13 @@ class _AsyncStarStreamController {
   // elements of the added stream have been consumed.
   // Returns true if the caller should terminate
   // execution of the generator.
-  bool addStream(Stream stream) {
+  bool addStream(Stream<T> stream) {
     if (!onListenReceived) _fatal("yield before stream is listened to");
     // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) return true;
     isAdding = true;
     var whenDoneAdding =
-        controller.addStream(stream as Stream, cancelOnError: false);
+        controller.addStream(stream as Stream<T>, cancelOnError: false);
     whenDoneAdding.then((_) {
       isAdding = false;
       scheduleGenerator();
@@ -162,7 +171,7 @@ class _AsyncStarStreamController {
     return false;
   }
 
-  void addError(error, stackTrace) {
+  void addError(Object error, StackTrace stackTrace) {
     if ((cancellationCompleter != null) && !cancellationCompleter.isCompleted) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
@@ -242,7 +251,7 @@ class _StreamImpl<T> {
   Function _generator;
 }
 
-void _completeOnAsyncReturn(Object completer, Object value) {
+void _completeOnAsyncReturn(Completer completer, Object value) {
   completer.complete(value);
 }
 

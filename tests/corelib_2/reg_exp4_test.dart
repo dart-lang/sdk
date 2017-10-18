@@ -6,44 +6,9 @@
 import "package:expect/expect.dart";
 
 main() {
-  try {
-    RegExp ex = new RegExp(null);
-    Expect.fail("Expected: ArgumentError got: no exception");
-  } catch (ex) {
-    if (!(ex is ArgumentError)) {
-      Expect.fail("Expected: ArgumentError got: ${ex}");
-    }
-  }
-  try {
-    new RegExp(r"^\w+$").hasMatch(null);
-    Expect.fail("Expected: ArgumentError got: no exception");
-  } catch (ex) {
-    if (!(ex is ArgumentError)) {
-      Expect.fail("Expected: ArgumentError got: ${ex}");
-    }
-  }
-  try {
-    new RegExp(r"^\w+$").firstMatch(null);
-    Expect.fail("Expected: ArgumentError got: no exception");
-  } catch (ex) {
-    if (!(ex is ArgumentError)) {
-      Expect.fail("Expected: ArgumentError got: ${ex}");
-    }
-  }
-  try {
-    new RegExp(r"^\w+$").allMatches(null);
-    Expect.fail("Expected: ArgumentError got: no exception");
-  } catch (ex) {
-    if (!(ex is ArgumentError)) {
-      Expect.fail("Expected: ArgumentError got: ${ex}");
-    }
-  }
-  try {
-    new RegExp(r"^\w+$").stringMatch(null);
-    Expect.fail("Expected: ArgumentError got: no exception");
-  } catch (ex) {
-    if (!(ex is ArgumentError)) {
-      Expect.fail("Expected: ArgumentError got: ${ex}");
-    }
-  }
+  Expect.throwsArgumentError(() => new RegExp(null));
+  Expect.throwsArgumentError(() => new RegExp(r"^\w+$").hasMatch(null));
+  Expect.throwsArgumentError(() => new RegExp(r"^\w+$").firstMatch(null));
+  Expect.throwsArgumentError(() => new RegExp(r"^\w+$").allMatches(null));
+  Expect.throwsArgumentError(() => new RegExp(r"^\w+$").stringMatch(null));
 }

@@ -752,206 +752,21 @@ void DoubleTestOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 }
 
-void BinaryFloat32x4OpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-}
+static const char* simd_op_kind_string[] = {
+#define CASE(Arity, Mask, Name, ...) #Name,
+    SIMD_OP_LIST(CASE, CASE)
+#undef CASE
+};
 
-void BinaryFloat64x2OpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-}
-
-void Simd32x4ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
-  // TODO(johnmccutchan): Add proper string enumeration of shuffle.
-  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
-  value()->PrintTo(f);
-}
-
-void Simd32x4ShuffleMixInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
-  xy()->PrintTo(f);
-  f->Print(", ");
-  zw()->PrintTo(f);
-}
-
-void Simd32x4GetSignMaskInstr::PrintOperandsTo(BufferFormatter* f) const {
-  if (op_kind() == MethodRecognizer::kFloat32x4GetSignMask) {
-    f->Print("Float32x4.getSignMask ");
-  } else {
-    ASSERT(op_kind() == MethodRecognizer::kInt32x4GetSignMask);
-    f->Print("Int32x4.getSignMask ");
+void SimdOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", simd_op_kind_string[kind()]);
+  if (HasMask()) {
+    f->Print(", mask = %" Pd "", mask());
   }
-  value()->PrintTo(f);
-}
-
-void Float32x4SplatInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("SPLAT ");
-  value()->PrintTo(f);
-}
-
-void Float32x4ConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Float32x4(");
-  value0()->PrintTo(f);
-  f->Print(", ");
-  value1()->PrintTo(f);
-  f->Print(", ");
-  value2()->PrintTo(f);
-  f->Print(", ");
-  value3()->PrintTo(f);
-  f->Print(")");
-}
-
-void Float32x4ComparisonInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Float32x4 Comparison %s, ",
-           MethodRecognizer::KindToCString(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-}
-
-void Float32x4MinMaxInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-}
-
-void Float32x4SqrtInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
-  left()->PrintTo(f);
-}
-
-void Float32x4ScaleInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-}
-
-void Float32x4ZeroArgInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
-  left()->PrintTo(f);
-}
-
-void Float32x4ClampInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Float32x4.clamp, ");
-  left()->PrintTo(f);
-}
-
-void Float32x4WithInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  replacement()->PrintTo(f);
-}
-
-void Float32x4ToInt32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Float32x4.toInt32x4 ");
-  left()->PrintTo(f);
-}
-
-void Simd64x2ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
-  // TODO(johnmccutchan): Add proper string enumeration of shuffle.
-  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
-  value()->PrintTo(f);
-}
-
-void Float64x2SplatInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Float64x2.splat ");
-  value()->PrintTo(f);
-}
-
-void Float64x2ConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Float64x2(");
-  value0()->PrintTo(f);
-  f->Print(", ");
-  value1()->PrintTo(f);
-  f->Print(")");
-}
-
-void Float32x4ToFloat64x2Instr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Float64x2.fromFloat32x4 ");
-  left()->PrintTo(f);
-}
-
-void Float64x2ToFloat32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Float32x4.fromFloat64x2 ");
-  left()->PrintTo(f);
-}
-
-void Float64x2ZeroArgInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
-  left()->PrintTo(f);
-}
-
-void Float64x2OneArgInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s(", MethodRecognizer::KindToCString(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-  f->Print(")");
-}
-
-void Int32x4ConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Int32x4(");
-  value0()->PrintTo(f);
-  f->Print(", ");
-  value1()->PrintTo(f);
-  f->Print(", ");
-  value2()->PrintTo(f);
-  f->Print(", ");
-  value3()->PrintTo(f);
-  f->Print(")");
-}
-
-void Int32x4BoolConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Int32x4.bool(");
-  value0()->PrintTo(f);
-  f->Print(", ");
-  value1()->PrintTo(f);
-  f->Print(", ");
-  value2()->PrintTo(f);
-  f->Print(", ");
-  value3()->PrintTo(f);
-  f->Print(")");
-}
-
-void Int32x4GetFlagInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Int32x4.%s ", MethodRecognizer::KindToCString(op_kind()));
-  value()->PrintTo(f);
-}
-
-void Int32x4SetFlagInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Int32x4.%s ", MethodRecognizer::KindToCString(op_kind()));
-  value()->PrintTo(f);
-  f->Print(", ");
-  flagValue()->PrintTo(f);
-}
-
-void Int32x4SelectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Int32x4.select ");
-  mask()->PrintTo(f);
-  f->Print(", ");
-  trueValue()->PrintTo(f);
-  f->Print(", ");
-  falseValue()->PrintTo(f);
-}
-
-void Int32x4ToFloat32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Int32x4.toFloat32x4 ");
-  left()->PrintTo(f);
-}
-
-void BinaryInt32x4OpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    f->Print(", ");
+    InputAt(i)->PrintTo(f);
+  }
 }
 
 void UnaryDoubleOpInstr::PrintOperandsTo(BufferFormatter* f) const {

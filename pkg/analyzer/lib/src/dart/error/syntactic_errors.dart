@@ -147,9 +147,14 @@ class ParserErrorCode extends ErrorCode {
       "A continue statement in a switch statement must have a label as a target.",
       "Try adding a label associated with one of the case clauses to the continue statement.");
 
+  static const ParserErrorCode COVARIANT_AFTER_FINAL = const ParserErrorCode(
+      'COVARIANT_AFTER_FINAL',
+      "The modifier 'covariant' should be before the modifier 'final'.",
+      "Try re-ordering the modifiers.");
+
   static const ParserErrorCode COVARIANT_AFTER_VAR = const ParserErrorCode(
       'COVARIANT_AFTER_VAR',
-      "The modifier 'covariant' should be before the modifier 'var'.",
+      "The modifier 'covariant' should be before the modifier 'final'.",
       "Try re-ordering the modifiers.");
 
   static const ParserErrorCode COVARIANT_AND_STATIC = const ParserErrorCode(

@@ -60,6 +60,7 @@ class Compiler {
   static const appJit = const Compiler._('app_jit');
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
+  static const specParser = const Compiler._('spec_parser');
 
   static final List<String> names = _all.keys.toList();
 
@@ -71,7 +72,8 @@ class Compiler {
     dartdevc,
     appJit,
     dartk,
-    dartkp
+    dartkp,
+    specParser
   ], key: (Compiler compiler) => compiler.name);
 
   static Compiler find(String name) {

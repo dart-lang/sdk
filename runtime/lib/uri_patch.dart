@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VM implementation of Uri.
+// part of "core_patch.dart";
+
 typedef Uri _UriBaseClosure();
 
 Uri _unsupportedUriBase() {
@@ -19,6 +20,7 @@ class Uri {
   static Uri get base => _uriBaseClosure();
 }
 
+/// VM implementation of Uri.
 @patch
 class _Uri {
   static final bool _isWindowsCached = _isWindowsPlatform;

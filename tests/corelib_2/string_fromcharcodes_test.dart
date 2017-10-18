@@ -166,8 +166,8 @@ main() {
   test("\u{10FFFF}", [0x10FFFF], 0, 1);
 
   void testThrowsRange(iterable, [start = 0, end]) {
-    Expect.throws(() => new String.fromCharCodes(iterable, start, end),
-        (e) => e is RangeError);
+    Expect.throwsRangeError(
+        () => new String.fromCharCodes(iterable, start, end));
   }
 
   // Test varying slices of the code units of a string.

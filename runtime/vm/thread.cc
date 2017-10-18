@@ -4,6 +4,8 @@
 
 #include "vm/thread.h"
 
+#include "platform/address_sanitizer.h"
+#include "platform/safe_stack.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
@@ -414,30 +416,15 @@ void Thread::ClearStackLimit() {
   SetStackLimit(~static_cast<uword>(0));
 }
 
-/* static */
+// Disable AdressSanitizer and SafeStack transformation on this function. In
+// particular, taking the address of a local gives an address on the stack
+// instead of an address in the shadow memory (AddressSanitizer) or the safe
+// stack (SafeStack).
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
 uword Thread::GetCurrentStackPointer() {
-#if !defined(TARGET_ARCH_DBC)
-  // Since AddressSanitizer's detect_stack_use_after_return instruments the
-  // C++ code to give out fake stack addresses, we call a stub in that case.
-  ASSERT(StubCode::GetCStackPointer_entry() != NULL);
-  uword (*func)() = reinterpret_cast<uword (*)()>(
-      StubCode::GetCStackPointer_entry()->EntryPoint());
-#else
-  uword (*func)() = NULL;
-#endif
-// But for performance (and to support simulators), we normally use a local.
-#if defined(__has_feature)
-#if __has_feature(address_sanitizer) || __has_feature(safe_stack)
-  uword current_sp = func();
-  return current_sp;
-#else
-  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
-  return stack_allocated_local_address;
-#endif
-#else
-  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
-  return stack_allocated_local_address;
-#endif
+  uword stack_allocated_local = reinterpret_cast<uword>(&stack_allocated_local);
+  return stack_allocated_local;
 }
 
 void Thread::ScheduleInterrupts(uword interrupt_bits) {

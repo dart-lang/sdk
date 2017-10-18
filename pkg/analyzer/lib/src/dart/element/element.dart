@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
@@ -875,8 +876,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (_kernel != null) {
       _methods ??= _kernel.procedures
           .where((k) =>
-              k.kind == kernel.ProcedureKind.Method ||
-              k.kind == kernel.ProcedureKind.Operator)
+              !k.isForwardingStub &&
+              (k.kind == kernel.ProcedureKind.Method ||
+                  k.kind == kernel.ProcedureKind.Operator))
           .map((k) => new MethodElementImpl.forKernel(this, k))
           .toList(growable: false);
     }
@@ -1337,6 +1339,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
       // Build explicit property accessors and implicit fields.
       for (var k in _kernel.procedures) {
+        if (k.isForwardingStub) continue;
         bool isGetter = k.kind == kernel.ProcedureKind.Getter;
         bool isSetter = k.kind == kernel.ProcedureKind.Setter;
         if (isGetter || isSetter) {
@@ -2215,10 +2218,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
   int _nameEnd;
 
   /**
-   * True if this constructor has been found by constant evaluation to be free
-   * of redirect cycles, and is thus safe to evaluate.
+   * For every constructor we initially set this flag to `true`, and then
+   * set it to `false` during computing constant values if we detect that it
+   * is a part of a cycle.
    */
-  bool _isCycleFree = false;
+  bool _isCycleFree = true;
 
   /**
    * Initialize a newly created constructor element to have the given [name] and
@@ -2391,6 +2395,18 @@ class ConstructorElementImpl extends ExecutableElementImpl
   void set nameEnd(int nameEnd) {
     _assertNotResynthesized(serializedExecutable);
     _nameEnd = nameEnd;
+  }
+
+  @override
+  int get nameOffset {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      if (metadata != null && metadata.constructorNameOffset != -1) {
+        return metadata.constructorNameOffset;
+      }
+      return _kernel.fileOffset;
+    }
+    return super.nameOffset;
   }
 
   @override
@@ -5280,6 +5296,10 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   String get documentationComment {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.documentationComment;
+    }
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef.documentationComment?.text;
     }
@@ -6613,11 +6633,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_unlinkedDefiningUnit != null) {
-      _metadata ??= _buildAnnotations(
-          _definingCompilationUnit as CompilationUnitElementImpl,
-          _unlinkedDefiningUnit.libraryAnnotations);
-      return _metadata;
+    if (_metadata == null) {
+      if (_kernelContext != null) {
+        CompilationUnitElementImpl definingUnit = _definingCompilationUnit;
+        _metadata = definingUnit._kernelContext
+            .buildAnnotations(_kernelContext.library.annotations);
+      }
+      if (_unlinkedDefiningUnit != null) {
+        _metadata = _buildAnnotations(
+            _definingCompilationUnit as CompilationUnitElementImpl,
+            _unlinkedDefiningUnit.libraryAnnotations);
+        return _metadata;
+      }
     }
     return super.metadata;
   }
@@ -7995,7 +8022,7 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   FunctionElement get initializer {
     if (_initializer == null) {
-      if (_kernel != null && _kernel.initializer != null) {
+      if (_kernel != null) {
         _initializer = new FunctionElementImpl.forOffset(-1)
           ..enclosingElement = this
           ..isSynthetic = true;

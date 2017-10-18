@@ -141,25 +141,6 @@ static method main() → void {}
     }
   }
 
-  test_compile_parts() async {
-    writeFile('/test/.packages', 'test:lib/');
-    String aPath = '/test/lib/a.dart';
-    String bPath = '/test/lib/b.dart';
-    Uri aUri = writeFile(aPath, r'''
-library lib;
-part 'b.dart';
-''');
-    Uri bUri = writeFile(bPath, r'''
-part of lib;
-''');
-
-    Program program = await getInitialState(aUri);
-
-    // Sources for library and its part must be present.
-    expect(program.uriToSource.keys, contains(aUri.toString()));
-    expect(program.uriToSource.keys, contains(bUri.toString()));
-  }
-
   test_compile_includePathToMain() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
@@ -211,6 +192,25 @@ b() {
       // recompiled, because the change to c.dart was in the function body.
       _assertCompiledUris([cUri]);
     }
+  }
+
+  test_compile_parts() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    Uri aUri = writeFile(aPath, r'''
+library lib;
+part 'b.dart';
+''');
+    Uri bUri = writeFile(bPath, r'''
+part of lib;
+''');
+
+    Program program = await getInitialState(aUri);
+
+    // Sources for library and its part must be present.
+    expect(program.uriToSource.keys, contains(aUri.toString()));
+    expect(program.uriToSource.keys, contains(bUri.toString()));
   }
 
   test_compile_useSdkOutline() async {
@@ -346,6 +346,35 @@ static field core::int b = a::a;
     _assertStateError(() {
       incrementalKernelGenerator.rejectLastDelta();
     }, IncrementalKernelGeneratorImpl.MSG_NO_LAST_DELTA);
+  }
+
+  test_reset() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, 'var v = 1;');
+
+    // The first delta includes the the library.
+    {
+      Program program = await getInitialState(uri);
+      _assertLibraryUris(program, includes: [uri]);
+      Library library = _getLibrary(program, uri);
+      expect(_getLibraryText(library), contains('core::int v = 1'));
+    }
+
+    // Accept the last delta, the new delta is empty.
+    incrementalKernelGenerator.acceptLastDelta();
+    {
+      var delta = await incrementalKernelGenerator.computeDelta();
+      expect(delta.newProgram.libraries, isEmpty);
+    }
+
+    // Reset the generator, so it will resend the whole program.
+    incrementalKernelGenerator.reset();
+    {
+      var delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [uri]);
+    }
   }
 
   test_updateEntryPoint() async {

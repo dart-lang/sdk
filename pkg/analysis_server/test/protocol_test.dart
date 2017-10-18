@@ -20,8 +20,6 @@ main() {
   });
 }
 
-Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());
-
 @reflectiveTest
 class InvalidParameterResponseMatcher extends Matcher {
   static const String ERROR_CODE = 'INVALID_PARAMETER';

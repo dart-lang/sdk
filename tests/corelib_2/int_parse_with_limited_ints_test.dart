@@ -21,8 +21,7 @@ main() {
   Expect.equals(-0x7fffffffffffffff, int.parse("-0x7fffffffffffffff"));
   Expect.equals(-0x7fffffffffffffff - 1, int.parse("-0x8000000000000000"));
 
-  Expect.throws(
-      () => int.parse("0x8000000000000000"), (e) => e is FormatException);
+  Expect.throwsFormatException(() => int.parse("0x8000000000000000"));
   Expect.equals(ERROR, int.parse("0x8000000000000000", onError: returnError));
   Expect.equals(ERROR, int.parse("-0x8000000000000001", onError: returnError));
 

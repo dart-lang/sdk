@@ -34,15 +34,15 @@ main() {
     var g2 = new G2<lib.C>(); //# new_generic2: compile-time error
     var g3 = new lib.G<lib.C>(); //# new_generic3: compile-time error
     var instance = lib.constantInstance;
-    Expect.throws(() { //# is_check: compile-time error
+    Expect.throwsTypeError(() { //# is_check: compile-time error
       bool a7 = instance is lib.Const; //# is_check: continued
-    }, (e) => e is TypeError); //# is_check: continued
-    Expect.throws(() { //# as_operation: compile-time error
+    }); //# is_check: continued
+    Expect.throwsTypeError(() { //# as_operation: compile-time error
       instance as lib.Const; //# as_operation: continued
-    }, (e) => e is TypeError); //# as_operation: continued
-    Expect.throws(() { //# catch_check: compile-time error
+    }); //# as_operation: continued
+    Expect.throwsTypeError(() { //# catch_check: compile-time error
       try { throw instance; } on lib.Const {} //# catch_check: continued
-    }, (e) => e is TypeError); //# catch_check: continued
+    }); //# catch_check: continued
     int i = lib.C.staticMethod(); //# static_method: ok
     asyncEnd();
   });

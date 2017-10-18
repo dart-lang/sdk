@@ -49,6 +49,8 @@ deferred/deferred_mirrors1_test: Fail # mirrors not supported
 deferred/deferred_mirrors2_lazy: Fail # mirrors not supported
 deferred/deferred_mirrors2_lib3: Fail # mirrors not supported
 deferred/deferred_mirrors2_test: Fail # mirrors not supported
+deferred/reflect_multiple_annotations_test: CompileTimeError # mirrors not supported
+deferred/reflect_multiple_default_arg_test: CompileTimeError # mirrors not supported
 inference_nsm_mirrors_test: Fail # mirrors not supported
 invalid_annotation2_test/none: Fail # mirrors not supported
 invalid_annotation2_test/01: Pass # mirrors not supported, passes for the wrong reason
@@ -92,6 +94,8 @@ to_string_test: Fail # Issue 7179.
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 code_motion_exception_test: Skip  # Requires unminified operator names.
 mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
+deferred/reflect_multiple_annotations_test: Fail
+deferred/reflect_multiple_default_arg_test: Fail
 
 
 [ $compiler == dart2js && $runtime == safari ]
@@ -113,6 +117,7 @@ timer_negative_test: Fail, OK # A negative runtime test.
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
 deferred_custom_loader_test: SkipByDesign # Issue 25683
+js_interop_test: RuntimeError # Issue 31082
 
 [ $compiler == none && $runtime == vm ]
 invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
@@ -134,42 +139,13 @@ consistent_index_error_string_test: Pass, Slow # Issue 25940
 [ $compiler == dart2js ]
 mirror_printer_test: Pass, Slow # Issue 25940, 16473
 
-[ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
-big_allocation_expression_test: Pass # Issue 27394
-21666_test: Crash # Issue 27394
-23486_test/02: Crash # Issue 27394
-closure_type_reflection2_test: Crash # Issue 27394
-closure_type_reflection_test: Crash # Issue 27394
-deferred/deferred_mirrors2_test: Crash # Issue 27394
-dummy_compiler_test: Crash # Issue 27394
-inference_super_set_call_test: RuntimeError # Issue 27394
-invalid_annotation2_test/01: Crash # Issue 27394
-invalid_annotation2_test/none: Crash # Issue 27394
-invalid_annotation_test/01: Crash # Issue 27394
-many_fields_test: Crash # Issue 27394
-mirror_enqueuer_regression_test: Crash # Issue 27394
-mirror_invalid_invoke2_test: Crash # Issue 27394
-mirror_invalid_invoke3_test: Crash # Issue 27394
-mirror_invalid_invoke_test: Crash # Issue 27394
-mirror_printer_test/01: Crash # Issue 27394
-mirror_printer_test/none: Crash # Issue 27394
-mirror_test: Crash # Issue 27394
-mirrors_used_closure_test: Crash # Issue 27394
-mirrors_used_metatargets_test: Crash # Issue 27394
-mirrors_used_native_test: Crash # Issue 27394
-recursive_import_test: Crash # Issue 27394
-reflect_native_types_test: Crash # Issue 27394
-
-[ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked ]
-js_dispatch_property_test: Crash # Issue 27394
-regress/4562_test/01: Crash # Issue 27394
-
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 21666_test: RuntimeError
 closure_capture2_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
+deferred/default_arg_is_tearoff_test: CompileTimeError
 deferred/deferred_class_test: CompileTimeError
 deferred/deferred_constant2_test: CompileTimeError
 deferred/deferred_constant3_test: CompileTimeError
@@ -179,14 +155,15 @@ deferred/deferred_mirrors1_test: CompileTimeError
 deferred/deferred_mirrors2_test: RuntimeError
 deferred/deferred_overlapping_test: CompileTimeError
 deferred/interface_type_variable_test: CompileTimeError
+deferred/multiple_default_arg_test: CompileTimeError
+deferred/reflect_multiple_annotations_test: CompileTimeError
+deferred/reflect_multiple_default_arg_test: CompileTimeError
 deferred/uninstantiated_type_variable_test: CompileTimeError
 deferred_custom_loader_test: CompileTimeError
 deferred_fail_and_retry_test: CompileTimeError
 deferred_fail_and_retry_worker_test: CompileTimeError
 deferred_inheritance_test: CompileTimeError
 deferred_split_test: CompileTimeError
-dummy_compiler_test: CompileTimeError
-inference_super_set_call_test: RuntimeError
 invalid_annotation2_test/none: RuntimeError
 label_test/06: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
@@ -203,7 +180,6 @@ mirror_type_inference_field2_test: RuntimeError
 mirror_type_inference_field_test: RuntimeError
 mirror_type_inference_function_test: RuntimeError
 mirrors_declarations_filtering_test: RuntimeError
-mirrors_used_closure_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 mirrors_used_metatargets_test: RuntimeError
 mirrors_used_native_test: RuntimeError
 mirrors_used_warning2_test: RuntimeError
@@ -215,19 +191,19 @@ private_symbol_literal_test/03: MissingCompileTimeError
 private_symbol_literal_test/04: MissingCompileTimeError
 private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
-recursive_import_test: CompileTimeError
 reflect_native_types_test: RuntimeError
 regress/4562_test/none: CompileTimeError
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
-unconditional_dartio_import_test: RuntimeError
+unconditional_dartio_import_test: RuntimeError # Issue 30902
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 21666_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
+deferred/default_arg_is_tearoff_test: CompileTimeError
 deferred/deferred_class_test: CompileTimeError
 deferred/deferred_constant2_test: CompileTimeError
 deferred/deferred_constant3_test: CompileTimeError
@@ -237,6 +213,7 @@ deferred/deferred_mirrors1_test: CompileTimeError
 deferred/deferred_mirrors2_test: RuntimeError
 deferred/deferred_overlapping_test: CompileTimeError
 deferred/interface_type_variable_test: CompileTimeError
+deferred/multiple_default_arg_test: CompileTimeError
 deferred/uninstantiated_type_variable_test: CompileTimeError
 deferred_custom_loader_test: CompileTimeError
 deferred_fail_and_retry_test: CompileTimeError
@@ -244,7 +221,6 @@ deferred_fail_and_retry_worker_test: CompileTimeError
 deferred_inheritance_test: CompileTimeError
 deferred_split_test: CompileTimeError
 dummy_compiler_test: CompileTimeError
-inference_super_set_call_test: RuntimeError
 invalid_annotation2_test/none: RuntimeError
 label_test/06: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
@@ -261,11 +237,9 @@ mirror_type_inference_field2_test: RuntimeError
 mirror_type_inference_field_test: RuntimeError
 mirror_type_inference_function_test: RuntimeError
 mirrors_declarations_filtering_test: RuntimeError
-mirrors_used_closure_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 mirrors_used_metatargets_test: RuntimeError
 mirrors_used_native_test: RuntimeError
 mirrors_used_warning2_test: RuntimeError
-mirrors_used_warning_test/minif: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 mirrors_used_warning_test/none: RuntimeError
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError

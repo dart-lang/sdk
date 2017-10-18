@@ -396,14 +396,10 @@ void testConstructor() {
 }
 
 void testBadArguments() {
-  Expect.throws(
-      () => new Float32x4(null, 2.0, 3.0, 4.0), (e) => e is ArgumentError);
-  Expect.throws(
-      () => new Float32x4(1.0, null, 3.0, 4.0), (e) => e is ArgumentError);
-  Expect.throws(
-      () => new Float32x4(1.0, 2.0, null, 4.0), (e) => e is ArgumentError);
-  Expect.throws(
-      () => new Float32x4(1.0, 2.0, 3.0, null), (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => new Float32x4(null, 2.0, 3.0, 4.0));
+  Expect.throwsArgumentError(() => new Float32x4(1.0, null, 3.0, 4.0));
+  Expect.throwsArgumentError(() => new Float32x4(1.0, 2.0, null, 4.0));
+  Expect.throwsArgumentError(() => new Float32x4(1.0, 2.0, 3.0, null));
   // Use local variable typed as "dynamic" to avoid static warnings.
   dynamic str = "foo";
   Expect.throws(() => new Float32x4(str, 2.0, 3.0, 4.0),

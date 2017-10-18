@@ -62,12 +62,11 @@ class _CompressionMaxWindowBits {
  * socket will be closed when the processor encounter an error. Not using it
  * will lead to undefined behaviour.
  */
-// TODO(ajohnsen): make this transformer reusable?
 class _WebSocketProtocolTransformer
     implements
         EventSink<List<int>>,
         StreamTransformer<List<int>,
-            dynamic /*List<int>|_WebSocketPing|_WebSocketPong>*/ > {
+            dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/ > {
   static const int START = 0;
   static const int LEN_FIRST = 1;
   static const int LEN_REST = 2;
@@ -95,7 +94,7 @@ class _WebSocketProtocolTransformer
   int closeCode = WebSocketStatus.NO_STATUS_RECEIVED;
   String closeReason = "";
 
-  EventSink<dynamic /*List<int>|_WebSocketPing|_WebSocketPong>*/ > _eventSink;
+  EventSink<dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/ > _eventSink;
 
   final bool _serverSide;
   final List _maskingBytes = new List(4);
@@ -104,7 +103,7 @@ class _WebSocketProtocolTransformer
   _WebSocketPerMessageDeflate _deflate;
   _WebSocketProtocolTransformer([this._serverSide = false, this._deflate]);
 
-  Stream<dynamic /*List<int>|_WebSocketPing|_WebSocketPong>*/ > bind(
+  Stream<dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/ > bind(
       Stream<List<int>> stream) {
     return new Stream.eventTransformed(stream, (EventSink eventSink) {
       if (_eventSink != null) {

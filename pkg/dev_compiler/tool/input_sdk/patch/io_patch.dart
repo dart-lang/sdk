@@ -84,12 +84,12 @@ class FileStat {
 @patch
 class FileSystemEntity {
   @patch
-  static _getType(_Namespace namespace, String path, bool followLinks) {
+  static _getTypeNative(_Namespace namespace, String path, bool followLinks) {
     throw new UnsupportedError("FileSystemEntity._getType");
   }
 
   @patch
-  static _identical(_Namespace namespace, String path1, String path2) {
+  static _identicalNative(_Namespace namespace, String path1, String path2) {
     throw new UnsupportedError("FileSystemEntity._identical");
   }
 

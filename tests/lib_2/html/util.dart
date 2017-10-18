@@ -5,15 +5,13 @@
 library test.html.util;
 
 import 'dart:html';
-import 'package:test/test.dart';
+import 'package:expect/minitest.dart';
 
-void expectUnsupported(f) => expect(f, throwsUnsupportedError);
-
-void expectEmptyRect(ClientRect rect) {
-  expect(rect.bottom, isZero);
-  expect(rect.top, isZero);
-  expect(rect.left, isZero);
-  expect(rect.right, isZero);
-  expect(rect.height, isZero);
-  expect(rect.width, isZero);
+void expectEmptyRect(Rectangle rect) {
+  expect(rect.bottom, 0);
+  expect(rect.top, 0);
+  expect(rect.left, 0);
+  expect(rect.right, 0);
+  expect(rect.height, 0);
+  expect(rect.width, 0);
 }

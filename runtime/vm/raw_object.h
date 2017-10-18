@@ -30,6 +30,7 @@ namespace dart {
   V(Script)                                                                    \
   V(Library)                                                                   \
   V(Namespace)                                                                 \
+  V(KernelProgramInfo)                                                         \
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(ObjectPool)                                                                \
@@ -796,7 +797,28 @@ class RawPatchClass : public RawObject {
   RawClass* patched_class_;
   RawClass* origin_class_;
   RawScript* script_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->script_); }
+  RawTypedData* library_kernel_data_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->library_kernel_data_);
+  }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kFullAOT:
+        return reinterpret_cast<RawObject**>(&ptr()->script_);
+      case Snapshot::kFull:
+      case Snapshot::kFullJIT:
+      case Snapshot::kScript:
+        return reinterpret_cast<RawObject**>(&ptr()->library_kernel_data_);
+      case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
+  }
+
+  intptr_t library_kernel_offset_;
 
   friend class Function;
 };
@@ -852,15 +874,13 @@ class RawFunction : public RawObject {
   RawArray* parameter_names_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawObject* data_;  // Additional data specific to the function kind.
-  RawTypedData* kernel_data_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->data_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
       case Snapshot::kScript:
-        return reinterpret_cast<RawObject**>(&ptr()->kernel_data_);
+        return reinterpret_cast<RawObject**>(&ptr()->data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -962,7 +982,6 @@ class RawField : public RawObject {
   RawObject* owner_;  // Class or patch class or mixin class
                       // where this field is defined or original field.
   RawAbstractType* type_;
-  RawTypedData* kernel_data_;
   union {
     RawInstance* static_value_;  // Value for static fields.
     RawSmi* offset_;             // Offset in words for instance fields.
@@ -1062,9 +1081,7 @@ class RawScript : public RawObject {
   RawArray* line_starts_;
   RawArray* debug_positions_;
   RawArray* yield_positions_;
-  RawTypedData* kernel_string_offsets_;
-  RawTypedData* kernel_string_data_;
-  RawTypedData* kernel_canonical_names_;
+  RawKernelProgramInfo* kernel_program_info_;
   RawTokenStream* tokens_;
   RawString* source_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
@@ -1114,8 +1131,22 @@ class RawLibrary : public RawObject {
   RawArray* imports_;        // List of Namespaces imported without prefix.
   RawArray* exports_;        // List of re-exported Namespaces.
   RawInstance* load_error_;  // Error iff load_state_ == kLoadError.
-  RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->load_error_);
+  RawTypedData* kernel_data_;
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kFullAOT:
+        return reinterpret_cast<RawObject**>(&ptr()->load_error_);
+      case Snapshot::kFull:
+      case Snapshot::kFullJIT:
+      case Snapshot::kScript:
+        return reinterpret_cast<RawObject**>(&ptr()->kernel_data_);
+      case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
   }
   RawArray* resolved_names_;  // Cache of resolved names in library scope.
   RawArray* exported_names_;  // Cache of exported names by library.
@@ -1127,6 +1158,8 @@ class RawLibrary : public RawObject {
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
   classid_t index_;       // Library id number.
+  intptr_t kernel_offset_;  // Offset of this library's kernel data in the
+                            // overall kernel program.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.
   bool corelib_imported_;
@@ -1150,6 +1183,23 @@ class RawNamespace : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->metadata_field_);
   }
+};
+
+class RawKernelProgramInfo : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->string_offsets_);
+  }
+
+  RawTypedData* string_offsets_;
+  RawTypedData* string_data_;
+  RawTypedData* canonical_names_;
+  RawTypedData* metadata_payloads_;
+  RawTypedData* metadata_mappings_;
+  RawArray* scripts_;
+
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->scripts_); }
 };
 
 class RawCode : public RawObject {
@@ -1849,6 +1899,11 @@ class RawClosure : public RawInstance {
   // used to instantiate the signature of function_ when this closure is
   // involved in a type test. In other words, these fields define the function
   // type of this closure instance, but they are not used when invoking it.
+  // Whereas the source frontend will save a copy of the function's type
+  // arguments in the closure's context and only use the
+  // function_type_arguments_ field for type tests, the kernel frontend will use
+  // the function_type_arguments_ vector here directly.
+  //
   // If this closure is generic, it can be invoked with function type arguments
   // that will be processed in the prolog of the closure function_. For example,
   // if the generic closure function_ has a generic parent function, the

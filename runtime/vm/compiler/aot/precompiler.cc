@@ -1450,35 +1450,6 @@ void Precompiler::CheckForNewDynamicFunctions() {
             // Function is get:foo and somewhere foo is called.
             AddFunction(function);
           }
-          selector3 = Symbols::LookupFromConcat(
-              thread(), Symbols::ClosurizePrefix(), selector2);
-          if (IsSent(selector3)) {
-            // Hash-closurization.
-            // Function is get:foo and somewhere get:#foo is called.
-            AddFunction(function);
-
-            function2 = function.ImplicitClosureFunction();
-            AddFunction(function2);
-
-            // Add corresponding method extractor get:#foo.
-            function2 = function.GetMethodExtractor(selector3);
-            AddFunction(function2);
-          }
-        } else if (Field::IsSetterName(selector)) {
-          selector2 = Symbols::LookupFromConcat(
-              thread(), Symbols::ClosurizePrefix(), selector);
-          if (IsSent(selector2)) {
-            // Hash-closurization.
-            // Function is set:foo and somewhere get:#set:foo is called.
-            AddFunction(function);
-
-            function2 = function.ImplicitClosureFunction();
-            AddFunction(function2);
-
-            // Add corresponding method extractor get:#set:foo.
-            function2 = function.GetMethodExtractor(selector2);
-            AddFunction(function2);
-          }
         } else if (function.kind() == RawFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
           if (IsSent(selector2)) {
@@ -1488,18 +1459,6 @@ void Precompiler::CheckForNewDynamicFunctions() {
             AddFunction(function2);
 
             // Add corresponding method extractor.
-            function2 = function.GetMethodExtractor(selector2);
-            AddFunction(function2);
-          }
-          selector2 = Symbols::LookupFromConcat(
-              thread(), Symbols::ClosurizePrefix(), selector);
-          if (IsSent(selector2)) {
-            // Hash-closurization.
-            // Function is foo and somewhere get:#foo is called.
-            function2 = function.ImplicitClosureFunction();
-            AddFunction(function2);
-
-            // Add corresponding method extractor get:#foo
             function2 = function.GetMethodExtractor(selector2);
             AddFunction(function2);
           }
@@ -2906,8 +2865,9 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         TimelineDurationScope tds(thread(), compiler_timeline,
                                   "BuildFlowGraph");
 #endif  // !PRODUCT
-        flow_graph = pipeline->BuildFlowGraph(
-            zone, parsed_function(), *ic_data_array, Compiler::kNoOSRDeoptId);
+        flow_graph =
+            pipeline->BuildFlowGraph(zone, parsed_function(), *ic_data_array,
+                                     Compiler::kNoOSRDeoptId, optimized());
       }
 
       if (optimized()) {

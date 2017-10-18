@@ -8,9 +8,9 @@ import 'dart:async';
 
 main() {
   // Unique object.
-  var baz = new Object();
+  var baz = new Mimic(new Object());
   // Not so unique object that thinks it's the same as baz.
-  var mimic = new Mimic(baz);
+  var mimic = new Mimic(baz.original);
 
   // runGuarded calls run, captures the synchronous error (if any) and
   // gives that one to handleUncaughtError.
@@ -44,7 +44,7 @@ main() {
   Expect.equals(499, forked[#foo]);
   Expect.listEquals([], forked["bar"]);
   Expect.equals("baz", forked[baz]);
-  Expect.isNull(Zone.current[mimic]);
+  Expect.equals("baz", forked[mimic]);
   Expect.equals("zero!", forked[0]);
   Expect.equals("zero!", forked[0.0]); // Lookup uses equality.
   Expect.equals("zero!", forked[-0.0]);
@@ -57,7 +57,7 @@ main() {
     Expect.equals(499, Zone.current[#foo]);
     Expect.listEquals([], Zone.current["bar"]);
     Expect.equals("baz", Zone.current[baz]);
-    Expect.isNull(Zone.current[mimic]);
+    Expect.equals("baz", Zone.current[mimic]);
     Expect.equals("zero!", Zone.current[0]);
     Expect.equals("zero!", Zone.current[0.0]); // Lookup uses equality.
     Expect.equals("zero!", Zone.current[-0.0]);
@@ -84,7 +84,7 @@ main() {
     Expect.equals(499, Zone.current[#foo]);
     Expect.listEquals([42], Zone.current["bar"]);
     Expect.equals("baz", Zone.current[baz]);
-    Expect.isNull(Zone.current[mimic]);
+    Expect.equals("baz", Zone.current[mimic]);
     Expect.equals("zero!", Zone.current[0]);
     Expect.equals(baz, Zone.current[null]);
     Expect.isNull(Zone.current["qux"]);
@@ -129,7 +129,7 @@ main() {
   Expect.equals(499, forked[#foo]);
   Expect.listEquals([42], forked["bar"]);
   Expect.equals("baz", forked[baz]);
-  Expect.isNull(Zone.current[mimic]);
+  Expect.equals("baz", forked[mimic]);
   Expect.equals("zero!", forked[0]);
   Expect.equals("zero!", forked[0.0]); // Lookup uses equality.
   Expect.equals("zero!", forked[-0.0]);

@@ -28,6 +28,7 @@ class KernelResynthesizer implements ElementResynthesizer {
   final AnalysisContextImpl _analysisContext;
   final kernel.TypeEnvironment _types;
   final Map<String, kernel.Library> _kernelMap;
+  final Map<String, bool> _libraryExistMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
 
   /**
@@ -38,7 +39,8 @@ class KernelResynthesizer implements ElementResynthesizer {
   /// The type provider for this resynthesizer.
   SummaryTypeProvider _typeProvider;
 
-  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap) {
+  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap,
+      this._libraryExistMap) {
     _buildTypeProvider();
     _analysisContext.typeProvider = _typeProvider;
   }
@@ -73,6 +75,10 @@ class KernelResynthesizer implements ElementResynthesizer {
     return _libraryMap.putIfAbsent(uriStr, () {
       var kernel = _kernelMap[uriStr];
       if (kernel == null) return null;
+
+      if (_libraryExistMap[uriStr] != true) {
+        return _newSyntheticLibrary(uriStr);
+      }
 
       var libraryContext =
           new _KernelLibraryResynthesizerContextImpl(this, kernel);
@@ -201,6 +207,24 @@ class KernelResynthesizer implements ElementResynthesizer {
     return _sources.putIfAbsent(
         uri, () => _analysisContext.sourceFactory.forUri(uri));
   }
+
+  LibraryElementImpl _newSyntheticLibrary(String uriStr) {
+    Source librarySource = _getSource(uriStr);
+    if (librarySource == null) return null;
+
+    LibraryElementImpl libraryElement =
+        new LibraryElementImpl(context, '', -1, 0);
+    libraryElement.isSynthetic = true;
+    CompilationUnitElementImpl unitElement =
+        new CompilationUnitElementImpl(librarySource.shortName);
+    libraryElement.definingCompilationUnit = unitElement;
+    unitElement.source = librarySource;
+    unitElement.librarySource = librarySource;
+    libraryElement.createLoadLibraryFunction(_typeProvider);
+    libraryElement.publicNamespace = new Namespace({});
+    libraryElement.exportNamespace = new Namespace({});
+    return libraryElement;
+  }
 }
 
 /**
@@ -230,7 +254,7 @@ class _ExprBuilder {
 
   ConstructorInitializer buildInitializer(kernel.Initializer k) {
     if (k is kernel.FieldInitializer) {
-      Expression value = _build(k.value);
+      Expression value = build(k.value);
       ConstructorFieldInitializer initializer = AstTestFactory
           .constructorFieldInitializer(false, k.field.name.name, value);
       initializer.fieldName.staticElement = _getElement(k.fieldReference);
@@ -245,8 +269,8 @@ class _ExprBuilder {
             invocation.name.name == 'call') {
           var body = receiver.function.body;
           if (body is kernel.AssertStatement) {
-            var condition = _build(body.condition);
-            var message = body.message != null ? _build(body.message) : null;
+            var condition = build(body.condition);
+            var message = body.message != null ? build(body.message) : null;
             return AstTestFactory.assertInitializer(condition, message);
           }
         }
@@ -346,6 +370,10 @@ class _ExprBuilder {
 
     if (expr is kernel.StaticGet) {
       return _buildIdentifier(expr.targetReference, isGet: true);
+    }
+
+    if (expr is kernel.ThisExpression) {
+      return AstTestFactory.thisExpression();
     }
 
     if (expr is kernel.PropertyGet) {
@@ -477,9 +505,13 @@ class _ExprBuilder {
     }
 
     // Invalid annotations are represented as Let.
-    if (expr is kernel.Let &&
-        expr.variable.initializer is kernel.ShadowSyntheticExpression) {
-      expr = (expr as kernel.Let).variable.initializer;
+    if (expr is kernel.Let) {
+      kernel.Let let = expr;
+      if (let.variable.initializer is kernel.ShadowSyntheticExpression) {
+        expr = let.variable.initializer;
+      } else if (let.body is kernel.ShadowSyntheticExpression) {
+        expr = let.body;
+      }
     }
 
     // Synthetic expression representing a constant error.
@@ -520,6 +552,9 @@ class _ExprBuilder {
   }
 
   SimpleIdentifier _buildSimpleIdentifier(kernel.Reference reference) {
+    if (reference == null) {
+      throw const _CompilationErrorFound();
+    }
     String name = reference.canonicalName.name;
     SimpleIdentifier identifier = AstTestFactory.identifier3(name);
     Element element = _getElement(reference);

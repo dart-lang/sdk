@@ -22,6 +22,9 @@ string_static_test: MissingCompileTimeError
 [ !$checked && $compiler != dartdevc && $runtime != none ]
 null_nosuchmethod_test: RuntimeError # needs Dart 2 or checked mode
 
+[ $compiler != dartdevc && $runtime != none ]
+map_keys2_test: RuntimeError # needs Dart 2 is checks
+
 [ (!$checked && $runtime == vm) || (!$checked && $compiler == dart2js) || $compiler == precompiler ]
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
 
@@ -105,7 +108,6 @@ iterable_to_list_test/*: RuntimeError
 list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
 nan_infinity_test/01: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
-map_keys2_test: RuntimeError # Issue 29921
 null_nosuchmethod_test/01: RuntimeError # DDC checks type before too many arguments, so TypeError instead of NSM
 regexp/bol-with-multiline_test: RuntimeError # Issue 29921
 regexp/invalid-range-in-class_test: RuntimeError # Issue 29921
@@ -364,7 +366,6 @@ big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 string_trimlr_test/02: RuntimeError # Issue 29060
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
-
 [ $compiler == precompiler || $compiler == app_jit ]
 string_trimlr_test/02: RuntimeError # Issue 29060
 
@@ -418,6 +419,7 @@ iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type
 regexp/no-extensions_test: RuntimeError
 regexp/lookahead_test: RuntimeError
 regexp/overflow_test: RuntimeError
+date_time11_test: RuntimeError, OK # Bug in Safari.
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
@@ -439,14 +441,6 @@ list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 [ $compiler == dart2js && $runtime == d8 ]
 string_trimlr_test/02: RuntimeError, Pass # Uses Unicode 6.2.0 or earlier, issue 30279.
 uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
-
-[ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
-symbol_reserved_word_test/03: Pass # Issue 27394
-symbol_operator_test/03: RuntimeError # Issue 27394
-symbol_reserved_word_test/06: RuntimeError # Issue 27394
-symbol_reserved_word_test/09: RuntimeError # Issue 27394
-symbol_reserved_word_test/12: RuntimeError # Issue 27394
-symbol_test/none: RuntimeError # Issue 27394
 
 [ $compiler == none && $runtime == vm ]
 string_static_test: MissingCompileTimeError
@@ -524,17 +518,13 @@ regexp/regexp_kde_test: RuntimeError
 splay_tree_from_iterable_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 splay_tree_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 splay_tree_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-symbol_operator_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
@@ -561,14 +551,11 @@ symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [$arch == simdbc || $arch == simdbc64]

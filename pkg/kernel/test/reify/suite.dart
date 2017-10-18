@@ -14,8 +14,9 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'package:kernel/target/vmcc.dart' show VmClosureConvertedTarget;
 
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
-    show computeDartVm, computePatchedSdk;
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show
         Compile,
@@ -37,7 +38,7 @@ import 'package:kernel/transformations/generic_types_reification.dart'
 class TestContext extends ChainContext implements CompileContext {
   final Uri vm;
   final Uri platformUri;
-  final Uri sdk;
+  final Uri platformBinaries;
 
   @override
   final Target target = new NotReifiedTarget(new TargetFlags(
@@ -51,7 +52,8 @@ class TestContext extends ChainContext implements CompileContext {
 
   final List<Step> steps;
 
-  TestContext(this.vm, this.platformUri, this.sdk, bool updateExpectations)
+  TestContext(
+      this.vm, this.platformUri, this.platformBinaries, bool updateExpectations)
       : steps = <Step>[
           const Compile(),
           const Print(),
@@ -74,11 +76,11 @@ enum Environment {
 
 Future<TestContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  Uri sdk = await computePatchedSdk();
-  Uri vm = computeDartVm(sdk);
-  Uri platform = sdk.resolve('platform.dill');
+  Uri vm = Uri.base.resolve(Platform.resolvedExecutable);
+  Uri platformBinaries = computePlatformBinariesLocation();
+  Uri platform = platformBinaries.resolve("vm_platform.dill");
   bool updateExpectations = environment["updateExpectations"] == "true";
-  return new TestContext(vm, platform, sdk, updateExpectations);
+  return new TestContext(vm, platform, platformBinaries, updateExpectations);
 }
 
 // [NotReifiedTarget] is intended to work as the [Target] class that
@@ -99,11 +101,6 @@ class NotReifiedTarget extends VmClosureConvertedTarget {
   // used in the program being transform prior to the transformation.
   @override
   void performTreeShaking(CoreTypes coreTypes, Program program) {}
-
-  // Erasure needs to be disabled, because it removes the necessary information
-  // about type arguments for generic methods.
-  @override
-  void performErasure(Program program) {}
 
   // Adds the necessary runtime libraries.
   @override
@@ -143,8 +140,10 @@ class Run extends Step<Uri, int, TestContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      var sdkPath = context.sdk.toFilePath();
-      var args = ['--kernel-binaries=$sdkPath', generated.path];
+      var args = [
+        '--kernel-binaries=${context.platformBinaries.toFilePath()}',
+        generated.path
+      ];
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
     } finally {

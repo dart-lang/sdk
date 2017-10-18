@@ -41,6 +41,6 @@ main() {
   Expect.equals('3 C 11 12 13 null', f.closureOpt(11, 12, 13));
   Expect.equals('4 C 14 15 null 16', f.closureNamed(14, 15, w: 16));
   Expect.equals('DNU', f.doesNotExist(17, 18));
-  Expect.throws(() => f.closure('wrong arity'), (e) => e is NoSuchMethodError);
-  Expect.throws(() => f.notAClosure(), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => f.closure('wrong arity'));
+  Expect.throwsNoSuchMethodError(() => f.notAClosure());
 }

@@ -14,19 +14,17 @@ main() {
 
   Expect.equals(2, list1.singleWhere((x) => x.isEven));
   Expect.equals(3, list1.singleWhere((x) => x == 3));
-  Expect.throws(
-      () => list1.singleWhere((x) => x.isOdd), (e) => e is StateError);
+  Expect.throwsStateError(() => list1.singleWhere((x) => x.isOdd));
 
   Expect.equals(6, list2.singleWhere((x) => x == 6));
   Expect.equals(5, list2.singleWhere((x) => x.isOdd));
-  Expect.throws(
-      () => list2.singleWhere((x) => x.isEven), (e) => e is StateError);
+  Expect.throwsStateError(() => list2.singleWhere((x) => x.isEven));
 
-  Expect.throws(() => list3.singleWhere((x) => x == 0), (e) => e is StateError);
+  Expect.throwsStateError(() => list3.singleWhere((x) => x == 0));
 
   Expect.equals(12, set1.singleWhere((x) => x.isEven));
   Expect.equals(11, set1.singleWhere((x) => x == 11));
-  Expect.throws(() => set1.singleWhere((x) => x.isOdd));
+  Expect.throwsStateError(() => set1.singleWhere((x) => x.isOdd));
 
-  Expect.throws(() => set2.singleWhere((x) => true), (e) => e is StateError);
+  Expect.throwsStateError(() => set2.singleWhere((x) => true));
 }

@@ -350,6 +350,7 @@ void _installPropertiesForGlobalObject(jsProto) {
   _installPropertiesForObject(jsProto);
   // Use JS toString for JS objects, rather than the Dart one.
   JS('', '#[dartx.toString] = function() { return this.toString(); }', jsProto);
+  identityEquals ??= JS('', '#[dartx._equals]', jsProto);
 }
 
 final _extensionMap = JS('', 'new Map()');
@@ -522,3 +523,6 @@ final isStream = JS('', 'Symbol("_is_Stream")');
 
 /// The well known symbol for testing `is StreamSubscription`
 final isStreamSubscription = JS('', 'Symbol("_is_StreamSubscription")');
+
+/// The default `operator ==` that calls [identical].
+var identityEquals;

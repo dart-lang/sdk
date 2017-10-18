@@ -170,13 +170,14 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
-    intptr_t osr_id) {
+    intptr_t osr_id,
+    bool optimized) {
   if (UseKernelFrontEndFor(parsed_function)) {
     kernel::FlowGraphBuilder builder(
         parsed_function->function().kernel_offset(), parsed_function,
         ic_data_array,
         /* not building var desc */ NULL,
-        /* not inlining */ NULL, osr_id);
+        /* not inlining */ NULL, optimized, osr_id);
     FlowGraph* graph = builder.BuildGraph();
     ASSERT(graph != NULL);
     return graph;
@@ -222,7 +223,8 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
-    intptr_t osr_id) {
+    intptr_t osr_id,
+    bool optimized) {
   // Compile to the dart IR.
   RegExpEngine::CompilationResult result =
       RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
@@ -821,8 +823,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
                                                  "BuildFlowGraph"));
-        flow_graph = pipeline->BuildFlowGraph(zone, parsed_function(),
-                                              *ic_data_array, osr_id());
+        flow_graph = pipeline->BuildFlowGraph(
+            zone, parsed_function(), *ic_data_array, osr_id(), optimized());
       }
 
       const bool print_flow_graph =
@@ -1645,7 +1647,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
       kernel::FlowGraphBuilder builder(
           parsed_function->function().kernel_offset(), parsed_function,
           *ic_data_array, context_level_array,
-          /* not inlining */ NULL, Compiler::kNoOSRDeoptId);
+          /* not inlining */ NULL, false, Compiler::kNoOSRDeoptId);
       builder.BuildGraph();
     }
 

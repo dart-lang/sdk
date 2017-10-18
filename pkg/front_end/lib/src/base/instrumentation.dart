@@ -62,6 +62,9 @@ class InstrumentationValueForForwardingStub extends InstrumentationValue {
     }
 
     var function = procedure.function;
+    if (procedure.isGenericContravariant) {
+      buffer.write('genericContravariant ');
+    }
     buffer.write(function.returnType);
     buffer.write(' ');
     switch (procedure.kind) {
@@ -82,6 +85,26 @@ class InstrumentationValueForForwardingStub extends InstrumentationValue {
         break;
     }
     buffer.write(procedure.name.name);
+    if (function.typeParameters.isNotEmpty) {
+      buffer.write('<');
+      for (int i = 0; i < function.typeParameters.length; i++) {
+        if (i != 0) buffer.write(', ');
+        var typeParameter = function.typeParameters[i];
+        var covariances = <String>[];
+        if (typeParameter.isGenericCovariantInterface) {
+          covariances.add('genericInterface');
+        }
+        if (typeParameter.isGenericCovariantImpl) {
+          covariances.add('genericImpl');
+        }
+        buffer.write('covariance=(${covariances.join(', ')}) ');
+        buffer.write(typeParameter.name);
+        buffer.write(' extends ');
+        buffer.write(
+            new InstrumentationValueForType(typeParameter.bound).toString());
+      }
+      buffer.write('>');
+    }
     buffer.write('(');
     for (int i = 0; i < function.positionalParameters.length; i++) {
       if (i != 0) buffer.write(', ');

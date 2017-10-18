@@ -24,56 +24,21 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_argumentTypeNotAssignable_annotation_namedConstructor() async {
-    return super.test_argumentTypeNotAssignable_annotation_namedConstructor();
-  }
-
-  @override
-  @failingTest
-  test_caseBlockNotTerminated() async {
-    return super.test_caseBlockNotTerminated();
-  }
-
-  @override
-  @failingTest
-  test_constWithAbstractClass() async {
-    return super.test_constWithAbstractClass();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializedInInitializerAndDeclaration_final() async {
-    return super.test_fieldInitializedInInitializerAndDeclaration_final();
-  }
-
-  @override
-  @failingTest
-  test_finalInitializedInDeclarationAndConstructor_initializers() async {
-    return super
-        .test_finalInitializedInDeclarationAndConstructor_initializers();
-  }
-
-  @override
-  @failingTest
-  test_finalInitializedInDeclarationAndConstructor_initializingFormal() async {
-    return super
-        .test_finalInitializedInDeclarationAndConstructor_initializingFormal();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
   test_finalNotInitialized_inConstructor_1() async {
     return super.test_finalNotInitialized_inConstructor_1();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
   test_finalNotInitialized_inConstructor_2() async {
     return super.test_finalNotInitialized_inConstructor_2();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
   test_finalNotInitialized_inConstructor_3() async {
     return super.test_finalNotInitialized_inConstructor_3();
   }
@@ -87,31 +52,15 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
   test_invalidOverride_nonDefaultOverridesDefault() async {
     return super.test_invalidOverride_nonDefaultOverridesDefault();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
   test_invalidOverride_nonDefaultOverridesDefault_named() async {
     return super.test_invalidOverride_nonDefaultOverridesDefault_named();
-  }
-
-  @override
-  @failingTest
-  test_newWithAbstractClass() async {
-    return super.test_newWithAbstractClass();
-  }
-
-  @override
-  @failingTest
-  test_newWithUndefinedConstructorDefault() async {
-    return super.test_newWithUndefinedConstructorDefault();
-  }
-
-  @override
-  @failingTest
-  test_redirectToMissingConstructor_unnamed() async {
-    return super.test_redirectToMissingConstructor_unnamed();
   }
 }

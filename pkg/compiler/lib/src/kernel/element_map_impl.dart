@@ -1218,7 +1218,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   }
 }
 
-class KernelElementEnvironment implements ElementEnvironment {
+class KernelElementEnvironment extends ElementEnvironment {
   final KernelToElementMapBase elementMap;
 
   KernelElementEnvironment(this.elementMap);
@@ -1323,7 +1323,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  MemberEntity lookupClassMember(ClassEntity cls, String name,
+  MemberEntity lookupLocalClassMember(ClassEntity cls, String name,
       {bool setter: false, bool required: false}) {
     MemberEntity member =
         elementMap.lookupClassMember(cls, name, setter: setter);
@@ -1337,6 +1337,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   ClassEntity getSuperClass(ClassEntity cls,
       {bool skipUnnamedMixinApplications: false}) {
+    assert(elementMap.checkFamily(cls));
     ClassEntity superclass = elementMap._getSuperType(cls)?.element;
     if (skipUnnamedMixinApplications) {
       while (superclass != null &&
@@ -1439,12 +1440,14 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   Iterable<ConstantValue> getLibraryMetadata(covariant IndexedLibrary library) {
+    assert(elementMap.checkFamily(library));
     LibraryData libraryData = elementMap._libraries.getData(library);
     return libraryData.getMetadata(elementMap);
   }
 
   @override
   Iterable<ConstantValue> getClassMetadata(covariant IndexedClass cls) {
+    assert(elementMap.checkFamily(cls));
     ClassData classData = elementMap._classes.getData(cls);
     return classData.getMetadata(elementMap);
   }
@@ -1459,6 +1462,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   Iterable<ConstantValue> getMemberMetadata(covariant IndexedMember member,
       {bool includeParameterMetadata: false}) {
     // TODO(redemption): Support includeParameterMetadata.
+    assert(elementMap.checkFamily(member));
     MemberData memberData = elementMap._members.getData(member);
     return memberData.getMetadata(elementMap);
   }
@@ -1471,6 +1475,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   bool isEnumClass(ClassEntity cls) {
+    assert(elementMap.checkFamily(cls));
     ClassData classData = elementMap._classes.getData(cls);
     return classData.isEnumClass;
   }
@@ -1705,8 +1710,9 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
   @override
   bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
     while (cls != null) {
-      MemberEntity member = elementEnvironment
-          .lookupClassMember(cls, selector.name, setter: selector.isSetter);
+      MemberEntity member = elementEnvironment.lookupLocalClassMember(
+          cls, selector.name,
+          setter: selector.isSetter);
       if (member != null &&
           (!selector.memberName.isPrivate ||
               member.library == selector.library)) {
@@ -1897,8 +1903,11 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   bool isNativeMethod(covariant KFunction function) {
     if (!native.maybeEnableNative(function.library.canonicalUri)) return false;
     ir.Member node = elementMap._members.getData(function).definition.node;
-    return node.isExternal &&
-        !elementMap.isForeignLibrary(node.enclosingLibrary);
+    return node.annotations.any((ir.Expression expression) {
+      return expression is ir.ConstructorInvocation &&
+          elementMap.getInterfaceType(expression.constructedType) ==
+              commonElements.externalNameType;
+    });
   }
 
   @override
@@ -2076,12 +2085,12 @@ class JsKernelToElementMap extends KernelToElementMapBase
     return function;
   }*/
 
-  @override
+  /*@override
   ConstructorEntity _getConstructor(ir.Member node) {
     ConstructorEntity constructor = _constructorMap[node];
     assert(constructor != null, "No constructor entity for $node");
     return constructor;
-  }
+  }*/
 
   FunctionEntity getConstructorBody(ir.Constructor node) {
     ConstructorEntity constructor = getConstructor(node);

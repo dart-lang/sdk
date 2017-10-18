@@ -6,6 +6,7 @@
 # generating analyzer ASTs and connecting up type inference information.
 DeltaBlue: Crash
 accessors: Crash
+annotation_top: Crash
 argument_mismatch: Crash
 arithmetic: Crash
 bad_store: Crash
@@ -46,6 +47,9 @@ inference/block_bodied_lambdas_returns: Crash
 inference/block_bodied_lambdas_void_context: Crash
 inference/bug30251: Crash
 inference/bug30620: Crash
+inference/bug30620_b: Crash
+inference/bug30620_c: Crash
+inference/bug30620_d: Crash
 inference/bug30624: Crash
 inference/call_corner_cases: Crash
 inference/complex_predecrement: Crash
@@ -74,7 +78,7 @@ inference/downward_inference_miscellaneous: Crash
 inference/downwards_inference_annotations: Crash
 inference/downwards_inference_annotations_class_members: Crash
 inference/downwards_inference_annotations_for_loop_variable: Crash
-inference/downwards_inference_annotations_locals: Fail
+inference/downwards_inference_annotations_locals: Crash
 inference/downwards_inference_annotations_locals_referring_to_locals: Crash
 inference/downwards_inference_annotations_parameter: Fail
 inference/downwards_inference_annotations_parameter_local: Crash
@@ -142,11 +146,7 @@ inference/generic_methods_basic_downward_inference: Crash
 inference/generic_methods_dart_math_min_max: Crash
 inference/generic_methods_downwards_inference_fold: Crash
 inference/generic_methods_handle_override_of_non_generic_with_generic: Crash
-inference/generic_methods_infer_generic_function_parameter_type2: Fail
-inference/generic_methods_infer_generic_function_parameter_type: Fail
-inference/generic_methods_infer_generic_function_return_type: Fail
 inference/generic_methods_infer_generic_instantiation: Crash
-inference/generic_methods_infer_generic_method_type: Fail
 inference/generic_methods_infer_js_builtin: Fail
 inference/generic_methods_inference_error: Crash
 inference/generic_methods_iterable_and_future: Crash
@@ -186,11 +186,8 @@ inference/infer_correctly_on_multiple_variables_declared_together: Crash
 inference/infer_field_from_later_inferred_field: Crash
 inference/infer_field_from_later_inferred_getter: Crash
 inference/infer_field_from_later_inferred_setter: Crash
-inference/infer_field_getter_setter_mismatch: Crash
-inference/infer_field_override_getter_overrides_setter: Crash
 inference/infer_field_override_multiple: Crash
 inference/infer_field_override_of_override: Crash
-inference/infer_field_override_setter_overrides_getter: Crash
 inference/infer_field_override_with_substitution: Crash
 inference/infer_field_overrides_getter: Crash
 inference/infer_field_overrides_setter: Crash
@@ -211,20 +208,15 @@ inference/infer_from_variables_in_non_cycle_imports_with_flag: Crash
 inference/infer_generic_method_type_named: Crash
 inference/infer_generic_method_type_positional2: Crash
 inference/infer_generic_method_type_positional: Crash
-inference/infer_getter_cross_to_setter: Fail
-inference/infer_getter_from_later_inferred_getter: Fail
 inference/infer_list_literal_nested_in_map_literal: Crash
 inference/infer_local_function_referenced_before_declaration: Crash
 inference/infer_local_function_return_type: Crash
 inference/infer_method_missing_params: Crash
 inference/infer_parameter_type_setter_from_field: Crash
-inference/infer_parameter_type_setter_from_setter: Fail
 inference/infer_prefix_expression: Crash
 inference/infer_prefix_expression_custom: Crash
 inference/infer_rethrow: Crash
 inference/infer_return_of_statement_lambda: Crash
-inference/infer_setter_cross_to_getter: Fail
-inference/infer_setter_from_later_inferred_setter: Fail
 inference/infer_setter_function_typed: Crash
 inference/infer_statics_transitively2: Crash
 inference/infer_statics_transitively3: Crash
@@ -274,6 +266,7 @@ inference/inferred_type_via_closure_multiple_levels_of_nesting: Crash
 inference/inferred_type_via_closure_type_depends_on_args: Crash
 inference/inferred_type_via_closure_type_independent_of_args_field: Crash
 inference/inferred_type_via_closure_type_independent_of_args_top_level: Crash
+inference/inheritance_does_not_imply_circularity: Crash
 inference/lambda_does_not_have_propagated_type_hint: Crash
 inference/lambda_void_context: Crash
 inference/list_literal_typed: Crash
@@ -292,6 +285,7 @@ inference/overloaded_int_operators: Crash
 inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash
 inference/promote_bounds: Crash
+inference/promote_from_logical_rhs: Crash
 inference/promotion_subtype_check: Crash
 inference/propagate_inference_to_field_in_class: Crash
 inference/propagate_inference_to_field_in_class_dynamic_warnings: Crash
@@ -351,11 +345,13 @@ inference_new/infer_assign_to_index: Crash
 inference_new/infer_assign_to_property: Crash
 inference_new/infer_assign_to_property_custom: Crash
 inference_new/infer_assign_to_ref: Crash
+inference_new/infer_field_getter_setter_mismatch: Crash
+inference_new/infer_field_override_getter_overrides_setter: Crash
+inference_new/infer_field_override_setter_overrides_getter: Crash
 inference_new/infer_instance_accessor_ref: Crash
 inference_new/infer_instance_field_ref: Crash
 inference_new/infer_instance_field_ref_circular: Crash
 inference_new/infer_logical: Crash
-inference_new/infer_use_of_void: Fail
 inference_new/multiple_interface_inheritance: Fail # Issue #30547
 inference_new/property_get_toplevel: Crash
 inference_new/strongly_connected_component: Crash
@@ -374,6 +370,7 @@ override: Crash
 rasta/abstract_constructor: Crash
 rasta/bad_continue: Crash
 rasta/bad_default_constructor: Crash
+rasta/bad_interpolation: Crash
 rasta/bad_redirection: Crash
 rasta/breaking_bad: Crash
 rasta/cascades: Crash
@@ -391,7 +388,7 @@ rasta/issue_000012: Crash
 rasta/issue_000025: Crash
 rasta/issue_000026: Crash
 rasta/issue_000031: Crash
-rasta/issue_000033: Crash
+rasta/issue_000036: Crash
 rasta/issue_000039: Crash
 rasta/issue_000041: Crash
 rasta/issue_000042: Crash
@@ -435,11 +432,11 @@ regress/issue_29978: Crash
 regress/issue_29979: Crash
 regress/issue_29981: Crash
 regress/issue_29984: Crash
+regress/issue_29985: Crash
 reorder_super: Crash
 runtime_checks/call_kinds: Crash
 runtime_checks/call_kinds_get: Crash
 runtime_checks/call_kinds_set: Crash
-runtime_checks/call_through_this: Crash
 runtime_checks/contravariant_generic_method_type_parameter: Crash
 runtime_checks/contravariant_generic_return: Crash
 runtime_checks/contravariant_generic_return_tear_off: Crash
@@ -454,17 +451,21 @@ runtime_checks/covariant_keyword_setter_inherited_by_field: Crash
 runtime_checks/covariant_setter: Crash
 runtime_checks/dynamic_invocation_of_getter: Crash
 runtime_checks/field_forwarding_stub_generic_covariant: Crash
+runtime_checks/forwarding_stub_with_default_values: Crash
 runtime_checks/generic_covariance_inheritance_setter_field: Crash
 runtime_checks/generic_vs_explicit_covariance: Crash
-runtime_checks_new/derived_class_typed: Fail
+runtime_checks_new/call_through_this: Crash
+runtime_checks_new/derived_class_typed: Crash
 runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Crash
 runtime_checks_new/field_forwarding_stub_explicit_covariant: Crash
+runtime_checks_new/generic_covariance_based_on_inference: Crash
 static_setter: Crash
 store_load: Crash
 stringliteral: Crash
 super_rasta_copy: Crash
 top_level_accessors: Crash
 type_variable_as_super: Crash
+type_variable_prefix: Crash
 typedef: Crash
 uninitialized_fields: Crash
 unused_methods: Crash

@@ -2079,7 +2079,11 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
       for (int i = 0; i < length; i++) {
         WorkItem workItem = dependencyCycle[i];
         if (workItem.descriptor == DESCRIPTOR) {
-          constantsInCycle.add(workItem.target);
+          AnalysisTarget target = workItem.target;
+          constantsInCycle.add(target);
+          if (target is ConstructorElementImpl) {
+            target.isCycleFree = false;
+          }
         }
       }
       assert(constantsInCycle.isNotEmpty);
@@ -3772,7 +3776,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     AnalysisOptions options = context.analysisOptions;
     Parser parser =
         new Parser(_source, errorListener, useFasta: options.useFastaParser);
-    parser.enableAssertInitializer = options.enableAssertInitializer;
     parser.parseFunctionBodies =
         options.analyzeFunctionBodiesPredicate(_source);
     parser.parseGenericMethodComments = options.strongMode;

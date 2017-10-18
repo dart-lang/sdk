@@ -4,6 +4,9 @@
 
 library fasta.kernel_field_builder;
 
+import 'package:front_end/src/base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueForType;
+
 import 'package:kernel/ast.dart'
     show DartType, Expression, Field, Name, NullLiteral;
 
@@ -46,7 +49,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       int charOffset,
       this.initializerTokenForInference,
       this.hasInitializer)
-      : field = new ShadowField(null, fileUri: compilationUnit?.relativeFileUri)
+      : field = new ShadowField(null, type == null,
+            fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset
           ..documentationComment = documentationComment,
         super(name, modifiers, compilationUnit, charOffset);
@@ -75,8 +79,11 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (!library.disableTypeInference && isEligibleForInference) {
-      library.loader.typeInferenceEngine.recordMember(field);
+    if (!library.disableTypeInference &&
+        isEligibleForInference &&
+        !isInstanceMember) {
+      library.loader.typeInferenceEngine
+          .recordStaticFieldInferenceCandidate(field);
     }
     return field;
   }
@@ -111,6 +118,14 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
         bodyBuilder.checkEmpty(token.charOffset);
         initializer = expression;
       }
+    }
+  }
+
+  @override
+  void instrumentTopLevelInference(Instrumentation instrumentation) {
+    if (isEligibleForInference) {
+      instrumentation.record(Uri.parse(field.fileUri), field.fileOffset,
+          'topType', new InstrumentationValueForType(field.type));
     }
   }
 

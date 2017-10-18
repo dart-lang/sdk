@@ -10,8 +10,8 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../lib/src/analyzer/context.dart';
-import '../../lib/src/compiler/command.dart';
-import '../../lib/src/compiler/compiler.dart';
+import '../../lib/src/analyzer/command.dart';
+import '../../lib/src/analyzer/module_compiler.dart';
 import '../testing.dart' show repoDirectory, testDirectory;
 
 /// The `test/options` directory.

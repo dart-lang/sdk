@@ -6,14 +6,14 @@ class C<T extends core::Object> extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  method f1(self::C::T x) → void {}
+  method f1(generic-covariant-impl generic-covariant-interface self::C::T x) → void {}
   method f2(core::int x) → void {}
 }
 class D extends self::C<core::num> {
   default constructor •() → void
     : super self::C::•()
     ;
-  method f1(covariant core::int x) → void {}
+  method f1(covariant generic-covariant-impl core::int x) → void {}
 }
 static method g1(dynamic d) → void {
   d.f1(1.5);

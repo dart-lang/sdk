@@ -244,7 +244,7 @@ io/directory_list_sync_test: Timeout, Skip # Expects to find the test directory 
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
 io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 
-[ $runtime == vm && $system == macos && $mode == release ]
+[ $runtime == vm && $system == macos && ($mode == release || $mode == product)]
 io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 
 [ $system == macos && $builder_tag == swarming ]

@@ -69,6 +69,9 @@ abstract class CompilerConfiguration {
         return new PrecompilerCompilerConfiguration(configuration,
             useDfe: true);
 
+      case Compiler.specParser:
+        return new SpecParserCompilerConfiguration(configuration);
+
       case Compiler.none:
         return new NoneCompilerConfiguration(configuration);
     }
@@ -143,7 +146,10 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     var args = <String>[];
     if (useDfe) {
       args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
-      args.add('--kernel-binaries=${buildDir}/patched_sdk');
+      args.add('--kernel-binaries=' +
+          (_useSdk
+              ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
+              : '${buildDir}'));
       if (_isDebug) {
         // Temporarily disable background compilation to avoid flaky crashes
         // (see http://dartbug.com/30016 for details).
@@ -270,7 +276,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Common configuration for dart2js-based tools, such as, dart2js
+/// Common configuration for dart2js-based tools, such as dart2js.
 class Dart2xCompilerConfiguration extends CompilerConfiguration {
   final String moniker;
   static Map<String, List<Uri>> _bootstrapDependenciesCache = {};
@@ -324,7 +330,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Configuration for dart2js compiler.
+/// Configuration for dart2js.
 class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   Dart2jsCompilerConfiguration(Configuration configuration)
       : super('dart2js', configuration);
@@ -363,7 +369,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   }
 }
 
-/// Configuration for dart2js compiler.
+/// Configuration for dev-compiler.
 class DevCompilerConfiguration extends CompilerConfiguration {
   DevCompilerConfiguration(Configuration configuration)
       : super._subclass(configuration);
@@ -505,7 +511,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       '--packages=.packages',
       'pkg/front_end/tool/_fasta/compile.dart',
       // TODO(dartbug.com/30480): use strong-mode version of platform.dill
-      '--platform=${buildDir}/patched_sdk/platform.dill',
+      '--platform=${buildDir}/vm_platform.dill',
       '--target=vm_precompiler',
       '--strong-mode',
       '--fatal=errors',
@@ -553,7 +559,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
         args.add('--dfe=utils/kernel-service/kernel-service.dart');
       }
       // TODO(dartbug.com/30480): avoid using additional kernel binaries
-      args.add('--kernel-binaries=${buildDir}/patched_sdk');
+      args.add('--kernel-binaries=' +
+          (_useSdk
+              ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
+              : '${buildDir}'));
     }
 
     args.add("--snapshot-kind=app-aot");
@@ -782,6 +791,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
+/// Configuration for dartanalyzer.
 class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   AnalyzerCompilerConfiguration(Configuration configuration)
       : super._subclass(configuration);
@@ -819,6 +829,35 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     // Since this is not a real compilation, no artifacts are produced.
     return new CommandArtifact([
       Command.analysis(computeCompilerPath(), arguments, environmentOverrides)
+    ], null, null);
+  }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    return <String>[];
+  }
+}
+
+/// Configuration for spec_parser.
+class SpecParserCompilerConfiguration extends CompilerConfiguration {
+  SpecParserCompilerConfiguration(Configuration configuration)
+      : super._subclass(configuration);
+
+  String computeCompilerPath() => 'tools/spec_parse.py';
+
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    arguments = arguments.toList();
+
+    // Since this is not a real compilation, no artifacts are produced.
+    return new CommandArtifact([
+      Command.specParse(
+          computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
   }
 

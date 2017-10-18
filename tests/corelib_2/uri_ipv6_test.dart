@@ -112,8 +112,7 @@ void testParseIPv6Address() {
   }
 
   void fail(String host) {
-    Expect.throws(
-        () => Uri.parseIPv6Address(host), (e) => e is FormatException);
+    Expect.throwsFormatException(() => Uri.parseIPv6Address(host));
   }
 
   pass('::127.0.0.1', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]);

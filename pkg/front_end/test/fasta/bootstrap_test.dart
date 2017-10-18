@@ -8,9 +8,6 @@ import 'dart:io' show Directory, File, Platform;
 
 import 'package:async_helper/async_helper.dart' show asyncEnd, asyncStart;
 
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
-    show computePatchedSdk;
-
 import 'package:testing/testing.dart' show StdioProcess;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
@@ -48,8 +45,8 @@ Future main() async {
 }
 
 Future runCompiler(Uri compiler, Uri input, Uri output) async {
-  Uri patchedSdk = await computePatchedSdk();
   Uri dartVm = Uri.base.resolve(Platform.resolvedExecutable);
+  Uri patchedSdk = dartVm.resolve("patched_sdk/");
   StdioProcess result = await StdioProcess.run(dartVm.toFilePath(), <String>[
     "-c",
     compiler.toFilePath(),

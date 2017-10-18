@@ -2,6 +2,10 @@
 
 Owner: rnystrom@, eernstg@.
 
+Status: Implemented.
+
+Version: 1.1 (Oct 10, 2017).
+
 ## Summary
 
 Allow an overriding method to tighten a parameter type if it has the
@@ -97,6 +101,15 @@ parameter. There is no conflict if only some overridden declarations have
 the `covariant` modifier, and others do not. The parameter is covariant iff
 at least one of them has it.*
 
+The parameter of an implicit instance setter is covariant if the corresponding
+instance variable declaration contains `covariant`.
+
+*A `covariant` modifier on a variable declaration has no other effects, and
+in particular it makes no difference for the implicit getter. The other
+rules still apply, e.g., the parameter of an implicit instance setter may
+be covariant because an explicit setter declaration in a supertype has
+`covariant` on its parameter.*
+
 Function typing is unaffected by covariant overriding: When the type of a
 function is determined for a property extraction which tears off an
 instance method with one or more covariant parameters, the resulting type
@@ -184,6 +197,12 @@ parameter `p` declared in *D* which is not covariant, the part in the
 dynamic type of *f* which corresponds to `p` is the static type of `p` in
 *D*. For each covariant parameter `q`, the part in the dynamic type of *f*
 which corresponds to `q` is `Object`.
+
+# Revisions
+
+*   1.1 (2017-10-10) Clarified meaning of `covariant` on fields.
+
+*   1.0 (2017-01-19) Initial specification.
 
 # Background Material
 

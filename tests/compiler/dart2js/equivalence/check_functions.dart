@@ -643,15 +643,24 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
           strategy.elementEquivalence);
 
       Map<MemberEntity, ClassEntity> members1 = <MemberEntity, ClassEntity>{};
+      Set<String> memberNames1 = new Set<String>();
       Map<MemberEntity, ClassEntity> members2 = <MemberEntity, ClassEntity>{};
+      Set<String> memberNames2 = new Set<String>();
       env1.forEachClassMember(cls1,
           (ClassEntity declarer1, MemberEntity member1) {
         if (cls1 == declarer1) {
           Expect.identical(
               member1,
+              env1.lookupLocalClassMember(cls1, member1.name,
+                  setter: member1.isSetter));
+        }
+        if (!memberNames1.contains(member1.name)) {
+          Expect.identical(
+              member1,
               env1.lookupClassMember(cls1, member1.name,
                   setter: member1.isSetter));
         }
+        memberNames1.add(member1.name);
         members1[member1] = declarer1;
       });
       env2.forEachClassMember(cls2,
@@ -659,9 +668,16 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
         if (cls2 == declarer2) {
           Expect.identical(
               member2,
+              env2.lookupLocalClassMember(cls2, member2.name,
+                  setter: member2.isSetter));
+        }
+        if (!memberNames2.contains(member2.name)) {
+          Expect.identical(
+              member2,
               env2.lookupClassMember(cls2, member2.name,
                   setter: member2.isSetter));
         }
+        memberNames2.add(member2.name);
         members2[member2] = declarer2;
       });
       checkMapEquivalence(cls1, cls2, 'members', members1, members2, (a, b) {
@@ -993,7 +1009,8 @@ void checkEmitterPrograms(
     Program program1, Program program2, TestStrategy strategy) {
   checkLists(program1.fragments, program2.fragments, 'fragments',
       (a, b) => a.outputFileName == b.outputFileName,
-      onSameElement: (a, b) => checkEmitterFragments(a, b, strategy));
+      onSameElement: (a, b) =>
+          checkEmitterFragments(program1, program2, a, b, strategy));
   checkLists(
       program1.holders, program2.holders, 'holders', (a, b) => a.name == b.name,
       onSameElement: checkEmitterHolders);
@@ -1023,11 +1040,9 @@ void checkEmitterPrograms(
       program2.typeToInterceptorMap,
       areJsNodesEquivalent,
       js.nodeToString);
-  check(program1, program2, 'metadata', program1.metadata, program2.metadata,
-      areJsNodesEquivalent, js.nodeToString);
 }
 
-void checkEmitterFragments(
+void checkEmitterFragments(Program program1, Program program2,
     Fragment fragment1, Fragment fragment2, TestStrategy strategy) {
   // TODO(johnniwinther): Check outputUnit.
   checkLists(fragment1.libraries, fragment2.libraries, 'libraries',
@@ -1053,6 +1068,24 @@ void checkEmitterFragments(
   } else if (fragment1 is DeferredFragment && fragment2 is DeferredFragment) {
     check(fragment1, fragment2, 'name', fragment1.name, fragment2.name);
   }
+
+  check(
+      program1,
+      program2,
+      'metadataForOutputUnit',
+      program1.metadataForOutputUnit(fragment1.outputUnit),
+      program2.metadataForOutputUnit(fragment2.outputUnit),
+      areJsNodesEquivalent,
+      js.nodeToString);
+
+  check(
+      program1,
+      program2,
+      'metadataTypesForOutputUnit',
+      program1.metadataTypesForOutputUnit(fragment1.outputUnit),
+      program2.metadataTypesForOutputUnit(fragment2.outputUnit),
+      areJsNodesEquivalent,
+      js.nodeToString);
 }
 
 void checkEmitterLibraries(

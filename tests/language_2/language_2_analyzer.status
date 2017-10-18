@@ -67,10 +67,21 @@ call_nonexistent_static_test/10: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
+const_constructor2_test/13: MissingCompileTimeError
+const_constructor2_test/14: MissingCompileTimeError
+const_constructor2_test/15: MissingCompileTimeError
+const_constructor2_test/16: MissingCompileTimeError
+const_constructor2_test/17: MissingCompileTimeError
+const_constructor2_test/18: MissingCompileTimeError
+const_constructor2_test/20: MissingCompileTimeError
+const_constructor2_test/22: MissingCompileTimeError
+const_constructor2_test/24: MissingCompileTimeError
+const_constructor3_test/02: MissingCompileTimeError
+const_constructor3_test/04: MissingCompileTimeError
+const_init2_test/02: MissingCompileTimeError
 constructor_call_as_function_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
-constructor_duplicate_final_test/03: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: StaticWarning
 cyclic_type_variable_test/01: MissingCompileTimeError
@@ -159,6 +170,9 @@ if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 is_not_class2_test/*: MissingCompileTimeError
+library_ambiguous_test/04: MissingCompileTimeError
+list_literal1_test/01: MissingCompileTimeError
+malformed2_test/00: MissingCompileTimeError
 method_override2_test/00: MissingCompileTimeError
 method_override2_test/01: MissingCompileTimeError
 method_override2_test/02: MissingCompileTimeError
@@ -208,6 +222,11 @@ named_parameters2_test: MissingCompileTimeError
 named_parameters3_test: MissingCompileTimeError
 named_parameters4_test: MissingCompileTimeError
 named_parameters_aggregated_test/05: MissingCompileTimeError
+new_expression_type_args_test/00: MissingCompileTimeError
+new_expression_type_args_test/01: MissingCompileTimeError
+new_expression_type_args_test/02: MissingCompileTimeError
+new_prefix_test/01: MissingCompileTimeError
+no_such_constructor_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
@@ -298,6 +317,8 @@ override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/02: MissingCompileTimeError
 parser_quirks_test: StaticWarning
 part2_test/01: MissingCompileTimeError
+static_field1_test/01: MissingCompileTimeError
+static_field1a_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -319,9 +340,117 @@ string_unicode2_negative_test: CompileTimeError
 string_unicode3_negative_test: CompileTimeError
 string_unicode4_negative_test: CompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+super_operator_index_test/01: MissingCompileTimeError
+super_operator_index_test/02: MissingCompileTimeError
+super_operator_index_test/03: MissingCompileTimeError
+super_operator_index_test/04: MissingCompileTimeError
+super_operator_index_test/05: MissingCompileTimeError
+super_operator_index_test/06: MissingCompileTimeError
+super_operator_index_test/07: MissingCompileTimeError
+switch_fallthru_test/01: MissingCompileTimeError
+switch_case_warn_test/01: MissingCompileTimeError
+switch_case_warn_test/02: MissingCompileTimeError
+switch_case_warn_test/03: MissingCompileTimeError
+switch_case_warn_test/04: MissingCompileTimeError
+switch_case_warn_test/05: MissingCompileTimeError
+switch_case_warn_test/06: MissingCompileTimeError
+switch_case_warn_test/07: MissingCompileTimeError
+switch_case_warn_test/08: MissingCompileTimeError
+switch_case_warn_test/09: MissingCompileTimeError
+switch_case_warn_test/10: MissingCompileTimeError
+switch_case_warn_test/11: MissingCompileTimeError
+switch_case_warn_test/12: MissingCompileTimeError
+switch_case_warn_test/13: MissingCompileTimeError
+switch_case_warn_test/14: MissingCompileTimeError
+switch_case_warn_test/15: MissingCompileTimeError
+switch_case_warn_test/16: MissingCompileTimeError
+switch_case_warn_test/17: MissingCompileTimeError
+type_check_const_function_typedef2_test: MissingCompileTimeError
 type_parameter_test/05: MissingCompileTimeError
 type_variable_identifier_expression_test: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
+external_test/25: MissingCompileTimeError
+f_bounded_quantification_test/01: MissingCompileTimeError
+f_bounded_quantification_test/02: MissingCompileTimeError
+factory1_test/00: MissingCompileTimeError
+factory1_test/01: MissingCompileTimeError
+factory2_test/03: MissingCompileTimeError
+factory2_test/none: MissingCompileTimeError
+factory3_test/none: MissingCompileTimeError
+factory4_test/00: MissingCompileTimeError
+factory5_test/00: MissingCompileTimeError
+factory6_test/00: MissingCompileTimeError
+factory_redirection_test/01: MissingCompileTimeError
+factory_redirection_test/02: MissingCompileTimeError
+factory_redirection_test/03: MissingCompileTimeError
+factory_redirection_test/05: MissingCompileTimeError
+factory_redirection_test/06: MissingCompileTimeError
+factory_redirection_test/08: MissingCompileTimeError
+factory_redirection_test/09: MissingCompileTimeError
+factory_redirection_test/10: MissingCompileTimeError
+factory_redirection_test/11: MissingCompileTimeError
+factory_redirection_test/12: MissingCompileTimeError
+factory_redirection_test/13: MissingCompileTimeError
+factory_redirection_test/14: MissingCompileTimeError
+factory_redirection_test/none: MissingCompileTimeError
+factory_return_type_checked_test/00: MissingCompileTimeError
+unresolved_in_factory_test: MissingCompileTimeError
+field_override2_test: MissingCompileTimeError
+field_override_test/00: MissingCompileTimeError
+field_override_test/01: MissingCompileTimeError
+field_override_test/02: MissingCompileTimeError
+field_override_test/none: MissingCompileTimeError
+field_type_check_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/02: MissingCompileTimeError
+final_syntax_test/10: MissingCompileTimeError
+final_for_in_variable_test: MissingCompileTimeError
+final_param_test: MissingCompileTimeError
+final_super_field_set_test: MissingCompileTimeError
+final_variable_assignment_test/01: MissingCompileTimeError
+final_variable_assignment_test/02: MissingCompileTimeError
+final_variable_assignment_test/03: MissingCompileTimeError
+final_variable_assignment_test/04: MissingCompileTimeError
+first_class_types_literals_test/03: MissingCompileTimeError
+first_class_types_literals_test/04: MissingCompileTimeError
+first_class_types_literals_test/05: MissingCompileTimeError
+first_class_types_literals_test/06: MissingCompileTimeError
+first_class_types_literals_test/07: MissingCompileTimeError
+first_class_types_literals_test/08: MissingCompileTimeError
+first_class_types_literals_test/09: MissingCompileTimeError
+first_class_types_literals_test/10: MissingCompileTimeError
+first_class_types_literals_test/11: MissingCompileTimeError
+first_class_types_literals_test/12: MissingCompileTimeError
+mixin_illegal_constructor_test/13: MissingCompileTimeError
+mixin_illegal_constructor_test/14: MissingCompileTimeError
+mixin_illegal_constructor_test/15: MissingCompileTimeError
+mixin_illegal_constructor_test/16: MissingCompileTimeError
+mixin_illegal_static_access_test/01: MissingCompileTimeError
+mixin_illegal_static_access_test/02: MissingCompileTimeError
+mixin_illegal_syntax_test/13: MissingCompileTimeError
+mixin_invalid_bound2_test/02: MissingCompileTimeError
+mixin_invalid_bound2_test/03: MissingCompileTimeError
+mixin_invalid_bound2_test/04: MissingCompileTimeError
+mixin_invalid_bound2_test/05: MissingCompileTimeError
+mixin_invalid_bound2_test/06: MissingCompileTimeError
+mixin_invalid_bound2_test/07: MissingCompileTimeError
+mixin_invalid_bound2_test/08: MissingCompileTimeError
+mixin_invalid_bound2_test/09: MissingCompileTimeError
+mixin_invalid_bound2_test/10: MissingCompileTimeError
+mixin_invalid_bound2_test/11: MissingCompileTimeError
+mixin_invalid_bound2_test/12: MissingCompileTimeError
+mixin_invalid_bound2_test/13: MissingCompileTimeError
+mixin_invalid_bound2_test/14: MissingCompileTimeError
+mixin_invalid_bound2_test/15: MissingCompileTimeError
+mixin_invalid_bound_test/02: MissingCompileTimeError
+mixin_invalid_bound_test/03: MissingCompileTimeError
+mixin_invalid_bound_test/04: MissingCompileTimeError
+mixin_invalid_bound_test/05: MissingCompileTimeError
+mixin_invalid_bound_test/06: MissingCompileTimeError
+mixin_invalid_bound_test/07: MissingCompileTimeError
+mixin_invalid_bound_test/08: MissingCompileTimeError
+mixin_invalid_bound_test/09: MissingCompileTimeError
+mixin_invalid_bound_test/10: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && ! $strong && $checked ]
 abstract_beats_arguments_test: MissingCompileTimeError
@@ -489,6 +618,12 @@ named_parameters2_test: MissingCompileTimeError
 named_parameters3_test: MissingCompileTimeError
 named_parameters4_test: MissingCompileTimeError
 named_parameters_aggregated_test/05: MissingCompileTimeError
+new_expression_type_args_test/00: MissingCompileTimeError
+new_expression_type_args_test/01: MissingCompileTimeError
+new_expression_type_args_test/02: MissingCompileTimeError
+new_prefix_test/01: MissingCompileTimeError
+no_such_constructor_test/01: MissingCompileTimeError
+no_such_method_dispatcher_test: Pass
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
@@ -579,6 +714,8 @@ override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/02: MissingCompileTimeError
 parser_quirks_test: StaticWarning
 part2_test/01: MissingCompileTimeError
+static_field1_test/01: MissingCompileTimeError
+static_field1a_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
 static_field3_test/03: MissingCompileTimeError
@@ -600,29 +737,137 @@ string_unicode2_negative_test: CompileTimeError
 string_unicode3_negative_test: CompileTimeError
 string_unicode4_negative_test: CompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+super_operator_index_test/01: MissingCompileTimeError
+super_operator_index_test/02: MissingCompileTimeError
+super_operator_index_test/03: MissingCompileTimeError
+super_operator_index_test/04: MissingCompileTimeError
+super_operator_index_test/05: MissingCompileTimeError
+super_operator_index_test/06: MissingCompileTimeError
+super_operator_index_test/07: MissingCompileTimeError
+switch_case_warn_test/01: MissingCompileTimeError
+switch_case_warn_test/02: MissingCompileTimeError
+switch_case_warn_test/03: MissingCompileTimeError
+switch_case_warn_test/04: MissingCompileTimeError
+switch_case_warn_test/05: MissingCompileTimeError
+switch_case_warn_test/06: MissingCompileTimeError
+switch_case_warn_test/07: MissingCompileTimeError
+switch_case_warn_test/08: MissingCompileTimeError
+switch_case_warn_test/09: MissingCompileTimeError
+switch_case_warn_test/10: MissingCompileTimeError
+switch_case_warn_test/11: MissingCompileTimeError
+switch_case_warn_test/12: MissingCompileTimeError
+switch_case_warn_test/13: MissingCompileTimeError
+switch_case_warn_test/14: MissingCompileTimeError
+switch_case_warn_test/15: MissingCompileTimeError
+switch_case_warn_test/16: MissingCompileTimeError
+switch_case_warn_test/17: MissingCompileTimeError
+switch_fallthru_test/01: MissingCompileTimeError
 type_variable_identifier_expression_test: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
+external_test/25: MissingCompileTimeError
+f_bounded_quantification_test/01: MissingCompileTimeError
+f_bounded_quantification_test/02: MissingCompileTimeError
+factory1_test/00: MissingCompileTimeError
+factory1_test/01: MissingCompileTimeError
+factory2_test/03: MissingCompileTimeError
+factory2_test/none: MissingCompileTimeError
+factory3_test/none: MissingCompileTimeError
+factory4_test/00: MissingCompileTimeError
+factory5_test/00: MissingCompileTimeError
+factory6_test/00: MissingCompileTimeError
+factory_redirection_test/01: MissingCompileTimeError
+factory_redirection_test/02: MissingCompileTimeError
+factory_redirection_test/03: MissingCompileTimeError
+factory_redirection_test/05: MissingCompileTimeError
+factory_redirection_test/06: MissingCompileTimeError
+factory_redirection_test/08: MissingCompileTimeError
+factory_redirection_test/09: MissingCompileTimeError
+factory_redirection_test/10: MissingCompileTimeError
+factory_redirection_test/11: MissingCompileTimeError
+factory_redirection_test/12: MissingCompileTimeError
+factory_redirection_test/13: MissingCompileTimeError
+factory_redirection_test/14: MissingCompileTimeError
+factory_redirection_test/none: MissingCompileTimeError
+factory_return_type_checked_test/00: MissingCompileTimeError
+unresolved_in_factory_test: MissingCompileTimeError
+field_override2_test: MissingCompileTimeError
+field_override_test/00: MissingCompileTimeError
+field_override_test/01: MissingCompileTimeError
+field_override_test/02: MissingCompileTimeError
+field_override_test/none: MissingCompileTimeError
+field_type_check_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/02: MissingCompileTimeError
+final_syntax_test/10: MissingCompileTimeError
+final_for_in_variable_test: MissingCompileTimeError
+final_param_test: MissingCompileTimeError
+final_super_field_set_test: MissingCompileTimeError
+final_variable_assignment_test/01: MissingCompileTimeError
+final_variable_assignment_test/02: MissingCompileTimeError
+final_variable_assignment_test/03: MissingCompileTimeError
+final_variable_assignment_test/04: MissingCompileTimeError
+first_class_types_literals_test/03: MissingCompileTimeError
+first_class_types_literals_test/04: MissingCompileTimeError
+first_class_types_literals_test/05: MissingCompileTimeError
+first_class_types_literals_test/06: MissingCompileTimeError
+first_class_types_literals_test/07: MissingCompileTimeError
+first_class_types_literals_test/08: MissingCompileTimeError
+first_class_types_literals_test/09: MissingCompileTimeError
+first_class_types_literals_test/10: MissingCompileTimeError
+first_class_types_literals_test/11: MissingCompileTimeError
+first_class_types_literals_test/12: MissingCompileTimeError
+mixin_illegal_constructor_test/13: MissingCompileTimeError
+mixin_illegal_constructor_test/14: MissingCompileTimeError
+mixin_illegal_constructor_test/15: MissingCompileTimeError
+mixin_illegal_constructor_test/16: MissingCompileTimeError
+mixin_illegal_static_access_test/01: MissingCompileTimeError
+mixin_illegal_static_access_test/02: MissingCompileTimeError
+mixin_illegal_syntax_test/13: MissingCompileTimeError
+mixin_invalid_bound2_test/02: MissingCompileTimeError
+mixin_invalid_bound2_test/03: MissingCompileTimeError
+mixin_invalid_bound2_test/04: MissingCompileTimeError
+mixin_invalid_bound2_test/05: MissingCompileTimeError
+mixin_invalid_bound2_test/06: MissingCompileTimeError
+mixin_invalid_bound2_test/07: MissingCompileTimeError
+mixin_invalid_bound2_test/08: MissingCompileTimeError
+mixin_invalid_bound2_test/09: MissingCompileTimeError
+mixin_invalid_bound2_test/10: MissingCompileTimeError
+mixin_invalid_bound2_test/11: MissingCompileTimeError
+mixin_invalid_bound2_test/12: MissingCompileTimeError
+mixin_invalid_bound2_test/13: MissingCompileTimeError
+mixin_invalid_bound2_test/14: MissingCompileTimeError
+mixin_invalid_bound2_test/15: MissingCompileTimeError
+mixin_invalid_bound_test/02: MissingCompileTimeError
+mixin_invalid_bound_test/03: MissingCompileTimeError
+mixin_invalid_bound_test/04: MissingCompileTimeError
+mixin_invalid_bound_test/05: MissingCompileTimeError
+mixin_invalid_bound_test/06: MissingCompileTimeError
+mixin_invalid_bound_test/07: MissingCompileTimeError
+mixin_invalid_bound_test/08: MissingCompileTimeError
+mixin_invalid_bound_test/09: MissingCompileTimeError
+mixin_invalid_bound_test/10: MissingCompileTimeError
 
 [ $compiler == dart2analyzer ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
+assertion_initializer_const_function_test/01: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 bad_initializer1_negative_test: CompileTimeError # Issue 14529
-bad_initializer2_negative_test: fail # Issue 14880
+bad_initializer2_negative_test: Fail # Issue 14880
 bad_named_constructor_negative_test: CompileTimeError # Issue 18693
 bit_operations_test/01: MissingCompileTimeError
 bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: MissingCompileTimeError
 bit_operations_test/04: MissingCompileTimeError
-black_listed_test/none: fail # Issue 14228
+black_listed_test/none: Fail # Issue 14228
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
-cascade_test/none: fail # Issue 11577
+cascade_test/none: Fail # Issue 11577
 closure_call_wrong_argument_count_negative_test: skip
 const_optional_args_negative_test: CompileTimeError
-constructor3_negative_test: fail # Issue 11585
-constructor_call_wrong_argument_count_negative_test: fail # Issue 11585
+constructor3_negative_test: Fail # Issue 11585
+constructor_call_wrong_argument_count_negative_test: Fail # Issue 11585
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 duplicate_export_negative_test: CompileTimeError
@@ -631,6 +876,10 @@ emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: Fail # Issue 21649
 enum_syntax_test/06: Fail # Issue 21649
 field3_test/01: MissingCompileTimeError
+final_syntax_test/01: Fail # Issue 11124
+final_syntax_test/02: Fail # Issue 11124
+final_syntax_test/03: Fail # Issue 11124
+final_syntax_test/04: Fail # Issue 11124
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_list_checked_test: StaticWarning
@@ -640,14 +889,14 @@ generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_test: StaticWarning
 generics_test: StaticWarning
-get_set_syntax_test/none: fail # Issue 11575
+get_set_syntax_test/none: Fail # Issue 11575
 getter_declaration_negative_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
 import_core_prefix_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
-instance_call_wrong_argument_count_negative_test: fail # Issue 11585
+instance_call_wrong_argument_count_negative_test: Fail # Issue 11585
 instance_method2_negative_test: CompileTimeError
 instance_method_negative_test: CompileTimeError
 interface2_negative_test: CompileTimeError
@@ -659,7 +908,7 @@ issue1578_negative_test: CompileTimeError
 is_not_class1_negative_test: CompileTimeError
 is_not_class4_negative_test: CompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
-interface_static_non_final_fields_negative_test: fail # Issue 11594
+interface_static_non_final_fields_negative_test: Fail # Issue 11594
 interface_test/00: MissingCompileTimeError
 is_not_class1_negative_test: CompileTimeError
 is_not_class1_negative_test: CompileTimeError
@@ -686,19 +935,31 @@ mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
+nested_generic_closure_test: CompileTimeError
 operator1_negative_test: CompileTimeError
 operator2_negative_test: CompileTimeError
+setter_declaration2_negative_test: CompileTimeError
+setter_declaration_negative_test: CompileTimeError
+setter_no_getter_call_test/01: CompileTimeError
+source_self_negative_test: CompileTimeError
+static_call_wrong_argument_count_negative_test: Fail # Issue 12156
 string_escape4_negative_test: CompileTimeError
 string_interpolate1_negative_test: CompileTimeError
 string_interpolate2_negative_test: CompileTimeError
+super_setter_test: StaticWarning
+switch1_negative_test: CompileTimeError
+switch3_negative_test: CompileTimeError
+switch4_negative_test: CompileTimeError
+switch5_negative_test: CompileTimeError
+switch7_negative_test: CompileTimeError
+syntax_test/none: fail # Issue 11575
 type_variable_scope_test/none: fail # Issue 11578
-type_variable_scope_test/none: fail # Issue 11578
-type_variable_static_context_negative_test: fail # Issue 12161
 type_variable_static_context_negative_test: fail # Issue 12161
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
 vm/lazy_deopt_with_exception_test: Pass
 vm/reflect_core_vm_test: CompileTimeError
+library_negative_test: CompileTimeError
 method_override7_test/03: Fail # Issue 11497
 method_override_test: StaticWarning
 override_field_test/03: Fail # Issue 29703
@@ -706,13 +967,53 @@ override_field_method1_negative_test: CompileTimeError
 override_field_method2_negative_test: CompileTimeError
 override_field_method4_negative_test: CompileTimeError
 override_field_method5_negative_test: CompileTimeError
+list_literal2_negative_test: CompileTimeError
+list_literal_negative_test: CompileTimeError
 map_literal_negative_test: CompileTimeError
+new_expression1_negative_test: CompileTimeError
+new_expression2_negative_test: CompileTimeError
+new_expression3_negative_test: CompileTimeError
+non_const_super_negative_test: CompileTimeError
+no_such_constructor2_test: StaticWarning
+no_main_test/01: Fail # Issue 20030
 parameter_initializer1_negative_test: CompileTimeError
 parameter_initializer2_negative_test: CompileTimeError
 parameter_initializer3_negative_test: CompileTimeError
 parameter_initializer4_negative_test: CompileTimeError
 parameter_initializer6_negative_test: CompileTimeError
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
+script1_negative_test: CompileTimeError
+script2_negative_test: CompileTimeError
+prefix1_negative_test: Fail # Issue 11962
+prefix12_negative_test: Fail # Issue 11962
+prefix11_negative_test: Fail # Issue 11964
+part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
+prefix2_negative_test: Fail # Issue 11962
+prefix4_negative_test: Fail # Issue 11962
+prefix5_negative_test: Fail # Issue 11962
+prefix8_negative_test: Fail # Issue 11964
+prefix3_negative_test: Fail # Issue 12191
+private_member1_negative_test: Fail # Issue 14021
+private_member2_negative_test: Fail # Issue 14021
+private_member3_negative_test: Fail # Issue 14021
+prefix7_negative_test: CompileTimeError
+regress_27617_test/1: MissingCompileTimeError
+regress_23408_test: Skip # don't care about the static warning.
+regress_29025_test: CompileTimeError # Issue 29081
+regress_29405_test: CompileTimeError # Issue 29421
+regress_29349_test: CompileTimeError # Issue 29744
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
+static_call_wrong_argument_count_negative_test: Fail # Issue 12156
+syntax_test/none: Fail # Issue 11575
+test_negative_test: CompileTimeError
+try_catch_on_syntax_test/10: MissingCompileTimeError
+try_catch_on_syntax_test/11: MissingCompileTimeError
+const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
+const_counter_negative_test: CompileTimeError
+const_optional_args_negative_test: CompileTimeError
+conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
+constructor3_negative_test: fail # Issue 11585
+constructor_call_wrong_argument_count_negative_test: fail # Issue 11585
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -727,6 +1028,11 @@ bit_operations_test/01: MissingStaticWarning # Issue 28823
 bit_operations_test/02: MissingStaticWarning # Issue 28823
 bit_operations_test/03: MissingStaticWarning # Issue 28823
 bit_operations_test/04: MissingStaticWarning # Issue 28823
+config_import_corelib_test: CompileTimeError
+const_types_test/07: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
+const_types_test/08: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
+const_types_test/14: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
+const_types_test/15: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
 error_stacktrace_test/00: Pass
 generic_list_checked_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
@@ -737,6 +1043,7 @@ generic_test: CompileTimeError
 generics_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 interceptor6_test: CompileTimeError
+malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
@@ -784,7 +1091,12 @@ override_inheritance_method_test/29: CompileTimeError
 override_inheritance_no_such_method_test/13: MissingCompileTimeError
 parameter_initializer_test: CompileTimeError
 parser_quirks_test: CompileTimeError
+prefix13_negative_test: CompileTimeError, OK
+prefix15_negative_test: CompileTimeError, OK
+prefix18_negative_test: CompileTimeError, OK
+regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
+setter_override2_test/none: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 string_unicode1_negative_test: CompileTimeError
 string_unicode2_negative_test: CompileTimeError
@@ -792,7 +1104,10 @@ string_unicode3_negative_test: CompileTimeError
 string_unicode4_negative_test: CompileTimeError
 string_split_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
+switch_case_test/none: CompileTimeError
+
 vm/lazy_deopt_with_exception*: CompileTimeError
+prefix6_negative_test: CompileTimeError, OK
 void_type_function_types_test/none: CompileTimeError # Issue 30177
 void_type_usage_test/param_as: CompileTimeError # Issue 30177
 void_type_usage_test/param_for: CompileTimeError # Issue 30177
@@ -847,11 +1162,11 @@ additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTi
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 additional_interface_adds_optional_args_test: StaticWarning
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_function_test/01: MissingStaticWarning
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
-checked_setter_test: MissingCompileTimeError
-checked_setter2_test: MissingCompileTimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
@@ -881,6 +1196,65 @@ class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
 closure_type_test: Pass
+compile_time_constant_o_test/01: MissingCompileTimeError
+compile_time_constant_o_test/02: MissingCompileTimeError
+conditional_method_invocation_test/05: MissingCompileTimeError
+conditional_method_invocation_test/06: MissingCompileTimeError
+conditional_method_invocation_test/07: MissingCompileTimeError
+conditional_method_invocation_test/08: MissingCompileTimeError
+conditional_method_invocation_test/12: MissingCompileTimeError
+conditional_method_invocation_test/13: MissingCompileTimeError
+conditional_method_invocation_test/18: MissingCompileTimeError
+conditional_method_invocation_test/19: MissingCompileTimeError
+conditional_property_access_test/04: MissingCompileTimeError
+conditional_property_access_test/05: MissingCompileTimeError
+conditional_property_access_test/06: MissingCompileTimeError
+conditional_property_access_test/10: MissingCompileTimeError
+conditional_property_access_test/11: MissingCompileTimeError
+conditional_property_access_test/16: MissingCompileTimeError
+conditional_property_access_test/17: MissingCompileTimeError
+conditional_property_assignment_test/04: MissingCompileTimeError
+conditional_property_assignment_test/05: MissingCompileTimeError
+conditional_property_assignment_test/06: MissingCompileTimeError
+conditional_property_assignment_test/10: MissingCompileTimeError
+conditional_property_assignment_test/11: MissingCompileTimeError
+conditional_property_assignment_test/12: MissingCompileTimeError
+conditional_property_assignment_test/13: MissingCompileTimeError
+conditional_property_assignment_test/27: MissingCompileTimeError
+conditional_property_assignment_test/28: MissingCompileTimeError
+conditional_property_assignment_test/32: MissingCompileTimeError
+conditional_property_assignment_test/33: MissingCompileTimeError
+conditional_property_assignment_test/34: MissingCompileTimeError
+conditional_property_assignment_test/35: MissingCompileTimeError
+conditional_property_increment_decrement_test/04: MissingCompileTimeError
+conditional_property_increment_decrement_test/08: MissingCompileTimeError
+conditional_property_increment_decrement_test/12: MissingCompileTimeError
+conditional_property_increment_decrement_test/16: MissingCompileTimeError
+conditional_property_increment_decrement_test/21: MissingCompileTimeError
+conditional_property_increment_decrement_test/22: MissingCompileTimeError
+conditional_property_increment_decrement_test/27: MissingCompileTimeError
+conditional_property_increment_decrement_test/28: MissingCompileTimeError
+conditional_property_increment_decrement_test/33: MissingCompileTimeError
+conditional_property_increment_decrement_test/34: MissingCompileTimeError
+conditional_property_increment_decrement_test/39: MissingCompileTimeError
+conditional_property_increment_decrement_test/40: MissingCompileTimeError
+const_constructor2_test/05: MissingCompileTimeError
+const_constructor2_test/06: MissingCompileTimeError
+const_dynamic_type_literal_test/02: MissingCompileTimeError
+const_error_multiply_initialized_test/02: MissingCompileTimeError
+const_error_multiply_initialized_test/04: MissingCompileTimeError
+const_types_test/01: MissingCompileTimeError
+const_types_test/02: MissingCompileTimeError
+const_types_test/03: MissingCompileTimeError
+const_types_test/04: MissingCompileTimeError
+const_types_test/05: MissingCompileTimeError
+const_types_test/06: MissingCompileTimeError
+const_types_test/13: MissingCompileTimeError
+const_types_test/35: MissingCompileTimeError
+const_types_test/34: MissingCompileTimeError
+const_types_test/39: MissingCompileTimeError
+const_types_test/40: MissingCompileTimeError
+constructor_duplicate_final_test/03: MissingCompileTimeError
 create_unresolved_type_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
@@ -922,6 +1296,15 @@ if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
+import_combinators2_test/00: MissingCompileTimeError
+list_literal4_test/00: MissingCompileTimeError
+list_literal4_test/01: MissingCompileTimeError
+list_literal4_test/03: MissingCompileTimeError
+list_literal4_test/04: MissingCompileTimeError
+list_literal4_test/05: MissingCompileTimeError
+list_literal_syntax_test/01: MissingCompileTimeError
+list_literal_syntax_test/02: MissingCompileTimeError
+list_literal_syntax_test/03: MissingCompileTimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
@@ -931,6 +1314,91 @@ initializing_formal_type_test: MissingCompileTimeError
 instantiate_type_variable_test/01: StaticWarning
 interceptor6_test: StaticWarning
 invocation_mirror_test: StaticWarning
+least_upper_bound_expansive_test/01: MissingCompileTimeError
+least_upper_bound_expansive_test/02: MissingCompileTimeError
+least_upper_bound_expansive_test/03: MissingCompileTimeError
+least_upper_bound_expansive_test/04: MissingCompileTimeError
+least_upper_bound_expansive_test/05: MissingCompileTimeError
+least_upper_bound_expansive_test/06: MissingCompileTimeError
+least_upper_bound_expansive_test/07: MissingCompileTimeError
+least_upper_bound_expansive_test/08: MissingCompileTimeError
+least_upper_bound_expansive_test/09: MissingCompileTimeError
+least_upper_bound_expansive_test/10: MissingCompileTimeError
+least_upper_bound_expansive_test/11: MissingCompileTimeError
+least_upper_bound_expansive_test/12: MissingCompileTimeError
+least_upper_bound_test/03: MissingCompileTimeError
+least_upper_bound_test/04: MissingCompileTimeError
+least_upper_bound_test/10: MissingCompileTimeError
+least_upper_bound_test/19: MissingCompileTimeError
+least_upper_bound_test/20: MissingCompileTimeError
+least_upper_bound_test/23: MissingCompileTimeError
+least_upper_bound_test/24: MissingCompileTimeError
+least_upper_bound_test/25: StaticWarning
+least_upper_bound_test/26: StaticWarning
+least_upper_bound_test/29: MissingCompileTimeError
+least_upper_bound_test/30: MissingCompileTimeError
+least_upper_bound_test/31: StaticWarning
+least_upper_bound_test/32: MissingCompileTimeError
+library_ambiguous_test/00: MissingCompileTimeError
+library_ambiguous_test/01: MissingCompileTimeError
+library_ambiguous_test/02: MissingCompileTimeError
+library_ambiguous_test/03: MissingCompileTimeError
+library_ambiguous_test/04: MissingCompileTimeError
+malbounded_type_cast_test/00: MissingCompileTimeError
+malbounded_type_cast_test/01: MissingCompileTimeError
+malbounded_type_cast_test/02: MissingCompileTimeError
+malbounded_type_cast_test/none: Pass
+malbounded_type_literal_test/00: MissingCompileTimeError
+malbounded_type_literal_test/none: Pass
+malbounded_type_test2_test/00: MissingCompileTimeError
+malbounded_type_test2_test/none: Pass
+malbounded_type_test_test/00: MissingCompileTimeError
+malbounded_type_test_test/01: MissingCompileTimeError
+malbounded_type_test_test/02: MissingCompileTimeError
+malformed2_test/01: MissingCompileTimeError
+malformed2_test/02: MissingCompileTimeError
+malformed2_test/03: MissingCompileTimeError
+malformed2_test/04: MissingCompileTimeError
+malformed2_test/05: MissingCompileTimeError
+malformed2_test/06: MissingCompileTimeError
+malformed2_test/07: MissingCompileTimeError
+malformed2_test/08: MissingCompileTimeError
+malformed2_test/09: MissingCompileTimeError
+malformed2_test/10: MissingCompileTimeError
+malformed2_test/11: MissingCompileTimeError
+malformed2_test/12: MissingCompileTimeError
+malformed2_test/13: MissingCompileTimeError
+malformed_bound_test/00: MissingCompileTimeError
+malformed_bound_test/01: MissingCompileTimeError
+malformed_inheritance_test/01: MissingCompileTimeError
+malformed_inheritance_test/03: MissingCompileTimeError
+malformed_inheritance_test/05: MissingCompileTimeError
+malformed_test/00: MissingCompileTimeError
+malformed_test/01: MissingCompileTimeError
+malformed_test/02: MissingCompileTimeError
+malformed_test/03: MissingCompileTimeError
+malformed_test/04: MissingCompileTimeError
+malformed_test/05: MissingCompileTimeError
+malformed_test/06: MissingCompileTimeError
+malformed_test/07: MissingCompileTimeError
+malformed_test/08: MissingCompileTimeError
+malformed_test/09: MissingCompileTimeError
+malformed_test/10: MissingCompileTimeError
+malformed_test/11: MissingCompileTimeError
+malformed_test/12: MissingCompileTimeError
+malformed_test/13: MissingCompileTimeError
+malformed_test/14: MissingCompileTimeError
+malformed_test/15: MissingCompileTimeError
+malformed_test/16: MissingCompileTimeError
+malformed_test/17: MissingCompileTimeError
+malformed_test/18: MissingCompileTimeError
+malformed_test/19: MissingCompileTimeError
+malformed_test/20: MissingCompileTimeError
+malformed_test/21: MissingCompileTimeError
+malformed_test/22: MissingCompileTimeError
+malformed_test/23: MissingCompileTimeError
+malformed_test/24: MissingCompileTimeError
+malformed_type_test: MissingCompileTimeError
 multiple_interface_inheritance_test: StaticWarning # Issue 30552
 named_parameters_test/01: MissingCompileTimeError
 named_parameters_test/02: MissingCompileTimeError
@@ -945,6 +1413,37 @@ named_parameters_test/10: MissingCompileTimeError
 named_parameters_type_test/01: MissingCompileTimeError
 named_parameters_type_test/02: MissingCompileTimeError
 named_parameters_type_test/03: MissingCompileTimeError
+positional_parameters_type_test/01: MissingCompileTimeError
+positional_parameters_type_test/02: MissingCompileTimeError
+prefix13_negative_test: CompileTimeError, OK
+prefix15_negative_test: CompileTimeError, OK
+prefix16_test/00: MissingCompileTimeError
+prefix16_test/01: MissingCompileTimeError
+prefix18_negative_test: CompileTimeError, OK
+prefix22_test/00: MissingCompileTimeError
+prefix23_test/00: MissingCompileTimeError
+regress_12561_test: MissingCompileTimeError
+regress_13494_test: MissingCompileTimeError
+regress_17382_test: MissingCompileTimeError
+regress_19413_test: MissingCompileTimeError
+regress_19728_test: MissingCompileTimeError
+regress_21793_test/01: MissingCompileTimeError
+regress_21912_test/01: MissingCompileTimeError
+regress_21912_test/02: MissingCompileTimeError
+regress_22438_test: MissingCompileTimeError
+regress_22936_test: MissingCompileTimeError
+regress_23089_test: MissingCompileTimeError
+regress_26133_test: MissingCompileTimeError
+regress_27572_test: MissingCompileTimeError
+regress_29025_test: StaticWarning
+regress_29405_test: StaticWarning
+return_type_test: MissingCompileTimeError
+rewrite_implicit_this_test/01: MissingCompileTimeError
+setter4_test: MissingCompileTimeError
+setter_no_getter_call_test/01: StaticWarning
+setter_override_test/01: MissingCompileTimeError
+setter_override_test/02: MissingCompileTimeError
+setter_override2_test/none: CompileTimeError
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
 string_no_operator_test/02: MissingCompileTimeError
@@ -965,6 +1464,17 @@ string_no_operator_test/16: MissingCompileTimeError
 string_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
+sync_generator1_test/01: MissingCompileTimeError
+symbol_literal_test/01: MissingCompileTimeError
+syntax_test/59: MissingCompileTimeError
+syntax_test/60: MissingCompileTimeError
+syntax_test/61: MissingCompileTimeError
+top_level_getter_no_setter1_test: MissingCompileTimeError
+top_level_getter_no_setter2_test: MissingCompileTimeError
+transitive_private_library_access_test: MissingCompileTimeError
+try_catch_on_syntax_test/07: MissingCompileTimeError
+try_catch_syntax_test/08: MissingCompileTimeError
+type_checks_in_factory_method_test/01: MissingCompileTimeError
 type_promotion_parameter_test/01: MissingCompileTimeError
 type_promotion_parameter_test/02: MissingCompileTimeError
 type_promotion_parameter_test/03: MissingCompileTimeError
@@ -1053,12 +1563,34 @@ type_variable_scope_test/04: MissingCompileTimeError
 type_variable_scope_test/05: MissingCompileTimeError
 type_variable_scope2_test: MissingCompileTimeError
 typed_selector2_test: MissingCompileTimeError
+private_access_test/01: MissingCompileTimeError
+private_access_test/02: MissingCompileTimeError
+private_access_test/03: MissingCompileTimeError
+private_access_test/04: MissingCompileTimeError
+private_access_test/05: MissingCompileTimeError
+private_access_test/06: MissingCompileTimeError
+prefix23_test/00: MissingCompileTimeError
 unbound_getter_test: MissingCompileTimeError
 unresolved_default_constructor_test/01: MissingCompileTimeError
-unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 vm/type_vm_test: StaticWarning
+local_function2_test/01: MissingCompileTimeError
+local_function2_test/02: MissingCompileTimeError
+local_function3_test/01: MissingCompileTimeError
+local_function_test/01: MissingCompileTimeError
+local_function_test/02: MissingCompileTimeError
+local_function_test/03: MissingCompileTimeError
+local_function_test/04: MissingCompileTimeError
+logical_expression3_test: MissingCompileTimeError
+malbounded_instantiation_test/01: MissingCompileTimeError
+malbounded_instantiation_test/02: MissingCompileTimeError
+malbounded_instantiation_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/02: MissingCompileTimeError
+malbounded_redirecting_factory_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/04: MissingCompileTimeError
+malbounded_redirecting_factory_test/05: MissingCompileTimeError
+malbounded_type_cast2_test: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1068,6 +1600,7 @@ error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $strong ]
+assertion_initializer_const_function_test/01: MissingStaticWarning
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 field3a_negative_test: StaticWarning # Issue 28823
@@ -1081,9 +1614,15 @@ generic_methods_simple_is_expression_test: CompileTimeError # Issue 29070
 generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
 generic_methods_type_expression_test: CompileTimeError # Incorrectly disallows type parameter in "is" test.
 instantiate_type_variable_test/01: CompileTimeError
+no_main_test/01: MissingStaticWarning # Issue 28823
+no_such_method_negative_test: CompileTimeError
 string_interpolate_test: CompileTimeError
+super_setter_test: StaticWarning # Issue 28823
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
 
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30929
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30929
+regress_29784_test/02: MissingCompileTimeError # Issue 29784
+config_import_corelib_test: StaticWarning, OK

@@ -8,8 +8,6 @@ const m1 = const {'__proto__': 400 + 99};
 const m2 = const {'a': 499, 'b': 42};
 const m3 = const {'__proto__': 499};
 
-bool isUnsupportedError(o) => o is UnsupportedError;
-
 main() {
   Expect.equals(499, m1['__proto__']);
   Expect.equals(null, m1['b']);
@@ -29,14 +27,13 @@ main() {
   Expect.listEquals([499], seenValues);
   Expect.isFalse(m1.isEmpty);
   Expect.equals(1, m1.length);
-  Expect.throws(() => m1.remove('__proto__'), isUnsupportedError);
-  Expect.throws(() => m1.remove('b'), isUnsupportedError);
-  Expect.throws(() => m1.clear(), isUnsupportedError);
-  Expect.throws(() => m1['b'] = 42, isUnsupportedError);
-  Expect.throws(() => m1['__proto__'] = 499, isUnsupportedError);
-  Expect.throws(
-      () => m1.putIfAbsent('__proto__', () => 499), isUnsupportedError);
-  Expect.throws(() => m1.putIfAbsent('z', () => 499), isUnsupportedError);
+  Expect.throwsUnsupportedError(() => m1.remove('__proto__'));
+  Expect.throwsUnsupportedError(() => m1.remove('b'));
+  Expect.throwsUnsupportedError(() => m1.clear());
+  Expect.throwsUnsupportedError(() => m1['b'] = 42);
+  Expect.throwsUnsupportedError(() => m1['__proto__'] = 499);
+  Expect.throwsUnsupportedError(() => m1.putIfAbsent('__proto__', () => 499));
+  Expect.throwsUnsupportedError(() => m1.putIfAbsent('z', () => 499));
 
   Expect.equals(499, m2['a']);
   Expect.equals(42, m2['b']);
@@ -61,17 +58,16 @@ main() {
   Expect.listEquals([499, 42], seenValues);
   Expect.isFalse(m2.isEmpty);
   Expect.equals(2, m2.length);
-  Expect.throws(() => m2.remove('a'), isUnsupportedError);
-  Expect.throws(() => m2.remove('b'), isUnsupportedError);
-  Expect.throws(() => m2.remove('__proto__'), isUnsupportedError);
-  Expect.throws(() => m2.clear(), isUnsupportedError);
-  Expect.throws(() => m2['a'] = 499, isUnsupportedError);
-  Expect.throws(() => m2['b'] = 42, isUnsupportedError);
-  Expect.throws(() => m2['__proto__'] = 499, isUnsupportedError);
-  Expect.throws(() => m2.putIfAbsent('a', () => 499), isUnsupportedError);
-  Expect.throws(
-      () => m2.putIfAbsent('__proto__', () => 499), isUnsupportedError);
-  Expect.throws(() => m2['a'] = 499, isUnsupportedError);
+  Expect.throwsUnsupportedError(() => m2.remove('a'));
+  Expect.throwsUnsupportedError(() => m2.remove('b'));
+  Expect.throwsUnsupportedError(() => m2.remove('__proto__'));
+  Expect.throwsUnsupportedError(() => m2.clear());
+  Expect.throwsUnsupportedError(() => m2['a'] = 499);
+  Expect.throwsUnsupportedError(() => m2['b'] = 42);
+  Expect.throwsUnsupportedError(() => m2['__proto__'] = 499);
+  Expect.throwsUnsupportedError(() => m2.putIfAbsent('a', () => 499));
+  Expect.throwsUnsupportedError(() => m2.putIfAbsent('__proto__', () => 499));
+  Expect.throwsUnsupportedError(() => m2['a'] = 499);
 
   Expect.isTrue(identical(m1, m3));
 }

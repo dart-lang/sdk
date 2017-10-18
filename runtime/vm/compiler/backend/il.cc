@@ -118,6 +118,7 @@ intptr_t Instruction::Hashcode() const {
 
 bool Instruction::Equals(Instruction* other) const {
   if (tag() != other->tag()) return false;
+  if (InputCount() != other->InputCount()) return false;
   for (intptr_t i = 0; i < InputCount(); ++i) {
     if (!InputAt(i)->Equals(other->InputAt(i))) return false;
   }
@@ -2103,9 +2104,10 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     TypeArguments& function_type_args = TypeArguments::Handle();
     function_type_args ^= constant_function_type_args->value().raw();
     Error& bound_error = Error::Handle();
-    AbstractType& new_dst_type = AbstractType::Handle(
-        dst_type().InstantiateFrom(instantiator_type_args, function_type_args,
-                                   &bound_error, NULL, NULL, Heap::kOld));
+    AbstractType& new_dst_type =
+        AbstractType::Handle(dst_type().InstantiateFrom(
+            instantiator_type_args, function_type_args, kAllFree, &bound_error,
+            NULL, NULL, Heap::kOld));
     if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
       return this;
     }
@@ -4235,6 +4237,176 @@ void NativeCallInstr::SetupNative() {
   }
   set_is_auto_scope(auto_setup_scope);
   set_native_c_function(native_function);
+}
+
+// SIMD
+
+SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
+                                         MethodRecognizer::Kind kind,
+                                         Definition* receiver,
+                                         Instruction* call,
+                                         intptr_t mask /* = 0 */) {
+  SimdOpInstr* op =
+      new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
+  op->SetInputAt(0, new (zone) Value(receiver));
+  // Note: we are skipping receiver.
+  for (intptr_t i = 1; i < op->InputCount(); i++) {
+    op->SetInputAt(i, call->PushArgumentAt(i)->value()->CopyWithType(zone));
+  }
+  if (op->HasMask()) {
+    op->set_mask(mask);
+  }
+  ASSERT(call->ArgumentCount() == (op->InputCount() + (op->HasMask() ? 1 : 0)));
+  return op;
+}
+
+SimdOpInstr* SimdOpInstr::CreateFromFactoryCall(Zone* zone,
+                                                MethodRecognizer::Kind kind,
+                                                Instruction* call) {
+  SimdOpInstr* op =
+      new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
+  for (intptr_t i = 0; i < op->InputCount(); i++) {
+    // Note: ArgumentAt(0) is type arguments which we don't need.
+    op->SetInputAt(i, call->PushArgumentAt(i + 1)->value()->CopyWithType(zone));
+  }
+  ASSERT(call->ArgumentCount() == (op->InputCount() + 1));
+  return op;
+}
+
+SimdOpInstr::Kind SimdOpInstr::KindForOperator(intptr_t cid, Token::Kind op) {
+  switch (cid) {
+    case kFloat32x4Cid:
+      switch (op) {
+        case Token::kADD:
+          return kFloat32x4Add;
+        case Token::kSUB:
+          return kFloat32x4Sub;
+        case Token::kMUL:
+          return kFloat32x4Mul;
+        case Token::kDIV:
+          return kFloat32x4Div;
+        default:
+          break;
+      }
+      break;
+
+    case kFloat64x2Cid:
+      switch (op) {
+        case Token::kADD:
+          return kFloat64x2Add;
+        case Token::kSUB:
+          return kFloat64x2Sub;
+        case Token::kMUL:
+          return kFloat64x2Mul;
+        case Token::kDIV:
+          return kFloat64x2Div;
+        default:
+          break;
+      }
+      break;
+
+    case kInt32x4Cid:
+      switch (op) {
+        case Token::kADD:
+          return kInt32x4Add;
+        case Token::kSUB:
+          return kInt32x4Sub;
+        case Token::kBIT_AND:
+          return kInt32x4BitAnd;
+        case Token::kBIT_OR:
+          return kInt32x4BitOr;
+        case Token::kBIT_XOR:
+          return kInt32x4BitXor;
+        default:
+          break;
+      }
+      break;
+  }
+
+  UNREACHABLE();
+  return kIllegalSimdOp;
+}
+
+SimdOpInstr::Kind SimdOpInstr::KindForMethod(MethodRecognizer::Kind kind) {
+  switch (kind) {
+#define CASE_METHOD(Arity, Mask, Name, ...)                                    \
+  case MethodRecognizer::k##Name:                                              \
+    return k##Name;
+#define CASE_BINARY_OP(Arity, Mask, Name, Args, Result)
+    SIMD_OP_LIST(CASE_METHOD, CASE_BINARY_OP)
+#undef CASE_METHOD
+#undef CASE_BINARY_OP
+    default:
+      break;
+  }
+
+  FATAL1("Not a SIMD method: %s", MethodRecognizer::KindToCString(kind));
+  return kIllegalSimdOp;
+}
+
+// Methods InputCount(), representation(), RequiredInputRepresentation() and
+// HasMask() are using an array of SimdOpInfo structures representing all
+// necessary information about the instruction.
+
+struct SimdOpInfo {
+  uint8_t arity;
+  bool has_mask;
+  Representation output;
+  Representation inputs[4];
+};
+
+// Make representaion from type name used by SIMD_OP_LIST.
+#define REP(T) (kUnboxed##T)
+static const Representation kUnboxedBool = kTagged;
+static const Representation kUnboxedInt8 = kUnboxedInt32;
+
+#define ENCODE_INPUTS_0()
+#define ENCODE_INPUTS_1(In0) REP(In0)
+#define ENCODE_INPUTS_2(In0, In1) REP(In0), REP(In1)
+#define ENCODE_INPUTS_3(In0, In1, In2) REP(In0), REP(In1), REP(In2)
+#define ENCODE_INPUTS_4(In0, In1, In2, In3)                                    \
+  REP(In0), REP(In1), REP(In2), REP(In3)
+
+// Helpers for correct interpretation of the Mask field in the SIMD_OP_LIST.
+#define HAS_MASK true
+#define HAS__ false
+
+// Define the metadata array.
+static const SimdOpInfo simd_op_information[] = {
+#define PP_APPLY(M, Args) M Args
+#define CASE(Arity, Mask, Name, Args, Result)                                  \
+  {Arity, HAS_##Mask, REP(Result), {PP_APPLY(ENCODE_INPUTS_##Arity, Args)}},
+    SIMD_OP_LIST(CASE, CASE)
+#undef CASE
+#undef PP_APPLY
+};
+
+// Undef all auxiliary macros.
+#undef ENCODE_INFORMATION
+#undef HAS__
+#undef HAS_MASK
+#undef ENCODE_INPUTS_0
+#undef ENCODE_INPUTS_1
+#undef ENCODE_INPUTS_2
+#undef ENCODE_INPUTS_3
+#undef ENCODE_INPUTS_4
+#undef REP
+
+intptr_t SimdOpInstr::InputCount() const {
+  return simd_op_information[kind()].arity;
+}
+
+Representation SimdOpInstr::representation() const {
+  return simd_op_information[kind()].output;
+}
+
+Representation SimdOpInstr::RequiredInputRepresentation(intptr_t idx) const {
+  ASSERT(0 <= idx && idx < InputCount());
+  return simd_op_information[kind()].inputs[idx];
+}
+
+bool SimdOpInstr::HasMask() const {
+  return simd_op_information[kind()].has_mask;
 }
 
 #undef __

@@ -60,39 +60,9 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(BinaryInt64Op)                                                             \
   M(ShiftInt64Op)                                                              \
   M(UnaryInt64Op)                                                              \
-  M(BinaryFloat32x4Op)                                                         \
-  M(Simd32x4Shuffle)                                                           \
-  M(Simd32x4ShuffleMix)                                                        \
-  M(Simd32x4GetSignMask)                                                       \
-  M(Float32x4Constructor)                                                      \
-  M(Float32x4Zero)                                                             \
-  M(Float32x4Splat)                                                            \
-  M(Float32x4Comparison)                                                       \
-  M(Float32x4MinMax)                                                           \
-  M(Float32x4Scale)                                                            \
-  M(Float32x4Sqrt)                                                             \
-  M(Float32x4ZeroArg)                                                          \
-  M(Float32x4Clamp)                                                            \
-  M(Float32x4With)                                                             \
-  M(Float32x4ToInt32x4)                                                        \
-  M(Int32x4Constructor)                                                        \
-  M(Int32x4BoolConstructor)                                                    \
-  M(Int32x4GetFlag)                                                            \
-  M(Int32x4Select)                                                             \
-  M(Int32x4SetFlag)                                                            \
-  M(Int32x4ToFloat32x4)                                                        \
-  M(BinaryInt32x4Op)                                                           \
-  M(BinaryFloat64x2Op)                                                         \
-  M(Float64x2Zero)                                                             \
-  M(Float64x2Constructor)                                                      \
-  M(Float64x2Splat)                                                            \
-  M(Float32x4ToFloat64x2)                                                      \
-  M(Float64x2ToFloat32x4)                                                      \
-  M(Simd64x2Shuffle)                                                           \
-  M(Float64x2ZeroArg)                                                          \
-  M(Float64x2OneArg)                                                           \
   M(CheckedSmiOp)                                                              \
-  M(CheckedSmiComparison)
+  M(CheckedSmiComparison)                                                      \
+  M(SimdOp)
 
 // Location summaries actually are not used by the unoptimizing DBC compiler
 // because we don't allocate any registers.

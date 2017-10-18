@@ -5,12 +5,18 @@
 /*element: main:[null]*/
 main() {
   asyncMethod();
+  asyncMethodWithReturn();
   asyncStarMethod();
   syncStarMethod();
 }
 
 /*element: asyncMethod:[exact=_Future]*/
 asyncMethod() async {}
+
+/*element: asyncMethodWithReturn:Union of [[exact=JSUInt31], [exact=_Future]]*/
+asyncMethodWithReturn() async {
+  return 0;
+}
 
 /*element: asyncStarMethod:[exact=_ControllerStream]*/
 asyncStarMethod() async* {}

@@ -2,7 +2,7 @@
 
 Author: eernst@.
 
-Version: 0.2 (2017-08-30)
+Version: 0.3 (2017-09-08)
 
 Status: Under implementation.
 
@@ -90,7 +90,7 @@ words, we must add support for constructs like `Foo<int>.bar()` as part of a
 `postfixExpression`. For all other situations, the variant with `const` becomes
 a construct which is already syntactically correct Dart when the `const` is
 removed. For instance `const C(42)` becomes `C(42)` which is already allowed
-syntactically (syntactically, it could be a function invocation).*
+syntactically (it could be a function invocation).*
 
 ## Static analysis
 
@@ -106,19 +106,28 @@ We need to treat expressions differently in different locations, hence the
 following definition: An expression _e_ is said to *occur in a constant
 context*,
 
-- if _e_ is an immediate subexpression of a constant list literal or a
-  constant map literal.
-- if _e_ is an immediate subexpression of a constant object expression.
+- if _e_ is an element of a constant list literal, or a key or value of
+  an entry of a constant map literal.
+- if _e_ is an actual argument of a constant object expression or of a
+  metadata annotation.
 - if _e_ is the initializing expression of a constant variable declaration.
-- if _e_ is an immediate subexpression of an expression which occurs in a
-  constant context.
+- if _e_ is a switch case expression.
+- if _e_ is an immediate subexpression of an expression _e1_ which occurs in
+  a constant context, unless _e1_ is a `throw` expression or a function
+  literal.
+
+*This roughly means that everything which is inside a syntactically
+constant expression is in a constant context. A `throw` expression is
+currently not allowed in a constant expression, but extensions affecting
+that status may be considered. A similar situation arises for function
+literals.*
 
 *Note that the default value of an optional formal parameter is not a
 constant context. This choice reserves some freedom to modify the
 semantics of default values.*
 
-An expression on one of the following forms must be modified to be or
-contain a `constantObjectExpression` as described:
+An expression on one of the following forms must be modified in top-down order
+to be or contain a `constantObjectExpression` as described:
 
 With a `postfixExpression` _e_ occurring in a constant context,
 
@@ -167,6 +176,9 @@ eliminated by code transformation.
 
 
 ## Revisions
+
+- 0.3 (2017-09-08) Eliminated the notion of an immediate subexpression,
+  for improved precision.
 
 - 0.2 (2017-08-30) Updated the document to specify the previously missing
   transformations for composite literals (lists and maps), and to specify a

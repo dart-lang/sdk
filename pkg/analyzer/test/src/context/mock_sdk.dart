@@ -315,6 +315,20 @@ class _CompileTimeError {
 class _ConstantExpressionError {
   const _ConstantExpressionError();
 }
+
+class _DuplicatedFieldInitializerError {
+  _DuplicatedFieldInitializerError(String name);
+}
+
+class AbstractClassInstantiationError {
+  AbstractClassInstantiationError(String className);
+}
+
+class FallThroughError {
+  FallThroughError();
+  FallThroughError._create(String url, int line);
+}
+
 ''');
 
 const _MockSdkLibrary _LIB_FOREIGN_HELPER = const _MockSdkLibrary(
@@ -360,7 +374,7 @@ abstract class CanvasElement extends HtmlElement {
   CanvasRenderingContext2D get context2D;
 }
 
-abstract class class CanvasRenderingContext2D {}
+abstract class CanvasRenderingContext2D {}
 
 Element query(String relativeSelectors) => null;
 ''');

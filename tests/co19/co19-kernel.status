@@ -28,21 +28,11 @@ Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t06
 Language/Classes/Constructors/Generative_Constructors/syntax_t04: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/syntax_t05: MissingCompileTimeError
 Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
-Language/Classes/Setters/parameter_t01: MissingCompileTimeError
-Language/Classes/Setters/parameter_t02: MissingCompileTimeError
-Language/Classes/Setters/parameter_t03: MissingCompileTimeError
-Language/Classes/Setters/parameter_t04: MissingCompileTimeError
-Language/Classes/Setters/parameter_t06: MissingCompileTimeError
-Language/Classes/Setters/parameter_t08: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/declarations_t06: MissingCompileTimeError
 Language/Classes/declarations_t08: MissingCompileTimeError
-Language/Classes/declarations_t25: MissingCompileTimeError
-Language/Classes/declarations_t26: MissingCompileTimeError
-Language/Classes/declarations_t27: MissingCompileTimeError
-Language/Classes/declarations_t28: MissingCompileTimeError
 Language/Classes/declarations_t33: MissingCompileTimeError
 Language/Classes/definition_t23: CompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash
@@ -58,7 +48,6 @@ Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
 Language/Expressions/Constants/math_operators_t04: Crash
 Language/Expressions/Constants/math_operators_t05: Crash
-Language/Expressions/Constants/no_other_constant_expressions_t11: Crash
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
@@ -104,7 +93,6 @@ Language/Metadata/before_param_t07: RuntimeError  # Issue 28434: Kernel IR misse
 Language/Metadata/before_param_t08: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_param_t09: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_typedef_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/compilation_t03: MissingCompileTimeError
 Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
@@ -142,8 +130,6 @@ Language/Classes/Instance_Variables/constant_t01: Crash
 
 # dartk: JIT failures
 [ $compiler == dartk ]
-Language/Classes/Setters/parameter_t05: MissingCompileTimeError
-Language/Classes/Setters/parameter_t07: DartkCrash
 Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError

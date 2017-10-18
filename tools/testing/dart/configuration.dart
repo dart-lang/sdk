@@ -51,7 +51,6 @@ class Configuration {
       this.useFastStartup,
       this.useEnableAsserts,
       this.useDart2JSWithKernel,
-      this.useDart2JSWithKernelInSsa,
       this.writeDebugLog,
       this.writeTestOutcomeLog,
       this.writeResultLog,
@@ -118,7 +117,6 @@ class Configuration {
   final bool useFastStartup;
   final bool useEnableAsserts;
   final bool useDart2JSWithKernel;
-  final bool useDart2JSWithKernelInSsa;
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
   final bool writeResultLog;
@@ -227,7 +225,6 @@ class Configuration {
     if (useFastStartup) args.add("--fast-startup");
     if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
-    if (useDart2JSWithKernelInSsa) args.add("--use-kernel-in-ssa");
     return args;
   }
 
@@ -456,7 +453,6 @@ class Configuration {
         'timeout': timeout,
         'preview_dart_2': previewDart2,
         'dart2js_with_kernel': useDart2JSWithKernel,
-        'dart2js_with_kernel_in_ssa': useDart2JSWithKernelInSsa,
         'enable_asserts': useEnableAsserts,
         'hot_reload': hotReload,
         'hot_reload_rollback': hotReloadRollback,
@@ -521,6 +517,7 @@ class Compiler {
   static const appJit = const Compiler._('app_jit');
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
+  static const specParser = const Compiler._('spec_parser');
 
   static final List<String> names = _all.keys.toList();
 
@@ -532,7 +529,8 @@ class Compiler {
     dartdevc,
     appJit,
     dartk,
-    dartkp
+    dartkp,
+    specParser,
   ], key: (Compiler compiler) => compiler.name);
 
   static Compiler find(String name) {
@@ -588,6 +586,8 @@ class Compiler {
       case Compiler.precompiler:
       case Compiler.dartkp:
         return const [Runtime.dartPrecompiled];
+      case Compiler.specParser:
+        return const [Runtime.none];
       case Compiler.none:
         return const [
           Runtime.vm,

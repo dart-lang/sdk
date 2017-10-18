@@ -3666,7 +3666,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     }
     Element element = node.staticElement;
     bool isIdentifierRead = _isReadIdentifier(node);
-    if (element is LocalVariableElement) {
+    if (element is PropertyAccessorElement &&
+        element.isSynthetic &&
+        isIdentifierRead &&
+        element.variable is TopLevelVariableElement) {
+      usedElements.addElement(element.variable);
+    } else if (element is LocalVariableElement) {
       if (isIdentifierRead) {
         usedElements.addElement(element);
       }
@@ -10146,6 +10151,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
         _visitMethodElement(element);
       } else if (element is PropertyAccessorElement) {
         _visitPropertyAccessorElement(element);
+      } else if (element is TopLevelVariableElement) {
+        _visitTopLevelVariableElement(element);
       }
     }
   }
@@ -10261,6 +10268,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
 
   _visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!_isUsedMember(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
+    }
+  }
+
+  _visitTopLevelVariableElement(TopLevelVariableElement element) {
+    if (!_isUsedElement(element)) {
       _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
           [element.kind.displayName, element.displayName]);
     }

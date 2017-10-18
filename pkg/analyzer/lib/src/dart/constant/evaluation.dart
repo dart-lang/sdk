@@ -207,10 +207,7 @@ class ConstantEvaluationEngine {
         // No evaluation needs to be done; constructor declarations are only in
         // the dependency graph to ensure that any constants referred to in
         // initializer lists and parameter defaults are evaluated before
-        // invocations of the constructor.  However we do need to annotate the
-        // element as being free of constant evaluation cycles so that later
-        // code will know that it is safe to evaluate.
-        (constant as ConstructorElementImpl).isCycleFree = true;
+        // invocations of the constructor.
       }
     } else if (constant is ElementAnnotationImpl) {
       Annotation constNode = constant.annotationAst;
@@ -284,7 +281,6 @@ class ConstantEvaluationEngine {
       }
     } else if (constant is ConstructorElementImpl) {
       if (constant.isConst) {
-        constant.isCycleFree = false;
         ConstructorElement redirectedConstructor =
             getConstRedirectedConstructor(constant);
         if (redirectedConstructor != null) {

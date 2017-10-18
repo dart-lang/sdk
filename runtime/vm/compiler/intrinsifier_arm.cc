@@ -1676,6 +1676,13 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ bx(LR, NE);  // Hash not yet computed.
 }
 
+void Intrinsifier::Type_getHashCode(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R0, FieldAddress(R0, Type::hash_offset()));
+  __ cmp(R0, Operand(0));
+  __ bx(LR, NE);  // Hash not yet computed.
+}
+
 void GenerateSubstringMatchesSpecialization(Assembler* assembler,
                                             intptr_t receiver_cid,
                                             intptr_t other_cid,

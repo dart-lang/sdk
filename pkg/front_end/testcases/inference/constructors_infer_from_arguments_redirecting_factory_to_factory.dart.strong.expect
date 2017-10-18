@@ -5,12 +5,12 @@ import "dart:core" as core;
 abstract class C<T extends core::Object> extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::C::•];
   abstract get t() → self::C::T;
-  abstract set t(self::C::T x) → void;
+  abstract set t(generic-covariant-impl generic-covariant-interface self::C::T x) → void;
   static factory •<T extends core::Object>(self::C::•::T t) → self::C<self::C::•::T>
     let dynamic #redirecting_factory = self::CImpl::• in invalid-expression;
 }
 class CImpl<T extends core::Object> extends core::Object implements self::C<self::CImpl::T> {
-  field self::CImpl::T t;
+  generic-covariant-impl generic-covariant-interface field self::CImpl::T t;
   constructor _(self::CImpl::T t) → void
     : self::CImpl::t = t, super core::Object::•()
     ;

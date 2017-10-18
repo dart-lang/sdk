@@ -3985,10 +3985,24 @@ The implication of this definition, and the other definitions involving the meth
 }
 
 \LMHash{}
-It is a static warning if the static type $F$ of $e_f$ may not be assigned to a function type.  If $F$ is not a function type, the static type of $i$ is \DYNAMIC{}. Otherwise
-the static type of $i$ is the declared return type of  $F$.
-%\item Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \to \bot$.
-%\end{itemize}
+Let $F$ be the static type of $e_f$.
+It is a static warning unless one of the following conditions is satisfied:
+\begin{itemize}
+\item $F$ is \DYNAMIC{}.
+\item $F$ is \code{Function}.
+\item $F$ is a function type
+  $(T_1, \ldots, T_n,
+  \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}, \ldots, T_{n+k+p}$ $x_{n+k+p}\})
+  \rightarrow T_0$
+such that the static type of $a_j$ is assignable to $T_j$ for all
+$j \in 1 .. n+k$.
+\item $k$ is zero, $0 \leq m \leq n$, and $F$ is a function type
+$(T_1, \ldots, T_m, [T_{m+1}, \ldots, T_n]) \rightarrow T_0$
+where the static type of $a_j$ is assignable to $T_j$ for all $j \in 1 .. n$.
+\end{itemize}
+If $F$ is not a function type, the static type of $i$ is \DYNAMIC{}.
+Otherwise, the static type of $i$ is the return type $T_0$ of $F$.
+
 
 \subsection{ Lookup}
 \LMLabel{lookup}

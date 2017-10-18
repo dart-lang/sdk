@@ -8,13 +8,12 @@ import 'dart:mirrors';
 
 main() {
   var cls = reflectClass(List);
-  Expect.throws(() => cls.newInstance(const Symbol(''), [null]),
-      (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => cls.newInstance(const Symbol(''), [null]));
 
   var list = cls.newInstance(const Symbol(''), [42]).reflectee;
   // Check that the list is fixed.
   Expect.equals(42, list.length);
-  Expect.throws(() => list.add(2), (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => list.add(2));
   list[0] = 1;
   Expect.equals(1, list[0]);
 

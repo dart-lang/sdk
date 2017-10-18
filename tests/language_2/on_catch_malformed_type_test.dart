@@ -19,7 +19,7 @@ catchUnresolvedBefore() {
 }
 
 catchUnresolvedAfter() {
-  Expect.throws(() {
+  Expect.throwsTypeError(() {
     try {
       throw "foo";
       Expect.fail("This code shouldn't be executed");
@@ -29,7 +29,7 @@ catchUnresolvedAfter() {
     } on String catch (oks) {
       Expect.fail("This code shouldn't be executed");
     }
-  }, (e) => e is TypeError);
+  });
 }
 
 main() {

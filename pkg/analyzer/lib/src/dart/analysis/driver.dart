@@ -43,6 +43,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/kernel_driver.dart' show KernelDriver;
 import 'package:meta/meta.dart';
 
 /**
@@ -93,7 +94,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 45;
+  static const int DATA_VERSION = 46;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -174,6 +175,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final Uint32List _salt = new Uint32List(1 + AnalysisOptions.signatureLength);
 
   /**
+   * If [enableKernelDriver], then the instance of [KernelDriver].
+   * Otherwise `null`.
+   */
+  KernelDriver _kernelDriver;
+
+  /**
    * The set of priority files, that should be analyzed sooner.
    */
   final _priorityFiles = new LinkedHashSet<String>();
@@ -210,13 +217,28 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The mapping from the files for which the unit element key was requested
    * using [getUnitElementSignature] to the [Completer]s to report the result.
    */
-  final _unitElementSignatureRequests = <String, List<Completer<String>>>{};
+  final _unitElementSignatureFiles = <String, List<Completer<String>>>{};
+
+  /**
+   * The mapping from the files for which the unit element key was requested
+   * using [getUnitElementSignature], and which were found to be parts without
+   * known libraries, to the [Completer]s to report the result.
+   */
+  final _unitElementSignatureParts = <String, List<Completer<String>>>{};
 
   /**
    * The mapping from the files for which the unit element was requested using
    * [getUnitElement] to the [Completer]s to report the result.
    */
   final _unitElementRequestedFiles =
+      <String, List<Completer<UnitElementResult>>>{};
+
+  /**
+   * The mapping from the files for which the unit element was requested using
+   * [getUnitElement], and which were found to be parts without known libraries,
+   * to the [Completer]s to report the result.
+   */
+  final _unitElementRequestedParts =
       <String, List<Completer<UnitElementResult>>>{};
 
   /**
@@ -329,6 +351,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
     _createFileTracker();
+    _createKernelDriver();
     _scheduler.add(this);
     _search = new Search(this);
   }
@@ -450,7 +473,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_indexRequestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
-    if (_unitElementSignatureRequests.isNotEmpty) {
+    if (_unitElementSignatureFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
     if (_unitElementRequestedFiles.isNotEmpty) {
@@ -481,7 +504,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_fileTracker.hasPendingFiles) {
       return AnalysisDriverPriority.general;
     }
-    if (_requestedParts.isNotEmpty || _partsToAnalyze.isNotEmpty) {
+    if (_requestedParts.isNotEmpty ||
+        _partsToAnalyze.isNotEmpty ||
+        _unitElementSignatureParts.isNotEmpty ||
+        _unitElementRequestedParts.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
     return AnalysisDriverPriority.nothing;
@@ -547,6 +573,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     Iterable<String> addedFiles = _fileTracker.addedFiles;
     _createFileTracker();
     _fileTracker.addFiles(addedFiles);
+    _createKernelDriver();
   }
 
   @override
@@ -792,7 +819,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return new Future.value();
     }
     var completer = new Completer<String>();
-    _unitElementSignatureRequests
+    _unitElementSignatureFiles
         .putIfAbsent(path, () => <Completer<String>>[])
         .add(completer);
     _scheduler.notify(this);
@@ -880,12 +907,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     // Process a unit element key request.
-    if (_unitElementSignatureRequests.isNotEmpty) {
-      String path = _unitElementSignatureRequests.keys.first;
+    if (_unitElementSignatureFiles.isNotEmpty) {
+      String path = _unitElementSignatureFiles.keys.first;
       String signature = _computeUnitElementSignature(path);
-      _unitElementSignatureRequests.remove(path).forEach((completer) {
-        completer.complete(signature);
-      });
+      var completers = _unitElementSignatureFiles.remove(path);
+      if (signature != null) {
+        completers.forEach((completer) {
+          completer.complete(signature);
+        });
+      } else {
+        _unitElementSignatureParts
+            .putIfAbsent(path, () => [])
+            .addAll(completers);
+      }
       return;
     }
 
@@ -893,9 +927,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_unitElementRequestedFiles.isNotEmpty) {
       String path = _unitElementRequestedFiles.keys.first;
       UnitElementResult result = await _computeUnitElement(path);
-      _unitElementRequestedFiles.remove(path).forEach((completer) {
-        completer.complete(result);
-      });
+      var completers = _unitElementRequestedFiles.remove(path);
+      if (result != null) {
+        completers.forEach((completer) {
+          completer.complete(result);
+        });
+      } else {
+        _unitElementRequestedParts
+            .putIfAbsent(path, () => [])
+            .addAll(completers);
+      }
       return;
     }
 
@@ -1017,6 +1058,28 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
       return;
     }
+
+    // Process a unit element signature request for a part.
+    if (_unitElementSignatureParts.isNotEmpty) {
+      String path = _unitElementSignatureParts.keys.first;
+      var signature = await _computeUnitElementSignature(path,
+          asIsIfPartWithoutLibrary: true);
+      _unitElementSignatureParts.remove(path).forEach((completer) {
+        completer.complete(signature);
+      });
+      return;
+    }
+
+    // Process a unit element request for a part.
+    if (_unitElementRequestedParts.isNotEmpty) {
+      String path = _unitElementRequestedParts.keys.first;
+      UnitElementResult result =
+          await _computeUnitElement(path, asIsIfPartWithoutLibrary: true);
+      _unitElementRequestedParts.remove(path).forEach((completer) {
+        completer.complete(result);
+      });
+      return;
+    }
   }
 
   /**
@@ -1118,12 +1181,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             kernelContext = await KernelContext.forSingleLibrary(
                 library,
                 _logger,
-                _byteStore,
                 _analysisOptions,
                 declaredVariables,
                 _sourceFactory,
                 fsState,
-                _resourceProvider.pathContext);
+                _kernelDriver);
             analyzer = new LibraryAnalyzer(
                 analysisOptions,
                 declaredVariables,
@@ -1131,7 +1193,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 kernelContext.isLibraryUri,
                 kernelContext.analysisContext,
                 kernelContext.resynthesizer,
-                library);
+                library,
+                enableKernelDriver: true);
           } else {
             libraryContext = await _createLibraryContext(library);
             analyzer = new LibraryAnalyzer(
@@ -1195,9 +1258,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return analysisResult._index;
   }
 
-  Future<UnitElementResult> _computeUnitElement(String path) async {
+  Future<UnitElementResult> _computeUnitElement(String path,
+      {bool asIsIfPartWithoutLibrary: false}) async {
     FileState file = _fsState.getFileForPath(path);
-    FileState library = file.library ?? file;
+
+    // Prepare the library - the file itself, or the known library.
+    FileState library = file.isPart ? file.library : file;
+    if (library == null) {
+      if (asIsIfPartWithoutLibrary) {
+        library = file;
+      } else {
+        return null;
+      }
+    }
 
     // Create the AnalysisContext to resynthesize elements in.
     LibraryContext libraryContext = await _createLibraryContext(library);
@@ -1214,9 +1287,20 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
   }
 
-  String _computeUnitElementSignature(String path) {
+  String _computeUnitElementSignature(String path,
+      {bool asIsIfPartWithoutLibrary: false}) {
     FileState file = _fsState.getFileForPath(path);
-    FileState library = file.library ?? file;
+
+    // Prepare the library - the file itself, or the known library.
+    FileState library = file.isPart ? file.library : file;
+    if (library == null) {
+      if (asIsIfPartWithoutLibrary) {
+        library = file;
+      } else {
+        return null;
+      }
+    }
+
     return library.transitiveSignature;
   }
 
@@ -1232,6 +1316,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _resourceProvider, sourceFactory, analysisOptions, _salt,
         externalSummaries: _externalSummaries);
     _fileTracker = new FileTracker(_logger, _fsState, _changeHook);
+  }
+
+  /**
+   * Creates a new [KernelDriver] in [_kernelDriver].
+   *
+   * This is used both on initial construction and whenever the configuration
+   * changes.
+   */
+  void _createKernelDriver() {
+    if (enableKernelDriver) {
+      _kernelDriver = createKernelDriver(_logger, _byteStore, analysisOptions,
+          sourceFactory, fsState, _resourceProvider.pathContext);
+    }
   }
 
   /**

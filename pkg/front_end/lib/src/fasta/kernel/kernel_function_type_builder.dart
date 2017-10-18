@@ -15,6 +15,8 @@ import 'package:kernel/ast.dart'
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction;
 
+import '../problems.dart' show unsupported;
+
 import 'kernel_builder.dart'
     show
         FormalParameterBuilder,
@@ -78,5 +80,10 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     library.addCompileTimeError(
         messageSupertypeIsFunction, charOffset, fileUri);
     return null;
+  }
+
+  @override
+  buildInvalidType() {
+    return unsupported("buildInvalidType", charOffset, fileUri);
   }
 }

@@ -494,6 +494,16 @@ void Assembler::movd(Register dst, XmmRegister src) {
   EmitOperand(src & 7, Operand(dst));
 }
 
+void Assembler::movq(Register dst, XmmRegister src) {
+  ASSERT(src <= XMM15);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitREX_RB(src, dst, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0x7E);
+  EmitOperand(src & 7, Operand(dst));
+}
+
 void Assembler::addss(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);

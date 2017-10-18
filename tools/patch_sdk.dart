@@ -26,8 +26,8 @@ import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
 
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm_fasta.dart';
-import 'package:kernel/target/flutter_fasta.dart';
+import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:kernel/target/flutter.dart' show FlutterTarget;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 /// Set of input files that were read by this script to generate patched SDK.
@@ -104,6 +104,8 @@ Future _main(List<String> argv) async {
   var sdkOut = path.join(outDir, 'lib');
   var packagesFile = argv[4];
 
+  await new Directory.fromUri(outDirUri).delete(recursive: true);
+
   // Parse libraries.dart
   var libContents = readInputFile(path.join(
       sdkLibIn, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'));
@@ -121,10 +123,29 @@ Future _main(List<String> argv) async {
 
   _copyExtraLibraries(sdkOut, locations);
 
-  Uri platform = outDirUri.resolve('platform.dill.tmp');
-  Uri outline = outDirUri.resolve('outline.dill');
-  Uri librariesJson = outDirUri.resolve("lib/libraries.json");
-  Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
+  final Uri platform = outDirUri.resolve('platform.dill.tmp');
+  final Uri librariesJson = outDirUri.resolve("lib/libraries.json");
+  final Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
+  TargetFlags flags = new TargetFlags();
+  Target target;
+
+  switch (mode) {
+    case 'vm':
+      target = new VmTarget(flags);
+      break;
+
+    case 'flutter':
+    case 'flutter_release':
+      target = new FlutterTarget(flags);
+      break;
+
+    case 'dart2js':
+      target = new Dart2jsTarget(flags);
+      break;
+
+    default:
+      throw "Unknown mode: $mode";
+  }
 
   await _writeSync(
       librariesJson.toFilePath(),
@@ -132,50 +153,7 @@ Future _main(List<String> argv) async {
         mode: {"libraries": locations}
       }));
 
-  var flags = new TargetFlags();
-  var target = forVm
-      ? new VmFastaTarget(flags)
-      : (forFlutter ? new FlutterFastaTarget(flags) : new Dart2jsTarget(flags));
-  var platformDeps =
-      await compilePlatform(outDirUri, target, packages, platform, outline);
-  deps.addAll(platformDeps);
-
-  if (forVm) {
-    // TODO(sigmund): add support for the flutter vmservice_sky as well.
-    var vmserviceName = 'vmservice_io';
-    var base = path.fromUri(Platform.script);
-    Uri dartDir =
-        new Uri.directory(path.dirname(path.dirname(path.absolute(base))));
-
-    String vmserviceJson = JSON.encode({
-      'vm': {
-        "libraries": {
-          '_vmservice': {
-            'uri': '${dartDir.resolve('sdk/lib/vmservice/vmservice.dart')}'
-          },
-          'vmservice_io': {
-            'uri':
-                '${dartDir.resolve('runtime/bin/vmservice/vmservice_io.dart')}'
-          },
-        }
-      }
-    });
-    Uri vmserviceJsonUri = outDirUri.resolve("lib/vmservice_libraries.json");
-    await _writeSync(vmserviceJsonUri.toFilePath(), vmserviceJson);
-    var program = await kernelForProgram(
-        Uri.parse('dart:$vmserviceName'),
-        new CompilerOptions()
-          ..setExitCodeOnProblem = true
-          // TODO(sigmund): investigate. This should be outline, but it breaks
-          // vm-debug tests. Issue #30111
-          ..sdkSummary = platform
-          ..librariesSpecificationUri = vmserviceJsonUri
-          ..packagesFileUri = packages);
-    Uri vmserviceUri = outDirUri.resolve('$vmserviceName.dill');
-    await writeProgramToFile(program, vmserviceUri);
-  }
-
-  Uri platformFinalLocation = outDirUri.resolve('platform.dill');
+  await compilePlatform(outDirUri, target, packages, platform);
 
   // We generate a dependency file for GN to properly regenerate the patched sdk
   // folder, outline.dill and platform.dill files when necessary: either when
@@ -198,17 +176,16 @@ Future _main(List<String> argv) async {
   var platformForDeps = platform;
   var sdkDir = outDirUri;
   if (forDart2js || forFlutter) {
-    // Note: this would fail if `../patched_sdk/platform.dill` doesn't exist. We
-    // added an explicit dependency in the .GN rules so patched_dart2js_sdk (and
-    // patched_flutter_sdk) depend on patched_sdk to ensure that it exists.
-    platformForDeps = outDirUri.resolve('../patched_sdk/platform.dill');
-    sdkDir = outDirUri.resolve('../patched_sdk/');
+    // Note: this fails if `$root_out_dir/vm_platform.dill` doesn't exist.  The
+    // target //utils/compiler:patched_dart2js_sdk depends on
+    // //runtime/vm:kernel_platform_files to ensure this file exists.
+    platformForDeps = outDirUri.resolve('../vm_platform.dill');
+    sdkDir = null;
   }
   deps.addAll(await getDependencies(Platform.script,
       sdk: sdkDir, packages: packages, platform: platformForDeps));
-  await writeDepsFile(platformFinalLocation,
-      Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);
-  await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
+  await writeDepsFile(
+      librariesJson, Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);
 }
 
 /// Generates an outline.dill and platform.dill file containing the result of
@@ -216,8 +193,8 @@ Future _main(List<String> argv) async {
 ///
 /// Returns a list of dependencies read by the compiler. This list can be used
 /// to create GN dependency files.
-Future<List<Uri>> compilePlatform(Uri patchedSdk, Target target, Uri packages,
-    Uri fullOutput, Uri outlineOutput) async {
+Future<List<Uri>> compilePlatform(
+    Uri patchedSdk, Target target, Uri packages, Uri output) async {
   var options = new CompilerOptions()
     ..setExitCodeOnProblem = true
     ..strongMode = false
@@ -240,8 +217,7 @@ Future<List<Uri>> compilePlatform(Uri patchedSdk, Target target, Uri packages,
           inputs),
       buildSummary: true,
       buildProgram: true);
-  new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
-  await writeProgramToFile(result.program, fullOutput);
+  await writeProgramToFile(result.program, output);
   return result.deps;
 }
 
@@ -362,8 +338,14 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
     //       dart/
     //       flutter/
     var srcDir = path.dirname(path.dirname(path.dirname(path.absolute(base))));
-    var uiLibraryInDir = path.join(srcDir, 'flutter', 'lib', 'ui');
-    for (var file in new Directory(uiLibraryInDir).listSync()) {
+    var uiLibraryInDir =
+        new Directory(path.join(srcDir, 'flutter', 'lib', 'ui'));
+    if (!uiLibraryInDir.existsSync()) {
+      // Must be Fuchsia!
+      uiLibraryInDir = new Directory(
+          path.join(srcDir, 'third_party', 'flutter', 'lib', 'ui'));
+    }
+    for (var file in uiLibraryInDir.listSync()) {
       if (!file.path.endsWith('.dart')) continue;
       var name = path.basename(file.path);
       var uiLibraryOut = path.join(sdkOut, 'ui', name);

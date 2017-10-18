@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object> extends core::Object {
-  field core::List<self::A::T> x = null;
+  generic-covariant-impl generic-covariant-interface field core::List<self::A::T> x = null;
   default constructor •() → void
     : super core::Object::•()
     ;
-  set y(core::List<self::A::T> value) → void {}
+  set y(generic-covariant-impl generic-covariant-interface core::List<self::A::T> value) → void {}
 }
 static method main() → dynamic {
   self::A<core::int> a_int = new self::A::•<core::int>();

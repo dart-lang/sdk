@@ -26,6 +26,5 @@ class EvilPattern implements Pattern {
 }
 
 void main() {
-  Expect.throws(
-      () => "foo".split(new EvilPattern())[0].length, (e) => e is RangeError);
+  Expect.throwsRangeError(() => "foo".split(new EvilPattern())[0].length);
 }

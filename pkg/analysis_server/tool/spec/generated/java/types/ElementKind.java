@@ -63,14 +63,8 @@ public class ElementKind {
 
   public static final String TYPE_PARAMETER = "TYPE_PARAMETER";
 
-  /**
-   * Deprecated: support for tests was removed.
-   */
   public static final String UNIT_TEST_GROUP = "UNIT_TEST_GROUP";
 
-  /**
-   * Deprecated: support for tests was removed.
-   */
   public static final String UNIT_TEST_TEST = "UNIT_TEST_TEST";
 
   public static final String UNKNOWN = "UNKNOWN";

@@ -45,10 +45,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
-DEFINE_FLAG(bool,
-            support_deprecated_tearoff_syntax,
-            false,
-            "Support new tear-off syntax.");
 // TODO(floitsch): remove the conditional-directive flag, once we publicly
 // committed to the current version.
 DEFINE_FLAG(bool,
@@ -72,6 +68,8 @@ DEFINE_FLAG(
     await_is_keyword,
     false,
     "await and yield are treated as proper keywords in synchronous code.");
+// TODO(zra): Remove the assert_initializer flag once all references to it
+// from flutter and fuchsia scripts are deleted. Flag is a no-op (always on).
 DEFINE_FLAG(bool,
             assert_initializer,
             true,
@@ -228,9 +226,7 @@ void ParsedFunction::Bailout(const char* origin, const char* reason) const {
 
 kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
   if (kernel_scopes_ == NULL) {
-    kernel::StreamingScopeBuilder builder(
-        this, function().kernel_offset(),
-        TypedData::Handle(Z, function().kernel_data()));
+    kernel::StreamingScopeBuilder builder(this);
     kernel_scopes_ = builder.BuildScopes();
   }
   return kernel_scopes_;
@@ -1093,11 +1089,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       node_sequence = parser.ParseImplicitClosure(func);
       break;
     case RawFunction::kClosureFunction:
-      if (func.IsConstructorClosureFunction()) {
-        node_sequence = parser.ParseConstructorClosure(func);
-        break;
-      }
-    // Fall-through: Handle non-implicit closures.
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
@@ -1475,58 +1466,6 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
                                  /* is_initializer = */ false);
   current_block_->statements->Add(store_field);
   current_block_->statements->Add(new ReturnNode(ST(ident_pos)));
-  return CloseBlock();
-}
-
-SequenceNode* Parser::ParseConstructorClosure(const Function& func) {
-  TRACE_PARSER("ParseConstructorClosure");
-  const TokenPosition token_pos = func.token_pos();
-
-  Function& constructor = Function::ZoneHandle(Z);
-  TypeArguments& type_args = TypeArguments::ZoneHandle(Z);
-  ParseConstructorClosurization(&constructor, &type_args);
-  ASSERT(!constructor.IsNull());
-
-  ParamList params;
-  // The first parameter of the closure function is the
-  // implicit closure argument.
-  params.AddFinalParameter(token_pos, &Symbols::ClosureParameter(),
-                           &Object::dynamic_type());
-  bool params_ok = ParseFormalParameters(constructor, &params);
-  USE(params_ok);
-  ASSERT(params_ok);
-  // Per language spec, the type of the closure parameters is dynamic.
-  // Replace the types parsed from the constructor.
-  params.EraseParameterTypes();
-
-  SetupDefaultsForOptionalParams(params);
-  ASSERT(func.num_fixed_parameters() == params.num_fixed_parameters);
-  ASSERT(func.NumOptionalParameters() == params.num_optional_parameters);
-
-  OpenFunctionBlock(func);
-  LocalScope* scope = current_block_->scope;
-  AddFormalParamsToScope(&params, scope);
-
-  ArgumentListNode* ctor_args = new ArgumentListNode(token_pos);
-  // Skip implicit closure parameter at 0.
-  for (intptr_t i = 1; i < func.NumParameters(); i++) {
-    ctor_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
-  }
-
-  if (func.HasOptionalNamedParameters()) {
-    const Array& arg_names =
-        Array::ZoneHandle(Array::New(func.NumOptionalParameters(), Heap::kOld));
-    for (intptr_t i = 0; i < arg_names.Length(); i++) {
-      intptr_t index = func.num_fixed_parameters() + i;
-      arg_names.SetAt(i, String::Handle(func.ParameterNameAt(index)));
-    }
-    ctor_args->set_names(arg_names);
-  }
-
-  AstNode* new_object =
-      CreateConstructorCallNode(token_pos, type_args, constructor, ctor_args);
-  ReturnNode* return_node = new ReturnNode(token_pos, new_object);
-  current_block_->statements->Add(return_node);
   return CloseBlock();
 }
 
@@ -2787,8 +2726,13 @@ AstNode* Parser::ParseInitializer(const Class& cls,
                                   GrowableArray<Field*>* initialized_fields) {
   TRACE_PARSER("ParseInitializer");
   const TokenPosition field_pos = TokenPos();
-  if (FLAG_assert_initializer && CurrentToken() == Token::kASSERT) {
-    return ParseAssertStatement(current_function().is_const());
+  if (CurrentToken() == Token::kASSERT) {
+    // Function literals are allowed in assertion initializer.
+    // "this" must not be accessible in assertion initializer.
+    receiver->set_invisible(true);
+    AstNode* init_assert = ParseAssertStatement(current_function().is_const());
+    receiver->set_invisible(false);
+    return init_assert;
   }
   if (CurrentToken() == Token::kTHIS) {
     ConsumeToken();
@@ -3856,7 +3800,7 @@ void Parser::SkipInitializers() {
       }
       CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
-    } else if (FLAG_assert_initializer && (CurrentToken() == Token::kASSERT)) {
+    } else if (CurrentToken() == Token::kASSERT) {
       ConsumeToken();
       CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
@@ -3878,9 +3822,9 @@ void Parser::SkipInitializers() {
 RawLibraryPrefix* Parser::ParsePrefix() {
   ASSERT(IsIdentifier());
   // A library prefix can never stand by itself. It must be followed by
-  // a period or a hash mark (for closurization).
+  // a period.
   Token::Kind next_token = LookaheadToken(1);
-  if ((next_token != Token::kPERIOD) && (next_token != Token::kHASH)) {
+  if (next_token != Token::kPERIOD) {
     return LibraryPrefix::null();
   }
   const String& ident = *CurrentLiteral();
@@ -3912,8 +3856,8 @@ RawLibraryPrefix* Parser::ParsePrefix() {
     return LibraryPrefix::null();
   }
 
-  // We have a name that is not shadowed, followed by a period or #.
-  // Consume the identifier, let the caller consume the . or #.
+  // We have a name that is not shadowed, followed by a period.
+  // Consume the identifier, let the caller consume the period.
   ConsumeToken();
   return prefix.raw();
 }
@@ -11872,7 +11816,7 @@ AstNode* Parser::LoadTypeParameter(PrimaryNode* primary) {
       Type& type = Type::ZoneHandle(Z, Type::DynamicType());
       return new (Z) TypeNode(primary_pos, type);
     }
-    if (FunctionLevel() > 0) {
+    if ((FunctionLevel() > 0) && innermost_function().HasGenericParent()) {
       // Make sure that the parent function type arguments are captured.
       CaptureFunctionTypeArguments();
     }
@@ -12129,173 +12073,13 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
   }
 }
 
-// Closurization e#m of getter, setter, method or operator.
-AstNode* Parser::ParseClosurization(AstNode* primary) {
-  if (!FLAG_support_deprecated_tearoff_syntax) {
-    ReportError("tear-off using the x#id syntax is a deprecated feature");
-    return NULL;
-  }
-  ExpectToken(Token::kHASH);
-  TokenPosition property_pos = TokenPos();
-  bool is_setter_name = false;
-
-  String& extractor_name = String::ZoneHandle(Z);
-  if (IsIdentifier()) {
-    extractor_name = CurrentLiteral()->raw();
-    ConsumeToken();
-    if (CurrentToken() == Token::kASSIGN) {
-      ConsumeToken();
-      is_setter_name = true;
-    }
-  } else if (Token::CanBeOverloaded(CurrentToken())) {
-    extractor_name = Symbols::Token(CurrentToken()).raw();
-    ConsumeToken();
-  } else {
-    ReportError("identifier or operator expected");
-  }
-
-  if (primary->IsPrimaryNode() && primary->AsPrimaryNode()->IsSuper()) {
-    // TODO(hausner): implement super#m
-    ReportError("closurization of super method not yet supported");
-  }
-
-  // Handle closurization of top-level names from library prefixes, P#m
-  if (primary->IsLiteralNode() &&
-      primary->AsLiteralNode()->literal().IsLibraryPrefix()) {
-    const LibraryPrefix& prefix =
-        LibraryPrefix::Cast(primary->AsLiteralNode()->literal());
-    Object& obj = Object::Handle(Z);
-    const bool is_private_name =
-        (extractor_name.CharAt(0) == Library::kPrivateIdentifierStart);
-    if (!is_private_name) {
-      // Private names are not exported by libraries. The name mangling
-      // of private names with a library-specific suffix usually ensures
-      // that _x in library A is not found when looked up from library B.
-      // In the pathological case where a library imports itself with
-      // a prefix, the name mangling does not help in hiding the private
-      // name, so we explicitly prevent lookup of private names here.
-      if (is_setter_name) {
-        const String& setter_name =
-            String::Handle(Z, Field::LookupSetterSymbol(extractor_name));
-        if (!setter_name.IsNull()) {
-          obj = prefix.LookupObject(setter_name);
-        }
-      }
-      if (obj.IsNull()) {
-        obj = prefix.LookupObject(extractor_name);
-      }
-    }
-    if (!prefix.is_loaded() && (parsed_function() != NULL) &&
-        !FLAG_load_deferred_eagerly) {
-      // Remember that this function depends on an import prefix of an
-      // unloaded deferred library.
-      parsed_function()->AddDeferredPrefix(prefix);
-    }
-
-    if (obj.IsFunction()) {
-      const Function& func = Function::Cast(obj);
-      if (!func.IsSetterFunction() || is_setter_name) {
-        return CreateImplicitClosureNode(func, property_pos, NULL);
-      }
-    } else if (obj.IsField()) {
-      const Field& field = Field::Cast(obj);
-      if (is_setter_name && !field.is_final()) {
-        const Instance& setter_closure =
-            Instance::ZoneHandle(field.SetterClosure());
-        return new (Z) LiteralNode(property_pos, setter_closure);
-      }
-      if (!is_setter_name) {
-        const Instance& getter_closure =
-            Instance::ZoneHandle(field.GetterClosure());
-        return new (Z) LiteralNode(property_pos, getter_closure);
-      }
-    }
-    return ThrowNoSuchMethodError(
-        property_pos, current_class(), extractor_name,
-        NULL,  // No arguments.
-        InvocationMirror::kTopLevel,
-        is_setter_name ? InvocationMirror::kSetter : InvocationMirror::kMethod,
-        NULL);  // No existing function.
-  }
-
-  // Handle closurization of static properties of classes, C#n.
-  if (primary->IsPrimaryNode() &&
-      primary->AsPrimaryNode()->primary().IsClass()) {
-    const Class& cls = Class::Cast(primary->AsPrimaryNode()->primary());
-    const Field& field =
-        Field::Handle(Z, cls.LookupStaticField(extractor_name));
-    if (!field.IsNull()) {
-      if (is_setter_name) {
-        if (!field.is_final()) {
-          const Instance& setter_closure =
-              Instance::ZoneHandle(Z, field.SetterClosure());
-          ASSERT(setter_closure.IsClosure());
-          // Note: the created closure is cached after it's created
-          // once. If eager compilation is desired, the compiler can
-          // be invoked here. The same applies for getters below.
-          return new (Z) LiteralNode(property_pos, setter_closure);
-        }
-        extractor_name = Field::SetterSymbol(extractor_name);
-      } else {
-        const Instance& getter_closure =
-            Instance::ZoneHandle(Z, field.GetterClosure());
-        ASSERT(getter_closure.IsClosure());
-        return new (Z) LiteralNode(property_pos, getter_closure);
-      }
-    } else {
-      Function& func = Function::Handle(Z);
-      if (is_setter_name) {
-        extractor_name = Field::LookupSetterSymbol(extractor_name);
-        if (!extractor_name.IsNull()) {
-          func = cls.LookupStaticFunction(extractor_name);
-        } else {
-          extractor_name = Field::SetterSymbol(extractor_name);
-        }
-      } else {
-        func = cls.LookupStaticFunction(extractor_name);
-        if (func.IsNull()) {
-          const String& getter_name =
-              String::Handle(Z, Field::LookupGetterSymbol(extractor_name));
-          if (!getter_name.IsNull()) {
-            func = cls.LookupStaticFunction(getter_name);
-          }
-        }
-      }
-      if (!func.IsNull()) {
-        return CreateImplicitClosureNode(func, property_pos, NULL);
-      }
-    }
-    return ThrowNoSuchMethodError(
-        property_pos, cls, extractor_name,
-        NULL,  // No arguments.
-        InvocationMirror::kStatic,
-        is_setter_name ? InvocationMirror::kSetter : InvocationMirror::kMethod,
-        NULL);  // No existing function.
-  }
-
-  // Closurization of instance getter, setter, method or operator.
-  GrowableHandlePtrArray<const String> pieces(Z, 3);
-  pieces.Add(Symbols::HashMark());
-  if (is_setter_name) {
-    pieces.Add(Symbols::SetterPrefix());
-  }
-  pieces.Add(extractor_name);
-  extractor_name = Symbols::FromConcatAll(T, pieces);
-  return new (Z) InstanceGetterNode(property_pos, primary, extractor_name);
-}
-
 AstNode* Parser::ParsePostfixExpr() {
   TRACE_PARSER("ParsePostfixExpr");
   String* expr_ident =
       Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
   const TokenPosition expr_pos = TokenPos();
   AstNode* expr = ParsePrimary();
-  if (CurrentToken() == Token::kHASH) {
-    expr = LoadFieldIfUnresolved(expr);
-    expr = ParseClosurization(expr);
-  } else {
-    expr = ParseSelectors(expr, false);
-  }
+  expr = ParseSelectors(expr, false);
   if (IsIncrementOperator(CurrentToken())) {
     TRACE_PARSER("IncrementOperator");
     if (!IsLegalAssignableSyntax(expr, TokenPos())) {
@@ -13003,6 +12787,10 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
         }
         ASSERT(type_parameter.IsFinalized());
         ASSERT(!type_parameter.IsMalformed());
+        if ((FunctionLevel() > 0) && innermost_function().HasGenericParent()) {
+          // Make sure that the parent function type arguments are captured.
+          CaptureFunctionTypeArguments();
+        }
         return new (Z) TypeNode(ident_pos, type_parameter);
       }
     }
@@ -13013,8 +12801,19 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
       TypeParameter& type_parameter = TypeParameter::ZoneHandle(
           Z, current_class().LookupTypeParameter(ident));
       if (!type_parameter.IsNull()) {
+        if (ParsingStaticMember()) {
+          const String& name = String::Handle(Z, type_parameter.name());
+          ReportError(ident_pos,
+                      "cannot access type parameter '%s' "
+                      "from static function",
+                      name.ToCString());
+        }
         type_parameter ^= CanonicalizeType(type_parameter);
         ASSERT(!type_parameter.IsMalformed());
+        if (FunctionLevel() > 0) {
+          // Make sure that the class instantiator is captured.
+          CaptureInstantiator();
+        }
         return new (Z) TypeNode(ident_pos, type_parameter);
       }
     }
@@ -13817,47 +13616,6 @@ AstNode* Parser::ParseSymbolLiteral() {
   return new (Z) LiteralNode(symbol_pos, symbol_instance);
 }
 
-RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
-                                                     TokenPosition token_pos) {
-  ASSERT(ctr.kind() == RawFunction::kConstructor);
-  Function& closure = Function::Handle(Z);
-  closure = I->LookupClosureFunction(innermost_function(), token_pos);
-  if (!closure.IsNull()) {
-    ASSERT(closure.IsConstructorClosureFunction());
-    return closure.raw();
-  }
-
-  String& closure_name = String::Handle(Z, ctr.name());
-  closure_name =
-      Symbols::FromConcat(T, Symbols::ConstructorClosurePrefix(), closure_name);
-
-  ParamList params;
-  params.AddFinalParameter(token_pos, &Symbols::ClosureParameter(),
-                           &Object::dynamic_type());
-
-  ParseFormalParameters(ctr, &params);
-  // Per language spec, the type of the closure parameters is dynamic.
-  // Replace the types parsed from the constructor.
-  params.EraseParameterTypes();
-
-  closure = Function::NewClosureFunction(closure_name, innermost_function(),
-                                         token_pos);
-  closure.set_is_generated_body(true);
-  closure.set_is_debuggable(false);
-  closure.set_is_visible(false);
-  closure.set_result_type(Object::dynamic_type());
-  AddFormalParamsToFunction(&params, closure);
-  ResolveSignatureTypeParameters(closure);
-
-  // Finalize function type.
-  Type& signature_type = Type::Handle(Z, closure.SignatureType());
-  signature_type ^= CanonicalizeType(signature_type);
-  closure.SetSignatureType(signature_type);
-  // Finalization would be premature when top-level parsing.
-  ASSERT(!is_top_level_);
-  return closure.raw();
-}
-
 static String& BuildConstructorName(Thread* thread,
                                     const String& type_class_name,
                                     const String* named_constructor) {
@@ -13875,68 +13633,6 @@ static String& BuildConstructorName(Thread* thread,
   return constructor_name;
 }
 
-// Parse a primary expression of the form new T# or new T#m.
-// Current token position is after the keyword new. Extracts the
-// anonymous or named constructor and type arguments.
-// Note that type type T has already been parsed before
-// (by ParseNewOperator()) and is guaranteed to be well-formed,
-// and the constructor is known to exist.
-void Parser::ParseConstructorClosurization(Function* constructor,
-                                           TypeArguments* type_arguments) {
-  *constructor = Function::null();
-  *type_arguments = TypeArguments::null();
-  const Token::Kind la3 = LookaheadToken(3);
-  const bool consume_unresolved_prefix =
-      (la3 == Token::kLT) || (la3 == Token::kPERIOD) || (la3 == Token::kHASH);
-  LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z);
-  AbstractType& type =
-      AbstractType::Handle(Z, ParseType(ClassFinalizer::kCanonicalize,
-                                        true,  // allow deferred type
-                                        consume_unresolved_prefix, &prefix));
-  // A constructor tear-off closure can only have been created for a
-  // type that is loaded.
-  ASSERT(prefix.IsNull() || prefix.is_loaded());
-  ASSERT(!type.IsMalformed() && !type.IsTypeParameter());
-  if (!FLAG_support_deprecated_tearoff_syntax) {
-    ReportError("tear-off using the x#id syntax is a deprecated feature");
-    return;
-  }
-  ExpectToken(Token::kHASH);
-  String* named_constructor = NULL;
-  if (IsIdentifier()) {
-    named_constructor = CurrentLiteral();
-    ConsumeToken();
-  }
-  // Resolve the type and optional identifier to a constructor or factory.
-  Class& type_class = Class::Handle(Z, type.type_class());
-  String& type_class_name = String::Handle(Z, type_class.Name());
-  *type_arguments = type.arguments();
-  String& constructor_name =
-      BuildConstructorName(T, type_class_name, named_constructor);
-  *constructor = type_class.LookupConstructor(constructor_name);
-  if (constructor->IsNull()) {
-    *constructor = type_class.LookupFactory(constructor_name);
-    ASSERT(!constructor->IsNull());
-    if (constructor->IsRedirectingFactory()) {
-      ClassFinalizer::ResolveRedirectingFactory(type_class, *constructor);
-      type = constructor->RedirectionType();
-      ASSERT(!type.IsMalformedOrMalbounded());
-      if (!type.IsInstantiated()) {
-        ASSERT(type.IsInstantiated(kFunctions));  // No generic constructors.
-        Error& error = Error::Handle(Z);
-        type ^= type.InstantiateFrom(*type_arguments,
-                                     Object::null_type_arguments(), &error,
-                                     NULL,  // instantiation_trail
-                                     NULL,  // bound_trail
-                                     Heap::kOld);
-        ASSERT(error.IsNull());
-      }
-      *type_arguments = type.arguments();
-      *constructor = constructor->RedirectionTarget();
-    }
-  }
-}
-
 AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   TRACE_PARSER("ParseNewOperator");
   const TokenPosition new_pos = TokenPos();
@@ -13950,7 +13646,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   const bool allow_deferred_type = !is_const;
   const Token::Kind la3 = LookaheadToken(3);
   const bool consume_unresolved_prefix =
-      (la3 == Token::kLT) || (la3 == Token::kPERIOD) || (la3 == Token::kHASH);
+      (la3 == Token::kLT) || (la3 == Token::kPERIOD);
 
   LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z);
   AbstractType& type = AbstractType::ZoneHandle(
@@ -13995,36 +13691,16 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   // a misinterpreted qualified identifier. Only a valid library
   // prefix is accepted as qualifier.
   String* named_constructor = NULL;
-  const bool is_tearoff_expression = (CurrentToken() == Token::kHASH);
-  if (is_tearoff_expression) {
-    if (!FLAG_support_deprecated_tearoff_syntax) {
-      ReportError("tear-off using the x#id syntax is a deprecated feature");
-    }
-    if (is_const) {
-      ReportError("tear-off closure not allowed with const allocation");
-    }
-    ConsumeToken();
-    if (IsIdentifier()) {
-      named_constructor = ExpectIdentifier("name of constructor expected");
-    }
-  } else if (CurrentToken() == Token::kPERIOD) {
+  if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
     named_constructor = ExpectIdentifier("name of constructor expected");
   }
 
   // Parse constructor parameters.
   TokenPosition call_pos = TokenPos();
-  ArgumentListNode* arguments = NULL;
-  if (!is_tearoff_expression) {
-    CheckToken(Token::kLPAREN);
-    call_pos = TokenPos();
-    arguments =
-        ParseActualParameters(NULL, TypeArguments::ZoneHandle(Z), is_const);
-  } else {
-    // Allocate dummy node with no arguments so we don't have to deal
-    // with the NULL corner case below.
-    arguments = new (Z) ArgumentListNode(TokenPos());
-  }
+  CheckToken(Token::kLPAREN);
+  ArgumentListNode* arguments =
+      ParseActualParameters(NULL, TypeArguments::ZoneHandle(Z), is_const);
 
   // Parsing is complete, so we can return a throw in case of a malformed or
   // malbounded type or report a compile-time error if the constructor is const.
@@ -14094,7 +13770,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         // type arguments of the parsed type of the 'new' or 'const' expression.
         Error& error = Error::Handle(Z);
         redirect_type ^= redirect_type.InstantiateFrom(
-            type_arguments, Object::null_type_arguments(), &error,
+            type_arguments, Object::null_type_arguments(), kNoneFree, &error,
             NULL,  // instantiation_trail
             NULL,  // bound_trail
             Heap::kOld);
@@ -14176,28 +13852,6 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
   type_arguments ^= type_arguments.Canonicalize();
 
-  if (is_tearoff_expression) {
-    const Function& tearoff_func = Function::ZoneHandle(
-        Z, BuildConstructorClosureFunction(constructor, new_pos));
-
-    // Local functions normally get parsed when the enclosing function is
-    // compiled. Since constructor tearoff closures don't get parsed here,
-    // we need to duplicate some of the side effects of parsing, namely
-    // creating a function scope, and capturing the instantiator of the
-    // enclosing function if necessary.
-    OpenFunctionBlock(tearoff_func);
-    // If there are type arguments in the tearoff expression that are
-    // not yet instantiated, capture the instantiators.
-    if (!type_arguments.IsNull() && !type_arguments.IsInstantiated()) {
-      CaptureAllInstantiators();
-    }
-    SequenceNode* tearoff_body = CloseBlock();
-    ClosureNode* closure_obj =
-        new (Z) ClosureNode(new_pos, tearoff_func, NULL, tearoff_body->scope());
-    return closure_obj;
-  }
-
-  ASSERT(!is_tearoff_expression);
   const int kTypeArgsLen = 0;
   String& error_message = String::Handle(Z);
   if (!constructor.AreValidArguments(kTypeArgsLen, arguments_length,
@@ -14440,15 +14094,7 @@ AstNode* Parser::ParsePrimary() {
     TokenPosition qual_ident_pos = TokenPos();
     const LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z, ParsePrefix());
     if (!prefix.IsNull()) {
-      if (CurrentToken() == Token::kHASH) {
-        if (!FLAG_support_deprecated_tearoff_syntax) {
-          ReportError("tear-off using the x#id syntax is a deprecated feature");
-        }
-        // Closurization of top-level entity in prefix scope.
-        return new (Z) LiteralNode(qual_ident_pos, prefix);
-      } else {
-        ExpectToken(Token::kPERIOD);
-      }
+      ExpectToken(Token::kPERIOD);
     }
     String& ident = *CurrentLiteral();
     ConsumeToken();
@@ -14841,12 +14487,6 @@ void Parser::SkipNewOperator() {
     if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
       ExpectIdentifier("identifier expected");
-    } else if (CurrentToken() == Token::kHASH) {
-      ConsumeToken();
-      if (IsIdentifier()) {
-        ConsumeToken();
-      }
-      return;
     }
     if (CurrentToken() == Token::kLPAREN) {
       SkipActualParameters();
@@ -14963,17 +14603,6 @@ void Parser::SkipSelectors() {
 
 void Parser::SkipPostfixExpr() {
   SkipPrimary();
-  if (CurrentToken() == Token::kHASH) {
-    ConsumeToken();
-    if (IsIdentifier()) {
-      ConsumeToken();
-      SkipIf(Token::kASSIGN);
-    } else if (Token::CanBeOverloaded(CurrentToken())) {
-      ConsumeToken();
-    } else {
-      ReportError("identifier or operator expected");
-    }
-  }
   SkipSelectors();
   if (IsIncrementOperator(CurrentToken())) {
     ConsumeToken();

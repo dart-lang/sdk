@@ -114,8 +114,7 @@ void main() {
   }
 
   testBadTypes(var source, var radix) {
-    Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0), //# badTypes: ok
-        (e) => e is TypeError); //# badTypes: ok
+    Expect.throwsTypeError(() => int.parse(source, radix: radix, onError: (s) => 0)); //# badTypes: ok
   }
 
   testBadTypes(9, 10);
@@ -125,8 +124,8 @@ void main() {
 
   testBadArguments(String source, int radix) {
     // If the types match, it should be an ArgumentError of some sort.
-    Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0),
-        (e) => e is ArgumentError);
+    Expect.throwsArgumentError(
+        () => int.parse(source, radix: radix, onError: (s) => 0));
   }
 
   testBadArguments("0", -1);

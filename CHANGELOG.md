@@ -24,16 +24,18 @@
     methods are now supported on iOS and OSX.
   * Deprecated `SecurityContext.alpnSupported` as ALPN is now supported on all
     platforms.
-  * Added 'timeout' parameter to 'Socket.connect', 'RawSocket.connect',
-    'SecureSocket.connect' and 'RawSecureSocket.connect. If a connection attempt
-    takes longer than the duration specified in 'timeout', a 'SocketException'
-    will be thrown. Note: if the duration specified in 'timeout' is greater than
-    the system level timeout duration, a timeout may occur sooner than specified
-    in 'timeout'.
+  * Added a `timeout` parameter to `Socket.connect`, `RawSocket.connect`,
+    `SecureSocket.connect` and `RawSecureSocket.connect`. If a connection attempt
+    takes longer than the duration specified in `timeout`, a `SocketException`
+    will be thrown. Note: if the duration specified in `timeout` is greater than
+    the OS level timeout, a timeout may occur sooner than specified in
+    `timeout`.
   * Added `Platform.operatingSystemVersion` that gives a platform-specific
     String describing the version of the operating system.
   * Added `RawZLibFilter` for low-level access to compression and
-    decompression.
+    decompression routines.
+  * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
+    mock varios `dart:io` objects.
 
 * `dart:core`
   * The `Uri` class now correctly handles paths while running on Node.js on
@@ -160,6 +162,8 @@
   `void f() => ++x;`.
 
 * A new function-type syntax has been added to the language.
+  **Warning**: *In Dart 1.24, this feature is incomplete, and not stable in the Analyzer.*
+
   Intuitively, the type of a function can be constructed by textually replacing
   the function's name with `Function` in its declaration. For instance, the
   type of `void foo() {}` would be `void Function()`. The new syntax may be used

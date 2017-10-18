@@ -434,10 +434,12 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
       return 'unnamed';
     }
 
-    void addOutline(String kind, [List<Outline> children]) {
+    void addOutlineNode(ElementKind kind, [List<Outline> children]) {
       SourceRange range = outlineComputer._getSourceRange(node);
-      String name = kind + ' ' + extractString(node.argumentList?.arguments);
-      Element element = new Element(ElementKind.UNKNOWN, name, 0,
+      String kindName = kind == ElementKind.UNIT_TEST_GROUP ? 'group' : 'test';
+      String name = '$kindName("${extractString(
+          node.argumentList?.arguments)}")';
+      Element element = new Element(kind, name, 0,
           location: outlineComputer._getLocationNode(nameNode));
       contents.add(new Outline(element, range.offset, range.length,
           children: nullIfEmpty(children)));
@@ -447,9 +449,9 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
       List<Outline> groupContents = <Outline>[];
       node.argumentList.accept(
           new _FunctionBodyOutlinesVisitor(outlineComputer, groupContents));
-      addOutline('group', groupContents);
+      addOutlineNode(ElementKind.UNIT_TEST_GROUP, groupContents);
     } else if (isTest(executableElement)) {
-      addOutline('test');
+      addOutlineNode(ElementKind.UNIT_TEST_TEST);
     } else {
       super.visitMethodInvocation(node);
     }

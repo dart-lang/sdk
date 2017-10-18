@@ -235,10 +235,8 @@ class AstBuilder extends ScopeListener {
         push(identifier);
       }
     } else if (context == IdentifierContext.enumValueDeclaration) {
-      // TODO(paulberry): analyzer's ASTs allow for enumerated values to have
-      // metadata, but the spec doesn't permit it.
-      List<Annotation> metadata;
-      Comment comment = _toAnalyzerComment(token.precedingComments);
+      List<Annotation> metadata = pop();
+      Comment comment = _parseDocumentationCommentOpt(token.precedingComments);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       push(identifier);
@@ -554,7 +552,8 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata,
+        variables[0].beginToken ?? type?.beginToken ?? modifiers.beginToken);
     push(ast.variableDeclarationStatement(
         ast.variableDeclarationList(
             comment, metadata, keyword, type, variables),
@@ -746,7 +745,7 @@ class AstBuilder extends ScopeListener {
     push(ast.isExpression(expression, operator, not, type));
   }
 
-  void handleConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon) {
     debugEvent("ConditionalExpression");
     Expression elseExpression = pop();
     Expression thenExpression = pop();
@@ -863,8 +862,9 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     Token covariantKeyword = modifiers?.covariantKeyword;
-    pop(); // TODO(paulberry): Metadata.
-    Comment comment = pop();
+    List<Annotation> metadata = pop(); // TODO(paulberry): Metadata.
+    Comment comment = _findComment(metadata,
+        thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
 
     FormalParameter node;
     if (typeOrFunctionTypedParameter is FunctionTypedFormalParameter) {
@@ -1163,7 +1163,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token externalKeyword = modifiers?.externalKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
     if (getOrSet != null && optional('get', getOrSet)) {
       parameters = null;
     }
@@ -1186,7 +1186,6 @@ class AstBuilder extends ScopeListener {
   void handleInvalidTopLevelDeclaration(Token endToken) {
     debugEvent("InvalidTopLevelDeclaration");
     pop(); // metadata star
-    pop(); // comments
     // TODO(danrubel): consider creating a AST node
     // representing the invalid declaration to better support code completion,
     // quick fixes, etc, rather than discarding the metadata and token
@@ -1232,7 +1231,7 @@ class AstBuilder extends ScopeListener {
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     assert(metadata == null); // TODO(paulberry): fix.
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, importKeyword);
 
     directives.add(ast.importDirective(
         comment,
@@ -1278,7 +1277,7 @@ class AstBuilder extends ScopeListener {
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     assert(metadata == null);
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, exportKeyword);
     directives.add(ast.exportDirective(comment, metadata, exportKeyword, uri,
         configurations, combinators, semicolon));
   }
@@ -1398,6 +1397,7 @@ class AstBuilder extends ScopeListener {
 
   @override
   void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    debugEvent("ClassHeader");
     NativeClause nativeClause;
     if (nativeToken != null) {
       nativeClause = ast.nativeClause(nativeToken, nativeName);
@@ -1411,7 +1411,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, classKeyword);
     // leftBracket, members, and rightBracket are set in [endClassBody].
     ClassDeclaration classDeclaration = ast.classDeclaration(
       comment,
@@ -1429,6 +1429,35 @@ class AstBuilder extends ScopeListener {
     );
     classDeclaration.nativeClause = nativeClause;
     declarations.add(classDeclaration);
+  }
+
+  @override
+  void handleRecoverClassHeader() {
+    debugEvent("RecoverClassHeader");
+    ImplementsClause implementsClause = pop(NullValue.IdentifierList);
+    WithClause withClause = pop(NullValue.WithClause);
+    ExtendsClause extendsClause = pop(NullValue.ExtendsClause);
+    ClassDeclaration declaration = declarations.last;
+    if (extendsClause != null && !extendsClause.extendsKeyword.isSynthetic) {
+      if (declaration.extendsClause?.superclass == null) {
+        declaration.extendsClause = extendsClause;
+      }
+    }
+    if (withClause != null) {
+      if (declaration.withClause == null) {
+        declaration.withClause = withClause;
+      } else {
+        declaration.withClause.mixinTypes.addAll(withClause.mixinTypes);
+      }
+    }
+    if (implementsClause != null) {
+      if (declaration.implementsClause == null) {
+        declaration.implementsClause = implementsClause;
+      } else {
+        declaration.implementsClause.interfaces
+            .addAll(implementsClause.interfaces);
+      }
+    }
   }
 
   @override
@@ -1464,7 +1493,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.classTypeAlias(
         comment,
         metadata,
@@ -1493,7 +1522,7 @@ class AstBuilder extends ScopeListener {
     List<SimpleIdentifier> libraryName = pop();
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, libraryKeyword);
     directives.add(ast.libraryDirective(
         comment, metadata, libraryKeyword, name, semicolon));
   }
@@ -1531,7 +1560,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("Part");
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, partKeyword);
     directives
         .add(ast.partDirective(comment, metadata, partKeyword, uri, semicolon));
   }
@@ -1549,7 +1578,7 @@ class AstBuilder extends ScopeListener {
       name = ast.libraryIdentifier(libraryNameOrUri);
     }
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, partKeyword);
     directives.add(ast.partOfDirective(
         comment, metadata, partKeyword, ofKeyword, uri, name, semicolon));
   }
@@ -1598,7 +1627,7 @@ class AstBuilder extends ScopeListener {
     ConstructorName constructorName = pop();
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
 
     // Decompose the preliminary ConstructorName into the type name and
     // the actual constructor name.
@@ -1680,7 +1709,7 @@ class AstBuilder extends ScopeListener {
     var variableList =
         ast.variableDeclarationList(null, null, keyword, type, variables);
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.topLevelVariableDeclaration(
         comment, metadata, variableList, endToken));
   }
@@ -1695,7 +1724,7 @@ class AstBuilder extends ScopeListener {
     TypeAnnotation bound = pop();
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, name.beginToken);
     push(ast.typeParameter(comment, metadata, name, extendsOrSuper, bound));
   }
 
@@ -1719,7 +1748,7 @@ class AstBuilder extends ScopeListener {
     TypeAnnotation returnType = pop();
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
 
     void constructor(
         SimpleIdentifier returnType, Token period, SimpleIdentifier name) {
@@ -1794,7 +1823,7 @@ class AstBuilder extends ScopeListener {
       SimpleIdentifier name = pop();
       TypeAnnotation returnType = pop();
       List<Annotation> metadata = pop();
-      Comment comment = pop();
+      Comment comment = _findComment(metadata, typedefKeyword);
       declarations.add(ast.functionTypeAlias(comment, metadata, typedefKeyword,
           returnType, name, typeParameters, parameters, endToken));
     } else {
@@ -1802,7 +1831,7 @@ class AstBuilder extends ScopeListener {
       TypeParameterList templateParameters = pop();
       SimpleIdentifier name = pop();
       List<Annotation> metadata = pop();
-      Comment comment = pop();
+      Comment comment = _findComment(metadata, typedefKeyword);
       if (type is! GenericFunctionType) {
         // TODO(paulberry) Generate an error and recover (better than
         // this).
@@ -1819,7 +1848,7 @@ class AstBuilder extends ScopeListener {
     List<EnumConstantDeclaration> constants = popList(count);
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, enumKeyword);
     declarations.add(ast.enumDeclaration(comment, metadata, enumKeyword, name,
         leftBrace, constants, leftBrace?.endGroup));
   }
@@ -1841,7 +1870,7 @@ class AstBuilder extends ScopeListener {
         null, null, modifiers?.finalConstOrVarKeyword, type, variables);
     Token covariantKeyword = modifiers?.covariantKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = pop();
+    Comment comment = _findComment(metadata, beginToken);
     push(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
@@ -1867,11 +1896,6 @@ class AstBuilder extends ScopeListener {
   @override
   void beginMetadataStar(Token token) {
     debugEvent("beginMetadataStar");
-    if (token.precedingComments != null) {
-      push(_toAnalyzerComment(token.precedingComments));
-    } else {
-      push(NullValue.Comments);
-    }
   }
 
   @override
@@ -1901,17 +1925,56 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  Comment _toAnalyzerComment(Token comments) {
-    if (comments == null) return null;
+  Comment _findComment(List<Annotation> metadata, Token tokenAfterMetadata) {
+    Token commentsOnNext = tokenAfterMetadata?.precedingComments;
+    if (commentsOnNext != null) {
+      Comment comment = _parseDocumentationCommentOpt(commentsOnNext);
+      if (comment != null) {
+        return comment;
+      }
+    }
+    if (metadata != null) {
+      for (Annotation annotation in metadata) {
+        Token commentsBeforeAnnotation =
+            annotation.beginToken.precedingComments;
+        if (commentsBeforeAnnotation != null) {
+          Comment comment =
+              _parseDocumentationCommentOpt(commentsBeforeAnnotation);
+          if (comment != null) {
+            return comment;
+          }
+        }
+      }
+    }
+    return null;
+  }
 
-    // This is temporary placeholder code to get tests to pass.
-    // TODO(paulberry): after analyzer and fasta token representations are
-    // unified, refactor the code in analyzer's parser that handles
-    // documentation comments so that it is reusable, and reuse it here.
-    // See Parser.parseCommentAndMetadata
-    var tokens = <Token>[comments];
-    var references = <CommentReference>[];
-    return ast.documentationComment(tokens, references);
+  /**
+   * Parse a documentation comment. Return the documentation comment that was
+   * parsed, or `null` if there was no comment.
+   */
+  Comment _parseDocumentationCommentOpt(CommentToken commentToken) {
+    List<Token> tokens = <Token>[];
+    while (commentToken != null) {
+      if (commentToken.lexeme.startsWith('/**') ||
+          commentToken.lexeme.startsWith('///')) {
+        if (tokens.isNotEmpty) {
+          if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
+            if (tokens[0].type != TokenType.SINGLE_LINE_COMMENT) {
+              tokens.clear();
+            }
+          } else {
+            tokens.clear();
+          }
+        }
+        tokens.add(commentToken);
+      }
+      commentToken = commentToken.next;
+    }
+    // TODO(brianwilkerson) Use the code in analyzer's parser to parse the
+    // references inside the comment.
+    List<CommentReference> references = <CommentReference>[];
+    return tokens.isEmpty ? null : ast.documentationComment(tokens, references);
   }
 
   @override
@@ -2022,17 +2085,74 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ABSTRACT_CLASS_MEMBER, offset, length);
         return;
+      case "ANNOTATION_ON_ENUM_CONSTANT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, offset, length);
+        return;
+      case "ASYNC_FOR_IN_WRONG_CONTEXT":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, offset, length);
+        return;
       case "ASYNC_KEYWORD_USED_AS_IDENTIFIER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, offset, length);
+        return;
+      case "BUILT_IN_IDENTIFIER_AS_TYPE":
+        String name = stringOrTokenLexeme();
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+            offset,
+            length,
+            [name]);
+        return;
+      case "CLASS_IN_CLASS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CLASS_IN_CLASS, offset, length);
         return;
       case "COLON_IN_PLACE_OF_IN":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
         return;
+      case "CONST_AND_COVARIANT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_AND_COVARIANT, offset, length);
+        return;
+      case "CONST_AND_FINAL":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_AND_FINAL, offset, length);
+        return;
+      case "CONST_AND_VAR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_AND_VAR, offset, length);
+        return;
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, offset, length);
+        return;
+      case "CONST_NOT_INITIALIZED":
+        String name = arguments['name'];
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.CONST_NOT_INITIALIZED, offset, length, [name]);
+        return;
+      case "COVARIANT_AFTER_FINAL":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.COVARIANT_AFTER_FINAL, offset, length);
+        return;
+      case "COVARIANT_AFTER_VAR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.COVARIANT_AFTER_VAR, offset, length);
+        return;
+      case "COVARIANT_AND_STATIC":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.COVARIANT_AND_STATIC, offset, length);
+        return;
+      case "DEFAULT_VALUE_IN_FUNCTION_TYPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, offset, length);
+        return;
+      case "COVARIANT_MEMBER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.COVARIANT_MEMBER, offset, length);
         return;
       case "DEFERRED_AFTER_PREFIX":
         errorReporter?.reportErrorForOffset(
@@ -2046,9 +2166,22 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DUPLICATE_DEFERRED, offset, length);
         return;
+      case "DUPLICATED_MODIFIER":
+        String text = stringOrTokenLexeme();
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DUPLICATED_MODIFIER, offset, length, [text]);
+        return;
       case "DUPLICATE_PREFIX":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DUPLICATE_PREFIX, offset, length);
+        return;
+      case "EMPTY_ENUM_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EMPTY_ENUM_BODY, offset, length);
+        return;
+      case "ENUM_IN_CLASS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.ENUM_IN_CLASS, offset, length);
         return;
       case "EXPECTED_EXECUTABLE":
         errorReporter?.reportErrorForOffset(
@@ -2067,6 +2200,14 @@ class AstBuilder extends ScopeListener {
             ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
             offset,
             length);
+        return;
+      case "EXTERNAL_AFTER_CONST":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_AFTER_CONST, offset, length);
+        return;
+      case "EXTERNAL_AFTER_STATIC":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_AFTER_STATIC, offset, length);
         return;
       case "EXTERNAL_CLASS":
         errorReporter?.reportErrorForOffset(
@@ -2089,6 +2230,23 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTRANEOUS_MODIFIER, offset, length, [text]);
         return;
+      case "FACTORY_TOP_LEVEL_DECLARATION":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, offset, length);
+        return;
+      case "FINAL_AND_COVARIANT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.FINAL_AND_COVARIANT, offset, length);
+        return;
+      case "FINAL_AND_VAR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.FINAL_AND_VAR, offset, length);
+        return;
+      case "FINAL_NOT_INITIALIZED":
+        String name = arguments['name'];
+        errorReporter?.reportErrorForOffset(
+            StaticWarningCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
+        return;
       case "GETTER_WITH_PARAMETERS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);
@@ -2097,11 +2255,31 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
         return;
+      case "INVALID_AWAIT_IN_FOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_AWAIT_IN_FOR, offset, length);
+        return;
+      case "IMPLEMENTS_BEFORE_EXTENDS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, offset, length);
+        return;
+      case "IMPLEMENTS_BEFORE_WITH":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.IMPLEMENTS_BEFORE_WITH, offset, length);
+        return;
       case "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
             offset,
             length);
+        return;
+      case "INVALID_MODIFIER_ON_SETTER":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, offset, length);
+        return;
+      case "INVALID_OPERATOR_FOR_SUPER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, offset, length);
         return;
       case "LIBRARY_DIRECTIVE_NOT_FIRST":
         errorReporter?.reportErrorForOffset(
@@ -2127,9 +2305,33 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
         return;
+      case "MISSING_STAR_AFTER_SYNC":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_STAR_AFTER_SYNC, offset, length);
+        return;
+      case "MULTIPLE_EXTENDS_CLAUSES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, offset, length);
+        return;
+      case "MULTIPLE_IMPLEMENTS_CLAUSES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, offset, length);
+        return;
+      case "MULTIPLE_LIBRARY_DIRECTIVES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, offset, length);
+        return;
+      case "MULTIPLE_WITH_CLAUSES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_WITH_CLAUSES, offset, length);
+        return;
       case "MISSING_FUNCTION_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_FUNCTION_BODY, offset, length);
+        return;
+      case "MISSING_FUNCTION_PARAMETERS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_FUNCTION_PARAMETERS, offset, length);
         return;
       case "MISSING_IDENTIFIER":
         errorReporter?.reportErrorForOffset(
@@ -2142,6 +2344,10 @@ class AstBuilder extends ScopeListener {
       case "MULTIPLE_PART_OF_DIRECTIVES":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, offset, length);
+        return;
+      case "NAMED_FUNCTION_EXPRESSION":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.NAMED_FUNCTION_EXPRESSION, offset, length);
         return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
@@ -2159,6 +2365,26 @@ class AstBuilder extends ScopeListener {
       case "PREFIX_AFTER_COMBINATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
+        return;
+      case "RETURN_IN_GENERATOR":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);
+        return;
+      case "STATIC_AFTER_CONST":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.STATIC_AFTER_CONST, offset, length);
+        return;
+      case "STATIC_AFTER_FINAL":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.STATIC_AFTER_FINAL, offset, length);
+        return;
+      case "TOP_LEVEL_OPERATOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.TOP_LEVEL_OPERATOR, offset, length);
+        return;
+      case "TYPEDEF_IN_CLASS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.TYPEDEF_IN_CLASS, offset, length);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();
@@ -2182,11 +2408,33 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.VAR_AND_TYPE, offset, length);
         return;
+      case "VAR_RETURN_TYPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.VAR_RETURN_TYPE, offset, length);
+        return;
+      case "WITH_BEFORE_EXTENDS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.WITH_BEFORE_EXTENDS, offset, length);
+        return;
+      case "WITH_WITHOUT_EXTENDS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.WITH_WITHOUT_EXTENDS, offset, length);
+        return;
+      case "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+            offset,
+            length);
+        return;
       case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
             offset,
             length);
+        return;
+      case "YIELD_IN_NON_GENERATOR":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.YIELD_IN_NON_GENERATOR, offset, length);
         return;
       default:
       // fall through
@@ -2290,5 +2538,26 @@ class _Modifiers {
         unhandled("$s", "modifier", token.charOffset, null);
       }
     }
+  }
+
+  /// Return the token that is lexically first.
+  Token get beginToken {
+    Token firstToken = null;
+    for (Token token in [
+      abstractKeyword,
+      externalKeyword,
+      finalConstOrVarKeyword,
+      staticKeyword,
+      covariantKeyword
+    ]) {
+      if (firstToken == null) {
+        firstToken = token;
+      } else if (token != null) {
+        if (token.offset < firstToken.offset) {
+          firstToken = token;
+        }
+      }
+    }
+    return firstToken;
   }
 }

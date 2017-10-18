@@ -10,25 +10,104 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <fdio/namespace.h>
+#include <fdio/private.h>
 
-#include "bin/fdutils.h"
 #include "bin/file.h"
 #include "platform/signal_blocker.h"
+#include "platform/text_buffer.h"
 
 namespace dart {
 namespace bin {
 
+class NamespaceImpl {
+ public:
+  explicit NamespaceImpl(fdio_ns_t* fdio_ns)
+      : fdio_ns_(fdio_ns),
+        rootfd_(fdio_ns_opendir(fdio_ns)),
+        cwd_(strdup("/")) {
+    ASSERT(rootfd_ > 0);
+    cwdfd_ = dup(rootfd_);
+    ASSERT(cwdfd_ > 0);
+  }
+
+  explicit NamespaceImpl(const char* path)
+      : fdio_ns_(NULL),
+        rootfd_(TEMP_FAILURE_RETRY(open64(path, O_DIRECTORY))),
+        cwd_(strdup("/")) {
+    ASSERT(rootfd_ > 0);
+    cwdfd_ = dup(rootfd_);
+    ASSERT(cwdfd_ > 0);
+  }
+
+  ~NamespaceImpl() {
+    if (fdio_ns_ != NULL) {
+      zx_status_t status = fdio_ns_destroy(fdio_ns_);
+      ASSERT(status == ZX_OK);
+    }
+    NO_RETRY_EXPECTED(close(rootfd_));
+    free(cwd_);
+    NO_RETRY_EXPECTED(close(cwdfd_));
+  }
+
+  intptr_t rootfd() const { return rootfd_; }
+  char* cwd() const { return cwd_; }
+  intptr_t cwdfd() const { return cwdfd_; }
+
+  bool SetCwd(Namespace* namespc, const char* new_path) {
+    NamespaceScope ns(namespc, new_path);
+    const intptr_t new_cwdfd =
+        TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_DIRECTORY));
+    if (new_cwdfd != 0) {
+      return false;
+    }
+
+    // Build the new cwd.
+    TextBuffer tbuf(PATH_MAX);
+    if (!File::IsAbsolutePath(new_path)) {
+      tbuf.AddString(cwd_);
+    }
+    tbuf.AddString(File::PathSeparator());
+    tbuf.AddString(ns.path());
+
+    // Normalize it.
+    char result[PATH_MAX];
+    const intptr_t result_len =
+        File::CleanUnixPath(tbuf.buf(), result, PATH_MAX);
+    if (result_len < 0) {
+      errno = ENAMETOOLONG;
+      return false;
+    }
+
+    free(cwd_);
+    cwd_ = strdup(result);
+    close(cwdfd_);
+    cwdfd_ = new_cwdfd;
+    return true;
+  }
+
+ private:
+  fdio_ns_t* fdio_ns_;  // native namespace object, if any.
+  intptr_t rootfd_;     // dirfd for the namespace root.
+  char* cwd_;           // cwd relative to the namespace.
+  intptr_t cwdfd_;      // dirfd for the cwd.
+
+  DISALLOW_COPY_AND_ASSIGN(NamespaceImpl);
+};
+
+Namespace* Namespace::Create(intptr_t namespc) {
+  NamespaceImpl* namespc_impl = NULL;
+  if (namespc != kNone) {
+    namespc_impl = new NamespaceImpl(reinterpret_cast<fdio_ns_t*>(namespc));
+  }
+  return new Namespace(namespc_impl);
+}
+
 Namespace* Namespace::Create(const char* path) {
-  UNIMPLEMENTED();
-  return NULL;
+  return new Namespace(new NamespaceImpl(path));
 }
 
 Namespace::~Namespace() {
-  if (namespc_ != kNone) {
-    fdio_ns_t* ns = reinterpret_cast<fdio_ns_t*>(namespc_);
-    zx_status_t status = fdio_ns_destroy(ns);
-    ASSERT(status == ZX_OK);
-  }
+  delete namespc_;
 }
 
 intptr_t Namespace::Default() {
@@ -36,66 +115,54 @@ intptr_t Namespace::Default() {
 }
 
 const char* Namespace::GetCurrent(Namespace* namespc) {
-  if ((namespc == NULL) || (namespc->namespc() == kNone)) {
-    // TODO(zra): When there are isolate-specific namespaces, extract it from
-    // the namespace instead of calling getcwd.
+  if (Namespace::IsDefault(namespc)) {
     char buffer[PATH_MAX];
     if (getcwd(buffer, PATH_MAX) == NULL) {
       return NULL;
     }
     return DartUtils::ScopedCopyCString(buffer);
   }
-  // TODO(zra): Allow changing the current working directory when there is
-  // a non-default namespace.
-  return DartUtils::ScopedCopyCString("/");
+  return namespc->namespc()->cwd();
 }
 
 bool Namespace::SetCurrent(Namespace* namespc, const char* path) {
-  if ((namespc == NULL) || (namespc->namespc() == kNone)) {
+  if (Namespace::IsDefault(namespc)) {
     return (NO_RETRY_EXPECTED(chdir(path)) == 0);
   }
-  // TODO(zra): If a non-default namespace is set up, changing the current
-  // working directoy is disallowed. We should relax this restriction when
-  // isolate-specific cwds are implemented.
-  errno = ENOSYS;
-  return false;
+  return namespc->namespc()->SetCwd(namespc, path);
 }
 
-bool Namespace::ResolvePath(Namespace* namespc,
+void Namespace::ResolvePath(Namespace* namespc,
                             const char* path,
                             intptr_t* dirfd,
                             const char** resolved_path) {
   ASSERT(dirfd != NULL);
   ASSERT(resolved_path != NULL);
-  if ((namespc == NULL) || (namespc->namespc() == kNone)) {
+  if (Namespace::IsDefault(namespc)) {
     *dirfd = AT_FDCWD;
     *resolved_path = path;
-    return false;
+    return;
   }
-  fdio_ns_t* ns = reinterpret_cast<fdio_ns_t*>(namespc->namespc());
-  *dirfd = fdio_ns_opendir(ns);
-  ASSERT(*dirfd >= 0);
   if (File::IsAbsolutePath(path)) {
+    *dirfd = namespc->namespc()->rootfd();
     if (strcmp(path, File::PathSeparator()) == 0) {
+      // Change "/" to ".".
       *resolved_path = ".";
     } else {
+      // Otherwise strip off the leading "/".
       *resolved_path = &path[1];
     }
   } else {
+    *dirfd = namespc->namespc()->cwdfd();
     *resolved_path = path;
   }
-  return true;
 }
 
 NamespaceScope::NamespaceScope(Namespace* namespc, const char* path) {
-  owns_fd_ = Namespace::ResolvePath(namespc, path, &fd_, &path_);
+  Namespace::ResolvePath(namespc, path, &fd_, &path_);
 }
 
-NamespaceScope::~NamespaceScope() {
-  if (owns_fd_) {
-    FDUtils::SaveErrorAndClose(fd_);
-  }
-}
+NamespaceScope::~NamespaceScope() {}
 
 }  // namespace bin
 }  // namespace dart

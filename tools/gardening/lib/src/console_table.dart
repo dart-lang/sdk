@@ -254,8 +254,7 @@ class ConsoleTable extends OutputTable {
     List<String> wrappedStrings = [];
     int finger = 0;
     var regexpBlank = new RegExp(r"[ ]");
-    var regexpIncludeChars = new RegExp(r"[\-]");
-    var regexpAddHyphon = new RegExp(r"[_]");
+    var regexpIncludeChars = new RegExp(r"[\-_]");
     while (finger + width < text.length) {
       var nicerIndex = text.lastIndexOf(regexpBlank, finger + width);
       if (nicerIndex > finger) {
@@ -266,12 +265,6 @@ class ConsoleTable extends OutputTable {
       nicerIndex = text.lastIndexOf(regexpIncludeChars, finger + width - 1);
       if (nicerIndex > finger) {
         wrappedStrings.add(text.substring(finger, nicerIndex + 1));
-        finger = nicerIndex + 1;
-        continue;
-      }
-      nicerIndex = text.lastIndexOf(regexpAddHyphon, finger + width - 2);
-      if (nicerIndex > finger) {
-        wrappedStrings.add(text.substring(finger, nicerIndex + 1) + '-');
         finger = nicerIndex + 1;
         continue;
       }
@@ -321,6 +314,10 @@ class Column {
 
 /// A minimal template with a single hyphon as row-divider.
 const Template minimal = const Template();
+
+/// A minimal template with a single hyphon as row-divider.
+const Template rows =
+    const Template(headerDivider: '=', rowDivider: "-", cellJoin: "-");
 
 /// [Template] holds styling information for a table. Each parameter assumes
 /// either the empty string or a single character. Let:

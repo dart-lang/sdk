@@ -10,6 +10,10 @@
 #include "bin/dartutils.h"
 #include "bin/platform.h"
 
+#include "vm/dart_api_impl.h"
+#include "vm/object.h"
+#include "vm/object_store.h"
+
 namespace dart {
 namespace bin {
 
@@ -53,9 +57,11 @@ static void LoadPatchFiles(Dart_Handle library,
         reinterpret_cast<const uint8_t*>(source), strlen(source));
 
     // Prepend the patch library URI to form a unique script URI for the patch.
-    intptr_t len = snprintf(NULL, 0, "%s/%s", patch_uri, patch_files[j]);
+    const char* unprefixed_patch_file = strchr(patch_files[j], '/') + 1;
+    intptr_t len = snprintf(NULL, 0, "%s/%s", patch_uri, unprefixed_patch_file);
     char* patch_filename = DartUtils::ScopedCString(len + 1);
-    snprintf(patch_filename, len + 1, "%s/%s", patch_uri, patch_files[j]);
+    snprintf(patch_filename, len + 1, "%s/%s", patch_uri,
+             unprefixed_patch_file);
     Dart_Handle patch_file_uri = DartUtils::NewString(patch_filename);
 
     DART_CHECK_VALID(Dart_LibraryLoadPatch(library, patch_file_uri, patch_src));

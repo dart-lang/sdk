@@ -13,35 +13,16 @@ main() {
   });
 }
 
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
+}
+
 @reflectiveTest
 class StaticTypeWarningCodeTest_Kernel
     extends StaticTypeWarningCodeTest_Driver {
   @override
   bool get enableKernelDriver => true;
-
-  @override
-  @failingTest
-  test_typeArgumentNotMatchingBounds_redirectingConstructor() async {
-    return super.test_typeArgumentNotMatchingBounds_redirectingConstructor();
-  }
-
-  @override
-  @failingTest
-  test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
-    return super.test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle();
-  }
-
-  @override
-  @failingTest
-  test_undefinedGetter_wrongNumberOfTypeArguments_tooMany() async {
-    return super.test_undefinedGetter_wrongNumberOfTypeArguments_tooMany();
-  }
-
-  @override
-  @failingTest
-  test_undefinedMethodWithConstructor() async {
-    return super.test_undefinedMethodWithConstructor();
-  }
 }
 
 @reflectiveTest

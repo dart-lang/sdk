@@ -220,6 +220,12 @@ class File : public ReferenceCounted<File> {
   // Link LinkTarget, but pathname must be absolute.
   static const char* ReadLink(const char* pathname);
 
+  // Cleans an input path, transforming it to out, according to the rules
+  // defined by "Lexical File Names in Plan 9 or Getting Dot-Dot Right",
+  // accessible at: https://9p.io/sys/doc/lexnames.html.
+  // Returns -1 if out isn't big enough, and the length of out otherwise.
+  static intptr_t CleanUnixPath(const char* in, char* out, intptr_t outlen);
+
   static FileOpenMode DartModeToFileMode(DartFileOpenMode mode);
 
   static CObject* ExistsRequest(const CObjectArray& request);

@@ -10,5 +10,5 @@ void foo(List<Int2Int> list) {
 
 void main() {
   var l = <Function>[];
-  Expect.throws(() => foo(l), (e) => e is TypeError);
+  Expect.throwsTypeError(() => foo(l));
 }

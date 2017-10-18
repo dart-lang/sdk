@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 @patch
 class Function {
   // TODO(regis): Pass type arguments to generic functions. Wait for API spec.

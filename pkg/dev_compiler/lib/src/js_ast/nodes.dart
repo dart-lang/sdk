@@ -320,6 +320,13 @@ class Program extends Node {
 }
 
 abstract class Statement extends ModuleItem {
+  static Statement from(List<Statement> statements) {
+    // TODO(jmesserly): empty block singleton? Should this use empty statement?
+    if (statements.length == 0) return new Block([]);
+    if (statements.length == 1) return statements[0];
+    return new Block(statements);
+  }
+
   Statement toStatement() => this;
   Statement toReturn() => new Block([this, new Return()]);
 }

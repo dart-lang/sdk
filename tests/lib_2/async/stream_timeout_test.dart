@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:async";
-import "package:test/test.dart";
+import 'dart:async';
+
+import 'package:unittest/unittest.dart';
 
 main() {
   const ms5 = const Duration(milliseconds: 5);

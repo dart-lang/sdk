@@ -100,11 +100,18 @@ class Zone;
 #endif
 
 // List of VM-global objects/addresses cached in each Thread object.
+// Important: constant false must immediately follow constant true.
 #define CACHED_VM_OBJECTS_LIST(V)                                              \
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
   V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
   CACHED_VM_STUBS_LIST(V)
+
+// This assertion marks places which assume that boolean false immediate
+// follows bool true in the CACHED_VM_OBJECTS_LIST
+#define ASSERT_BOOL_FALSE_FOLLOWS_BOOL_TRUE()                                  \
+  ASSERT((Thread::bool_true_offset() + kWordSize) ==                           \
+         Thread::bool_false_offset());
 
 #if defined(TARGET_ARCH_DBC)
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)
@@ -197,7 +204,9 @@ class Thread : public BaseThread {
   void ClearStackLimit();
 
   // Returns the current C++ stack pointer. Equivalent taking the address of a
-  // stack allocated local, but plays well with AddressSanitizer.
+  // stack allocated local, but plays well with AddressSanitizer and SafeStack.
+  // Accurate enough for stack overflow checks but not accurate enough for
+  // alignment checks.
   static uword GetCurrentStackPointer();
 
   // Access to the current stack limit for generated code.  This may be

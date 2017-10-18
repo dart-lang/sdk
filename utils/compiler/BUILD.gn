@@ -4,6 +4,7 @@
 
 import("../../build/compiled_action.gni")
 import("../../build/prebuilt_dart_sdk.gni")
+import("../../utils/compile_platform.gni")
 import("../../utils/generate_patch_sdk.gni")
 import("../create_timestamp.gni")
 import("../application_snapshot.gni")
@@ -80,7 +81,37 @@ application_snapshot("utils_wrapper") {
 
 generate_patched_sdk("patched_dart2js_sdk") {
   mode = "dart2js"
-  deps = ["../../runtime/vm:patched_sdk"]
+  deps = [
+    # TODO(ahe): This is needed by ../../tools/patch_sdk.dart to compute
+    # dependencies.
+    "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
+  ]
   input_patches_dir = "../../sdk/lib/_internal/js_runtime/lib"
   patched_sdk_dir = "patched_dart2js_sdk"
+
+  outputs = [
+    # Instead of listing all outputs we list those consumed by
+    # other BUILD rules.
+    "$root_out_dir/${patched_sdk_dir}/lib/libraries.json",
+  ]
+}
+
+compile_platform("compile_dart2js_platform") {
+  sources = [
+    "$root_out_dir/patched_dart2js_sdk/lib/libraries.json",
+  ]
+
+  outputs = [
+    "$root_out_dir/dart2js_platform.dill",
+    "$root_out_dir/dart2js_outline.dill",
+  ]
+
+  deps = [
+    ":patched_dart2js_sdk",
+  ]
+
+  args = [
+    "--target=dart2js",
+    "dart:core",
+  ]
 }

@@ -5,9 +5,11 @@
 // Test merging streams.
 library dart.test.stream_from_iterable;
 
-import "package:expect/expect.dart";
-import "dart:async";
-import 'package:test/test.dart';
+import 'dart:async';
+
+import 'package:expect/expect.dart';
+import 'package:unittest/unittest.dart';
+
 import 'event_helper.dart';
 
 class IterableTest<T> {
@@ -77,9 +79,7 @@ main() {
   test("iterable-single-subscription", () {
     Stream stream = new Stream.fromIterable(iter);
     stream.listen((x) {});
-    Expect.throws(() {
-      stream.listen((x) {});
-    }, (e) => e is StateError);
+    Expect.throwsStateError(() => stream.listen((x) {}));
   });
 
   test("regression-14332", () {

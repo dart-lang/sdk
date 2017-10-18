@@ -456,37 +456,45 @@ class Expect {
     _fail('Expect.throws$msg fails: Did not throw');
   }
 
-  static void throwsArgumentError(void f()) {
-    Expect.throws(f, (error) => error is ArgumentError, "ArgumentError");
-  }
-
-  static void throwsAssertionError(void f()) {
-    Expect.throws(f, (error) => error is AssertionError, "AssertionError");
-  }
-
-  static void throwsCastError(void f()) {
-    Expect.throws(f, (error) => error is CastError, "CastError");
-  }
-
-  static void throwsNoSuchMethodError(void f()) {
+  static void throwsArgumentError(void f(), [String reason]) {
     Expect.throws(
-        f, (error) => error is NoSuchMethodError, "NoSuchMethodError");
+        f, (error) => error is ArgumentError, reason ?? "ArgumentError");
   }
 
-  static void throwsRangeError(void f()) {
-    Expect.throws(f, (error) => error is RangeError, "RangeError");
+  static void throwsAssertionError(void f(), [String reason]) {
+    Expect.throws(
+        f, (error) => error is AssertionError, reason ?? "AssertionError");
   }
 
-  static void throwsStateError(void f()) {
-    Expect.throws(f, (error) => error is StateError, "StateError");
+  static void throwsCastError(void f(), [String reason]) {
+    Expect.throws(f, (error) => error is CastError, reason ?? "CastError");
   }
 
-  static void throwsTypeError(void f()) {
-    Expect.throws(f, (error) => error is TypeError, "TypeError");
+  static void throwsFormatException(void f(), [String reason]) {
+    Expect.throws(
+        f, (error) => error is FormatException, reason ?? "FormatException");
   }
 
-  static void throwsUnsupportedError(void f()) {
-    Expect.throws(f, (error) => error is UnsupportedError, "UnsupportedError");
+  static void throwsNoSuchMethodError(void f(), [String reason]) {
+    Expect.throws(f, (error) => error is NoSuchMethodError,
+        reason ?? "NoSuchMethodError");
+  }
+
+  static void throwsRangeError(void f(), [String reason]) {
+    Expect.throws(f, (error) => error is RangeError, reason ?? "RangeError");
+  }
+
+  static void throwsStateError(void f(), [String reason]) {
+    Expect.throws(f, (error) => error is StateError, reason ?? "StateError");
+  }
+
+  static void throwsTypeError(void f(), [String reason]) {
+    Expect.throws(f, (error) => error is TypeError, reason ?? "TypeError");
+  }
+
+  static void throwsUnsupportedError(void f(), [String reason]) {
+    Expect.throws(
+        f, (error) => error is UnsupportedError, reason ?? "UnsupportedError");
   }
 
   static String _getMessage(String reason) =>

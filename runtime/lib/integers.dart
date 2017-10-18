@@ -2,42 +2,45 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 // This marker interface represents 64-bit integers in the compiler for type
 // propagation and range analysis.  It is implemented by _Smi and _Mint.
 abstract class _int64 implements int {}
 
-abstract class _IntegerImplementation {
-  // The Dart class _Bigint extending _IntegerImplementation requires a
-  // default constructor.
-
+abstract class _IntegerImplementation implements int {
   num operator +(num other) {
     var result = other._addFromInteger(this);
     if (result != null) return result;
-    return other._toBigint()._addFromInteger(this);
+    final _IntegerImplementation otherAsIntImpl = other;
+    return otherAsIntImpl._toBigint()._addFromInteger(this);
   }
 
   num operator -(num other) {
     var result = other._subFromInteger(this);
     if (result != null) return result;
-    return other._toBigint()._subFromInteger(this);
+    final _IntegerImplementation otherAsIntImpl = other;
+    return otherAsIntImpl._toBigint()._subFromInteger(this);
   }
 
   num operator *(num other) {
     var result = other._mulFromInteger(this);
     if (result != null) return result;
-    return other._toBigint()._mulFromInteger(this);
+    final _IntegerImplementation otherAsIntImpl = other;
+    return otherAsIntImpl._toBigint()._mulFromInteger(this);
   }
 
-  num operator ~/(num other) {
+  int operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
     var result = other._truncDivFromInteger(this);
     if (result != null) return result;
-    return other._toBigint()._truncDivFromInteger(this);
+    final _IntegerImplementation otherAsIntImpl = other;
+    return otherAsIntImpl._toBigint()._truncDivFromInteger(this);
   }
 
-  num operator /(num other) {
+  double operator /(num other) {
     return this.toDouble() / other.toDouble();
   }
 
@@ -47,7 +50,8 @@ abstract class _IntegerImplementation {
     }
     var result = other._moduloFromInteger(this);
     if (result != null) return result;
-    return other._toBigint()._moduloFromInteger(this);
+    final _IntegerImplementation otherAsIntImpl = other;
+    return otherAsIntImpl._toBigint()._moduloFromInteger(this);
   }
 
   int operator -() {
@@ -76,7 +80,7 @@ abstract class _IntegerImplementation {
     return other._remainderFromInteger(this);
   }
 
-  int _bitAndFromSmi(int other) native "Integer_bitAndFromInteger";
+  int _bitAndFromSmi(_Smi other) native "Integer_bitAndFromInteger";
   int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
   int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
   int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
@@ -119,6 +123,7 @@ abstract class _IntegerImplementation {
 
   bool _greaterThanFromInteger(int other)
       native "Integer_greaterThanFromInteger";
+
   bool operator ==(other) {
     if (other is num) {
       return other._equalToInteger(this);
@@ -458,7 +463,7 @@ abstract class _IntegerImplementation {
   }
 }
 
-class _Smi extends _IntegerImplementation implements int, _int64 {
+class _Smi extends _IntegerImplementation implements _int64 {
   factory _Smi._uninstantiable() {
     throw new UnsupportedError("_Smi can only be allocated by the VM");
   }
@@ -469,7 +474,7 @@ class _Smi extends _IntegerImplementation implements int, _int64 {
 
   int operator &(int other) => other._bitAndFromSmi(this);
 
-  int _bitAndFromSmi(int other) native "Smi_bitAndFromSmi";
+  int _bitAndFromSmi(_Smi other) native "Smi_bitAndFromSmi";
   int _shrFromInt(int other) native "Smi_shrFromInt";
   int _shlFromInt(int other) native "Smi_shlFromInt";
 
@@ -658,7 +663,7 @@ class _Smi extends _IntegerImplementation implements int, _int64 {
 }
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
-class _Mint extends _IntegerImplementation implements int, _int64 {
+class _Mint extends _IntegerImplementation implements _int64 {
   factory _Mint._uninstantiable() {
     throw new UnsupportedError("_Mint can only be allocated by the VM");
   }
@@ -667,7 +672,7 @@ class _Mint extends _IntegerImplementation implements int, _int64 {
   int operator ~() native "Mint_bitNegate";
   int get bitLength native "Mint_bitLength";
 
-  int _bitAndFromSmi(int other) => _bitAndFromInteger(other);
+  int _bitAndFromSmi(_Smi other) => _bitAndFromInteger(other);
 
   // Shift by mint exceeds range that can be handled by the VM.
   int _shrFromInt(int other) {

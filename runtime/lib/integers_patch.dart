@@ -1,15 +1,23 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Dart core library.
 
-// VM implementation of int.
+// part of "core_patch.dart";
 
+/// VM implementation of int.
 @patch
 class int {
   @patch
   const factory int.fromEnvironment(String name, {int defaultValue})
       native "Integer_fromEnvironment";
+
+  _Bigint _toBigint();
+  int _shrFromInt(int other);
+  int _shlFromInt(int other);
+  int _bitAndFromSmi(_Smi other);
+  int _bitAndFromInteger(int other);
+  int _bitOrFromInteger(int other);
+  int _bitXorFromInteger(int other);
 
   static int _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
@@ -24,7 +32,7 @@ class int {
         return null; // Empty.
       }
     }
-    var smiLimit = internal.is64Bit ? 18 : 9;
+    var smiLimit = is64Bit ? 18 : 9;
     if ((last - ix) >= smiLimit) {
       return null; // May not fit into a Smi.
     }
@@ -54,7 +62,7 @@ class int {
     return _parse(source, radix, onError);
   }
 
-  static int _parse(String source, int radix, onError) {
+  static int _parse(_StringBase source, int radix, onError) {
     int end = source._lastNonWhitespace() + 1;
     if (end == 0) {
       return _throwFormatException(onError, source, source.length, radix);
@@ -109,7 +117,7 @@ class int {
 
   static int _parseRadix(
       String source, int radix, int start, int end, int sign) {
-    int tableIndex = (radix - 2) * 4 + (internal.is64Bit ? 2 : 0);
+    int tableIndex = (radix - 2) * 4 + (is64Bit ? 2 : 0);
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
     if (length <= blockSize) {

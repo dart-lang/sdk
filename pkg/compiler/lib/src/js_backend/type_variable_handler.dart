@@ -5,6 +5,7 @@
 import '../common_elements.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
+import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -107,8 +108,11 @@ class TypeVariableCodegenAnalysis {
     for (TypeVariableType currentTypeVariable in thisType.typeArguments) {
       TypeVariableEntity typeVariableElement = currentTypeVariable.element;
 
+      // TODO(sigmund): use output unit for `cls` (Issue #31032)
+      OutputUnit outputUnit = _backend.compiler.deferredLoadTask.mainOutputUnit;
       jsAst.Expression boundIndex = _metadataCollector.reifyType(
-          _elementEnvironment.getTypeVariableBound(typeVariableElement));
+          _elementEnvironment.getTypeVariableBound(typeVariableElement),
+          outputUnit);
       ConstantValue boundValue = new SyntheticConstantValue(
           SyntheticConstantKind.TYPEVARIABLE_REFERENCE, boundIndex);
       ClassEntity typeVariableClass = _commonElements.typeVariableClass;
@@ -126,8 +130,8 @@ class TypeVariableCodegenAnalysis {
       ConstantValue value = _backend.constants.getConstantValue(constant);
       _impactBuilder
           .registerConstantUse(new ConstantUse.typeVariableMirror(value));
-      constants
-          .add(_reifyTypeVariableConstant(value, currentTypeVariable.element));
+      constants.add(_reifyTypeVariableConstant(
+          value, currentTypeVariable.element, outputUnit));
     }
     _typeVariables[cls] = constants;
   }
@@ -141,9 +145,10 @@ class TypeVariableCodegenAnalysis {
    * there, otherwise a new entry for [c] is created.
    */
   jsAst.Expression _reifyTypeVariableConstant(
-      ConstantValue c, TypeVariableEntity variable) {
+      ConstantValue c, TypeVariableEntity variable, OutputUnit outputUnit) {
     jsAst.Expression name = _task.constantReference(c);
-    jsAst.Expression result = _metadataCollector.reifyExpression(name);
+    jsAst.Expression result =
+        _metadataCollector.reifyExpression(name, outputUnit);
     if (_typeVariableConstants.containsKey(variable)) {
       Placeholder placeholder = _typeVariableConstants[variable];
       placeholder.bind(result);

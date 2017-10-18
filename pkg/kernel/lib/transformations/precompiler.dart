@@ -4,63 +4,93 @@
 
 library kernel.transformations.precompiler;
 
-import '../ast.dart'
-    show
-        DirectMethodInvocation,
-        DirectPropertyGet,
-        DirectPropertySet,
-        Field,
-        Library,
-        Member,
-        MethodInvocation,
-        Name,
-        Procedure,
-        Program,
-        PropertyGet,
-        PropertySet,
-        TreeNode;
+import '../ast.dart';
 
 import '../core_types.dart' show CoreTypes;
 
 import '../class_hierarchy.dart' show ClosedWorldClassHierarchy;
 
-import '../visitor.dart' show Transformer;
-
-/// Performs whole-program transformations for Dart VM precompiler.
+/// Performs whole-program optimizations for Dart VM precompiler.
 /// Assumes strong mode and closed world.
 Program transformProgram(CoreTypes coreTypes, Program program) {
-  new _DevirtualizationTransformer(coreTypes, program).visitProgram(program);
+  new _Devirtualization(coreTypes, program).visitProgram(program);
   return program;
 }
 
-/// Transforms instance method invocations into direct using strong mode
+class DirectCallMetadata {
+  final Member target;
+  final bool checkReceiverForNull;
+
+  DirectCallMetadata(this.target, this.checkReceiverForNull);
+}
+
+class DirectCallMetadataRepository
+    extends MetadataRepository<DirectCallMetadata> {
+  @override
+  final String tag = 'vm.direct-call.metadata';
+
+  @override
+  final Map<TreeNode, DirectCallMetadata> mapping =
+      <TreeNode, DirectCallMetadata>{};
+
+  @override
+  void writeToBinary(DirectCallMetadata metadata, BinarySink sink) {
+    sink.writeCanonicalNameReference(getCanonicalNameOfMember(metadata.target));
+    sink.writeByte(metadata.checkReceiverForNull ? 1 : 0);
+  }
+
+  @override
+  DirectCallMetadata readFromBinary(BinarySource source) {
+    var target = source.readCanonicalNameReference()?.getReference()?.asMember;
+    if (target == null) {
+      throw 'DirectCallMetadata should have a non-null target';
+    }
+    var checkReceiverForNull = (source.readByte() != 0);
+    return new DirectCallMetadata(target, checkReceiverForNull);
+  }
+}
+
+/// Resolves targets of instance method invocations, property getter
+/// invocations and property setters invocations using strong mode
 /// types / interface targets and closed-world class hierarchy analysis.
-class _DevirtualizationTransformer extends Transformer {
+/// If direct target is determined, the invocation node is annotated
+/// with direct call metadata.
+class _Devirtualization extends RecursiveVisitor<Null> {
   /// Toggles tracing (useful for debugging).
   static const _trace = const bool.fromEnvironment('trace.devirtualization');
 
   final ClosedWorldClassHierarchy _hierarchy;
+  final DirectCallMetadataRepository _metadata;
   Set<Name> _objectMemberNames;
 
-  _DevirtualizationTransformer(CoreTypes coreTypes, Program program)
-      : _hierarchy = new ClosedWorldClassHierarchy(program) {
+  _Devirtualization(CoreTypes coreTypes, Program program)
+      : _hierarchy = new ClosedWorldClassHierarchy(program),
+        _metadata = new DirectCallMetadataRepository() {
     _objectMemberNames = new Set<Name>.from(_hierarchy
         .getInterfaceMembers(coreTypes.objectClass)
         .map((Member m) => m.name));
+    program.addMetadataRepository(_metadata);
+  }
+
+  _makeDirectCall(TreeNode node, Member target, Member singleTarget) {
+    if (_trace) {
+      print("[devirt] Resolving ${target} to ${singleTarget}");
+    }
+    _metadata.mapping[node] = new DirectCallMetadata(singleTarget, true);
   }
 
   @override
-  TreeNode visitLibrary(Library node) {
+  visitLibrary(Library node) {
     if (_trace) {
       String external = node.isExternal ? " (external)" : "";
       print("[devirt] Processing library ${node.name}${external}");
     }
-    return super.visitLibrary(node);
+    super.visitLibrary(node);
   }
 
   @override
-  TreeNode visitMethodInvocation(MethodInvocation node) {
-    node = super.visitMethodInvocation(node);
+  visitMethodInvocation(MethodInvocation node) {
+    super.visitMethodInvocation(node);
 
     Member target = node.interfaceTarget;
     if ((target != null) &&
@@ -69,12 +99,7 @@ class _DevirtualizationTransformer extends Transformer {
       Member singleTarget =
           _hierarchy.getSingleTargetForInterfaceInvocation(target);
       if ((singleTarget is Procedure) && !singleTarget.isGetter) {
-        if (_trace) {
-          print("[devirt] Replacing ${target} with ${singleTarget}");
-        }
-        // TODO(dartbug.com/30480): add annotation to check for null
-        return new DirectMethodInvocation(
-            node.receiver, singleTarget, node.arguments);
+        _makeDirectCall(node, target, singleTarget);
       }
     }
 
@@ -82,19 +107,15 @@ class _DevirtualizationTransformer extends Transformer {
   }
 
   @override
-  TreeNode visitPropertyGet(PropertyGet node) {
-    node = super.visitPropertyGet(node);
+  visitPropertyGet(PropertyGet node) {
+    super.visitPropertyGet(node);
 
     Member target = node.interfaceTarget;
     if ((target != null) && !_objectMemberNames.contains(target.name)) {
       Member singleTarget =
           _hierarchy.getSingleTargetForInterfaceInvocation(target);
       if (singleTarget != null) {
-        if (_trace) {
-          print("[devirt] Replacing ${target} with ${singleTarget}");
-        }
-        // TODO(dartbug.com/30480): add annotation to check for null
-        return new DirectPropertyGet(node.receiver, singleTarget);
+        _makeDirectCall(node, target, singleTarget);
       }
     }
 
@@ -102,19 +123,15 @@ class _DevirtualizationTransformer extends Transformer {
   }
 
   @override
-  TreeNode visitPropertySet(PropertySet node) {
-    node = super.visitPropertySet(node);
+  visitPropertySet(PropertySet node) {
+    super.visitPropertySet(node);
 
     Member target = node.interfaceTarget;
     if (target != null) {
       Member singleTarget = _hierarchy
           .getSingleTargetForInterfaceInvocation(target, setter: true);
       if (singleTarget != null) {
-        if (_trace) {
-          print("[devirt] Replacing ${target} with ${singleTarget}");
-        }
-        // TODO(dartbug.com/30480): add annotation to check for null
-        return new DirectPropertySet(node.receiver, singleTarget, node.value);
+        _makeDirectCall(node, target, singleTarget);
       }
     }
 

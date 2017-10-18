@@ -420,7 +420,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildClosureCall(ClosureCallNode* node, bool result_needed);
 
   Value* BuildNullValue(TokenPosition token_pos);
-  Value* BuildEmptyTypeArguments(TokenPosition token_pos);
 
   // Returns true if the run-time type check can be eliminated.
   bool CanSkipTypeCheck(TokenPosition token_pos,

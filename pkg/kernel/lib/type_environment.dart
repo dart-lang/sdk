@@ -13,6 +13,7 @@ typedef void ErrorHandler(TreeNode node, String message);
 class TypeEnvironment extends SubtypeTester {
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
+  final bool strongMode;
   InterfaceType thisType;
 
   DartType returnType;
@@ -23,10 +24,7 @@ class TypeEnvironment extends SubtypeTester {
   /// be tolerated.  See [typeError].
   ErrorHandler errorHandler;
 
-  TypeEnvironment(this.coreTypes, this.hierarchy);
-
-  @override
-  bool get strongMode => false;
+  TypeEnvironment(this.coreTypes, this.hierarchy, {this.strongMode: false});
 
   InterfaceType get objectType => coreTypes.objectClass.rawType;
   InterfaceType get nullType => coreTypes.nullClass.rawType;
@@ -144,6 +142,7 @@ class TypeEnvironment extends SubtypeTester {
 /// This lives in a separate class so it can be tested independently of the SDK.
 abstract class SubtypeTester {
   InterfaceType get objectType;
+  InterfaceType get nullType;
   InterfaceType get rawFunctionType;
   ClassHierarchy get hierarchy;
   Class get futureOrClass;
@@ -152,7 +151,8 @@ abstract class SubtypeTester {
 
   /// Determines if the given type is at the bottom of the type hierarchy.  May
   /// be overridden in subclasses.
-  bool isBottom(DartType type) => type is BottomType;
+  bool isBottom(DartType type) =>
+      type is BottomType || (strongMode && type == nullType);
 
   /// Determines if the given type is at the top of the type hierarchy.  May be
   /// overridden in subclasses.

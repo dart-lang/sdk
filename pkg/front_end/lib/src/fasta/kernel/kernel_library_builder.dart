@@ -58,6 +58,7 @@ import 'kernel_builder.dart'
         KernelEnumBuilder,
         KernelFieldBuilder,
         KernelFormalParameterBuilder,
+        KernelFunctionBuilder,
         KernelFunctionTypeAliasBuilder,
         KernelFunctionTypeBuilder,
         KernelInvalidTypeBuilder,
@@ -72,6 +73,7 @@ import 'kernel_builder.dart'
         NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
+        QualifiedName,
         Scope,
         TypeBuilder,
         TypeVariableBuilder,
@@ -88,7 +90,7 @@ class KernelLibraryBuilder
 
   final List<List> argumentsWithMissingDefaultValues = <List>[];
 
-  final List<KernelProcedureBuilder> nativeMethods = <KernelProcedureBuilder>[];
+  final List<KernelFunctionBuilder> nativeMethods = <KernelFunctionBuilder>[];
 
   final List<KernelTypeVariableBuilder> boundlessTypeVariables =
       <KernelTypeVariableBuilder>[];
@@ -114,7 +116,7 @@ class KernelLibraryBuilder
   Uri get uri => library.importUri;
 
   KernelTypeBuilder addNamedType(
-      String name, List<KernelTypeBuilder> arguments, int charOffset) {
+      Object name, List<KernelTypeBuilder> arguments, int charOffset) {
     return addType(
         new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri));
   }
@@ -248,7 +250,7 @@ class KernelLibraryBuilder
     if (isNamed) {
       modifiers |= namedMixinApplicationMask;
     } else {
-      name = supertype.name;
+      name = "${supertype.name}";
       int index = name.indexOf("^");
       if (index != -1) {
         name = name.substring(0, index);
@@ -544,25 +546,26 @@ class KernelLibraryBuilder
         charOffset);
   }
 
-  String computeAndValidateConstructorName(String name, int charOffset) {
+  String computeAndValidateConstructorName(Object name, int charOffset) {
     String className = currentDeclaration.name;
-    bool startsWithClassName = name.startsWith(className);
-    if (startsWithClassName && name.length == className.length) {
-      // Unnamed constructor or factory.
-      return "";
+    String prefix;
+    String suffix;
+    if (name is QualifiedName) {
+      prefix = name.prefix;
+      suffix = name.suffix;
+    } else {
+      prefix = name;
+      suffix = null;
     }
-    int index = name.indexOf(".");
-    if (startsWithClassName && index == className.length) {
-      // Named constructor or factory.
-      return name.substring(index + 1);
+    if (prefix == className) {
+      return suffix ?? "";
     }
-    if (index == -1) {
+    if (suffix == null) {
       // A legal name for a regular method, but not for a constructor.
       return null;
     }
-    String suffix = name.substring(index + 1);
     addCompileTimeError(
-        templateIllegalMethodName.withArguments(name, "$className.$suffix"),
+        templateIllegalMethodName.withArguments("$name", "$className.$suffix"),
         charOffset,
         fileUri);
     return suffix;
@@ -573,7 +576,7 @@ class KernelLibraryBuilder
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
-      String name,
+      final Object name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
@@ -584,18 +587,19 @@ class KernelLibraryBuilder
       {bool isTopLevel}) {
     // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
-    endNestedDeclaration(name).resolveTypes(typeVariables, this);
+    endNestedDeclaration("#method").resolveTypes(typeVariables, this);
+    String procedureName;
     ProcedureBuilder procedure;
     String constructorName =
         isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {
-      name = constructorName;
+      procedureName = constructorName;
       procedure = new KernelConstructorBuilder(
           documentationComment,
           metadata,
           modifiers & ~abstractMask,
           returnType,
-          name,
+          constructorName,
           typeVariables,
           formals,
           this,
@@ -603,7 +607,11 @@ class KernelLibraryBuilder
           charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
+      loader.target.metadataCollector
+          ?.setConstructorNameOffset(procedure.target, name);
     } else {
+      assert(name is String);
+      procedureName = name;
       procedure = new KernelProcedureBuilder(
           documentationComment,
           metadata,
@@ -620,7 +628,7 @@ class KernelLibraryBuilder
           nativeMethodName);
     }
     checkTypeVariables(typeVariables, procedure);
-    addBuilder(name, procedure, charOffset);
+    addBuilder(procedureName, procedure, charOffset);
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
     }
@@ -642,19 +650,25 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration("#factory_method");
-    String name = constructorNameReference.name;
+    Object name = constructorNameReference.name;
+
+    // Prepare the simple procedure name.
+    String procedureName;
     String constructorName =
         computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {
-      name = constructorName;
+      procedureName = constructorName;
+    } else {
+      procedureName = name;
     }
+
     assert(constructorNameReference.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
         documentationComment,
         metadata,
         staticMask | modifiers,
         returnType,
-        name,
+        procedureName,
         <TypeVariableBuilder>[],
         formals,
         ProcedureKind.Factory,
@@ -664,8 +678,13 @@ class KernelLibraryBuilder
         charEndOffset,
         nativeMethodName,
         redirectionTarget);
+
+    // Record the named constructor name offset.
+    loader.target.metadataCollector
+        ?.setConstructorNameOffset(procedure.target, name);
+
     currentDeclaration.addFactoryDeclaration(procedure, factoryDeclaration);
-    addBuilder(name, procedure, charOffset);
+    addBuilder(procedureName, procedure, charOffset);
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
     }
@@ -686,6 +705,7 @@ class KernelLibraryBuilder
   }
 
   void addFunctionTypeAlias(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
@@ -693,6 +713,8 @@ class KernelLibraryBuilder
       int charOffset) {
     KernelFunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
         metadata, name, typeVariables, type, this, charOffset);
+    loader.target.metadataCollector
+        ?.setDocumentationComment(typedef.target, documentationComment);
     checkTypeVariables(typeVariables, typedef);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration("#typedef").resolveTypes(typeVariables, this);
@@ -926,12 +948,12 @@ class KernelLibraryBuilder
     return argumentsWithMissingDefaultValues.length;
   }
 
-  void addNativeMethod(KernelProcedureBuilder method) {
+  void addNativeMethod(KernelFunctionBuilder method) {
     nativeMethods.add(method);
   }
 
   int finishNativeMethods() {
-    for (KernelProcedureBuilder method in nativeMethods) {
+    for (KernelFunctionBuilder method in nativeMethods) {
       method.becomeNative(loader);
     }
     return nativeMethods.length;

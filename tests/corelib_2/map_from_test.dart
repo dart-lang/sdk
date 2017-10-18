@@ -81,7 +81,6 @@ testWithHashMap() {
   var otherMap = new HashMap.from(map);
   Expect.isTrue(otherMap is Map);
   Expect.isTrue(otherMap is HashMap);
-  Expect.isTrue(otherMap is! LinkedHashMap);
   var i = 1;
   for (var val in map.values) {
     Expect.equals(i++, val);

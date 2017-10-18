@@ -168,7 +168,7 @@ abstract class NetworkInterface {
   /**
    * Get the index of the [NetworkInterface].
    */
-  String get index;
+  int get index;
 
   /**
    * Get a list of [InternetAddress]es currently bound to this

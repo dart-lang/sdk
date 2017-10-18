@@ -368,10 +368,6 @@ class Object {
     ASSERT(null_type_arguments_ != NULL);
     return *null_type_arguments_;
   }
-  static const TypeArguments& empty_type_arguments() {
-    ASSERT(empty_type_arguments_ != NULL);
-    return *empty_type_arguments_;
-  }
 
   static const Array& empty_array() {
     ASSERT(empty_array_ != NULL);
@@ -524,6 +520,9 @@ class Object {
   static RawClass* script_class() { return script_class_; }
   static RawClass* library_class() { return library_class_; }
   static RawClass* namespace_class() { return namespace_class_; }
+  static RawClass* kernel_program_info_class() {
+    return kernel_program_info_class_;
+  }
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* object_pool_class() { return object_pool_class_; }
@@ -783,6 +782,8 @@ class Object {
   static RawClass* script_class_;        // Class of the Script vm object.
   static RawClass* library_class_;       // Class of the Library vm object.
   static RawClass* namespace_class_;     // Class of Namespace vm object.
+  static RawClass* kernel_program_info_class_;  // Class of KernelProgramInfo vm
+                                                // object.
   static RawClass* code_class_;          // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
@@ -812,7 +813,6 @@ class Object {
   static Instance* null_instance_;
   static Function* null_function_;
   static TypeArguments* null_type_arguments_;
-  static TypeArguments* empty_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
   static Context* empty_context_;
@@ -1589,6 +1589,17 @@ class PatchClass : public Object {
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
   RawClass* origin_class() const { return raw_ptr()->origin_class_; }
   RawScript* script() const { return raw_ptr()->script_; }
+  RawTypedData* library_kernel_data() const {
+    return raw_ptr()->library_kernel_data_;
+  }
+  void set_library_kernel_data(const TypedData& data) const;
+
+  intptr_t library_kernel_offset() const {
+    return raw_ptr()->library_kernel_offset_;
+  }
+  void set_library_kernel_offset(intptr_t offset) const {
+    StoreNonPointer(&raw_ptr()->library_kernel_offset_, offset);
+  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawPatchClass));
@@ -2005,6 +2016,12 @@ class ICData : public Object {
   friend class Deserializer;
 };
 
+// Often used constants for number of free function type parameters.
+enum {
+  kNoneFree = 0,
+  kAllFree = kMaxInt32,
+};
+
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
@@ -2035,6 +2052,7 @@ class Function : public Object {
   RawFunction* InstantiateSignatureFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Heap::Space space) const;
 
   // Build a string of the form '<T>(T, {B b, C c}) => R' representing the
@@ -2058,7 +2076,7 @@ class Function : public Object {
   // its signature uninstantiated, only type parameters declared by parent
   // generic functions or class type parameters.
   bool HasInstantiatedSignature(Genericity genericity = kAny,
-                                intptr_t num_free_fun_type_params = kMaxInt32,
+                                intptr_t num_free_fun_type_params = kAllFree,
                                 TrailPtr trail = NULL) const;
 
   // Reloading support:
@@ -2410,8 +2428,9 @@ class Function : public Object {
     set_optimized_call_site_count(value);
   }
 
-  RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
-  void set_kernel_data(const TypedData& data) const;
+  intptr_t KernelDataProgramOffset() const;
+
+  RawTypedData* KernelData() const;
 
   bool IsOptimizable() const;
   void SetIsOptimizable(bool value) const;
@@ -2558,8 +2577,6 @@ class Function : public Object {
   bool IsImplicitInstanceClosureFunction() const {
     return IsImplicitClosureFunction() && !is_static();
   }
-
-  bool IsConstructorClosureFunction() const;
 
   // Returns true if this function represents a local function.
   bool IsLocalFunction() const { return parent_function() != Function::null(); }
@@ -2985,14 +3002,15 @@ class Field : public Object {
 #endif
   }
 
-  void set_kernel_offset(intptr_t kernel_offset) const {
+  void set_kernel_offset(intptr_t offset) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    StoreNonPointer(&raw_ptr()->kernel_offset_, kernel_offset);
+    StoreNonPointer(&raw_ptr()->kernel_offset_, offset);
 #endif
   }
 
-  RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
-  void set_kernel_data(const TypedData& data) const;
+  RawTypedData* KernelData() const;
+
+  intptr_t KernelDataProgramOffset() const;
 
   inline intptr_t Offset() const;
   // Called during class finalization.
@@ -3391,6 +3409,7 @@ class TokenStream : public Object {
 class Script : public Object {
  public:
   RawString* url() const { return raw_ptr()->url_; }
+  void set_url(const String& value) const;
 
   // The actual url which was loaded from disk, if provided by the embedder.
   RawString* resolved_url() const { return raw_ptr()->resolved_url_; }
@@ -3413,25 +3432,17 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
+  RawKernelProgramInfo* kernel_program_info() const {
+    return raw_ptr()->kernel_program_info_;
+  }
+  void set_kernel_program_info(const KernelProgramInfo& info) const;
+
   intptr_t kernel_script_index() const {
     return raw_ptr()->kernel_script_index_;
   }
   void set_kernel_script_index(const intptr_t kernel_script_index) const;
 
-  RawTypedData* kernel_string_offsets() const {
-    return raw_ptr()->kernel_string_offsets_;
-  }
-  void set_kernel_string_offsets(const TypedData& offsets) const;
-
-  RawTypedData* kernel_string_data() const {
-    return raw_ptr()->kernel_string_data_;
-  }
-  void set_kernel_string_data(const TypedData& data) const;
-
-  RawTypedData* kernel_canonical_names() const {
-    return raw_ptr()->kernel_canonical_names_;
-  }
-  void set_kernel_canonical_names(const TypedData& names) const;
+  RawTypedData* kernel_string_offsets() const;
 
   RawTokenStream* tokens() const {
     ASSERT(kind() != RawScript::kKernelTag);
@@ -3490,7 +3501,6 @@ class Script : public Object {
                         RawScript::Kind kind);
 
  private:
-  void set_url(const String& value) const;
   void set_resolved_url(const String& value) const;
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
@@ -3652,16 +3662,13 @@ class Library : public Object {
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset = 0,
-                        const TypedData* kernel_data = NULL) const;
+                        intptr_t kernel_offset = 0) const;
   void AddFieldMetadata(const Field& field,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset = 0,
-                        const TypedData* kernel_data = NULL) const;
+                        intptr_t kernel_offset = 0) const;
   void AddFunctionMetadata(const Function& func,
                            TokenPosition token_pos,
-                           intptr_t kernel_offset = 0,
-                           const TypedData* kernel_data = NULL) const;
+                           intptr_t kernel_offset = 0) const;
   void AddLibraryMetadata(const Object& tl_owner,
                           TokenPosition token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
@@ -3733,6 +3740,14 @@ class Library : public Object {
   bool IsCoreLibrary() const { return raw() == CoreLibrary(); }
 
   inline intptr_t UrlHash() const;
+
+  RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
+  void set_kernel_data(const TypedData& data) const;
+
+  intptr_t kernel_offset() const { return raw_ptr()->kernel_offset_; }
+  void set_kernel_offset(intptr_t offset) {
+    StoreNonPointer(&raw_ptr()->kernel_offset_, offset);
+  }
 
   static RawLibrary* LookupLibrary(Thread* thread, const String& url);
   static RawLibrary* GetLibrary(intptr_t index);
@@ -3839,8 +3854,7 @@ class Library : public Object {
   void AddMetadata(const Object& owner,
                    const String& name,
                    TokenPosition token_pos,
-                   intptr_t kernel_offset = 0,
-                   const TypedData* kernel_data = NULL) const;
+                   intptr_t kernel_offset = 0) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
@@ -3887,6 +3901,44 @@ class Namespace : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
   friend class Precompiler;
+};
+
+class KernelProgramInfo : public Object {
+ public:
+  static RawKernelProgramInfo* New(const TypedData& string_offsets,
+                                   const TypedData& string_data,
+                                   const TypedData& canonical_names,
+                                   const TypedData& metadata_payload,
+                                   const TypedData& metadata_mappings,
+                                   const Array& scripts);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawKernelProgramInfo));
+  }
+
+  RawTypedData* string_offsets() const { return raw_ptr()->string_offsets_; }
+
+  RawTypedData* string_data() const { return raw_ptr()->string_data_; }
+
+  RawTypedData* canonical_names() const { return raw_ptr()->canonical_names_; }
+
+  RawTypedData* metadata_payloads() const {
+    return raw_ptr()->metadata_payloads_;
+  }
+
+  RawTypedData* metadata_mappings() const {
+    return raw_ptr()->metadata_mappings_;
+  }
+
+  RawArray* scripts() const { return raw_ptr()->scripts_; }
+
+  RawScript* ScriptAt(intptr_t index) const;
+
+ private:
+  static RawKernelProgramInfo* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo, Object);
+  friend class Class;
 };
 
 // ObjectPool contains constants, immediates and addresses embedded in code
@@ -5560,7 +5612,7 @@ class TypeArguments : public Instance {
 
   // Check if the vector is instantiated (it must not be null).
   bool IsInstantiated(Genericity genericity = kAny,
-                      intptr_t num_free_fun_type_params = kMaxInt32,
+                      intptr_t num_free_fun_type_params = kAllFree,
                       TrailPtr trail = NULL) const {
     return IsSubvectorInstantiated(0, Length(), genericity,
                                    num_free_fun_type_params, trail);
@@ -5568,7 +5620,7 @@ class TypeArguments : public Instance {
   bool IsSubvectorInstantiated(intptr_t from_index,
                                intptr_t len,
                                Genericity genericity = kAny,
-                               intptr_t num_free_fun_type_params = kMaxInt32,
+                               intptr_t num_free_fun_type_params = kAllFree,
                                TrailPtr trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
@@ -5610,6 +5662,7 @@ class TypeArguments : public Instance {
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -5725,7 +5778,7 @@ class AbstractType : public Instance {
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const;
   virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kMaxInt32,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
@@ -5742,13 +5795,22 @@ class AbstractType : public Instance {
   // Check if this type represents a function type.
   virtual bool IsFunctionType() const { return false; }
 
-  // Instantiate this type using the given type argument vectors and possibly
-  // the current context.
+  // Instantiate this type using the given type argument vectors.
+  //
+  // Note that some type parameters appearing in this type may not require
+  // instantiation. Consider a class C<T> declaring a non-generic method
+  // foo(bar<B>(T t, B b)). Although foo is not a generic method, it takes a
+  // generic function bar<B> as argument and its function type refers to class
+  // type parameter T and function type parameter B. When instantiating the
+  // function type of foo for a particular value of T, function type parameter B
+  // must remain uninstantiated, because only T is a free variable in this type.
+  //
   // Return a new type, or return 'this' if it is already instantiated.
   // If bound_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -5920,6 +5982,7 @@ class Type : public AbstractType {
   static intptr_t type_class_id_offset() {
     return OFFSET_OF(RawType, type_class_id_);
   }
+  static intptr_t hash_offset() { return OFFSET_OF(RawType, hash_); }
   virtual bool IsFinalized() const {
     return (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
            (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
@@ -5949,7 +6012,7 @@ class Type : public AbstractType {
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kMaxInt32,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
@@ -5966,6 +6029,7 @@ class Type : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6102,7 +6166,7 @@ class TypeRef : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kMaxInt32,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
@@ -6110,6 +6174,7 @@ class TypeRef : public AbstractType {
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6188,7 +6253,7 @@ class TypeParameter : public AbstractType {
                   Heap::Space space) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kMaxInt32,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
@@ -6196,6 +6261,7 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6283,7 +6349,7 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kMaxInt32,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const {
     // It is not possible to encounter an instantiated bounded type with an
     // uninstantiated upper bound. Therefore, we do not need to check if the
@@ -6298,6 +6364,7 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,

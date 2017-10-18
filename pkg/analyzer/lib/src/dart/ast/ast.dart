@@ -3767,6 +3767,9 @@ class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   Token get endToken => semicolon;
 
   @override
+  bool get isSynthetic => semicolon.isSynthetic;
+
+  @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyStatement(this);
 
   @override
@@ -5552,17 +5555,11 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken {
-    NodeList<Annotation> metadata = this.metadata;
-    if (!metadata.isEmpty) {
-      return metadata.beginToken;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword;
-    } else if (_returnType != null) {
-      return _returnType.beginToken;
-    }
-    return identifier.beginToken;
-  }
+  Token get beginToken =>
+      this.metadata.beginToken ??
+      covariantKeyword ??
+      _returnType?.beginToken ??
+      identifier?.beginToken;
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
@@ -7960,19 +7957,6 @@ class NodeListImpl<E extends AstNode> extends Object
     throw new UnsupportedError("Cannot resize NodeList.");
   }
 
-  /// This is non-API and may be changed or removed at any point.
-  ///
-  /// Changes the length of this list
-  /// If [newLength] is greater than the current length,
-  /// entries are initialized to `null`.
-  ///
-  /// This list should NOT contain any `null` elements,
-  /// so be sure to immediately follow a call to this method with calls
-  /// to replace all the `null` elements with non-`null` elements.
-  void setLength(int newLength) {
-    _elements.length = newLength;
-  }
-
   @override
   AstNode get owner => _owner;
 
@@ -8057,6 +8041,19 @@ class NodeListImpl<E extends AstNode> extends Object
     E removedNode = _elements[index];
     _elements.removeAt(index);
     return removedNode;
+  }
+
+  /// This is non-API and may be changed or removed at any point.
+  ///
+  /// Changes the length of this list
+  /// If [newLength] is greater than the current length,
+  /// entries are initialized to `null`.
+  ///
+  /// This list should NOT contain any `null` elements,
+  /// so be sure to immediately follow a call to this method with calls
+  /// to replace all the `null` elements with non-`null` elements.
+  void setLength(int newLength) {
+    _elements.length = newLength;
   }
 }
 

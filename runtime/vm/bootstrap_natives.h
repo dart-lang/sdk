@@ -29,6 +29,7 @@ namespace dart {
   V(Closure_computeHash, 1)                                                    \
   V(Closure_clone, 1)                                                          \
   V(AbstractType_toString, 1)                                                  \
+  V(Type_getHashCode, 1)                                                       \
   V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \
   V(Integer_bitOrFromInteger, 2)                                               \
@@ -125,7 +126,6 @@ namespace dart {
   V(OneByteString_allocateFromOneByteList, 3)                                  \
   V(OneByteString_setAt, 3)                                                    \
   V(TwoByteString_allocateFromTwoByteList, 3)                                  \
-  V(ExternalOneByteString_getCid, 0)                                           \
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \
   V(String_charAt, 2)                                                          \

@@ -374,8 +374,6 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     b.write(
         writeOption('Analyze function bodies', options.analyzeFunctionBodies));
-    b.write(writeOption('Enable asserts in initializer lists',
-        options.enableAssertInitializer));
     b.write(writeOption(
         'Enable strict call checks', options.enableStrictCallChecks));
     b.write(writeOption('Enable super mixins', options.enableSuperMixins));

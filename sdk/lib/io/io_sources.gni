@@ -21,6 +21,7 @@ io_sdk_sources = [
   "io_service.dart",
   "link.dart",
   "namespace_impl.dart",
+  "overrides.dart",
   "platform.dart",
   "platform_impl.dart",
   "process.dart",

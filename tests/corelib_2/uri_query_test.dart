@@ -150,15 +150,13 @@ testInvalidQueryParameters() {
 
 testQueryParametersImmutableMap() {
   test(map) {
-    bool isUnsupported(e) => e is UnsupportedError;
-
     Expect.isTrue(map.containsValue("b"));
     Expect.isTrue(map.containsKey("a"));
     Expect.equals("b", map["a"]);
-    Expect.throws(() => map["a"] = "c", isUnsupported);
-    Expect.throws(() => map.putIfAbsent("b", () => "e"), isUnsupported);
-    Expect.throws(() => map.remove("a"), isUnsupported);
-    Expect.throws(() => map.clear(), isUnsupported);
+    Expect.throwsUnsupportedError(() => map["a"] = "c");
+    Expect.throwsUnsupportedError(() => map.putIfAbsent("b", () => "e"));
+    Expect.throwsUnsupportedError(() => map.remove("a"));
+    Expect.throwsUnsupportedError(() => map.clear());
     var count = 0;
     map.forEach((key, value) => count++);
     Expect.equals(2, count);

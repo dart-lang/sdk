@@ -463,7 +463,7 @@ class FlowGraphCompiler : public ValueObject {
       Environment* env = NULL,
       intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
 
-  void EmitCallsiteMetaData(TokenPosition token_pos,
+  void EmitCallsiteMetadata(TokenPosition token_pos,
                             intptr_t deopt_id,
                             RawPcDescriptors::Kind kind,
                             LocationSummary* locs);

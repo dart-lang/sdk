@@ -219,7 +219,13 @@ abstract class File implements FileSystemEntity {
    * If [path] is an absolute path, it will be immune to changes to the
    * current working directory.
    */
-  factory File(String path) => new _File(path);
+  factory File(String path) {
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      return new _File(path);
+    }
+    return overrides.createFile(path);
+  }
 
   /**
    * Create a File object from a URI.

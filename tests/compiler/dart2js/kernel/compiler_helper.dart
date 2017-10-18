@@ -24,6 +24,9 @@ import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
 import '../../../../pkg/compiler/tool/generate_kernel.dart' as generate;
 
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
 typedef Future<Compiler> CompileFunction();
 
 /// Create multiple compilations for a list of [sources].
@@ -127,11 +130,10 @@ Future generateDill(Uri entryPoint, Map<String, String> memorySourceFiles,
   }
 
   Uri dillFile = Uri.parse('$entryPoint.dill');
-  String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
-  String configuration =
-      Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
+  Uri platform =
+      computePlatformBinariesLocation().resolve("dart2js_platform.dill");
   await generate.main([
-    '--platform=$buildDir/$configuration/patched_dart2js_sdk/platform.dill',
+    '--platform=${platform.toFilePath()}',
     '--out=${uriPathToNative(dillFile.path)}',
     '${entryPoint.path}',
   ]);

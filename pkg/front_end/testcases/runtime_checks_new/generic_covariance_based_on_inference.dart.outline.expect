@@ -1,0 +1,26 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B<T extends core::Object> extends core::Object {
+  field self::B::T x;
+  field self::B::T y;
+  default constructor •() → void
+    ;
+}
+class C<T extends core::Object> extends core::Object implements self::B<core::num> {
+  field dynamic x;
+  default constructor •() → void
+    ;
+  abstract get y() → dynamic;
+  abstract set y(dynamic value) → dynamic;
+}
+class D<T extends core::Object> extends core::Object implements self::B<self::D::T> {
+  field dynamic x;
+  default constructor •() → void
+    ;
+  abstract get y() → dynamic;
+  abstract set y(dynamic value) → dynamic;
+}
+static method main() → dynamic
+  ;

@@ -3,7 +3,16 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartkp ]
+isolate/message3_test/byteBuffer: Crash
+isolate/message3_test/constInstance: Crash
+isolate/message3_test/constList: Crash
+isolate/message3_test/constList_identical: Crash
+isolate/message3_test/constMap: Crash
+isolate/message3_test/fun: Crash
+isolate/message3_test/none: Crash
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
+html/*: SkipByDesign # dart:html not supported on VM.
+isolate/typed_message_test: Crash
 
 [ $compiler == dartk || $compiler == dartkp ]
 async/future_or_strong_test: RuntimeError
@@ -81,7 +90,6 @@ mirrors/library_imports_prefixed_test: RuntimeError
 mirrors/library_imports_prefixed_test: RuntimeError
 mirrors/library_imports_shown_test: RuntimeError
 mirrors/library_imports_shown_test: RuntimeError
-mirrors/library_metadata2_test/01: MissingCompileTimeError
 mirrors/library_metadata_test: RuntimeError
 mirrors/list_constructor_test/01: Crash
 mirrors/list_constructor_test/none: Crash
@@ -89,13 +97,10 @@ mirrors/load_library_test: RuntimeError
 mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/mirrors_test: Crash
-mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
-mirrors/metadata_allowed_values_test/27: Crash
 mirrors/metadata_constructed_constant_test: Crash
-mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
 mirrors/metadata_scope_test/none: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
@@ -138,51 +143,7 @@ mirrors/variable_is_const_test/01: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
-html/canvasrenderingcontext2d_test: DartkCompileTimeError
-html/custom/constructor_calls_created_synchronously_test: DartkCompileTimeError
-html/custom/created_callback_test: DartkCompileTimeError
-html/custom/document_register_basic_test: DartkCompileTimeError
-html/custom/document_register_type_extensions_test: DartkCompileTimeError
-html/custom/element_upgrade_test: DartkCompileTimeError
-html/custom/entered_left_view_test: DartkCompileTimeError
-html/custom/js_custom_test: DartkCompileTimeError
-html/custom/mirrors_test: DartkCompileTimeError
-html/custom/regress_194523002_test: DartkCompileTimeError
-html/custom_element_method_clash_test: DartkCompileTimeError
-html/custom_element_name_clash_test: DartkCompileTimeError
-html/custom_elements_23127_test: DartkCompileTimeError
-html/custom_elements_test: DartkCompileTimeError
-html/js_typed_interop_anonymous2_exp_test: DartkCompileTimeError
-html/js_typed_interop_anonymous2_test: DartkCompileTimeError
-html/js_typed_interop_anonymous_exp_test: DartkCompileTimeError
-html/js_typed_interop_anonymous_test: DartkCompileTimeError
-html/js_typed_interop_anonymous_unreachable_exp_test: DartkCompileTimeError
-html/js_typed_interop_anonymous_unreachable_test: DartkCompileTimeError
-html/js_typed_interop_default_arg_test/explicit_argument: DartkCompileTimeError
-html/js_typed_interop_default_arg_test/none: DartkCompileTimeError
-html/js_typed_interop_lazy_test: DartkCompileTimeError
-html/js_typed_interop_rename_static_test: DartkCompileTimeError
-html/js_typed_interop_test: DartkCompileTimeError
-html/js_util_test: DartkCompileTimeError
-html/node_validator_important_if_you_suppress_make_the_bug_critical_test: DartkCompileTimeError
-html/non_instantiated_is_test: DartkCompileTimeError
-html/notification_test: DartkCompileTimeError
-html/performance_api_test: DartkCompileTimeError
-html/private_extension_member_test: DartkCompileTimeError
-html/query_test: DartkCompileTimeError
-html/queryall_test: DartkCompileTimeError
-html/range_test: DartkCompileTimeError
-html/request_animation_frame_test: DartkCompileTimeError
-html/rtc_test: DartkCompileTimeError
-html/selectelement_test: DartkCompileTimeError
-html/serialized_script_value_test: DartkCompileTimeError
-html/shadow_dom_test: DartkCompileTimeError
-html/shadowroot_test: DartkCompileTimeError
-html/speechrecognition_test: DartkCompileTimeError
-html/storage_test: DartkCompileTimeError
-html/streams_test: DartkCompileTimeError
-html/svg_test: DartkCompileTimeError
-html/svgelement_test: DartkCompileTimeError
+html/*: DartkCompileTimeError
 mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
@@ -246,13 +207,27 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash
 
-[ $checked && ($compiler == dartk) ]
+[ $compiler == dartkp && $mode == debug ]
+html/canvas_test: DartkCompileTimeError
+html/canvasrenderingcontext2d_test: DartkCompileTimeError
+html/cdata_test: DartkCompileTimeError
+html/client_rect_test: DartkCompileTimeError
+html/cross_domain_iframe_test: DartkCompileTimeError
+html/crypto_test: DartkCompileTimeError
+html/css_rule_list_test: DartkCompileTimeError
+html/css_test: DartkCompileTimeError
+html/cssstyledeclaration_test: DartkCompileTimeError
+html/custom/attribute_changed_callback_test: DartkCompileTimeError
+mirrors/variable_is_const_test/01: Crash
+
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
 mirrors/invocation_fuzz_test/smi: Crash
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
 
 [ $compiler == dartk && $runtime == vm ]
@@ -267,3 +242,12 @@ js/null_test: CompileTimeError
 mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
+
+[ ($compiler == dartk || $compiler == dartkp) ]
+isolate/compile_time_error_test/01: MissingCompileTimeError
+isolate/deferred_in_isolate2_test: Skip # Deferred loading kernel issue 28335.
+isolate/deferred_in_isolate_test: Skip # Deferred loading kernel issue 28335.
+isolate/message3_test/int32x4: Crash
+isolate/ping_pause_test: Pass, Timeout
+isolate/spawn_function_custom_class_test: Pass, Timeout
+isolate/spawn_uri_nested_vm_test: Pass, Timeout

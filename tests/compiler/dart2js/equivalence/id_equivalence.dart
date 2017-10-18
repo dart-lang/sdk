@@ -223,6 +223,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
     switch (access.kind) {
       case AccessKind.THIS_PROPERTY:
       case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
       case AccessKind.LOCAL_VARIABLE:
       case AccessKind.FINAL_LOCAL_VARIABLE:
       case AccessKind.LOCAL_FUNCTION:
@@ -346,7 +347,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   visitFunctionExpression(ast.FunctionExpression node) {
     AstElement element = elements.getFunctionDefinition(node);
-    if (!element.isLocal) {
+    if (element != null && !element.isLocal) {
       computeForElement(element);
     } else {
       computeForNode(node, computeDefaultNodeId(node), element);
@@ -367,6 +368,9 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           break;
         case SendStructureKind.INVOKE:
           switch (sendStructure.semantics.kind) {
+            case AccessKind.EXPRESSION:
+              computeForNode(node, createInvokeId(node.argumentsNode));
+              break;
             case AccessKind.LOCAL_VARIABLE:
             case AccessKind.FINAL_LOCAL_VARIABLE:
             case AccessKind.PARAMETER:
@@ -579,6 +583,11 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
         receiver.variable.parent is ir.FunctionDeclaration) {
       // This is an invocation of a named local function.
       computeForNode(node, createInvokeId(node.receiver));
+      node.arguments.accept(this);
+    } else if (node.name.name == '==' &&
+        receiver is ir.VariableGet &&
+        receiver.variable.name == null) {
+      // This is a desugared `?.`.
     } else {
       computeForNode(node, createInvokeId(node));
       super.visitMethodInvocation(node);

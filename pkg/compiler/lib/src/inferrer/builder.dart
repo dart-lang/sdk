@@ -890,15 +890,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     return cascadeReceiverStack.removeLast();
   }
 
-  void analyzeSuperConstructorCall(
-      ConstructorElement target, ArgumentsTypes arguments) {
+  void analyzeSuperConstructorCall(ConstructorElement target) {
     assert(target.isDeclaration);
-    ResolvedAst resolvedAst = target.resolvedAst;
-    ast.Node body;
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      body = resolvedAst.node;
-    }
-    inferrer.analyze(target, body, arguments);
+    inferrer.analyze(target);
     isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 
@@ -923,9 +917,6 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ClosureRepresentationInfo closureData = compiler
         .backendStrategy.closureDataLookup
         .getClosureInfoForMember(analyzedElement);
-    closureData.forEachCapturedVariable((variable, field) {
-      locals.setCaptured(variable, field);
-    });
     closureData.forEachBoxedVariable((variable, field) {
       locals.setCapturedAndBoxed(variable, field);
     });
@@ -1024,7 +1015,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
             !cls.isObject) {
           ConstructorElement target = cls.superclass.lookupDefaultConstructor();
           ArgumentsTypes arguments = new ArgumentsTypes([], {});
-          analyzeSuperConstructorCall(target, arguments);
+          analyzeSuperConstructorCall(target);
           inferrer.registerCalledMember(node, null, null, outermostElement,
               target, arguments, sideEffects, inLoop);
         }
@@ -1122,7 +1113,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // a previous closure.
     ClosureRepresentationInfo nestedClosureData =
         compiler.backendStrategy.closureDataLookup.getClosureInfo(node);
-    nestedClosureData.forEachCapturedVariable((variable, field) {
+    nestedClosureData.forEachFreeVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
         if (variable == nestedClosureData.thisLocal) {
           inferrer.recordTypeOfField(field, thisType);
@@ -2332,7 +2323,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         isConstructorRedirect = true;
       } else if (ast.Initializers.isSuperConstructorCall(node)) {
         seenSuperConstructorCall = true;
-        analyzeSuperConstructorCall(constructor, arguments);
+        analyzeSuperConstructorCall(constructor);
       }
     }
     // If we are looking at a new expression on a forwarding factory, we have to
@@ -2790,11 +2781,18 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         Element element = elements[receiver];
         if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
           TypeInformation refinedType = types.refineReceiver(
-              selector, mask, receiverType, send.isConditional);
+              selector, mask, receiverType,
+              isConditional: send.isConditional);
           LocalElement local = element;
           locals.update(local, refinedType, node, local.type);
         }
       }
+      // TODO(johnniwinther): Enable this to improve precision of conditional
+      // access. This cannot currently be done because the receiver and the
+      // call shares type mask.
+      /*if (isConditional) {
+      receiverType = types.narrowNotNull(receiverType);
+      }*/
     }
 
     return inferrer.registerCalledSelector(callType, node, selector, mask,

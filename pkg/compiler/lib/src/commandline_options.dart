@@ -37,11 +37,7 @@ class Flags {
   /// using the kernel representation.
   /// See [CompilerOptions.useKernel] for details.
   static const String useKernel = '--use-kernel';
-
-  /// Only enable the kernel ssa builder, but continue using the old compiler
-  /// pipeline. Only used for testing the ssa builder.
-  // TODO(sigmund): delete.
-  static const String useKernelInSsa = '--use-kernel-in-ssa';
+  static const String platformBinaries = '--platform-binaries=.+';
 
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =

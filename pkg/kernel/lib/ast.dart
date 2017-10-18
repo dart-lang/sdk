@@ -341,19 +341,29 @@ class Library extends NamedNode implements Comparable<Library> {
     }
   }
 
+  void addAnnotation(Expression node) {
+    node.parent = this;
+    annotations.add(node);
+  }
+
   void addClass(Class class_) {
     class_.parent = this;
     classes.add(class_);
   }
 
+  void addField(Field field) {
+    field.parent = this;
+    fields.add(field);
+  }
+
+  void addProcedure(Procedure procedure) {
+    procedure.parent = this;
+    procedures.add(procedure);
+  }
+
   void addTypedef(Typedef typedef_) {
     typedef_.parent = this;
     typedefs.add(typedef_);
-  }
-
-  void addAnnotation(Expression node) {
-    node.parent = this;
-    annotations.add(node);
   }
 
   void computeCanonicalNames() {
@@ -1001,6 +1011,7 @@ abstract class Member extends NamedNode {
 class Field extends Member {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
+  int flags2 = 0;
   Expression initializer; // May be null.
 
   /// The uri of the source file this field was loaded from.
@@ -1038,6 +1049,9 @@ class Field extends Member {
   static const int FlagCovariant = 1 << 5;
   static const int FlagGenericCovariantImpl = 1 << 6;
   static const int FlagGenericCovariantInterface = 1 << 7;
+
+  // Must match serialized bit positions
+  static const int Flag2GenericContravariant = 1 << 0;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1081,6 +1095,14 @@ class Field extends Member {
   bool get isGenericCovariantInterface =>
       flags & FlagGenericCovariantInterface != 0;
 
+  /// Indicates whether getter invocations using this interface target may need
+  /// to perform a runtime type check to deal with generic covariance.
+  ///
+  /// Note that the appropriate runtime checks are inserted by the front end, so
+  /// back ends need not consult this flag; this flag exists merely to reduce
+  /// front end computational overhead.
+  bool get isGenericContravariant => flags2 & Flag2GenericContravariant != 0;
+
   void set isCovariant(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
@@ -1119,6 +1141,12 @@ class Field extends Member {
     flags = value
         ? (flags | FlagGenericCovariantInterface)
         : (flags & ~FlagGenericCovariantInterface);
+  }
+
+  void set isGenericContravariant(bool value) {
+    flags2 = value
+        ? (flags2 | Flag2GenericContravariant)
+        : (flags & ~Flag2GenericContravariant);
   }
 
   /// True if the field is neither final nor const.
@@ -1325,6 +1353,7 @@ class Procedure extends Member {
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
   static const int FlagForwardingStub = 1 << 4;
+  static const int FlagGenericContravariant = 1 << 5;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1335,6 +1364,14 @@ class Procedure extends Member {
   bool get isConst => flags & FlagConst != 0;
 
   bool get isForwardingStub => flags & FlagForwardingStub != 0;
+
+  /// Indicates whether invocations using this interface target may need to
+  /// perform a runtime type check to deal with generic covariance.
+  ///
+  /// Note that the appropriate runtime checks are inserted by the front end, so
+  /// back ends need not consult this flag; this flag exists merely to reduce
+  /// front end computational overhead.
+  bool get isGenericContravariant => flags & FlagGenericContravariant != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1355,6 +1392,12 @@ class Procedure extends Member {
   void set isForwardingStub(bool value) {
     flags =
         value ? (flags | FlagForwardingStub) : (flags & ~FlagForwardingStub);
+  }
+
+  void set isGenericContravariant(bool value) {
+    flags = value
+        ? (flags | FlagGenericContravariant)
+        : (flags & ~FlagGenericContravariant);
   }
 
   bool get isInstanceMember => !isStatic;
@@ -2810,11 +2853,25 @@ class IsExpression extends Expression {
 
 /// Expression of form `x as T`.
 class AsExpression extends Expression {
+  int flags = 0;
   Expression operand;
   DartType type;
 
   AsExpression(this.operand, this.type) {
     operand?.parent = this;
+  }
+
+  // Must match serialized bit positions.
+  static const int FlagTypeError = 1 << 0;
+
+  /// Indicates the type of error that should be thrown if the check fails.
+  ///
+  /// `true` means that a TypeError should be thrown.  `false` means that a
+  /// CastError should be thrown.
+  bool get isTypeError => flags & FlagTypeError != 0;
+
+  void set isTypeError(bool value) {
+    flags = value ? (flags | FlagTypeError) : (flags & ~FlagTypeError);
   }
 
   DartType getStaticType(TypeEnvironment types) => type;
@@ -4059,6 +4116,12 @@ class VariableDeclaration extends Statement {
   /// (this is the default if none is specifically set).
   int fileEqualsOffset = TreeNode.noOffset;
 
+  /// List of metadata annotations on the variable declaration.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  List<Expression> annotations = const <Expression>[];
+
   /// For named parameters, this is the name of the parameter. No two named
   /// parameters (in the same parameter list) can have the same name.
   ///
@@ -4174,6 +4237,13 @@ class VariableDeclaration extends Statement {
     flags = value
         ? (flags | FlagGenericCovariantInterface)
         : (flags & ~FlagGenericCovariantInterface);
+  }
+
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
   }
 
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);
@@ -4737,6 +4807,12 @@ class TypeParameterType extends DartType {
 class TypeParameter extends TreeNode {
   int flags = 0;
 
+  /// List of metadata annotations on the type parameter.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  List<Expression> annotations = const <Expression>[];
+
   String name; // Cosmetic name.
 
   /// The bound on the type variable.
@@ -4778,6 +4854,13 @@ class TypeParameter extends TreeNode {
     flags = value
         ? (flags | FlagGenericCovariantInterface)
         : (flags & ~FlagGenericCovariantInterface);
+  }
+
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
   }
 
   accept(TreeVisitor v) => v.visitTypeParameter(this);
@@ -4855,6 +4938,11 @@ class Program extends TreeNode {
   /// it to a line:column position in that file.
   final Map<String, Source> uriToSource;
 
+  /// Mapping between string tags and [MetadataRepository] corresponding to
+  /// those tags.
+  final Map<String, MetadataRepository<dynamic>> metadata =
+      <String, MetadataRepository<dynamic>>{};
+
   /// Reference to the main method in one of the libraries.
   Reference mainMethodName;
 
@@ -4913,6 +5001,10 @@ class Program extends TreeNode {
   Location getLocation(String file, int offset) {
     return uriToSource[file]?.getLocation(file, offset);
   }
+
+  void addMetadataRepository(MetadataRepository repository) {
+    metadata[repository.tag] = repository;
+  }
 }
 
 /// A tuple with file, line, and column number, for displaying human-readable
@@ -4925,6 +5017,67 @@ class Location {
   Location(this.file, this.line, this.column);
 
   String toString() => '$file:$line:$column';
+}
+
+abstract class MetadataRepository<T> {
+  /// Unique string tag associated with this repository.
+  String get tag;
+
+  /// Mutable mapping between nodes and their metadata.
+  Map<TreeNode, T> get mapping;
+
+  /// Write the given metadata object into the given [BinarySink].
+  ///
+  /// Note: [metadata] must be an object owned by this repository.
+  void writeToBinary(T metadata, BinarySink sink);
+
+  /// Construct a metadata object from its binary payload read from the
+  /// given [BinarySource].
+  T readFromBinary(BinarySource source);
+
+  /// Method to check whether a node can have metadata attached to it
+  /// or referenced from the metadata payload.
+  ///
+  /// Currently due to binary format specifics Catch and MapEntry nodes
+  /// can't have metadata attached to them.
+  static bool isSupported(TreeNode node) {
+    return !(node is MapEntry || node is Catch);
+  }
+}
+
+abstract class BinarySink {
+  void writeByte(int byte);
+  void writeBytes(List<int> bytes);
+  void writeUInt32(int value);
+  void writeUInt30(int value);
+
+  /// Write List<Byte> into the sink.
+  void writeByteList(List<int> bytes);
+
+  void writeCanonicalNameReference(CanonicalName name);
+  void writeStringReference(String str);
+
+  /// Write a reference to a given node into the sink.
+  ///
+  /// Note: node must not be [MapEntry] because [MapEntry] and [MapEntry.key]
+  /// have the same offset in the binary and can't be distinguished.
+  void writeNodeReference(Node node);
+}
+
+abstract class BinarySource {
+  int get currentOffset;
+  List<int> get bytes;
+
+  int readByte();
+  int readUInt();
+  int readUint32();
+
+  /// Read List<Byte> from the source.
+  List<int> readByteList();
+
+  CanonicalName readCanonicalNameReference();
+  String readStringReference();
+  Node readNodeReference();
 }
 
 // ------------------------------------------------------------------------

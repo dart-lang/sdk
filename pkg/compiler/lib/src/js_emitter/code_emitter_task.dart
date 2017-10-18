@@ -17,7 +17,6 @@ import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart' show ClosedWorld;
 import 'full_emitter/emitter.dart' as full_js_emitter;
-import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
 import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
 
@@ -26,8 +25,6 @@ import 'model.dart';
 import 'native_emitter.dart' show NativeEmitter;
 import 'type_test_registry.dart' show TypeTestRegistry;
 import 'sorter.dart';
-
-const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
 
 /**
  * Generates the code for all used classes in the program. Static fields (even
@@ -39,7 +36,7 @@ class CodeEmitterTask extends CompilerTask {
   TypeTestRegistry typeTestRegistry;
   NativeEmitter _nativeEmitter;
   MetadataCollector metadataCollector;
-  EmitterFactory _emitterFactory;
+  final EmitterFactory _emitterFactory;
   Emitter _emitter;
   final Compiler compiler;
 
@@ -55,17 +52,12 @@ class CodeEmitterTask extends CompilerTask {
   CodeEmitterTask(
       Compiler compiler, bool generateSourceMap, bool useStartupEmitter)
       : compiler = compiler,
-        super(compiler.measurer) {
-    if (USE_LAZY_EMITTER) {
-      _emitterFactory = new lazy_js_emitter.EmitterFactory();
-    } else if (useStartupEmitter) {
-      _emitterFactory = new startup_js_emitter.EmitterFactory(
-          generateSourceMap: generateSourceMap);
-    } else {
-      _emitterFactory = new full_js_emitter.EmitterFactory(
-          generateSourceMap: generateSourceMap);
-    }
-  }
+        _emitterFactory = useStartupEmitter
+            ? new startup_js_emitter.EmitterFactory(
+                generateSourceMap: generateSourceMap)
+            : new full_js_emitter.EmitterFactory(
+                generateSourceMap: generateSourceMap),
+        super(compiler.measurer);
 
   NativeEmitter get nativeEmitter {
     assert(
@@ -173,7 +165,6 @@ class CodeEmitterTask extends CompilerTask {
       metadataCollector = new MetadataCollector(
           compiler.options,
           compiler.reporter,
-          compiler.deferredLoadTask,
           _emitter,
           backend.constants,
           backend.typeVariableCodegenAnalysis,

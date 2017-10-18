@@ -28,9 +28,8 @@ testSplit(List<String> expect, String string, Pattern pattern) {
 
   // Ensure that the correct type is reified.
   actual = actual as List<String>;
-  Expect.throws(() {
-    actual.add(42);
-  }, (e) => e is TypeError, 'List<String>.add should not accept an int');
+  Expect.throwsTypeError(() => actual.add(42),
+      'List<String>.add should not accept an int');
 
   Expect.listEquals(expect, actual, '"$string".split($patternString)');
 }

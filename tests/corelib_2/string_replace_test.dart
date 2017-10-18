@@ -67,16 +67,13 @@ main() {
   Expect.equals("aaa{3}aaX", "aaa{3}aaa{3}".replaceFirst("a{3}", "X", 3));
 
   // Test negative startIndex
-  Expect.throws(
-      () => "hello".replaceFirst("h", "X", -1), (e) => e is RangeError);
+  Expect.throwsRangeError(() => "hello".replaceFirst("h", "X", -1));
 
   // Test startIndex too large
-  Expect.throws(
-      () => "hello".replaceFirst("h", "X", 6), (e) => e is RangeError);
+  Expect.throwsRangeError(() => "hello".replaceFirst("h", "X", 6));
 
   // Test null startIndex
-  Expect.throws(
-      () => "hello".replaceFirst("h", "X", null), (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => "hello".replaceFirst("h", "X", null));
 
   // Test replaceFirstMapped.
   Expect.equals(
@@ -145,16 +142,15 @@ main() {
       "aaa{3}aaX", "aaa{3}aaa{3}".replaceFirstMapped("a{3}", (_) => "X", 3));
 
   // Test negative startIndex
-  Expect.throws(() => "hello".replaceFirstMapped("h", (_) => "X", -1),
-      (e) => e is RangeError);
+  Expect.throwsRangeError(
+      () => "hello".replaceFirstMapped("h", (_) => "X", -1));
 
   // Test startIndex too large
-  Expect.throws(() => "hello".replaceFirstMapped("h", (_) => "X", 6),
-      (e) => e is RangeError);
+  Expect.throwsRangeError(() => "hello".replaceFirstMapped("h", (_) => "X", 6));
 
   // Test null startIndex
-  Expect.throws(() => "hello".replaceFirstMapped("h", (_) => "X", null),
-      (e) => e is ArgumentError);
+  Expect.throwsArgumentError(
+      () => "hello".replaceFirstMapped("h", (_) => "X", null));
 
   // Test replacement depending on argument.
   Expect.equals("foo-BAR-foo-bar",

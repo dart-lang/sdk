@@ -8,7 +8,7 @@ import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../common.dart';
 import '../constants/values.dart';
-import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
+import '../deferred_load.dart' show OutputUnit;
 import '../elements/elements.dart'
     show
         ClassElement,
@@ -143,7 +143,6 @@ class _MetadataList extends jsAst.DeferredExpression {
 class MetadataCollector implements jsAst.TokenFinalizer {
   final CompilerOptions _options;
   final DiagnosticReporter reporter;
-  final DeferredLoadTask _deferredLoadTask;
   final Emitter _emitter;
   final JavaScriptConstantCompiler _constants;
   final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
@@ -151,13 +150,18 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   final RuntimeTypesEncoder _rtiEncoder;
   final CodegenWorldBuilder _codegenWorldBuilder;
 
-  /// A token for a list of expressions that represent metadata, parameter names
-  /// and type variable types.
-  final _MetadataList _globalMetadata = new _MetadataList();
-  jsAst.Expression get globalMetadata => _globalMetadata;
+  /// A map with a token per output unit for a list of expressions that
+  /// represent metadata, parameter names and type variable types.
+  Map<OutputUnit, _MetadataList> _metadataTokens =
+      new Map<OutputUnit, _MetadataList>();
 
-  /// A map used to canonicalize the entries of globalMetadata.
-  Map<String, _BoundMetadataEntry> _globalMetadataMap;
+  jsAst.Expression getMetadataForOutputUnit(OutputUnit outputUnit) {
+    return _metadataTokens.putIfAbsent(outputUnit, () => new _MetadataList());
+  }
+
+  /// A map used to canonicalize the entries of metadata.
+  Map<OutputUnit, Map<String, _BoundMetadataEntry>> _metadataMap =
+      <OutputUnit, Map<String, _BoundMetadataEntry>>{};
 
   /// A map with a token for a lists of JS expressions, one token for each
   /// output unit. Once finalized, the entries represent types including
@@ -176,15 +180,12 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   MetadataCollector(
       this._options,
       this.reporter,
-      this._deferredLoadTask,
       this._emitter,
       this._constants,
       this._typeVariableCodegenAnalysis,
       this._mirrorsData,
       this._rtiEncoder,
-      this._codegenWorldBuilder) {
-    _globalMetadataMap = new Map<String, _BoundMetadataEntry>();
-  }
+      this._codegenWorldBuilder);
 
   jsAst.Fun buildLibraryMetadataFunction(LibraryEntity element) {
     if (!_mirrorsData.mustRetainMetadata ||
@@ -244,21 +245,24 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
   }
 
-  List<jsAst.DeferredNumber> reifyDefaultArguments(FunctionEntity function) {
+  List<jsAst.DeferredNumber> reifyDefaultArguments(
+      FunctionEntity function, OutputUnit outputUnit) {
     // TODO(sra): These are stored on the InstanceMethod or StaticDartMethod.
-    if (function is MethodElement) return reifyDefaultArgumentsAst(function);
+    if (function is MethodElement)
+      return reifyDefaultArgumentsAst(function, outputUnit);
 
     List<jsAst.DeferredNumber> defaultValues = <jsAst.DeferredNumber>[];
     _codegenWorldBuilder.forEachParameter(function,
         (_, String name, ConstantValue constant) {
       if (constant == null) return;
       jsAst.Expression expression = _emitter.constantReference(constant);
-      defaultValues.add(_addGlobalMetadata(expression));
+      defaultValues.add(_addGlobalMetadata(expression, outputUnit));
     });
     return defaultValues;
   }
 
-  List<jsAst.DeferredNumber> reifyDefaultArgumentsAst(MethodElement function) {
+  List<jsAst.DeferredNumber> reifyDefaultArgumentsAst(
+      MethodElement function, OutputUnit outputUnit) {
     function = function.implementation;
     FunctionSignature signature = function.functionSignature;
     if (signature.optionalParameterCount == 0) return const [];
@@ -298,7 +302,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       jsAst.Expression expression = (constant == null)
           ? new jsAst.LiteralNull()
           : _emitter.constantReference(constant);
-      defaultValues.add(_addGlobalMetadata(expression));
+      defaultValues.add(_addGlobalMetadata(expression, outputUnit));
     }
     return defaultValues;
   }
@@ -337,43 +341,41 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return map;
   }
 
-  jsAst.Expression reifyMetadata(MetadataAnnotation annotation) {
+  jsAst.Expression reifyMetadata(
+      MetadataAnnotation annotation, OutputUnit outputUnit) {
     ConstantValue constant = _constants.getConstantValueForMetadata(annotation);
     if (constant == null) {
       reporter.internalError(annotation, 'Annotation value is null.');
       return null;
     }
-    return _addGlobalMetadata(_emitter.constantReference(constant));
+    return _addGlobalMetadata(_emitter.constantReference(constant), outputUnit);
   }
 
-  jsAst.Expression reifyType(DartType type, {ignoreTypeVariables: false}) {
-    return reifyTypeForOutputUnit(type, _deferredLoadTask.mainOutputUnit,
-        ignoreTypeVariables: ignoreTypeVariables);
-  }
-
-  jsAst.Expression reifyTypeForOutputUnit(DartType type, OutputUnit outputUnit,
+  jsAst.Expression reifyType(DartType type, OutputUnit outputUnit,
       {ignoreTypeVariables: false}) {
     return addTypeInOutputUnit(type, outputUnit,
         ignoreTypeVariables: ignoreTypeVariables);
   }
 
-  jsAst.Expression reifyName(String name) {
-    return _addGlobalMetadata(js.string(name));
+  jsAst.Expression reifyName(String name, OutputUnit outputUnit) {
+    return _addGlobalMetadata(js.string(name), outputUnit);
   }
 
-  jsAst.Expression reifyExpression(jsAst.Expression expression) {
-    return _addGlobalMetadata(expression);
+  jsAst.Expression reifyExpression(
+      jsAst.Expression expression, OutputUnit outputUnit) {
+    return _addGlobalMetadata(expression, outputUnit);
   }
 
   Placeholder getMetadataPlaceholder([debug]) {
     return new _ForwardingMetadataEntry(debug);
   }
 
-  _MetadataEntry _addGlobalMetadata(jsAst.Node node) {
+  _MetadataEntry _addGlobalMetadata(jsAst.Node node, OutputUnit outputUnit) {
     String nameToKey(jsAst.Name name) => "${name.key}";
     String printed =
         jsAst.prettyPrint(node, _options, renamerForNames: nameToKey);
-    return _globalMetadataMap.putIfAbsent(printed, () {
+    _metadataMap[outputUnit] ??= new Map<String, _BoundMetadataEntry>();
+    return _metadataMap[outputUnit].putIfAbsent(printed, () {
       return new _BoundMetadataEntry(node);
     });
   }
@@ -400,22 +402,21 @@ class MetadataCollector implements jsAst.TokenFinalizer {
 
   jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit,
       {ignoreTypeVariables: false}) {
-    if (_typesMap[outputUnit] == null) {
-      _typesMap[outputUnit] = new Map<DartType, _BoundMetadataEntry>();
-    }
+    _typesMap[outputUnit] ??= new Map<DartType, _BoundMetadataEntry>();
     return _typesMap[outputUnit].putIfAbsent(type, () {
       return new _BoundMetadataEntry(_computeTypeRepresentation(type,
           ignoreTypeVariables: ignoreTypeVariables));
     });
   }
 
-  List<jsAst.DeferredNumber> computeMetadata(MethodElement element) {
+  List<jsAst.DeferredNumber> computeMetadata(
+      MethodElement element, OutputUnit outputUnit) {
     return reporter.withCurrentElement(element, () {
       if (!_mustEmitMetadataForMember(element))
         return const <jsAst.DeferredNumber>[];
       List<jsAst.DeferredNumber> metadata = <jsAst.DeferredNumber>[];
       for (MetadataAnnotation annotation in element.metadata) {
-        metadata.add(reifyMetadata(annotation));
+        metadata.add(reifyMetadata(annotation, outputUnit));
       }
       return metadata;
     });
@@ -460,7 +461,14 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       return new jsAst.ArrayInitializer(values);
     }
 
-    _globalMetadata.setExpression(finalizeMap(_globalMetadataMap));
+    _metadataTokens.forEach((OutputUnit outputUnit, _MetadataList token) {
+      Map metadataMap = _metadataMap[outputUnit];
+      if (metadataMap != null) {
+        token.setExpression(finalizeMap(metadataMap));
+      } else {
+        token.setExpression(new jsAst.ArrayInitializer([]));
+      }
+    });
 
     _typesTokens.forEach((OutputUnit outputUnit, _MetadataList token) {
       Map typesMap = _typesMap[outputUnit];

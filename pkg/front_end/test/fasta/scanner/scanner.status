@@ -100,8 +100,6 @@ tests/language/private_member2_negative_test: Fail
 tests/language/private_member3_negative_test: Fail
 tests/language/script1_negative_test: Fail
 tests/language/script2_negative_test: Fail
-tests/language/setter_declaration2_negative_test: Fail
-tests/language/setter_declaration_negative_test: Fail
 tests/language/source_self_negative_test: Fail
 tests/language/static_call_wrong_argument_count_negative_test: Fail
 tests/language/string_escape4_negative_test: Fail
@@ -214,8 +212,6 @@ tests/language_strong/private_member2_negative_test: Fail
 tests/language_strong/private_member3_negative_test: Fail
 tests/language_strong/script1_negative_test: Fail
 tests/language_strong/script2_negative_test: Fail
-tests/language_strong/setter_declaration2_negative_test: Fail
-tests/language_strong/setter_declaration_negative_test: Fail
 tests/language_strong/source_self_negative_test: Fail
 tests/language_strong/static_call_wrong_argument_count_negative_test: Fail
 tests/language_strong/string_escape4_negative_test: Fail

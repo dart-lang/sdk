@@ -12,7 +12,7 @@ class Bar<T extends core::Iterable<core::String>> extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  method foo(self::Bar::T t) → void {
+  method foo(generic-covariant-impl generic-covariant-interface self::Bar::T t) → void {
     for (core::String i in t) {
       core::int x = i;
     }
@@ -22,7 +22,7 @@ class Baz<T extends core::Object, E extends core::Iterable<self::Baz::T>, S exte
   default constructor •() → void
     : super core::Object::•()
     ;
-  method foo(self::Baz::S t) → void {
+  method foo(generic-covariant-impl generic-covariant-interface self::Baz::S t) → void {
     for (self::Baz::T i in t) {
       core::int x = i;
       self::Baz::T y = i;

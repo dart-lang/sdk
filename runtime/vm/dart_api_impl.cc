@@ -3640,8 +3640,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), &bound_error, NULL,
-          NULL, Heap::kNew);
+          type_arguments, Object::null_type_arguments(), kNoneFree,
+          &bound_error, NULL, NULL, Heap::kNew);
       if (!bound_error.IsNull()) {
         return Api::NewHandle(T, bound_error.raw());
       }

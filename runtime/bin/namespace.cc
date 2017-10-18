@@ -111,7 +111,7 @@ Namespace* Namespace::GetNamespace(Dart_NativeArguments args, intptr_t index) {
 }
 
 bool Namespace::IsDefault(Namespace* namespc) {
-  return (namespc == NULL) || (namespc->namespc() == Namespace::Default());
+  return (namespc == NULL) || (namespc->namespc() == NULL);
 }
 
 Dart_Handle Namespace::GetNativeNamespaceArgument(Dart_NativeArguments args,

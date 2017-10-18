@@ -102,6 +102,19 @@ main() {
         unorderedEquals(['s']));
   }
 
+  test_forExpression_indexExpression_endsWithE() async {
+    await resolveTestUnit('''
+main() {
+  var topNodes = [0, 1, 2];
+  print(topNodes[0]);
+}
+''');
+    var excluded = new Set<String>.from([]);
+    var expr = findNodeAtString('topNodes[0]').parent;
+    var names = getVariableNameSuggestionsForExpression(null, expr, excluded);
+    expect(names, unorderedEquals(['topNode', 'node', 'object']));
+  }
+
   test_forExpression_instanceCreation() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
@@ -211,6 +224,26 @@ main(p) {
     var expr = findNodeAtString('p.get', (node) => node is MethodInvocation);
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
+  }
+
+  test_forExpression_inBuildMethod() async {
+    await resolveTestUnit('''
+class A {
+  void build() {
+    List l = new List();
+  }
+}
+''');
+    var excluded = new Set<String>.from([]);
+    var expr = findNodeAtString('new List');
+    expect(
+        getVariableNameSuggestionsForExpression(null, expr, excluded,
+            isMethod: false),
+        unorderedEquals(['list']));
+    expect(
+        getVariableNameSuggestionsForExpression(null, expr, excluded,
+            isMethod: true),
+        unorderedEquals(['buildList']));
   }
 
   test_forExpression_methodInvocation_noPrefix() async {

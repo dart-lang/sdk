@@ -18,7 +18,11 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart'
-    show LocatedMessage, Message, messageNativeClauseShouldBeAnnotation;
+    show
+        LocatedMessage,
+        Message,
+        messageNativeClauseShouldBeAnnotation,
+        messageSetterWithWrongNumberOfFormals;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -596,6 +600,28 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     _typeInferrer.inferFunctionBody(
         _computeReturnTypeContext(member), asyncModifier, body);
     KernelFunctionBuilder builder = member;
+    if (builder.kind == ProcedureKind.Setter) {
+      bool oneParameter = formals != null &&
+          formals.required.length == 1 &&
+          (formals.optional == null || formals.optional.formals.length == 0);
+      if (!oneParameter) {
+        if (builder.formals != null) {
+          // Illegal parameters were removed by the function builder.
+          // Add them as local variable to put them in scope of the body.
+          List<Statement> statements = <Statement>[];
+          for (KernelFormalParameterBuilder parameter in builder.formals) {
+            statements.add(parameter.target);
+          }
+          statements.add(body);
+          body = new Block(statements);
+        }
+        if (formals != null) {
+          body.fileOffset = formals.charOffset;
+        }
+        body = wrapInCompileTimeErrorStatement(
+            body, messageSetterWithWrongNumberOfFormals);
+      }
+    }
     builder.body = body;
     Member target = builder.target;
     _typeInferrer.inferMetadata(annotations);
@@ -886,10 +912,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void doLogicalExpression(Token token) {
-    typePromoter.exitLogicalExpression();
     Expression argument = popForValue();
     Expression receiver = popForValue();
-    push(new ShadowLogicalExpression(receiver, token.stringValue, argument));
+    var logicalExpression =
+        new ShadowLogicalExpression(receiver, token.stringValue, argument);
+    typePromoter.exitLogicalExpression(argument, logicalExpression);
+    push(logicalExpression);
   }
 
   /// Handle `a ?? b`.
@@ -1822,11 +1850,26 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleConditionalExpression(Token question, Token colon) {
+  void beginConditionalExpression() {
+    Expression condition = popForValue();
+    typePromoter.enterThen(condition);
+    push(condition);
+    super.beginConditionalExpression();
+  }
+
+  @override
+  void handleConditionalExpressionColon() {
+    typePromoter.enterElse();
+    super.handleConditionalExpressionColon();
+  }
+
+  @override
+  void endConditionalExpression(Token question, Token colon) {
     debugEvent("ConditionalExpression");
     Expression elseExpression = popForValue();
     Expression thenExpression = popForValue();
     Expression condition = popForValue();
+    typePromoter.exitConditional();
     push(new ShadowConditionalExpression(
         condition, thenExpression, elseExpression));
   }
@@ -2663,7 +2706,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement result = new ShadowForInStatement(
         variable, expression, body, declaresVariable,
         isAsync: awaitToken != null)
-      ..fileOffset = forToken.charOffset
+      ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
       ..bodyOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
@@ -3125,6 +3168,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void handleInvalidStatement(Token token, Message message) {
+    Statement statement = pop();
+    push(wrapInCompileTimeErrorStatement(statement, message));
+  }
+
+  @override
   Expression deprecated_buildCompileTimeError(String error,
       [int charOffset = -1]) {
     return buildCompileTimeError(
@@ -3134,10 +3183,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression buildCompileTimeError(Message message, int charOffset,
       {LocatedMessage context}) {
-    // TODO(ahe): This method should be passed the erroneous expression, wrap
-    // it in a class (TBD) from which the erroneous expression can be easily
-    // extracted. Similar for statements and initializers. See also [issue
-    // 29717](https://github.com/dart-lang/sdk/issues/29717)
     library.addCompileTimeError(message, charOffset, uri,
         wasHandled: true, context: context);
     return new ShadowSyntheticExpression(library.loader
@@ -3146,6 +3191,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   Expression wrapInCompileTimeError(Expression expression, Message message) {
+    // TODO(askesc): Produce explicit error expression wrapping the original.
+    // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     return new Let(
         new VariableDeclaration.forValue(expression)
           ..fileOffset = expression.fileOffset,
@@ -3180,6 +3227,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       [int charOffset = -1]) {
     return new ShadowExpressionStatement(
         deprecated_buildCompileTimeError(error, charOffset));
+  }
+
+  Statement buildCompileTimeErrorStatement(Message message, int charOffset,
+      {LocatedMessage context}) {
+    return new ShadowExpressionStatement(
+        buildCompileTimeError(message, charOffset, context: context));
+  }
+
+  Statement wrapInCompileTimeErrorStatement(
+      Statement statement, Message message) {
+    // TODO(askesc): Produce explicit error statement wrapping the original.
+    // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
+    return buildCompileTimeErrorStatement(message, statement.fileOffset);
   }
 
   @override

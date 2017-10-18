@@ -124,4 +124,9 @@ class Tag {
   static const int SpecializedIntLiteralBias = 3;
 
   static const int ProgramFile = 0x90ABCDEF;
+
+  /// Internal version of kernel binary format.
+  /// Bump it when making incompatible changes in kernel binaries.
+  /// Keep in sync with runtime/vm/kernel_binary.h.
+  static const int BinaryFormatVersion = 1;
 }

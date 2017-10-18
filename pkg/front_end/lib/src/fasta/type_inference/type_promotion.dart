@@ -59,7 +59,7 @@ abstract class TypePromoter {
 
   /// Updates the state to reflect the fact that we have exited the RHS of an
   /// "&&" or "||" expression.
-  void exitLogicalExpression();
+  void exitLogicalExpression(Expression rhs, Expression logicalExpression);
 
   /// Verifies that enter/exit calls were properly nested.
   void finished();
@@ -109,7 +109,7 @@ class TypePromoterDisabled extends TypePromoter {
   void exitConditional() {}
 
   @override
-  void exitLogicalExpression() {}
+  void exitLogicalExpression(Expression rhs, Expression logicalExpression) {}
 
   @override
   void finished() {}
@@ -250,11 +250,12 @@ abstract class TypePromoterImpl extends TypePromoter {
   }
 
   @override
-  void exitLogicalExpression() {
+  void exitLogicalExpression(Expression rhs, Expression logicalExpression) {
     debugEvent('exitLogicalExpression');
     _LogicalScope scope = _currentScope;
     _currentScope = _currentScope._enclosing;
-    _currentFacts = _mergeFacts(scope.shortcutFacts, _currentFacts);
+    _recordPromotionExpression(logicalExpression, _factsWhenTrue(rhs),
+        _mergeFacts(scope.shortcutFacts, _currentFacts));
   }
 
   @override
@@ -438,6 +439,12 @@ abstract class TypePromoterImpl extends TypePromoter {
       if (fact == null) return;
       print('  ${variable ?? '(null)'}: ${factChain(fact).join(' -> ')}');
     });
+    if (_promotionExpression != null) {
+      print('  _promotionExpression: $_promotionExpression');
+      if (!identical(_trueFactsForPromotionExpression, _currentFacts)) {
+        print('    if true: $_trueFactsForPromotionExpression');
+      }
+    }
     print(name);
   }
 

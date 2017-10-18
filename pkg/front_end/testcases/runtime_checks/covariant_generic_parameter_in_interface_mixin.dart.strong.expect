@@ -12,7 +12,7 @@ abstract class I<T extends core::Object> extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  abstract method f(self::I::T x) → void;
+  abstract method f(generic-covariant-impl generic-covariant-interface self::I::T x) → void;
 }
 class M extends core::Object {
   default constructor •() → void

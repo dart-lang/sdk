@@ -10,7 +10,7 @@ abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Is
 abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 bit_operations_test/01: MissingCompileTimeError
@@ -20,9 +20,25 @@ bit_operations_test/04: MissingCompileTimeError
 black_listed_test/none: fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
+config_import_corelib_test: CompileTimeError
+conflicting_type_variable_and_setter_test: CompileTimeError
+const_for_in_variable_test/01: MissingCompileTimeError
+const_types_test/07: MissingCompileTimeError
+const_types_test/08: MissingCompileTimeError
+const_types_test/14: MissingCompileTimeError
+const_types_test/15: MissingCompileTimeError
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
+export_private_test/01: MissingCompileTimeError # Issue 29920
 field_initialization_order_test/none: RuntimeError
+field_wierd_name_test: Crash
+final_field_initialization_order_test: RuntimeError # Issue 31058
+final_syntax_test/01: MissingCompileTimeError
+final_syntax_test/02: MissingCompileTimeError
+final_syntax_test/03: MissingCompileTimeError
+final_syntax_test/04: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
 generic_list_checked_test: CompileTimeError
 generic_local_functions_test: CompileTimeError
 generic_methods_closure_test: CompileTimeError # Issue 29920
@@ -44,17 +60,27 @@ getter_setter_in_lib_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
+local_function2_test/none: RuntimeError
+local_function3_test/none: RuntimeError
+local_function_test/none: RuntimeError
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
-string_interpolate_test: CompileTimeError
-type_variable_scope_test/none: CompileTimeError
-vm/*: SkipByDesign # VM only tests.
 interceptor6_test: CompileTimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
 internal_library_test/02: Crash
+least_upper_bound_expansive_test/none: RuntimeError # 30908
+library_env_test/none: RuntimeError # Issue 30907
+library_env_test/has_html_support: RuntimeError # Issue 30907
+library_env_test/has_no_io_support: RuntimeError # Issue 30907
+library_env_test/has_no_mirror_support: RuntimeError # Issue 30907
+library_env_test/has_no_html_support: RuntimeError, OK
+library_env_test/has_io_support: RuntimeError, OK
+library_env_test/has_mirror_support: RuntimeError, OK
+nested_generic_closure_test: CompileTimeError
+no_such_method_test: RuntimeError
 override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
@@ -91,6 +117,24 @@ override_inheritance_no_such_method_test/13: MissingCompileTimeError
 parameter_initializer_test: CompileTimeError
 parser_quirks_test: CompileTimeError
 part_refers_to_core_library_test/01: Crash
+regress_22443_test: RuntimeError
+regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
+regress_23408_test: CompileTimeError
+regress_25568_test: RuntimeError
+regress_27617_test/1: MissingCompileTimeError
+setter_override2_test/none: CompileTimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 31089
+string_interpolate_test: CompileTimeError
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
+super_call4_test: RuntimeError
+super_no_such_method1_test: RuntimeError
+super_no_such_method2_test: RuntimeError
+super_no_such_method3_test: RuntimeError
+super_no_such_method4_test: RuntimeError
+super_operator_index5_test: RuntimeError
+syntax_test/none: CompileTimeError
+type_variable_scope_test/none: CompileTimeError
+vm/*: SkipByDesign # VM only tests.
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -116,12 +160,21 @@ multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/none: RuntimeError
+regress_29025_test: CompileTimeError # Issue 29081
+regress_29349_test: CompileTimeError # Issue 31093
+regress_29405_test: CompileTimeError # Issue 29421
+regress_29784_test/02: CompileTimeError, Crash # Issue 27809
+regress_29949_test: RuntimeError # Issue 31086
+regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 string_interpolation_and_buffer_test: RuntimeError
 string_literals_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
+try_catch_on_syntax_test/10: MissingCompileTimeError
+try_catch_on_syntax_test/11: MissingCompileTimeError
+private3_test: RuntimeError
 void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
 void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
 void_type_function_types_test/none: CompileTimeError # Issue 30514
@@ -168,6 +221,12 @@ void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 assertion_test: RuntimeError # Issue 30326
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
 async_star_pause_test: RuntimeError
+async_star_test/01: RuntimeError
+async_star_test/02: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test/01: RuntimeError # No bigints on web.
 bit_operations_test/02: RuntimeError # No bigints on web.
@@ -178,8 +237,11 @@ branch_canonicalization_test: RuntimeError # Issue 29920
 call_closurization_test: RuntimeError # Issue 29920
 call_test: RuntimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
-compile_time_constant_d_test: RuntimeError # Issue 29920
-compile_time_constant_e_test: RuntimeError # Issue 30466
+compile_time_constant_d_test: RuntimeError # Issue 30876
+compile_time_constant_e_test: RuntimeError # Issue 30876
+config_import_test: RuntimeError
+const_list_test: RuntimeError
+const_map4_test: RuntimeError
 const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
 constructor12_test: RuntimeError # Issue 29920
@@ -205,7 +267,10 @@ enum_syntax_test/06: MissingCompileTimeError
 example_constructor_test: RuntimeError
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?
 execute_finally6_test: RuntimeError # Issue 29920
+expect_test: RuntimeError # Issue 29920
+f_bounded_quantification3_test: RuntimeError # Issue 29920
 field_increment_bailout_test: RuntimeError # Issue 29920
+field_optimization3_test: RuntimeError # Issue 29920
 flatten_test/05: MissingRuntimeError # Issue 29920
 flatten_test/08: MissingRuntimeError # Issue 29920
 flatten_test/09: MissingRuntimeError # Issue 29920
@@ -234,13 +299,46 @@ invocation_mirror_test: RuntimeError
 issue21159_test: RuntimeError # Issue 30701
 issue23244_test: RuntimeError # Issue 29920
 label_test: RuntimeError # Issue 30675
+lazy_static3_test: RuntimeError # Issue 30852
+lazy_static8_test: RuntimeError # Issue 30852
+left_shift_test: RuntimeError # Ints and doubles are unified.
+list_is_test: RuntimeError # Issue 29920
 many_overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
-modulo_test: RuntimeError # Issue 29920
+mint_arithmetic_test: RuntimeError # Issue 29920
+modulo_test: RuntimeError # Ints and doubles are unified.
 named_parameter_clash_test: RuntimeError # Issue 29920
 named_parameters_default_eq_test/none: RuntimeError
+nan_identical_test: RuntimeError # Issue 29920
+nested_switch_label_test: RuntimeError # Issue 29920
 null_test/mirrors: RuntimeError # Uses mirrors.
 number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
 overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
+prefix10_negative_test: Skip # Issue 29920
+regress_16640_test: RuntimeError # Issue 29920
+regress_29784_test/02: Crash # assert initializers not implemented
+stack_overflow_stacktrace_test: RuntimeError # Issue 29920
+stack_overflow_test: RuntimeError # Issue 29920
+stacktrace_test: RuntimeError # Issue 29920
+super_operator_index7_test: RuntimeError
+super_operator_index8_test: RuntimeError
+super_test: RuntimeError
+switch_case_test/none: CompileTimeError
+switch_label2_test: RuntimeError # Issue 29920
+switch_label_test: RuntimeError # Issue 29920
+switch_try_catch_test: RuntimeError # Issue 29920
+truncdiv_test: RuntimeError # Issue 29920
 vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out
+list_is_test: RuntimeError # Issue 29920
+prefix10_negative_test: Skip # Issue 29920
+lazy_static3_test: RuntimeError # Issue 30852
+lazy_static8_test: RuntimeError # Issue 30852
+left_shift_test: RuntimeError # Ints and doubles are unified.
+expect_test: RuntimeError # Issue 29920
+f_bounded_quantification3_test: RuntimeError # Issue 29920
+truncdiv_test: RuntimeError # Issue 29920
+field_optimization3_test: RuntimeError # Issue 29920
+first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
+stacktrace_test: RuntimeError # Issue 29920
+const_evaluation_test/01: RuntimeError # Issue 29920

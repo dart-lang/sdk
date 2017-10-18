@@ -12,6 +12,7 @@ import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart';
+import '../js_model/locals.dart' show JumpVisitor;
 import '../kernel/element_map.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -21,6 +22,7 @@ import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
 import 'inferrer_engine.dart';
+import 'kernel_inferrer_engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
@@ -51,6 +53,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final Map<JumpTarget, List<LocalsHandler>> _continuesFor =
       <JumpTarget, List<LocalsHandler>>{};
   TypeInformation _returnType;
+  final Set<Local> _capturedVariables = new Set<Local>();
 
   /// Whether we currently collect [IsCheck]s.
   bool _accumulateIsChecks = false;
@@ -87,6 +90,61 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   bool get inLoop => _loopLevel > 0;
 
+  bool get _isThisExposed {
+    return _inGenerativeConstructor ? _locals.fieldScope.isThisExposed : true;
+  }
+
+  void _markThisAsExposed() {
+    if (_inGenerativeConstructor) {
+      _locals.fieldScope.isThisExposed = true;
+    }
+  }
+
+  /// Returns `true` if [member] is defined in a subclass of the current this
+  /// type.
+  bool _isInClassOrSubclass(MemberEntity member) {
+    ClassEntity cls = _elementMap.getMemberThisType(_analyzedMember)?.element;
+    if (cls == null) return false;
+    return _closedWorld.isSubclassOf(member.enclosingClass, cls);
+  }
+
+  /// Checks whether the access or update of [selector] on [mask] potentially
+  /// exposes `this`.
+  ///
+  /// If all matching members are instance fields on the current `this`
+  /// class or subclasses, `this` is not considered to be exposed.
+  ///
+  /// If an instance field matched with a [selector] that is _not_ a setter, the
+  /// field is considered to have been read before initialization and the field
+  /// is assumed to be potentially `null`.
+  void _checkIfExposesThis(Selector selector, TypeMask mask) {
+    if (_isThisExposed) {
+      // We already consider `this` to have been exposed.
+      return;
+    }
+    _inferrer.forEachElementMatching(selector, mask, (MemberEntity element) {
+      if (element.isField) {
+        FieldEntity field = element;
+        if (!selector.isSetter &&
+            _isInClassOrSubclass(field) &&
+            field.isAssignable &&
+            _locals.fieldScope.readField(field) == null &&
+            getFieldInitializer(_elementMap, field) == null) {
+          // If the field is being used before this constructor
+          // actually had a chance to initialize it, say it can be
+          // null.
+          _inferrer.recordTypeOfField(field, _types.nullType);
+        }
+        // Accessing a field does not expose `this`.
+        return true;
+      }
+      // TODO(ngeoffray): We could do better here if we knew what we
+      // are calling does not expose this.
+      _markThisAsExposed();
+      return false;
+    });
+  }
+
   TypeInformation run() {
     if (_analyzedMember.isField) {
       if (_analyzedNode == null || _analyzedNode is ir.NullLiteral) {
@@ -102,9 +160,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // previous analysis of [outermostElement].
     ClosureRepresentationInfo closureData =
         _closureDataLookup.getClosureInfoForMember(_analyzedMember);
-    closureData.forEachCapturedVariable((variable, field) {
-      _locals.setCaptured(variable, field);
-    });
     closureData.forEachBoxedVariable((variable, field) {
       _locals.setCapturedAndBoxed(variable, field);
     });
@@ -181,6 +236,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         }
       });
     }
+    _inferrer.recordExposesThis(_analyzedMember, _isThisExposed);
 
     if (cls.isAbstract) {
       if (_closedWorld.isInstantiated(cls)) {
@@ -202,6 +258,41 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     FieldEntity field = _elementMap.getField(node.field);
     _locals.updateField(field, rhsType);
     _inferrer.recordTypeOfField(field, rhsType);
+  }
+
+  @override
+  visitSuperInitializer(ir.SuperInitializer node) {
+    ConstructorEntity constructor = _elementMap.getConstructor(node.target);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
+        _elementMap.getCallStructure(node.arguments));
+    TypeMask mask = _memberData.typeOfSend(node);
+    handleConstructorInvoke(node, selector, mask, constructor, arguments);
+
+    _inferrer.analyze(constructor);
+    if (_inferrer.checkIfExposesThis(constructor)) {
+      _markThisAsExposed();
+    }
+  }
+
+  @override
+  visitRedirectingInitializer(ir.RedirectingInitializer node) {
+    ConstructorEntity constructor = _elementMap.getConstructor(node.target);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
+        _elementMap.getCallStructure(node.arguments));
+    TypeMask mask = _memberData.typeOfSend(node);
+    handleConstructorInvoke(node, selector, mask, constructor, arguments);
+
+    _inferrer.analyze(constructor);
+    if (_inferrer.checkIfExposesThis(constructor)) {
+      _markThisAsExposed();
+    }
+  }
+
+  @override
+  visitLocalInitializer(ir.LocalInitializer node) {
+    visit(node.variable);
   }
 
   void handleParameters(ir.FunctionNode node) {
@@ -258,17 +349,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation defaultExpression(ir.Expression node) {
-    // TODO(johnniwinther): Make this throw to assert that all expressions are
-    // handled.
-    return _types.dynamicType;
+    throw new UnimplementedError(
+        'Unhandled expression: ${node} (${node.runtimeType})');
   }
 
   @override
-  TypeInformation defaultStatement(ir.Statement node) {
-    // TODO(johnniwinther): Make this throw to assert that all statements are
-    // handled.
-    node.visitChildren(this);
-    return null;
+  defaultStatement(ir.Statement node) {
+    throw new UnimplementedError(
+        'Unhandled statement: ${node} (${node.runtimeType})');
   }
 
   @override
@@ -277,12 +365,143 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitBlock(ir.Block block) {
+  visitBlock(ir.Block block) {
     for (ir.Statement statement in block.statements) {
       statement.accept(this);
       if (_locals.aborts) break;
     }
-    return null;
+  }
+
+  @override
+  visitExpressionStatement(ir.ExpressionStatement node) {
+    visit(node.expression);
+  }
+
+  @override
+  visitEmptyStatement(ir.EmptyStatement node) {
+    // Nothing to do.
+  }
+
+  @override
+  visitAssertStatement(ir.AssertStatement node) {
+    // Avoid pollution from assert statement unless enabled.
+    if (!_options.enableUserAssertions) {
+      return null;
+    }
+    // TODO(johnniwinther): Should assert be used with --trust-type-annotations?
+    // TODO(johnniwinther): Track reachable for assertions known to fail.
+    List<IsCheck> positiveTests = <IsCheck>[];
+    List<IsCheck> negativeTests = <IsCheck>[];
+    bool simpleCondition =
+        handleCondition(node.condition, positiveTests, negativeTests);
+    LocalsHandler saved = _locals;
+    _locals = new LocalsHandler.from(_locals, node);
+    _updateIsChecks(positiveTests, negativeTests);
+
+    LocalsHandler thenLocals = _locals;
+    _locals = new LocalsHandler.from(saved, node);
+    if (simpleCondition) _updateIsChecks(negativeTests, positiveTests);
+    visit(node.message);
+    _locals.seenReturnOrThrow = true;
+    saved.mergeDiamondFlow(thenLocals, _locals);
+    _locals = saved;
+  }
+
+  @override
+  visitBreakStatement(ir.BreakStatement node) {
+    JumpTarget target = _localsMap.getJumpTargetForBreak(node);
+    _locals.seenBreakOrContinue = true;
+    // Do a deep-copy of the locals, because the code following the
+    // break will change them.
+    if (_localsMap.generateContinueForBreak(node)) {
+      _continuesFor[target].add(new LocalsHandler.deepCopyOf(_locals));
+    } else {
+      _breaksFor[target].add(new LocalsHandler.deepCopyOf(_locals));
+    }
+  }
+
+  @override
+  visitLabeledStatement(ir.LabeledStatement node) {
+    ir.Statement body = node.body;
+    if (JumpVisitor.canBeBreakTarget(body)) {
+      // Loops and switches handle their own labels.
+      visit(body);
+    } else {
+      JumpTarget jumpTarget = _localsMap.getJumpTargetForLabel(node);
+      _setupBreaksAndContinues(jumpTarget);
+      visit(body);
+      _locals.mergeAfterBreaks(_getBreaks(jumpTarget));
+      _clearBreaksAndContinues(jumpTarget);
+    }
+  }
+
+  @override
+  visitSwitchStatement(ir.SwitchStatement node) {
+    visit(node.expression);
+
+    JumpTarget jumpTarget = _localsMap.getJumpTargetForSwitch(node);
+    _setupBreaksAndContinues(jumpTarget);
+
+    List<JumpTarget> continueTargets = <JumpTarget>[];
+    for (ir.SwitchCase switchCase in node.cases) {
+      JumpTarget continueTarget =
+          _localsMap.getJumpTargetForSwitchCase(switchCase);
+      if (continueTarget != null) {
+        continueTargets.add(continueTarget);
+      }
+    }
+    if (continueTargets.isNotEmpty) {
+      continueTargets.forEach(_setupBreaksAndContinues);
+
+      // If the switch statement has a continue, we conservatively
+      // visit all cases and update [locals] until we have reached a
+      // fixed point.
+      bool changed;
+      _locals.startLoop(node);
+      do {
+        changed = false;
+        for (ir.SwitchCase switchCase in node.cases) {
+          LocalsHandler saved = _locals;
+          _locals = new LocalsHandler.from(_locals, switchCase);
+          visit(switchCase);
+          changed = saved.mergeAll([_locals]) || changed;
+          _locals = saved;
+        }
+      } while (changed);
+      _locals.endLoop(node);
+
+      continueTargets.forEach(_clearBreaksAndContinues);
+    } else {
+      LocalsHandler saved = _locals;
+      List<LocalsHandler> localsToMerge = <LocalsHandler>[];
+      bool hasDefaultCase = false;
+
+      for (ir.SwitchCase switchCase in node.cases) {
+        if (switchCase.isDefault) {
+          hasDefaultCase = true;
+        }
+        _locals = new LocalsHandler.from(saved, switchCase);
+        visit(switchCase);
+        localsToMerge.add(_locals);
+      }
+      saved.mergeAfterBreaks(localsToMerge, keepOwnLocals: !hasDefaultCase);
+      _locals = saved;
+    }
+    _clearBreaksAndContinues(jumpTarget);
+  }
+
+  @override
+  visitSwitchCase(ir.SwitchCase node) {
+    visit(node.body);
+  }
+
+  @override
+  visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    JumpTarget target = _localsMap.getJumpTargetForContinueSwitch(node);
+    _locals.seenBreakOrContinue = true;
+    // Do a deep-copy of the locals, because the code following the
+    // break will change them.
+    _continuesFor[target].add(new LocalsHandler.deepCopyOf(_locals));
   }
 
   @override
@@ -393,6 +612,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       _locals.update(local, visit(node.initializer), node, type);
     }
+    if (node.initializer is ir.ThisExpression) {
+      _markThisAsExposed();
+    }
     return null;
   }
 
@@ -406,9 +628,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitVariableSet(ir.VariableSet node) {
+    TypeInformation rhsType = visit(node.value);
+    if (node.value is ir.ThisExpression) {
+      _markThisAsExposed();
+    }
     Local local = _localsMap.getLocalVariable(node.variable);
     DartType type = _localsMap.getLocalType(_elementMap, local);
-    TypeInformation rhsType = visit(node.value);
     _locals.update(local, rhsType, node, type);
     return rhsType;
   }
@@ -417,14 +642,24 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     List<TypeInformation> positional = <TypeInformation>[];
     Map<String, TypeInformation> named;
     for (ir.Expression argument in arguments.positional) {
+      // TODO(ngeoffray): We could do better here if we knew what we
+      // are calling does not expose this.
+      if (argument is ir.ThisExpression) {
+        _markThisAsExposed();
+      }
       positional.add(argument.accept(this));
     }
     for (ir.NamedExpression argument in arguments.named) {
       named ??= <String, TypeInformation>{};
-      named[argument.name] = argument.value.accept(this);
+      ir.Expression value = argument.value;
+      // TODO(ngeoffray): We could do better here if we knew what we
+      // are calling does not expose this.
+      if (value is ir.ThisExpression) {
+        _markThisAsExposed();
+      }
+      named[argument.name] = value.accept(this);
     }
 
-    /// TODO(johnniwinther): Track `isThisExposed`.
     return new ArgumentsTypes(positional, named);
   }
 
@@ -457,6 +692,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         return _types.boolType;
       }
     }
+    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(selector, mask);
+    }
     return handleDynamicInvoke(
         CallType.access, node, selector, mask, receiverType, arguments);
   }
@@ -477,7 +715,31 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           _analyzedMember, callType, node, selector, mask);
     }
 
-    // TODO(johnniwinther): Refine receiver on non-captured locals.
+    ir.VariableDeclaration variable;
+    if (node is ir.MethodInvocation && node.receiver is ir.VariableGet) {
+      ir.VariableGet get = node.receiver;
+      variable = get.variable;
+    } else if (node is ir.PropertyGet && node.receiver is ir.VariableGet) {
+      ir.VariableGet get = node.receiver;
+      variable = get.variable;
+    } else if (node is ir.PropertySet && node.receiver is ir.VariableGet) {
+      ir.VariableGet get = node.receiver;
+      variable = get.variable;
+    }
+
+    if (variable != null) {
+      Local local = _localsMap.getLocalVariable(variable);
+      if (!_capturedVariables.contains(local)) {
+        TypeInformation refinedType = _types
+            .refineReceiver(selector, mask, receiverType, isConditional: false);
+        DartType type = _localsMap.getLocalType(_elementMap, local);
+        _locals.update(local, refinedType, node, type);
+        List<Refinement> refinements = _localRefinementMap[variable];
+        if (refinements != null) {
+          refinements.add(new Refinement(selector, mask));
+        }
+      }
+    }
 
     return _inferrer.registerCalledSelector(callType, node, selector, mask,
         receiverType, _analyzedMember, arguments, _sideEffects,
@@ -508,34 +770,103 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         callType, node, selector, mask, receiverType, arguments);
   }
 
+  /// Map from synthesized variables created for non-null operations to observed
+  /// refinements. This is used to refine locals in cases like:
+  ///
+  ///     local?.method()
+  ///
+  /// which in kernel is encoded as
+  ///
+  ///     let #t1 = local in #t1 == null ? null : #1.method()
+  ///
+  Map<ir.VariableDeclaration, List<Refinement>> _localRefinementMap =
+      <ir.VariableDeclaration, List<Refinement>>{};
+
   @override
   TypeInformation visitLet(ir.Let node) {
+    ir.VariableDeclaration alias;
+    ir.Expression body = node.body;
+    if (node.variable.name == null &&
+        node.variable.isFinal &&
+        node.variable.initializer is ir.VariableGet &&
+        body is ir.ConditionalExpression &&
+        body.condition is ir.MethodInvocation &&
+        body.then is ir.NullLiteral) {
+      ir.VariableGet get = node.variable.initializer;
+      ir.MethodInvocation invocation = body.condition;
+      ir.Expression receiver = invocation.receiver;
+      if (invocation.name.name == '==' &&
+          receiver is ir.VariableGet &&
+          receiver.variable == node.variable &&
+          invocation.arguments.positional.single is ir.NullLiteral) {
+        // We have
+        //   let #t1 = local in #1 == null ? null : e
+        alias = get.variable;
+        _localRefinementMap[node.variable] = <Refinement>[];
+      }
+    }
     visit(node.variable);
-    return visit(node.body);
+    TypeInformation type = visit(body);
+    if (alias != null) {
+      List<Refinement> refinements = _localRefinementMap.remove(node.variable);
+      if (refinements.isNotEmpty) {
+        Local local = _localsMap.getLocalVariable(alias);
+        DartType type = _localsMap.getLocalType(_elementMap, local);
+        TypeInformation localType = _locals.use(local);
+        for (Refinement refinement in refinements) {
+          localType = _types.refineReceiver(
+              refinement.selector, refinement.mask, localType,
+              isConditional: true);
+          _locals.update(local, localType, node, type);
+        }
+      }
+    }
+    return type;
   }
 
   @override
   TypeInformation visitForInStatement(ir.ForInStatement node) {
-    TypeInformation expressionType = visit(node.iterable);
-    Selector iteratorSelector = Selectors.iterator;
-    TypeMask iteratorMask = _memberData.typeOfIterator(node);
-    Selector currentSelector = Selectors.current;
-    TypeMask currentMask = _memberData.typeOfIteratorCurrent(node);
-    Selector moveNextSelector = Selectors.moveNext;
-    TypeMask moveNextMask = _memberData.typeOfIteratorMoveNext(node);
+    if (node.iterable is ir.ThisExpression) {
+      // Any reasonable implementation of an iterator would expose
+      // this, so we play it safe and assume it will.
+      _markThisAsExposed();
+    }
 
-    TypeInformation iteratorType = handleDynamicInvoke(
+    TypeMask currentMask;
+    TypeMask moveNextMask;
+    TypeInformation iteratorType;
+    if (node.isAsync) {
+      TypeInformation expressionType = visit(node.iterable);
+
+      currentMask = _memberData.typeOfIteratorCurrent(node);
+      moveNextMask = _memberData.typeOfIteratorMoveNext(node);
+
+      ConstructorEntity constructor =
+          _closedWorld.commonElements.streamIteratorConstructor;
+
+      /// Synthesize a call to the [StreamIterator] constructor.
+      iteratorType = handleStaticInvoke(node, null, null, constructor,
+          new ArgumentsTypes([expressionType], null));
+    } else {
+      TypeInformation expressionType = visit(node.iterable);
+      Selector iteratorSelector = Selectors.iterator;
+      TypeMask iteratorMask = _memberData.typeOfIterator(node);
+      currentMask = _memberData.typeOfIteratorCurrent(node);
+      moveNextMask = _memberData.typeOfIteratorMoveNext(node);
+
+      iteratorType = handleDynamicInvoke(CallType.forIn, node, iteratorSelector,
+          iteratorMask, expressionType, new ArgumentsTypes.empty());
+    }
+
+    handleDynamicInvoke(CallType.forIn, node, Selectors.moveNext, moveNextMask,
+        iteratorType, new ArgumentsTypes.empty());
+    TypeInformation currentType = handleDynamicInvoke(
         CallType.forIn,
         node,
-        iteratorSelector,
-        iteratorMask,
-        expressionType,
+        Selectors.current,
+        currentMask,
+        iteratorType,
         new ArgumentsTypes.empty());
-
-    handleDynamicInvoke(CallType.forIn, node, moveNextSelector, moveNextMask,
-        iteratorType, new ArgumentsTypes.empty());
-    TypeInformation currentType = handleDynamicInvoke(CallType.forIn, node,
-        currentSelector, currentMask, iteratorType, new ArgumentsTypes.empty());
 
     Local variable = _localsMap.getLocalVariable(node.variable);
     DartType variableType = _localsMap.getLocalType(_elementMap, variable);
@@ -598,7 +929,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitConstructorInvocation(ir.ConstructorInvocation node) {
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    // TODO(redemption): Handle initializers.
     // TODO(redemption): Handle foreign constructors.
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
@@ -692,6 +1022,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitStaticSet(ir.StaticSet node) {
     TypeInformation rhsType = visit(node.value);
+    if (node.value is ir.ThisExpression) {
+      _markThisAsExposed();
+    }
     MemberEntity member = _elementMap.getMember(node.target);
     TypeMask mask = _memberData.typeOfSend(node);
     handleStaticInvoke(node, new Selector.setter(member.memberName), mask,
@@ -704,8 +1037,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
-    // TODO(redemption): Use `node.interfaceTarget` to narrow the receiver type
-    // for --trust-type-annotations/strong-mode.
+    // TODO(johnniwinther): Use `node.interfaceTarget` to narrow the receiver
+    // type for --trust-type-annotations/strong-mode.
+    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(selector, mask);
+    }
     return handleDynamicGet(node, selector, mask, receiverType);
   }
 
@@ -715,13 +1051,20 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     MemberEntity member = _elementMap.getMember(node.target);
     TypeMask mask = _memberData.typeOfSend(node);
     // TODO(johnniwinther): Use `node.target` to narrow the receiver type.
-    return handleDynamicGet(
-        node, new Selector.getter(member.memberName), mask, receiverType);
+    Selector selector = new Selector.getter(member.memberName);
+    if (!_isThisExposed) {
+      _checkIfExposesThis(selector, mask);
+    }
+    return handleDynamicGet(node, selector, mask, receiverType);
   }
 
   @override
   TypeInformation visitPropertySet(ir.PropertySet node) {
     TypeInformation rhsType = visit(node.value);
+    if (node.value is ir.ThisExpression) {
+      _markThisAsExposed();
+    }
+
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
@@ -738,6 +1081,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           _locals.updateField(field, rhsType);
         }
       }
+    }
+    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(selector, mask);
     }
     handleDynamicSet(node, selector, mask, receiverType, rhsType);
     return rhsType;
@@ -929,7 +1275,30 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation handleLocalFunction(
       ir.TreeNode node, ir.FunctionNode functionNode,
       [ir.VariableDeclaration variable]) {
+    // We loose track of [this] in closures (see issue 20840). To be on
+    // the safe side, we mark [this] as exposed here. We could do better by
+    // analyzing the closure.
+    // TODO(herhut): Analyze whether closure exposes this. Possibly using
+    // whether the created closure as a `thisLocal`.
+    _markThisAsExposed();
+
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
+
+    // Record the types of captured non-boxed variables. Types of
+    // these variables may already be there, because of an analysis of
+    // a previous closure.
+    info.forEachFreeVariable((variable, field) {
+      if (!info.isVariableBoxed(variable)) {
+        if (variable == info.thisLocal) {
+          _inferrer.recordTypeOfField(field, thisType);
+        }
+        // The type is null for type parameters.
+        if (_locals.locals[variable] == null) return;
+        _inferrer.recordTypeOfField(field, _locals.locals[variable]);
+      }
+      _capturedVariables.add(variable);
+    });
+
     TypeInformation localFunctionType =
         _inferrer.concreteTypes.putIfAbsent(node, () {
       return _types.allocateClosure(info.callMethod);
@@ -1079,8 +1448,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitRethrow(ir.Rethrow node) {
+    _locals.seenReturnOrThrow = true;
+    return _types.nonNullEmpty();
+  }
+
+  @override
   TypeInformation visitSuperPropertyGet(ir.SuperPropertyGet node) {
-    // TODO(redemption): Track exposure of `this`.
+    // TODO(herhut): We could do better here if we knew what we
+    // are calling does not expose this.
+    _markThisAsExposed();
+
     MemberEntity member = _elementMap.getSuperMember(
         _analyzedMember, node.name, node.interfaceTarget);
     TypeMask mask = _memberData.typeOfSend(node);
@@ -1090,7 +1468,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitSuperPropertySet(ir.SuperPropertySet node) {
-    // TODO(redemption): Track exposure of `this`.
+    // TODO(herhut): We could do better here if we knew what we
+    // are calling does not expose this.
+    _markThisAsExposed();
+
     TypeInformation rhsType = visit(node.value);
     MemberEntity member = _elementMap.getSuperMember(
         _analyzedMember, node.name, node.interfaceTarget);
@@ -1102,7 +1483,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
-    // TODO(redemption): Track exposure of `this`.
+    // TODO(herhut): We could do better here if we knew what we
+    // are calling does not expose this.
+    _markThisAsExposed();
+
     MemberEntity member = _elementMap.getSuperMember(
         _analyzedMember, node.name, node.interfaceTarget);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
@@ -1114,6 +1498,24 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       return handleClosureCall(node, selector, mask, member, arguments);
     }
   }
+
+  @override
+  TypeInformation visitAsExpression(ir.AsExpression node) {
+    TypeInformation operandType = visit(node.operand);
+    return _types.narrowType(operandType, _elementMap.getDartType(node.type));
+  }
+
+  @override
+  TypeInformation visitAwaitExpression(ir.AwaitExpression node) {
+    TypeInformation futureType = visit(node.operand);
+    return _inferrer.registerAwait(node, futureType);
+  }
+
+  @override
+  TypeInformation visitYieldStatement(ir.YieldStatement node) {
+    TypeInformation operandType = visit(node.expression);
+    return _inferrer.registerYield(node, operandType);
+  }
 }
 
 class IsCheck {
@@ -1124,4 +1526,11 @@ class IsCheck {
   IsCheck(this.node, this.local, this.type);
 
   String toString() => 'IsCheck($local,$type)';
+}
+
+class Refinement {
+  final Selector selector;
+  final TypeMask mask;
+
+  Refinement(this.selector, this.mask);
 }

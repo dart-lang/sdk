@@ -24,7 +24,8 @@ import '../fasta_codes.dart'
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../parser.dart' show MemberKind, Parser, closeBraceTokenFor, optional;
+import '../parser.dart'
+    show IdentifierContext, MemberKind, Parser, closeBraceTokenFor, optional;
 
 import '../problems.dart' show internalProblem;
 
@@ -258,18 +259,29 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleIdentifier(Token token, IdentifierContext context) {
+    if (context == IdentifierContext.enumValueDeclaration) {
+      // Discard the metadata.
+      pop();
+    }
+    super.handleIdentifier(token, context);
+  }
+
+  @override
   void handleQualified(Token period) {
     debugEvent("handleQualified");
-    // TODO(ahe): Shared with outline_builder.dart.
-    String name = pop();
-    String receiver = pop();
-    push("$receiver.$name");
+    String suffix = pop();
+    var prefix = pop();
+    push(new QualifiedName(prefix, suffix, period.charOffset));
   }
 
   @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
-    discard(2); // Name and metadata.
+    pop(); // name
+
+    Token metadata = pop();
+    parseMetadata(library, metadata, (library.target as Library).addAnnotation);
   }
 
   @override
@@ -399,7 +411,7 @@ class DietListener extends StackListener {
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("FactoryMethod");
     Token bodyToken = pop();
-    String name = pop();
+    Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (bodyToken == null ||
@@ -440,7 +452,7 @@ class DietListener extends StackListener {
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     debugEvent("Method");
     Token bodyToken = pop();
-    String name = pop();
+    Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (bodyToken == null) {
@@ -637,22 +649,32 @@ class DietListener extends StackListener {
     listener.checkEmpty(token.charOffset);
   }
 
-  Builder lookupBuilder(Token token, Token getOrSet, String name) {
+  Builder lookupBuilder(Token token, Token getOrSet, Object nameOrQualified) {
     // TODO(ahe): Can I move this to Scope or ScopeBuilder?
     Builder builder;
+    String name;
+    String suffix;
+    if (nameOrQualified is QualifiedName) {
+      name = nameOrQualified.prefix;
+      suffix = nameOrQualified.suffix;
+      assert(currentClass != null);
+    } else {
+      name = nameOrQualified;
+    }
     if (currentClass != null) {
       if (getOrSet != null && optional("set", getOrSet)) {
         builder = currentClass.scope.setters[name];
       } else {
         if (name == currentClass.name) {
-          name = "";
-        } else {
-          int index = name.indexOf(".");
-          name = name.substring(index + 1);
+          suffix ??= "";
         }
-        builder = currentClass.constructors.local[name];
-        if (builder == null) {
-          builder = currentClass.scope.local[name];
+        if (suffix != null) {
+          builder = currentClass.constructors.local[suffix];
+        } else {
+          builder = currentClass.constructors.local[name];
+          if (builder == null) {
+            builder = currentClass.scope.local[name];
+          }
         }
       }
     } else if (getOrSet != null && optional("set", getOrSet)) {
@@ -667,8 +689,9 @@ class DietListener extends StackListener {
           uri);
     }
     if (builder.next != null) {
+      String errorName = suffix == null ? name : "$name.$suffix";
       return deprecated_inputError(
-          uri, token.charOffset, "Duplicated name: $name");
+          uri, token.charOffset, "Duplicated name: $errorName");
     }
     return builder;
   }
@@ -685,7 +708,7 @@ class DietListener extends StackListener {
     // printEvent('DietListener: $name');
   }
 
-  void parseMetadata(Builder builder, Token metadata,
+  void parseMetadata(ModifierBuilder builder, Token metadata,
       void addAnnotation(Expression annotation)) {
     if (metadata != null) {
       var listener = createListener(builder, memberScope, false);

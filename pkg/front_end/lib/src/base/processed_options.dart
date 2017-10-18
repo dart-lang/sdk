@@ -19,7 +19,7 @@ import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart'
     show Program, loadProgramFromBytes, CanonicalName;
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm_fasta.dart';
+import 'package:kernel/target/vm.dart';
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/src/packages_impl.dart'
     show NonFilePackagesDirectoryPackages, MapPackages;
@@ -245,7 +245,7 @@ class ProcessedOptions {
 
   Target _target;
   Target get target => _target ??=
-      _raw.target ?? new VmFastaTarget(new TargetFlags(strongMode: strongMode));
+      _raw.target ?? new VmTarget(new TargetFlags(strongMode: strongMode));
 
   /// Get an outline program that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
@@ -477,7 +477,7 @@ class ProcessedOptions {
       // Infer based on the sdkRoot, but only when `compileSdk` is false,
       // otherwise the default intent was to compile the sdk from sources and
       // not to load an sdk summary file.
-      _sdkSummary = root?.resolve('outline.dill');
+      _sdkSummary = root?.resolve("vm_outline.dill");
     }
 
     if (_raw.librariesSpecificationUri != null) {

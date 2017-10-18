@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 @patch
 class RegExp {
   @patch
@@ -46,13 +48,13 @@ class RegExp {
   static const int _MAX_CACHE_SIZE = 256;
   static final Map<_RegExpHashKey, _RegExpHashValue> _cache =
       new HashMap<_RegExpHashKey, _RegExpHashValue>();
-  static final internal.LinkedList<_RegExpHashKey> _recentlyUsed =
-      new internal.LinkedList<_RegExpHashKey>();
+  static final LinkedList<_RegExpHashKey> _recentlyUsed =
+      new LinkedList<_RegExpHashKey>();
 }
 
 // Represents both a key in the regular expression cache as well as its
 // corresponding entry in the LRU list.
-class _RegExpHashKey extends internal.LinkedListEntry<_RegExpHashKey> {
+class _RegExpHashKey extends LinkedListEntry<_RegExpHashKey> {
   final String pattern;
   final bool multiLine;
   final bool caseSensitive;

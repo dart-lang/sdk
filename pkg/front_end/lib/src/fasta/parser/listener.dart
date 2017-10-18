@@ -114,6 +114,17 @@ class Listener {
     logEvent("ClassHeader");
   }
 
+  /// Handle recovery associated with a class header.
+  /// This may be called multiple times after [handleClassHeader]
+  /// to recover information about the previous class header.
+  /// The substructures are a subset of
+  /// and in the same order as [handleClassHeader]:
+  /// - supertype (may be a mixin application)
+  /// - implemented types
+  void handleRecoverClassHeader() {
+    logEvent("RecoverClassHeader");
+  }
+
   /// Handle the end of a class declaration.  Substructures:
   /// - class header
   /// - class body
@@ -921,7 +932,16 @@ class Listener {
     logEvent("BinaryExpression");
   }
 
-  void handleConditionalExpression(Token question, Token colon) {
+  /// Called when the parser encounters a `?` operator and begins parsing a
+  /// conditional expression.
+  void beginConditionalExpression() {}
+
+  /// Called when the parser encounters a `:` operator in a conditional
+  /// expression.
+  void handleConditionalExpressionColon() {}
+
+  /// Called when the parser finishes processing a conditional expression.
+  void endConditionalExpression(Token question, Token colon) {
     logEvent("ConditionalExpression");
   }
 
@@ -1152,6 +1172,14 @@ class Listener {
       return;
     }
     recoverableErrors.add(new ParserError.fromTokens(token, token, message));
+  }
+
+  /// Signals to the listener that the previous statement contained a semantic
+  /// error (described by the given [message]). This method can also be called
+  /// after [handleExpressionFunctionBody], in which case it signals that the
+  /// implicit return statement of the function contained a semantic error.
+  void handleInvalidStatement(Token token, Message message) {
+    handleRecoverableError(token, message);
   }
 
   void handleScript(Token token) {

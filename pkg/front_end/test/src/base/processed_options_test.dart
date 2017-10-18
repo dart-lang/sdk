@@ -49,7 +49,7 @@ class ProcessedOptionsTest {
       ..sdkRoot = Uri.parse('file:///sdk/dir/')
       ..compileSdk = false;
     expect(new ProcessedOptions(raw).sdkSummary,
-        Uri.parse('file:///sdk/dir/outline.dill'));
+        Uri.parse('file:///sdk/dir/vm_outline.dill'));
 
     // But it is left null when compile-sdk is true
     raw = new CompilerOptions()
@@ -351,7 +351,7 @@ class ProcessedOptionsTest {
         .entityForUri(sdkRoot)
         .writeAsStringSync('\n');
     fileSystem
-        .entityForUri(sdkRoot.resolve('outline.dill'))
+        .entityForUri(sdkRoot.resolve('vm_outline.dill'))
         .writeAsStringSync('\n');
     fileSystem
         .entityForUri(Uri.parse('file:///foo.dart'))
@@ -421,7 +421,7 @@ class ProcessedOptionsTest {
 
   test_validateOptions_inferred_summary_exists() async {
     var sdkRoot = Uri.parse('file:///sdk/root/');
-    var sdkSummary = Uri.parse('file:///sdk/root/outline.dill');
+    var sdkSummary = Uri.parse('file:///sdk/root/vm_outline.dill');
     fileSystem.entityForUri(sdkRoot).writeAsStringSync('\n');
     fileSystem.entityForUri(sdkSummary).writeAsStringSync('\n');
     fileSystem

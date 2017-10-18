@@ -285,7 +285,10 @@ bool invalidVariableName(String keyword, {bool strictMode: true}) {
 }
 
 /// Returns true for invalid static field names in strict mode.
+///
 /// In particular, "caller" "callee" "arguments" and "name" cannot be used.
+/// These names however are valid as static getter/setter/method names using
+/// ES class syntax.
 bool invalidStaticFieldName(String name) {
   switch (name) {
     case "arguments":
@@ -296,3 +299,22 @@ bool invalidStaticFieldName(String name) {
   }
   return false;
 }
+
+/// See ES6 spec (and `Object.getOwnPropertyNames(Object.prototype)`):
+///
+/// http://www.ecma-international.org/ecma-262/6.0/#sec-properties-of-the-object-prototype-object
+/// http://www.ecma-international.org/ecma-262/6.0/#sec-additional-properties-of-the-object.prototype-object
+final objectProperties = <String>[
+  "constructor",
+  "toString",
+  "toLocaleString",
+  "valueOf",
+  "hasOwnProperty",
+  "isPrototypeOf",
+  "propertyIsEnumerable",
+  "__defineGetter__",
+  "__lookupGetter__",
+  "__defineSetter__",
+  "__lookupSetter__",
+  "__proto__"
+].toSet();

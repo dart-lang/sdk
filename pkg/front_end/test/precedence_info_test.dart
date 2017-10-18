@@ -217,6 +217,7 @@ class PrecedenceInfoTest {
       '.',
       '++',
       '?.',
+      '[]',
     ];
     assertInfo((String source, Token token) {
       expect(token.type.isUnaryPostfixOperator,

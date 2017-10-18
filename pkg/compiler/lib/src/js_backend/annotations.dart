@@ -8,46 +8,44 @@ import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 
-/// Handling of special annotations for tests.
-class OptimizerHintsForTests {
-  final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
-
-  OptimizerHintsForTests(this._elementEnvironment, this._commonElements);
-
-  /// Returns `true` if inlining is disabled for [element].
-  bool noInline(MemberEntity element) {
-    if (_hasAnnotation(element, _commonElements.expectNoInlineClass)) {
-      // TODO(floitsch): restrict to elements from the test directory.
-      return true;
-    }
-    return _hasAnnotation(element, _commonElements.noInlineClass);
+/// Returns `true` if inlining is disabled for [element].
+bool noInline(ElementEnvironment elementEnvironment,
+    CommonElements commonElements, MemberEntity element) {
+  if (_hasAnnotation(
+      elementEnvironment, element, commonElements.expectNoInlineClass)) {
+    // TODO(floitsch): restrict to elements from the test directory.
+    return true;
   }
+  return _hasAnnotation(
+      elementEnvironment, element, commonElements.noInlineClass);
+}
 
-  /// Returns `true` if parameter and returns types should be trusted for
-  /// [element].
-  bool trustTypeAnnotations(MemberEntity element) {
-    return _hasAnnotation(
-        element, _commonElements.expectTrustTypeAnnotationsClass);
-  }
+/// Returns `true` if parameter and returns types should be trusted for
+/// [element].
+bool trustTypeAnnotations(ElementEnvironment elementEnvironment,
+    CommonElements commonElements, MemberEntity element) {
+  return _hasAnnotation(elementEnvironment, element,
+      commonElements.expectTrustTypeAnnotationsClass);
+}
 
-  /// Returns `true` if inference of parameter types is disabled for [element].
-  bool assumeDynamic(MemberEntity element) {
-    return _hasAnnotation(element, _commonElements.expectAssumeDynamicClass);
-  }
+/// Returns `true` if inference of parameter types is disabled for [element].
+bool assumeDynamic(ElementEnvironment elementEnvironment,
+    CommonElements commonElements, MemberEntity element) {
+  return _hasAnnotation(
+      elementEnvironment, element, commonElements.expectAssumeDynamicClass);
+}
 
-  /// Returns `true` if [element] is annotated with [annotationClass].
-  bool _hasAnnotation(MemberEntity element, ClassEntity annotationClass) {
-    if (annotationClass == null) return false;
-    for (ConstantValue value
-        in _elementEnvironment.getMemberMetadata(element)) {
-      if (value.isConstructedObject) {
-        ConstructedConstantValue constructedConstant = value;
-        if (constructedConstant.type.element == annotationClass) {
-          return true;
-        }
+/// Returns `true` if [element] is annotated with [annotationClass].
+bool _hasAnnotation(ElementEnvironment elementEnvironment, MemberEntity element,
+    ClassEntity annotationClass) {
+  if (annotationClass == null) return false;
+  for (ConstantValue value in elementEnvironment.getMemberMetadata(element)) {
+    if (value.isConstructedObject) {
+      ConstructedConstantValue constructedConstant = value;
+      if (constructedConstant.type.element == annotationClass) {
+        return true;
       }
     }
-    return false;
   }
+  return false;
 }

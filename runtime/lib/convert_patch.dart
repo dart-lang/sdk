@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show POWERS_OF_TEN;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:convert" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:_internal" show POWERS_OF_TEN, patch;
+
+import "dart:typed_data" show Uint8List, Uint16List;
+
+/// This patch library has no additional parts.
 
 // JSON conversion.
 
@@ -263,7 +272,7 @@ class _NumberBuffer {
  *
  * Implementations include [String] and UTF-8 parsers.
  */
-abstract class _ChunkedJsonParser {
+abstract class _ChunkedJsonParser<T> {
   // A simple non-recursive state-based parser for JSON.
   //
   // Literal values accepted in states ARRAY_EMPTY, ARRAY_COMMA, OBJECT_COLON
@@ -508,7 +517,7 @@ abstract class _ChunkedJsonParser {
   }
 
   /** Sets the current source chunk. */
-  void set chunk(var source);
+  void set chunk(T source);
 
   /**
    * Length of current chunk.
@@ -522,7 +531,7 @@ abstract class _ChunkedJsonParser {
    *
    * Only used by [fail] to include the chunk in the thrown [FormatException].
    */
-  get chunk;
+  T get chunk;
 
   /**
    * Get charcacter/code unit of current chunk.
@@ -1356,7 +1365,7 @@ abstract class _ChunkedJsonParser {
 /**
  * Chunked JSON parser that parses [String] chunks.
  */
-class _JsonStringParser extends _ChunkedJsonParser {
+class _JsonStringParser extends _ChunkedJsonParser<String> {
   String chunk;
   int chunkEnd;
 
@@ -1711,7 +1720,7 @@ class _Utf8StringBuffer {
 /**
  * Chunked JSON parser that parses UTF-8 chunks.
  */
-class _JsonUtf8Parser extends _ChunkedJsonParser {
+class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   final bool allowMalformed;
   List<int> chunk;
   int chunkEnd;
@@ -1776,7 +1785,7 @@ class _JsonUtf8DecoderSink extends ByteConversionSinkBase {
   _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)
       : _parser = _createParser(reviver, allowMalformed);
 
-  static _ChunkedJsonParser _createParser(reviver, bool allowMalformed) {
+  static _JsonUtf8Parser _createParser(reviver, bool allowMalformed) {
     _BuildJsonListener listener;
     if (reviver == null) {
       listener = new _BuildJsonListener();

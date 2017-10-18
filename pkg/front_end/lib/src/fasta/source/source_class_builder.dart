@@ -4,6 +4,8 @@
 
 library fasta.source_class_builder;
 
+import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
+
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show ShadowClass;
 
@@ -77,7 +79,7 @@ class SourceClassBuilder extends KernelClassBuilder {
             cls, documentationComment, name, parent, charOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             scope, constructors, parent, charOffset) {
-    ShadowClass.getClassInferenceInfo(this.cls).builder = this;
+    ShadowClass.setBuilder(this.cls, this);
   }
 
   @override
@@ -176,6 +178,13 @@ class SourceClassBuilder extends KernelClassBuilder {
       SourceLibraryBuilder library, ClassBuilder currentClass) {
     scope.forEach((name, builder) {
       builder.prepareTopLevelInference(library, this);
+    });
+  }
+
+  @override
+  void instrumentTopLevelInference(Instrumentation instrumentation) {
+    scope.forEach((name, builder) {
+      builder.instrumentTopLevelInference(instrumentation);
     });
   }
 }

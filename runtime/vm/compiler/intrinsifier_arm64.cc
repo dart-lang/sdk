@@ -1752,6 +1752,16 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
+void Intrinsifier::Type_getHashCode(Assembler* assembler) {
+  Label fall_through;
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R0, FieldAddress(R0, Type::hash_offset()));
+  __ cbz(&fall_through, R0);
+  __ ret();
+  // Hash not yet computed.
+  __ Bind(&fall_through);
+}
+
 void Intrinsifier::Object_getHash(Assembler* assembler) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ ldr(R0, FieldAddress(R0, String::hash_offset()), kUnsignedWord);

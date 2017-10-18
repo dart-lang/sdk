@@ -2274,6 +2274,139 @@ var b = new B();
     expect(result.unit, isNotNull);
   }
 
+  test_part_getUnitElement_afterLibrary() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(a, r'''
+library a;
+import 'b.dart';
+part 'c.dart';
+class A {}
+var c = new C();
+''');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+
+    // Process a.dart so that we know that it's a library for c.dart later.
+    await driver.getResult(a);
+
+    // c.dart is resolve in the context of a.dart, knows 'A' and 'B'.
+    {
+      UnitElementResult result = await driver.getUnitElement(c);
+      var partUnit = result.element;
+
+      expect(partUnit.topLevelVariables[0].type.name, 'A');
+      expect(partUnit.topLevelVariables[1].type.name, 'B');
+
+      var libraryUnit = partUnit.library.definingCompilationUnit;
+      expect(libraryUnit.topLevelVariables[0].type.name, 'C');
+    }
+  }
+
+  test_part_getUnitElement_beforeLibrary() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(a, r'''
+library a;
+import 'b.dart';
+part 'c.dart';
+class A {}
+var c = new C();
+''');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+
+    // c.dart is resolve in the context of a.dart, knows 'A' and 'B'.
+    {
+      UnitElementResult result = await driver.getUnitElement(c);
+      var partUnit = result.element;
+
+      expect(partUnit.topLevelVariables[0].type.name, 'A');
+      expect(partUnit.topLevelVariables[1].type.name, 'B');
+
+      var libraryUnit = partUnit.library.definingCompilationUnit;
+      expect(libraryUnit.topLevelVariables[0].type.name, 'C');
+    }
+  }
+
+  test_part_getUnitElement_noLibrary() async {
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(c, r'''
+part of a;
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(c);
+
+    // We don't know the library of c.dart, but we should get a result.
+    // The types "A" and "B" are unresolved.
+    {
+      UnitElementResult result = await driver.getUnitElement(c);
+      var partUnit = result.element;
+
+      expect(partUnit.topLevelVariables[0].name, 'a');
+      expect(partUnit.topLevelVariables[0].type.name, 'dynamic');
+
+      expect(partUnit.topLevelVariables[1].name, 'b');
+      expect(partUnit.topLevelVariables[1].type.name, 'dynamic');
+    }
+  }
+
+  test_part_getUnitElementSignature() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(a, r'''
+library a;
+import 'b.dart';
+part 'c.dart';
+class A {}
+var c = new C();
+''');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+
+    // Compute the signature before analyzing the library.
+    String signatureBefore = await driver.getUnitElementSignature(c);
+
+    // Process a.dart so that we know that it's a library for c.dart later.
+    await driver.getResult(a);
+
+    // The before and after signatures must be the same.
+    String signatureAfter = await driver.getUnitElementSignature(c);
+    expect(signatureBefore, signatureAfter);
+  }
+
   test_part_results_afterLibrary() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');

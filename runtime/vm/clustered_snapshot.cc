@@ -430,7 +430,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
     objects_.Add(cls);
 
     RawObject** from = cls->from();
-    RawObject** to = cls->to();
+    RawObject** to = cls->to_snapshot(s->kind());
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
@@ -451,10 +451,12 @@ class PatchClassSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       RawPatchClass* cls = objects_[i];
       RawObject** from = cls->from();
-      RawObject** to = cls->to();
+      RawObject** to = cls->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
+
+      s->Write<int32_t>(cls->ptr()->library_kernel_offset_);
     }
   }
 
@@ -487,10 +489,16 @@ class PatchClassDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(cls, kPatchClassCid,
                                      PatchClass::InstanceSize(), is_vm_object);
       RawObject** from = cls->from();
+      RawObject** to_snapshot = cls->to_snapshot(d->kind());
       RawObject** to = cls->to();
-      for (RawObject** p = from; p <= to; p++) {
+      for (RawObject** p = from; p <= to_snapshot; p++) {
         *p = d->ReadRef();
       }
+      for (RawObject** p = to_snapshot + 1; p <= to; p++) {
+        *p = Object::null();
+      }
+
+      cls->ptr()->library_kernel_offset_ = d->Read<int32_t>();
     }
   }
 };
@@ -940,7 +948,6 @@ class FieldSerializationCluster : public SerializationCluster {
     s->Push(field->ptr()->name_);
     s->Push(field->ptr()->owner_);
     s->Push(field->ptr()->type_);
-    s->Push(field->ptr()->kernel_data_);
     // Write out the initial static value or field offset.
     if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
       if (kind == Snapshot::kFullAOT) {
@@ -991,7 +998,6 @@ class FieldSerializationCluster : public SerializationCluster {
       s->WriteRef(field->ptr()->name_);
       s->WriteRef(field->ptr()->owner_);
       s->WriteRef(field->ptr()->type_);
-      s->WriteRef(field->ptr()->kernel_data_);
       // Write out the initial static value or field offset.
       if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
         if (kind == Snapshot::kFullAOT) {
@@ -1366,7 +1372,7 @@ class LibrarySerializationCluster : public SerializationCluster {
     objects_.Add(lib);
 
     RawObject** from = lib->from();
-    RawObject** to = lib->to_snapshot();
+    RawObject** to = lib->to_snapshot(s->kind());
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
@@ -1387,12 +1393,13 @@ class LibrarySerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       RawLibrary* lib = objects_[i];
       RawObject** from = lib->from();
-      RawObject** to = lib->to_snapshot();
+      RawObject** to = lib->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
 
       s->Write<int32_t>(lib->ptr()->index_);
+      s->Write<int32_t>(lib->ptr()->kernel_offset_);
       s->Write<uint16_t>(lib->ptr()->num_imports_);
       s->Write<int8_t>(lib->ptr()->load_state_);
       s->Write<bool>(lib->ptr()->corelib_imported_);
@@ -1429,7 +1436,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(lib, kLibraryCid, Library::InstanceSize(),
                                      is_vm_object);
       RawObject** from = lib->from();
-      RawObject** to_snapshot = lib->to_snapshot();
+      RawObject** to_snapshot = lib->to_snapshot(d->kind());
       RawObject** to = lib->to();
       for (RawObject** p = from; p <= to_snapshot; p++) {
         *p = d->ReadRef();
@@ -1441,6 +1448,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->ptr()->native_entry_resolver_ = NULL;
       lib->ptr()->native_entry_symbol_resolver_ = NULL;
       lib->ptr()->index_ = d->Read<int32_t>();
+      lib->ptr()->kernel_offset_ = d->Read<int32_t>();
       lib->ptr()->num_imports_ = d->Read<uint16_t>();
       lib->ptr()->load_state_ = d->Read<int8_t>();
       lib->ptr()->corelib_imported_ = d->Read<bool>();
@@ -1527,6 +1535,101 @@ class NamespaceDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+// KernelProgramInfo objects are not written into a full AOT snapshot.
+class KernelProgramInfoSerializationCluster : public SerializationCluster {
+ public:
+  KernelProgramInfoSerializationCluster() {}
+  virtual ~KernelProgramInfoSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) {
+    if (s->kind() == Snapshot::kFullAOT) {
+      return;
+    }
+
+    RawKernelProgramInfo* info = KernelProgramInfo::RawCast(object);
+    objects_.Add(info);
+
+    RawObject** from = info->from();
+    RawObject** to = info->to();
+    for (RawObject** p = from; p <= to; p++) {
+      s->Push(*p);
+    }
+  }
+
+  void WriteAlloc(Serializer* s) {
+    if (s->kind() == Snapshot::kFullAOT) {
+      return;
+    }
+
+    s->WriteCid(kKernelProgramInfoCid);
+    intptr_t count = objects_.length();
+    s->Write<int32_t>(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawKernelProgramInfo* info = objects_[i];
+      s->AssignRef(info);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    if (s->kind() == Snapshot::kFullAOT) {
+      return;
+    }
+
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawKernelProgramInfo* info = objects_[i];
+      RawObject** from = info->from();
+      RawObject** to = info->to();
+      for (RawObject** p = from; p <= to; p++) {
+        s->WriteRef(*p);
+      }
+    }
+  }
+
+ private:
+  GrowableArray<RawKernelProgramInfo*> objects_;
+};
+
+// Since KernelProgramInfo objects are not written into full AOT snapshots,
+// one will never need to read them from a full AOT snapshot.
+class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
+ public:
+  KernelProgramInfoDeserializationCluster() {}
+  virtual ~KernelProgramInfoDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    ASSERT(d->kind() != Snapshot::kFullAOT);
+
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    intptr_t count = d->Read<int32_t>();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, KernelProgramInfo::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    ASSERT(d->kind() != Snapshot::kFullAOT);
+
+    bool is_vm_object = d->isolate() == Dart::vm_isolate();
+
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawKernelProgramInfo* info =
+          reinterpret_cast<RawKernelProgramInfo*>(d->Ref(id));
+      Deserializer::InitializeHeader(info, kKernelProgramInfoCid,
+                                     KernelProgramInfo::InstanceSize(),
+                                     is_vm_object);
+      RawObject** from = info->from();
+      RawObject** to = info->to();
+      for (RawObject** p = from; p <= to; p++) {
+        *p = d->ReadRef();
+      }
+    }
+  }
+};
+
 class CodeSerializationCluster : public SerializationCluster {
  public:
   CodeSerializationCluster() {}
@@ -4495,6 +4598,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) LibrarySerializationCluster();
     case kNamespaceCid:
       return new (Z) NamespaceSerializationCluster();
+    case kKernelProgramInfoCid:
+      return new (Z) KernelProgramInfoSerializationCluster();
     case kCodeCid:
       return new (Z) CodeSerializationCluster();
     case kObjectPoolCid:
@@ -4748,7 +4853,6 @@ void Serializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::null());
   AddBaseObject(Object::sentinel().raw());
   AddBaseObject(Object::transition_sentinel().raw());
-  AddBaseObject(Object::empty_type_arguments().raw());
   AddBaseObject(Object::empty_array().raw());
   AddBaseObject(Object::zero_array().raw());
   AddBaseObject(Object::dynamic_type().raw());
@@ -4970,6 +5074,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) LibraryDeserializationCluster();
     case kNamespaceCid:
       return new (Z) NamespaceDeserializationCluster();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    case kKernelProgramInfoCid:
+      return new (Z) KernelProgramInfoDeserializationCluster();
+#endif  // !DART_PRECOMPILED_RUNTIME
     case kCodeCid:
       return new (Z) CodeDeserializationCluster();
     case kObjectPoolCid:
@@ -5179,7 +5287,6 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::null());
   AddBaseObject(Object::sentinel().raw());
   AddBaseObject(Object::transition_sentinel().raw());
-  AddBaseObject(Object::empty_type_arguments().raw());
   AddBaseObject(Object::empty_array().raw());
   AddBaseObject(Object::zero_array().raw());
   AddBaseObject(Object::dynamic_type().raw());

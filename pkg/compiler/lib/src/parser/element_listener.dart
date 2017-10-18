@@ -306,6 +306,11 @@ class ElementListener extends Listener {
   }
 
   @override
+  void handleRecoverClassHeader() {
+    popNode(); // superType
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     popNode(); // superType
     popNode(); // typeParameters
@@ -433,6 +438,9 @@ class ElementListener extends Listener {
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
+    if (context == IdentifierContext.enumValueDeclaration) {
+      metadata.clear();
+    }
     pushNode(new Identifier(token));
   }
 

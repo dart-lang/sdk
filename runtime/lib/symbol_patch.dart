@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core' hide Symbol;
+// part of "internal_patch.dart";
 
 @patch
 class Symbol {
@@ -15,11 +15,6 @@ class Symbol {
   static getUnmangledName(Symbol symbol) {
     String string = Symbol.getName(symbol);
 
-    // Remove closurization hash mark
-    // #foo -> foo
-    if (string.startsWith('#')) {
-      string = string.substring(1);
-    }
     // get:foo -> foo
     // set:foo -> foo=
     // get:_foo@xxx -> _foo

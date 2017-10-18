@@ -62,8 +62,9 @@ class Program {
   static Program* ReadFrom(Reader* reader);
 
   NameIndex main_method() { return main_method_reference_; }
-  intptr_t string_table_offset() { return string_table_offset_; }
-  intptr_t name_table_offset() { return name_table_offset_; }
+  intptr_t source_table_offset() const { return source_table_offset_; }
+  intptr_t string_table_offset() const { return string_table_offset_; }
+  intptr_t name_table_offset() const { return name_table_offset_; }
   const uint8_t* kernel_data() { return kernel_data_; }
   intptr_t kernel_data_size() { return kernel_data_size_; }
   intptr_t library_count() { return library_count_; }

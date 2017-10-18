@@ -27,8 +27,7 @@ expectReflectedType(classMirror, expectedType) {
   if (expectedType == null) {
     Expect.isFalse(classMirror.hasReflectedType,
         "$classMirror should not have a reflected type");
-    Expect.throws(
-        () => classMirror.reflectedType, (e) => e is UnsupportedError);
+    Expect.throwsUnsupportedError(() => classMirror.reflectedType);
   } else {
     Expect.isTrue(classMirror.hasReflectedType,
         "$classMirror should have a reflected type");

@@ -28,8 +28,8 @@ main() {
   Expect.isFalse(mooRev(12));
   Expect.isTrue(goo([1, 2], 2));
   Expect.isTrue(gooRev([1, 2], 2));
-  Expect.throws(() => hoo("H"), (e) => e is RangeError);
-  Expect.throws(() => hooRev("H"), (e) => e is RangeError);
+  Expect.throwsRangeError(() => hoo("H"));
+  Expect.throwsRangeError(() => hooRev("H"));
 }
 
 moo(j) {

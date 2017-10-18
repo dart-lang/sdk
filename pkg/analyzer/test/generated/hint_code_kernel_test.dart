@@ -19,31 +19,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @override
   @failingTest
-  test_deadCode_deadFinalStatementInCase() async {
-    return super.test_deadCode_deadFinalStatementInCase();
-  }
-
-  @override
-  @failingTest
-  test_deprecatedAnnotationUse_export() async {
-    return super.test_deprecatedAnnotationUse_export();
-  }
-
-  @override
-  @failingTest
-  test_deprecatedAnnotationUse_import() async {
-    return super.test_deprecatedAnnotationUse_import();
-  }
-
-  @override
-  @failingTest
-  test_deprecatedAnnotationUse_instanceCreation_namedConstructor() async {
-    return super
-        .test_deprecatedAnnotationUse_instanceCreation_namedConstructor();
-  }
-
-  @override
-  @failingTest
   test_deprecatedAnnotationUse_named() async {
     return super.test_deprecatedAnnotationUse_named();
   }
@@ -52,13 +27,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @failingTest
   test_deprecatedAnnotationUse_positional() async {
     return super.test_deprecatedAnnotationUse_positional();
-  }
-
-  @override
-  @failingTest
-  test_deprecatedAnnotationUse_superConstructor_namedConstructor() async {
-    return super
-        .test_deprecatedAnnotationUse_superConstructor_namedConstructor();
   }
 
   @override
@@ -90,12 +58,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @failingTest
   test_invalidRequiredParam_valid() async {
     return super.test_invalidRequiredParam_valid();
-  }
-
-  @override
-  @failingTest
-  test_js_lib_OK() async {
-    return super.test_js_lib_OK();
   }
 
   @override
@@ -156,11 +118,5 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @failingTest
   test_required_typedef_function_param() async {
     return super.test_required_typedef_function_param();
-  }
-
-  @override
-  @failingTest
-  test_unusedElement_class_notUsed_inConstructorName() async {
-    return super.test_unusedElement_class_notUsed_inConstructorName();
   }
 }

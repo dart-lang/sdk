@@ -54,9 +54,9 @@ var tests = [
       print(e);
     });
 
-    // Reload to v2.
+    // Reload to v1 (null change).
     var response = await childIsolate.reloadSources(
-      rootLibUri: v2Uri.toString(),
+      rootLibUri: v1Uri.toString(),
     );
     print(response);
     expect(response['success'], isTrue);
@@ -65,6 +65,19 @@ var tests = [
     response = await childIsolate.invokeRpc("_getUnusedChangesInLastReload", {});
     print(response);
     var unused = response['unused'].map((ea) => ea.toString());
+    expect(unused, unorderedEquals([]));
+
+    // Reload to v2.
+    response = await childIsolate.reloadSources(
+      rootLibUri: v2Uri.toString(),
+    );
+    print(response);
+    expect(response['success'], isTrue);
+
+    // Fetch unused.
+    response = await childIsolate.invokeRpc("_getUnusedChangesInLastReload", {});
+    print(response);
+    unused = response['unused'].map((ea) => ea.toString());
     expect(unused, unorderedEquals([
       'Class(C)',
       'Class(NewClass)',

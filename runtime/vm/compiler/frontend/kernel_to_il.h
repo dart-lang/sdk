@@ -190,7 +190,7 @@ typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 
 class ActiveClass {
  public:
-  ActiveClass() : klass(NULL), member(NULL) {}
+  ActiveClass() : klass(NULL), member(NULL), local_type_parameters(NULL) {}
 
   bool HasMember() { return member != NULL; }
 
@@ -220,6 +220,8 @@ class ActiveClass {
   const Class* klass;
 
   const Function* member;
+
+  const TypeArguments* local_type_parameters;
 };
 
 class ActiveClassScope {
@@ -251,16 +253,33 @@ class ActiveMemberScope {
   ActiveClass saved_;
 };
 
+class ActiveTypeParametersScope {
+ public:
+  // Set the local type parameters of the ActiveClass to be exactly all type
+  // parameters defined by 'innermost' and any enclosing *closures* (but not
+  // enclosing methods/top-level functions/classes).
+  ActiveTypeParametersScope(ActiveClass* active_class,
+                            const Function& innermost,
+                            Zone* Z);
+
+  // Append the list of the local type parameters to the list in ActiveClass.
+  ActiveTypeParametersScope(ActiveClass* active_class,
+                            const TypeArguments& new_params,
+                            Zone* Z);
+  ~ActiveTypeParametersScope() { *active_class_ = saved_; }
+
+ private:
+  ActiveClass* active_class_;
+  ActiveClass saved_;
+};
+
 class TranslationHelper {
  public:
   explicit TranslationHelper(Thread* thread);
 
-  TranslationHelper(Thread* thread,
-                    RawTypedData* string_offsets,
-                    RawTypedData* string_data,
-                    RawTypedData* canonical_names);
-
   virtual ~TranslationHelper() {}
+
+  void InitFromScript(const Script& script);
 
   Thread* thread() { return thread_; }
 
@@ -279,6 +298,12 @@ class TranslationHelper {
 
   const TypedData& canonical_names() { return canonical_names_; }
   void SetCanonicalNames(const TypedData& canonical_names);
+
+  const TypedData& metadata_payloads() { return metadata_payloads_; }
+  void SetMetadataPayloads(const TypedData& metadata_payloads);
+
+  const TypedData& metadata_mappings() { return metadata_mappings_; }
+  void SetMetadataMappings(const TypedData& metadata_mappings);
 
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;
@@ -366,6 +391,10 @@ class TranslationHelper {
   Type& GetCanonicalType(const Class& klass);
 
   void ReportError(const char* format, ...);
+  void ReportError(const Script& script,
+                   const TokenPosition position,
+                   const char* format,
+                   ...);
   void ReportError(const Error& prev_error, const char* format, ...);
 
  private:
@@ -385,6 +414,8 @@ class TranslationHelper {
   TypedData& string_offsets_;
   TypedData& string_data_;
   TypedData& canonical_names_;
+  TypedData& metadata_payloads_;
+  TypedData& metadata_mappings_;
 };
 
 struct FunctionScope {
@@ -460,6 +491,7 @@ class FlowGraphBuilder {
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    ZoneGrowableArray<intptr_t>* context_level_array,
                    InlineExitCollector* exit_collector,
+                   bool optimizing,
                    intptr_t osr_id,
                    intptr_t first_block_id = 1);
   virtual ~FlowGraphBuilder();
@@ -556,6 +588,7 @@ class FlowGraphBuilder {
   Fragment NativeCall(const String* name, const Function* function);
   Fragment PushArgument();
   Fragment Return(TokenPosition position);
+  Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
@@ -620,6 +653,9 @@ class FlowGraphBuilder {
   Value* Pop();
   Fragment Drop();
 
+  // Drop given number of temps from the stack but preserve top of the stack.
+  Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
+
   bool IsInlining() { return exit_collector_ != NULL; }
 
   void InlineBailout(const char* reason);
@@ -631,6 +667,7 @@ class FlowGraphBuilder {
   intptr_t kernel_offset_;
 
   ParsedFunction* parsed_function_;
+  const bool optimizing_;
   intptr_t osr_id_;
   const ZoneGrowableArray<const ICData*>& ic_data_array_;
   // Contains (deopt_id, context_level) pairs.

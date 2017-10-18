@@ -12,7 +12,7 @@
 namespace dart {
 namespace bin {
 
-const char kPlatformBinaryName[] = "platform.dill";
+const char kPlatformBinaryName[] = "vm_platform.dill";
 const char kVMServiceIOBinaryName[] = "vmservice_io.dill";
 
 DFE::DFE()
@@ -68,8 +68,8 @@ Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
     // TODO(asiva): We will have to change this API to pass in a list of files
     // that have changed. For now just pass in the main url_string and have it
     // recompile the script.
-    // TODO(aam): When Frontend is ready, VM should be passing outline.dill
-    // instead of platform.dill to Frontend for compilation.
+    // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
+    // instead of vm_platform.dill to Frontend for compilation.
     Dart_KernelCompilationResult kresult =
         Dart_CompileToKernel(url_string, platform_binary_filename_);
     if (kresult.status != Dart_KernelCompilationStatus_Ok) {
@@ -87,8 +87,8 @@ Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
 void* DFE::CompileAndReadScript(const char* script_uri,
                                 char** error,
                                 int* exit_code) {
-  // TODO(aam): When Frontend is ready, VM should be passing outline.dill
-  // instead of platform.dill to Frontend for compilation.
+  // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
+  // instead of vm_platform.dill to Frontend for compilation.
   Dart_KernelCompilationResult result =
       Dart_CompileToKernel(script_uri, platform_binary_filename_);
   switch (result.status) {

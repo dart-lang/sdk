@@ -60,7 +60,18 @@ const char* StackFrame::ToCString() const {
 }
 
 void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  // There are no objects to visit in this frame.
+  // Visit pc marker and saved pool pointer.
+  RawObject** last_fixed =
+      reinterpret_cast<RawObject**>(fp()) + kFirstObjectSlotFromFp;
+  RawObject** first_fixed =
+      reinterpret_cast<RawObject**>(fp()) + kLastFixedObjectSlotFromFp;
+#if !defined(TARGET_ARCH_DBC)
+  ASSERT(first_fixed <= last_fixed);
+  visitor->VisitPointers(first_fixed, last_fixed);
+#else
+  ASSERT(last_fixed <= first_fixed);
+  visitor->VisitPointers(last_fixed, first_fixed);
+#endif
 }
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
@@ -149,8 +160,10 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       RawObject** last = reinterpret_cast<RawObject**>(sp());
 
       // Visit fixed prefix of the frame.
-      ASSERT((first + kFirstObjectSlotFromFp) < first);
-      visitor->VisitPointers(first + kFirstObjectSlotFromFp, first - 1);
+      RawObject** first_fixed = first + kFirstObjectSlotFromFp;
+      RawObject** last_fixed = first + kLastFixedObjectSlotFromFp;
+      ASSERT(first_fixed <= last_fixed);
+      visitor->VisitPointers(first_fixed, last_fixed);
 
       // A stack map is present in the code object, use the stack map to
       // visit frame slots which are marked as having objects.

@@ -138,6 +138,10 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
       return "Feature is disabled";
     case kCannotAddBreakpoint:
       return "Cannot add breakpoint";
+    case kStreamAlreadySubscribed:
+      return "Stream already subscribed";
+    case kStreamNotSubscribed:
+      return "Stream not subscribed";
     case kIsolateMustBeRunnable:
       return "Isolate must be runnable";
     case kIsolateMustBePaused:
@@ -146,14 +150,16 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
       return "Cannot resume execution";
     case kIsolateIsReloading:
       return "Isolate is reloading";
+    case kIsolateReloadBarred:
+      return "Isolate cannot be reloaded";
+    case kIsolateMustHaveReloaded:
+      return "Isolate must have reloaded";
     case kFileSystemAlreadyExists:
       return "File system already exists";
     case kFileSystemDoesNotExist:
       return "File system does not exist";
     case kFileDoesNotExist:
       return "File does not exist";
-    case kIsolateReloadBarred:
-      return "Isolate cannot be reloaded";
     default:
       return "Extension error";
   }

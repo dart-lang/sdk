@@ -9,8 +9,7 @@ apply(Function function, List positional, Map<Symbol, dynamic> named) {
 }
 
 void throwsNSME(function, positional, named) {
-  Expect.throws(
-      () => apply(function, positional, named), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => apply(function, positional, named));
 }
 
 main() {

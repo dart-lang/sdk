@@ -20,7 +20,5 @@ class Class {
 }
 
 main() {
-  Expect.throwsAssertionError(() {
-    new Class(a: null, b: null).field;
-  });
+  Expect.throwsAssertionError(() => new Class(a: null, b: null).field);
 }

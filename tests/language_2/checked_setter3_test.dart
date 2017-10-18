@@ -2,22 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 class A<T> {
   T field;
 }
 
 class B<T> {
-  T field = 42; //# 01: compile-time error
-}
-
-class C<T> {
-  T field = 42; //# 02: compile-time error
+  T field = 42 as dynamic;
 }
 
 main() {
   var a = new A<String>();
-  var c = new C<int>();
-  var i = 42;
-  var s = 'foo';
-  a.field = i; //# 03: compile-time error
+  dynamic s = "string";
+
+  // This assignment is OK.
+  a.field = s;
+
+  dynamic i = 42;
+  Expect.throwsTypeError(() => a.field = i);
+
+  // Throws because the field initializer fails the implicit cast.
+  Expect.throwsTypeError(() => new B<String>());
+
+  // Throws because the assigned value fails the implicit cast.
+  var b = new B<int>();
+  Expect.throwsTypeError(() => b.field = s);
 }

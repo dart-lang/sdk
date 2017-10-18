@@ -1,0 +1,88 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $runtime == vm && ($arch == arm || $arch == arm64) ]
+io/file_stream_test: Skip # Issue 26109
+io/file_typed_data_test: Skip # Issue 26109
+io/file_input_stream_test: Skip # Issue 26109
+
+[ $runtime == vm && $system == windows && $mode == release ]
+io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
+io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
+
+[ $runtime == vm && $system == macos && $mode == release ]
+io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
+
+[ $runtime == vm && $system == linux && $mode == release && $arch == ia32 && $builder_tag == asan ]
+io/socket_close_test: Pass, Timeout # Issue 28502: timeout.
+
+[ $arch == ia32 ]
+no_allow_absolute_addresses_test: SkipByDesign # Not supported.
+link_natives_lazily_test: SkipByDesign # Not supported.
+
+[ $arch == simdbc || $arch == simdbc64 ]
+# TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
+full_coverage_test: Skip
+
+# SIMDBC interpreter doesn't support lazy linking of natives.
+link_natives_lazily_test: SkipByDesign
+
+# SIMDBC interpreter doesn't support --no_lazy_dispatchers
+no_lazy_dispatchers_test: SkipByDesign
+
+[ $arch == simdbc64 && $mode == debug && $checked ]
+io/web_socket_test: Pass, RuntimeError # Issue 26814.
+
+[ $system == windows ]
+io/skipping_dart2js_compilations_test: Skip # Issue 19551.
+verbose_gc_to_bmu_test: Skip
+io/process_sync_test: Pass, Timeout # Issue 24596
+io/sleep_test: Pass, Fail # Issue 25757
+io/socket_info_ipv6_test : Skip
+
+[ $system == windows && $compiler != dart2analyzer ]
+io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
+
+[ $compiler == app_jit ]
+io/test_extension_test: Skip # Platform.executable
+io/test_extension_fail_test: Skip # Platform.executable
+io/platform_test: Skip # Platform.executable
+io/code_collection_test: Skip # Platform.executable
+full_coverage_test: Skip # Platform.executable
+regress_26031_test: Skip # Platform.resolvedExecutable
+
+[ $system == android ]
+io/process_exit_test: Skip # Issue 29578
+io/process_path_test: Skip # Issue 26376
+io/process_segfault_test: Skip # Issue 26376
+io/file_test: Skip # Issue 26376
+io/process_path_environment_test: Skip # Issue 26376
+io/file_system_watcher_test: Skip # Issue 26376
+io/resolve_symbolic_links_test: Skip # Issue 26376
+io/file_stat_test: Skip # Issue 26376
+io/raw_datagram_socket_test: Skip # Issue 27638
+io/http_proxy_advanced_test: Skip # Issue 27638
+io/regress_21160_test: Skip # Issue 27638
+io/secure_multiple_client_server_test: Skip # Issue 27638
+io/http_proxy_test: Skip # Issue 27638
+io/secure_session_resume_test: Skip # Issue 27638
+io/raw_secure_server_socket_test: Skip # Issue 27638
+io/raw_secure_server_closing_test: Skip # Issue 27638
+io/raw_secure_socket_pause_test: Skip # Issue 27638
+io/https_server_test: Skip # Issue 27638
+io/secure_server_client_certificate_test: Skip # Issue 27638
+io/secure_socket_alpn_test: Skip # Issue 27638
+io/secure_bad_certificate_test: Skip # Issue 27638
+io/secure_server_socket_test: Skip # Issue 27638
+io/secure_client_server_test: Skip # Issue 27638
+io/socket_upgrade_to_secure_test: Skip # Issue 27638
+io/secure_client_raw_server_test: Skip # Issue 27638
+io/secure_socket_test: Skip # Issue 27638
+io/raw_secure_socket_test: Skip # Issue 27638
+io/https_bad_certificate_test: Skip # Issue 27638
+io/secure_server_closing_test: Skip # Issue 27638
+io/non_utf8_output_test: Skip # The Android command runner doesn't correctly handle non-UTF8 formatted output. https://github.com/dart-lang/sdk/issues/28872
+
+[ $system == android && $runtime == dart_precompiled && $mode == release && $arch == arm]
+io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426

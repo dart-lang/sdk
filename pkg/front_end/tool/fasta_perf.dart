@@ -9,6 +9,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/src/fasta/ast_builder.dart';
+import 'package:args/args.dart';
+
 import 'package:front_end/front_end.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/parser.dart';
@@ -25,12 +27,15 @@ Stopwatch scanTimer = new Stopwatch();
 
 main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
-  if (args.length < 2) {
-    print('usage: fasta_perf.dart <bench-id> <entry.dart>');
+  var options = argParser.parse(args);
+  if (options.rest.length != 2) {
+    print('usage: fasta_perf.dart [options] <bench-id> <entry.dart>');
+    print(argParser.usage);
     exit(1);
   }
-  var bench = args[0];
-  var entryUri = Uri.base.resolve(args[1]);
+  bool strongMode = !options['legacy'];
+  var bench = options.rest[0];
+  var entryUri = Uri.base.resolve(options.rest[1]);
 
   await setup(entryUri);
 
@@ -40,10 +45,10 @@ main(List<String> args) async {
     // TODO(sigmund): enable when we can run the ast-builder standalone.
     // 'parse': () async => parseFiles(files),
     'kernel_gen_e2e': () async {
-      await generateKernel(entryUri);
+      await generateKernel(entryUri, strongMode: strongMode);
     },
     'kernel_gen_e2e_sum': () async {
-      await generateKernel(entryUri, compileSdk: false);
+      await generateKernel(entryUri, compileSdk: false, strongMode: strongMode);
     },
   };
 
@@ -213,10 +218,14 @@ generateKernel(Uri entryUri,
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
+    ..strongMode = strongMode
     ..chaseDependencies = true
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = compileSdk;
   if (!compileSdk) {
+    // TODO(sigmund): fix this: this is broken since the change to move .dill
+    // files out of the patched_sdk folder. It is not failing anywhere because
+    // this codepath is not used right now in our performance bots.
     options.sdkSummary = sdkRoot.resolve('outline.dill');
   }
 
@@ -254,3 +263,9 @@ void report(String name, int time) {
   sb.write(', $invSpeed ns/char');
   print('$sb');
 }
+
+ArgParser argParser = new ArgParser()
+  ..addFlag('legacy',
+      help: 'run the compiler in legacy-mode',
+      defaultsTo: false,
+      negatable: false);

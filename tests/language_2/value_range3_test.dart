@@ -14,5 +14,5 @@ class A {
 }
 
 main() {
-  Expect.throws(() => new A().copy(new List(0), 0, 1), (e) => e is RangeError);
+  Expect.throwsRangeError(() => new A().copy(new List(0), 0, 1));
 }

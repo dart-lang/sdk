@@ -50,6 +50,7 @@ final allConfigs = {
   "vm-app-product": [productMode, appJit, vm],
   "vm-kernel": [dartk, releaseMode, vm],
   "vm-precomp": [precompiler, precompiled],
+  "vm-precomp-checked": [precompiler, precompiled, checked],
   "vm-product": [productMode, noCompiler, vm],
   // TODO(rnystrom): Add dart2js-d8-hostchecked, dart2js-d8-minified, or
   // dart2js-jsshell?

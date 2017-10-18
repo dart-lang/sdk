@@ -19,6 +19,12 @@ Program* Program::ReadFrom(Reader* reader) {
   uint32_t magic = reader->ReadUInt32();
   if (magic != kMagicProgramFile) FATAL("Invalid magic identifier");
 
+  uint32_t formatVersion = reader->ReadUInt32();
+  if (formatVersion != kBinaryFormatVersion) {
+    FATAL2("Invalid kernel binary format version (found %u, expected %u)",
+           formatVersion, kBinaryFormatVersion);
+  }
+
   Program* program = new Program();
   program->kernel_data_ = reader->buffer();
   program->kernel_data_size_ = reader->size();

@@ -1,0 +1,53 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../build/dart_host_toolchain.gni")
+import("../build/prebuilt_dart_sdk.gni")
+
+_dart_root = get_path_info("..", "abspath")
+
+template("compile_platform") {
+  assert(defined(invoker.sources), "Need 'sources' in $target_name")
+  assert(defined(invoker.outputs), "Need 'outputs' in $target_name")
+  assert(defined(invoker.args), "Need 'args' in $target_name")
+  assert(!defined(invoker.script), "Remove 'script' from $target_name")
+  assert(!defined(invoker.depfile), "Remove 'depfile' from $target_name")
+
+  action(target_name) {
+    script = "$_dart_root/tools/compile_platform.py"
+
+    sources = invoker.sources
+
+    outputs = invoker.outputs
+
+    inputs = []
+    deps = []
+    args = []
+
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+
+    if (defined(invoker.inputs)) {
+      inputs += invoker.inputs
+    }
+
+    depfile = outputs[0] + ".d"
+
+    if (!prebuilt_dart_exe_works) {
+      deps += [ "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)" ]
+      dart_out_dir = get_label_info(
+              "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)",
+              "root_out_dir")
+      args += [
+        "--dart-executable",
+        rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix"),
+      ]
+    }
+
+    args += invoker.args
+    args += rebase_path(sources, root_build_dir)
+    args += rebase_path(outputs, root_build_dir)
+  }
+}

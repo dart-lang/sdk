@@ -16,6 +16,6 @@ main() {
   ]) {
     var c;
     if (b[0]) c = new C();
-    Expect.throws(() => print(c.foo(b[1])), (e) => e is NoSuchMethodError);
+    Expect.throwsNoSuchMethodError(() => print(c.foo(b[1])));
   }
 }

@@ -2,8 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:isolate';
-import 'dart:_internal' hide Symbol;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:developer" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:_internal" show patch;
+
+import "dart:async" show Future, Zone;
+
+import "dart:isolate" show SendPort;
+
+/// These are the additional parts of this patch library:
+// part "profiler.dart"
+// part "timeline.dart"
 
 @patch
 bool debugger({bool when: true, String message}) native "Developer_debugger";

@@ -43,6 +43,12 @@ class _Parser2 implements Parser {
    */
   final Source _source;
 
+  @override
+  bool enableUriInPartOf = true;
+
+  @override
+  bool enableNnbd = false;
+
   factory _Parser2(Source source, AnalysisErrorListener errorListener) {
     var errorReporter = new ErrorReporter(errorListener, source);
     var library = new _KernelLibraryBuilder(source.uri);
@@ -66,14 +72,7 @@ class _Parser2 implements Parser {
     _astBuilder.parseGenericMethodComments = value;
   }
 
-  @override
-  bool enableAssertInitializer = true;
-
-  @override
-  bool enableUriInPartOf = true;
-
-  @override
-  bool enableNnbd = false;
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   CompilationUnit parseCompilationUnit(Token token) {
@@ -86,6 +85,4 @@ class _Parser2 implements Parser {
     currentToken = _fastaParser.parseUnit(currentToken);
     return _astBuilder.pop();
   }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

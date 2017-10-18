@@ -33,7 +33,7 @@ import 'package:kernel/ast.dart'
 
 import '../fasta_codes.dart'
     show
-        messageEnumDeclartionEmpty,
+        messageEnumDeclarationEmpty,
         messageNoUnnamedConstructorInObject,
         templateDuplicatedName,
         templateEnumConstantSameNameAsEnclosing;
@@ -235,7 +235,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     members.forEach(setParent);
     constructors.forEach(setParent);
     selfType.bind(enumBuilder);
-    ShadowClass.getClassInferenceInfo(cls).builder = enumBuilder;
+    ShadowClass.setBuilder(cls, enumBuilder);
     return enumBuilder;
   }
 
@@ -250,8 +250,10 @@ class KernelEnumBuilder extends SourceClassBuilder
   Class build(KernelLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
     cls.isEnum = true;
     if (constantNamesAndOffsetsAndDocs.isEmpty) {
+      // TODO(ahe): Remove this check when parser errors aren't silenced in
+      // outline builder.
       libraryBuilder.addCompileTimeError(
-          messageEnumDeclartionEmpty, charOffset, fileUri);
+          messageEnumDeclarationEmpty, charOffset, fileUri);
     }
     intType.resolveIn(coreLibrary.scope);
     stringType.resolveIn(coreLibrary.scope);

@@ -10,6 +10,7 @@ rasta/unsupported_platform_library: RuntimeError # OK, this must report an error
 
 DeltaBlue: Fail # Fasta and dartk disagree on static initializers
 bug30695: RuntimeError
+bug31124: RuntimeError # Test has an intentional error
 call: Fail # Test can't run.
 fallthrough: Fail # Missing FallThroughError.
 function_type_recovery: Fail
@@ -93,7 +94,6 @@ rasta/unresolved_recovery: Fail
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError
 regress/issue_29982: RuntimeError
-regress/issue_29983: Crash # Issue 29983.
 
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.

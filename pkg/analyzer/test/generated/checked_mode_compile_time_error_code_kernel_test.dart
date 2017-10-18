@@ -17,10 +17,9 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
     extends CheckedModeCompileTimeErrorCodeTest_Driver {
   @override
   bool get enableKernelDriver => true;
+}
 
-  @override
-  @failingTest
-  test_redirectingConstructor_paramTypeMismatch() async {
-    return super.test_redirectingConstructor_paramTypeMismatch();
-  }
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
 }

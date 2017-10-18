@@ -13,6 +13,7 @@ import '../closure.dart'
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../elements/elements.dart'
     show ClassElement, MethodElement, MixinApplicationElement;
 import '../elements/entities.dart';
@@ -111,6 +112,7 @@ class RuntimeTypeGenerator {
   final DartTypes _types;
   final ClosedWorld _closedWorld;
   final ClosureConversionTask _closureDataLookup;
+  final DeferredLoadTask _deferredLoadTask;
   final CodeEmitterTask emitterTask;
   final Namer _namer;
   final NativeData _nativeData;
@@ -126,6 +128,7 @@ class RuntimeTypeGenerator {
       this._types,
       this._closedWorld,
       this._closureDataLookup,
+      this._deferredLoadTask,
       this.emitterTask,
       this._namer,
       this._nativeData,
@@ -192,8 +195,10 @@ class RuntimeTypeGenerator {
       }
 
       if (storeFunctionTypeInMetadata && !type.containsTypeVariables) {
+        // TODO(sigmund): use output unit of `method` (Issue #31032)
+        OutputUnit outputUnit = _deferredLoadTask.mainOutputUnit;
         result.functionTypeIndex =
-            emitterTask.metadataCollector.reifyType(type);
+            emitterTask.metadataCollector.reifyType(type, outputUnit);
       } else {
         jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
             emitterTask.emitter, type, thisAccess);
@@ -345,7 +350,7 @@ class RuntimeTypeGenerator {
     if (checkedClasses.contains(_commonElements.functionClass) ||
         checkedFunctionTypes.isNotEmpty) {
       MemberEntity call =
-          _elementEnvironment.lookupClassMember(cls, Identifiers.call);
+          _elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
       if (call != null && call.isFunction) {
         FunctionEntity callFunction = call;
         // A superclass might already implement the Function interface. In such

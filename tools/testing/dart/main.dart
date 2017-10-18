@@ -11,6 +11,7 @@
 ///     4. The Dart core library
 ///     5. Other standard dart libraries (DOM bindings, UI libraries,
 ///        IO libraries etc.)
+///     6. The Dart specification parser.
 ///
 /// This script is normally invoked by test.py. (test.py finds the Dart VM and
 /// passes along all command line arguments to this script.)

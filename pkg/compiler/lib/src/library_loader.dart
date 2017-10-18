@@ -823,7 +823,7 @@ class ResolutionLibraryLoaderTask extends CompilerTask
 // TODO(sigmund): move this class to a new file under src/kernel/.
 class KernelLibraryLoaderTask extends CompilerTask
     implements LibraryLoaderTask {
-  final Uri sdkRoot;
+  final Uri platformBinaries;
   final Uri _packageConfig;
 
   final DiagnosticReporter reporter;
@@ -834,10 +834,13 @@ class KernelLibraryLoaderTask extends CompilerTask
   /// result of loading a program.
   final KernelToElementMapForImpactImpl _elementMap;
 
+  final bool verbose;
+
   List<LibraryEntity> _allLoadedLibraries;
 
-  KernelLibraryLoaderTask(this.sdkRoot, this._packageConfig, this._elementMap,
-      this.compilerInput, this.reporter, Measurer measurer)
+  KernelLibraryLoaderTask(this.platformBinaries, this._packageConfig,
+      this._elementMap, this.compilerInput, this.reporter, Measurer measurer,
+      {this.verbose: false})
       : _allLoadedLibraries = new List<LibraryEntity>(),
         super(measurer);
 
@@ -857,10 +860,11 @@ class KernelLibraryLoaderTask extends CompilerTask
         new BinaryBuilder(input.data).readProgram(program);
       } else {
         var options = new fe.CompilerOptions()
+          ..verbose = verbose
           ..fileSystem = new CompilerFileSystem(compilerInput)
           ..target = new Dart2jsTarget(new TargetFlags())
           ..linkedDependencies = [
-            sdkRoot.resolve('_internal/dart2js_platform.dill')
+            platformBinaries.resolve("dart2js_platform.dill"),
           ]
           ..packagesFileUri = _packageConfig
           ..onError = (e) => reportFrontEndMessage(reporter, e);

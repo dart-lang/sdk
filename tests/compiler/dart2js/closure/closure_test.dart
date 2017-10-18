@@ -279,8 +279,6 @@ abstract class ComputeValueMixin<T> {
     print(
         ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})');
     closureRepresentationInfo
-        ?.forEachCapturedVariable((a, b) => print('  captured: $a->$b'));
-    closureRepresentationInfo
         ?.forEachFreeVariable((a, b) => print('  free: $a->$b'));
     closureRepresentationInfo
         ?.forEachBoxedVariable((a, b) => print('  boxed: $a->$b'));

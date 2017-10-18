@@ -26,6 +26,7 @@ part 'http_headers.dart';
 part 'http_impl.dart';
 part 'http_parser.dart';
 part 'http_session.dart';
+part 'overrides.dart';
 part 'websocket.dart';
 part 'websocket_impl.dart';
 
@@ -1363,7 +1364,13 @@ abstract class HttpClient {
    */
   String userAgent;
 
-  factory HttpClient({SecurityContext context}) => new _HttpClient(context);
+  factory HttpClient({SecurityContext context}) {
+    HttpOverrides overrides = HttpOverrides.current;
+    if (overrides == null) {
+      return new _HttpClient(context);
+    }
+    return overrides.createHttpClient(context);
+  }
 
   /**
    * Opens a HTTP connection.
@@ -1623,7 +1630,11 @@ abstract class HttpClient {
    */
   static String findProxyFromEnvironment(Uri url,
       {Map<String, String> environment}) {
-    return _HttpClient._findProxyFromEnvironment(url, environment);
+    HttpOverrides overrides = HttpOverrides.current;
+    if (overrides == null) {
+      return _HttpClient._findProxyFromEnvironment(url, environment);
+    }
+    return overrides.findProxyFromEnvironment(url, environment);
   }
 
   /**

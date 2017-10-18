@@ -600,6 +600,9 @@ void IsolateReloadContext::Reload(bool force_reload,
   if (!modified_libs_->Contains(old_root_lib.index())) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
+    // Inform GetUnusedChangesInLastReload that a reload has happened.
+    I->object_store()->set_changed_in_last_reload(
+        GrowableObjectArray::Handle(GrowableObjectArray::New()));
     ReportOnJSON(js_);
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return;

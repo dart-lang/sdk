@@ -6,13 +6,12 @@ library kernel.target.vm;
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
-import '../transformations/continuation.dart' as cont;
-import '../transformations/erasure.dart';
-import '../transformations/insert_covariance_checks.dart';
-import '../transformations/insert_type_checks.dart';
-import '../transformations/mixin_full_resolution.dart' as mix;
-import '../transformations/sanitize_for_vm.dart';
-import '../transformations/treeshaker.dart';
+
+import '../transformations/mixin_full_resolution.dart' as transformMixins
+    show transformLibraries;
+import '../transformations/continuation.dart' as transformAsync
+    show transformLibraries;
+
 import 'targets.dart';
 
 /// Specializes the kernel IR to the Dart VM.
@@ -21,17 +20,21 @@ class VmTarget extends Target {
 
   VmTarget(this.flags);
 
+  @override
   bool get strongMode => flags.strongMode;
 
   /// The VM patch files are not strong mode clean, so we adopt a hybrid mode
   /// where the SDK is internally unchecked, but trusted to satisfy the types
   /// declared on its interface.
+  @override
   bool get strongModeSdk => false;
 
+  @override
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to
   // `runtime/vm/object_store.h`.
+  @override
   List<String> get extraRequiredLibraries => const <String>[
         'dart:async',
         'dart:collection',
@@ -52,48 +55,21 @@ class VmTarget extends Target {
         'dart:io',
       ];
 
-  ClassHierarchy _hierarchy;
-
+  @override
   void performModularTransformationsOnLibraries(
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)}) {
-    var mixins = new mix.MixinFullResolution(this, coreTypes, hierarchy)
-      ..transform(libraries);
+    transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries);
+    logger?.call("Transformed mixin applications");
 
-    _hierarchy = mixins.hierarchy;
+    // TODO(kmillikin): Make this run on a per-method basis.
+    transformAsync.transformLibraries(coreTypes, libraries);
+    logger?.call("Transformed async methods");
   }
 
+  @override
   void performGlobalTransformations(CoreTypes coreTypes, Program program,
-      {void logger(String msg)}) {
-    if (strongMode) {
-      new InsertTypeChecks(coreTypes, _hierarchy).transformProgram(program);
-      new InsertCovarianceChecks(coreTypes, _hierarchy)
-          .transformProgram(program);
-    }
-
-    if (flags.treeShake) {
-      performTreeShaking(coreTypes, program);
-    }
-
-    cont.transformProgram(coreTypes, program);
-
-    if (strongMode) {
-      performErasure(program);
-    }
-
-    new SanitizeForVM().transform(program);
-  }
-
-  void performTreeShaking(CoreTypes coreTypes, Program program) {
-    new TreeShaker(coreTypes, _hierarchy, program,
-            strongMode: strongMode, programRoots: flags.programRoots)
-        .transform(program);
-    _hierarchy = null; // Hierarchy must be recomputed.
-  }
-
-  void performErasure(Program program) {
-    new Erasure().transform(program);
-  }
+      {void logger(String msg)}) {}
 
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,

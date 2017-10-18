@@ -237,8 +237,8 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
     if (!type.IsInstantiated()) {
       // Instantiate type before reporting the error.
       type = type.InstantiateFrom(instantiator_type_arguments,
-                                  function_type_arguments, NULL, NULL, NULL,
-                                  Heap::kNew);
+                                  function_type_arguments, kAllFree, NULL, NULL,
+                                  NULL, Heap::kNew);
       // Note that the instantiated type may be malformed.
     }
     if (bound_error.IsNull()) {
@@ -262,6 +262,14 @@ DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(0));
   return type.UserVisibleName();
+}
+
+DEFINE_NATIVE_ENTRY(Type_getHashCode, 1) {
+  const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
+  intptr_t hash_val = type.Hash();
+  ASSERT(hash_val > 0);
+  ASSERT(Smi::IsValid(hash_val));
+  return Smi::New(hash_val);
 }
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 1) {

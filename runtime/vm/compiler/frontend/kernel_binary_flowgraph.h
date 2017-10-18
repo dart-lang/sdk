@@ -88,6 +88,7 @@ class VariableDeclarationHelper {
   enum Field {
     kPosition,
     kEqualPosition,
+    kAnnotations,
     kFlags,
     kNameIndex,
     kType,
@@ -142,6 +143,7 @@ class FieldHelper {
     kPosition,
     kEndPosition,
     kFlags,
+    kFlags2,
     kName,
     kSourceUriIndex,
     kDocumentationCommentIndex,
@@ -488,6 +490,59 @@ class LibraryDependencyHelper {
   intptr_t next_read_;
 };
 
+// Base class for helpers accessing metadata of a certain kind.
+// Assumes that metadata is accessed in linear order.
+class MetadataHelper {
+ public:
+  explicit MetadataHelper(StreamingFlowGraphBuilder* builder);
+
+  void SetMetadataMappings(intptr_t mappings_offset, intptr_t mappings_num);
+
+ protected:
+  // Look for metadata mapping with node offset greater or equal than the given.
+  intptr_t FindMetadataMapping(intptr_t node_offset);
+
+  // Return offset of the metadata payload corresponding to the given node,
+  // or -1 if there is no metadata.
+  // Assumes metadata is accesses for nodes in linear order most of the time.
+  intptr_t GetNextMetadataPayloadOffset(intptr_t node_offset);
+
+  StreamingFlowGraphBuilder* builder_;
+  TranslationHelper& translation_helper_;
+
+ private:
+  intptr_t mappings_offset_;
+  intptr_t mappings_num_;
+  intptr_t last_node_offset_;
+  intptr_t last_mapping_index_;
+};
+
+struct DirectCallMetadata {
+  DirectCallMetadata(const Function& target, bool check_receiver_for_null)
+      : target_(target), check_receiver_for_null_(check_receiver_for_null) {}
+
+  const Function& target_;
+  const bool check_receiver_for_null_;
+};
+
+// Helper class which provides access to direct call metadata.
+class DirectCallMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.direct-call.metadata"; }
+
+  explicit DirectCallMetadataHelper(StreamingFlowGraphBuilder* builder)
+      : MetadataHelper(builder) {}
+
+  DirectCallMetadata GetDirectTargetForPropertyGet(intptr_t node_offset);
+  DirectCallMetadata GetDirectTargetForPropertySet(intptr_t node_offset);
+  DirectCallMetadata GetDirectTargetForMethodInvocation(intptr_t node_offset);
+
+ private:
+  bool ReadMetadata(intptr_t node_offset,
+                    NameIndex* target_name,
+                    bool* check_receiver_for_null);
+};
+
 class StreamingDartTypeTranslator {
  public:
   StreamingDartTypeTranslator(StreamingFlowGraphBuilder* builder,
@@ -514,7 +569,7 @@ class StreamingDartTypeTranslator {
 
  private:
   // Can build a malformed type.
-  void BuildTypeInternal();
+  void BuildTypeInternal(bool invalid_as_dynamic = false);
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
   void BuildTypeParameterType();
@@ -560,9 +615,7 @@ class StreamingDartTypeTranslator {
 
 class StreamingScopeBuilder {
  public:
-  StreamingScopeBuilder(ParsedFunction* parsed_function,
-                        intptr_t relative_kernel_offset,
-                        const TypedData& data);
+  explicit StreamingScopeBuilder(ParsedFunction* parsed_function);
 
   virtual ~StreamingScopeBuilder();
 
@@ -647,7 +700,6 @@ class StreamingScopeBuilder {
 
   ScopeBuildingResult* result_;
   ParsedFunction* parsed_function_;
-  intptr_t relative_kernel_offset_;
 
   ActiveClass active_class_;
 
@@ -693,6 +745,8 @@ class StreamingConstantEvaluator {
 
   virtual ~StreamingConstantEvaluator() {}
 
+  bool IsCached(intptr_t offset);
+
   Instance& EvaluateExpression(intptr_t offset, bool reset_position = true);
   Instance& EvaluateListLiteral(intptr_t offset, bool reset_position = true);
   Instance& EvaluateMapLiteral(intptr_t offset, bool reset_position = true);
@@ -701,6 +755,7 @@ class StreamingConstantEvaluator {
   Object& EvaluateExpressionSafe(intptr_t offset);
 
  private:
+  bool IsAllowedToEvaluate();
   void EvaluateVariableGet();
   void EvaluateVariableGet(uint8_t payload);
   void EvaluatePropertyGet();
@@ -727,7 +782,8 @@ class StreamingConstantEvaluator {
   void EvaluateBoolLiteral(bool value);
   void EvaluateNullLiteral();
 
-  void EvaluateGetStringLength(intptr_t expression_offset);
+  void EvaluateGetStringLength(intptr_t expression_offset,
+                               TokenPosition position);
 
   const Object& RunFunction(const Function& function,
                             intptr_t argument_count,
@@ -773,51 +829,62 @@ class StreamingConstantEvaluator {
 class StreamingFlowGraphBuilder {
  public:
   StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            intptr_t relative_kernel_offset,
-                            const TypedData& data)
+                            const TypedData& data,
+                            intptr_t data_program_offset)
       : flow_graph_builder_(flow_graph_builder),
         translation_helper_(flow_graph_builder->translation_helper_),
         zone_(flow_graph_builder->zone_),
         reader_(new Reader(data)),
+        script_(parsed_function()->function().script()),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
-        relative_kernel_offset_(relative_kernel_offset),
+        data_program_offset_(data_program_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL) {}
+        record_yield_positions_into_(NULL),
+        direct_call_metadata_helper_(this),
+        metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             Zone* zone,
-                            const uint8_t* buffer,
-                            intptr_t buffer_length)
+                            const uint8_t* data_buffer,
+                            intptr_t buffer_length,
+                            intptr_t data_program_offset)
       : flow_graph_builder_(NULL),
         translation_helper_(*translation_helper),
         zone_(zone),
-        reader_(new Reader(buffer, buffer_length)),
+        reader_(new Reader(data_buffer, buffer_length)),
+        script_(Script::null()),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
-        relative_kernel_offset_(0),
+        data_program_offset_(data_program_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL) {}
+        record_yield_positions_into_(NULL),
+        direct_call_metadata_helper_(this),
+        metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
+                            RawScript* script,
                             Zone* zone,
-                            intptr_t relative_kernel_offset,
-                            const TypedData& data)
+                            const TypedData& data,
+                            intptr_t data_program_offset)
       : flow_graph_builder_(NULL),
         translation_helper_(*translation_helper),
         zone_(zone),
         reader_(new Reader(data)),
+        script_(script),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
-        relative_kernel_offset_(relative_kernel_offset),
+        data_program_offset_(data_program_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL) {}
+        record_yield_positions_into_(NULL),
+        direct_call_metadata_helper_(this),
+        metadata_scanned_(false) {}
 
   ~StreamingFlowGraphBuilder() { delete reader_; }
 
@@ -829,14 +896,21 @@ class StreamingFlowGraphBuilder {
   void CollectTokenPositionsFor(
       intptr_t script_index,
       intptr_t initial_script_index,
+      intptr_t kernel_offset,
       GrowableArray<intptr_t>* record_token_positions_in,
       GrowableArray<intptr_t>* record_yield_positions_in);
   intptr_t SourceTableSize();
   String& SourceTableUriFor(intptr_t index);
   String& GetSourceFor(intptr_t index);
   Array& GetLineStartsFor(intptr_t index);
+  void SetOffset(intptr_t offset);
 
  private:
+  void LoadAndSetupTypeParameters(ActiveClass* active_class,
+                                  const Object& set_on,
+                                  intptr_t type_parameter_count,
+                                  const Function& parameterized_function);
+
   void DiscoverEnclosingElements(Zone* zone,
                                  const Function& function,
                                  Function* outermost_function);
@@ -844,6 +918,8 @@ class StreamingFlowGraphBuilder {
   void ReadUntilFunctionNode();
   StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
                                              const Function& function);
+
+  bool optimizing();
 
   FlowGraph* BuildGraphOfStaticFieldInitializer();
   FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
@@ -859,7 +935,6 @@ class StreamingFlowGraphBuilder {
   Fragment BuildStatement();
 
   intptr_t ReaderOffset();
-  void SetOffset(intptr_t offset);
   void SkipBytes(intptr_t skip);
   bool ReadBool();
   uint8_t ReadByte();
@@ -956,6 +1031,7 @@ class StreamingFlowGraphBuilder {
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
   Fragment LoadStaticField();
+  Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
@@ -1019,6 +1095,10 @@ class StreamingFlowGraphBuilder {
                            bool needs_stacktrace);
   Fragment TryCatch(int try_handler_index);
   Fragment Drop();
+
+  // Drop given number of temps from the stack but preserve top of the stack.
+  Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
+
   Fragment NullConstant();
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
@@ -1108,23 +1188,39 @@ class StreamingFlowGraphBuilder {
   Fragment BuildFunctionDeclaration();
   Fragment BuildFunctionNode(TokenPosition parent_position,
                              StringIndex name_index);
-  void SetupFunctionParameters(const Class& klass,
+  void SetupFunctionParameters(ActiveClass* active_class,
+                               const Class& klass,
                                const Function& function,
                                bool is_method,
                                bool is_closure,
                                FunctionNodeHelper* function_node_helper);
 
+  RawScript* Script();
+
+  // Scan through metadata mappings section and cache offsets for recognized
+  // metadata kinds.
+  void EnsureMetadataIsScanned();
+
   FlowGraphBuilder* flow_graph_builder_;
   TranslationHelper& translation_helper_;
   Zone* zone_;
   Reader* reader_;
+  RawScript* script_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;
-  intptr_t relative_kernel_offset_;
+  // Some items like variables are specified in the kernel binary as
+  // absolute offsets (as in, offsets within the whole kernel program)
+  // of their declaration nodes. Hence, to cache and/or access them
+  // uniquely from within a function's kernel data, we need to
+  // add/subtract the offset of the kernel data in the over all
+  // kernel program.
+  intptr_t data_program_offset_;
   intptr_t current_script_id_;
   intptr_t record_for_script_id_;
   GrowableArray<intptr_t>* record_token_positions_into_;
   GrowableArray<intptr_t>* record_yield_positions_into_;
+  DirectCallMetadataHelper direct_call_metadata_helper_;
+  bool metadata_scanned_;
 
   friend class StreamingConstantEvaluator;
   friend class StreamingDartTypeTranslator;
@@ -1136,6 +1232,8 @@ class StreamingFlowGraphBuilder {
   friend class ClassHelper;
   friend class LibraryHelper;
   friend class LibraryDependencyHelper;
+  friend class MetadataHelper;
+  friend class DirectCallMetadataHelper;
   friend class ConstructorHelper;
   friend class SimpleExpressionConverter;
   friend class KernelLoader;

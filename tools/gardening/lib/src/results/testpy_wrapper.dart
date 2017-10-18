@@ -12,16 +12,7 @@ import 'util.dart';
 /// lists all tests included for that particular configuration.
 Future<Iterable<String>> testLister(Configuration configuration) async {
   var args = configuration.toArgs()..add("--list");
-  var testPyPath = path.absolute(PathHelper.testPyPath());
-  var result = await Process.run(testPyPath, args);
-  if (result.exitCode != 0) {
-    throw "Failed to list tests: "
-        "'${PathHelper.testPyPath()} ${args.join(' ')}'. "
-        "Process exited with ${result.exitCode}";
-  }
-  return (result.stdout as String)
-      .split('\n')
-      .skip(1)
+  return (await callTestPy(args))
       .map((line) => line.trim())
       .where((name) => name.isNotEmpty);
 }
@@ -29,28 +20,41 @@ Future<Iterable<String>> testLister(Configuration configuration) async {
 /// Calls test.py with arguments gathered from a specific [configuration] and
 /// lists all status files included for that particular configuration.
 Future<Iterable<String>> statusFileLister(Configuration configuration) async {
-  var args = configuration.toArgs()..add("--list-status-files");
+  List<String> args = configuration.toArgs()..add("--list-status-files");
+  return (await callTestPy(args)).where((name) => name.isNotEmpty);
+}
+
+/// Calls test.py with arguments and returns the result.
+Future<Iterable<String>> callTestPy(List<String> args) async {
   var testPyPath = path.absolute(PathHelper.testPyPath());
   var result = await Process.run(testPyPath, args);
   if (result.exitCode != 0) {
-    throw "Failed to list tests: "
+    throw "Failed to call test.py: "
         "'${PathHelper.testPyPath()} ${args.join(' ')}'. "
         "Process exited with ${result.exitCode}";
   }
-  return (result.stdout as String)
-      .split('\n')
-      .skip(1)
-      .where((name) => name.isNotEmpty);
+  return (result.stdout as String).split('\n').skip(1);
 }
 
 /// Calls test.py with arguments gathered from a specific [configuration] and
 /// returns a map from test-suite to a list of status-files.
 Future<Map<String, Iterable<String>>> statusFileListerMap(
-    Configuration configuration) async {
+    Configuration configuration) {
+  return statusFileListerMapFromArgs(configuration.toArgs());
+}
+
+/// Calls test.py with arguments [args] and returns a map from test-suite to a
+/// list of status-files.
+Future<Map<String, Iterable<String>>> statusFileListerMapFromArgs(
+    List<String> args) async {
+  args.add("--list-status-files");
   Map<String, List<String>> returnMap = {};
-  var suitesWithStatusFiles = await statusFileLister(configuration);
+  var suitesWithStatusFiles = await callTestPy(args);
   String currentSuite = "";
   for (var line in suitesWithStatusFiles) {
+    if (line.isEmpty) {
+      continue;
+    }
     bool isSuiteLine = !line.startsWith("\t");
     if (isSuiteLine) {
       currentSuite = line;
@@ -61,4 +65,15 @@ Future<Map<String, Iterable<String>>> statusFileListerMap(
     }
   }
   return returnMap;
+}
+
+/// Get tests for a suite.
+Future<Iterable<String>> testsForSuite(String suite) async {
+  Iterable<String> tests = await callTestPy(["--list", suite]);
+  return tests
+      .skip(3)
+      .takeWhile((testName) => testName.isNotEmpty)
+      .map((testInfo) {
+    return testInfo.substring(0, testInfo.indexOf(" ")).trim();
+  });
 }

@@ -41,7 +41,8 @@ class InterfaceResolverTest {
     coreTypes = new CoreTypes(program);
     typeEnvironment =
         new TypeSchemaEnvironment(coreTypes, classHierarchy, true);
-    interfaceResolver = new InterfaceResolver(typeEnvironment, null, true);
+    interfaceResolver =
+        new InterfaceResolver(null, typeEnvironment, null, true);
   }
 
   InterfaceType get intType => coreTypes.intClass.rawType;
@@ -83,11 +84,8 @@ class InterfaceResolverTest {
     return candidates[0];
   }
 
-  List<Procedure> getCandidates(Class class_, bool setters) {
-    var forwardingNodes = getForwardingNodes(class_, setters);
-    expect(forwardingNodes, hasLength(1));
-    return ForwardingNode.getCandidates(forwardingNodes[0]);
-  }
+  List<Procedure> getCandidates(Class class_, bool setters) =>
+      interfaceResolver.getCandidates(class_, setters);
 
   ForwardingNode getForwardingNode(Class class_, bool setter) {
     var forwardingNodes = getForwardingNodes(class_, setter);
@@ -97,7 +95,12 @@ class InterfaceResolverTest {
 
   List<ForwardingNode> getForwardingNodes(Class class_, bool setters) {
     var forwardingNodes = <ForwardingNode>[];
-    interfaceResolver.createForwardingNodes(class_, forwardingNodes, setters);
+    var candidates = getCandidates(class_, setters);
+    InterfaceResolver.forEachApiMember(candidates,
+        (int start, int end, Name name) {
+      forwardingNodes.add(new ForwardingNode(interfaceResolver, null, class_,
+          name, candidates[start].kind, candidates, start, end));
+    });
     return forwardingNodes;
   }
 
@@ -154,7 +157,7 @@ class InterfaceResolverTest {
         namedParameters: namedParameters,
         requiredParameterCount: requiredParameterCount,
         returnType: returnType);
-    return new Procedure(new Name(name), kind, function,
+    return new ShadowProcedure(new Name(name), kind, function, false,
         isAbstract: isAbstract);
   }
 
@@ -177,16 +180,18 @@ class InterfaceResolverTest {
       {String name: 'foo', DartType getterType: const DynamicType()}) {
     var body = new ReturnStatement(new NullLiteral());
     var function = new FunctionNode(body, returnType: getterType);
-    return new Procedure(new Name(name), ProcedureKind.Getter, function);
+    return new ShadowProcedure(
+        new Name(name), ProcedureKind.Getter, function, false);
   }
 
   Procedure makeSetter(
       {String name: 'foo', DartType setterType: const DynamicType()}) {
-    var parameter = new VariableDeclaration('value', type: setterType);
+    var parameter = new ShadowVariableDeclaration('value', 0, type: setterType);
     var body = new Block([]);
     var function = new FunctionNode(body,
         positionalParameters: [parameter], returnType: const VoidType());
-    return new Procedure(new Name(name), ProcedureKind.Setter, function);
+    return new ShadowProcedure(
+        new Name(name), ProcedureKind.Setter, function, false);
   }
 
   void test_candidate_for_field_getter() {
@@ -219,7 +224,8 @@ class InterfaceResolverTest {
 
   void test_candidate_for_getter() {
     var function = new FunctionNode(null);
-    var getter = new Procedure(new Name('foo'), ProcedureKind.Getter, function);
+    var getter = new ShadowProcedure(
+        new Name('foo'), ProcedureKind.Getter, function, false);
     checkCandidate(getter, false);
   }
 
@@ -228,10 +234,11 @@ class InterfaceResolverTest {
   }
 
   void test_candidate_for_setter() {
-    var parameter = new VariableDeclaration('value');
+    var parameter = new ShadowVariableDeclaration('value', 0);
     var function = new FunctionNode(null,
         positionalParameters: [parameter], returnType: const VoidType());
-    var setter = new Procedure(new Name('foo'), ProcedureKind.Setter, function);
+    var setter = new ShadowProcedure(
+        new Name('foo'), ProcedureKind.Setter, function, false);
     checkCandidate(setter, true);
   }
 
@@ -338,8 +345,8 @@ class InterfaceResolverTest {
         kind: ProcedureKind.Operator,
         name: '[]=',
         positionalParameters: [
-          new VariableDeclaration('index', type: intType),
-          new VariableDeclaration('value', type: numType)
+          new ShadowVariableDeclaration('index', 0, type: intType),
+          new ShadowVariableDeclaration('value', 0, type: numType)
         ]);
     var stub = makeForwardingStub(operator, false);
     expect(stub.name, operator.name);
@@ -368,7 +375,7 @@ class InterfaceResolverTest {
   }
 
   void test_createForwardingStub_optionalNamedParameter() {
-    var parameter = new VariableDeclaration('x', type: intType);
+    var parameter = new ShadowVariableDeclaration('x', 0, type: intType);
     var method = makeEmptyMethod(namedParameters: [parameter]);
     var stub = makeForwardingStub(method, false);
     expect(stub.function.namedParameters, hasLength(1));
@@ -385,7 +392,7 @@ class InterfaceResolverTest {
   }
 
   void test_createForwardingStub_optionalPositionalParameter() {
-    var parameter = new VariableDeclaration('x', type: intType);
+    var parameter = new ShadowVariableDeclaration('x', 0, type: intType);
     var method = makeEmptyMethod(
         positionalParameters: [parameter], requiredParameterCount: 0);
     var stub = makeForwardingStub(method, false);
@@ -402,7 +409,7 @@ class InterfaceResolverTest {
   }
 
   void test_createForwardingStub_requiredParameter() {
-    var parameter = new VariableDeclaration('x', type: intType);
+    var parameter = new ShadowVariableDeclaration('x', 0, type: intType);
     var method = makeEmptyMethod(positionalParameters: [parameter]);
     var stub = makeForwardingStub(method, false);
     expect(stub.function.positionalParameters, hasLength(1));
@@ -482,8 +489,10 @@ class InterfaceResolverTest {
   void test_createForwardingStub_substitute() {
     // class C<T> { T foo(T x, {T y}); }
     var T = new TypeParameter('T', objectType);
-    var x = new VariableDeclaration('x', type: new TypeParameterType(T));
-    var y = new VariableDeclaration('y', type: new TypeParameterType(T));
+    var x =
+        new ShadowVariableDeclaration('x', 0, type: new TypeParameterType(T));
+    var y =
+        new ShadowVariableDeclaration('y', 0, type: new TypeParameterType(T));
     var method = makeEmptyMethod(
         positionalParameters: [x],
         namedParameters: [y],
@@ -515,8 +524,10 @@ class InterfaceResolverTest {
     // class C<T> { void foo<U>(T x, U y); }
     var T = new TypeParameter('T', objectType);
     var U = new TypeParameter('U', objectType);
-    var x = new VariableDeclaration('x', type: new TypeParameterType(T));
-    var y = new VariableDeclaration('y', type: new TypeParameterType(U));
+    var x =
+        new ShadowVariableDeclaration('x', 0, type: new TypeParameterType(T));
+    var y =
+        new ShadowVariableDeclaration('y', 0, type: new TypeParameterType(U));
     var method =
         makeEmptyMethod(typeParameters: [U], positionalParameters: [x, y]);
     var substitution = Substitution.fromPairs([T], [intType]);
@@ -530,7 +541,7 @@ class InterfaceResolverTest {
   void test_createForwardingStub_typeParameter_substituteUses() {
     // class C { void foo<T>(T x); }
     var typeParameter = new TypeParameter('T', objectType);
-    var param = new VariableDeclaration('x',
+    var param = new ShadowVariableDeclaration('x', 0,
         type: new TypeParameterType(typeParameter));
     var method = makeEmptyMethod(
         typeParameters: [typeParameter], positionalParameters: [param]);
@@ -545,7 +556,7 @@ class InterfaceResolverTest {
     var typeParameter = new TypeParameter('T', null);
     typeParameter.bound =
         new InterfaceType(listClass, [new TypeParameterType(typeParameter)]);
-    var param = new VariableDeclaration('x',
+    var param = new ShadowVariableDeclaration('x', 0,
         type: new TypeParameterType(typeParameter));
     var method = makeEmptyMethod(
         typeParameters: [typeParameter], positionalParameters: [param]);
@@ -563,16 +574,17 @@ class InterfaceResolverTest {
   void test_direct_isGenericCovariant() {
     var typeParameter = new TypeParameter('T', objectType);
     var u = new TypeParameter('U', new TypeParameterType(typeParameter));
-    var x = new VariableDeclaration('x',
+    var x = new ShadowVariableDeclaration('x', 0,
         type: new TypeParameterType(typeParameter));
-    var y = new VariableDeclaration('y',
+    var y = new ShadowVariableDeclaration('y', 0,
         type: new TypeParameterType(typeParameter));
     var method = makeEmptyMethod(
         typeParameters: [u], positionalParameters: [x], namedParameters: [y]);
     var class_ =
         makeClass(typeParameters: [typeParameter], procedures: [method]);
     var node = getForwardingNode(class_, false);
-    var resolvedMethod = node.resolve();
+    ShadowClass.setBuilder(class_, null);
+    var resolvedMethod = node.finalize();
     expect(resolvedMethod, same(method));
     expect(u.isGenericCovariantImpl, isTrue);
     expect(u.isGenericCovariantInterface, isTrue);
@@ -589,8 +601,9 @@ class InterfaceResolverTest {
     var field = makeField(type: new TypeParameterType(typeParameter));
     var class_ = makeClass(typeParameters: [typeParameter], fields: [field]);
     var node = getForwardingNode(class_, true);
-    var resolvedField = node.resolve();
-    expect(resolvedField, same(field));
+    ShadowClass.setBuilder(class_, null);
+    var resolvedAccessor = node.finalize() as SyntheticAccessor;
+    expect(SyntheticAccessor.getField(resolvedAccessor), same(field));
     expect(field.isGenericCovariantImpl, isTrue);
     expect(field.isGenericCovariantInterface, isTrue);
     expect(field.isCovariant, isFalse);
@@ -603,8 +616,8 @@ class InterfaceResolverTest {
     var b = makeClass(
         name: 'B', implementedTypes: [a.asThisSupertype], fields: [fieldB]);
     var node = getForwardingNode(b, true);
-    var resolvedField = node.resolve();
-    expect(resolvedField, same(fieldB));
+    var resolvedAccessor = node.finalize() as SyntheticAccessor;
+    expect(SyntheticAccessor.getField(resolvedAccessor), same(fieldB));
     expect(fieldB.isGenericCovariantImpl, isFalse);
     expect(fieldB.isGenericCovariantInterface, isFalse);
     expect(fieldB.isCovariant, isTrue);
@@ -624,8 +637,8 @@ class InterfaceResolverTest {
       fieldB
     ]);
     var node = getForwardingNode(b, true);
-    var resolvedField = node.resolve();
-    expect(resolvedField, same(fieldB));
+    var resolvedAccessor = node.finalize() as SyntheticAccessor;
+    expect(SyntheticAccessor.getField(resolvedAccessor), same(fieldB));
     expect(fieldB.isGenericCovariantImpl, isTrue);
     expect(fieldB.isGenericCovariantInterface, isFalse);
     expect(fieldB.isCovariant, isFalse);
@@ -679,13 +692,15 @@ class InterfaceResolverTest {
   }
 
   void test_forwardingStub_isCovariant_inherited() {
-    var methodA = makeEmptyMethod(
-        positionalParameters: [new VariableDeclaration('x', type: numType)],
-        namedParameters: [new VariableDeclaration('y', type: numType)]);
-    var methodB = makeEmptyMethod(positionalParameters: [
-      new VariableDeclaration('x', type: intType)..isCovariant = true
+    var methodA = makeEmptyMethod(positionalParameters: [
+      new ShadowVariableDeclaration('x', 0, type: numType)
     ], namedParameters: [
-      new VariableDeclaration('y', type: intType)..isCovariant = true
+      new ShadowVariableDeclaration('y', 0, type: numType)
+    ]);
+    var methodB = makeEmptyMethod(positionalParameters: [
+      new ShadowVariableDeclaration('x', 0, type: intType)..isCovariant = true
+    ], namedParameters: [
+      new ShadowVariableDeclaration('y', 0, type: intType)..isCovariant = true
     ]);
     var a = makeClass(name: 'A', procedures: [methodA]);
     var b = makeClass(name: 'B', procedures: [methodB]);
@@ -694,7 +709,7 @@ class InterfaceResolverTest {
         supertype: a.asThisSupertype,
         implementedTypes: [b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    var stub = node.resolve() as Procedure;
+    var stub = node.finalize() as Procedure;
     var x = stub.function.positionalParameters[0];
     expect(x.isGenericCovariantImpl, isFalse);
     expect(x.isGenericCovariantInterface, isFalse);
@@ -707,21 +722,26 @@ class InterfaceResolverTest {
   }
 
   void test_forwardingStub_isGenericCovariantImpl_inherited() {
-    var methodA = makeEmptyMethod(
-        typeParameters: [new TypeParameter('U', numType)],
-        positionalParameters: [new VariableDeclaration('x', type: numType)],
-        namedParameters: [new VariableDeclaration('y', type: numType)]);
+    var methodA = makeEmptyMethod(typeParameters: [
+      new TypeParameter('U', numType)
+    ], positionalParameters: [
+      new ShadowVariableDeclaration('x', 0, type: numType)
+    ], namedParameters: [
+      new ShadowVariableDeclaration('y', 0, type: numType)
+    ]);
     var typeParameterB = new TypeParameter('T', objectType);
     var methodB = makeEmptyMethod(typeParameters: [
       new TypeParameter('U', new TypeParameterType(typeParameterB))
         ..isGenericCovariantImpl = true
         ..isGenericCovariantInterface = true
     ], positionalParameters: [
-      new VariableDeclaration('x', type: new TypeParameterType(typeParameterB))
+      new ShadowVariableDeclaration('x', 0,
+          type: new TypeParameterType(typeParameterB))
         ..isGenericCovariantImpl = true
         ..isGenericCovariantInterface = true
     ], namedParameters: [
-      new VariableDeclaration('y', type: new TypeParameterType(typeParameterB))
+      new ShadowVariableDeclaration('y', 0,
+          type: new TypeParameterType(typeParameterB))
         ..isGenericCovariantImpl = true
         ..isGenericCovariantInterface = true
     ]);
@@ -733,7 +753,7 @@ class InterfaceResolverTest {
       new Supertype(b, [numType])
     ]);
     var node = getForwardingNode(c, false);
-    var stub = node.resolve() as Procedure;
+    var stub = node.finalize() as Procedure;
     var u = stub.function.typeParameters[0];
     expect(u.isGenericCovariantImpl, isTrue);
     expect(u.isGenericCovariantInterface, isFalse);
@@ -786,17 +806,17 @@ class InterfaceResolverTest {
   }
 
   void test_resolve_directly_declared() {
-    var parameterA =
-        new VariableDeclaration('x', type: objectType, isCovariant: true);
+    var parameterA = new ShadowVariableDeclaration('x', 0,
+        type: objectType, isCovariant: true);
     var methodA = makeEmptyMethod(positionalParameters: [parameterA]);
     var parameterB =
-        new VariableDeclaration('x', type: intType, isCovariant: true);
+        new ShadowVariableDeclaration('x', 0, type: intType, isCovariant: true);
     var methodB = makeEmptyMethod(positionalParameters: [parameterB]);
     var a = makeClass(name: 'A', procedures: [methodA]);
     var b = makeClass(
         name: 'B', supertype: a.asThisSupertype, procedures: [methodB]);
     var node = getForwardingNode(b, false);
-    expect(node.resolve(), same(methodB));
+    expect(node.finalize(), same(methodB));
   }
 
   void test_resolve_favor_first() {
@@ -808,7 +828,7 @@ class InterfaceResolverTest {
     var c = makeClass(
         name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    expect(node.resolve(), same(methodA));
+    expect(node.finalize(), same(methodA));
   }
 
   void test_resolve_field() {
@@ -816,7 +836,8 @@ class InterfaceResolverTest {
     var a = makeClass(name: 'A', fields: [field]);
     var b = makeClass(name: 'B', supertype: a.asThisSupertype);
     var node = getForwardingNode(b, false);
-    expect(node.resolve(), same(field));
+    var accessor = node.finalize() as SyntheticAccessor;
+    expect(SyntheticAccessor.getField(accessor), same(field));
   }
 
   void test_resolve_first() {
@@ -827,7 +848,7 @@ class InterfaceResolverTest {
     var c = makeClass(
         name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    expect(node.resolve(), same(methodA));
+    expect(node.finalize(), same(methodA));
   }
 
   void test_resolve_second() {
@@ -838,7 +859,7 @@ class InterfaceResolverTest {
     var c = makeClass(
         name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    var stub = node.resolve();
+    var stub = node.finalize();
     expect(getStubTarget(stub), isNull);
     expect(stub.function.returnType, intType);
   }
@@ -856,23 +877,25 @@ class InterfaceResolverTest {
       c.asThisSupertype
     ]);
     var node = getForwardingNode(d, true);
-    var stub = node.resolve();
+    var stub = node.finalize();
     expect(getStubTarget(stub), isNull);
     expect(stub.function.positionalParameters[0].type, objectType);
   }
 
   void test_resolve_with_added_implementation() {
-    var methodA = makeEmptyMethod(
-        positionalParameters: [new VariableDeclaration('x', type: numType)]);
+    var methodA = makeEmptyMethod(positionalParameters: [
+      new ShadowVariableDeclaration('x', 0, type: numType)
+    ]);
     var typeParamB = new TypeParameter('T', objectType);
     var methodB = makeEmptyMethod(positionalParameters: [
-      new VariableDeclaration('x', type: new TypeParameterType(typeParamB))
+      new ShadowVariableDeclaration('x', 0,
+          type: new TypeParameterType(typeParamB))
         ..isGenericCovariantInterface = true
         ..isGenericCovariantImpl = true
     ]);
-    var methodC = makeEmptyMethod(
-        positionalParameters: [new VariableDeclaration('x', type: numType)],
-        isAbstract: true);
+    var methodC = makeEmptyMethod(positionalParameters: [
+      new ShadowVariableDeclaration('x', 0, type: numType)
+    ], isAbstract: true);
     var a = makeClass(name: 'A', procedures: [methodA]);
     var b = makeClass(
         name: 'B', typeParameters: [typeParamB], procedures: [methodB]);
@@ -884,7 +907,7 @@ class InterfaceResolverTest {
     ]);
     var node = getForwardingNode(c, false);
     expect(methodC.function.body, isNull);
-    var resolvedMethod = node.resolve();
+    var resolvedMethod = node.finalize();
     expect(resolvedMethod, same(methodC));
     expect(methodC.function.body, isNotNull);
     expect(getStubTarget(methodC), same(methodA));
@@ -914,7 +937,7 @@ class InterfaceResolverTest {
           new Supertype(c, [numType])
         ]);
     var node = getForwardingNode(d, false);
-    var stub = node.resolve();
+    var stub = node.finalize();
     expect(getStubTarget(stub), isNull);
     expect(stub.function.returnType, intType);
   }

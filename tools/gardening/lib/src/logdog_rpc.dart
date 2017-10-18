@@ -6,24 +6,24 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'try.dart';
 import 'cache_new.dart';
 
 const String LOGDOG_HOST = "luci-logdog.appspot.com";
 
+/// Class for communicating with logdog over rpc.
 class LogdogRpc {
-  Future<Try<String>> get(
-      String project, String path, WithCacheFunction withCache) async {
+  Future<String> get(String project, String path, WithCacheFunction withCache) {
     var uri = new Uri(
         scheme: "https", host: LOGDOG_HOST, path: "prpc/logdog.Logs/Get");
     var body = {"project": project, "path": path};
-    var result = await tryStartAsync(() => withCache(
-        () => _makePostRequest(uri, JSON.encode(body), {
-              HttpHeaders.CONTENT_TYPE: "application/json",
-              HttpHeaders.ACCEPT: "application/json"
-            }),
-        "logdog-get-$path"));
-    return result.bind((str) => JSON.decode(str)).bind((json) {
+    return withCache(
+            () => _makePostRequest(uri, JSON.encode(body), {
+                  HttpHeaders.CONTENT_TYPE: "application/json",
+                  HttpHeaders.ACCEPT: "application/json"
+                }),
+            "logdog-get-$path")
+        .then(JSON.decode)
+        .then((json) {
       StringBuffer buffer = new StringBuffer();
       json["logs"].forEach((log) {
         buffer.write(log["text"]["lines"][0]["value"]);
@@ -32,18 +32,20 @@ class LogdogRpc {
     });
   }
 
-  Future<Try<List<LogdogStream>>> query(
-      String project, String path, WithCacheFunction withCache) async {
+  Future<List<LogdogStream>> query(
+      String project, String path, WithCacheFunction withCache,
+      {maxResults = 1000}) {
     var uri = new Uri(
         scheme: "https", host: LOGDOG_HOST, path: "prpc/logdog.Logs/Query");
-    var body = {"project": project, "path": path};
-    var result = await tryStartAsync(() => withCache(
-        () => _makePostRequest(uri, JSON.encode(body), {
-              HttpHeaders.CONTENT_TYPE: "application/json",
-              HttpHeaders.ACCEPT: "application/json"
-            }),
-        "logdog-query-$path"));
-    return result.bind((str) => JSON.decode(str)).bind((json) {
+    var body = {"project": project, "path": path, "maxResults": maxResults};
+    return withCache(
+            () => _makePostRequest(uri, JSON.encode(body), {
+                  HttpHeaders.CONTENT_TYPE: "application/json",
+                  HttpHeaders.ACCEPT: "application/json"
+                }),
+            "logdog-query-$path")
+        .then(JSON.decode)
+        .then((json) {
       if (json["streams"] == null) {
         return <LogdogStream>[];
       }

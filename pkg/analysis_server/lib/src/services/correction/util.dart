@@ -620,6 +620,7 @@ bool _allListsIdentical(List<List> lists, int position) {
  */
 class CancelCorrectionException {
   final Object exception;
+
   CancelCorrectionException({this.exception});
 }
 
@@ -1052,7 +1053,7 @@ class CorrectionUtils {
   /**
    * Indents given source left or right.
    */
-  String indentSourceLeftRight(String source, bool right) {
+  String indentSourceLeftRight(String source, {bool indentLeft: true}) {
     StringBuffer sb = new StringBuffer();
     String indent = getIndent(1);
     String eol = endOfLine;
@@ -1064,10 +1065,10 @@ class CorrectionUtils {
         break;
       }
       // update line
-      if (right) {
-        line = "$indent$line";
-      } else {
+      if (indentLeft) {
         line = removeStart(line, indent);
+      } else {
+        line = "$indent$line";
       }
       // append line
       sb.write(line);

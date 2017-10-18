@@ -6,6 +6,8 @@ import "package:expect/expect.dart";
 
 // Exercises compile-time string constants
 
+const yz = "y" + "z";
+
 main() {
   // Constant comparisons are independent of the quotes used.
   Expect.isTrue(identical("abcd", 'abcd'));
@@ -34,4 +36,16 @@ main() {
   Expect.isTrue(identical('a\'b\'cd', "a" "'b'" 'c' "d"));
   Expect.isTrue(identical('a"b"cd', 'a' '"b"' 'c' "d"));
   Expect.isTrue(identical("a\"b\"cd", 'a' '"b"' 'c' "d"));
+
+  const a = identical("ab", "a" + "b");
+  Expect.isTrue(a);
+
+  const b = identical("xyz", "x" + yz);
+  Expect.isTrue(b);
+
+  const c = identical("12", "1" "2");
+  Expect.isTrue(c);
+
+  const d = identical("zyz", "z$yz");
+  Expect.isTrue(d);
 }

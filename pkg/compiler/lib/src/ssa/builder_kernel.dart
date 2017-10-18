@@ -26,6 +26,7 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
+import '../js_model/locals.dart' show JumpVisitor;
 import '../kernel/element_map.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -38,7 +39,6 @@ import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
-import 'kernel_ast_adapter.dart';
 import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
@@ -1065,10 +1065,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitForInStatement(ir.ForInStatement forInStatement) {
     if (forInStatement.isAsync) {
       _buildAsyncForIn(forInStatement);
-    }
-    // If the expression being iterated over is a JS indexable type, we can
-    // generate an optimized version of for-in that uses indexing.
-    if (_typeInferenceMap.isJsIndexableIterator(forInStatement, closedWorld)) {
+    } else if (_typeInferenceMap.isJsIndexableIterator(
+        forInStatement, closedWorld)) {
+      // If the expression being iterated over is a JS indexable type, we can
+      // generate an optimized version of for-in that uses indexing.
       _buildForInIndexable(forInStatement);
     } else {
       _buildForInIterator(forInStatement);
@@ -1630,11 +1630,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitLabeledStatement(ir.LabeledStatement labeledStatement) {
     ir.Statement body = labeledStatement.body;
-    if (body is ir.WhileStatement ||
-        body is ir.DoStatement ||
-        body is ir.ForStatement ||
-        body is ir.ForInStatement ||
-        body is ir.SwitchStatement) {
+    if (JumpVisitor.canBeBreakTarget(body)) {
       // loops and switches handle breaks on their own
       body.accept(this);
       return;
@@ -2398,6 +2394,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _elementMap.getMember(propertySet.interfaceTarget),
           <HInstruction>[value]);
     }
+    pop();
+    stack.add(value);
   }
 
   @override
@@ -3147,14 +3145,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void _pushStaticInvocation(
       MemberEntity target, List<HInstruction> arguments, TypeMask typeMask) {
-    HInvokeStatic instruction = new HInvokeStatic(target, arguments, typeMask,
-        targetCanThrow: !closedWorld.getCannotThrow(target));
-    if (currentImplicitInstantiations.isNotEmpty) {
-      instruction.instantiatedTypes =
-          new List<InterfaceType>.from(currentImplicitInstantiations);
-    }
-    instruction.sideEffects = closedWorld.getSideEffectsOfElement(target);
+    var instruction;
+    if (closedWorld.nativeData.isJsInteropMember(target)) {
+      instruction = _invokeJsInteropFunction(target, arguments);
+    } else {
+      instruction = new HInvokeStatic(target, arguments, typeMask,
+          targetCanThrow: !closedWorld.getCannotThrow(target));
 
+      if (currentImplicitInstantiations.isNotEmpty) {
+        instruction.instantiatedTypes =
+            new List<InterfaceType>.from(currentImplicitInstantiations);
+      }
+      instruction.sideEffects = closedWorld.getSideEffectsOfElement(target);
+    }
     push(instruction);
   }
 
@@ -3184,6 +3187,106 @@ class KernelSsaGraphBuilder extends ir.Visitor
       push(new HInvokeDynamicMethod(
           selector, mask, inputs, type, isIntercepted));
     }
+  }
+
+  HForeignCode _invokeJsInteropFunction(
+      FunctionEntity element, List<HInstruction> arguments) {
+    assert(closedWorld.nativeData.isJsInteropMember(element));
+    nativeEmitter.nativeMethods.add(element);
+
+    if (element is ConstructorEntity &&
+        element.isFactoryConstructor &&
+        nativeData.isAnonymousJsInteropClass(element.enclosingClass)) {
+      // Factory constructor that is syntactic sugar for creating a JavaScript
+      // object literal.
+      ConstructorEntity constructor = element;
+      ParameterStructure params = constructor.parameterStructure;
+      int i = 0;
+      int positions = 0;
+      var filteredArguments = <HInstruction>[];
+      var parameterNameMap = new Map<String, js.Expression>();
+      params.namedParameters.forEach((String parameterName) {
+        // TODO(jacobr): consider throwing if parameter names do not match
+        // names of properties in the class.
+        HInstruction argument = arguments[i];
+        if (argument != null) {
+          filteredArguments.add(argument);
+          var jsName = nativeData.computeUnescapedJSInteropName(parameterName);
+          parameterNameMap[jsName] = new js.InterpolatedExpression(positions++);
+        }
+        i++;
+      });
+      var codeTemplate =
+          new js.Template(null, js.objectLiteral(parameterNameMap));
+
+      var nativeBehavior = new native.NativeBehavior()
+        ..codeTemplate = codeTemplate;
+      if (options.trustJSInteropTypeAnnotations) {
+        InterfaceType thisType = _elementMap.elementEnvironment
+            .getThisType(constructor.enclosingClass);
+        nativeBehavior.typesReturned.add(thisType);
+      }
+      // TODO(efortuna): Source information.
+      return new HForeignCode(
+          codeTemplate, commonMasks.dynamicType, filteredArguments,
+          nativeBehavior: nativeBehavior);
+    }
+
+    var target = new HForeignCode(
+        js.js.parseForeignJS("${nativeData.getFixedBackendMethodPath(element)}."
+            "${nativeData.getFixedBackendName(element)}"),
+        commonMasks.dynamicType,
+        <HInstruction>[]);
+    add(target);
+    // Strip off trailing arguments that were not specified.
+    // we could assert that the trailing arguments are all null.
+    // TODO(jacobr): rewrite named arguments to an object literal matching
+    // the factory constructor case.
+    arguments = arguments.where((arg) => arg != null).toList();
+    var inputs = <HInstruction>[target]..addAll(arguments);
+
+    var nativeBehavior = new native.NativeBehavior()
+      ..sideEffects.setAllSideEffects();
+
+    DartType type = element is ConstructorEntity
+        ? _elementMap.elementEnvironment.getThisType(element.enclosingClass)
+        : _elementMap.elementEnvironment.getFunctionType(element).returnType;
+    // Native behavior effects here are similar to native/behavior.dart.
+    // The return type is dynamic if we don't trust js-interop type
+    // declarations.
+    nativeBehavior.typesReturned.add(
+        options.trustJSInteropTypeAnnotations ? type : const DynamicType());
+
+    // The allocation effects include the declared type if it is native (which
+    // includes js interop types).
+    if (type is InterfaceType && nativeData.isNativeClass(type.element)) {
+      nativeBehavior.typesInstantiated.add(type);
+    }
+
+    // It also includes any other JS interop type if we don't trust the
+    // annotation or if is declared too broad.
+    if (!options.trustJSInteropTypeAnnotations ||
+        type == commonElements.objectType ||
+        type is DynamicType) {
+      nativeBehavior.typesInstantiated.add(_elementMap.elementEnvironment
+          .getThisType(commonElements.jsJavaScriptObjectClass));
+    }
+
+    String template;
+    if (element.isGetter) {
+      template = '#';
+    } else if (element.isSetter) {
+      template = '# = #';
+    } else {
+      var args = new List.filled(arguments.length, '#').join(',');
+      template = element.isConstructor ? "new #($args)" : "#($args)";
+    }
+    js.Template codeTemplate = js.js.parseForeignJS(template);
+    nativeBehavior.codeTemplate = codeTemplate;
+
+    // TODO(efortuna): Add source information.
+    return new HForeignCode(codeTemplate, commonMasks.dynamicType, inputs,
+        nativeBehavior: nativeBehavior);
   }
 
   @override
@@ -3370,6 +3473,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     List<HInstruction> arguments =
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
     ConstructorEntity constructor = _elementMap.getConstructor(target);
+    if (commonElements.isSymbolConstructor(constructor)) {
+      constructor = commonElements.symbolValidatedConstructor;
+    }
     ClassEntity cls = constructor.enclosingClass;
     if (closedWorld.rtiNeed.classNeedsRti(cls)) {
       _addTypeArguments(arguments, invocation.arguments);
@@ -3410,7 +3516,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     DartType typeValue =
         localsHandler.substInContext(_elementMap.getDartType(type));
 
-    if (type is ir.FunctionType) {
+    if (typeValue is FunctionType) {
       HInstruction representation =
           typeBuilder.analyzeTypeArgument(typeValue, sourceElement);
       List<HInstruction> inputs = <HInstruction>[
@@ -3424,7 +3530,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    if (type is ir.TypeParameterType) {
+    if (typeValue is TypeVariableType) {
       HInstruction runtimeType =
           typeBuilder.addTypeVariableReference(typeValue, sourceElement);
       _pushStaticInvocation(_commonElements.checkSubtypeOfRuntimeType,
@@ -3852,4 +3958,29 @@ class _ErroneousInitializerVisitor extends ir.Visitor<bool> {
 
   // TODO(sra): We might need to match other expressions that always throw but
   // in a subexpression.
+}
+
+/// Special [JumpHandler] implementation used to handle continue statements
+/// targeting switch cases.
+class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
+  KernelSwitchCaseJumpHandler(GraphBuilder builder, JumpTarget target,
+      ir.SwitchStatement switchStatement, KernelToLocalsMap localsMap)
+      : super(builder, target) {
+    // The switch case indices must match those computed in
+    // [KernelSsaBuilder.buildSwitchCaseConstants].
+    // Switch indices are 1-based so we can bypass the synthetic loop when no
+    // cases match simply by branching on the index (which defaults to null).
+    // TODO
+    int switchIndex = 1;
+    for (ir.SwitchCase switchCase in switchStatement.cases) {
+      JumpTarget continueTarget =
+          localsMap.getJumpTargetForSwitchCase(switchCase);
+      if (continueTarget != null) {
+        targetIndexMap[continueTarget] = switchIndex;
+        assert(builder.jumpTargets[continueTarget] == null);
+        builder.jumpTargets[continueTarget] = this;
+      }
+      switchIndex++;
+    }
+  }
 }

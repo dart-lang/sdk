@@ -101,8 +101,7 @@ class KernelLoader {
  private:
   friend class BuildingTranslationHelper;
 
-  void LoadPreliminaryClass(Class* klass,
-                            ClassHelper* class_helper,
+  void LoadPreliminaryClass(ClassHelper* class_helper,
                             intptr_t type_parameter_count);
   Class& LoadClass(const Library& library,
                    const Class& toplevel_class,
@@ -112,24 +111,20 @@ class KernelLoader {
                      bool in_class,
                      intptr_t procedure_end);
 
-  void LoadAndSetupTypeParameters(const Object& set_on,
-                                  intptr_t type_parameter_count,
-                                  const Class& parameterized_class,
-                                  const Function& parameterized_function);
-
   RawArray* MakeFunctionsArray();
+
+  RawScript* LoadScriptAt(intptr_t index);
 
   // If klass's script is not the script at the uri index, return a PatchClass
   // for klass whose script corresponds to the uri index.
   // Otherwise return klass.
   const Object& ClassForScriptAt(const Class& klass, intptr_t source_uri_index);
-  Script& ScriptAt(intptr_t source_uri_index,
-                   StringIndex import_uri = StringIndex());
+  RawScript* ScriptAt(intptr_t source_uri_index,
+                      StringIndex import_uri = StringIndex());
 
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
-                              FieldHelper* field_helper,
-                              intptr_t field_offset);
+                              FieldHelper* field_helper);
 
   void SetupFieldAccessorFunction(const Class& klass, const Function& function);
 
@@ -145,9 +140,11 @@ class KernelLoader {
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
-  Array& scripts_;
   Array& patch_classes_;
   ActiveClass active_class_;
+  intptr_t library_kernel_offset_;
+  TypedData& library_kernel_data_;
+  KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
   StreamingFlowGraphBuilder builder_;
 

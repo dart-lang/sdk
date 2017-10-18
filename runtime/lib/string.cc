@@ -384,10 +384,6 @@ DEFINE_NATIVE_ENTRY(OneByteString_setAt, 3) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(ExternalOneByteString_getCid, 0) {
-  return Smi::New(kExternalOneByteStringCid);
-}
-
 DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
   Instance& list = Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));

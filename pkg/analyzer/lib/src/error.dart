@@ -7,10 +7,6 @@ import 'dart:collection';
 
 import 'package:analyzer/error/error.dart';
 
-/// The maximum line length when printing extracted source code when converting
-/// an [AnalyzerError] to a string.
-final _MAX_ERROR_LINE_LENGTH = 120;
-
 /// A wrapper around [AnalysisError] that provides a more user-friendly string
 /// representation.
 class AnalyzerError implements Exception {

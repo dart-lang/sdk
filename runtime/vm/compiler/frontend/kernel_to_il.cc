@@ -26,6 +26,62 @@ namespace kernel {
 #define T (type_translator_)
 #define I Isolate::Current()
 
+ActiveTypeParametersScope::ActiveTypeParametersScope(ActiveClass* active_class,
+                                                     const Function& innermost,
+                                                     Zone* Z)
+    : active_class_(active_class), saved_(*active_class) {
+  intptr_t num_params = 0;
+
+  Function& f = Function::Handle(Z);
+  TypeArguments& f_params = TypeArguments::Handle(Z);
+  for (f = innermost.raw(); f.parent_function() != Object::null();
+       f = f.parent_function()) {
+    f_params = f.type_parameters();
+    num_params += f_params.Length();
+  }
+  if (num_params == 0) return;
+
+  TypeArguments& params =
+      TypeArguments::Handle(Z, TypeArguments::New(num_params));
+
+  intptr_t index = num_params;
+  for (f = innermost.raw(); f.parent_function() != Object::null();
+       f = f.parent_function()) {
+    f_params = f.type_parameters();
+    for (intptr_t j = f_params.Length() - 1; j >= 0; --j) {
+      params.SetTypeAt(--index, AbstractType::Handle(Z, f_params.TypeAt(j)));
+    }
+  }
+
+  active_class_->local_type_parameters = &params;
+}
+
+ActiveTypeParametersScope::ActiveTypeParametersScope(
+    ActiveClass* active_class,
+    const TypeArguments& new_params,
+    Zone* Z)
+    : active_class_(active_class), saved_(*active_class) {
+  if (new_params.IsNull()) return;
+
+  const TypeArguments* old_params = active_class->local_type_parameters;
+  const intptr_t old_param_count =
+      old_params == NULL ? 0 : old_params->Length();
+  const TypeArguments& extended_params = TypeArguments::Handle(
+      Z, TypeArguments::New(old_param_count + new_params.Length()));
+
+  intptr_t index = 0;
+  for (intptr_t i = 0; i < old_param_count; ++i) {
+    extended_params.SetTypeAt(
+        index++, AbstractType::ZoneHandle(Z, old_params->TypeAt(i)));
+  }
+  for (intptr_t i = 0; i < new_params.Length(); ++i) {
+    extended_params.SetTypeAt(
+        index++, AbstractType::ZoneHandle(Z, new_params.TypeAt(i)));
+  }
+
+  active_class_->local_type_parameters = &extended_params;
+}
+
 Fragment& Fragment::operator+=(const Fragment& other) {
   if (entry == NULL) {
     entry = other.entry;
@@ -90,20 +146,25 @@ TranslationHelper::TranslationHelper(Thread* thread)
       allocation_space_(thread->IsMutatorThread() ? Heap::kNew : Heap::kOld),
       string_offsets_(TypedData::Handle(Z)),
       string_data_(TypedData::Handle(Z)),
-      canonical_names_(TypedData::Handle(Z)) {}
+      canonical_names_(TypedData::Handle(Z)),
+      metadata_payloads_(TypedData::Handle(Z)),
+      metadata_mappings_(TypedData::Handle(Z)) {}
 
-TranslationHelper::TranslationHelper(Thread* thread,
-                                     RawTypedData* string_offsets,
-                                     RawTypedData* string_data,
-                                     RawTypedData* canonical_names)
-    : thread_(thread),
-      zone_(thread->zone()),
-      isolate_(thread->isolate()),
-      allocation_space_(Heap::kNew),
-      string_offsets_(TypedData::Handle(Z, string_offsets)),
-      string_data_(TypedData::Handle(Z, string_data)),
-      canonical_names_(TypedData::Handle(Z, canonical_names)) {
-  ASSERT(thread->IsMutatorThread());
+void TranslationHelper::InitFromScript(const Script& script) {
+  KernelProgramInfo& info =
+      KernelProgramInfo::Handle(Z, script.kernel_program_info());
+  if (info.IsNull()) {
+    // If there is no kernel data associated with the script, then
+    // do not bother initializing!.
+    // This can happen with few special functions like
+    // NoSuchMethodDispatcher and InvokeFieldDispatcher.
+    return;
+  }
+  SetStringOffsets(TypedData::Handle(Z, info.string_offsets()));
+  SetStringData(TypedData::Handle(Z, info.string_data()));
+  SetCanonicalNames(TypedData::Handle(Z, info.canonical_names()));
+  SetMetadataPayloads(TypedData::Handle(Z, info.metadata_payloads()));
+  SetMetadataMappings(TypedData::Handle(Z, info.metadata_mappings()));
 }
 
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
@@ -119,6 +180,18 @@ void TranslationHelper::SetStringData(const TypedData& string_data) {
 void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
   ASSERT(canonical_names_.IsNull());
   canonical_names_ = canonical_names.raw();
+}
+
+void TranslationHelper::SetMetadataPayloads(
+    const TypedData& metadata_payloads) {
+  ASSERT(metadata_payloads_.IsNull());
+  metadata_payloads_ = metadata_payloads.raw();
+}
+
+void TranslationHelper::SetMetadataMappings(
+    const TypedData& metadata_mappings) {
+  ASSERT(metadata_mappings_.IsNull());
+  metadata_mappings_ = metadata_mappings.raw();
 }
 
 intptr_t TranslationHelper::StringOffset(StringIndex index) const {
@@ -570,6 +643,18 @@ void TranslationHelper::ReportError(const char* format, ...) {
   UNREACHABLE();
 }
 
+void TranslationHelper::ReportError(const Script& script,
+                                    const TokenPosition position,
+                                    const char* format,
+                                    ...) {
+  va_list args;
+  va_start(args, format);
+  Report::MessageV(Report::kError, script, position, Report::AtLocation, format,
+                   args);
+  va_end(args);
+  UNREACHABLE();
+}
+
 void TranslationHelper::ReportError(const Error& prev_error,
                                     const char* format,
                                     ...) {
@@ -602,6 +687,7 @@ FlowGraphBuilder::FlowGraphBuilder(
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     ZoneGrowableArray<intptr_t>* context_level_array,
     InlineExitCollector* exit_collector,
+    bool optimizing,
     intptr_t osr_id,
     intptr_t first_block_id)
     : translation_helper_(Thread::Current()),
@@ -609,6 +695,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       zone_(translation_helper_.zone()),
       kernel_offset_(kernel_offset),
       parsed_function_(parsed_function),
+      optimizing_(optimizing),
       osr_id_(osr_id),
       ic_data_array_(ic_data_array),
       context_level_array_(context_level_array),
@@ -632,9 +719,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       catch_block_(NULL),
       streaming_flow_graph_builder_(NULL) {
   Script& script = Script::Handle(Z, parsed_function->function().script());
-  H.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
-  H.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-  H.SetCanonicalNames(TypedData::Handle(Z, script.kernel_canonical_names()));
+  H.InitFromScript(script);
 }
 
 FlowGraphBuilder::~FlowGraphBuilder() {}
@@ -793,13 +878,33 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
   return instructions;
 }
 
-// TODO(30455): Kernel generic methods undone. This seems to work for static
-// top-level functions, but probably needs to be revisited when generic methods
-// are fully supported in kernel.
+// This function is responsible for pushing a type arguments vector which
+// contains all type arguments of enclosing functions prepended to the type
+// arguments of the current function.
 Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
   Fragment instructions;
-  ASSERT(parsed_function_->function_type_arguments() != NULL);
-  instructions += LoadLocal(parsed_function_->function_type_arguments());
+  if (!FLAG_reify_generic_functions) {
+    instructions += NullConstant();
+    return instructions;
+  }
+
+  const Function& function = parsed_function_->function();
+
+  if (function.IsClosureFunction() && !function.IsGeneric()) {
+    LocalScope* scope = parsed_function_->node_sequence()->scope();
+    LocalVariable* closure = scope->VariableAt(0);
+    ASSERT(closure != NULL);
+    instructions += LoadLocal(closure);
+    instructions += LoadField(Closure::function_type_arguments_offset());
+
+  } else if (function.IsGeneric()) {
+    ASSERT(parsed_function_->function_type_arguments() != NULL);
+    instructions += LoadLocal(parsed_function_->function_type_arguments());
+
+  } else {
+    instructions += NullConstant();
+  }
+
   return instructions;
 }
 
@@ -1253,6 +1358,24 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
   return instructions.closed();
 }
 
+Fragment FlowGraphBuilder::CheckNull(TokenPosition position,
+                                     LocalVariable* receiver) {
+  Fragment instructions = LoadLocal(receiver);
+
+  CheckNullInstr* check_null =
+      new (Z) CheckNullInstr(Pop(), GetNextDeoptId(), position);
+
+  instructions <<= check_null;
+
+  // Null out receiver to make sure it is not saved into the frame before
+  // doing the call.
+  instructions += NullConstant();
+  instructions += StoreLocal(TokenPosition::kNoSource, receiver);
+  instructions += Drop();
+
+  return instructions;
+}
+
 Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Function& target,
                                       intptr_t argument_count,
@@ -1593,6 +1716,19 @@ Fragment FlowGraphBuilder::Drop() {
   return instructions;
 }
 
+Fragment FlowGraphBuilder::DropTempsPreserveTop(intptr_t num_temps_to_drop) {
+  Value* top = Pop();
+
+  for (intptr_t i = 0; i < num_temps_to_drop; ++i) {
+    Pop();
+  }
+
+  DropTempsInstr* drop_temps = new (Z) DropTempsInstr(num_temps_to_drop, top);
+  Push(drop_temps);
+
+  return Fragment(drop_temps);
+}
+
 void FlowGraphBuilder::InlineBailout(const char* reason) {
   bool is_inlining = exit_collector_ != NULL;
   if (is_inlining) {
@@ -1603,14 +1739,12 @@ void FlowGraphBuilder::InlineBailout(const char* reason) {
 
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   const Function& function = parsed_function_->function();
-
-  if (function.IsConstructorClosureFunction()) return NULL;
-
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      this, function.kernel_offset(),
-      TypedData::Handle(Z, function.kernel_data()));
+      this, TypedData::Handle(Z, function.KernelData()),
+      function.KernelDataProgramOffset());
   streaming_flow_graph_builder_ = &streaming_flow_graph_builder;
-  FlowGraph* result = streaming_flow_graph_builder_->BuildGraph(0);
+  FlowGraph* result =
+      streaming_flow_graph_builder_->BuildGraph(function.kernel_offset());
   streaming_flow_graph_builder_ = NULL;
   return result;
 }
@@ -2206,16 +2340,14 @@ RawObject* EvaluateMetadata(const Field& metadata_field) {
     Zone* zone_ = thread->zone();
     TranslationHelper helper(thread);
     Script& script = Script::Handle(Z, metadata_field.Script());
-    helper.SetStringOffsets(
-        TypedData::Handle(Z, script.kernel_string_offsets()));
-    helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-    helper.SetCanonicalNames(
-        TypedData::Handle(Z, script.kernel_canonical_names()));
+    helper.InitFromScript(script);
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
-        &helper, zone_, metadata_field.kernel_offset(),
-        TypedData::Handle(Z, metadata_field.kernel_data()));
-    return streaming_flow_graph_builder.EvaluateMetadata(0);
+        &helper, metadata_field.Script(), zone_,
+        TypedData::Handle(Z, metadata_field.KernelData()),
+        metadata_field.KernelDataProgramOffset());
+    return streaming_flow_graph_builder.EvaluateMetadata(
+        metadata_field.kernel_offset());
   } else {
     Thread* thread = Thread::Current();
     Error& error = Error::Handle();
@@ -2232,16 +2364,14 @@ RawObject* BuildParameterDescriptor(const Function& function) {
     Zone* zone_ = thread->zone();
     TranslationHelper helper(thread);
     Script& script = Script::Handle(Z, function.script());
-    helper.SetStringOffsets(
-        TypedData::Handle(Z, script.kernel_string_offsets()));
-    helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-    helper.SetCanonicalNames(
-        TypedData::Handle(Z, script.kernel_canonical_names()));
+    helper.InitFromScript(script);
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
-        &helper, zone_, function.kernel_offset(),
-        TypedData::Handle(Z, function.kernel_data()));
-    return streaming_flow_graph_builder.BuildParameterDescriptor(0);
+        &helper, function.script(), zone_,
+        TypedData::Handle(Z, function.KernelData()),
+        function.KernelDataProgramOffset());
+    return streaming_flow_graph_builder.BuildParameterDescriptor(
+        function.kernel_offset());
   } else {
     Thread* thread = Thread::Current();
     Error& error = Error::Handle();
@@ -2287,24 +2417,26 @@ static RawArray* AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
   return array_object.raw();
 }
 
-void ProcessTokenPositionsEntry(const TypedData& data,
-                                const Script& script,
-                                const Script& entry_script,
-                                intptr_t kernel_offset,
-                                Zone* zone_,
-                                TranslationHelper* helper,
-                                GrowableArray<intptr_t>* token_positions,
-                                GrowableArray<intptr_t>* yield_positions) {
+static void ProcessTokenPositionsEntry(
+    const TypedData& data,
+    const Script& script,
+    const Script& entry_script,
+    intptr_t kernel_offset,
+    intptr_t data_kernel_offset,
+    Zone* zone_,
+    TranslationHelper* helper,
+    GrowableArray<intptr_t>* token_positions,
+    GrowableArray<intptr_t>* yield_positions) {
   if (data.IsNull() ||
       script.kernel_string_offsets() != entry_script.kernel_string_offsets()) {
     return;
   }
 
-  StreamingFlowGraphBuilder streaming_flow_graph_builder(helper, zone_,
-                                                         kernel_offset, data);
+  StreamingFlowGraphBuilder streaming_flow_graph_builder(
+      helper, script.raw(), zone_, data, data_kernel_offset);
   streaming_flow_graph_builder.CollectTokenPositionsFor(
       script.kernel_script_index(), entry_script.kernel_script_index(),
-      token_positions, yield_positions);
+      kernel_offset, token_positions, yield_positions);
 }
 
 void CollectTokenPositionsFor(const Script& const_script) {
@@ -2312,10 +2444,7 @@ void CollectTokenPositionsFor(const Script& const_script) {
   Zone* zone_ = thread->zone();
   Script& script = Script::Handle(Z, const_script.raw());
   TranslationHelper helper(thread);
-  helper.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
-  helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-  helper.SetCanonicalNames(
-      TypedData::Handle(Z, script.kernel_canonical_names()));
+  helper.InitFromScript(script);
 
   GrowableArray<intptr_t> token_positions(10);
   GrowableArray<intptr_t> yield_positions(1);
@@ -2344,36 +2473,48 @@ void CollectTokenPositionsFor(const Script& const_script) {
         Field& field = Field::Handle(Z);
         for (intptr_t i = 0; i < array.Length(); ++i) {
           field ^= array.At(i);
-          data = field.kernel_data();
+          if (field.kernel_offset() <= 0) {
+            // Skip artificially injected fields.
+            continue;
+          }
+          data = field.KernelData();
           entry_script = field.Script();
-          ProcessTokenPositionsEntry(data, script, entry_script,
-                                     field.kernel_offset(), zone_, &helper,
-                                     &token_positions, &yield_positions);
+          ProcessTokenPositionsEntry(
+              data, script, entry_script, field.kernel_offset(),
+              field.KernelDataProgramOffset(), zone_, &helper, &token_positions,
+              &yield_positions);
         }
         array = klass.functions();
         Function& function = Function::Handle(Z);
         for (intptr_t i = 0; i < array.Length(); ++i) {
           function ^= array.At(i);
-          data = function.kernel_data();
+          data = function.KernelData();
           entry_script = function.script();
-          ProcessTokenPositionsEntry(data, script, entry_script,
-                                     function.kernel_offset(), zone_, &helper,
-                                     &token_positions, &yield_positions);
+          ProcessTokenPositionsEntry(
+              data, script, entry_script, function.kernel_offset(),
+              function.KernelDataProgramOffset(), zone_, &helper,
+              &token_positions, &yield_positions);
         }
       } else if (entry.IsFunction()) {
         const Function& function = Function::Cast(entry);
-        data = function.kernel_data();
+        data = function.KernelData();
         entry_script = function.script();
         ProcessTokenPositionsEntry(data, script, entry_script,
-                                   function.kernel_offset(), zone_, &helper,
-                                   &token_positions, &yield_positions);
+                                   function.kernel_offset(),
+                                   function.KernelDataProgramOffset(), zone_,
+                                   &helper, &token_positions, &yield_positions);
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
-        data = field.kernel_data();
+        if (field.kernel_offset() <= 0) {
+          // Skip artificially injected fields.
+          continue;
+        }
+        data = field.KernelData();
         entry_script = field.Script();
         ProcessTokenPositionsEntry(data, script, entry_script,
-                                   field.kernel_offset(), zone_, &helper,
-                                   &token_positions, &yield_positions);
+                                   field.kernel_offset(),
+                                   field.KernelDataProgramOffset(), zone_,
+                                   &helper, &token_positions, &yield_positions);
       }
     }
   }

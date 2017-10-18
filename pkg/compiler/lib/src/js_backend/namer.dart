@@ -584,6 +584,7 @@ class Namer {
 
   NativeData get _nativeData => _closedWorld.nativeData;
 
+  String get deferredMetadataName => 'deferredMetadata';
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
@@ -963,7 +964,7 @@ class Namer {
         _elementEnvironment.getSuperClass(element.enclosingClass);
     while (lookupClass != null) {
       MemberEntity foundMember =
-          _elementEnvironment.lookupClassMember(lookupClass, fieldName);
+          _elementEnvironment.lookupLocalClassMember(lookupClass, fieldName);
       if (foundMember != null) {
         if (foundMember.isField) {
           if (!isPrivate || memberLibrary == foundMember.library) {

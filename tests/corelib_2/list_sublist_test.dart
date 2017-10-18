@@ -26,32 +26,28 @@ main() {
   Expect.listEquals([2, 3], [1, 2, 3, 4].sublist(1, 3));
   Expect.listEquals([2, 3], const [1, 2, 3, 4].sublist(1, 3));
 
-  expectAE(() => [].sublist(-1, null));
-  expectAE(() => const [].sublist(-1, null));
-  expectAE(() => [].sublist(-1, 0));
-  expectAE(() => const [].sublist(-1, 0));
-  expectAE(() => [].sublist(-1, -1));
-  expectAE(() => const [].sublist(-1, -1));
-  expectAE(() => [].sublist(-1, 1));
-  expectAE(() => const [].sublist(-1, 1));
-  expectAE(() => [].sublist(0, -1));
-  expectAE(() => const [].sublist(0, -1));
-  expectAE(() => [].sublist(0, 1));
-  expectAE(() => const [].sublist(0, 1));
-  expectAE(() => [].sublist(1, null));
-  expectAE(() => const [].sublist(1, null));
-  expectAE(() => [].sublist(1, 0));
-  expectAE(() => const [].sublist(1, 0));
-  expectAE(() => [].sublist(1, -1));
-  expectAE(() => const [].sublist(1, -1));
-  expectAE(() => [].sublist(1, 1));
-  expectAE(() => const [].sublist(1, 1));
+  Expect.throwsArgumentError(() => [].sublist(-1, null));
+  Expect.throwsArgumentError(() => const [].sublist(-1, null));
+  Expect.throwsArgumentError(() => [].sublist(-1, 0));
+  Expect.throwsArgumentError(() => const [].sublist(-1, 0));
+  Expect.throwsArgumentError(() => [].sublist(-1, -1));
+  Expect.throwsArgumentError(() => const [].sublist(-1, -1));
+  Expect.throwsArgumentError(() => [].sublist(-1, 1));
+  Expect.throwsArgumentError(() => const [].sublist(-1, 1));
+  Expect.throwsArgumentError(() => [].sublist(0, -1));
+  Expect.throwsArgumentError(() => const [].sublist(0, -1));
+  Expect.throwsArgumentError(() => [].sublist(0, 1));
+  Expect.throwsArgumentError(() => const [].sublist(0, 1));
+  Expect.throwsArgumentError(() => [].sublist(1, null));
+  Expect.throwsArgumentError(() => const [].sublist(1, null));
+  Expect.throwsArgumentError(() => [].sublist(1, 0));
+  Expect.throwsArgumentError(() => const [].sublist(1, 0));
+  Expect.throwsArgumentError(() => [].sublist(1, -1));
+  Expect.throwsArgumentError(() => const [].sublist(1, -1));
+  Expect.throwsArgumentError(() => [].sublist(1, 1));
+  Expect.throwsArgumentError(() => const [].sublist(1, 1));
 
-  expectAE(() => [1].sublist(0, 2));
-  expectAE(() => [1].sublist(1, 2));
-  expectAE(() => [1].sublist(1, 0));
-}
-
-void expectAE(void f()) {
-  Expect.throws(f, (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => [1].sublist(0, 2));
+  Expect.throwsArgumentError(() => [1].sublist(1, 2));
+  Expect.throwsArgumentError(() => [1].sublist(1, 0));
 }

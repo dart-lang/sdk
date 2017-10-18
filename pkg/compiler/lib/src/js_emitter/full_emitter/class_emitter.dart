@@ -198,7 +198,10 @@ class ClassEmitter extends CodeEmitterHelper {
             // TODO(redemption): Support field entities.
             FieldElement element = fieldElement;
             ResolutionDartType type = element.type;
-            fieldNameParts.add(task.metadataCollector.reifyType(type));
+            // TODO(sigmund): use output unit for `element` (Issue #31032)
+            OutputUnit outputUnit = compiler.deferredLoadTask.mainOutputUnit;
+            fieldNameParts
+                .add(task.metadataCollector.reifyType(type, outputUnit));
           }
         }
         jsAst.Literal fieldNameAst = js.concatenateStrings(fieldNameParts);
@@ -372,14 +375,17 @@ class ClassEmitter extends CodeEmitterHelper {
         // TODO(herhut): Fix use of reflection name here.
         enclosingBuilder.addPropertyByName("+$reflectionName", js.number(0));
       } else {
+        // TODO(sigmund): use output unit for `classEntity` (Issue #31032)
+        OutputUnit outputUnit = compiler.deferredLoadTask.mainOutputUnit;
         // TODO(redemption): Handle class entities.
         ClassElement classElement = classEntity;
         List<jsAst.Expression> types = <jsAst.Expression>[];
         if (classElement.supertype != null) {
-          types.add(task.metadataCollector.reifyType(classElement.supertype));
+          types.add(task.metadataCollector
+              .reifyType(classElement.supertype, outputUnit));
         }
         for (ResolutionDartType interface in classElement.interfaces) {
-          types.add(task.metadataCollector.reifyType(interface));
+          types.add(task.metadataCollector.reifyType(interface, outputUnit));
         }
         // TODO(herhut): Fix use of reflection name here.
         enclosingBuilder.addPropertyByName(

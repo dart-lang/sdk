@@ -1675,6 +1675,19 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   // Hash not yet computed.
 }
 
+void Intrinsifier::Type_getHashCode(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RAX, Address(RSP, +1 * kWordSize));  // Type object.
+  __ movq(RAX, FieldAddress(RAX, Type::hash_offset()));
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagShift == 1);
+  __ testq(RAX, RAX);
+  __ j(ZERO, &fall_through, Assembler::kNearJump);
+  __ ret();
+  __ Bind(&fall_through);
+  // Hash not yet computed.
+}
+
 void Intrinsifier::Object_getHash(Assembler* assembler) {
   __ movq(RAX, Address(RSP, +1 * kWordSize));  // Object.
   __ movl(RAX, FieldAddress(RAX, String::hash_offset()));

@@ -27,7 +27,7 @@ main() {
   Expect.equals("S-foo", c.foo());
   Expect.equals("M1-bar", c.bar());
   Expect.equals("S-baz", c.baz());
-  Expect.throws(() => c.fez(), (error) => error is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => c.fez());
   Expect.equals("sugus", c.clo("su")("gus"));
 
   var d = new D();

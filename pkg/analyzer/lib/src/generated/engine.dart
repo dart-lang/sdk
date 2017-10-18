@@ -1171,6 +1171,7 @@ abstract class AnalysisOptions {
    * Return `true` if the parser is to parse asserts in the initializer list of
    * a constructor.
    */
+  @deprecated
   bool get enableAssertInitializer;
 
   /**
@@ -1391,9 +1392,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool dart2jsHint = false;
 
   @override
-  bool enableAssertInitializer = false;
-
-  @override
   List<String> enabledPluginNames = const <String>[];
 
   @override
@@ -1505,7 +1503,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
     enabledPluginNames = options.enabledPluginNames;
-    enableAssertInitializer = options.enableAssertInitializer;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
@@ -1561,6 +1558,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
     _analyzeFunctionBodiesPredicate = value;
   }
+
+  @deprecated
+  @override
+  bool get enableAssertInitializer => true;
+
+  @deprecated
+  void set enableAssertInitializer(bool enable) {}
 
   @override
   @deprecated
@@ -1639,7 +1643,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
       // Append boolean flags.
       buffer.addBool(declarationCasts);
-      buffer.addBool(enableAssertInitializer);
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(enableStrictCallChecks);
       buffer.addBool(enableSuperMixins);
@@ -1680,7 +1683,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = false;
     disableCacheFlushing = false;
     enabledPluginNames = const <String>[];
-    enableAssertInitializer = false;
     enableLazyAssignmentOperators = false;
     enableStrictCallChecks = false;
     enableSuperMixins = false;

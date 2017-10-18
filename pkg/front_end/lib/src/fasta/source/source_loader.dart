@@ -98,6 +98,8 @@ class SourceLoader<L> extends Loader<L> {
 
   Instrumentation instrumentation;
 
+  List<ClassBuilder> orderedClasses;
+
   SourceLoader(this.fileSystem, this.includeComments, KernelTarget target)
       : super(target);
 
@@ -139,9 +141,7 @@ class SourceLoader<L> extends Loader<L> {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
         library.addCompileTimeError(
-            error.assertionMessage,
-            token.charOffset,
-            uri);
+            error.assertionMessage, token.charOffset, uri);
       }
       token = token.next;
     }
@@ -491,6 +491,7 @@ class SourceLoader<L> extends Loader<L> {
   void prepareTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     interfaceResolver = new InterfaceResolver(
+        typeInferenceEngine,
         typeInferenceEngine.typeSchemaEnvironment,
         instrumentation,
         target.strongMode);
@@ -499,12 +500,20 @@ class SourceLoader<L> extends Loader<L> {
         library.prepareTopLevelInference(library, null);
       }
     });
-    for (ShadowClass class_ in hierarchy
-        .getOrderedClasses(sourceClasses.map((builder) => builder.target))) {
-      var builder = ShadowClass.getClassInferenceInfo(class_).builder;
+    // Note: we need to create a list before iterating, since calling
+    // builder.prepareTopLevelInference causes further class hierarchy queries
+    // to be made which would otherwise result in a concurrent modification
+    // exception.
+    orderedClasses = hierarchy
+        .getOrderedClasses(sourceClasses.map((builder) => builder.target))
+        .map((class_) => ShadowClass.getClassInferenceInfo(class_).builder)
+        .toList();
+    for (var builder in orderedClasses) {
+      ShadowClass class_ = builder.target;
       builder.prepareTopLevelInference(builder.library, builder);
-      class_.setupForwardingNodes(interfaceResolver);
+      class_.setupApiMembers(interfaceResolver);
     }
+    typeInferenceEngine.isTypeInferencePrepared = true;
     ticker.logMs("Prepared top level inference");
   }
 
@@ -512,27 +521,30 @@ class SourceLoader<L> extends Loader<L> {
   /// visit fields and top level variables in topologically-sorted order and
   /// assign their types.
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
-    typeInferenceEngine.finishTopLevel();
-    for (var builder in sourceClasses) {
-      ShadowClass target = builder.target;
-      target.finalizeCovariance(interfaceResolver);
-      ShadowClass.clearClassInferenceInfo(target);
+    typeInferenceEngine.finishTopLevelFields();
+    for (var builder in orderedClasses) {
+      ShadowClass class_ = builder.target;
+      class_.finalizeCovariance(interfaceResolver);
+      ShadowClass.clearClassInferenceInfo(class_);
+    }
+    orderedClasses = null;
+    typeInferenceEngine.finishTopLevelInitializingFormals();
+    if (instrumentation != null) {
+      builders.forEach((Uri uri, LibraryBuilder library) {
+        if (library is SourceLibraryBuilder) {
+          library.instrumentTopLevelInference(instrumentation);
+        }
+      });
     }
     interfaceResolver = null;
+    // Since finalization of covariance may have added forwarding stubs, we need
+    // to recompute the class hierarchy so that method compilation will properly
+    // target those forwarding stubs.
+    // TODO(paulberry): could we make this unnecessary by not clearing class
+    // inference info?
+    typeInferenceEngine.classHierarchy =
+        hierarchy = new IncrementalClassHierarchy();
     ticker.logMs("Performed top level inference");
-  }
-
-  /// Annotates method formals that require runtime checks to restore soundness
-  /// as a result of the fact that Dart 2.0 treats all class type parameters as
-  /// covariant.
-  void computeFormalSafety(List<SourceClassBuilder> sourceClasses) {
-    if (target.strongMode) {
-      for (var cls in hierarchy
-          .getOrderedClasses(sourceClasses.map((builder) => builder.target))) {
-        typeInferenceEngine.computeFormalSafety(cls);
-      }
-      ticker.logMs("Computed formal checks");
-    }
   }
 
   List<Uri> getDependencies() => sourceBytes.keys.toList();

@@ -233,7 +233,7 @@ class BrowserTestCase extends TestCase {
  * the last TAIL_LENGTH characters of the output.
  */
 class OutputLog {
-  static const int MAX_HEAD = 100 * 1024;
+  static const int MAX_HEAD = 500 * 1024;
   static const int TAIL_LENGTH = 10 * 1024;
   List<int> head = <int>[];
   List<int> tail;
@@ -296,7 +296,8 @@ class OutputLog {
 
 *****************************************************************************
 
-test.dart: Data was removed due to excessive length
+test.dart: Data was removed due to excessive length. If you need the limit to
+be increased, please contact dart-engprod or file an issue.
 
 *****************************************************************************
 

@@ -16,9 +16,13 @@ import '../../../generated/parser_fasta_test.dart';
  */
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
-      String invalidCode, List<ErrorCode> errorCodes, String validCode) {
+      String invalidCode, List<ErrorCode> errorCodes, String validCode,
+      {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit)}) {
     CompilationUnit invalidUnit = parseCompilationUnit(invalidCode, errorCodes);
     CompilationUnit validUnit = parseCompilationUnit(validCode);
+    if (adjustValidUnitBeforeComparison != null) {
+      validUnit = adjustValidUnitBeforeComparison(validUnit);
+    }
     ResultComparator.compare(invalidUnit, validUnit);
   }
 }
@@ -102,8 +106,8 @@ class ResultComparator extends AstComparator {
    */
   @override
   bool isEqualTokensNotNull(Token first, Token second) =>
-      (first.isSynthetic || first.length == second.length) &&
-      first.lexeme == second.lexeme;
+      (first.isSynthetic && first.type == second.type) ||
+      (first.length == second.length && first.lexeme == second.lexeme);
 
   void _safelyWriteNodePath(StringBuffer buffer, AstNode node) {
     buffer.write('  path: ');
@@ -130,7 +134,7 @@ class ResultComparator extends AstComparator {
   static void compare(AstNode actual, AstNode expected) {
     ResultComparator comparator = new ResultComparator();
     if (!comparator.isEqualNodes(actual, expected)) {
-      fail('Expected: $expected\nbut found: $actual');
+      fail('Expected: $expected\n   Found: $actual');
     }
   }
 }

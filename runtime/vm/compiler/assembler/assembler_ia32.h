@@ -654,7 +654,9 @@ class Assembler : public ValueObject {
 
   void LoadIsolate(Register dst);
 
-  void LoadObject(Register dst, const Object& object);
+  void LoadObject(Register dst,
+                  const Object& object,
+                  bool movable_referent = false);
 
   // If 'object' is a large Smi, xor it with a per-assembler cookie value to
   // prevent user-controlled immediates from appearing in the code stream.
@@ -704,7 +706,7 @@ class Assembler : public ValueObject {
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
-  void Call(const StubEntry& stub_entry);
+  void Call(const StubEntry& stub_entry, bool movable_target = false);
   void CallToRuntime();
 
   void Jmp(const StubEntry& stub_entry);

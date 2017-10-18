@@ -37,6 +37,7 @@ class LibraryAnalyzer {
   final SourceFactory _sourceFactory;
   final FileState _library;
 
+  final bool _enableKernelDriver;
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContextImpl _context;
   final ElementResynthesizer _resynthesizer;
@@ -61,8 +62,10 @@ class LibraryAnalyzer {
       this._isLibraryUri,
       this._context,
       this._resynthesizer,
-      this._library)
-      : _typeProvider = _context.typeProvider;
+      this._library,
+      {bool enableKernelDriver: false})
+      : _typeProvider = _context.typeProvider,
+        _enableKernelDriver = enableKernelDriver;
 
   /**
    * Compute analysis results for all units of the library.
@@ -532,7 +535,8 @@ class LibraryAnalyzer {
       }
     }
 
-    new DeclarationResolver().resolve(unit, unitElement);
+    new DeclarationResolver(enableKernelDriver: _enableKernelDriver)
+        .resolve(unit, unitElement);
 
     // TODO(scheglov) remove EnumMemberBuilder class
 
@@ -739,6 +743,9 @@ class _ConstantWalker extends DependencyWalker<_ConstantNode> {
   void evaluateScc(List<_ConstantNode> scc) {
     var constantsInCycle = scc.map((node) => node.constant);
     for (_ConstantNode node in scc) {
+      if (node.constant is ConstructorElementImpl) {
+        (node.constant as ConstructorElementImpl).isCycleFree = false;
+      }
       evaluationEngine.generateCycleError(constantsInCycle, node.constant);
       node.isEvaluated = true;
     }

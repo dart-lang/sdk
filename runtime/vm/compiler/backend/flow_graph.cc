@@ -1182,6 +1182,11 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
             intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
             captured_parameters_->Add(index);
           }
+
+          if (FLAG_experimental_strong_mode && (phi != NULL)) {
+            phi->UpdateType(
+                CompileType::FromAbstractType(load->local().type()));
+          }
         } else if (drop != NULL) {
           // Drop temps from the environment.
           for (intptr_t j = 0; j < drop->num_temps(); j++) {
@@ -1857,6 +1862,13 @@ void FlowGraph::WidenSmiToInt32() {
       for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
         Definition* defn = worklist.definitions()[j];
         ASSERT(defn->IsPhi() || defn->IsBinarySmiOp());
+
+        // Since we widen the integer representation we've to clear out type
+        // propagation information (e.g. it might no longer be a _Smi).
+        for (Value::Iterator it(defn->input_use_list()); !it.Done();
+             it.Advance()) {
+          it.Current()->SetReachingType(NULL);
+        }
 
         if (defn->IsBinarySmiOp()) {
           BinarySmiOpInstr* smi_op = defn->AsBinarySmiOp();

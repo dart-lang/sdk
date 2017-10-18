@@ -5,7 +5,6 @@
 
 library library12.dart;
 
-// TODO(jmesserly): is this supposed to be here?
 import 'package:expect/expect.dart';
 
 import "library11.dart";

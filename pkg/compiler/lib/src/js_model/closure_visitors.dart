@@ -100,6 +100,9 @@ class CapturedScopeBuilder extends ir.Visitor {
             [],
             from.localsUsedInTryOrSync,
             from.freeVariables,
+            from.freeVariablesForRti,
+            from.thisUsedAsFreeVariable,
+            from.thisUsedAsFreeVariableIfNeedsRti,
             _hasThisLocal);
       } else {
         capturedScope = new KernelCapturedScope(
@@ -107,6 +110,9 @@ class CapturedScopeBuilder extends ir.Visitor {
             nodeBox,
             from.localsUsedInTryOrSync,
             from.freeVariables,
+            from.freeVariablesForRti,
+            from.thisUsedAsFreeVariable,
+            from.thisUsedAsFreeVariableIfNeedsRti,
             _hasThisLocal);
       }
       _model.scopeInfo = _scopesCapturedInClosureMap[node] = capturedScope;
@@ -182,8 +188,12 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   /// Add this variable to the set of free variables if appropriate and add to
   /// the tally of variables used in try or sync blocks.
+  /// If [onlyForRtiChecks] is true, add to the freeVariablesForRti set instead
+  /// of freeVariables as we will only use it if runtime type information is
+  /// checked.
   void _markVariableAsUsed(
-      ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ variable) {
+      ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ variable,
+      {bool onlyForRtiChecks = false}) {
     assert(variable is ir.VariableDeclaration ||
         variable is TypeParameterTypeWithContext);
     if (_isInsideClosure && !_inCurrentContext(variable)) {
@@ -193,7 +203,11 @@ class CapturedScopeBuilder extends ir.Visitor {
       // optimization: factories have type parameters as function
       // parameters, and type parameters are declared in the class, not
       // the factory.
-      _currentScopeInfo.freeVariables.add(variable);
+      if (!onlyForRtiChecks) {
+        _currentScopeInfo.freeVariables.add(variable);
+      } else {
+        _currentScopeInfo.freeVariablesForRti.add(variable);
+      }
     }
     if (_inTry && variable is ir.VariableDeclaration) {
       _currentScopeInfo.localsUsedInTryOrSync.add(variable);
@@ -233,17 +247,33 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   /// Add `this` as a variable that needs to be accessed (and thus may become a
   /// free/captured variable.
-  void _registerNeedsThis() {
+  /// If [onlyIfNeedsRti] is true, set thisUsedAsFreeVariableIfNeedsRti to true
+  /// instead of thisUsedAsFreeVariable as we will only use `this` if runtime
+  /// type information is checked.
+  void _registerNeedsThis({bool onlyIfNeedsRti = false}) {
     if (_isInsideClosure) {
-      _currentScopeInfo.thisUsedAsFreeVariable = true;
+      if (!onlyIfNeedsRti) {
+        _currentScopeInfo.thisUsedAsFreeVariable = true;
+      } else {
+        _currentScopeInfo.thisUsedAsFreeVariableIfNeedsRti = true;
+      }
     }
   }
 
   @override
   void visitForInStatement(ir.ForInStatement node) {
+    // We need to set `inTry` to true if this is an async for-in because we
+    // desugar it into a try-finally in the SSA phase.
+    bool oldInTry = _inTry;
+    if (node.isAsync) {
+      _inTry = true;
+    }
     enterNewScope(node, () {
       node.visitChildren(this);
     });
+    if (node.isAsync) {
+      _inTry = oldInTry;
+    }
   }
 
   void visitWhileStatement(ir.WhileStatement node) {
@@ -302,6 +332,9 @@ class CapturedScopeBuilder extends ir.Visitor {
         boxedLoopVariables,
         scope.localsUsedInTryOrSync,
         scope.freeVariables,
+        scope.freeVariablesForRti,
+        scope.thisUsedAsFreeVariable,
+        scope.thisUsedAsFreeVariableIfNeedsRti,
         scope.hasThisLocal);
   }
 
@@ -411,35 +444,29 @@ class CapturedScopeBuilder extends ir.Visitor {
     _analyzeType(type);
   }
 
-  void _analyzeType(ir.DartType type) {
-    // TODO(efortuna): The first if branch below should also have the clause
-    // && rtiNeed.classNeedsRti(_outermostNode.enclosingClass)
+  /// Returns true if the node is a field, or a constructor (factory or
+  /// generative).
+  bool _isFieldOrConstructor(ir.Node node) =>
+      node is ir.Constructor ||
+      node is ir.Field ||
+      (node is ir.Procedure && node.isFactory);
+
+  void _analyzeType(ir.TypeParameterType type) {
     if (_outermostNode is ir.Member) {
       ir.Member outermostMember = _outermostNode;
-      if (_outermostNode is ir.Constructor || _outermostNode is ir.Field) {
-        _analyzeTypeVariable(type);
+      if (_isFieldOrConstructor(_outermostNode)) {
+        _useTypeVariableAsLocal(type, onlyForRtiChecks: true);
       } else if (outermostMember.isInstanceMember) {
-        if (type is ir.TypeParameterType) {
-          _registerNeedsThis();
-        }
+        _registerNeedsThis(onlyIfNeedsRti: true);
       }
     }
   }
 
-  void _analyzeTypeVariable(ir.DartType type) {
-    if (type is ir.TypeParameterType) {
-      // Field initializers are inlined and access the type variable as
-      // normal parameters.
-      if (!(_outermostNode is ir.Field) &&
-          !(_outermostNode is ir.Constructor)) {
-        _registerNeedsThis();
-      } else {
-        _useTypeVariableAsLocal(type);
-      }
-    }
-  }
-
-  void _useTypeVariableAsLocal(ir.TypeParameterType type) {
-    _markVariableAsUsed(new TypeParameterTypeWithContext(type, _outermostNode));
+  /// If [onlyForRtiChecks] is true, the variable will be added to a list
+  /// indicating it *may* be used only if runtime type information is checked.
+  void _useTypeVariableAsLocal(ir.TypeParameterType type,
+      {bool onlyForRtiChecks = false}) {
+    _markVariableAsUsed(new TypeParameterTypeWithContext(type, _outermostNode),
+        onlyForRtiChecks: onlyForRtiChecks);
   }
 }

@@ -119,6 +119,5 @@ main() {
   Expect.equals('_p', MirrorSystem.getName(pm.simpleName));
 
   // Private symbol without a library.
-  Expect.throws(
-      () => MirrorSystem.getSymbol('_private'), (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => MirrorSystem.getSymbol('_private'));
 }

@@ -187,6 +187,13 @@ class Printer extends Visitor<Null> {
         showExternal = parent.showExternal,
         showOffsets = parent.showOffsets;
 
+  bool shouldHighlight(Node node) {
+    return false;
+  }
+
+  void startHighlight(Node node) {}
+  void endHighlight(Node node) {}
+
   String getLibraryName(Library node) {
     return node.name ?? syntheticNames.nameLibrary(node);
   }
@@ -413,10 +420,20 @@ class Printer extends Visitor<Null> {
     if (node == null) {
       writeSymbol("<Null>");
     } else {
+      final highlight = shouldHighlight(node);
+      if (highlight) {
+        startHighlight(node);
+      }
+
       if (showOffsets && node is TreeNode) {
         writeWord("[${node.fileOffset}]");
       }
+
       node.accept(this);
+
+      if (highlight) {
+        endHighlight(node);
+      }
     }
   }
 
@@ -666,7 +683,14 @@ class Printer extends Visitor<Null> {
   }
 
   void writeVariableReference(VariableDeclaration variable) {
+    final highlight = shouldHighlight(variable);
+    if (highlight) {
+      startHighlight(variable);
+    }
     writeWord(getVariableReference(variable));
+    if (highlight) {
+      endHighlight(variable);
+    }
   }
 
   void writeTypeParameterReference(TypeParameter node) {
@@ -674,6 +698,10 @@ class Printer extends Visitor<Null> {
   }
 
   void writeExpression(Expression node, [int minimumPrecedence]) {
+    final highlight = shouldHighlight(node);
+    if (highlight) {
+      startHighlight(node);
+    }
     if (showOffsets) writeWord("[${node.fileOffset}]");
     bool needsParenteses = false;
     if (minimumPrecedence != null && getPrecedence(node) < minimumPrecedence) {
@@ -683,6 +711,9 @@ class Printer extends Visitor<Null> {
     writeNode(node);
     if (needsParenteses) {
       writeSymbol(')');
+    }
+    if (highlight) {
+      endHighlight(node);
     }
   }
 
@@ -711,6 +742,10 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isCovariant, 'covariant');
+    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(
+        node.isGenericCovariantInterface, 'generic-covariant-interface');
+    writeModifier(node.isGenericContravariant, 'generic-contravariant');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
@@ -749,7 +784,8 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isAbstract, 'abstract');
-    writeModifier(node.isForwardingStub, 'forwardingStub');
+    writeModifier(node.isForwardingStub, 'forwarding-stub');
+    writeModifier(node.isGenericContravariant, 'generic-contravariant');
     writeWord(procedureKindToString(node.kind));
     if ((node.enclosingClass == null &&
             node.enclosingLibrary.fileUri != node.fileUri) ||
@@ -944,7 +980,7 @@ class Printer extends Visitor<Null> {
 
   visitAsExpression(AsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
-    writeSpaced('as');
+    writeSpaced(node.isTypeError ? 'as{TypeError}' : 'as');
     writeType(node.type);
   }
 
@@ -1451,7 +1487,11 @@ class Printer extends Visitor<Null> {
   void writeVariableDeclaration(VariableDeclaration node,
       {bool useVarKeyword: false}) {
     if (showOffsets) writeWord("[${node.fileOffset}]");
+    writeAnnotationList(node.annotations);
     writeModifier(node.isCovariant, 'covariant');
+    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(
+        node.isGenericCovariantInterface, 'generic-covariant-interface');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     if (node.type != null) {
@@ -1591,6 +1631,10 @@ class Printer extends Visitor<Null> {
   }
 
   visitTypeParameter(TypeParameter node) {
+    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(
+        node.isGenericCovariantInterface, 'generic-covariant-interface');
+    writeAnnotationList(node.annotations);
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);

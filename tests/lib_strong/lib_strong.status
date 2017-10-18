@@ -10,9 +10,6 @@
 [ $strong ]
 
 # Temporalily disable the following tests until we figure out why they started failing.
-html/client_rect_test: Skip
-html/css_test/supportsPointConversions: Skip
-html/css_test/functional: Skip
 
 async/future_microtask_test: Skip
 async/future_or_bad_type_test/00: Skip
@@ -25,20 +22,25 @@ async/future_test/none: Skip
 async/future_value_chain4_test: Skip
 async/print_test/01: Skip
 async/print_test/none: Skip
+async/stream_event_transformed_test: Skip
+async/stream_transformer_test: Skip
+async/zone_debug_test: Skip
 html/cross_frame_test: Skip
 html/custom/created_callback_test: CompileTimeError # Issue 28969
 html/custom/document_register_basic_test: CompileTimeError # Issue 28969
 html/custom/document_register_type_extensions_test: CompileTimeError # Issue 28969
 html/custom/element_upgrade_test: CompileTimeError # Issue 28969
 html/element_dimensions_test: Skip
-html/element_test: Skip
 html/events_test: Skip
 html/fileapi_test: Skip
 html/filereader_test: Skip
 html/fontface_loaded_test: Skip
 html/js_function_getter_trust_types_test: Skip
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
+html/keyboard_event_test: Skip
 html/mutationobserver_test: Skip
+html/postmessage_structured_test: Skip
+html/resource_http_test: Skip
 html/transferables_test: Skip
 html/webgl_1_test: Skip
 html/wrapping_collections_test: Skip
@@ -79,9 +81,6 @@ mirrors/reflected_type_test: Skip
 mirrors/regress_16321_test: Skip
 mirrors/regress_19731_test: Skip
 
-[ $compiler == dart2analyzer && $strong ]
-html/debugger_test: CompileTimeError # Issue 28969
-
 # TODO(29919): HTML tests are not supported on dartdevc in test.dart yet.
 [ $compiler == dartdevc ]
 html/custom/attribute_changed_callback_test: Crash # Issue 29922
@@ -102,22 +101,28 @@ html/custom/js_custom_test: Crash # Issue 29922
 html/custom/mirrors_test: Crash # Issue 29922
 html/custom/regress_194523002_test: Crash # Issue 29922
 html/deferred_multi_app_htmltest: Skip # Issue 29919
+html/deferred_multi_app_htmltest: Skip # Issue 29919
 html/no_linked_scripts_htmltest: Skip # Issue 29919
+html/no_linked_scripts_htmltest: Skip # Issue 29919
+html/no_linked_scripts_htmltest: Skip # Issue 29919
+html/no_linked_scripts_htmltest: Skip # Issue 29919
+html/scripts_htmltest: Skip # Issue 29919
+html/scripts_htmltest: Skip # Issue 29919
+html/scripts_htmltest: Skip # Issue 29919
+html/two_scripts_htmltest: Skip # Issue 29919
 html/two_scripts_htmltest: Skip # Issue 29919
 
 [ $compiler == dartdevc && $runtime != none ]
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
-html/async_spawnuri_test: RuntimeError # Issue 29922
-html/async_test: RuntimeError # Issue 29922
 html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode cast failure
-html/input_element_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 html/isolates_test: RuntimeError # Issue 29922
+html/js_util_test: RuntimeError # Issue 29922
 html/media_stream_test: RuntimeError # Issue 29922
 html/mediasource_test: RuntimeError # Issue 29922
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
@@ -159,12 +164,9 @@ mirrors/local_function_is_static_test: RuntimeError # Issue 29922
 mirrors/metadata_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $runtime == chrome ]
-html/css_test: RuntimeError # Issue 29922
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
-html/element_types_test: RuntimeError # Issue 29922
-html/touchevent_test: RuntimeError # Issue 29922
+html/element_types_keygen_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $runtime == drt ]
 
 [ $compiler == dartdevc && $system == windows ]
-html/xhr_test/xhr: Skip # Times out. Issue 21527

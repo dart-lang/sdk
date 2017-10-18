@@ -4,7 +4,6 @@
 
 const int _LF = 0x0A;
 const int _CR = 0x0D;
-const int _LBRACE = 0x7B;
 
 const Pattern atBraceStart = '@{';
 const Pattern braceEnd = '}';

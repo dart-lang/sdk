@@ -122,6 +122,19 @@ void main() {
   testUnmodifiableMap(new UnmodifiableMapView({1: 37}));
   testUnmodifiableMap(new UnmodifiableMapBaseMap([1, 37]));
 
+  testTypeAnnotations(new HashMap());
+  testTypeAnnotations(new LinkedHashMap());
+  testTypeAnnotations(new HashMap(equals: identical));
+  testTypeAnnotations(new LinkedHashMap(equals: identical));
+  testTypeAnnotations(new HashMap(
+      equals: (int a, int b) => a == b,
+      hashCode: (int a) => a.hashCode,
+      isValidKey: (a) => a is int));
+  testTypeAnnotations(new LinkedHashMap(
+      equals: (int a, int b) => a == b,
+      hashCode: (int a) => a.hashCode,
+      isValidKey: (a) => a is int));
+
   testFrom();
 }
 
@@ -501,9 +514,12 @@ void testNumericKeys(Map map) {
 }
 
 void testNaNKeys(Map map) {
+  Object nan = double.NAN;
+  // Skip this test on platforms that use native-JS NaN semantics for speed.
+  if (!identical(nan, nan)) return;
+
   Expect.isTrue(map.isEmpty);
   // Test NaN.
-  var nan = double.NAN;
   Expect.isFalse(map.containsKey(nan));
   Expect.equals(null, map[nan]);
 
@@ -992,4 +1008,21 @@ void testFrom() {
   expectMap(superMap, new LinkedHashMap<Interface, Interface>.from(superMap));
   expectMap(superMap, new SplayTreeMap<Super, Super>.from(interfaceMap));
   expectMap(superMap, new SplayTreeMap<Interface, Interface>.from(superMap));
+}
+
+void testTypeAnnotations(Map<int, int> map) {
+  map[0] = 100;
+  map[999] = 101;
+  map[0x800000000] = 102;
+  map[0x20000000000000] = 103;
+  Expect.isFalse(map.containsKey("not an it"));
+  Expect.isNull(map.remove("not an it"));
+
+  testLength(4, map);
+  Expect.equals(101, map.remove(999));
+  testLength(3, map);
+  Expect.equals(102, map.remove(0x800000000));
+  testLength(2, map);
+  Expect.equals(103, map.remove(0x20000000000000));
+  testLength(1, map);
 }

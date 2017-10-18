@@ -230,13 +230,6 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// class of the element representing `this`.
   FieldEntity get thisFieldEntity => null;
 
-  /// Loop through every variable that has been captured in this closure. This
-  /// consists of all the free variables (variables captured *just* in this
-  /// closure) and all variables captured in nested scopes that we may be
-  /// capturing as well. These nested scopes hold "boxes" to hold the executable
-  /// context for that scope.
-  void forEachCapturedVariable(f(Local from, FieldEntity to)) {}
-
   /// Loop through each variable that has been boxed in this closure class. Only
   /// captured variables that are mutated need to be "boxed" (which basically
   /// puts a thin layer between updates and reads to this variable to ensure
@@ -856,16 +849,6 @@ class ClosureClassMap implements ClosureRepresentationInfo {
       return true;
     }
     return capturingScopesBox(variable);
-  }
-
-  void forEachCapturedVariable(void f(Local variable, FieldEntity field)) {
-    freeVariableMap.forEach((variable, copy) {
-      if (variable is BoxLocal) return;
-      f(variable, copy);
-    });
-    capturingScopes.values.forEach((CapturedScopeImpl scope) {
-      scope.forEachCapturedVariable(f);
-    });
   }
 
   void forEachBoxedVariable(

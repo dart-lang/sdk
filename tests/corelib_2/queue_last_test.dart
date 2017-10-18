@@ -13,5 +13,5 @@ main() {
   Queue queue2 = new Queue();
 
   Expect.equals(13, queue1.last);
-  Expect.throws(() => queue2.last, (e) => e is StateError);
+  Expect.throwsStateError(() => queue2.last);
 }

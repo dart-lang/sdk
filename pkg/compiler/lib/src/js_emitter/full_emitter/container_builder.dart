@@ -5,6 +5,7 @@
 library dart2js.js_emitter.full_emitter.container_builder;
 
 import '../../constants/values.dart';
+import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
     show Element, MetadataAnnotation, MethodElement;
 import '../../elements/entities.dart';
@@ -21,8 +22,12 @@ import 'emitter.dart';
 /// Initially, it is just a placeholder for code that is moved from
 /// [CodeEmitterTask].
 class ContainerBuilder extends CodeEmitterHelper {
+  final DeferredLoadTask _deferredLoadTask;
+  ContainerBuilder(this._deferredLoadTask);
+
   void addMemberMethod(DartMethod method, ClassBuilder builder) {
     FunctionEntity member = method.element;
+    OutputUnit outputUnit = _deferredLoadTask.outputUnitForMember(member);
     jsAst.Name name = method.name;
     ParameterStructure parameters = member.parameterStructure;
     jsAst.Expression code = method.code;
@@ -35,7 +40,6 @@ class ContainerBuilder extends CodeEmitterHelper {
     jsAst.Name superAlias = method is InstanceMethod ? method.aliasName : null;
     bool hasSuperAlias = superAlias != null;
     jsAst.Expression memberTypeExpression = method.functionType;
-
     bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied || hasSuperAlias;
 
@@ -146,18 +150,21 @@ class ContainerBuilder extends CodeEmitterHelper {
       ..add(memberTypeExpression == null ? js("null") : memberTypeExpression);
 
     if (canBeReflected || canBeApplied) {
-      expressions.addAll(task.metadataCollector.reifyDefaultArguments(member));
+      expressions.addAll(
+          task.metadataCollector.reifyDefaultArguments(member, outputUnit));
 
       if (member is MethodElement) {
         member.functionSignature.forEachParameter((Element parameter) {
-          expressions.add(task.metadataCollector.reifyName(parameter.name));
+          expressions.add(
+              task.metadataCollector.reifyName(parameter.name, outputUnit));
           if (backend.mirrorsData.mustRetainMetadata) {
             Iterable<jsAst.Expression> metadataIndices =
                 parameter.metadata.map((MetadataAnnotation annotation) {
               ConstantValue constant =
                   backend.constants.getConstantValueForMetadata(annotation);
               codegenWorldBuilder.addCompileTimeConstantForEmission(constant);
-              return task.metadataCollector.reifyMetadata(annotation);
+              return task.metadataCollector
+                  .reifyMetadata(annotation, outputUnit);
             });
             expressions
                 .add(new jsAst.ArrayInitializer(metadataIndices.toList()));
@@ -165,7 +172,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         });
       } else {
         codegenWorldBuilder.forEachParameter(member, (_, String name, _2) {
-          expressions.add(task.metadataCollector.reifyName(name));
+          expressions.add(task.metadataCollector.reifyName(name, outputUnit));
         });
         // TODO(redemption): Support retaining mirrors metadata.
       }
@@ -184,7 +191,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
       expressions
         ..add(reflectionName)
-        ..addAll(task.metadataCollector.computeMetadata(member));
+        ..addAll(task.metadataCollector.computeMetadata(member, outputUnit));
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(namer.privateName(memberName)));
     }

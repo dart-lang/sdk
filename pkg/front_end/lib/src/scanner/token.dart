@@ -435,6 +435,12 @@ class KeywordToken extends SimpleToken {
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   @override
+  bool get isKeyword => true;
+
+  @override
+  bool get isKeywordOrIdentifier => true;
+
+  @override
   Object value() => keyword;
 }
 
@@ -497,6 +503,12 @@ class SimpleToken implements Token {
 
   @override
   bool get isIdentifier => false;
+
+  @override
+  bool get isKeyword => false;
+
+  @override
+  bool get isKeywordOrIdentifier => isIdentifier;
 
   @override
   bool get isModifier => type.isModifier;
@@ -630,6 +642,29 @@ class StringToken extends SimpleToken {
 }
 
 /**
+ * A synthetic begin token.
+ */
+class SyntheticBeginToken extends BeginToken {
+  /**
+   * Initialize a newly created token to have the given [type] at the given
+   * [offset].
+   */
+  SyntheticBeginToken(TokenType type, int offset,
+      [CommentToken precedingComment])
+      : super(type, offset, precedingComment);
+
+  @override
+  Token copy() =>
+      new SyntheticBeginToken(type, offset, copyComments(precedingComments));
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  int get length => 0;
+}
+
+/**
  * A synthetic keyword token.
  */
 class SyntheticKeywordToken extends KeywordToken {
@@ -741,6 +776,17 @@ abstract class Token implements SyntacticEntity {
    * see implementation in [KeywordToken].
    */
   bool get isIdentifier;
+
+  /**
+   * True if this token is a keyword. Some keywords allowed as identifiers,
+   * see implementation in [KeywordToken].
+   */
+  bool get isKeyword;
+
+  /**
+   * True if this token is a keyword or an identifier.
+   */
+  bool get isKeywordOrIdentifier;
 
   /**
    * Return `true` if this token is a modifier such as `abstract` or `const`.
@@ -1209,7 +1255,7 @@ class TokenType {
       const TokenType('#', 'HASH', NO_PRECEDENCE, HASH_TOKEN);
 
   static const TokenType INDEX = const TokenType(
-      '[]', 'INDEX', NO_PRECEDENCE, INDEX_TOKEN,
+      '[]', 'INDEX', POSTFIX_PRECEDENCE, INDEX_TOKEN,
       isOperator: true, isUserDefinableOperator: true);
 
   static const TokenType INDEX_EQ = const TokenType(

@@ -25,6 +25,7 @@ class D extends self::_Super&Mixin {
   default constructor •() → void
     : super self::Super::•()
     ;
+  abstract forwarding-stub set t(generic-covariant-impl dynamic _) → void;
 }
 class C2<V extends core::Object> = self::Super<self::C2::V> with mix::Mixin<self::C2::V> {
   constructor •() → void

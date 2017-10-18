@@ -679,8 +679,7 @@ class Driver implements CommandLineStarter {
   /// Return whether [a] and [b] options are equal for the purpose of
   /// command line analysis.
   bool _equalAnalysisOptions(AnalysisOptionsImpl a, AnalysisOptions b) {
-    return a.enableAssertInitializer == b.enableAssertInitializer &&
-        a.enableStrictCallChecks == b.enableStrictCallChecks &&
+    return a.enableStrictCallChecks == b.enableStrictCallChecks &&
         a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
         a.enableSuperMixins == b.enableSuperMixins &&
         a.enableTiming == b.enableTiming &&
@@ -863,9 +862,6 @@ class Driver implements CommandLineStarter {
     contextOptions.hint = !options.disableHints;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;
     contextOptions.generateSdkErrors = options.showSdkWarnings;
-    if (options.enableAssertInitializer != null) {
-      contextOptions.enableAssertInitializer = options.enableAssertInitializer;
-    }
     if (options.previewDart2) {
       contextOptions.useFastaParser = true;
     }
@@ -907,10 +903,6 @@ class Driver implements CommandLineStarter {
       return false;
     }
     if (newOptions.enableStrictCallChecks != previous.enableStrictCallChecks) {
-      return false;
-    }
-    if (newOptions.enableAssertInitializer !=
-        previous.enableAssertInitializer) {
       return false;
     }
     if (newOptions.showPackageWarnings != previous.showPackageWarnings) {

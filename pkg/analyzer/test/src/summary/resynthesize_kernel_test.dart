@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -29,6 +30,7 @@ import 'package:path/path.dart' as pathos;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context/mock_sdk.dart';
+import 'element_text.dart';
 import 'resynthesize_common.dart';
 
 main() {
@@ -102,15 +104,18 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       ..logger = new PerformanceLog(null)
       ..fileSystem = new _FileSystemAdaptor(resourceProvider)
       ..byteStore = new MemoryByteStore());
-    var driver = new KernelDriver(options, uriTranslator);
+    var driver = new KernelDriver(options, uriTranslator,
+        metadataFactory: new AnalyzerMetadataFactory());
 
     KernelResult kernelResult = await driver.getKernel(testUri);
 
     var libraryMap = <String, kernel.Library>{};
+    var libraryExistMap = <String, bool>{};
     for (var cycleResult in kernelResult.results) {
       for (var library in cycleResult.kernelLibraries) {
         String uriStr = library.importUri.toString();
         libraryMap[uriStr] = library;
+        libraryExistMap[uriStr] = true;
       }
     }
 
@@ -119,8 +124,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       print(_getLibraryText(library));
     }
 
-    var resynthesizer =
-        new KernelResynthesizer(context, kernelResult.types, libraryMap);
+    var resynthesizer = new KernelResynthesizer(
+        context, kernelResult.types, libraryMap, libraryExistMap);
     return resynthesizer.getLibrary(testUriStr);
   }
 
@@ -132,6 +137,46 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_class_constructor_field_formal_multiple_matching_fields() async {
     await super.test_class_constructor_field_formal_multiple_matching_fields();
+  }
+
+  @override
+  test_class_setter_invalid_no_parameter() async {
+    var library = await checkLibrary('class C { void set x() {} }');
+    checkElementText(library, r'''
+class C {
+  void set x(dynamic #synthetic) {}
+}
+''');
+  }
+
+  @override
+  test_class_setter_invalid_too_many_parameters() async {
+    var library = await checkLibrary('class C { void set x(a, b) {} }');
+    checkElementText(library, r'''
+class C {
+  void set x(dynamic #synthetic) {}
+}
+''');
+  }
+
+  @override
+  test_class_setter_invalid_optional_parameter() async {
+    var library = await checkLibrary('class C { void set x([a]) {} }');
+    checkElementText(library, r'''
+class C {
+  void set x(dynamic #synthetic) {}
+}
+''');
+  }
+
+  @override
+  test_class_setter_invalid_named_parameter() async {
+    var library = await checkLibrary('class C { void set x({a}) {} }');
+    checkElementText(library, r'''
+class C {
+  void set x(dynamic #synthetic) {}
+}
+''');
   }
 
   @failingTest
@@ -330,12 +375,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
-  test_metadata_libraryDirective() async {
-    await super.test_metadata_libraryDirective();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
   test_metadata_partDirective() async {
     await super.test_metadata_partDirective();
   }
@@ -380,13 +419,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @potentialAnalyzerProblem
-  test_typedef_documented() async {
-    // TODO(scheglov): implement
-    await super.test_typedef_documented();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
   test_typedef_generic_asFieldType() async {
     await super.test_typedef_generic_asFieldType();
   }

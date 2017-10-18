@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'strong_mode_driver_test.dart';
+import 'strong_mode_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,105 +14,92 @@ main() {
   });
 }
 
+/// Tests marked with this annotations fail because we either have not triaged
+/// them, or know that this is an analyzer problem.
+const potentialAnalyzerProblem = const Object();
+
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
+}
+
 @reflectiveTest
-class StrongModeLocalInferenceTest_Kernel
-    extends StrongModeLocalInferenceTest_Driver {
+class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   @override
   bool get enableKernelDriver => true;
 
   @override
-  @failingTest
-  test_async_star_method_propagation() async {
-    return super.test_async_star_method_propagation();
-  }
-
-  @override
-  @failingTest
-  test_async_star_propagation() async {
-    return super.test_async_star_propagation();
-  }
-
-  @override
-  @failingTest
-  test_covarianceChecks_returnFunction() async {
-    return super.test_covarianceChecks_returnFunction();
-  }
-
-  @override
-  @failingTest
-  test_generic_partial() async {
-    return super.test_generic_partial();
-  }
-
-  @override
-  @failingTest
-  test_instanceCreation() async {
-    return super.test_instanceCreation();
-  }
-
-  @override
-  @failingTest
-  test_redirectingConstructor_propagation() async {
-    return super.test_redirectingConstructor_propagation();
-  }
+  bool get enableNewAnalysisDriver => true;
 }
 
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test_Kernel
-    extends StrongModeStaticTypeAnalyzer2Test_Driver {
+    extends StrongModeStaticTypeAnalyzer2Test {
   @override
   bool get enableKernelDriver => true;
 
   @override
+  bool get enableNewAnalysisDriver => true;
+
+  @override
   @failingTest
+  @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_recursion() async {
     return super.test_instantiateToBounds_class_error_recursion();
   }
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_recursion_self() async {
     return super.test_instantiateToBounds_class_error_recursion_self();
   }
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_recursion_self2() async {
     return super.test_instantiateToBounds_class_error_recursion_self2();
   }
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_typedef() async {
     return super.test_instantiateToBounds_class_error_typedef();
   }
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
   test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
     return super.test_instantiateToBounds_class_ok_implicitDynamic_multi();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_class_ok_referenceOther_after() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_after();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_class_ok_referenceOther_after2() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_after2();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_class_ok_referenceOther_before() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_before();
   }
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_class_ok_referenceOther_multi() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_multi();
   }
@@ -120,7 +107,10 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
 @reflectiveTest
 class StrongModeTypePropagationTest_Kernel
-    extends StrongModeTypePropagationTest_Driver {
+    extends StrongModeTypePropagationTest {
   @override
   bool get enableKernelDriver => true;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

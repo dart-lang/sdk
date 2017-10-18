@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../scanner/token.dart' show BeginToken, Token;
+import '../../scanner/token.dart' show BeginToken, SimpleToken, Token;
 
 import '../problems.dart' show internalProblem;
 
@@ -55,6 +55,26 @@ class TokenStreamRewriter {
     return newToken;
   }
 
+  /// Replace the single [replacedToken] with the chain of tokens starting at
+  /// the [replacementToken]. The replaced token is assumed to be reachable
+  /// from, but not the same as, the [previousToken].
+  Token replaceToken(
+      Token previousToken, Token replacedToken, Token replacementToken) {
+    _lastPreviousToken = previousToken;
+    previousToken = _findPreviousToken(replacedToken);
+    previousToken.next = replacementToken;
+    replacementToken.previous = previousToken;
+
+    (replacementToken as SimpleToken).precedingComments =
+        replacedToken.precedingComments;
+
+    Token lastReplacement = _lastReplacementToken(replacementToken);
+    lastReplacement.next = replacedToken.next;
+    replacedToken.next.previous = lastReplacement;
+
+    return replacementToken;
+  }
+
   /// Finds the token that immediately precedes [target].
   Token _findPreviousToken(Token target) {
     // First see if the target has a previous token pointer.  If it does, then
@@ -81,6 +101,15 @@ class TokenStreamRewriter {
           messageInternalProblemPreviousTokenNotFound, target.charOffset, null);
     }
     return previous;
+  }
+
+  /// Given a chain of tokens to be inserted, return the last token in the
+  /// chain.
+  Token _lastReplacementToken(Token firstReplacementToken) {
+    while (firstReplacementToken.next != null) {
+      firstReplacementToken = firstReplacementToken.next;
+    }
+    return firstReplacementToken;
   }
 
   /// Searches for the token that immediately precedes [target], using [pos] as

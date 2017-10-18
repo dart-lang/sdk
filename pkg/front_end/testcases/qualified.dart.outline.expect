@@ -1,0 +1,28 @@
+library test.qualified.main;
+import self as self;
+import "dart:core" as core;
+import "./qualified_lib.dart" as lib;
+
+class Bad extends core::Object {
+  method method() → invalid-type
+    ;
+  static factory WrongName() → self::Bad
+    ;
+}
+abstract class _lib.Supertype&lib.Mixin = lib::Supertype with lib::Mixin {
+}
+class WithMixin extends self::_lib.Supertype&lib.Mixin {
+  default constructor •() → void
+    ;
+}
+class C<T extends core::Object> extends core::Object { // from pkg/front_end/testcases/qualified_part.dart
+  static field dynamic _redirecting# = <dynamic>[self::C::b];
+  constructor •() → void
+    ;
+  constructor a() → void
+    ;
+  static factory b<T extends core::Object>() → self::C<self::C::b::T>
+    let dynamic #redirecting_factory = lib::C::b in invalid-expression;
+}
+static method main() → dynamic
+  ;

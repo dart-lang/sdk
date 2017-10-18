@@ -1,0 +1,34 @@
+@test::a
+@test::A::•(1)
+library test;
+import self as self;
+import "dart:core" as core;
+
+@self::a
+@self::A::•(2)
+typedef F1 = () → void;
+@self::a
+@self::A::•(3)
+typedef F2 = () → void;
+class A extends core::Object {
+  const constructor •(core::int value) → void
+    : super core::Object::•()
+    ;
+}
+@self::a
+@self::A::•(2)
+class C extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static const field core::Object a = const core::Object::•();
+@self::a
+@self::A::•(3)
+static field core::int f1;
+@self::a
+@self::A::•(3)
+static field core::int f2;
+@self::a
+@self::A::•(4)
+static method main() → void {}

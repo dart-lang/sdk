@@ -3,11 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ !$strong ]
+isolate/isolate_import_test/01: MissingCompileTimeError
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
-isolate/isolate_import_test/01: MissingCompileTimeError
 
 [ !$strong && $compiler != dartdevc && $checked ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
@@ -23,14 +23,15 @@ mirrors/redirecting_factory_test: CompileTimeError # Issue 30855
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 async/slow_consumer_test: Pass, Timeout # Issue 22696
-convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
+convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 html/canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
-html/custom_elements_test: Pass, Timeout # Issue 26789
 html/custom_element_method_clash_test: Pass, Timeout # Issue 26789
 html/custom_element_name_clash_test: Pass, Timeout # Issue 26789
+html/custom_elements_test: Pass, Timeout # Issue 26789
 html/request_animation_frame_test: Skip # Times out. Issue 22167
+html/transition_event_test: Skip # Times out. Issue 22167
 
 [ $runtime == chrome || $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
@@ -40,15 +41,19 @@ async/stream_timeout_test: SkipSlow # Times out. Issue 22050
 async/stream_transformer_test: Pass, Fail # Closure identity
 isolate/function_send_test: Pass, Fail # Closure identity
 isolate/issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
+isolate/message3_test/fun: Pass, Fail # Closure identity
+isolate/spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
-mirrors/deferred_mirrors_update_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
+mirrors/deferred_mirrors_update_test: Crash # Deferred loading
 mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading
-mirrors/library_imports_deferred_test: Crash # Deferred loading
 mirrors/library_import_deferred_loading_test: Crash # Deferred loading
+mirrors/library_imports_deferred_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 mirrors/typedef_deferred_library_test: Crash # Deferred loading
+isolate/deferred_in_isolate_test: Crash # Requires deferred libraries
+isolate/deferred_in_isolate2_test: Crash # Requires deferred libraries
 
 [ $runtime == ff ]
 convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
@@ -57,11 +62,19 @@ convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
+html/element_animate_test: Fail # Element.animate not supported on these browsers.
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
+html/element_test: Pass, Fail # Issue 21434
+html/fileapi_supported_test: Fail
+html/gamepad_test: Fail # Safari does not support Navigator.getGamepads()
+html/mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
+html/media_stream_test: Pass, Fail
 html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
+html/webgl_1_test: Pass, Fail # Issue 8219
+html/worker_api_test: Skip # Issue 13221
 
 [ ($runtime == safari && $builder_tag == mac10_7)|| $runtime == safarimobilesim ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
@@ -125,21 +138,55 @@ isolate/unresolved_ports_test: Skip # Isolate.spawnUri
 mirrors/native_class_test: Pass, Slow
 
 [ $runtime == ie11 ]
+html/element_animate_test: Fail # Element.animate not supported on these browsers.
 html/canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
+html/crypto_test/supported: Fail
+html/css_test/supportsPointConversions: Fail
 html/custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
+html/deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
+html/event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
+html/element_test/click: Fail # IE does not support firing this event.
+html/fileapi_supported_test: Fail
+html/gamepad_test: Fail # IE does not support Navigator.getGamepads()
+html/history_hash_change_test: Fail
+html/indexeddb_5_test: Fail # Issue 12893
+html/input_element_date_test: Fail
+html/input_element_datetime_test: Fail
+html/input_element_month_test: Fail
+html/input_element_time_test: Fail
+html/input_element_week_test: Fail
+html/js_transferrables_test: RuntimeError # Issue 14246
 html/js_util_test/callConstructor: RuntimeError # Issue 26978
+html/localstorage_test: Pass, RuntimeError # Issue 22166
+html/media_stream_test: Pass, Fail
+html/mediasource_test: Pass, Fail # Windows 8: Supported: yes, functional: no
+html/no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 html/notification_test: Fail # Notification not supported on IE
 html/postmessage_structured_test: Fail # Does not support the MessageEvent constructor.
 html/request_animation_frame_test: Skip # Times out. Issue 22167
+html/rtc_test: Fail
 html/scripts_htmltest: Skip # Times out on IE.  Issue 21537
 html/serialized_script_value_test: Fail
-html/storage_test: Pass, RuntimeError # Issue 22166
-html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
+html/storage_test: Pass, RuntimeError # Issue 22166
 html/svgelement_test: Fail
+html/text_event_test: RuntimeError # Issue 23437
+html/touchevent_test: Fail # IE does not support TouchEvents
+html/transferables_test: Pass, Fail # Issues 20659.
+html/transition_event_test: Skip # Times out. Issue 22167
+html/touchevent_test: Fail # IE does not support TouchEvents
+html/two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
+html/webgl_1_test: Fail
+html/websocket_test: Fail # Issue 7875. Closed with "working as intended".
+html/websql_test: Fail
+html/wheelevent_test: RuntimeError # Issue 23437
+html/audiobuffersourcenode_test/supported: Fail
+html/audiocontext_test/supported: Fail
+html/worker_test/functional: Pass, Fail # Issues 20659.
+html/xhr_test/json: Fail # IE10 returns string, not JSON object
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
@@ -152,8 +199,67 @@ mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded typ
 mirrors/redirecting_factory_different_type_test/02: RuntimeError
 
 [ $runtime == safarimobilesim ]
+html/element_offset_test/offset: RuntimeError # Issue 18573
+html/event_test: RuntimeError # Safarimobilesim does not support WheelEvent
+html/indexeddb_1_test/supported: Fail
 html/performance_api_test/supported: Fail
 html/notification_test: RuntimeError # Issue 22869
+html/performance_api_test/supported: Fail
+html/wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
+html/xhr_test/json: Fail # Safari doesn't support JSON response type
 
 [ $runtime == safari ]
+html/indexeddb_1_test/functional: Skip # Times out. Issue 21433
+html/indexeddb_2_test: RuntimeError # Issue 21433
+html/indexeddb_3_test: Skip # Times out 1 out of 10.
+html/indexeddb_4_test: RuntimeError # Issue 21433
+html/indexeddb_5_test: RuntimeError # Issue 21433
+html/input_element_month_test: RuntimeError
+html/input_element_time_test: RuntimeError
+html/input_element_week_test: RuntimeError
+html/input_element_date_test: Fail
+html/input_element_datetime_test: Fail
 html/notification_test: Fail # Safari doesn't let us access the fields of the Notification to verify them.
+html/touchevent_test: Fail # Safari does not support TouchEvents
+html/audiobuffersourcenode_test/functional: RuntimeError
+
+[ $runtime == chrome ]
+html/element_animate_test/timing_dict: RuntimeError # Issue 26730
+html/touchevent_test: Fail # Touch events are only supported on touch devices
+
+[$runtime == drt || $runtime == chrome || $runtime == chromeOnAndroid ]
+html/webgl_1_test: Pass, Fail # Issue 8219
+
+[ $runtime == drt ]
+html/webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.
+
+[ $runtime != vm || $mode == product || $compiler == app_jit ]
+isolate/checked_test: Skip # Unsupported.
+
+[ $csp ]
+isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
+isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
+isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
+
+[ $mode == product ]
+isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
+developer/timeline_test: Skip # Not supported
+
+[ $compiler != none || $runtime != vm ]
+isolate/package_root_test: SkipByDesign  # Uses Isolate.packageRoot
+isolate/package_config_test: SkipByDesign  # Uses Isolate.packageConfig
+isolate/package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
+isolate/scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
+isolate/spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
+
+[ $jscl ]
+isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
+
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
+convert/utf85_test: Skip  # Pass, Slow Issue 12644.
+
+[ $arch == simarm64 ]
+convert/utf85_test: Skip # Pass, Slow Issue 20111.
+
+[ ($runtime == drt && $system == macos) || $system == windows ]
+html/xhr_test/xhr: Skip # Times out.  Issue 21527

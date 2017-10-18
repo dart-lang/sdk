@@ -1143,7 +1143,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   __ Call(stub_entry);
-  EmitCallsiteMetaData(token_pos, Thread::kNoDeoptId, kind, locs);
+  EmitCallsiteMetadata(token_pos, Thread::kNoDeoptId, kind, locs);
 }
 
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
@@ -1152,17 +1152,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs) {
   __ Call(stub_entry);
-  EmitCallsiteMetaData(token_pos, deopt_id, kind, locs);
-  // Marks either the continuation point in unoptimized code or the
-  // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-  if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after);
-  } else {
-    // Add deoptimization continuation point after the call and before the
-    // arguments are removed.
-    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-  }
+  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
 }
 
 void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
@@ -1171,7 +1161,8 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                RawPcDescriptors::Kind kind,
                                                LocationSummary* locs,
                                                const Function& target) {
-  GenerateDartCall(deopt_id, token_pos, stub_entry, kind, locs);
+  __ Call(stub_entry, true /* movable_target */);
+  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   AddStaticCallTarget(target);
 }
 
@@ -1181,19 +1172,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
                                             intptr_t argument_count,
                                             LocationSummary* locs) {
   __ CallRuntime(entry, argument_count);
-  EmitCallsiteMetaData(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
-  if (deopt_id != Thread::kNoDeoptId) {
-    // Marks either the continuation point in unoptimized code or the
-    // deoptimization point in optimized code, after call.
-    const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-    }
-  }
+  EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
 }
 
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
@@ -1312,9 +1291,9 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
-  GenerateDartCall(deopt_id, token_pos, *StubCode::CallStaticFunction_entry(),
-                   RawPcDescriptors::kOther, locs);
-  AddStaticCallTarget(function);
+  GenerateStaticDartCall(deopt_id, token_pos,
+                         *StubCode::CallStaticFunction_entry(),
+                         RawPcDescriptors::kOther, locs, function);
   __ Drop(count_with_type_args);
 }
 

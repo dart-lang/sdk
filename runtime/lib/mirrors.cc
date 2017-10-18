@@ -703,7 +703,8 @@ static RawInstance* InvokeClassGetter(const Class& klass,
 
 static RawAbstractType* InstantiateType(const AbstractType& type,
                                         const AbstractType& instantiator) {
-  // Generic function type parameters are not reified, but mapped to dynamic.
+  // Generic function type parameters are not reified, but mapped to dynamic,
+  // i.e. all function type parameters are free with a null vector.
   ASSERT(type.IsFinalized());
   PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsCanonical() || type.IsTypeParameter() || type.IsBoundedType());
@@ -719,8 +720,8 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   }
   Error& bound_error = Error::Handle();
   AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
-      instantiator_type_args, Object::null_type_arguments(), &bound_error, NULL,
-      NULL, Heap::kOld));
+      instantiator_type_args, Object::null_type_arguments(), kAllFree,
+      &bound_error, NULL, NULL, Heap::kOld));
   if (!bound_error.IsNull()) {
     Exceptions::PropagateError(bound_error);
     UNREACHABLE();
@@ -1650,8 +1651,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), &bound_error, NULL,
-          NULL, Heap::kOld);
+          type_arguments, Object::null_type_arguments(), kNoneFree,
+          &bound_error, NULL, NULL, Heap::kOld);
       if (!bound_error.IsNull()) {
         Exceptions::PropagateError(bound_error);
         UNREACHABLE();

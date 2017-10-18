@@ -4,10 +4,12 @@
 
 library constructor_calls_created_synchronously_test;
 
-import 'package:test/test.dart';
 import 'dart:html';
-import '../utils.dart';
 import 'dart:mirrors';
+
+import 'package:unittest/unittest.dart';
+
+import '../utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';

@@ -1802,6 +1802,17 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   // Hash not yet computed.
 }
 
+void Intrinsifier::Type_getHashCode(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EAX, Address(ESP, +1 * kWordSize));  // Type object.
+  __ movl(EAX, FieldAddress(EAX, Type::hash_offset()));
+  __ testl(EAX, EAX);
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  __ ret();
+  __ Bind(&fall_through);
+  // Hash not yet computed.
+}
+
 // bool _substringMatches(int start, String other)
 void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
   // For precompilation, not implemented on IA32.

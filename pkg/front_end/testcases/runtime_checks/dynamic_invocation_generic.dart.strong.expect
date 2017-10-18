@@ -6,7 +6,7 @@ class C<T extends core::Object> extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  method f<U extends self::C::T>(self::C::f::U x) → void {}
+  method f<generic-covariant-impl generic-covariant-interface U extends self::C::T>(self::C::f::U x) → void {}
 }
 static method g1(dynamic d) → void {
   d.f<core::num>(1.5);

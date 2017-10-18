@@ -16,6 +16,7 @@ import("../../sdk/lib/mirrors/mirrors_sources.gni")
 import("../../sdk/lib/profiler/profiler_sources.gni")
 import("../../sdk/lib/typed_data/typed_data_sources.gni")
 import("../../sdk/lib/vmservice/vmservice_sources.gni")
+import("../../utils/compile_platform.gni")
 import("../../utils/generate_patch_sdk.gni")
 import("../bin/io_sources.gni")
 import("../lib/async_sources.gni")
@@ -473,13 +474,22 @@ template("generate_vm_patched_sdk") {
     concatenation_target_names += [ ":concatenate_${name}_patch" ]
   }
 
+  patched_sdk_dir = "patched_sdk"
+
+  other_outputs = [
+    # Instead of listing all outputs we list those consumed by
+    # other BUILD rules.
+    "$root_out_dir/${patched_sdk_dir}/lib/libraries.json",
+  ]
+
   # Build the patched sdk out of the concatenated patches and the special
   # libraries.
   generate_patched_sdk(target_name) {
     mode = "vm"
     deps = concatenation_target_names
     input_patches_dir = "$target_gen_dir/patches"
-    patched_sdk_dir = "patched_sdk"
+    patched_sdk_dir = patched_sdk_dir
+    outputs = other_outputs
   }
 }
 
@@ -550,5 +560,74 @@ generate_vm_patched_sdk("patched_sdk") {
       io_runtime_sources,
       "../bin",
     ],
+  ]
+}
+
+compile_platform("vm_legacy_platform") {
+  sources = [
+    "$root_out_dir/patched_sdk/lib/libraries.json",
+  ]
+
+  outputs = [
+    "$root_out_dir/vm_platform.dill",
+    "$root_out_dir/vm_outline.dill",
+  ]
+
+  deps = [
+    ":patched_sdk",
+  ]
+
+  args = [ "dart:core" ]
+}
+
+compile_platform("vm_platform") {
+  sources = [
+    "$root_out_dir/patched_sdk/lib/libraries.json",
+  ]
+
+  outputs = [
+    "$root_out_dir/vm_platform_strong.dill",
+    "$root_out_dir/vm_outline_strong.dill",
+  ]
+
+  deps = [
+    ":patched_sdk",
+  ]
+
+  args = [
+    "--strong-mode",
+    "dart:core",
+  ]
+}
+
+compile_platform("vmservice_dill") {
+  sources = [
+    "../../sdk/lib/vmservice_libraries.json",
+  ]
+
+  outputs = [
+    "$root_out_dir/vmservice_io.dill",
+    "$root_out_dir/vmservice_io_outline.dill",
+  ]
+
+  inputs = [
+    "$root_out_dir/vm_platform.dill",
+  ]
+
+  deps = [
+    ":vm_legacy_platform",
+  ]
+
+  args = [
+    "--platform=" + rebase_path(inputs[0], root_build_dir),
+    "dart:vmservice_io",
+  ]
+}
+
+group("kernel_platform_files") {
+  public_deps = [
+    ":vm_legacy_platform",
+    ":vm_platform",
+    ":vmservice_dill",
   ]
 }

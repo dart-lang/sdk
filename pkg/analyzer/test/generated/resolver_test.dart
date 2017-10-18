@@ -1508,7 +1508,7 @@ f() {
     Source source = addSource(r'''
 f() {
   var v = 'String';
-  v.
+  v.length;
 }''');
     CompilationUnit unit = await _computeResolvedUnit(source, noErrors: false);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -2229,7 +2229,7 @@ main() {
     String name = 'toString';
     addNamedSource('/helper.dart', '''
 library helper;
-dynamic $name = (int x) => x + 42');
+dynamic toString = (int x) => x + 42;
 ''');
     String code = '''
 import 'helper.dart' as helper;

@@ -114,6 +114,13 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleRecoverClassHeader() {
+    popNode(); // interfaces
+    popNode(); // extendsNode
+    popNode(); // supertype
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     NodeList body = popNode();
     NodeList interfaces = popNode();
@@ -450,6 +457,13 @@ class NodeListener extends ElementListener {
     if (send == null || !(send.isPropertyAccess || send.isIndex)) {
       reportNotAssignable(node);
     }
+    var tokenString = token.stringValue;
+    if (tokenString == '||=' || tokenString == '&&=') {
+      reporter.reportErrorMessage(reporter.spanFromToken(token),
+          MessageKind.UNSUPPORTED_OPERATOR, {'operator': tokenString});
+      pushNode(arg);
+      return;
+    }
     if (send.asSendSet() != null) internalError(node: send);
     NodeList arguments;
     if (send.isIndex) {
@@ -471,7 +485,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon) {
     Node elseExpression = popNode();
     Node thenExpression = popNode();
     Node condition = popNode();
@@ -830,6 +844,8 @@ class NodeListener extends ElementListener {
       } else {
         pushNode(typeAnnotation);
       }
+    } else if (context == IdentifierContext.enumValueDeclaration) {
+      popNode();
     }
     pushNode(new Identifier(token));
   }

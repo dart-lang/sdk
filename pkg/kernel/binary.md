@@ -47,6 +47,11 @@ type List<T> {
   T[length] items;
 }
 
+type RList<T> {
+  T[length] elements;
+  Uint32 length;
+}
+
 // Untagged pairs.
 type Pair<T0, T1> {
   T0 first;
@@ -119,11 +124,26 @@ type CanonicalName {
 
 type ProgramFile {
   UInt32 magic = 0x90ABCDEF;
-  List<Library> libraries;
+  UInt32 formatVersion;
+  MetadataPayload[] metadataPayloads;
+  Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
+  RList<MetadataMapping> metadataMappings;
   StringTable strings;
   ProgramIndex programIndex;
+}
+
+// Backend specific metadata section.
+type MetadataPayload {
+  Byte[] opaquePayload;
+}
+
+type MetadataMapping {
+  UInt32 tag;  // StringReference of a fixed size.
+  RList<Pair<UInt32, UInt32>> nodeOffsetToMetadataOffset;
+  RList<UInt32> nodeReferences;  // If metadata payload references nodes
+                              // they are encoded as indices in this array.
 }
 
 // Program index with all fixed-size-32-bit integers.
@@ -284,6 +304,7 @@ type Field extends Member {
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
               isCovariant, isGenericCovariantImpl, isGenericCovariantInterface);
+  Byte flags2 (isGenericContravariant);
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
@@ -322,7 +343,8 @@ type Procedure extends Member {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
-  Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub);
+  Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
+              isGenericContravariant);
   Name name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
@@ -624,6 +646,7 @@ type IsExpression extends Expression {
 type AsExpression extends Expression {
   Byte tag = 38;
   FileOffset fileOffset;
+  Byte flags (isTypeError);
   Expression operand;
   DartType type;
 }
@@ -960,6 +983,8 @@ type VariableDeclaration {
   // If it does not contain one this should be -1.
   FileOffset fileEqualsOffset;
 
+  List<Expression> annotations;
+
   Byte flags (isFinal, isConst, isFieldFormal, isCovariant,
               isInScope, isGenericCovariantImpl, isGenericCovariantInterface);
   // For named parameters, this is the parameter name.
@@ -1069,6 +1094,7 @@ type TypeParameterType extends DartType {
 type TypeParameter {
   // Note: there is no tag on TypeParameter
   Byte flags (isGenericCovariantImpl, isGenericCovariantInterface);
+  List<Expression> annotations;
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
 }

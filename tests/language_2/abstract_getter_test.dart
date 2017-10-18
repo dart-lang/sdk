@@ -8,17 +8,15 @@ import "package:expect/expect.dart";
 
 class Foo {
   // Intentionally abstract:
-  get i; // //# 01: compile-time error
+  get i; //# 01: compile-time error
 }
 
 class Bar {}
 
-noMethod(e) => e is NoSuchMethodError;
-
 checkIt(f) {
-  Expect.throws(() { f.i = 'hi'; }, noMethod); // //# 01: continued
-  Expect.throws(() { print(f.i); }, noMethod); // //# 01: continued
-  Expect.throws(() { print(f.i()); }, noMethod); // //# 01: continued
+  Expect.throwsNoSuchMethodError(() => f.i = 'hi'); // //# 01: continued
+  Expect.throwsNoSuchMethodError(() => print(f.i)); // //# 01: continued
+  Expect.throwsNoSuchMethodError(() => print(f.i())); // //# 01: continued
 }
 
 main() {

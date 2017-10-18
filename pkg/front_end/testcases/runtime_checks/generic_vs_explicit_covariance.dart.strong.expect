@@ -16,10 +16,10 @@ class B extends core::Object implements self::A {
   method f(covariant core::Object x) → void {}
 }
 class C<T extends core::Object> extends core::Object implements self::B {
-  covariant field self::C::T x = null;
+  covariant generic-covariant-impl generic-covariant-interface field self::C::T x = null;
   default constructor •() → void
     : super core::Object::•()
     ;
-  method f(covariant self::C::T x) → void {}
+  method f(covariant generic-covariant-impl generic-covariant-interface self::C::T x) → void {}
 }
 static method main() → dynamic {}

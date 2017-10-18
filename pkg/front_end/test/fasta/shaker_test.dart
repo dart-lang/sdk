@@ -17,7 +17,7 @@ library fasta.test.shaker_test;
 
 import 'dart:async' show Future;
 import 'dart:convert' show JSON;
-import 'dart:io' show File;
+import 'dart:io' show File, Platform;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 import 'package:front_end/compiler_options.dart';
@@ -32,13 +32,12 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyProgram;
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show BytesCollector, runDiff;
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart' show loadProgramFromBytes;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
@@ -81,8 +80,9 @@ class TreeShakerContext extends ChainContext {
     environment[ENABLE_FULL_COMPILE] = "";
     environment[AST_KIND_INDEX] = "${AstKind.Kernel.index}";
     bool updateExpectations = environment["updateExpectations"] == "true";
-    Uri sdk = await computePatchedSdk();
-    Uri outlineUri = sdk.resolve('outline.dill');
+    Uri outlineUri = Uri.base
+        .resolve(Platform.resolvedExecutable)
+        .resolve("vm_outline.dill");
     var options = new CompilerOptions()
       ..packagesFileUri = Uri.base.resolve(".packages");
     List<int> outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
@@ -104,7 +104,7 @@ class BuildProgram
         var platformOutline = context.loadPlatformOutline();
         var uriTranslator = await context.options.getUriTranslator();
         var dillTarget = new DillTarget(context.options.ticker, uriTranslator,
-            new VmFastaTarget(new TargetFlags(strongMode: false)));
+            new VmTarget(new TargetFlags(strongMode: false)));
         dillTarget.loader.appendLibraries(platformOutline);
         var sourceTarget = new KernelTarget(
             context.options.fileSystem, false, dillTarget, uriTranslator);

@@ -23,6 +23,9 @@ import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
 import 'package:compiler/src/options.dart' show CompilerOptions;
 
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
 import 'memory_source_file_helper.dart';
 
 export 'output_collector.dart';
@@ -119,14 +122,10 @@ CompilerImpl compilerFor(
     Uri packageRoot,
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
-  Uri libraryRoot;
+  Uri libraryRoot = Uri.base.resolve('sdk/');
+  Uri platformBinaries;
   if (options.contains(Flags.useKernel)) {
-    String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
-    String configuration =
-        Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
-    libraryRoot = Uri.base.resolve('$buildDir/$configuration/dart-sdk/');
-  } else {
-    libraryRoot = Uri.base.resolve('sdk/');
+    platformBinaries = computePlatformBinariesLocation();
   }
 
   if (packageRoot == null &&
@@ -174,6 +173,7 @@ CompilerImpl compilerFor(
           packageRoot: packageRoot,
           options: options,
           environment: {},
+          platformBinaries: platformBinaries,
           packageConfig: packageConfig,
           packagesDiscoveryProvider: packagesDiscoveryProvider));
 

@@ -174,6 +174,12 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     _lastSignatures = null;
   }
 
+  @override
+  void reset() {
+    _currentSignatures.clear();
+    _lastSignatures = null;
+  }
+
   /// Add [Source]s for the [libraryFile] and its parts into [program] URI
   /// to [Source] map.
   void _addLibrarySources(Program program, FileState libraryFile) {

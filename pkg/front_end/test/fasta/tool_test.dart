@@ -4,8 +4,6 @@
 
 /// Tests the tool `pkg/front_end/tool/fasta`.
 
-import "dart:convert";
-
 import "dart:io";
 
 import "package:expect/expect.dart";
@@ -51,8 +49,6 @@ const List<String> unsafeTools = const <String>[
   "testing",
 ];
 
-const JsonEncoder prettyJson = const JsonEncoder.withIndent("  ");
-
 main() {
   if (!Platform.isMacOS && !Platform.isLinux) {
     // The tool is a shell script and only works on Mac and Linux.
@@ -60,30 +56,8 @@ main() {
   }
   Set<String> testedSubtools = new Set<String>.from(subtools)
       .difference(new Set<String>.from(unsafeTools));
-  Map<String, Map<String, dynamic>> resultMap =
-      <String, Map<String, dynamic>>{};
-  for (String subtool in testedSubtools) {
-    print("Testing $subtool");
-    ProcessResult result =
-        Process.runSync("/bin/bash", <String>[toolPath, subtool]);
-    resultMap[subtool] = {
-      "exitCode": result.exitCode,
-      "stdout": result.stdout,
-      "stderr": result.stderr,
-    };
-  }
-  Map<String, dynamic> scanner = resultMap["scanner"];
-  Expect.isTrue(scanner["stdout"].startsWith("Reading files took: "));
-  scanner["stdout"] = "was checked above";
-
-  Map<String, dynamic> kernelService = resultMap["kernel-service"];
-  Expect.isTrue(kernelService["stderr"].startsWith("Usage: dart ["));
-  kernelService["stderr"] = "was checked above";
-
-  String jsonResult = prettyJson.convert(resultMap);
   String usage = messageFastaUsageShort.message;
-
-  String jsonExpectation = prettyJson.convert({
+  Map expectations = {
     "abcompile": {
       "exitCode": 1,
       "stdout": """[]
@@ -111,12 +85,12 @@ Error: No Dart file specified.
     "compile-platform": {
       "exitCode": 1,
       "stdout": """
-Usage: compile_platform [options] patched_sdk fullOutput outlineOutput
+Usage: compile_platform [options] dart-library-uri libraries.json platform.dill outline.dill
 
 Compiles Dart SDK platform to the Dill/Kernel IR format.
 
 $usage
-Error: Expected three arguments.
+Error: Expected four arguments.
 """,
       "stderr": "",
     },
@@ -149,7 +123,6 @@ Error: No Dart file specified.
     },
     "scanner": {
       "exitCode": 0,
-      "stdout": "was checked above",
       "stderr": "",
     },
     "dump-partial": {
@@ -166,8 +139,32 @@ Error: No Dart file specified.
     "kernel-service": {
       "exitCode": 255,
       "stdout": "",
-      "stderr": "was checked above",
     },
-  });
-  Expect.stringEquals(jsonExpectation, jsonResult);
+  };
+
+  for (String subtool in testedSubtools) {
+    print("Testing $subtool");
+    ProcessResult result =
+        Process.runSync("/bin/bash", <String>[toolPath, subtool]);
+    Map expectation = expectations.remove(subtool);
+    Expect.equals(expectation["exitCode"], result.exitCode);
+
+    switch (subtool) {
+      case "scanner":
+        Expect.isTrue(result.stdout.startsWith("Reading files took: "));
+        Expect.stringEquals(expectation["stderr"], result.stderr);
+        break;
+
+      case "kernel-service":
+        Expect.stringEquals(expectation["stdout"], result.stdout);
+        Expect.isTrue(result.stderr.startsWith("Usage: dart ["));
+        break;
+
+      default:
+        Expect.stringEquals(expectation["stdout"], result.stdout);
+        Expect.stringEquals(expectation["stderr"], result.stderr);
+        break;
+    }
+  }
+  Expect.isTrue(expectations.isEmpty);
 }

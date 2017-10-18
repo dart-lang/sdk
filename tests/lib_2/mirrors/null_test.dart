@@ -16,8 +16,8 @@ main() {
   Expect.isTrue(nullMirror.invoke(#==, [null]).reflectee);
   Expect.isFalse(nullMirror.invoke(#==, [new Object()]).reflectee);
   Expect.equals('null', nullMirror.invoke(#toString, []).reflectee);
-  Expect.throws(() => nullMirror.invoke(#notDefined, []),
-      (e) => e is NoSuchMethodError, 'noSuchMethod');
+  Expect.throwsNoSuchMethodError(() => nullMirror.invoke(#notDefined, []),
+      'noSuchMethod');
 
   ClassMirror NullMirror = nullMirror.type;
   Expect.equals(reflectClass(Null), NullMirror);

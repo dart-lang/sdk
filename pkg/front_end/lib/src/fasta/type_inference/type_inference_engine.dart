@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
-import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
@@ -15,91 +13,62 @@ import 'package:kernel/ast.dart'
         DartType,
         DartTypeVisitor,
         DynamicType,
-        Field,
         FunctionType,
         InterfaceType,
         Location,
-        Member,
-        Procedure,
         TypeParameter,
         TypeParameterType,
-        TypedefType,
-        VariableDeclaration;
+        TypedefType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/type_algebra.dart';
 
 import '../deprecated_problems.dart' show Crash;
 import '../messages.dart' show getLocationFromNode;
 
-/// Data structure for tracking dependencies among fields, getters, and setters
-/// that require type inference.
-///
-/// TODO(paulberry): see if it's possible to make this class more lightweight
-/// by changing the API so that the walker is passed to computeDependencies().
-/// (This should allow us to drop the _typeInferenceEngine field).
-class AccessorNode extends dependencyWalker.Node<AccessorNode> {
+/// Concrete class derived from [InferenceNode] to represent type inference of a
+/// field based on its initializer.
+class FieldInitializerInferenceNode extends InferenceNode {
   final TypeInferenceEngineImpl _typeInferenceEngine;
 
-  final ShadowMember member;
+  /// The field whose type should be inferred.
+  final ShadowField field;
 
-  bool isImmediatelyEvident = false;
+  FieldInitializerInferenceNode(this._typeInferenceEngine, this.field);
 
-  InferenceState state = InferenceState.NotInferredYet;
-
-  /// If [state] is [InferenceState.Inferring], and type inference for this
-  /// accessor is waiting on type inference of some other accessor, the accessor
-  /// that is being waited on.
-  ///
-  /// Otherwise `null`.
-  AccessorNode currentDependency;
-
-  final overrides = <Member>[];
-
-  final crossOverrides = <Member>[];
-
-  AccessorNode(this._typeInferenceEngine, this.member);
-
-  List<Member> get candidateOverrides {
-    if (isTrivialSetter) {
-      return const [];
-    } else if (overrides.isNotEmpty) {
-      return overrides;
-    } else {
-      return crossOverrides;
+  @override
+  void resolveInternal() {
+    if (_typeInferenceEngine.strongMode) {
+      var typeInferrer = _typeInferenceEngine.getFieldTypeInferrer(field);
+      // Note: in the event that there is erroneous code, it's possible for
+      // typeInferrer to be null.  If this happens, just skip type inference for
+      // this field.
+      if (typeInferrer != null) {
+        var inferredType = typeInferrer.inferDeclarationType(
+            typeInferrer.inferFieldTopLevel(field, null, true));
+        if (isCircular) {
+          // TODO(paulberry): report the appropriate error.
+          inferredType = const DynamicType();
+        }
+        field.setInferredType(
+            _typeInferenceEngine, typeInferrer.uri, inferredType);
+        // TODO(paulberry): if type != null, then check that the type of the
+        // initializer is assignable to it.
+      }
     }
+    // TODO(paulberry): the following is a hack so that outlines don't contain
+    // initializers.  But it means that we rebuild the initializers when doing
+    // a full compile.  There should be a better way.
+    field.initializer = null;
   }
 
   @override
-  bool get isEvaluated => state == InferenceState.Inferred;
-
-  /// Indicates whether this accessor is a setter for which the only type we
-  /// have to infer is its return type.
-  bool get isTrivialSetter {
-    var member = this.member;
-    if (member is ShadowProcedure &&
-        member.isSetter &&
-        member.function != null) {
-      var parameters = member.function.positionalParameters;
-      return parameters.length > 0 &&
-          !ShadowVariableDeclaration.isImplicitlyTyped(parameters[0]);
-    }
-    return false;
-  }
-
-  @override
-  List<AccessorNode> computeDependencies() {
-    return _typeInferenceEngine.computeAccessorDependencies(this);
-  }
-
-  @override
-  String toString() => member.toString();
+  String toString() => field.toString();
 }
 
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a covariant fashion.
 class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
-  bool _inCovariantContext = true;
+  bool inCovariantContext = true;
 
   final List<TypeParameter> _typeParametersToSearchFor;
 
@@ -112,7 +81,7 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
   bool visitFunctionType(FunctionType node) {
     if (node.returnType.accept(this)) return true;
     try {
-      _inCovariantContext = !_inCovariantContext;
+      inCovariantContext = !inCovariantContext;
       for (var parameter in node.positionalParameters) {
         if (parameter.accept(this)) return true;
       }
@@ -121,7 +90,7 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
       }
       return false;
     } finally {
-      _inCovariantContext = !_inCovariantContext;
+      inCovariantContext = !inCovariantContext;
     }
   }
 
@@ -140,39 +109,70 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return _inCovariantContext &&
+    return inCovariantContext &&
         _typeParametersToSearchFor.contains(node.parameter);
   }
 }
 
-/// Enum tracking the type inference state of an accessor or method.
-enum InferenceState {
-  /// The accessor or method's type has not been inferred yet.
-  NotInferredYet,
+/// Base class for tracking dependencies during top level type inference.
+///
+/// Fields, accessors, and methods can have their types inferred in a variety of
+/// ways; there will a derived class for each kind of inference.
+abstract class InferenceNode {
+  /// The node currently being evaluated, or `null` if no node is being
+  /// evaluated.
+  static InferenceNode _currentNode;
 
-  /// Type inference is in progress for the accessor or method.
+  /// Indicates whether the type inference corresponding to this node has been
+  /// completed.
+  bool _isResolved = false;
+
+  /// Indicates whether this node participates in a circularity.
+  bool _isCircular = false;
+
+  /// If this node is currently being evaluated, and its evaluation caused a
+  /// recursive call to another node's [resolve] method, a pointer to the latter
+  /// node; otherwise `null`.
+  InferenceNode _nextNode;
+
+  /// Indicates whether this node participates in a circularity.
   ///
-  /// This means that code is currently on the stack which is attempting to
-  /// determine the type of the accessor or method.
-  Inferring,
+  /// This may be called at the end of [resolveInternal] to check whether a
+  /// circularity was detected during evaluation.
+  bool get isCircular => _isCircular;
 
-  /// The accessor or method's type has been inferred.
-  Inferred
-}
+  /// Evaluates this node, properly accounting for circularities.
+  void resolve() {
+    if (_isResolved) return;
+    if (_nextNode != null || identical(_currentNode, this)) {
+      // An accessor depends on itself (possibly by way of intermediate
+      // accessors).  Mark all accessors involved as circular.
+      var node = this;
+      do {
+        node._isCircular = true;
+        node._isResolved = true;
+        node = node._nextNode;
+      } while (node != null);
+    } else {
+      var previousNode = _currentNode;
+      assert(previousNode?._nextNode == null);
+      _currentNode = this;
+      previousNode?._nextNode = this;
+      resolveInternal();
+      assert(identical(_currentNode, this));
+      previousNode?._nextNode = null;
+      _currentNode = previousNode;
+      _isResolved = true;
+    }
+  }
 
-/// Data structure for tracking dependencies among methods that require type
-/// inference.
-class MethodNode {
-  final ShadowProcedure procedure;
-
-  InferenceState state = InferenceState.NotInferredYet;
-
-  final overrides = <Procedure>[];
-
-  MethodNode(this.procedure);
-
-  @override
-  String toString() => procedure.toString();
+  /// Evaluates this node, possibly by making recursive calls to the [resolve]
+  /// method of this node or other nodes.
+  ///
+  /// Circularity detection is handled by [resolve], which calls this method.
+  /// Once this method has made all recursive calls to [resolve], it may use
+  /// [isCircular] to detect whether a circularity has occurred.
+  void resolveInternal();
 }
 
 /// Keeps track of the global state for the type inference that occurs outside
@@ -184,13 +184,14 @@ class MethodNode {
 abstract class TypeInferenceEngine {
   ClassHierarchy get classHierarchy;
 
+  void set classHierarchy(ClassHierarchy classHierarchy);
+
   CoreTypes get coreTypes;
 
-  TypeSchemaEnvironment get typeSchemaEnvironment;
+  /// Indicates whether the "prepare" phase of type inference is complete.
+  void set isTypeInferencePrepared(bool value);
 
-  /// Annotates the formal parameters of any methods in [cls] to indicate the
-  /// circumstances in which they require runtime type checks.
-  void computeFormalSafety(Class cls);
+  TypeSchemaEnvironment get typeSchemaEnvironment;
 
   /// Creates a disabled type inferrer (intended for debugging and profiling
   /// only).
@@ -204,12 +205,17 @@ abstract class TypeInferenceEngine {
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
-      InterfaceType thisType, ShadowMember member);
+      InterfaceType thisType, ShadowField field);
 
   /// Performs the second phase of top level initializer inference, which is to
   /// visit all accessors and top level variables that were passed to
   /// [recordAccessor] in topologically-sorted order and assign their types.
-  void finishTopLevel();
+  void finishTopLevelFields();
+
+  /// Performs the third phase of top level inference, which is to visit all
+  /// initializing formals and infer their types (if necessary) from the
+  /// corresponding fields.
+  void finishTopLevelInitializingFormals();
 
   /// Gets ready to do top level type inference for the program having the given
   /// [hierarchy], using the given [coreTypes].
@@ -219,8 +225,8 @@ abstract class TypeInferenceEngine {
   /// inference.
   void recordInitializingFormal(ShadowVariableDeclaration formal);
 
-  /// Records that the given [member] will need top level type inference.
-  void recordMember(ShadowMember member);
+  /// Records that the given static [field] will need top level type inference.
+  void recordStaticFieldInferenceCandidate(ShadowField field);
 }
 
 /// Derived class containing generic implementations of
@@ -230,36 +236,11 @@ abstract class TypeInferenceEngine {
 /// possible without knowing the identity of the type parameter.  It defers to
 /// abstract methods for everything else.
 abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
-  /// Enables "expanded top level inference", which allows top level inference
-  /// to support all expressions, not just those defined as "immediately
-  /// evident" by https://github.com/dart-lang/sdk/pull/28218.
-  static const bool expandedTopLevelInference = true;
-
-  /// Enables "fused top level inference", which fuses dependency collection and
-  /// type inference of a field into a single step (a dependency is detected at
-  /// the time type inference attempts to read the depended-upon type, and this
-  /// triggers a recursive evaluation of the depended-upon type).
-  ///
-  /// This avoids some unnecessary dependencies, since we now know for sure
-  /// whether a dependency will be needed at the time we evaluate it.
-  ///
-  /// Requires [expandedTopLevelInference] to be `true`.
-  static const bool fusedTopLevelInference = true;
-
-  /// Enables "full top level inference", which allows a top level or static
-  /// field's inferred type to depend on the type of an instance field (provided
-  /// there are no circular dependencies).
-  ///
-  /// Requires [fusedTopLevelInference] to be `true`.
-  static const bool fullTopLevelInference = true;
-
   final Instrumentation instrumentation;
 
   final bool strongMode;
 
-  final accessorNodes = <AccessorNode>[];
-
-  final methodNodes = <MethodNode>[];
+  final staticInferenceNodes = <FieldInitializerInferenceNode>[];
 
   final initializingFormals = <ShadowVariableDeclaration>[];
 
@@ -271,170 +252,21 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   TypeSchemaEnvironment typeSchemaEnvironment;
 
+  @override
+  bool isTypeInferencePrepared = false;
+
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
 
-  /// Computes type inference dependencies for the given [accessorNode].
-  List<AccessorNode> computeAccessorDependencies(AccessorNode accessorNode) {
-    // If the accessor's type is going to be determined by inheritance, then its
-    // dependencies are determined by inheritance too.
-    var candidateOverrides = accessorNode.candidateOverrides;
-    if (candidateOverrides.isNotEmpty) {
-      var dependencies = <AccessorNode>[];
-      for (var override in candidateOverrides) {
-        var dep = ShadowMember.getAccessorNode(override);
-        if (dep != null) dependencies.add(dep);
-      }
-      accessorNode.isImmediatelyEvident = true;
-      return dependencies;
+  @override
+  void finishTopLevelFields() {
+    for (var node in staticInferenceNodes) {
+      node.resolve();
     }
-
-    // Otherwise its dependencies are based on the initializer expression.
-    var member = accessorNode.member;
-    if (member is ShadowField) {
-      if (expandedTopLevelInference) {
-        // In expanded top level inference, we determine the dependencies by
-        // doing a "dry run" of top level inference and recording which static
-        // fields were accessed.
-        var typeInferrer = getMemberTypeInferrer(member);
-        if (typeInferrer == null) {
-          // This can happen when there are errors in the field declaration.
-          return const [];
-        } else {
-          typeInferrer.startDryRun();
-          typeInferrer.listener.dryRunEnter(member.initializer);
-          typeInferrer.inferFieldTopLevel(member, null, true);
-          typeInferrer.listener.dryRunExit(member.initializer);
-          accessorNode.isImmediatelyEvident = true;
-          return typeInferrer.finishDryRun();
-        }
-      } else {
-        // In non-expanded top level inference, we determine the dependencies by
-        // calling `collectDependencies`; as a side effect this flags any
-        // expressions that are not "immediately evident".
-        // TODO(paulberry): get rid of this mode once we are sure we no longer
-        // need it.
-        var collector = new ShadowDependencyCollector();
-        collector.collectDependencies(member.initializer);
-        accessorNode.isImmediatelyEvident = collector.isImmediatelyEvident;
-        return collector.dependencies;
-      }
-    } else {
-      // Member is a getter/setter that doesn't override anything, so we can't
-      // infer a type for it; therefore it has no dependencies.
-      return const [];
-    }
+    staticInferenceNodes.clear();
   }
 
   @override
-  void computeFormalSafety(Class cls) {
-    // If any method in the class has a formal parameter whose type depends on
-    // one of the class's type parameters, then there may be a mismatch between
-    // the type guarantee made by the caller and the type guarantee expected by
-    // the callee.  For instance, consider the code:
-    //
-    // class A<T> {
-    //   foo(List<T> argument) {}
-    // }
-    // class B extends A<num> {
-    //   foo(List<num> argument) {}
-    // }
-    // class C extends B {
-    //   foo(List<Object> argument) {}
-    // }
-    // void bar(A<Object> a) {
-    //   a.foo(<Object>[1, 2.0, 'hi']);
-    // }
-    // void baz(B b) {
-    //   b.foo(<Object>[1, 2.0, 'hi']); // Compile-time error
-    // }
-    //
-    //
-    // At the call site in `bar`, we know that the value passed to `foo` is an
-    // instance of `List<Object>`.  But `bar` might have been called as
-    // `bar(new A<num>())`, in which case passing `List<Object>` to `a.foo` would
-    // violate soundness.  Therefore `A.foo` will have to check the type of its
-    // argument at runtime (unless the back end can prove the check is
-    // unnecessary, e.g. through whole program analysis).
-    //
-    // The same check needs to be compiled into `B.foo`, since it's possible
-    // that `bar` might have been called as `bar(new B())`.
-    //
-    // However, if the call to `foo` occurs via the interface target `B.foo`,
-    // no check is needed, since the class B is not generic, so the front end is
-    // able to check the types completely at compile time and issue an error if
-    // they don't match, as illustrated in `baz`.
-    //
-    // We represent this by marking A.foo's argument as both "semi-typed" and
-    // "semi-safe", whereas B.foo's argument is simply "semi-safe".  The rule is
-    // that a check only needs to be performed if the interface target's
-    // parameter is marked as "semi-typed" AND the actual target's parameter is
-    // marked as "semi-safe".
-    //
-    // A parameter is marked as "semi-typed" if it refers to one of the class's
-    // generic parameters in a covariant position; a parameter is marked as
-    // "semi-safe" if it is semi-typed or it overrides a parameter that is
-    // semi-safe.  (In other words, the "semi-safe" annotation is inherited).
-    //
-    // Note that this a slightly conservative analysis; it mark C.foo's argument
-    // as "semi-safe" even though technically it's not necessary to do so (since
-    // every possible call to C.foo is guaranteed to pass in a subtype of
-    // List<Object>).  In principle we could improve on this, but it would
-    // require a lot of bookkeeping, and it doesn't seem worth it.
-    if (cls.typeParameters.isNotEmpty) {
-      var needsCheckVisitor =
-          new IncludesTypeParametersCovariantly(cls.typeParameters);
-      for (var procedure in cls.procedures) {
-        if (procedure.isStatic) continue;
-
-        void handleParameter(VariableDeclaration formal) {
-          if (formal.type.accept(needsCheckVisitor)) {
-            formal.isGenericCovariantImpl = true;
-            formal.isGenericCovariantInterface = true;
-          }
-        }
-
-        void handleTypeParameter(TypeParameter typeParameter) {
-          if (typeParameter.bound.accept(needsCheckVisitor)) {
-            typeParameter.isGenericCovariantImpl = true;
-            typeParameter.isGenericCovariantInterface = true;
-          }
-        }
-
-        procedure.function.positionalParameters.forEach(handleParameter);
-        procedure.function.namedParameters.forEach(handleParameter);
-        procedure.function.typeParameters.forEach(handleTypeParameter);
-      }
-      for (var field in cls.fields) {
-        if (field.isStatic) continue;
-
-        if (field.type.accept(needsCheckVisitor)) {
-          field.isGenericCovariantImpl = true;
-          field.isGenericCovariantInterface = true;
-        }
-      }
-    }
-  }
-
-  /// Creates an [AccessorNode] to track dependencies of the given [member].
-  AccessorNode createAccessorNode(ShadowMember member);
-
-  /// Creates a [MethodNode] to track dependencies of the given [procedure].
-  MethodNode createMethodNode(ShadowProcedure procedure);
-
-  @override
-  void finishTopLevel() {
-    for (var methodNode in methodNodes) {
-      inferMethodIfNeeded(methodNode);
-    }
-    for (var accessorNode in accessorNodes) {
-      if (fusedTopLevelInference) {
-        assert(expandedTopLevelInference);
-        inferAccessorFused(accessorNode, null);
-      } else {
-        if (accessorNode.isEvaluated) continue;
-        new _AccessorWalker().walk(accessorNode);
-      }
-    }
+  void finishTopLevelInitializingFormals() {
     for (ShadowVariableDeclaration formal in initializingFormals) {
       try {
         formal.type = _inferInitializingFormalType(formal);
@@ -449,122 +281,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
   }
 
-  /// Retrieve the [TypeInferrer] for the given [member], which was created by
+  /// Retrieve the [TypeInferrer] for the given [field], which was created by
   /// a previous call to [createTopLevelTypeInferrer].
-  TypeInferrerImpl getMemberTypeInferrer(ShadowMember member);
-
-  /// Performs type inference on the given [accessorNode].
-  void inferAccessor(AccessorNode accessorNode) {
-    assert(accessorNode.state == InferenceState.NotInferredYet);
-    accessorNode.state = InferenceState.Inferring;
-    var member = accessorNode.member;
-    if (strongMode) {
-      var typeInferrer = getMemberTypeInferrer(member);
-      if (member is ShadowProcedure && member.isSetter) {
-        ShadowProcedure.inferSetterReturnType(member, this, typeInferrer.uri);
-      }
-      if (!accessorNode.isTrivialSetter) {
-        var inferredType = tryInferAccessorByInheritance(accessorNode);
-        if (inferredType == null) {
-          if (member is ShadowField) {
-            typeInferrer.isImmediatelyEvident = true;
-            inferredType = accessorNode.isImmediatelyEvident
-                ? typeInferrer.inferDeclarationType(
-                    typeInferrer.inferFieldTopLevel(member, null, true))
-                : const DynamicType();
-            if (!typeInferrer.isImmediatelyEvident) {
-              inferredType = const DynamicType();
-            }
-          } else {
-            inferredType = const DynamicType();
-          }
-        }
-        if (accessorNode.state == InferenceState.Inferred) {
-          // A circularity must have been detected; at the time it was detected,
-          // inference for this node was completed.
-          return;
-        }
-        member.setInferredType(this, typeInferrer.uri, inferredType);
-      }
-    }
-    accessorNode.state = InferenceState.Inferred;
-    // TODO(paulberry): if type != null, then check that the type of the
-    // initializer is assignable to it.
-    // TODO(paulberry): the following is a hack so that outlines don't contain
-    // initializers.  But it means that we rebuild the initializers when doing
-    // a full compile.  There should be a better way.
-    if (member is ShadowField) {
-      member.initializer = null;
-    }
-  }
-
-  /// Makes a note that the given [accessorNode] is part of a circularity, so
-  /// its type can't be inferred.
-  void inferAccessorCircular(AccessorNode accessorNode) {
-    var member = accessorNode.member;
-    // TODO(paulberry): report the appropriate error.
-    var uri = getMemberTypeInferrer(member).uri;
-    accessorNode.state = InferenceState.Inferred;
-    member.setInferredType(this, uri, const DynamicType());
-    // TODO(paulberry): the following is a hack so that outlines don't contain
-    // initializers.  But it means that we rebuild the initializers when doing
-    // a full compile.  There should be a better way.
-    if (member is ShadowField) {
-      member.initializer = null;
-    }
-  }
-
-  /// Performs fused type inference on the given [accessorNode].
-  void inferAccessorFused(AccessorNode accessorNode, AccessorNode dependant) {
-    switch (accessorNode.state) {
-      case InferenceState.Inferred:
-        // Already inferred.  Nothing to do.
-        break;
-      case InferenceState.Inferring:
-        // An accessor depends on itself (possibly by way of intermediate
-        // accessors).  Mark all accessors involved as circular and infer a type
-        // of `dynamic` for them.
-        var node = accessorNode;
-        while (node != null) {
-          var nextNode = node.currentDependency;
-          inferAccessorCircular(node);
-          node.currentDependency = null;
-          node = nextNode;
-        }
-        break;
-      case InferenceState.NotInferredYet:
-        // Mark the "dependant" accessor (if any) as depending on this one, and
-        // invoke accessor inference for this node.
-        dependant?.currentDependency = accessorNode;
-        // All accessors are "immediately evident" when doing fused inference.
-        accessorNode.isImmediatelyEvident = true;
-        inferAccessor(accessorNode);
-        dependant?.currentDependency = null;
-        break;
-    }
-  }
-
-  /// Performs type inference on the given [methodNode].
-  void inferMethodIfNeeded(MethodNode methodNode) {
-    switch (methodNode.state) {
-      case InferenceState.Inferred:
-        // Already inferred.  Nothing to do.
-        break;
-      case InferenceState.Inferring:
-        // An method depends on itself (possibly by way of intermediate
-        // methods).  This should never happen, because it would require a
-        // circular class hierarchy (which Fasta prevents).
-        dynamic parent = methodNode.procedure.parent;
-        unhandled("Circular method inference", "inferMethodIfNeeded",
-            methodNode.procedure.fileOffset, Uri.parse(parent.fileUri));
-        break;
-      case InferenceState.NotInferredYet:
-        methodNode.state = InferenceState.Inferring;
-        _inferMethod(methodNode);
-        methodNode.state = InferenceState.Inferred;
-        break;
-    }
-  }
+  TypeInferrerImpl getFieldTypeInferrer(ShadowField field);
 
   @override
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
@@ -579,108 +298,10 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     initializingFormals.add(formal);
   }
 
-  @override
-  void recordMember(ShadowMember member) {
-    if (member is ShadowProcedure && !member.isGetter && !member.isSetter) {
-      methodNodes.add(createMethodNode(member));
-    } else {
-      accessorNodes.add(createAccessorNode(member));
-    }
-  }
-
-  DartType tryInferAccessorByInheritance(AccessorNode accessorNode) {
-    DartType inferredType;
-    for (var override in accessorNode.candidateOverrides) {
-      var nextInferredType =
-          _computeOverriddenAccessorType(override, accessorNode);
-      if (inferredType == null) {
-        inferredType = nextInferredType;
-      } else if (inferredType != nextInferredType) {
-        // Overrides don't have matching types.
-        // TODO(paulberry): report an error
-        return const DynamicType();
-      }
-    }
-    return inferredType;
-  }
-
-  List<FunctionType> _computeMethodOverriddenTypes(MethodNode methodNode) {
-    var overriddenTypes = <FunctionType>[];
-    for (var override in methodNode.overrides) {
-      MethodNode overrideNode = ShadowProcedure.getMethodNode(override);
-      if (overrideNode != null) {
-        inferMethodIfNeeded(overrideNode);
-      }
-      if (override.function == null) {
-        // This can happen if there are errors.  Just skip this override.
-        continue;
-      }
-      var overriddenType = override.function.functionType;
-      var superclass = override.enclosingClass;
-      if (!superclass.typeParameters.isEmpty) {
-        var thisClass = methodNode.procedure.enclosingClass;
-        var superclassInstantiation = classHierarchy
-            .getClassAsInstanceOf(thisClass, superclass)
-            .asInterfaceType;
-        overriddenType = Substitution
-            .fromInterfaceType(superclassInstantiation)
-            .substituteType(overriddenType);
-      }
-      var methodTypeParameters = methodNode.procedure.function.typeParameters;
-      if (overriddenType.typeParameters.length != methodTypeParameters.length) {
-        // Generic arity mismatch.  Don't do any inference for this method.
-        // TODO(paulberry): report an error.
-        return <FunctionType>[];
-      } else if (overriddenType.typeParameters.isNotEmpty) {
-        var substitutionMap = <TypeParameter, DartType>{};
-        for (int i = 0; i < methodTypeParameters.length; i++) {
-          substitutionMap[overriddenType.typeParameters[i]] =
-              new TypeParameterType(methodTypeParameters[i]);
-        }
-        overriddenType = substituteTypeParams(
-            overriddenType, substitutionMap, methodTypeParameters);
-      }
-      overriddenTypes.add(overriddenType);
-    }
-    return overriddenTypes;
-  }
-
-  DartType _computeOverriddenAccessorType(
-      Member override, AccessorNode accessorNode) {
-    if (fusedTopLevelInference) {
-      AccessorNode dependency = ShadowMember.getAccessorNode(override);
-      if (dependency != null) {
-        inferAccessorFused(dependency, accessorNode);
-      }
-    }
-    DartType overriddenType;
-    if (override is Field) {
-      overriddenType = override.type;
-    } else if (override is Procedure) {
-      // TODO(paulberry): handle the case where override needs its type
-      // inferred first.
-      if (override.isGetter) {
-        overriddenType = override.getterType;
-      } else {
-        overriddenType = override.setterType;
-      }
-    } else {
-      dynamic parent = override.parent;
-      return unhandled(
-          "${override.runtimeType}",
-          "_computeOverriddenAccessorType",
-          override.fileOffset,
-          Uri.parse(parent.fileUri));
-    }
-    var superclass = override.enclosingClass;
-    if (superclass.typeParameters.isEmpty) return overriddenType;
-    var thisClass = accessorNode.member.enclosingClass;
-    var superclassInstantiation = classHierarchy
-        .getClassAsInstanceOf(thisClass, superclass)
-        .asInterfaceType;
-    return Substitution
-        .fromInterfaceType(superclassInstantiation)
-        .substituteType(overriddenType);
+  void recordStaticFieldInferenceCandidate(ShadowField field) {
+    var node = new FieldInitializerInferenceNode(this, field);
+    ShadowField.setInferenceNode(field, node);
+    staticInferenceNodes.add(node);
   }
 
   DartType _inferInitializingFormalType(ShadowVariableDeclaration formal) {
@@ -697,104 +318,5 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // formal outside of a class declaration).  The error should be reported
     // elsewhere, so just infer `dynamic`.
     return const DynamicType();
-  }
-
-  void _inferMethod(MethodNode methodNode) {
-    var typeInferrer = getMemberTypeInferrer(methodNode.procedure);
-
-    // First collect types of overridden methods
-    var overriddenTypes = _computeMethodOverriddenTypes(methodNode);
-
-    // Now infer types.
-    DartType matchTypes(Iterable<DartType> types) {
-      if (!strongMode) return const DynamicType();
-      var iterator = types.iterator;
-      if (!iterator.moveNext()) {
-        // No overridden types.  Infer `dynamic`.
-        return const DynamicType();
-      }
-      var inferredType = iterator.current;
-      while (iterator.moveNext()) {
-        if (inferredType != iterator.current) {
-          // TODO(paulberry): Types don't match.  Report an error.
-          return const DynamicType();
-        }
-      }
-      return inferredType;
-    }
-
-    if (ShadowProcedure.hasImplicitReturnType(methodNode.procedure)) {
-      var inferredType =
-          matchTypes(overriddenTypes.map((type) => type.returnType));
-      instrumentation?.record(
-          Uri.parse(typeInferrer.uri),
-          methodNode.procedure.fileOffset,
-          'topType',
-          new InstrumentationValueForType(inferredType));
-      methodNode.procedure.function.returnType = inferredType;
-    }
-    var positionalParameters =
-        methodNode.procedure.function.positionalParameters;
-    for (int i = 0; i < positionalParameters.length; i++) {
-      if (ShadowVariableDeclaration
-          .isImplicitlyTyped(positionalParameters[i])) {
-        // Note that if the parameter is not present in the overridden method,
-        // getPositionalParameterType treats it as dynamic.  This is consistent
-        // with the behavior called for in the informal top level type inference
-        // spec, which says:
-        //
-        //     If there is no corresponding parameter position in the overridden
-        //     method to infer from and the signatures are compatible, it is
-        //     treated as dynamic (e.g. overriding a one parameter method with a
-        //     method that takes a second optional parameter).  Note: if there
-        //     is no corresponding parameter position in the overriden method to
-        //     infer from and the signatures are incompatible (e.g. overriding a
-        //     one parameter method with a method that takes a second
-        //     non-optional parameter), the inference result is not defined and
-        //     tools are free to either emit an error, or to defer the error to
-        //     override checking.
-        var inferredType = matchTypes(
-            overriddenTypes.map((type) => getPositionalParameterType(type, i)));
-        instrumentation?.record(
-            Uri.parse(typeInferrer.uri),
-            positionalParameters[i].fileOffset,
-            'topType',
-            new InstrumentationValueForType(inferredType));
-        positionalParameters[i].type = inferredType;
-      }
-    }
-    var namedParameters = methodNode.procedure.function.namedParameters;
-    for (int i = 0; i < namedParameters.length; i++) {
-      if (ShadowVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
-        var name = namedParameters[i].name;
-        var inferredType = matchTypes(
-            overriddenTypes.map((type) => getNamedParameterType(type, name)));
-        instrumentation?.record(
-            Uri.parse(typeInferrer.uri),
-            namedParameters[i].fileOffset,
-            'topType',
-            new InstrumentationValueForType(inferredType));
-        namedParameters[i].type = inferredType;
-      }
-    }
-  }
-}
-
-/// Subtype of [dependencyWalker.DependencyWalker] which is specialized to
-/// perform top level type inference.
-class _AccessorWalker extends dependencyWalker.DependencyWalker<AccessorNode> {
-  _AccessorWalker();
-
-  @override
-  void evaluate(AccessorNode f) {
-    f._typeInferenceEngine.inferAccessor(f);
-  }
-
-  @override
-  void evaluateScc(List<AccessorNode> scc) {
-    // Mark every accessor as part of a circularity.
-    for (var f in scc) {
-      f._typeInferenceEngine.inferAccessorCircular(f);
-    }
   }
 }

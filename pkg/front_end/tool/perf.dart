@@ -94,15 +94,8 @@ int inputSize = 0;
 /// Factory to load and resolve app, packages, and sdk sources.
 SourceFactory sources;
 
-/// File URI of the root of the SDK source tree.
-final _repoUri = Platform.script.resolve('../../../');
-
 /// Path to the root of the built SDK that is being used to execute this script.
 final _sdkPath = _findSdkPath();
-
-/// File URI to the root of the built SDK that is being used to execute this
-/// script.
-final _sdkUri = new Uri.directory(_sdkPath);
 
 /// Add to [files] all sources reachable from [start].
 void collectSources(Source start, Set<Source> files) {

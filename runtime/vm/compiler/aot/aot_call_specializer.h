@@ -47,6 +47,10 @@ class AotCallSpecializer : public CallSpecializer {
 
   virtual bool IsAllowedForInlining(intptr_t deopt_id) const;
 
+  Value* PrepareStaticOpInput(Value* input, intptr_t cid, Instruction* call);
+
+  Value* PrepareReceiverOfDevirtualizedCall(Value* input, intptr_t cid);
+
   bool TryOptimizeInstanceCallUsingStaticTypes(InstanceCallInstr* instr);
 
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call);

@@ -3,13 +3,15 @@ define(['dart_sdk'], function(dart_sdk) {
   const core = dart_sdk.core;
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
-  const async_helper = Object.create(null);
+  const _root = Object.create(null);
+  const async_helper = Object.create(_root);
+  let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.fnTypeFuzzy(dart.void, [])))();
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.fnTypeFuzzy(dart.dynamic, [])))();
   let StringToException = () => (StringToException = dart.constFn(dart.fnType(core.Exception, [core.String])))();
-  let _Action0Tovoid = () => (_Action0Tovoid = dart.constFn(dart.fnType(dart.void, [async_helper._Action0])))();
-  let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.fnType(dart.void, [])))();
+  let FnTovoid = () => (FnTovoid = dart.constFn(dart.fnType(dart.void, [VoidTovoid()])))();
+  let VoidTovoid$ = () => (VoidTovoid$ = dart.constFn(dart.fnType(dart.void, [])))();
   let dynamicTovoid = () => (dynamicTovoid = dart.constFn(dart.fnType(dart.void, [dart.dynamic])))();
-  let FnTovoid = () => (FnTovoid = dart.constFn(dart.fnType(dart.void, [VoidTodynamic()])))();
+  let FnTovoid$ = () => (FnTovoid$ = dart.constFn(dart.fnType(dart.void, [VoidTodynamic()])))();
   dart.defineLazy(async_helper, {
     get _initialized() {
       return false;
@@ -36,7 +38,7 @@ define(['dart_sdk'], function(dart_sdk) {
     async_helper._initialized = false;
     async_helper._onAsyncEnd = callback;
   };
-  dart.fn(async_helper.asyncTestInitialize, _Action0Tovoid());
+  dart.fn(async_helper.asyncTestInitialize, FnTovoid());
   dart.copyProperties(async_helper, {
     get asyncTestStarted() {
       return async_helper._initialized;
@@ -55,7 +57,7 @@ define(['dart_sdk'], function(dart_sdk) {
     }
     async_helper._asyncLevel = dart.notNull(async_helper._asyncLevel) + 1;
   };
-  dart.fn(async_helper.asyncStart, VoidTovoid());
+  dart.fn(async_helper.asyncStart, VoidTovoid$());
   async_helper.asyncEnd = function() {
     if (dart.notNull(async_helper._asyncLevel) <= 0) {
       if (!dart.test(async_helper._initialized)) {
@@ -72,7 +74,7 @@ define(['dart_sdk'], function(dart_sdk) {
       core.print('unittest-suite-success');
     }
   };
-  dart.fn(async_helper.asyncEnd, VoidTovoid());
+  dart.fn(async_helper.asyncEnd, VoidTovoid$());
   async_helper.asyncSuccess = function(_) {
     return async_helper.asyncEnd();
   };
@@ -81,7 +83,7 @@ define(['dart_sdk'], function(dart_sdk) {
     async_helper.asyncStart();
     dart.dsend(f(), 'then', async_helper.asyncSuccess);
   };
-  dart.fn(async_helper.asyncTest, FnTovoid());
+  dart.fn(async_helper.asyncTest, FnTovoid$());
   dart.trackLibraries("async_helper", {
     "async_helper.dart": async_helper
   }, null);

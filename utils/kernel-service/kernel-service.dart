@@ -30,11 +30,13 @@ import 'package:front_end/front_end.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/testing/hybrid_file_system.dart';
 import 'package:kernel/kernel.dart' show Program;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+import 'package:kernel/target/vm.dart' show VmTarget;
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
 const bool strongMode = const bool.fromEnvironment('DFE_STRONG_MODE');
@@ -60,7 +62,7 @@ abstract class Compiler {
     options = new CompilerOptions()
       ..strongMode = strongMode
       ..fileSystem = fileSystem
-      ..target = new VmFastaTarget(new TargetFlags(strongMode: strongMode))
+      ..target = new VmTarget(new TargetFlags(strongMode: strongMode))
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernel
       ..verbose = verbose
@@ -157,12 +159,10 @@ Future _processLoadRequest(request) async {
   final Uri script = Uri.base.resolve(inputFileUri);
   final Uri platformKernel = request[3] != null
       ? Uri.base.resolveUri(new Uri.file(request[3]))
-      : Uri.base
-          .resolveUri(new Uri.file(Platform.resolvedExecutable))
-          .resolveUri(new Uri.directory("patched_sdk"))
-          // TODO(sigmund): use outline.dill when the mixin transformer is
+      : computePlatformBinariesLocation().resolve(
+          // TODO(sigmund): use `vm_outline.dill` when the mixin transformer is
           // modular.
-          .resolve('platform.dill');
+          'vm_platform.dill');
 
   final bool incremental = request[4];
 
@@ -198,7 +198,7 @@ Future _processLoadRequest(request) async {
       // shouldn't print those messages again here.
       result = new CompilationResult.errors(compiler.errors);
     } else {
-      // We serialize the program excluding platform.dill because the VM has
+      // We serialize the program excluding vm_platform.dill because the VM has
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to
       // decide what to exclude.

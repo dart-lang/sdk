@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 @patch
 class RawServerSocket {
   @patch
@@ -359,12 +361,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Future<InternetAddress> reverseLookup(InternetAddress addr) {
-    return _IOService
-        ._dispatch(_SOCKET_REVERSE_LOOKUP, [addr._in_addr]).then((response) {
+    return _IOService._dispatch(_SOCKET_REVERSE_LOOKUP,
+        [(addr as _InternetAddress)._in_addr]).then((response) {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed reverse host lookup", addr);
       } else {
-        return addr._cloneWithNewHost(response);
+        return (addr as _InternetAddress)._cloneWithNewHost(response);
       }
     });
   }
@@ -412,9 +414,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         return addresses;
       });
     }).then((addresses) {
-      assert(addresses is List);
-      var completer = new Completer();
-      var it = addresses.iterator;
+      var completer = new Completer<_NativeSocket>();
+      var it = (addresses as List<InternetAddress>).iterator;
       var error = null;
       var connecting = new HashMap();
       Timer timeoutTimer = null;
@@ -444,7 +445,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           }
           return;
         }
-        var address = it.current;
+        final _InternetAddress address = it.current;
         var socket = new _NativeSocket.normal();
         socket.localAddress = address;
         var result;
@@ -515,59 +516,58 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     });
   }
 
-  static Future<_NativeSocket> bind(
-      host, int port, int backlog, bool v6Only, bool shared) {
-    _throwOnBadPort(port);
-    return new Future.value(host).then((host) {
-      if (host is _InternetAddress) return host;
-      return lookup(host).then((list) {
-        if (list.length == 0) {
-          throw createError(null, "Failed host lookup: '$host'");
-        }
-        return list[0];
-      });
-    }).then((address) {
-      var socket = new _NativeSocket.listen();
-      socket.localAddress = address;
-      var result = socket.nativeCreateBindListen(
-          address._in_addr, port, backlog, v6Only, shared);
-      if (result is OSError) {
-        throw new SocketException("Failed to create server socket",
-            osError: result, address: address, port: port);
+  static Future<_InternetAddress> _resolveHost(host) async {
+    if (host is _InternetAddress) {
+      return host;
+    } else {
+      final list = await lookup(host);
+      if (list.isEmpty) {
+        throw createError(null, "Failed host lookup: '$host'");
       }
-      if (port != 0) socket.localPort = port;
-      setupResourceInfo(socket);
-      socket.connectToEventHandler();
-      return socket;
-    });
+      return list.first as _InternetAddress;
+    }
+  }
+
+  static Future<_NativeSocket> bind(
+      host, int port, int backlog, bool v6Only, bool shared) async {
+    _throwOnBadPort(port);
+
+    final address = await _resolveHost(host);
+
+    var socket = new _NativeSocket.listen();
+    socket.localAddress = address;
+    var result = socket.nativeCreateBindListen(
+        address._in_addr, port, backlog, v6Only, shared);
+    if (result is OSError) {
+      throw new SocketException("Failed to create server socket",
+          osError: result, address: address, port: port);
+    }
+    if (port != 0) socket.localPort = port;
+    setupResourceInfo(socket);
+    socket.connectToEventHandler();
+    return socket;
   }
 
   static void setupResourceInfo(_NativeSocket socket) {
     socket.resourceInfo = new _SocketResourceInfo(socket);
   }
 
-  static Future<_NativeSocket> bindDatagram(host, int port, bool reuseAddress) {
+  static Future<_NativeSocket> bindDatagram(
+      host, int port, bool reuseAddress) async {
     _throwOnBadPort(port);
-    return new Future.value(host).then((host) {
-      if (host is _InternetAddress) return host;
-      return lookup(host).then((list) {
-        if (list.length == 0) {
-          throw createError(null, "Failed host lookup: '$host'");
-        }
-        return list[0];
-      });
-    }).then((address) {
-      var socket = new _NativeSocket.datagram(address);
-      var result =
-          socket.nativeCreateBindDatagram(address._in_addr, port, reuseAddress);
-      if (result is OSError) {
-        throw new SocketException("Failed to create datagram socket",
-            osError: result, address: address, port: port);
-      }
-      if (port != 0) socket.localPort = port;
-      setupResourceInfo(socket);
-      return socket;
-    });
+
+    final address = await _resolveHost(host);
+
+    var socket = new _NativeSocket.datagram(address);
+    var result =
+        socket.nativeCreateBindDatagram(address._in_addr, port, reuseAddress);
+    if (result is OSError) {
+      throw new SocketException("Failed to create datagram socket",
+          osError: result, address: address, port: port);
+    }
+    if (port != 0) socket.localPort = port;
+    setupResourceInfo(socket);
+    return socket;
   }
 
   _NativeSocket.datagram(this.localAddress)
@@ -699,7 +699,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     _BufferAndStart bufferAndStart =
         _ensureFastAndSerializableByteData(buffer, offset, bytes);
     var result = nativeSendTo(bufferAndStart.buffer, bufferAndStart.start,
-        bytes, address._in_addr, port);
+        bytes, (address as _InternetAddress)._in_addr, port);
     if (result is OSError) {
       OSError osError = result;
       scheduleMicrotask(() => reportError(osError, "Send failed"));
@@ -1062,18 +1062,18 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   void joinMulticast(InternetAddress addr, NetworkInterface interface) {
-    var interfaceAddr = multicastAddress(addr, interface);
+    _InternetAddress interfaceAddr = multicastAddress(addr, interface);
     var interfaceIndex = interface == null ? 0 : interface.index;
-    var result = nativeJoinMulticast(addr._in_addr,
-        interfaceAddr == null ? null : interfaceAddr._in_addr, interfaceIndex);
+    var result = nativeJoinMulticast((addr as _InternetAddress)._in_addr,
+        interfaceAddr?._in_addr, interfaceIndex);
     if (result is OSError) throw result;
   }
 
   void leaveMulticast(InternetAddress addr, NetworkInterface interface) {
-    var interfaceAddr = multicastAddress(addr, interface);
+    _InternetAddress interfaceAddr = multicastAddress(addr, interface);
     var interfaceIndex = interface == null ? 0 : interface.index;
-    var result = nativeLeaveMulticast(addr._in_addr,
-        interfaceAddr == null ? null : interfaceAddr._in_addr, interfaceIndex);
+    var result = nativeLeaveMulticast((addr as _InternetAddress)._in_addr,
+        interfaceAddr?._in_addr, interfaceIndex);
     if (result is OSError) throw result;
   }
 
@@ -1161,7 +1161,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
 
   InternetAddress get address => _socket.address;
 
-  Future close() {
+  Future<RawServerSocket> close() {
     return _socket.close().then((_) {
       if (_referencePort != null) {
         _referencePort.close();
@@ -1290,7 +1290,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
   int write(List<int> buffer, [int offset, int count]) =>
       _socket.write(buffer, offset, count);
 
-  Future close() => _socket.close().then((_) => this);
+  Future<RawSocket> close() => _socket.close().then((_) => this);
 
   void shutdown(SocketDirection direction) => _socket.shutdown(direction);
 
@@ -1381,7 +1381,7 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
 
   InternetAddress get address => _socket.address;
 
-  Future close() => _socket.close().then((_) => this);
+  Future<ServerSocket> close() => _socket.close().then((_) => this);
 
   void set _owner(owner) {
     _socket._owner = owner;
@@ -1515,7 +1515,11 @@ class _Socket extends Stream<List<int>> implements Socket {
     return new _Socket(new _RawSocket._readPipe(fd));
   }
 
-  _NativeSocket get _nativeSocket => _raw._socket;
+  // Note: this code seems a bit suspicious because _raw can be _RawSocket and
+  // it can be _RawSecureSocket because _SecureSocket extends _Socket
+  // and these two types are incompatible because _RawSecureSocket._socket
+  // is Socket and not _NativeSocket.
+  _NativeSocket get _nativeSocket => (_raw as _RawSocket)._socket;
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
       {Function onError, void onDone(), bool cancelOnError}) {
@@ -1694,7 +1698,9 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   void set _owner(owner) {
-    _raw._owner = owner;
+    // Note: _raw can be _RawSocket and _RawSecureSocket which are two
+    // incompatible types.
+    (_raw as dynamic)._owner = owner;
   }
 }
 

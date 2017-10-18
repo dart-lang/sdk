@@ -140,6 +140,61 @@ ExpectedButGot:
     - "main() => true ? 1;"
     - "main() => foo(x: 1 y: 2);"
 
+MultipleLibraryDirectives:
+  template: "Only one library directive may be declared in a file."
+  tip: "Try removing all but one of the library directives."
+  analyzerCode: MULTIPLE_LIBRARY_DIRECTIVES
+  dart2jsCode: "*ignored*"
+
+MultipleExtends:
+  template: "Each class definition can have at most one extends clause."
+  tip: "Try choosing one superclass and define your class to implement (or mix in) the others."
+  analyzerCode: MULTIPLE_EXTENDS_CLAUSES
+  dart2jsCode: "*ignored*"
+  script: "class A extends B extends C {}"
+
+MultipleWith:
+  template: "Each class definition can have at most one with clause."
+  tip: "Try combining all of the with clauses into a single clause."
+  analyzerCode: MULTIPLE_WITH_CLAUSES
+  dart2jsCode: "*ignored*"
+  script: "class A extends B with C, D with E {}"
+
+WithWithoutExtends:
+  template: "The with clause can't be used without an extends clause."
+  tip: "Try adding an extends clause such as 'extends Object'."
+  analyzerCode: WITH_WITHOUT_EXTENDS
+  dart2jsCode: "GENERIC"
+  script: "class A with B, C {}"
+
+WithBeforeExtends:
+  template: "The extends clause must be before the with clause."
+  tip: "Try moving the extends clause before the with clause."
+  analyzerCode: WITH_BEFORE_EXTENDS
+  dart2jsCode: "*ignored*"
+  script: "class A with B extends C {}"
+
+ImplementsBeforeExtends:
+  template: "The extends clause must be before the implements clause."
+  tip: "Try moving the extends clause before the implements clause."
+  analyzerCode: IMPLEMENTS_BEFORE_EXTENDS
+  dart2jsCode: "*ignored*"
+  script: "class A implements B extends C {}"
+
+ImplementsBeforeWith:
+  template: "The with clause must be before the implements clause."
+  tip: "Try moving the with clause before the implements clause."
+  analyzerCode: IMPLEMENTS_BEFORE_WITH
+  dart2jsCode: "*ignored*"
+  script: "class A extends B implements C with D {}"
+
+MultipleImplements:
+  template: "Each class definition can have at most one implements clause."
+  tip: "Try combining all of the implements clauses into a single clause."
+  analyzerCode: MULTIPLE_IMPLEMENTS_CLAUSES
+  dart2jsCode: "GENERIC"
+  script: "class A implements B implements C, D {}"
+
 ExpectedClassBody:
   template: "Expected a class body, but got '#lexeme'."
   analyzerCode: MISSING_CLASS_BODY
@@ -204,12 +259,134 @@ AbstractClassMember:
     - "abstract class C {abstract f;}"
     - "abstract class C {abstract static f;}"
 
+ClassInClass:
+  template: "Classes can't be declared inside other classes."
+  tip: "Try moving the class to the top-level."
+  analyzerCode: CLASS_IN_CLASS
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { class B {} }"
+
+EnumInClass:
+  template: "Enums can't be declared inside classes."
+  tip: "Try moving the enum to the top-level."
+  analyzerCode: ENUM_IN_CLASS
+  dart2jsCode: "*fatal*"
+  script:
+    - "class Foo { enum Bar { Bar1, Bar2, Bar3 } }"
+
+TypedefInClass:
+  template: "Typedefs can't be declared inside classes."
+  tip: "Try moving the typedef to the top-level."
+  analyzerCode: TYPEDEF_IN_CLASS
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { typedef int F(int x); }"
+
+CovariantMember:
+  template: "Getters, setters and methods can't be declared to be 'covariant'."
+  tip: "Try removing the 'covariant' keyword."
+  analyzerCode: COVARIANT_MEMBER
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "static covariant get x => 0;"
+    - "covariant int m() => 0;"
+
+VarReturnType:
+  template: "The return type can't be 'var'."
+  tip: "Try removing the keyword 'var', or replacing it with the name of the return type."
+  analyzerCode: VAR_RETURN_TYPE
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { var m() {} }"
+    - "class C { var C() {} }"
+
 ConstClass:
   template: "Classes can't be declared to be 'const'."
   tip: "Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s)."
   analyzerCode: CONST_CLASS
   dart2jsCode: EXTRANEOUS_MODIFIER
   script: "const class C {}"
+
+ConstAndCovariant:
+  template: "Members can't be declared to be both 'const' and 'covariant'."
+  tip: "Try removing either the 'const' or 'covariant' keyword."
+  analyzerCode: CONST_AND_COVARIANT
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { covariant const C f; }"
+    - "class C { const covariant C f; }"
+
+ConstAndFinal:
+  template: "Members can't be declared to be both 'const' and 'final'."
+  tip: "Try removing either the 'const' or 'final' keyword."
+  analyzerCode: CONST_AND_FINAL
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { const final int x; }"
+    - "class C { final const int x; }"
+
+ConstAndVar:
+  template: "Members can't be declared to be both 'const' and 'var'."
+  tip: "Try removing either the 'const' or 'var' keyword."
+  analyzerCode: CONST_AND_VAR
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { const var x; }"
+    - "class C { var const x; }"
+
+CovariantAfterFinal:
+  template: "The modifier 'covariant' should be before the modifier 'final'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: COVARIANT_AFTER_FINAL
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "final covariant f;"
+
+CovariantAfterVar:
+  template: "The modifier 'covariant' should be before the modifier 'var'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: COVARIANT_AFTER_VAR
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "var covariant f;"
+
+CovariantAndStatic:
+  template: "Members can't be declared to be both 'covariant' and 'static'."
+  tip: "Try removing either the 'covariant' or 'static' keyword."
+  analyzerCode: COVARIANT_AND_STATIC
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { covariant static A f; }"
+    - "class C { static covariant A f; }"
+
+DuplicatedModifier:
+  template: "The modifier '#lexeme' was already specified."
+  tip: "Try removing all but one occurance of the modifier."
+  analyzerCode: DUPLICATED_MODIFIER
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { const const m; }"
+    - "class C { external external f(); }"
+    - "class C { final final m; }"
+    - "class C { static static var m; }"
+    - "class C { var var m; }"
+
+ExternalAfterConst:
+  template: "The modifier 'external' should be before the modifier 'const'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: EXTERNAL_AFTER_CONST
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { const external C(); }"
+
+ExternalAfterStatic:
+  template: "The modifier 'external' should be before the modifier 'static'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: EXTERNAL_AFTER_STATIC
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { static external f(); }"
 
 ExtraneousModifier:
   template: "Can't have modifier '#lexeme' here."
@@ -248,18 +425,52 @@ ExtraneousModifier:
     - "final typedef foo();"
     - "static typedef foo();"
 
+FinalAndCovariant:
+  template: "Members can't be declared to be both 'final' and 'covariant'."
+  tip: "Try removing either the 'final' or 'covariant' keyword."
+  analyzerCode: FINAL_AND_COVARIANT
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { covariant final f; }"
+    - "class C { final covariant f; }"
+
+FinalAndVar:
+  template: "Members can't be declared to be both 'final' and 'var'."
+  tip: "Try removing the keyword 'var'."
+  analyzerCode: FINAL_AND_VAR
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { final var x; }"
+    - "class C { var final x; }"
+
+StaticAfterConst:
+  template: "The modifier 'static' should be before the modifier 'const'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: STATIC_AFTER_CONST
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { const static int f; }"
+
+StaticAfterFinal:
+  template: "The modifier 'static' should be before the modifier 'final'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: STATIC_AFTER_FINAL
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { final static int f; }"
+
 InvalidAwaitFor:
-  template: "'await' is only supported in methods with an 'async' or 'async*' body modifier."
-  tip: "Try adding 'async' or 'async*' to the method body or removing the 'await' keyword."
+  template: "The keyword 'await' isn't allowed for a normal 'for' statement."
+  tip: "Try removing the keyword, or use a for-each statement."
+  analyzerCode: INVALID_AWAIT_IN_FOR
   dart2jsCode: INVALID_AWAIT_FOR
-  script: >
-    main(o) sync* {
-      await for (var e in o) {}
-    }
+  script:
+    - "f() async {await for (int i = 0; i < 5; i++) {}}"
 
 InvalidSyncModifier:
   template: "Invalid modifier 'sync'."
   tip: "Try replacing 'sync' with 'sync*'."
+  analyzerCode: MISSING_STAR_AFTER_SYNC
   dart2jsCode: INVALID_SYNC_MODIFIER
   script: "main() sync {}"
 
@@ -426,8 +637,9 @@ AwaitNotAsync:
   dart2jsCode: "*ignored*"
 
 BuiltInIdentifierAsType:
-  template: "Can't use '#lexeme' as a type."
-  analyzerCode: EXPECTED_TYPE_NAME
+  template: "The built-in identifier '#lexeme' can't be used as a type."
+  tip: "Try correcting the name to match an existing type."
+  analyzerCode: BUILT_IN_IDENTIFIER_AS_TYPE
   dart2jsCode: EXTRANEOUS_MODIFIER
 
 BuiltInIdentifierInDeclaration:
@@ -435,8 +647,14 @@ BuiltInIdentifierInDeclaration:
   dart2jsCode: GENERIC
 
 AwaitForNotAsync:
-  template: "Asynchronous for-loop can only be used in 'async' or 'async*' methods."
+  template: "The asynchronous for-in can only be used in functions marked with 'async' or 'async*'."
+  tip: "Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop."
+  analyzerCode: ASYNC_FOR_IN_WRONG_CONTEXT
   dart2jsCode: "*ignored*"
+  script: >
+    main(o) sync* {
+      await for (var e in o) {}
+    }
 
 FactoryNotSync:
   template: "Factories can't use 'async', 'async*', or 'sync*'."
@@ -444,6 +662,7 @@ FactoryNotSync:
 
 GeneratorReturnsValue:
   template: "'sync*' and 'async*' can't return a value."
+  analyzerCode: RETURN_IN_GENERATOR
   dart2jsCode: "*ignored*"
 
 InvalidInlineFunctionType:
@@ -454,6 +673,7 @@ InvalidInlineFunctionType:
 
 SetterNotSync:
   template: "Setters can't use 'async', 'async*', or 'sync*'."
+  analyzerCode: INVALID_MODIFIER_ON_SETTER
   dart2jsCode: "*ignored*"
 
 YieldAsIdentifier:
@@ -463,6 +683,7 @@ YieldAsIdentifier:
 
 YieldNotGenerator:
   template: "'yield' can only be used in 'sync*' or 'async*' methods."
+  analyzerCode: YIELD_IN_NON_GENERATOR
   dart2jsCode: "*ignored*"
 
 OnlyTry:
@@ -488,6 +709,7 @@ AssertAsExpression:
 
 FunctionTypeDefaultValue:
   template: "Can't have a default value in a function type."
+  analyzerCode: DEFAULT_VALUE_IN_FUNCTION_TYPE
   dart2jsCode: "*ignored*"
 
 PrivateNamedParameter:
@@ -497,12 +719,18 @@ PrivateNamedParameter:
 NoFormals:
   template: "A function should have formal parameters."
   tip: "Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter."
+  analyzerCode: MISSING_FUNCTION_PARAMETERS
   dart2jsCode: "*ignored*"
 
 GetterWithFormals:
   template: "A getter can't have formal parameters."
   tip: "Try removing '(...)'."
   analyzerCode: GETTER_WITH_PARAMETERS
+  dart2jsCode: "*ignored*"
+
+SetterWithWrongNumberOfFormals:
+  template: "A setter should have exactly one formal parameter."
+  analyzerCode: WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
   dart2jsCode: "*ignored*"
 
 CatchSyntax:
@@ -513,16 +741,19 @@ CatchSyntax:
 SuperNullAware:
   template: "'super' can't be null."
   tip: "Try replacing '?.' with '.'"
+  analyzerCode: INVALID_OPERATOR_FOR_SUPER
   dart2jsCode: "*ignored*"
 
 ConstFieldWithoutInitializer:
-  template: "A 'const' field must be initialized."
-  tip: "Try adding '= <initializer>'."
+  template: "The const variable '#name' must be initialized."
+  tip: "Try adding an initializer ('= <expression>') to the declaration."
+  analyzerCode: CONST_NOT_INITIALIZED
   dart2jsCode: "*ignored*"
 
 FinalFieldWithoutInitializer:
-  template: "A 'final' field must be initialized."
-  tip: "Try adding '= <initializer>'."
+  template: "The final variable '#name' must be initialized."
+  tip: "Try adding an initializer ('= <expression>') to the declaration."
+  analyzerCode: FINAL_NOT_INITIALIZED
   dart2jsCode: "*ignored*"
 
 MetadataTypeArguments:
@@ -640,6 +871,7 @@ FastaCLIArgumentRequired:
 
 NamedFunctionExpression:
   template: "A function expression can't have a name."
+  analyzerCode: NAMED_FUNCTION_EXPRESSION
   dart2jsCode: "*ignored*"
 
 NativeClauseShouldBeAnnotation:
@@ -828,8 +1060,12 @@ TypeVariableDuplicatedNameCause:
 TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
 
-EnumDeclartionEmpty:
+EnumDeclarationEmpty:
   template: "An enum declaration can't be empty."
+  analyzerCode: EMPTY_ENUM_BODY
+  dart2jsCode: "*ignored*"
+  script:
+    - "enum E {}"
 
 ExternalClass:
   template: "Classes can't be declared to be 'external'."
@@ -927,6 +1163,24 @@ PartOfTwice:
 
 PartTwice:
   template: "Can't use '#uri' as a part more than once."
+
+FactoryTopLevelDeclaration:
+  template: "Top-level declarations can't be declared to be 'factory'."
+  tip: "Try removing the keyword 'factory'."
+  analyzerCode: FACTORY_TOP_LEVEL_DECLARATION
+  dart2jsCode: "*ignored*"
+  script:
+    - "factory class C {}"
+
+TopLevelOperator:
+  template: "Operators must be declared within a class."
+  tip: "Try removing the operator, moving it to a class, or converting it to be a function."
+  analyzerCode: TOP_LEVEL_OPERATOR
+  dart2jsCode: "*ignored*"
+  script:
+    - "operator +(bool x, bool y) => x | y;"
+    - "bool operator +(bool x, bool y) => x | y;"
+    - "void operator +(bool x, bool y) => x | y;"
 
 MissingPartOf:
   template: "Can't use '#uri' as a part, because it has no 'part of' declaration."
@@ -1063,6 +1317,12 @@ PreviousUseOfName:
 
 ExpressionNotMetadata:
   template: "This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor."
+
+AnnotationOnEnumConstant:
+  template: "Enum constants can't have annotations."
+  tip: "Try removing the annotation."
+  analyzerCode: ANNOTATION_ON_ENUM_CONSTANT
+  dart2jsCode: "*fatal*"
 
 ExpectedAnInitializer:
   template: "Expected an initializer."

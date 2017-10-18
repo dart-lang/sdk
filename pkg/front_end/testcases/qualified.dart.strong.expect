@@ -1,0 +1,38 @@
+library test.qualified.main;
+import self as self;
+import "dart:core" as core;
+import "./qualified_lib.dart" as lib;
+
+class Bad extends core::Object {
+  method method() → invalid-type {}
+  static factory WrongName() → self::Bad {}
+}
+abstract class _lib.Supertype&lib.Mixin = lib::Supertype with lib::Mixin {
+}
+class WithMixin extends self::_lib.Supertype&lib.Mixin {
+  default constructor •() → void
+    : super lib::Supertype::•()
+    ;
+}
+class C<T extends core::Object> extends core::Object { // from pkg/front_end/testcases/qualified_part.dart
+  static field dynamic _redirecting# = <dynamic>[self::C::b];
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  constructor a() → void
+    : super core::Object::•()
+    ;
+  static factory b<T extends core::Object>() → self::C<self::C::b::T>
+    let dynamic #redirecting_factory = lib::C::b in invalid-expression;
+}
+static const field dynamic #errors = const <dynamic>["Error: The type 'lib.Missing' can't be used as supertype."]/* from null */;
+static method main() → dynamic {
+  new self::C::•<core::String>();
+  new self::C::a<core::String>();
+  new lib::C::a<core::String>();
+  new lib::C::•<core::String>();
+  new lib::C::a<core::String>();
+  new lib::C::a<core::String>();
+  new self::WithMixin::•().{lib::Supertype::supertypeMethod}();
+  new self::WithMixin::•().{lib::Mixin::foo}();
+}

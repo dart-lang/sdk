@@ -166,6 +166,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Location of the platform configuration file.
   final Uri platformConfigUri;
 
+  /// Location of the kernel platform `.dill` files.
+  final Uri platformBinaries;
+
   /// Whether to emit URIs in the reflection metadata.
   final bool preserveUris;
 
@@ -199,15 +202,11 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to generate code compliant with content security policy (CSP).
   final bool useContentSecurityPolicy;
 
-  /// Whether to use kernel internally as part of compilation.
-  final bool useKernelInSsa;
-
   /// Preview the unified front-end and compilation from kernel.
   ///
   /// When enabled the compiler will use the unified front-end to compile
   /// sources to kernel, and then continue compilation from the kernel
-  /// representation. Setting this flag will implicitly set [useKernelInSsa] to
-  /// true as well.
+  /// representation.
   ///
   /// When this flag is on, the compiler also acccepts reading .dill files from
   /// disk. The compiler reads the sources differently depending on the
@@ -264,6 +263,7 @@ class CompilerOptions implements DiagnosticOptions {
       Uri libraryRoot,
       Uri packageRoot,
       Uri packageConfig,
+      Uri platformBinaries,
       List<Uri> resolutionInputs,
       Uri resolutionOutput,
       PackagesDiscoveryProvider packagesDiscoveryProvider,
@@ -312,6 +312,7 @@ class CompilerOptions implements DiagnosticOptions {
         outputUri: _extractUriOption(options, '--out='),
         platformConfigUri:
             _resolvePlatformConfigFromOptions(libraryRoot, options),
+        platformBinaries: platformBinaries,
         preserveComments: _hasOption(options, Flags.preserveComments),
         preserveUris: _hasOption(options, Flags.preserveUris),
         resolutionInputs: resolutionInputs,
@@ -326,7 +327,6 @@ class CompilerOptions implements DiagnosticOptions {
         trustTypeAnnotations: _hasOption(options, Flags.trustTypeAnnotations),
         useContentSecurityPolicy:
             _hasOption(options, Flags.useContentSecurityPolicy),
-        useKernelInSsa: _hasOption(options, Flags.useKernelInSsa),
         useKernel: _hasOption(options, Flags.useKernel),
         useFrequencyNamer:
             !_hasOption(options, Flags.noFrequencyBasedMinification),
@@ -377,6 +377,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool kernelGlobalInference: false,
       Uri outputUri: null,
       Uri platformConfigUri: null,
+      Uri platformBinaries: null,
       bool preserveComments: false,
       bool preserveUris: false,
       List<Uri> resolutionInputs: null,
@@ -389,7 +390,6 @@ class CompilerOptions implements DiagnosticOptions {
       bool trustPrimitives: false,
       bool trustTypeAnnotations: false,
       bool useContentSecurityPolicy: false,
-      bool useKernelInSsa: false,
       bool useKernel: false,
       bool useFrequencyNamer: true,
       bool useMultiSourceInfo: false,
@@ -418,6 +418,11 @@ class CompilerOptions implements DiagnosticOptions {
             "${Flags.allowNativeExtensions} is only supported in combination "
             "with ${Flags.analyzeOnly}");
       }
+    }
+    if (useKernel && platformBinaries == null) {
+      throw new ArgumentError(
+          "${Flags.useKernel} is only supported in combination "
+          "with ${Flags.platformBinaries}");
     }
     return new CompilerOptions._(entryPoint, libraryRoot, packageRoot,
         packageConfig, packagesDiscoveryProvider, environment,
@@ -452,6 +457,7 @@ class CompilerOptions implements DiagnosticOptions {
         outputUri: outputUri,
         platformConfigUri: platformConfigUri ??
             _resolvePlatformConfig(libraryRoot, null, const []),
+        platformBinaries: platformBinaries,
         preserveComments: preserveComments,
         preserveUris: preserveUris,
         resolutionInputs: resolutionInputs,
@@ -464,7 +470,6 @@ class CompilerOptions implements DiagnosticOptions {
         trustPrimitives: trustPrimitives,
         trustTypeAnnotations: trustTypeAnnotations,
         useContentSecurityPolicy: useContentSecurityPolicy,
-        useKernelInSsa: useKernelInSsa || useKernel,
         useKernel: useKernel,
         useFrequencyNamer: useFrequencyNamer,
         useMultiSourceInfo: useMultiSourceInfo,
@@ -503,6 +508,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.generateSourceMap: true,
       this.outputUri: null,
       this.platformConfigUri: null,
+      this.platformBinaries: null,
       this.preserveComments: false,
       this.preserveUris: false,
       this.resolutionInputs: null,
@@ -516,7 +522,6 @@ class CompilerOptions implements DiagnosticOptions {
       this.trustPrimitives: false,
       this.trustTypeAnnotations: false,
       this.useContentSecurityPolicy: false,
-      this.useKernelInSsa: false,
       this.useKernel: false,
       this.useFrequencyNamer: false,
       this.useMultiSourceInfo: false,
@@ -563,6 +568,7 @@ class CompilerOptions implements DiagnosticOptions {
       kernelGlobalInference,
       outputUri,
       platformConfigUri,
+      platformBinaries,
       preserveComments,
       preserveUris,
       resolutionInputs,
@@ -576,7 +582,6 @@ class CompilerOptions implements DiagnosticOptions {
       trustPrimitives,
       trustTypeAnnotations,
       useContentSecurityPolicy,
-      useKernelInSsa,
       useKernel,
       useFrequencyNamer,
       useMultiSourceInfo,
@@ -630,6 +635,7 @@ class CompilerOptions implements DiagnosticOptions {
         generateSourceMap: generateSourceMap ?? options.generateSourceMap,
         outputUri: outputUri ?? options.outputUri,
         platformConfigUri: platformConfigUri ?? options.platformConfigUri,
+        platformBinaries: platformBinaries ?? options.platformBinaries,
         preserveComments: preserveComments ?? options.preserveComments,
         preserveUris: preserveUris ?? options.preserveUris,
         resolutionInputs: resolutionInputs ?? options.resolutionInputs,
@@ -646,7 +652,6 @@ class CompilerOptions implements DiagnosticOptions {
             trustTypeAnnotations ?? options.trustTypeAnnotations,
         useContentSecurityPolicy:
             useContentSecurityPolicy ?? options.useContentSecurityPolicy,
-        useKernelInSsa: useKernelInSsa ?? options.useKernelInSsa,
         useKernel: useKernel ?? options.useKernel,
         useFrequencyNamer: useFrequencyNamer ?? options.useFrequencyNamer,
         useMultiSourceInfo: useMultiSourceInfo ?? options.useMultiSourceInfo,

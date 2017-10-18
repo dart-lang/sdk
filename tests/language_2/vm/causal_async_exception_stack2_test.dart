@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
+
 import 'causal_async_exception_stack_helper.dart' as h;
 
 foo3() async => throw "foo";

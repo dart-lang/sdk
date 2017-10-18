@@ -8,7 +8,7 @@ import 'dart:collection';
 
 import 'dart:_debugger' show stackTraceMapper;
 
-import 'dart:_foreign_helper' show JS, JS_STRING_CONCAT;
+import 'dart:_foreign_helper' show JS, JS_STRING_CONCAT, JSExportName;
 
 import 'dart:_interceptors';
 import 'dart:_internal'
@@ -19,6 +19,8 @@ import 'dart:_runtime' as dart;
 
 part 'annotations.dart';
 part 'linked_hash_map.dart';
+part 'identity_hash_map.dart';
+part 'custom_hash_map.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
@@ -30,9 +32,22 @@ class _Patch {
 
 const _Patch patch = const _Patch();
 
-/// Marks the internal map in dart2js, so that internal libraries can is-check
-// them.
-abstract class InternalMap<K, V> implements Map<K, V> {}
+/// Adapts a JS `[Symbol.iterator]` to a Dart `get iterator`.
+/// 
+/// This is the inverse of `JsIterator`, for classes where we can more
+/// efficiently obtain a JS iterator instead of a Dart one.
+class DartIterator<E> implements Iterator<E> {
+  DartIterator(jsIterator) {
+    JS('', 'this._current = null');
+    JS('', 'this._jsIterator = #', jsIterator);
+  }
+  E get current => JS('', 'this._current');
+  bool moveNext() {
+    var next = JS('', 'this._jsIterator.next()');
+    JS('', 'this._current = #.value', next);
+    return JS('bool', '!#.done', next);
+  }
+}
 
 class Primitives {
   /// Isolate-unique ID for caching [JsClosureMirror.function].
