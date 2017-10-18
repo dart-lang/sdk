@@ -550,6 +550,11 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL) {
                           OSThread::kStackSizeBuffer +
                           kSimulatorStackUnderflowSize) /
                          sizeof(uintptr_t)];
+  // Low address.
+  stack_base_ = reinterpret_cast<uword>(stack_) + kSimulatorStackUnderflowSize;
+  // High address.
+  stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
+
   last_setjmp_buffer_ = NULL;
   top_exit_frame_info_ = 0;
 
@@ -572,15 +577,6 @@ Simulator* Simulator::Current() {
     Isolate::Current()->set_simulator(simulator);
   }
   return simulator;
-}
-
-// Returns the top of the stack area to enable checking for stack pointer
-// validity.
-uword Simulator::StackTop() const {
-  // To be safe in potential stack underflows we leave some buffer above and
-  // set the stack top.
-  return StackBase() +
-         (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
 #if !defined(PRODUCT)

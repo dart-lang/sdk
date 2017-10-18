@@ -42,6 +42,10 @@ dart/spawn_shutdown_test: Pass, Slow  # VM Shutdown test
 [ $system == windows ]
 cc/Service_Profile: Skip
 cc/CorelibCompilerStats: Skip
+cc/Profiler_IntrinsicAllocation: Fail # Issue 31137
+cc/Profiler_ClosureAllocation: Fail # Issue 31137
+cc/Profiler_StringAllocation: Fail # Issue 31137
+cc/Profiler_TypedArrayAllocation: Fail # Issue 31137
 
 [ $system == fuchsia ]
 # OOM crash can bring down the OS.
@@ -51,14 +55,9 @@ cc/CorelibIsolateStartup: Skip
 dart/data_uri_spawn_test: Skip
 # ../../dart/runtime/bin/file_test.cc: 34: error: expected: !file->WriteByte(1)
 cc/Read: Fail  # TODO(zra): Investigate
-# Assumes initial thread's stack is the same size as spawned thread stacks.
-cc/StackOverflowStackTraceInfo: Crash
 # TODO(zra): Investigate
 dart/byte_array_test: Crash
 dart/byte_array_optimized_test: Crash
-cc/DartAPI_StackOverflowStackTraceInfoBraceFunction1: Crash
-cc/DartAPI_StackOverflowStackTraceInfoBraceFunction2: Crash
-cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Crash
 
 # Profiler is completely disabled in SIMDBC builds.
 # On the simluator stack traces produced by the Profiler do not match
