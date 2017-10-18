@@ -270,10 +270,6 @@ class Library extends NamedNode implements Comparable<Library> {
   /// and all members are loaded.
   bool isExternal;
 
-  /// Documentation comment of the library, or `null`.
-  @informative
-  String documentationComment;
-
   String name;
 
   @nocoq
@@ -666,10 +662,6 @@ class Class extends NamedNode {
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
 
-  /// Documentation comment of the class, or `null`.
-  @informative
-  String documentationComment;
-
   /// List of metadata annotations on the class.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
@@ -913,10 +905,6 @@ abstract class Member extends NamedNode {
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
-
-  /// Documentation comment of the member, or `null`.
-  @informative
-  String documentationComment;
 
   /// List of metadata annotations on the member.
   ///

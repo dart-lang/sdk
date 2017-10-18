@@ -150,9 +150,6 @@ void FieldHelper::ReadUntilExcluding(Field field,
       builder_->record_token_position(position_);
       builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
-    case kDocumentationCommentIndex:
-      builder_->ReadStringReference();
-      if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -222,9 +219,6 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       builder_->record_token_position(position_);
       builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
-    case kDocumentationCommentIndex:
-      builder_->ReadStringReference();
-      if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -266,9 +260,6 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
-      if (++next_read_ == field) return;
-    case kDocumentationCommentIndex:
-      builder_->ReadStringReference();
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -345,9 +336,6 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
       builder_->current_script_id_ = source_uri_index_;
       builder_->record_token_position(position_);
-      if (++next_read_ == field) return;
-    case kDocumentationCommentIndex:
-      builder_->ReadStringReference();
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -432,9 +420,6 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kName:
       name_index_ = builder_->ReadStringReference();  // read name index.
-      if (++next_read_ == field) return;
-    case kDocumentation:
-      builder_->ReadStringReference();  // read documentation comment index.
       if (++next_read_ == field) return;
     case kSourceUriIndex:
       source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.

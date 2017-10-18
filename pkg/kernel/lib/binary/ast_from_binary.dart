@@ -522,7 +522,6 @@ class BinaryBuilder {
     }
     _currentLibrary = library;
     String name = readStringOrNullIfEmpty();
-    String documentationComment = readStringOrNullIfEmpty();
 
     // TODO(jensj): We currently save (almost the same) uri twice.
     String fileUri = readUriReference();
@@ -530,7 +529,6 @@ class BinaryBuilder {
     if (shouldWriteData) {
       library.isExternal = isExternal;
       library.name = name;
-      library.documentationComment = documentationComment;
       library.fileUri = fileUri;
     }
 
@@ -686,7 +684,6 @@ class BinaryBuilder {
     }
     var name = readStringOrNullIfEmpty();
     var fileUri = readUriReference();
-    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name ?? 'normal-class');
     readAndPushTypeParameterList(node.typeParameters, node);
@@ -710,7 +707,6 @@ class BinaryBuilder {
     if (shouldWriteData) {
       node.name = name;
       node.fileUri = fileUri;
-      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.supertype = supertype;
       node.mixedInType = mixedInType;
@@ -748,7 +744,6 @@ class BinaryBuilder {
     int flags2 = readByte();
     var name = readName();
     var fileUri = readUriReference();
-    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'field');
     var type = readDartType();
@@ -762,7 +757,6 @@ class BinaryBuilder {
       node.flags2 = flags2;
       node.name = name;
       node.fileUri = fileUri;
-      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.type = type;
       node.initializer = initializer;
@@ -786,7 +780,6 @@ class BinaryBuilder {
     var fileEndOffset = readOffset();
     var flags = readByte();
     var name = readName();
-    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'constructor');
     var function = readFunctionNode();
@@ -805,7 +798,6 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
       node.name = name;
-      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.function = function..parent = node;
       node.transformerFlags = transformerFlags;
@@ -830,7 +822,6 @@ class BinaryBuilder {
     var flags = readByte();
     var name = readName();
     var fileUri = readUriReference();
-    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'procedure');
     int functionNodeSize = endOffset - _byteOffset;
@@ -852,7 +843,6 @@ class BinaryBuilder {
       node.flags = flags;
       node.name = name;
       node.fileUri = fileUri;
-      node.documentationComment = documentationComment;
       node.annotations = annotations;
       if (readFunctionNodeNow) {
         node.function = function;

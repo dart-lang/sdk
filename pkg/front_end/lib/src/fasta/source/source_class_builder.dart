@@ -42,10 +42,9 @@ import '../problems.dart' show unhandled;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-ShadowClass initializeClass(ShadowClass cls, String documentationComment,
-    String name, KernelLibraryBuilder parent, int charOffset) {
+ShadowClass initializeClass(
+    ShadowClass cls, String name, KernelLibraryBuilder parent, int charOffset) {
   cls ??= new ShadowClass(name: name);
-  cls.documentationComment = documentationComment;
   cls.fileUri ??= parent.library.fileUri;
   if (cls.fileOffset == TreeNode.noOffset) {
     cls.fileOffset = charOffset;
@@ -61,7 +60,6 @@ class SourceClassBuilder extends KernelClassBuilder {
   KernelTypeBuilder mixedInType;
 
   SourceClassBuilder(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String name,
@@ -75,8 +73,7 @@ class SourceClassBuilder extends KernelClassBuilder {
       int charOffset,
       [ShadowClass cls,
       this.mixedInType])
-      : cls = initializeClass(
-            cls, documentationComment, name, parent, charOffset),
+      : cls = initializeClass(cls, name, parent, charOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             scope, constructors, parent, charOffset) {
     ShadowClass.setBuilder(this.cls, this);

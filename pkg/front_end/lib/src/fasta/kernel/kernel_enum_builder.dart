@@ -62,6 +62,8 @@ import 'kernel_builder.dart'
         MetadataBuilder,
         Scope;
 
+import 'metadata_collector.dart';
+
 class KernelEnumBuilder extends SourceClassBuilder
     implements EnumBuilder<KernelTypeBuilder, InterfaceType> {
   final List<Object> constantNamesAndOffsetsAndDocs;
@@ -77,7 +79,6 @@ class KernelEnumBuilder extends SourceClassBuilder
   final KernelNamedTypeBuilder listType;
 
   KernelEnumBuilder.internal(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       Scope scope,
@@ -91,11 +92,11 @@ class KernelEnumBuilder extends SourceClassBuilder
       this.stringType,
       LibraryBuilder parent,
       int charOffset)
-      : super(documentationComment, metadata, 0, name, null, null, null, scope,
-            constructors, parent, null, charOffset, cls);
+      : super(metadata, 0, name, null, null, null, scope, constructors, parent,
+            null, charOffset, cls);
 
   factory KernelEnumBuilder(
-      String documentationComment,
+      MetadataCollector metadataCollector,
       List<MetadataBuilder> metadata,
       String name,
       List<Object> constantNamesAndOffsetsAndDocs,
@@ -129,10 +130,9 @@ class KernelEnumBuilder extends SourceClassBuilder
     ///       static const List<E> values = const <E>[id0, ..., idn-1];
     ///       String toString() => { 0: ‘E.id0’, . . ., n-1: ‘E.idn-1’}[index]
     ///     }
-    members["index"] = new KernelFieldBuilder(null, null, intType, "index",
-        finalMask, parent, charOffset, null, true);
+    members["index"] = new KernelFieldBuilder(
+        null, intType, "index", finalMask, parent, charOffset, null, true);
     KernelConstructorBuilder constructorBuilder = new KernelConstructorBuilder(
-        null,
         null,
         constMask,
         null,
@@ -149,19 +149,10 @@ class KernelEnumBuilder extends SourceClassBuilder
     constructors[""] = constructorBuilder;
     int index = 0;
     List<MapEntry> toStringEntries = <MapEntry>[];
-    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(
-        null,
-        null,
-        listType,
-        "values",
-        constMask | staticMask,
-        parent,
-        charOffset,
-        null,
-        true);
+    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(null, listType,
+        "values", constMask | staticMask, parent, charOffset, null, true);
     members["values"] = valuesBuilder;
     KernelProcedureBuilder toStringBuilder = new KernelProcedureBuilder(
-        null,
         null,
         0,
         stringType,
@@ -193,16 +184,10 @@ class KernelEnumBuilder extends SourceClassBuilder
         constantNamesAndOffsetsAndDocs[i] = null;
         continue;
       }
-      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
-          documentationComment,
-          null,
-          selfType,
-          name,
-          constMask | staticMask,
-          parent,
-          charOffset,
-          null,
-          true);
+      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(null, selfType,
+          name, constMask | staticMask, parent, charOffset, null, true);
+      metadataCollector?.setDocumentationComment(
+          fieldBuilder.target, documentationComment);
       members[name] = fieldBuilder;
       toStringEntries.add(new MapEntry(
           new IntLiteral(index), new StringLiteral("$className.$name")));
@@ -210,7 +195,6 @@ class KernelEnumBuilder extends SourceClassBuilder
     }
     MapLiteral toStringMap = new MapLiteral(toStringEntries, isConst: true);
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(
-        documentationComment,
         metadata,
         name,
         new Scope(members, null, parent.scope, "enum $name",

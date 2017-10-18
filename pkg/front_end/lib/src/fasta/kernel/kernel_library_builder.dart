@@ -79,6 +79,8 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         compareProcedures;
 
+import 'metadata_collector.dart';
+
 class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
   final Library library;
@@ -158,7 +160,6 @@ class KernelLibraryBuilder
     Scope constructorScope = new Scope(constructors, null, null, "constructors",
         isModifiable: false);
     ClassBuilder cls = new SourceClassBuilder(
-        documentationComment,
         metadata,
         modifiers,
         className,
@@ -173,6 +174,9 @@ class KernelLibraryBuilder
         this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
         charOffset);
+    loader.target.metadataCollector
+        ?.setDocumentationComment(cls.target, documentationComment);
+
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
         checkTypeVariables(typeVariables, cls);
@@ -260,7 +264,6 @@ class KernelLibraryBuilder
     }
     if (builder == null) {
       builder = new SourceClassBuilder(
-          documentationComment,
           metadata,
           modifiers,
           name,
@@ -277,6 +280,8 @@ class KernelLibraryBuilder
           charOffset,
           null,
           mixin);
+      loader.target.metadataCollector
+          ?.setDocumentationComment(builder.target, documentationComment);
       builder.cls.isSyntheticMixinImplementation =
           isSyntheticMixinImplementation;
       addBuilder(name, builder, charOffset);
@@ -531,19 +536,11 @@ class KernelLibraryBuilder
       int charOffset,
       Token initializerTokenForInference,
       bool hasInitializer) {
-    addBuilder(
-        name,
-        new KernelFieldBuilder(
-            documentationComment,
-            metadata,
-            type,
-            name,
-            modifiers,
-            this,
-            charOffset,
-            initializerTokenForInference,
-            hasInitializer),
-        charOffset);
+    var builder = new KernelFieldBuilder(metadata, type, name, modifiers, this,
+        charOffset, initializerTokenForInference, hasInitializer);
+    addBuilder(name, builder, charOffset);
+    loader.target.metadataCollector
+        ?.setDocumentationComment(builder.target, documentationComment);
   }
 
   String computeAndValidateConstructorName(Object name, int charOffset) {
@@ -592,10 +589,10 @@ class KernelLibraryBuilder
     ProcedureBuilder procedure;
     String constructorName =
         isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
+    MetadataCollector metadataCollector = loader.target.metadataCollector;
     if (constructorName != null) {
       procedureName = constructorName;
       procedure = new KernelConstructorBuilder(
-          documentationComment,
           metadata,
           modifiers & ~abstractMask,
           returnType,
@@ -607,13 +604,13 @@ class KernelLibraryBuilder
           charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
-      loader.target.metadataCollector
-          ?.setConstructorNameOffset(procedure.target, name);
+      metadataCollector?.setDocumentationComment(
+          procedure.target, documentationComment);
+      metadataCollector?.setConstructorNameOffset(procedure.target, name);
     } else {
       assert(name is String);
       procedureName = name;
       procedure = new KernelProcedureBuilder(
-          documentationComment,
           metadata,
           modifiers,
           returnType,
@@ -626,6 +623,8 @@ class KernelLibraryBuilder
           charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
+      metadataCollector?.setDocumentationComment(
+          procedure.target, documentationComment);
     }
     checkTypeVariables(typeVariables, procedure);
     addBuilder(procedureName, procedure, charOffset);
@@ -664,7 +663,6 @@ class KernelLibraryBuilder
 
     assert(constructorNameReference.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
-        documentationComment,
         metadata,
         staticMask | modifiers,
         returnType,
@@ -679,9 +677,10 @@ class KernelLibraryBuilder
         nativeMethodName,
         redirectionTarget);
 
-    // Record the named constructor name offset.
-    loader.target.metadataCollector
-        ?.setConstructorNameOffset(procedure.target, name);
+    var metadataCollector = loader.target.metadataCollector;
+    metadataCollector?.setDocumentationComment(
+        procedure.target, documentationComment);
+    metadataCollector?.setConstructorNameOffset(procedure.target, name);
 
     currentDeclaration.addFactoryDeclaration(procedure, factoryDeclaration);
     addBuilder(procedureName, procedure, charOffset);
@@ -697,11 +696,18 @@ class KernelLibraryBuilder
       List<Object> constantNamesAndOffsets,
       int charOffset,
       int charEndOffset) {
-    addBuilder(
+    MetadataCollector metadataCollector = loader.target.metadataCollector;
+    KernelEnumBuilder builder = new KernelEnumBuilder(
+        metadataCollector,
+        metadata,
         name,
-        new KernelEnumBuilder(documentationComment, metadata, name,
-            constantNamesAndOffsets, this, charOffset, charEndOffset),
-        charOffset);
+        constantNamesAndOffsets,
+        this,
+        charOffset,
+        charEndOffset);
+    addBuilder(name, builder, charOffset);
+    metadataCollector?.setDocumentationComment(
+        builder.target, documentationComment);
   }
 
   void addFunctionTypeAlias(
@@ -823,7 +829,8 @@ class KernelLibraryBuilder
       library.addPart(new LibraryPart(<Expression>[], fileUri));
     }
 
-    library.documentationComment = documentationComment;
+    loader.target.metadataCollector
+        ?.setDocumentationComment(library, documentationComment);
     library.name = name;
     library.procedures.sort(compareProcedures);
 

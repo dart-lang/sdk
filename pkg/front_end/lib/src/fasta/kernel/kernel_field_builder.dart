@@ -40,7 +40,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   final bool hasInitializer;
 
   KernelFieldBuilder(
-      String documentationComment,
       this.metadata,
       this.type,
       String name,
@@ -51,8 +50,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       this.hasInitializer)
       : field = new ShadowField(null, type == null,
             fileUri: compilationUnit?.relativeFileUri)
-          ..fileOffset = charOffset
-          ..documentationComment = documentationComment,
+          ..fileOffset = charOffset,
         super(name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {
