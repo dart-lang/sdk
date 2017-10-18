@@ -42,10 +42,14 @@ dart/spawn_shutdown_test: Pass, Slow  # VM Shutdown test
 [ $system == windows ]
 cc/Service_Profile: Skip
 cc/CorelibCompilerStats: Skip
+
+[ $system == windows && $arch == x64 ]
 cc/Profiler_IntrinsicAllocation: Fail # Issue 31137
 cc/Profiler_ClosureAllocation: Fail # Issue 31137
 cc/Profiler_StringAllocation: Fail # Issue 31137
 cc/Profiler_TypedArrayAllocation: Fail # Issue 31137
+cc/Profiler_SourcePositionOptimized: Fail # Issue 31137
+cc/Profiler_BinaryOperatorSourcePositionOptimized: Fail # Issue 31137
 
 [ $system == fuchsia ]
 # OOM crash can bring down the OS.
