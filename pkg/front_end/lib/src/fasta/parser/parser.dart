@@ -414,9 +414,11 @@ class Parser {
     throw "Internal error: Unhandled top level keyword '$value'.";
   }
 
+  /// ```
   /// libraryDirective:
   ///   'library' qualified ';'
   /// ;
+  /// ```
   Token parseLibraryName(Token token) {
     assert(optional('library', token));
     Token libraryKeyword = token;
@@ -428,9 +430,11 @@ class Parser {
     return semicolon.next;
   }
 
+  /// ```
   /// importPrefix:
   ///   'deferred'? 'as' identifier
   /// ;
+  /// ```
   Token parseImportPrefixOpt(Token token) {
     if (optional('deferred', token) && optional('as', token.next)) {
       Token deferredToken = token;
@@ -449,9 +453,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// importDirective:
   ///   'import' uri ('if' '(' test ')' uri)* importPrefix? combinator* ';'
   /// ;
+  /// ```
   Token parseImport(Token token) {
     assert(optional('import', token));
     Token importKeyword = token;
@@ -570,9 +576,11 @@ class Parser {
     return semicolon.next;
   }
 
+  /// ```
   /// conditionalUris:
   ///   conditionalUri*
   /// ;
+  /// ```
   Token parseConditionalUris(Token token) {
     listener.beginConditionalUris(token);
     int count = 0;
@@ -584,9 +592,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// conditionalUri:
   ///   'if' '(' dottedName ('==' literalString)? ')' uri
   /// ;
+  /// ```
   Token parseConditionalUri(Token token) {
     listener.beginConditionalUri(token);
     Token ifKeyword = token;
@@ -605,9 +615,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// dottedName:
   ///   identifier ('.' identifier)*
   /// ;
+  /// ```
   Token parseDottedName(Token token) {
     listener.beginDottedName(token);
     // TODO(brianwilkerson): If `token` is not an identifier, then a synthetic
@@ -625,9 +637,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// exportDirective:
   ///   'export' uri conditional-uris* combinator* ';'
   /// ;
+  /// ```
   Token parseExport(Token token) {
     assert(optional('export', token));
     Token exportKeyword = token;
@@ -640,9 +654,11 @@ class Parser {
     return semicolon.next;
   }
 
+  /// ```
   /// combinators:
   ///   (hideCombinator | showCombinator)*
   /// ;
+  /// ```
   Token parseCombinators(Token token) {
     listener.beginCombinators(token);
     int count = 0;
@@ -661,9 +677,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// hideCombinator:
   ///   'hide' identifierList
   /// ;
+  /// ```
   Token parseHide(Token token) {
     assert(optional('hide', token));
     Token hideKeyword = token;
@@ -673,9 +691,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// showCombinator:
   ///   'show' identifierList
   /// ;
+  /// ```
   Token parseShow(Token token) {
     assert(optional('show', token));
     Token showKeyword = token;
@@ -685,9 +705,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// identifierList:
   ///   identifier (',' identifier)*
   /// ;
+  /// ```
   Token parseIdentifierList(Token token) {
     // TODO(brianwilkerson): If `token` is not an identifier, then a synthetic
     // identifier will be inserted, but `beginIdentifierList` will be called
@@ -703,9 +725,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// typeList:
   ///   type (',' type)*
   /// ;
+  /// ```
   Token parseTypeList(Token token) {
     listener.beginTypeList(token);
     token = parseType(token);
@@ -729,9 +753,11 @@ class Parser {
     }
   }
 
+  /// ```
   /// partDirective:
   ///   'part' uri ';'
   /// ;
+  /// ```
   Token parsePart(Token token) {
     assert(optional('part', token));
     Token partKeyword = token;
@@ -742,9 +768,11 @@ class Parser {
     return semicolon.next;
   }
 
+  /// ```
   /// partOfDirective:
   ///   'part' 'of' (qualified | uri) ';'
   /// ;
+  /// ```
   Token parsePartOf(Token token) {
     assert(optional('part', token));
     assert(optional('of', token.next));
@@ -764,9 +792,11 @@ class Parser {
     return semicolon.next;
   }
 
+  /// ```
   /// metadata:
   ///   annotation*
   /// ;
+  /// ```
   Token parseMetadataStar(Token token) {
     token = listener.injectGenericCommentTypeAssign(token);
     // TODO(brianwilkerson): Remove the `token` because we cannot make any
@@ -781,9 +811,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// annotation:
   ///   '@' qualified ('.' identifier)? arguments?
   /// ;
+  /// ```
   Token parseMetadata(Token token) {
     assert(optional('@', token));
     firstToken ??= token;
@@ -1071,9 +1103,11 @@ class Parser {
     return tryParseMethodTypeArguments(token) != null;
   }
 
+  /// ```
   /// qualified:
   ///   identifier ('.' identifier)*
   /// ;
+  /// ```
   Token parseQualified(Token token, IdentifierContext context,
       IdentifierContext continuationContext) {
     token = parseIdentifier(token, context);
@@ -1193,12 +1227,14 @@ class Parser {
   /// Parse the portion of a class declaration (not a mixin application) that
   /// follows the end of the type parameters.
   ///
+  /// ```
   /// classDefinition:
   ///   metadata abstract? 'class' identifier typeParameters?
   ///       (superclass mixins?)? interfaces?
   ///       '{' (metadata classMemberDefinition)* '}' |
   ///   metadata abstract? 'class' mixinApplicationClass
   /// ;
+  /// ```
   Token parseClass(Token token, Token begin, Token classKeyword) {
     Token start = token;
     token = parseClassHeader(token, begin, classKeyword);
@@ -1340,9 +1376,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// implementsClause:
   ///   'implements' typeName (',' typeName)*
   /// ;
+  /// ```
   Token parseClassImplementsOpt(Token token) {
     Token implementsKeyword;
     int interfacesCount = 0;
@@ -1593,9 +1631,11 @@ class Parser {
     return token.next;
   }
 
+  /// ```
   /// typeVariable:
   ///   metadata? identifier (('extends' | 'super') typeName)?
   /// ;
+  /// ```
   Token parseTypeVariable(Token token) {
     listener.beginTypeVariable(token);
     token = parseMetadataStar(token);
@@ -2826,9 +2866,11 @@ class Parser {
     return closeBrace;
   }
 
+  /// ```
   /// classBody:
   ///   '{' classMember* '}'
   /// ;
+  /// ```
   ///
   /// The [beforeBody] token is required to be a token that appears somewhere
   /// before the [token] in the token stream.
@@ -2872,11 +2914,13 @@ class Parser {
     return optional('factory', token);
   }
 
+  /// ```
   /// classMember:
   ///   fieldDeclaration |
   ///   constructorDeclaration |
   ///   methodDeclaration
   /// ;
+  /// ```
   Token parseMember(Token token) {
     firstToken ??= token;
     token = parseMetadataStar(token);
@@ -3974,9 +4018,11 @@ class Parser {
   /// This method parses the portion of a list literal starting with the left
   /// square bracket.
   ///
+  /// ```
   /// listLiteral:
   ///   'const'? typeArguments? '[' (expressionList ','?)? ']'
   /// ;
+  /// ```
   ///
   /// Provide a [constKeyword] if the literal is preceded by 'const', or `null`
   /// if not. This is a suffix parser because it is assumed that type arguments
@@ -4010,9 +4056,11 @@ class Parser {
   /// This method parses the portion of a map literal that starts with the left
   /// curly brace.
   ///
+  /// ```
   /// mapLiteral:
   ///   'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
   /// ;
+  /// ```
   ///
   /// Provide a [constKeyword] if the literal is preceded by 'const', or `null`
   /// if not. This is a suffix parser because it is assumed that type arguments
@@ -4085,9 +4133,11 @@ class Parser {
     }
   }
 
+  /// ```
   /// mapLiteralEntry:
   ///   expression ':' expression
   /// ;
+  /// ```
   Token parseMapLiteralEntry(Token token) {
     listener.beginLiteralMapEntry(token);
     // Assume the listener rejects non-string keys.
@@ -4132,6 +4182,7 @@ class Parser {
   /// This method parses a list or map literal that is known to start with the
   /// keyword 'const'.
   ///
+  /// ```
   /// listLiteral:
   ///   'const'? typeArguments? '[' (expressionList ','?)? ']'
   /// ;
@@ -4143,6 +4194,7 @@ class Parser {
   /// mapLiteralEntry:
   ///   expression ':' expression
   /// ;
+  /// ```
   Token parseConstExpression(Token token) {
     assert(optional('const', token));
     Token constKeyword = token;
@@ -4175,9 +4227,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// intLiteral:
   ///   integer
   /// ;
+  /// ```
   Token parseLiteralInt(Token token) {
     assert(identical(token.kind, INT_TOKEN) ||
         identical(token.kind, HEXADECIMAL_TOKEN));
@@ -4185,18 +4239,22 @@ class Parser {
     return token.next;
   }
 
+  /// ```
   /// doubleLiteral:
   ///   double
   /// ;
+  /// ```
   Token parseLiteralDouble(Token token) {
     assert(identical(token.kind, DOUBLE_TOKEN));
     listener.handleLiteralDouble(token);
     return token.next;
   }
 
+  /// ```
   /// stringLiteral:
   ///   (multilineString | singleLineString)+
   /// ;
+  /// ```
   Token parseLiteralString(Token token) {
     assert(identical(token.kind, STRING_TOKEN));
     bool old = mayParseFunctionExpressions;
@@ -4214,9 +4272,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// symbolLiteral:
   ///   '#' (operator | (identifier ('.' identifier)*))
   /// ;
+  /// ```
   Token parseLiteralSymbol(Token token) {
     assert(optional('#', token));
     Token hashToken = token;
@@ -4271,19 +4331,23 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// booleanLiteral:
   ///   'true' |
   ///   'false'
   /// ;
+  /// ```
   Token parseLiteralBool(Token token) {
     assert(optional('false', token) || optional('true', token));
     listener.handleLiteralBool(token);
     return token.next;
   }
 
+  /// ```
   /// nullLiteral:
   ///   'null'
   /// ;
+  /// ```
   Token parseLiteralNull(Token token) {
     assert(optional('null', token));
     listener.handleLiteralNull(token);
@@ -4322,6 +4386,7 @@ class Parser {
     }
   }
 
+  /// ```
   /// arguments:
   ///   '(' (argumentList ','?)? ')'
   /// ;
@@ -4334,6 +4399,7 @@ class Parser {
   /// namedArgument:
   ///   label expression
   /// ;
+  /// ```
   Token parseArguments(Token token) {
     assert(optional('(', token));
     Token begin = token;
@@ -4461,9 +4527,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// ifStatement:
   ///   'if' '(' expression ')' statement ('else' statement)?
   /// ;
+  /// ```
   Token parseIfStatement(Token token) {
     assert(optional('if', token));
     Token ifToken = token;
@@ -4483,6 +4551,7 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// forStatement:
   ///   'await'? 'for' '(' forLoopParts ')' statement
   /// ;
@@ -4492,6 +4561,7 @@ class Parser {
   ///   declaredIdentifier 'in' expression |
   ///   identifier 'in' expression
   /// ;
+  /// ```
   Token parseForStatement(Token awaitToken, Token token) {
     Token forKeyword = token;
     listener.beginForStatement(forKeyword);
@@ -4518,10 +4588,12 @@ class Parser {
     }
   }
 
+  /// ```
   /// forInitializerStatement:
   ///   localVariableDeclaration |
   ///   expression? ';'
   /// ;
+  /// ```
   Token parseVariablesDeclarationOrExpressionOpt(Token token) {
     final String value = token.stringValue;
     if (identical(value, ';')) {
@@ -4536,11 +4608,13 @@ class Parser {
   /// This method parses the portion of the forLoopParts that starts with the
   /// first semicolon (the one that terminates the forInitializerStatement).
   ///
+  /// ```
   /// forLoopParts:
   ///   forInitializerStatement expression? ';' expressionList? |
   ///   declaredIdentifier 'in' expression |
   ///   identifier 'in' expression
   /// ;
+  /// ```
   Token parseForRest(Token forToken, Token leftParenthesis, Token token) {
     Token leftSeparator = ensureSemicolon(token);
     token = leftSeparator.next;
@@ -4573,11 +4647,13 @@ class Parser {
   /// keyword 'in'. For the sake of recovery, we accept a colon in place of the
   /// keyword.
   ///
+  /// ```
   /// forLoopParts:
   ///   forInitializerStatement expression? ';' expressionList? |
   ///   declaredIdentifier 'in' expression |
   ///   identifier 'in' expression
   /// ;
+  /// ```
   Token parseForInRest(
       Token awaitToken, Token forKeyword, Token leftParenthesis, Token token) {
     assert(optional('in', token) || optional(':', token));
@@ -4595,9 +4671,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// whileStatement:
   ///   'while' '(' expression ')' statement
   /// ;
+  /// ```
   Token parseWhileStatement(Token token) {
     assert(optional('while', token));
     Token whileToken = token;
@@ -4610,9 +4688,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// doStatement:
   ///   'do' statement 'while' '(' expression ')' ';'
   /// ;
+  /// ```
   Token parseDoWhileStatement(Token token) {
     assert(optional('do', token));
     Token doToken = token;
@@ -4629,9 +4709,11 @@ class Parser {
     return semicolon.next;
   }
 
+  /// ```
   /// block:
   ///   '{' statement* '}'
   /// ;
+  /// ```
   Token parseBlock(Token token) {
     Token begin = token;
     listener.beginBlock(begin);
@@ -4653,9 +4735,11 @@ class Parser {
     return expect('}', token);
   }
 
+  /// ```
   /// awaitExpression:
   ///   'await' unaryExpression
   /// ;
+  /// ```
   Token parseAwaitExpression(Token token, bool allowCascades) {
     assert(optional('await', token));
     Token awaitToken = token;
@@ -4669,6 +4753,7 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// throwExpression:
   ///   'throw' expression
   /// ;
@@ -4676,6 +4761,7 @@ class Parser {
   /// throwExpressionWithoutCascade:
   ///   'throw' expressionWithoutCascade
   /// ;
+  /// ```
   Token parseThrowExpression(Token token, bool allowCascades) {
     assert(optional('throw', token));
     Token throwToken = token;
@@ -4686,9 +4772,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// rethrowStatement:
   ///   'rethrow' ';'
   /// ;
+  /// ```
   Token parseRethrowStatement(Token token) {
     Token throwToken = token;
     listener.beginRethrowStatement(throwToken);
@@ -4703,6 +4791,7 @@ class Parser {
     return semicolon.next;
   }
 
+  /// ```
   /// tryStatement:
   ///   'try' block (onPart+ finallyPart? | finallyPart)
   /// ;
@@ -4719,6 +4808,7 @@ class Parser {
   /// finallyPart:
   ///   'finally' block
   /// ;
+  /// ```
   Token parseTryStatement(Token token) {
     assert(optional('try', token));
     Token tryKeyword = token;
@@ -4784,9 +4874,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// switchStatement:
   ///   'switch' parenthesizedExpression switchBlock
   /// ;
+  /// ```
   Token parseSwitchStatement(Token token) {
     assert(optional('switch', token));
     Token switchKeyword = token;
@@ -4797,9 +4889,11 @@ class Parser {
     return token.next;
   }
 
+  /// ```
   /// switchBlock:
   ///   '{' switchCase* defaultCase? '}'
   /// ;
+  /// ```
   Token parseSwitchBlock(Token token) {
     Token begin = token;
     listener.beginSwitchBlock(begin);
@@ -4830,6 +4924,7 @@ class Parser {
   /// Parse a group of labels, cases and possibly a default keyword and the
   /// statements that they select.
   ///
+  /// ```
   /// switchCase:
   ///   label* 'case' expression ‘:’ statements
   /// ;
@@ -4837,6 +4932,7 @@ class Parser {
   /// defaultCase:
   ///   label* 'default' ‘:’ statements
   /// ;
+  /// ```
   Token parseSwitchCase(Token token) {
     Token begin = token;
     Token defaultKeyword = null;
@@ -4907,9 +5003,11 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// breakStatement:
   ///   'break' identifier? ';'
   /// ;
+  /// ```
   Token parseBreakStatement(Token token) {
     assert(optional('break', token));
     Token breakKeyword = token;
@@ -4924,9 +5022,11 @@ class Parser {
     return semicolon.next;
   }
 
+  /// ```
   /// assertion:
   ///   'assert' '(' expression (',' expression)? ','? ')'
   /// ;
+  /// ```
   Token parseAssert(Token token, Assert kind) {
     assert(optional('assert', token));
     listener.beginAssert(token, kind);
@@ -4972,18 +5072,22 @@ class Parser {
     return token;
   }
 
+  /// ```
   /// assertStatement:
   ///   assertion ';'
   /// ;
+  /// ```
   Token parseAssertStatement(Token token) {
     assert(optional('assert', token));
     token = parseAssert(token, Assert.Statement);
     return ensureSemicolon(token).next;
   }
 
+  /// ```
   /// continueStatement:
   ///   'continue' identifier? ';'
   /// ;
+  /// ```
   Token parseContinueStatement(Token token) {
     assert(optional('continue', token));
     Token continueKeyword = token;
@@ -4998,9 +5102,11 @@ class Parser {
     return semicolon.next;
   }
 
+  /// ```
   /// emptyStatement:
   ///   ';'
   /// ;
+  /// ```
   Token parseEmptyStatement(Token token) {
     assert(optional(';', token));
     listener.handleEmptyStatement(token);
