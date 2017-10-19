@@ -645,6 +645,13 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
 
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
+  if (FLAG_trace_isolates) {
+    OS::Print(
+        "[!] Unhandled exception in %s:\n"
+        "         exception: %s\n",
+        T->isolate()->name(), result.ToErrorCString());
+  }
+
   NoReloadScope no_reload_scope(T->isolate(), T);
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());

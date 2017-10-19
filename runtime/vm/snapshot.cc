@@ -259,16 +259,18 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   str_ ^= ReadObjectImpl(class_header, kAsInlinedObject, kInvalidPatchIndex, 0);
   library_ = Library::LookupLibrary(thread(), str_);
   if (library_.IsNull() || !library_.Loaded()) {
-    SetReadException("Invalid object found in message.");
+    SetReadException(
+        "Invalid object found in message: library is not found or loaded.");
   }
   str_ ^= ReadObjectImpl(kAsInlinedObject);
   if (str_.raw() == Symbols::TopLevel().raw()) {
     cls = library_.toplevel_class();
   } else {
+    str_ = String::ScrubName(str_);
     cls = library_.LookupClassAllowPrivate(str_);
   }
   if (cls.IsNull()) {
-    SetReadException("Invalid object found in message.");
+    SetReadException("Invalid object found in message: class not found");
   }
   cls.EnsureIsFinalized(thread());
   return cls.raw();
