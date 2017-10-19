@@ -377,14 +377,6 @@ class PageSpace {
   void TruncateLargePage(HeapPage* page, intptr_t new_object_size_in_bytes);
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
-  HeapPage* NextPageAnySize(HeapPage* page) const {
-    ASSERT((pages_tail_ == NULL) || (pages_tail_->next() == NULL));
-    ASSERT((exec_pages_tail_ == NULL) || (exec_pages_tail_->next() == NULL));
-    if (page == pages_tail_) {
-      return (exec_pages_ != NULL) ? exec_pages_ : large_pages_;
-    }
-    return page == exec_pages_tail_ ? large_pages_ : page->next();
-  }
 
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
 
@@ -413,6 +405,7 @@ class PageSpace {
   HeapPage* exec_pages_;
   HeapPage* exec_pages_tail_;
   HeapPage* large_pages_;
+  HeapPage* image_pages_;
 
   // A block of memory in a data page, managed by bump allocation. The remainder
   // is kept formatted as a FreeListElement, but is not in any freelist.

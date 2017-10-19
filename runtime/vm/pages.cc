@@ -186,6 +186,7 @@ PageSpace::PageSpace(Heap* heap,
       exec_pages_(NULL),
       exec_pages_tail_(NULL),
       large_pages_(NULL),
+      image_pages_(NULL),
       bump_top_(0),
       bump_end_(0),
       max_capacity_in_words_(max_capacity_in_words),
@@ -217,6 +218,7 @@ PageSpace::~PageSpace() {
   FreePages(pages_);
   FreePages(exec_pages_);
   FreePages(large_pages_);
+  FreePages(image_pages_);
   delete pages_lock_;
   delete tasks_lock_;
 }
@@ -467,11 +469,18 @@ class ExclusivePageIterator : ValueObject {
   explicit ExclusivePageIterator(const PageSpace* space)
       : space_(space), ml_(space->pages_lock_) {
     space_->MakeIterable();
+    list_ = kRegular;
     page_ = space_->pages_;
     if (page_ == NULL) {
+      list_ = kExecutable;
       page_ = space_->exec_pages_;
       if (page_ == NULL) {
+        list_ = kLarge;
         page_ = space_->large_pages_;
+        if (page_ == NULL) {
+          list_ = kImage;
+          page_ = space_->image_pages_;
+        }
       }
     }
   }
@@ -479,13 +488,29 @@ class ExclusivePageIterator : ValueObject {
   bool Done() const { return page_ == NULL; }
   void Advance() {
     ASSERT(!Done());
-    page_ = space_->NextPageAnySize(page_);
+    page_ = page_->next();
+    if ((page_ == NULL) && (list_ == kRegular)) {
+      list_ = kExecutable;
+      page_ = space_->exec_pages_;
+    }
+    if ((page_ == NULL) && (list_ == kExecutable)) {
+      list_ = kLarge;
+      page_ = space_->large_pages_;
+    }
+    if ((page_ == NULL) && (list_ == kLarge)) {
+      list_ = kImage;
+      page_ = space_->image_pages_;
+    }
+    ASSERT((page_ != NULL) || (list_ == kImage));
   }
 
  private:
+  enum List { kRegular, kExecutable, kLarge, kImage };
+
   const PageSpace* space_;
   MutexLocker ml_;
   NoSafepointScope no_safepoint;
+  List list_;
   HeapPage* page_;
 };
 
@@ -1135,31 +1160,16 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->next_ = NULL;
   page->object_end_ = memory->end();
   page->used_in_bytes_ = page->object_end_ - page->object_start();
-
-  MutexLocker ml(pages_lock_);
-  HeapPage **first, **tail;
   if (is_executable) {
     ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
     page->type_ = HeapPage::kExecutable;
-    first = &exec_pages_;
-    tail = &exec_pages_tail_;
   } else {
     page->type_ = HeapPage::kData;
-    first = &pages_;
-    tail = &pages_tail_;
   }
-  if (*first == NULL) {
-    *first = page;
-  } else {
-    if (is_executable && FLAG_write_protect_code && !(*tail)->is_image_page()) {
-      (*tail)->WriteProtect(false);
-    }
-    (*tail)->set_next(page);
-    if (is_executable && FLAG_write_protect_code && !(*tail)->is_image_page()) {
-      (*tail)->WriteProtect(true);
-    }
-  }
-  (*tail) = page;
+
+  MutexLocker ml(pages_lock_);
+  page->next_ = image_pages_;
+  image_pages_ = page;
 }
 
 PageSpaceController::PageSpaceController(Heap* heap,
