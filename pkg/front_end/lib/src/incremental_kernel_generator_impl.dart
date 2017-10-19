@@ -134,9 +134,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         Program program = new Program(nameRoot: kernelResult.nameRoot);
         for (LibraryCycleResult result in results) {
           if (vmRequiredLibraryCycles.contains(result.cycle)) {
-            for (FileState libraryFile in result.cycle.libraries) {
-              _addLibrarySources(program, libraryFile);
-            }
+            program.uriToSource.addAll(result.uriToSource);
             for (Library library in result.kernelLibraries) {
               program.libraries.add(library);
               library.parent = program;
@@ -178,17 +176,6 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   void reset() {
     _currentSignatures.clear();
     _lastSignatures = null;
-  }
-
-  /// Add [Source]s for the [libraryFile] and its parts into [program] URI
-  /// to [Source] map.
-  void _addLibrarySources(Program program, FileState libraryFile) {
-    program.uriToSource[libraryFile.uriStr] =
-        new Source(libraryFile.lineStarts, libraryFile.content);
-    for (var partFile in libraryFile.partFiles) {
-      program.uriToSource[partFile.uriStr] =
-          new Source(partFile.lineStarts, partFile.content);
-    }
   }
 
   /// Find files which are not referenced from the entry point and report

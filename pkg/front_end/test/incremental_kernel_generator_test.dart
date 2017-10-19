@@ -37,7 +37,9 @@ class IncrementalKernelGeneratorTest {
 
   /// Compute the initial [Program] for the given [entryPoint].
   Future<Program> getInitialState(Uri entryPoint,
-      {Uri sdkOutlineUri, bool setPackages: true}) async {
+      {Uri sdkOutlineUri,
+      bool setPackages: true,
+      bool embedSourceText: true}) async {
     createSdkFiles(fileSystem);
     // TODO(scheglov) Builder the SDK kernel and set it into the options.
 
@@ -48,7 +50,8 @@ class IncrementalKernelGeneratorTest {
       ..strongMode = true
       ..chaseDependencies = true
       ..librariesSpecificationUri = Uri.parse('file:///sdk/lib/libraries.json')
-      ..sdkSummary = sdkOutlineUri;
+      ..sdkSummary = sdkOutlineUri
+      ..embedSourceText = embedSourceText;
 
     if (setPackages) {
       compilerOptions.packagesFileUri = Uri.parse('file:///test/.packages');
@@ -294,6 +297,19 @@ int getValue() {
 
     // Wait for the pending future.
     await future;
+  }
+
+  test_embedSourceText_false() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, 'main() {}');
+
+    Program program = await getInitialState(uri, embedSourceText: false);
+
+    // The Source object is present in the map, but is empty.
+    Source source = program.uriToSource[uri.toString()];
+    expect(source, isNotNull);
+    expect(source.source, isEmpty);
   }
 
   test_inferPackagesFile() async {
@@ -550,14 +566,14 @@ import 'a.dart';
     List<Uri> libraryUris =
         program.libraries.map((library) => library.importUri).toList();
     for (var shouldInclude in includes) {
-      var shouldIncludeStr = shouldInclude.toString();
       expect(libraryUris, contains(shouldInclude));
-      expect(program.uriToSource.keys, contains(shouldIncludeStr));
+      var shouldIncludeFileUri = _resolveUriToFileUri(shouldInclude);
+      expect(program.uriToSource.keys, contains(shouldIncludeFileUri));
     }
     for (var shouldExclude in excludes) {
-      var shouldExcludeStr = shouldExclude.toString();
       expect(libraryUris, isNot(contains(shouldExclude)));
-      expect(program.uriToSource.keys, isNot(contains(shouldExcludeStr)));
+      var shouldExcludeFileUri = _resolveUriToFileUri(shouldExclude);
+      expect(program.uriToSource.keys, isNot(contains(shouldExcludeFileUri)));
     }
   }
 
@@ -594,5 +610,13 @@ import 'a.dart';
     new Printer(buffer, syntheticNames: new NameSystem())
         .writeLibraryFile(library);
     return buffer.toString();
+  }
+
+  /// Resolve the given `dart` or `package` [inputUri] into the corresponding
+  /// file URI, or return the same URI if it is already a file URI.
+  String _resolveUriToFileUri(Uri inputUri) {
+    var translator = incrementalKernelGenerator.test.driver.uriTranslator;
+    var outputUri = translator.translate(inputUri) ?? inputUri;
+    return outputUri.toString();
   }
 }

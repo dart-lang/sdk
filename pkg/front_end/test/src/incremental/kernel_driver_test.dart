@@ -807,15 +807,23 @@ import 'b.dart';
 
   void _assertLibraryUris(KernelResult result,
       {List<Uri> includes: const [], List<Uri> excludes: const []}) {
-    List<Uri> libraryUris = result.results
-        .map((cycle) => cycle.kernelLibraries.map((lib) => lib.importUri))
-        .expand((uris) => uris)
-        .toList();
+    Map<String, Source> uriToSource = {};
+    List<Uri> libraryUris = [];
+    for (LibraryCycleResult cycleResult in result.results) {
+      uriToSource.addAll(cycleResult.uriToSource);
+      for (var library in cycleResult.kernelLibraries) {
+        libraryUris.add(library.importUri);
+      }
+    }
     for (var shouldInclude in includes) {
       expect(libraryUris, contains(shouldInclude));
+      var shouldIncludeFileUri = _resolveUriToFileUri(shouldInclude);
+      expect(uriToSource.keys, contains(shouldIncludeFileUri));
     }
     for (var shouldExclude in excludes) {
       expect(libraryUris, isNot(contains(shouldExclude)));
+      var shouldExcludeFileUri = _resolveUriToFileUri(shouldExclude);
+      expect(uriToSource.keys, isNot(contains(shouldExcludeFileUri)));
     }
   }
 
@@ -871,6 +879,14 @@ import 'b.dart';
     new Printer(buffer, syntheticNames: new NameSystem())
         .writeLibraryFile(library);
     return buffer.toString();
+  }
+
+  /// Resolve the given `dart` or `package` [inputUri] into the corresponding
+  /// file URI, or return the same URI if it is already a file URI.
+  String _resolveUriToFileUri(Uri inputUri) {
+    var translator = driver.uriTranslator;
+    var outputUri = translator.translate(inputUri) ?? inputUri;
+    return outputUri.toString();
   }
 
   /// Return the [Uri] for the given Posix [path].
