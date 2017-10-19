@@ -429,11 +429,13 @@ regress/issue_29941: Crash
 regress/issue_29942: Crash
 regress/issue_29943: Crash
 regress/issue_29944: Crash
+regress/issue_29977: Crash # Issue 30997.
 regress/issue_29978: Crash
 regress/issue_29979: Crash
 regress/issue_29981: Crash
 regress/issue_29984: Crash
 regress/issue_29985: Crash
+regress/issue_29987: Crash # Issue 30997.
 reorder_super: Crash
 runtime_checks/call_kinds: Crash
 runtime_checks/call_kinds_get: Crash

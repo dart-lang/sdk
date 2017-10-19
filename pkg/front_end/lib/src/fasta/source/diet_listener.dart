@@ -51,6 +51,8 @@ class DietListener extends StackListener {
 
   final TypeInferenceEngine typeInferenceEngine;
 
+  int importExportDirectiveIndex = 0;
+
   ClassBuilder currentClass;
 
   /// For top-level declarations, this is the library scope. For class members,
@@ -363,7 +365,12 @@ class DietListener extends StackListener {
   void endImport(Token importKeyword, Token semicolon) {
     debugEvent("Import");
     pop(NullValue.Prefix);
-    discard(1); // Metadata.
+
+    Token metadata = pop();
+    Library libraryNode = library.target;
+    LibraryDependency dependency =
+        libraryNode.dependencies[importExportDirectiveIndex++];
+    parseMetadata(library, metadata, dependency.addAnnotation);
   }
 
   @override
@@ -374,7 +381,12 @@ class DietListener extends StackListener {
   @override
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
-    discard(1); // Metadata.
+
+    Token metadata = pop();
+    Library libraryNode = library.target;
+    LibraryDependency dependency =
+        libraryNode.dependencies[importExportDirectiveIndex++];
+    parseMetadata(library, metadata, dependency.addAnnotation);
   }
 
   @override

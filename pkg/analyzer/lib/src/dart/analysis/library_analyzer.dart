@@ -398,6 +398,14 @@ class LibraryAnalyzer {
     CompilationUnit definingCompilationUnit = units[_library];
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
+    bool matchNodeElement(Directive node, Element element) {
+      if (_enableKernelDriver) {
+        return node.keyword.offset == element.nameOffset;
+      } else {
+        return node.offset == element.nameOffset;
+      }
+    }
+
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
     LibraryIdentifier libraryNameNode = null;
     bool hasPartDirective = false;
@@ -410,7 +418,7 @@ class LibraryAnalyzer {
         directivesToResolve.add(directive);
       } else if (directive is ImportDirective) {
         for (ImportElement importElement in _libraryElement.imports) {
-          if (importElement.nameOffset == directive.offset) {
+          if (matchNodeElement(directive, importElement)) {
             directive.element = importElement;
             Source source = importElement.importedLibrary?.source;
             if (source != null && !_isLibrarySource(source)) {
@@ -424,7 +432,7 @@ class LibraryAnalyzer {
         }
       } else if (directive is ExportDirective) {
         for (ExportElement exportElement in _libraryElement.exports) {
-          if (exportElement.nameOffset == directive.offset) {
+          if (matchNodeElement(directive, exportElement)) {
             directive.element = exportElement;
             Source source = exportElement.exportedLibrary?.source;
             if (source != null && !_isLibrarySource(source)) {

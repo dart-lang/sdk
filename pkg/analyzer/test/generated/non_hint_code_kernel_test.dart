@@ -20,18 +20,4 @@ const potentialAnalyzerProblem = const Object();
 class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @override
   bool get enableKernelDriver => true;
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unusedImport_annotationOnDirective() async {
-    return super.test_unusedImport_annotationOnDirective();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unusedImport_metadata() async {
-    return super.test_unusedImport_metadata();
-  }
 }

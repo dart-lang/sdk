@@ -76,8 +76,6 @@ mirrors/library_exports_hidden_test: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError
 mirrors/library_exports_shown_test: RuntimeError
 mirrors/library_exports_shown_test: RuntimeError
-mirrors/library_imports_bad_metadata_test/01: MissingCompileTimeError
-mirrors/library_imports_bad_metadata_test/01: MissingCompileTimeError
 mirrors/library_imports_deferred_test: RuntimeError
 mirrors/library_imports_hidden_test: RuntimeError
 mirrors/library_imports_hidden_test: RuntimeError

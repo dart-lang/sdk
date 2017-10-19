@@ -4471,10 +4471,16 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_unlinkedExportNonPublic != null) {
-      return _metadata ??= _buildAnnotations(
-          library.definingCompilationUnit as CompilationUnitElementImpl,
-          _unlinkedExportNonPublic.annotations);
+    if (_metadata == null) {
+      CompilationUnitElementImpl definingUnit = library.definingCompilationUnit;
+      if (_kernel != null) {
+        return _metadata =
+            definingUnit._kernelContext.buildAnnotations(_kernel.annotations);
+      }
+      if (_unlinkedExportNonPublic != null) {
+        return _metadata = _buildAnnotations(
+            definingUnit, _unlinkedExportNonPublic.annotations);
+      }
     }
     return super.metadata;
   }
@@ -5752,10 +5758,16 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_unlinkedImport != null) {
-      return _metadata ??= _buildAnnotations(
-          library.definingCompilationUnit as CompilationUnitElementImpl,
-          _unlinkedImport.annotations);
+    if (_metadata == null) {
+      CompilationUnitElementImpl definingUnit = library.definingCompilationUnit;
+      if (_kernel != null) {
+        return _metadata =
+            definingUnit._kernelContext.buildAnnotations(_kernel.annotations);
+      }
+      if (_unlinkedImport != null) {
+        return _metadata =
+            _buildAnnotations(definingUnit, _unlinkedImport.annotations);
+      }
     }
     return super.metadata;
   }
