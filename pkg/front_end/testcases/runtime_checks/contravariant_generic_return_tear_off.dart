@@ -15,7 +15,7 @@ class C<T> {
 }
 
 G<num> g(C<num> c) {
-  return c. /*@checkTearOff=() -> (num) -> void*/ f;
+  return c. /*@checkReturn=() -> (num) -> void*/ f;
 }
 
 void h(int i) {

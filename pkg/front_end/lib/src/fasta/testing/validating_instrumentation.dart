@@ -33,7 +33,6 @@ class ValidatingInstrumentation implements Instrumentation {
       'callKind',
       'covariance',
       'checkReturn',
-      'checkTearOff',
       'forwardingStub',
     ],
   };

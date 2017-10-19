@@ -157,7 +157,6 @@ regress/issue_29977: Crash # Issue 30997.
 regress/issue_29982: RuntimeError # Issue 29982.
 regress/issue_29987: Crash # Issue 30997.
 
-runtime_checks/contravariant_generic_return_tear_off: Fail
 runtime_checks/contravariant_getter: Fail
 runtime_checks/field_forwarding_stub_generic_covariant: Fail
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027

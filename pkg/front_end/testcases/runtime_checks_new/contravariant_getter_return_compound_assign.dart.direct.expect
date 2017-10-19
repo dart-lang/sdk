@@ -1,0 +1,27 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class B<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(self::B<self::B::T> other) → self::B<self::B::T>
+    return null;
+}
+class C<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → self::B<(self::C::T) → void>
+    return null;
+  set x(self::B<(self::C::T) → void> value) → void {}
+}
+static method test(self::C<core::num> c) → void {
+  let final dynamic #t1 = c in #t1.x = #t1.x.+(new self::B::•<core::num>());
+  dynamic y = let final dynamic #t2 = c in #t2.x = #t2.x.+(new self::B::•<core::num>());
+  let final dynamic #t3 = c in #t3.x.==(null) ? #t3.x = new self::B::•<core::num>() : null;
+  dynamic z = let final dynamic #t4 = c in let final dynamic #t5 = #t4.x in #t5.==(null) ? #t4.x = new self::B::•<core::num>() : #t5;
+}
+static method main() → dynamic {}

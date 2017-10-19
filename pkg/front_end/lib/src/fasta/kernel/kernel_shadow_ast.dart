@@ -1454,6 +1454,8 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
       var readMember =
           inferrer.findPropertyGetMember(receiverType, read, silent: true);
       var readType = inferrer.getCalleeType(readMember, receiverType);
+      inferrer.handlePropertyGetContravariance(receiver, readMember,
+          read is PropertyGet ? read : null, read, readType);
       _storeLetType(inferrer, read, readType);
     }
     Member writeMember;

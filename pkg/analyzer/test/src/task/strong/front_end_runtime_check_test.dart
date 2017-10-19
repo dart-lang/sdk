@@ -129,29 +129,23 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     super.visitPrefixedIdentifier(node);
-    var staticElement = node.identifier.staticElement;
-    if (staticElement is MethodElement) {
-      _annotateTearOff(node, node.identifier.offset);
-    }
-    if (node.identifier.inGetterContext()) {
-      var target = node.prefix;
-      var isThis = target is ThisExpression || target == null;
-      _annotateCallKind(
-          staticElement,
-          isThis,
-          target.staticType is DynamicTypeImpl,
-          target.staticType,
-          null,
-          node.identifier.offset);
-    }
+    _handlePropertyAccess(node, node.prefix, node.identifier);
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    super.visitPropertyAccess(node);
+    _handlePropertyAccess(node, node.target, node.propertyName);
   }
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
     var staticElement = node.staticElement;
-    if (node.parent is! MethodInvocation &&
-        node.parent is! PrefixedIdentifier &&
+    var parent = node.parent;
+    if (parent is! MethodInvocation &&
+        parent is! PrefixedIdentifier &&
+        parent is! PropertyAccess &&
         !node.inDeclarationContext() &&
         node.inGetterContext() &&
         staticElement is PropertyAccessorElement &&
@@ -297,21 +291,6 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
-  /// Generates the appropriate `@checkTearOff` annotation (if any) for a call
-  /// site.
-  ///
-  /// An annotation of `@checkTearOff=type` indicates that the torn off function
-  /// will have to be checked to make sure it is an instance of the given type.
-  void _annotateTearOff(Expression node, int offset) {
-    // TODO(paulberry): handle dynamic tear offs
-    // Note: we don't annotate that non-dynamic tear offs use "interface"
-    // dispatch because that's the common case.
-    var castType = getImplicitCast(node);
-    if (castType != null) {
-      _recordCheckTearOff(offset, castType);
-    }
-  }
-
   /// Generates the appropriate `@forwardingStub` annotation (if any) for a
   /// class declaration or mixin application.
   ///
@@ -388,6 +367,24 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
+  /// Generates the appropriate annotations for a property access, whether it
+  /// arises from a [PrefixedIdentifier] or a [PropertyAccess].
+  void _handlePropertyAccess(
+      Expression node, Expression target, SimpleIdentifier propertyName) {
+    var staticElement = propertyName.staticElement;
+    if (propertyName.inGetterContext()) {
+      var isThis = target is ThisExpression || target == null;
+      _annotateCheckReturn(getImplicitCast(node), propertyName.offset);
+      _annotateCallKind(
+          staticElement,
+          isThis,
+          target.staticType is DynamicTypeImpl,
+          target.staticType,
+          null,
+          propertyName.offset);
+    }
+  }
+
   /// Determines whether a method formal parameter should be considered
   /// "semi-typed".
   ///
@@ -417,11 +414,6 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
 
   void _recordCheckReturn(int offset, DartType castType) {
     _instrumentation.record(uri, offset, 'checkReturn',
-        new InstrumentationValueForType(castType, _elementNamer));
-  }
-
-  void _recordCheckTearOff(int offset, DartType castType) {
-    _instrumentation.record(uri, offset, 'checkTearOff',
         new InstrumentationValueForType(castType, _elementNamer));
   }
 

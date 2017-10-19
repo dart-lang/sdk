@@ -544,6 +544,56 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
+  /// Determines the dispatch category of a [PropertyGet] and adds an "as" check
+  /// if necessary due to contravariance.
+  void handlePropertyGetContravariance(
+      Expression receiver,
+      Object interfaceMember,
+      PropertyGet desugaredGet,
+      Expression expression,
+      DartType inferredType) {
+    DispatchCategory callKind;
+    if (receiver is ThisExpression) {
+      callKind = DispatchCategory.viaThis;
+    } else if (interfaceMember == null) {
+      callKind = DispatchCategory.dynamicDispatch;
+    } else {
+      callKind = DispatchCategory.interface;
+    }
+    desugaredGet?.dispatchCategory = callKind;
+    bool checkReturn = false;
+    if (callKind == DispatchCategory.interface &&
+        interfaceMember is Procedure) {
+      checkReturn = interfaceMember.isGenericContravariant;
+    }
+    if (checkReturn) {
+      var expressionToReplace = desugaredGet ?? expression;
+      expressionToReplace.parent.replaceChild(
+          expressionToReplace,
+          new AsExpression(expressionToReplace, inferredType)
+            ..isTypeError = true);
+    }
+    if (instrumentation != null) {
+      int offset = expression.fileOffset;
+      switch (callKind) {
+        case DispatchCategory.dynamicDispatch:
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('dynamic'));
+          break;
+        case DispatchCategory.viaThis:
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('this'));
+          break;
+        default:
+          break;
+      }
+      if (checkReturn) {
+        instrumentation.record(Uri.parse(uri), offset, 'checkReturn',
+            new InstrumentationValueForType(inferredType));
+      }
+    }
+  }
+
   /// Modifies a type as appropriate when inferring a declared variable's type.
   DartType inferDeclarationType(DartType initializerType) {
     if (initializerType is BottomType ||
@@ -949,30 +999,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     var inferredType = getCalleeType(interfaceMember, receiverType);
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
-    DispatchCategory callKind;
-    if (receiver is ThisExpression) {
-      callKind = DispatchCategory.viaThis;
-    } else if (interfaceMember == null) {
-      callKind = DispatchCategory.dynamicDispatch;
-    } else {
-      callKind = DispatchCategory.interface;
-    }
-    desugaredGet?.dispatchCategory = callKind;
-    if (instrumentation != null) {
-      int offset = expression.fileOffset;
-      switch (callKind) {
-        case DispatchCategory.dynamicDispatch:
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
-              new InstrumentationValueLiteral('dynamic'));
-          break;
-        case DispatchCategory.viaThis:
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
-              new InstrumentationValueLiteral('this'));
-          break;
-        default:
-          break;
-      }
-    }
+    handlePropertyGetContravariance(
+        receiver, interfaceMember, desugaredGet, expression, inferredType);
     listener.propertyGetExit(expression, inferredType);
     return typeNeeded ? inferredType : null;
   }

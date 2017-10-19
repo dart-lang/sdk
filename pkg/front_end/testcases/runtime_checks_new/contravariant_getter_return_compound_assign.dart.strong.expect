@@ -1,0 +1,27 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class B<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(generic-covariant-impl generic-covariant-interface self::B<self::B::T> other) → self::B<self::B::T>
+    return null;
+}
+class C<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  generic-contravariant get x() → self::B<(self::C::T) → void>
+    return null;
+  set x(self::B<(self::C::T) → void> value) → void {}
+}
+static method test(self::C<core::num> c) → void {
+  let final self::C<core::num> #t1 = c in #t1.{self::C::x} = (#t1.{self::C::x} as{TypeError} self::B<(core::num) → void>).{self::B::+}(new self::B::•<core::num>());
+  self::B<(core::num) → void> y = let final self::C<core::num> #t2 = c in #t2.{self::C::x} = (#t2.{self::C::x} as{TypeError} self::B<(core::num) → void>).{self::B::+}(new self::B::•<core::num>());
+  let final self::C<core::num> #t3 = c in (#t3.{self::C::x} as{TypeError} self::B<(core::num) → void>).{core::Object::==}(null) ?{self::B<core::Object>} #t3.{self::C::x} = new self::B::•<core::num>() : null;
+  self::B<core::Object> z = let final self::C<core::num> #t4 = c in let final dynamic #t5 = #t4.{self::C::x} as{TypeError} self::B<(core::num) → void> in #t5.{core::Object::==}(null) ?{self::B<core::Object>} #t4.{self::C::x} = new self::B::•<core::num>() : #t5;
+}
+static method main() → dynamic {}
