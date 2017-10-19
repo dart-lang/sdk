@@ -335,13 +335,14 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
   if (forFlutter) {
     // Flutter repo has this layout:
     //  engine/src/
-    //       dart/
-    //       flutter/
-    var srcDir = path.dirname(path.dirname(path.dirname(path.absolute(base))));
+    //       third_party/dart/
+    //       [third_party/]flutter/
+    var srcDir = path
+        .dirname(path.dirname(path.dirname(path.dirname(path.absolute(base)))));
     var uiLibraryInDir =
         new Directory(path.join(srcDir, 'flutter', 'lib', 'ui'));
     if (!uiLibraryInDir.existsSync()) {
-      // Must be Fuchsia!
+      // In Fuchsia Flutter is under 'third_party'.
       uiLibraryInDir = new Directory(
           path.join(srcDir, 'third_party', 'flutter', 'lib', 'ui'));
     }
