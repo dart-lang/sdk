@@ -4282,6 +4282,7 @@ class Parser {
     Token hashToken = token;
     listener.beginLiteralSymbol(hashToken);
     token = token.next;
+    // TODO(brianwilkerson) Should this use `token.isUserDefinableOperator`?
     if (isUserDefinableOperator(token.stringValue)) {
       listener.handleOperator(token);
       listener.endLiteralSymbol(hashToken, 1);

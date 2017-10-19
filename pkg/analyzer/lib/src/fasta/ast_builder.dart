@@ -31,6 +31,7 @@ import 'package:front_end/src/fasta/messages.dart'
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, Scope;
 import 'package:front_end/src/fasta/quote.dart';
+import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -89,13 +90,17 @@ class AstBuilder extends ScopeListener {
     return null;
   }
 
-  void beginLiteralString(Token token) {
+  void beginLiteralString(Token literalString) {
+    assert(identical(literalString.kind, STRING_TOKEN));
     debugEvent("beginLiteralString");
-    push(token);
+
+    push(literalString);
   }
 
   void handleNamedArgument(Token colon) {
+    assert(optional(':', colon));
     debugEvent("NamedArgument");
+
     Expression expression = pop();
     SimpleIdentifier name = pop();
     push(ast.namedExpression(ast.label(name, colon), expression));
@@ -104,13 +109,16 @@ class AstBuilder extends ScopeListener {
   @override
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     debugEvent("NoConstructorReferenceContinuationAfterTypeArguments");
+
     push(NullValue.ConstructorReferenceContinuationAfterTypeArguments);
   }
 
   @override
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
+    assert(optionalOrNull('.', periodBeforeName));
     debugEvent("ConstructorReference");
+
     SimpleIdentifier constructorName = pop();
     TypeArgumentList typeArguments = pop();
     Identifier typeNameIdentifier = pop();
@@ -119,9 +127,11 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endConstExpression(Token token) {
+  void endConstExpression(Token constKeyword) {
+    assert(optional('const', constKeyword));
     debugEvent("ConstExpression");
-    _handleInstanceCreation(token);
+
+    _handleInstanceCreation(constKeyword);
   }
 
   @override
@@ -137,29 +147,33 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endNewExpression(Token token) {
+  void endNewExpression(Token newKeyword) {
+    assert(optional('new', newKeyword));
     debugEvent("NewExpression");
-    _handleInstanceCreation(token);
+
+    _handleInstanceCreation(newKeyword);
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
+  void handleParenthesizedExpression(Token leftParenthesis) {
+    assert(optional('(', leftParenthesis));
     debugEvent("ParenthesizedExpression");
+
     Expression expression = pop();
-    push(ast.parenthesizedExpression(token, expression, token?.endGroup));
+    push(ast.parenthesizedExpression(
+        leftParenthesis, expression, leftParenthesis?.endGroup));
   }
 
-  void handleStringPart(Token token) {
+  void handleStringPart(Token literalString) {
+    assert(identical(literalString.kind, STRING_TOKEN));
     debugEvent("StringPart");
-    push(token);
-  }
 
-  void doStringPart(Token token) {
-    push(ast.simpleStringLiteral(token, token.lexeme));
+    push(literalString);
   }
 
   void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
+
     if (interpolationCount == 0) {
       Token token = pop();
       String value = unescapeString(token.lexeme);
@@ -192,6 +206,7 @@ class AstBuilder extends ScopeListener {
   @override
   void handleNativeClause(Token nativeToken, bool hasName) {
     debugEvent("NativeClause");
+
     if (hasName) {
       nativeName = pop(); // StringLiteral
     } else {
@@ -200,34 +215,40 @@ class AstBuilder extends ScopeListener {
   }
 
   void handleScript(Token token) {
+    assert(identical(token.type, TokenType.SCRIPT_TAG));
     debugEvent("Script");
+
     scriptTag = ast.scriptTag(token);
   }
 
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
+
     push(ast.adjacentStrings(popList(literalCount)));
   }
 
-  void endArguments(int count, Token beginToken, Token endToken) {
+  void endArguments(int count, Token leftParenthesis, Token rightParenthesis) {
+    assert(optional('(', leftParenthesis));
+    assert(optional(')', rightParenthesis));
     debugEvent("Arguments");
+
     List expressions = popList(count);
     ArgumentList arguments =
-        ast.argumentList(beginToken, expressions, endToken);
+        ast.argumentList(leftParenthesis, expressions, rightParenthesis);
     push(ast.methodInvocation(null, null, null, null, arguments));
   }
 
   void handleIdentifier(Token token, IdentifierContext context) {
+//    assert(token.isIdentifier);
     debugEvent("handleIdentifier");
-    Token analyzerToken = token;
 
     if (context.inSymbol) {
-      push(analyzerToken);
+      push(token);
       return;
     }
 
-    SimpleIdentifier identifier = ast.simpleIdentifier(analyzerToken,
-        isDeclaration: context.inDeclaration);
+    SimpleIdentifier identifier =
+        ast.simpleIdentifier(token, isDeclaration: context.inDeclaration);
     if (context.inLibraryOrPartOfDeclaration) {
       if (!context.isContinuation) {
         push([identifier]);
@@ -245,17 +266,18 @@ class AstBuilder extends ScopeListener {
 
   void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
+
     MethodInvocation arguments = pop();
     TypeArgumentList typeArguments = pop();
     if (arguments != null) {
-      doInvocation(endToken, typeArguments, arguments);
+      doInvocation(typeArguments, arguments);
     } else {
-      doPropertyGet(endToken);
+      doPropertyGet();
     }
   }
 
   void doInvocation(
-      Token token, TypeArgumentList typeArguments, MethodInvocation arguments) {
+      TypeArgumentList typeArguments, MethodInvocation arguments) {
     Expression receiver = pop();
     if (receiver is SimpleIdentifier) {
       arguments.methodName = receiver;
@@ -269,16 +291,21 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  void doPropertyGet(Token token) {}
+  void doPropertyGet() {}
 
-  void endExpressionStatement(Token token) {
+  void endExpressionStatement(Token semicolon) {
+    assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
-    push(ast.expressionStatement(pop(), token));
+
+    push(ast.expressionStatement(pop(), semicolon));
   }
 
   @override
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    assert(optional('native', nativeToken));
+    assert(optional(';', semicolon));
     debugEvent("NativeFunctionBody");
+
     // TODO(danrubel) Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
@@ -287,7 +314,9 @@ class AstBuilder extends ScopeListener {
 
   @override
   void handleEmptyFunctionBody(Token semicolon) {
+    assert(optional(';', semicolon));
     debugEvent("EmptyFunctionBody");
+
     // TODO(scheglov) Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
@@ -295,18 +324,23 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleEmptyStatement(Token token) {
+  void handleEmptyStatement(Token semicolon) {
+    assert(optional(';', semicolon));
     debugEvent("EmptyStatement");
-    push(ast.emptyStatement(token));
+
+    push(ast.emptyStatement(semicolon));
   }
 
-  void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
+  void endBlockFunctionBody(int count, Token leftBracket, Token rightBracket) {
+    assert(optional('{', leftBracket));
+    assert(optional('}', rightBracket));
     debugEvent("BlockFunctionBody");
+
     List statements = popList(count);
-    if (beginToken != null) {
+    if (leftBracket != null) {
       exitLocalScope();
     }
-    Block block = ast.block(beginToken, statements, endToken);
+    Block block = ast.block(leftBracket, statements, rightBracket);
     Token star = pop();
     Token asyncKeyword = pop();
     push(ast.blockFunctionBody(asyncKeyword, star, block));
@@ -314,6 +348,7 @@ class AstBuilder extends ScopeListener {
 
   void finishFunction(annotations, formals, asyncModifier, FunctionBody body) {
     debugEvent("finishFunction");
+
     Statement bodyStatement;
     if (body is EmptyFunctionBody) {
       bodyStatement = ast.emptyStatement(body.semicolon);
@@ -329,7 +364,9 @@ class AstBuilder extends ScopeListener {
   }
 
   void beginCascade(Token token) {
+    assert(optional('..', token));
     debugEvent("beginCascade");
+
     Expression expression = pop();
     push(token);
     if (expression is CascadeExpression) {
@@ -342,6 +379,7 @@ class AstBuilder extends ScopeListener {
 
   void endCascade() {
     debugEvent("Cascade");
+
     Expression expression = pop();
     CascadeExpression receiver = pop();
     pop(); // Token.
@@ -349,64 +387,75 @@ class AstBuilder extends ScopeListener {
     push(receiver);
   }
 
-  void handleOperator(Token token) {
+  void handleOperator(Token operatorToken) {
+    assert(operatorToken.isUserDefinableOperator);
     debugEvent("Operator");
-    push(token);
+
+    push(operatorToken);
   }
 
-  void handleSymbolVoid(Token token) {
+  void handleSymbolVoid(Token voidKeyword) {
+    assert(optional('void', voidKeyword));
     debugEvent("SymbolVoid");
-    push(token);
+
+    push(voidKeyword);
   }
 
   @override
-  void endBinaryExpression(Token token) {
+  void endBinaryExpression(Token operatorToken) {
     debugEvent("BinaryExpression");
-    if (identical(".", token.stringValue) ||
-        identical("?.", token.stringValue) ||
-        identical("..", token.stringValue)) {
-      doDotExpression(token);
+
+    if (identical(".", operatorToken.stringValue) ||
+        identical("?.", operatorToken.stringValue) ||
+        identical("..", operatorToken.stringValue)) {
+      doDotExpression(operatorToken);
     } else {
       Expression right = pop();
       Expression left = pop();
-      push(ast.binaryExpression(left, token, right));
+      push(ast.binaryExpression(left, operatorToken, right));
     }
   }
 
-  void doDotExpression(Token token) {
+  void doDotExpression(Token dot) {
     Expression identifierOrInvoke = pop();
     Expression receiver = pop();
     if (identifierOrInvoke is SimpleIdentifier) {
-      if (receiver is SimpleIdentifier && identical('.', token.stringValue)) {
-        push(ast.prefixedIdentifier(receiver, token, identifierOrInvoke));
+      if (receiver is SimpleIdentifier && identical('.', dot.stringValue)) {
+        push(ast.prefixedIdentifier(receiver, dot, identifierOrInvoke));
       } else {
-        push(ast.propertyAccess(receiver, token, identifierOrInvoke));
+        push(ast.propertyAccess(receiver, dot, identifierOrInvoke));
       }
     } else if (identifierOrInvoke is MethodInvocation) {
       assert(identifierOrInvoke.target == null);
       identifierOrInvoke
         ..target = receiver
-        ..operator = token;
+        ..operator = dot;
       push(identifierOrInvoke);
     } else {
       unhandled("${identifierOrInvoke.runtimeType}", "property access",
-          token.charOffset, uri);
+          dot.charOffset, uri);
     }
   }
 
   void handleLiteralInt(Token token) {
+    assert(identical(token.kind, INT_TOKEN) ||
+        identical(token.kind, HEXADECIMAL_TOKEN));
     debugEvent("LiteralInt");
+
     push(ast.integerLiteral(token, int.parse(token.lexeme)));
   }
 
-  void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
+  void handleExpressionFunctionBody(Token arrowToken, Token semicolon) {
+    assert(optional('=>', arrowToken) || optional('=', arrowToken));
+    assert(optionalOrNull(';', semicolon));
     debugEvent("ExpressionFunctionBody");
+
     Expression expression = pop();
     Token star = pop();
     Token asyncKeyword = pop();
     assert(star == null);
     push(ast.expressionFunctionBody(
-        asyncKeyword, arrowToken, expression, endToken));
+        asyncKeyword, arrowToken, expression, semicolon));
   }
 
   void endReturnStatement(
@@ -2460,6 +2509,12 @@ class AstBuilder extends ScopeListener {
       default:
       // fall through
     }
+  }
+
+  /// Return `true` if [token] is either `null` or is the symbol or keyword
+  /// [value].
+  bool optionalOrNull(String value, Token token) {
+    return token == null || identical(value, token.stringValue);
   }
 
   /// A marker method used to mark locations where a token is being located in
