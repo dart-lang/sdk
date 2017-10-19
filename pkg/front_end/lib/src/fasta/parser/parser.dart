@@ -240,25 +240,12 @@ class Parser {
   /// external clients, for example, to parse an expression outside a function.
   AsyncModifier asyncState = AsyncModifier.Sync;
 
-  /// The first token in the parse stream and used during parser recovery.
-  /// This is automatically set by the [parseUnit] method,
-  /// but must be manually set when any other parse method is called.
-  /// If not set, then the parser will call [handleUnrecoverableError]
-  /// rather than rewriting the token stream
-  /// and calling [handleRecoverableError].
-  // TODO(danrubel, brianwilkerson) Remove this field so that subclasses of the
-  // parser can be used without having to set this field before calling the
-  // parse methods. To mitigate this need, several parse methods now
-  // conditionally set this field.
-  Token firstToken;
-
   /// A rewriter for inserting synthetic tokens.
   /// Access using [rewriter] for lazy initialization.
   TokenStreamRewriter cachedRewriter;
 
   TokenStreamRewriter get rewriter {
-    assert(firstToken != null, 'firstToken must be set for parser recovery');
-    cachedRewriter ??= new TokenStreamRewriter(firstToken);
+    cachedRewriter ??= new TokenStreamRewriter();
     return cachedRewriter;
   }
 
@@ -277,7 +264,6 @@ class Parser {
   bool get inPlainSync => asyncState == AsyncModifier.Sync;
 
   Token parseUnit(Token token) {
-    firstToken = token;
     listener.beginCompilationUnit(token);
     int count = 0;
     DirectiveContext directiveState = new DirectiveContext();
@@ -288,13 +274,11 @@ class Parser {
     }
     listener.endCompilationUnit(count, token);
     // Clear fields that could lead to memory leak.
-    firstToken = null;
     cachedRewriter = null;
     return token;
   }
 
   Token parseTopLevelDeclaration(Token token) {
-    firstToken ??= token;
     token = parseTopLevelDeclarationImpl(token, null);
     listener.endTopLevelDeclaration(token);
     return token;
@@ -816,7 +800,6 @@ class Parser {
   /// ```
   Token parseMetadata(Token token) {
     assert(optional('@', token));
-    firstToken ??= token;
     listener.beginMetadata(token);
     Token atToken = token;
     token = parseIdentifier(token.next, IdentifierContext.metadataReference);
@@ -877,7 +860,6 @@ class Parser {
   }
 
   Token parseFormalParametersOpt(Token token, MemberKind kind) {
-    firstToken ??= token;
     if (optional('(', token)) {
       return parseFormalParameters(token, kind);
     } else {
@@ -911,12 +893,10 @@ class Parser {
   Token parseFormalParametersRequiredOpt(Token token, MemberKind kind) {
     if (!optional('(', token)) {
       reportRecoverableError(token, missingParameterMessage(kind));
-      Token closeToken = rewriter.insertTokenBefore(
-          new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset), token);
-      token = rewriter.insertTokenBefore(
+      Token replacement = _link(
           new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
-          closeToken);
-      (token as BeginToken).endGroup = closeToken;
+          new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset));
+      token = rewriter.insertToken(replacement, token);
     }
     return parseFormalParameters(token, kind);
   }
@@ -1293,12 +1273,8 @@ class Parser {
             new SyntheticKeywordToken(Keyword.EXTENDS, token.offset);
         Token superclassToken = new SyntheticStringToken(
             TokenType.IDENTIFIER, 'Object', token.offset);
-        if (firstToken == null) {
-          return reportUnrecoverableError(
-              token, fasta.messageWithWithoutExtends);
-        }
-        rewriter.insertToken(begin, extendsKeyword, token);
-        rewriter.insertToken(begin, superclassToken, token);
+        rewriter.insertToken(extendsKeyword, token);
+        rewriter.insertToken(superclassToken, token);
         token = parseType(superclassToken);
         token = parseMixinApplicationRest(token);
         listener.handleClassExtends(extendsKeyword);
@@ -2260,7 +2236,7 @@ class Parser {
       if (identical(token.stringValue, '>>')) {
         Token replacement = new Token(TokenType.GT, token.charOffset)
           ..next = new Token(TokenType.GT, token.charOffset + 1);
-        token = rewriter.replaceToken(begin, token, replacement);
+        token = rewriter.replaceToken(token, replacement);
       }
       endStuff(count, begin, token);
       return expect('>', token);
@@ -2270,7 +2246,6 @@ class Parser {
   }
 
   Token parseTopLevelMember(Token token) {
-    firstToken ??= token;
     Token start = token;
     listener.beginTopLevelMember(token);
 
@@ -2730,11 +2705,8 @@ class Parser {
   }
 
   Token rewriteAndRecover(Token token, Message message, Token newToken) {
-    if (firstToken == null) return reportUnrecoverableError(token, message);
     reportRecoverableError(token, message);
-    // TODO(brianwilkerson) Replace the invocation of [insertTokenBefore] with
-    // an invocation of [insertToken].
-    return rewriter.insertTokenBefore(newToken, token);
+    return rewriter.insertToken(newToken, token);
   }
 
   /// Report the given token as unexpected and return the next token
@@ -2882,14 +2854,11 @@ class Parser {
     if (!optional('{', token)) {
       reportRecoverableError(
           token, fasta.templateExpectedClassBody.withArguments(token));
-      begin =
-          new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset);
-      Token end =
-          new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset);
-      (begin as BeginToken).endGroup = end;
-      rewriter.insertToken(beforeBody, begin, token);
-      rewriter.insertToken(beforeBody, end, token);
-      token = begin;
+      BeginToken replacement = _link(
+          new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
+          new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
+      rewriter.insertToken(replacement, token);
+      token = begin = replacement;
     }
     token = token.next;
     int count = 0;
@@ -2921,7 +2890,6 @@ class Parser {
   /// ;
   /// ```
   Token parseMember(Token token) {
-    firstToken ??= token;
     token = parseMetadataStar(token);
     Token start = token;
     listener.beginMember(token);
@@ -3129,7 +3097,6 @@ class Parser {
 
   Token parseFactoryMethod(Token token) {
     assert(isFactoryDeclaration(token));
-    firstToken ??= token;
     Token start = token;
     bool isExternal = false;
     int modifierCount = 0;
@@ -3314,7 +3281,6 @@ class Parser {
   /// It's an error if there's no function body unless [allowAbstract] is true.
   Token parseFunctionBody(
       Token token, bool ofFunctionExpression, bool allowAbstract) {
-    firstToken ??= token;
     if (optional('native', token)) {
       Token nativeToken = token;
       token = parseNativeClause(nativeToken);
@@ -3442,7 +3408,6 @@ class Parser {
 
   int statementDepth = 0;
   Token parseStatementOpt(Token token) {
-    firstToken ??= token;
     if (statementDepth++ > 500) {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
@@ -3666,7 +3631,6 @@ class Parser {
 
   int expressionDepth = 0;
   Token parseExpression(Token token) {
-    firstToken ??= token;
     if (expressionDepth++ > 500) {
       // This happens in degenerate programs, for example, with a lot of nested
       // list literals. This is provoked by, for example, the language test
@@ -3703,7 +3667,6 @@ class Parser {
       Token token, int precedence, bool allowCascades) {
     assert(precedence >= 1);
     assert(precedence <= POSTFIX_PRECEDENCE);
-    Token begin = token;
     token = parseUnaryExpression(token, allowCascades);
     TokenType type = token.type;
     int tokenLevel = type.precedence;
@@ -3739,11 +3702,12 @@ class Parser {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
           } else if (identical(type, TokenType.INDEX)) {
-            Token replacement = new BeginToken(TokenType.OPEN_SQUARE_BRACKET,
-                token.charOffset, token.precedingComments)
-              ..next = new Token(
-                  TokenType.CLOSE_SQUARE_BRACKET, token.charOffset + 1);
-            token = rewriter.replaceToken(begin, token, replacement);
+            BeginToken replacement = _link(
+                new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.charOffset,
+                    token.precedingComments),
+                new Token(
+                    TokenType.CLOSE_SQUARE_BRACKET, token.charOffset + 1));
+            token = rewriter.replaceToken(token, replacement);
             token = parseArgumentOrIndexStar(token);
           } else {
             token = reportUnexpectedToken(token).next;
@@ -3958,23 +3922,14 @@ class Parser {
   Token parseParenthesizedExpression(Token token) {
     if (!optional('(', token)) {
       // Recover
-      if (firstToken != null) {
-        reportRecoverableError(
-            token, fasta.templateExpectedToken.withArguments('('));
-        reportRecoverableError(
-            token, fasta.templateExpectedToken.withArguments(')'));
-        Token closeToken = rewriter.insertTokenBefore(
-            new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset), token);
-        token = rewriter.insertTokenBefore(
-            new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
-            closeToken);
-        (token as BeginToken).endGroup = closeToken;
-      } else {
-        reportUnrecoverableError(
-            token, fasta.templateExpectedToken.withArguments('('));
-        reportUnrecoverableError(
-            token, fasta.templateExpectedToken.withArguments(')'));
-      }
+      reportRecoverableError(
+          token, fasta.templateExpectedToken.withArguments('('));
+      reportRecoverableError(
+          token, fasta.templateExpectedToken.withArguments(')'));
+      BeginToken replacement = _link(
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
+          new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset));
+      token = rewriter.insertToken(replacement, token);
     }
     BeginToken begin = token;
     token = parseExpression(token.next);
@@ -5188,6 +5143,14 @@ class Parser {
   Token reportUnexpectedToken(Token token) {
     return reportUnrecoverableErrorWithToken(
         token, fasta.templateUnexpectedToken);
+  }
+
+  /// Create a short token chain from the [beginToken] and [endToken] and return
+  /// the [beginToken].
+  Token _link(BeginToken beginToken, Token endToken) {
+    beginToken.next = endToken;
+    beginToken.endGroup = endToken;
+    return beginToken;
   }
 }
 

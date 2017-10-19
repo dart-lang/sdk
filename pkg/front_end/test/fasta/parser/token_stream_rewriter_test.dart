@@ -11,7 +11,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TokenStreamRewriterTest_NoPrevious);
+    // TODO(brianwilkerson) Re-enable the following test when the rewriter no
+    // longer depends on having a previous pointer.
+//    defineReflectiveTests(TokenStreamRewriterTest_NoPrevious);
     defineReflectiveTests(TokenStreamRewriterTest_UsingPrevious);
   });
 }
@@ -21,32 +23,19 @@ abstract class TokenStreamRewriterTest {
   /// Indicates whether the tests should set up [Token.previous].
   bool get setPrevious;
 
-  void test_insert_at_end() {
+  void test_insertToken_end_single() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var eof = _link([a]);
-    var rewriter = new TokenStreamRewriter(a);
-    expect(rewriter.insertTokenBefore(b, eof), same(b));
-    expect(rewriter.firstToken, same(a));
+    var rewriter = new TokenStreamRewriter();
+    expect(rewriter.insertToken(b, eof), same(b));
     expect(a.next, same(b));
     expect(b.next, same(eof));
     expect(eof.previous, same(b));
     expect(b.previous, same(a));
   }
 
-  void test_insert_at_start() {
-    var a = _makeToken(0, 'a');
-    var b = _makeToken(1, 'b');
-    _link([b]);
-    var rewriter = new TokenStreamRewriter(b);
-    expect(rewriter.insertTokenBefore(a, b), same(a));
-    expect(rewriter.firstToken, same(a));
-    expect(a.next, same(b));
-    expect(a.previous.next, same(a));
-    expect(b.previous, same(a));
-  }
-
-  void test_insertToken_multiple() {
+  void test_insertToken_middle_multiple() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var c = _makeToken(2, 'c');
@@ -54,21 +43,21 @@ abstract class TokenStreamRewriterTest {
     var e = _makeToken(4, 'e');
     _link([a, b, e]);
     _link([c, d]);
-    var rewriter = new TokenStreamRewriter(a);
-    rewriter.insertToken(a, c, e);
+    var rewriter = new TokenStreamRewriter();
+    rewriter.insertToken(c, e);
     expect(a.next, same(b));
     expect(b.next, same(c));
     expect(c.next, same(d));
     expect(d.next, same(e));
   }
 
-  void test_insertToken_single() {
+  void test_insertToken_middle_single() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var c = _makeToken(2, 'c');
     _link([a, c]);
-    var rewriter = new TokenStreamRewriter(a);
-    rewriter.insertToken(a, b, c);
+    var rewriter = new TokenStreamRewriter();
+    rewriter.insertToken(b, c);
     expect(a.next, same(b));
     expect(b.next, same(c));
   }
@@ -82,8 +71,8 @@ abstract class TokenStreamRewriterTest {
     var f = _makeToken(5, 'f');
     _link([a, b, e, f]);
     _link([c, d]);
-    var rewriter = new TokenStreamRewriter(a);
-    rewriter.replaceToken(a, e, c);
+    var rewriter = new TokenStreamRewriter();
+    rewriter.replaceToken(e, c);
     expect(a.next, same(b));
     expect(b.next, same(c));
     expect(c.next, same(d));
@@ -96,28 +85,9 @@ abstract class TokenStreamRewriterTest {
     var c = _makeToken(2, 'c');
     var d = _makeToken(3, 'd');
     _link([a, b, d]);
-    var rewriter = new TokenStreamRewriter(a);
-    rewriter.replaceToken(a, b, c);
+    var rewriter = new TokenStreamRewriter();
+    rewriter.replaceToken(b, c);
     expect(a.next, same(c));
-    expect(c.next, same(d));
-  }
-
-  void test_resume_at_previous_insertion_point() {
-    var a = _makeToken(0, 'a');
-    var b = _makeToken(1, 'b');
-    var c = _makeToken(2, 'c');
-    var d = _makeToken(3, 'd');
-    var e = _makeToken(4, 'e');
-    _link([a, b, e]);
-    var rewriter = new TokenStreamRewriter(a);
-    rewriter.insertTokenBefore(d, e);
-    expect(b.next, same(d));
-    expect(d.next, same(e));
-    a.next = null;
-    // The next call to rewriter should be able to find the insertion point
-    // without using a.next.
-    rewriter.insertTokenBefore(c, d);
-    expect(b.next, same(c));
     expect(c.next, same(d));
   }
 
@@ -128,13 +98,13 @@ abstract class TokenStreamRewriterTest {
     var d = _makeToken(3, 'd');
     var e = _makeToken(4, 'e');
     _link([a, c, e]);
-    var rewriter = new TokenStreamRewriter(a);
-    rewriter.insertTokenBefore(d, e);
+    var rewriter = new TokenStreamRewriter();
+    rewriter.insertToken(d, e);
     expect(c.next, same(d));
     expect(d.next, same(e));
     // The next call to rewriter should be able to find the insertion point
     // even though it is before the insertion point used above.
-    rewriter.insertTokenBefore(b, c);
+    rewriter.insertToken(b, c);
     expect(a.next, same(b));
     expect(b.next, same(c));
   }
@@ -150,8 +120,8 @@ abstract class TokenStreamRewriterTest {
     // The rewriter should skip from a to c when finding the insertion position;
     // we test this by corrupting b's next pointer.
     b.next = null;
-    var rewriter = new TokenStreamRewriter(a);
-    rewriter.insertTokenBefore(d, e);
+    var rewriter = new TokenStreamRewriter();
+    rewriter.insertToken(d, e);
     expect(c.next, same(d));
     expect(d.next, same(e));
   }

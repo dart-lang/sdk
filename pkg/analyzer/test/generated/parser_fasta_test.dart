@@ -3080,7 +3080,6 @@ class ParserProxy implements analyzer.Parser {
 
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
     _eventListener.begin('CompilationUnit');
-    _fastaParser.firstToken = _currentFastaToken;
     _currentFastaToken =
         _fastaParser.parseTopLevelDeclaration(_currentFastaToken);
     expect(_currentFastaToken.isEof, isTrue);
@@ -3129,7 +3128,6 @@ class ParserProxy implements analyzer.Parser {
     ParseFunction parseFunction;
     if (getParseFunction != null) {
       parseFunction = getParseFunction(_fastaParser);
-      _fastaParser.firstToken = _currentFastaToken;
     } else {
       parseFunction = _fastaParser.parseUnit;
       // firstToken should be set by beginCompilationUnit event.
