@@ -1859,7 +1859,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void handleConditionalExpressionColon() {
+    Expression then = popForValue();
     typePromoter.enterElse();
+    push(then);
     super.handleConditionalExpressionColon();
   }
 
