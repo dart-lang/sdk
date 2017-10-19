@@ -151,7 +151,6 @@ class NativeArguments {
 
   static intptr_t ParameterCountForResolution(const Function& function) {
     ASSERT(function.is_native());
-    ASSERT(!function.IsGeneric());                // Not supported.
     ASSERT(!function.IsGenerativeConstructor());  // Not supported.
     intptr_t count = function.NumParameters();
     if (function.is_static() && function.IsClosureFunction()) {
@@ -166,7 +165,6 @@ class NativeArguments {
 
   static int ComputeArgcTag(const Function& function) {
     ASSERT(function.is_native());
-    ASSERT(!function.IsGeneric());                // Not supported.
     ASSERT(!function.IsGenerativeConstructor());  // Not supported.
     int tag = ArgcBits::encode(function.NumParameters());
     int function_bits = 0;
