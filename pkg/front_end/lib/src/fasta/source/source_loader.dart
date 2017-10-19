@@ -511,7 +511,9 @@ class SourceLoader<L> extends Loader<L> {
     for (var builder in orderedClasses) {
       ShadowClass class_ = builder.target;
       builder.prepareTopLevelInference(builder.library, builder);
-      class_.setupApiMembers(interfaceResolver);
+      if (!target.disableTypeInference) {
+        class_.setupApiMembers(interfaceResolver);
+      }
     }
     typeInferenceEngine.isTypeInferencePrepared = true;
     ticker.logMs("Prepared top level inference");
@@ -524,7 +526,9 @@ class SourceLoader<L> extends Loader<L> {
     typeInferenceEngine.finishTopLevelFields();
     for (var builder in orderedClasses) {
       ShadowClass class_ = builder.target;
-      class_.finalizeCovariance(interfaceResolver);
+      if (!target.disableTypeInference) {
+        class_.finalizeCovariance(interfaceResolver);
+      }
       ShadowClass.clearClassInferenceInfo(class_);
     }
     orderedClasses = null;
