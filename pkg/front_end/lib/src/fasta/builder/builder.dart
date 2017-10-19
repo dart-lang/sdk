@@ -4,67 +4,63 @@
 
 library fasta.builder;
 
-import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
+import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../problems.dart' show unhandled, unsupported;
 
-export 'class_builder.dart' show ClassBuilder;
+import 'library_builder.dart' show LibraryBuilder;
 
-export 'field_builder.dart' show FieldBuilder;
-
-export 'library_builder.dart' show LibraryBuilder;
-
-export 'procedure_builder.dart' show ProcedureBuilder;
-
-export 'type_builder.dart' show TypeBuilder;
-
-export 'formal_parameter_builder.dart' show FormalParameterBuilder;
-
-export 'metadata_builder.dart' show MetadataBuilder;
-
-export 'type_variable_builder.dart' show TypeVariableBuilder;
-
-export 'function_type_alias_builder.dart' show FunctionTypeAliasBuilder;
-
-export 'mixin_application_builder.dart' show MixinApplicationBuilder;
-
-export 'enum_builder.dart' show EnumBuilder;
-
-export 'type_declaration_builder.dart' show TypeDeclarationBuilder;
-
-export 'named_type_builder.dart' show NamedTypeBuilder;
-
-export 'constructor_reference_builder.dart' show ConstructorReferenceBuilder;
-
-export '../source/unhandled_listener.dart' show Unhandled;
-
-export 'member_builder.dart' show MemberBuilder;
-
-export 'modifier_builder.dart' show ModifierBuilder;
-
-export 'prefix_builder.dart' show PrefixBuilder;
-
-export 'invalid_type_builder.dart' show InvalidTypeBuilder;
+import 'class_builder.dart' show ClassBuilder;
 
 export '../scope.dart' show AccessErrorBuilder, Scope, ScopeBuilder;
 
+export '../source/unhandled_listener.dart' show Unhandled;
+
 export 'builtin_type_builder.dart' show BuiltinTypeBuilder;
+
+export 'class_builder.dart' show ClassBuilder;
+
+export 'constructor_reference_builder.dart' show ConstructorReferenceBuilder;
 
 export 'dynamic_type_builder.dart' show DynamicTypeBuilder;
 
-export 'void_type_builder.dart' show VoidTypeBuilder;
+export 'enum_builder.dart' show EnumBuilder;
+
+export 'field_builder.dart' show FieldBuilder;
+
+export 'formal_parameter_builder.dart' show FormalParameterBuilder;
+
+export 'function_type_alias_builder.dart' show FunctionTypeAliasBuilder;
 
 export 'function_type_builder.dart' show FunctionTypeBuilder;
 
+export 'invalid_type_builder.dart' show InvalidTypeBuilder;
+
+export 'library_builder.dart' show LibraryBuilder;
+
+export 'member_builder.dart' show MemberBuilder;
+
+export 'metadata_builder.dart' show MetadataBuilder;
+
+export 'mixin_application_builder.dart' show MixinApplicationBuilder;
+
+export 'modifier_builder.dart' show ModifierBuilder;
+
+export 'named_type_builder.dart' show NamedTypeBuilder;
+
+export 'prefix_builder.dart' show PrefixBuilder;
+
+export 'procedure_builder.dart' show ProcedureBuilder;
+
 export 'qualified_name.dart' show QualifiedName;
 
-import 'library_builder.dart' show LibraryBuilder;
+export 'type_builder.dart' show TypeBuilder;
 
-import 'package:front_end/src/fasta/builder/class_builder.dart'
-    show ClassBuilder;
+export 'type_declaration_builder.dart' show TypeDeclarationBuilder;
 
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
+export 'type_variable_builder.dart' show TypeVariableBuilder;
+
+export 'void_type_builder.dart' show VoidTypeBuilder;
 
 abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
@@ -144,7 +140,7 @@ abstract class Builder {
   }
 
   void prepareTopLevelInference(
-      SourceLibraryBuilder library, ClassBuilder currentClass) {}
+      covariant LibraryBuilder library, ClassBuilder currentClass) {}
 
   void instrumentTopLevelInference(Instrumentation instrumentation) {}
 }
