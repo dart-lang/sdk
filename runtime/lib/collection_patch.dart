@@ -61,21 +61,22 @@ class _HashMap<K, V> implements HashMap<K, V> {
   static const int _INITIAL_CAPACITY = 8;
 
   int _elementCount = 0;
-  List<_HashMapEntry> _buckets = new List(_INITIAL_CAPACITY);
+  List<_HashMapEntry<K, V>> _buckets =
+      new List<_HashMapEntry<K, V>>(_INITIAL_CAPACITY);
   int _modificationCount = 0;
 
   int get length => _elementCount;
   bool get isEmpty => _elementCount == 0;
   bool get isNotEmpty => _elementCount != 0;
 
-  Iterable<K> get keys => new _HashMapKeyIterable<K>(this);
-  Iterable<V> get values => new _HashMapValueIterable<V>(this);
+  Iterable<K> get keys => new _HashMapKeyIterable<K, V>(this);
+  Iterable<V> get values => new _HashMapValueIterable<K, V>(this);
 
   bool containsKey(Object key) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = key.hashCode;
+    final buckets = _buckets;
+    final index = hashCode & (buckets.length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && entry.key == key) return true;
       entry = entry.next;
@@ -84,10 +85,10 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 
   bool containsValue(Object value) {
-    List buckets = _buckets;
-    int length = buckets.length;
+    final buckets = _buckets;
+    final length = buckets.length;
     for (int i = 0; i < length; i++) {
-      _HashMapEntry entry = buckets[i];
+      var entry = buckets[i];
       while (entry != null) {
         if (entry.value == value) return true;
         entry = entry.next;
@@ -97,10 +98,10 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 
   V operator [](Object key) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = key.hashCode;
+    final buckets = _buckets;
+    final index = hashCode & (buckets.length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && entry.key == key) {
         return entry.value;
@@ -111,11 +112,11 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 
   void operator []=(K key, V value) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = key.hashCode;
+    final buckets = _buckets;
+    final length = buckets.length;
+    final index = hashCode & (length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && entry.key == key) {
         entry.value = value;
@@ -127,19 +128,19 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = key.hashCode;
+    final buckets = _buckets;
+    final length = buckets.length;
+    final index = hashCode & (length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && entry.key == key) {
         return entry.value;
       }
       entry = entry.next;
     }
-    int stamp = _modificationCount;
-    V value = ifAbsent();
+    final stamp = _modificationCount;
+    final V value = ifAbsent();
     if (stamp == _modificationCount) {
       _addEntry(buckets, index, length, key, value, hashCode);
     } else {
@@ -155,11 +156,11 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 
   void forEach(void action(K key, V value)) {
-    int stamp = _modificationCount;
-    List buckets = _buckets;
-    int length = buckets.length;
+    final stamp = _modificationCount;
+    final buckets = _buckets;
+    final length = buckets.length;
     for (int i = 0; i < length; i++) {
-      _HashMapEntry entry = buckets[i];
+      var entry = buckets[i];
       while (entry != null) {
         action(entry.key, entry.value);
         if (stamp != _modificationCount) {
@@ -171,13 +172,13 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 
   V remove(Object key) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    _HashMapEntry previous = null;
+    final hashCode = key.hashCode;
+    final buckets = _buckets;
+    final index = hashCode & (buckets.length - 1);
+    var entry = buckets[index];
+    _HashMapEntry<K, V> previous = null;
     while (entry != null) {
-      _HashMapEntry next = entry.next;
+      final next = entry.next;
       if (hashCode == entry.hashCode && entry.key == key) {
         _removeEntry(entry, previous, index);
         _elementCount--;
@@ -199,8 +200,8 @@ class _HashMap<K, V> implements HashMap<K, V> {
     }
   }
 
-  void _removeEntry(
-      _HashMapEntry entry, _HashMapEntry previousInBucket, int bucketIndex) {
+  void _removeEntry(_HashMapEntry<K, V> entry,
+      _HashMapEntry<K, V> previousInBucket, int bucketIndex) {
     if (previousInBucket == null) {
       _buckets[bucketIndex] = entry.next;
     } else {
@@ -208,12 +209,11 @@ class _HashMap<K, V> implements HashMap<K, V> {
     }
   }
 
-  void _addEntry(
-      List buckets, int index, int length, K key, V value, int hashCode) {
-    _HashMapEntry entry =
-        new _HashMapEntry(key, value, hashCode, buckets[index]);
+  void _addEntry(List<_HashMapEntry<K, V>> buckets, int index, int length,
+      K key, V value, int hashCode) {
+    final entry = new _HashMapEntry<K, V>(key, value, hashCode, buckets[index]);
     buckets[index] = entry;
-    int newElements = _elementCount + 1;
+    final newElements = _elementCount + 1;
     _elementCount = newElements;
     // If we end up with more than 75% non-empty entries, we
     // resize the backing store.
@@ -222,16 +222,16 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 
   void _resize() {
-    List oldBuckets = _buckets;
-    int oldLength = oldBuckets.length;
-    int newLength = oldLength << 1;
-    List newBuckets = new List(newLength);
+    final oldBuckets = _buckets;
+    final oldLength = oldBuckets.length;
+    final newLength = oldLength << 1;
+    final newBuckets = new List<_HashMapEntry<K, V>>(newLength);
     for (int i = 0; i < oldLength; i++) {
-      _HashMapEntry entry = oldBuckets[i];
+      var entry = oldBuckets[i];
       while (entry != null) {
-        _HashMapEntry next = entry.next;
-        int hashCode = entry.hashCode;
-        int index = hashCode & (newLength - 1);
+        final next = entry.next;
+        final hashCode = entry.hashCode;
+        final index = hashCode & (newLength - 1);
         entry.next = newBuckets[index];
         newBuckets[index] = entry;
         entry = next;
@@ -254,10 +254,10 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 
   bool containsKey(Object key) {
     if (!_validKey(key)) return false;
-    int hashCode = _hashCode(key);
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = _hashCode(key);
+    final buckets = _buckets;
+    final index = hashCode & (buckets.length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && _equals(entry.key, key)) return true;
       entry = entry.next;
@@ -267,10 +267,10 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 
   V operator [](Object key) {
     if (!_validKey(key)) return null;
-    int hashCode = _hashCode(key);
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = _hashCode(key);
+    final buckets = _buckets;
+    final index = hashCode & (buckets.length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && _equals(entry.key, key)) {
         return entry.value;
@@ -281,11 +281,11 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   }
 
   void operator []=(K key, V value) {
-    int hashCode = _hashCode(key);
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = _hashCode(key);
+    final buckets = _buckets;
+    final length = buckets.length;
+    final index = hashCode & (length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && _equals(entry.key, key)) {
         entry.value = value;
@@ -297,11 +297,11 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    int hashCode = _hashCode(key);
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = _hashCode(key);
+    final buckets = _buckets;
+    final length = buckets.length;
+    final index = hashCode & (length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && _equals(entry.key, key)) {
         return entry.value;
@@ -320,13 +320,13 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 
   V remove(Object key) {
     if (!_validKey(key)) return null;
-    int hashCode = _hashCode(key);
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    _HashMapEntry previous = null;
+    final hashCode = _hashCode(key);
+    final buckets = _buckets;
+    final index = hashCode & (buckets.length - 1);
+    var entry = buckets[index];
+    _HashMapEntry<K, V> previous = null;
     while (entry != null) {
-      _HashMapEntry next = entry.next;
+      final next = entry.next;
       if (hashCode == entry.hashCode && _equals(entry.key, key)) {
         _removeEntry(entry, previous, index);
         _elementCount--;
@@ -347,10 +347,10 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 
 class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   bool containsKey(Object key) {
-    int hashCode = identityHashCode(key);
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = identityHashCode(key);
+    final buckets = _buckets;
+    final index = hashCode & (buckets.length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && identical(entry.key, key)) return true;
       entry = entry.next;
@@ -359,10 +359,10 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 
   V operator [](Object key) {
-    int hashCode = identityHashCode(key);
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = identityHashCode(key);
+    final buckets = _buckets;
+    final index = hashCode & (buckets.length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && identical(entry.key, key)) {
         return entry.value;
@@ -373,11 +373,11 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 
   void operator []=(K key, V value) {
-    int hashCode = identityHashCode(key);
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = identityHashCode(key);
+    final buckets = _buckets;
+    final length = buckets.length;
+    final index = hashCode & (length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && identical(entry.key, key)) {
         entry.value = value;
@@ -389,18 +389,18 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    int hashCode = identityHashCode(key);
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
+    final hashCode = identityHashCode(key);
+    final buckets = _buckets;
+    final length = buckets.length;
+    final index = hashCode & (length - 1);
+    var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && identical(entry.key, key)) {
         return entry.value;
       }
       entry = entry.next;
     }
-    int stamp = _modificationCount;
+    final stamp = _modificationCount;
     V value = ifAbsent();
     if (stamp == _modificationCount) {
       _addEntry(buckets, index, length, key, value, hashCode);
@@ -411,13 +411,13 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 
   V remove(Object key) {
-    int hashCode = identityHashCode(key);
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    _HashMapEntry previous = null;
+    final hashCode = identityHashCode(key);
+    final buckets = _buckets;
+    final index = hashCode & (buckets.length - 1);
+    var entry = buckets[index];
+    _HashMapEntry<K, V> previous = null;
     while (entry != null) {
-      _HashMapEntry next = entry.next;
+      final next = entry.next;
       if (hashCode == entry.hashCode && identical(entry.key, key)) {
         _removeEntry(entry, previous, index);
         _elementCount--;
@@ -436,25 +436,26 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   Set<K> _newKeySet() => new _IdentityHashSet<K>();
 }
 
-class _HashMapEntry {
-  final key;
-  var value;
+class _HashMapEntry<K, V> {
+  final K key;
+  V value;
   final int hashCode;
-  _HashMapEntry next;
+  _HashMapEntry<K, V> next;
   _HashMapEntry(this.key, this.value, this.hashCode, this.next);
 }
 
-abstract class _HashMapIterable<E> extends internal.EfficientLengthIterable<E> {
-  final HashMap _map;
+abstract class _HashMapIterable<K, V, E>
+    extends internal.EfficientLengthIterable<E> {
+  final _HashMap<K, V> _map;
   _HashMapIterable(this._map);
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
 }
 
-class _HashMapKeyIterable<K> extends _HashMapIterable<K> {
-  _HashMapKeyIterable(HashMap map) : super(map);
-  Iterator<K> get iterator => new _HashMapKeyIterator<K>(_map);
+class _HashMapKeyIterable<K, V> extends _HashMapIterable<K, V, K> {
+  _HashMapKeyIterable(_HashMap<K, V> map) : super(map);
+  Iterator<K> get iterator => new _HashMapKeyIterator<K, V>(_map);
   bool contains(Object key) => _map.containsKey(key);
   void forEach(void action(K key)) {
     _map.forEach((K key, _) {
@@ -465,9 +466,9 @@ class _HashMapKeyIterable<K> extends _HashMapIterable<K> {
   Set<K> toSet() => _map._newKeySet()..addAll(this);
 }
 
-class _HashMapValueIterable<V> extends _HashMapIterable<V> {
-  _HashMapValueIterable(HashMap map) : super(map);
-  Iterator<V> get iterator => new _HashMapValueIterator<V>(_map);
+class _HashMapValueIterable<K, V> extends _HashMapIterable<K, V, V> {
+  _HashMapValueIterable(_HashMap<K, V> map) : super(map);
+  Iterator<V> get iterator => new _HashMapValueIterator<K, V>(_map);
   bool contains(Object value) => _map.containsValue(value);
   void forEach(void action(V value)) {
     _map.forEach((_, V value) {
@@ -476,32 +477,30 @@ class _HashMapValueIterable<V> extends _HashMapIterable<V> {
   }
 }
 
-abstract class _HashMapIterator<E> implements Iterator<E> {
-  final HashMap _map;
+abstract class _HashMapIterator<K, V, E> implements Iterator<E> {
+  final _HashMap<K, V> _map;
   final int _stamp;
 
   int _index = 0;
-  _HashMapEntry _entry;
+  _HashMapEntry<K, V> _entry;
 
-  _HashMapIterator(HashMap map)
-      : _map = map,
-        _stamp = map._modificationCount;
+  _HashMapIterator(this._map) : _stamp = _map._modificationCount;
 
   bool moveNext() {
     if (_stamp != _map._modificationCount) {
       throw new ConcurrentModificationError(_map);
     }
-    _HashMapEntry entry = _entry;
+    var entry = _entry;
     if (entry != null) {
-      _HashMapEntry next = entry.next;
+      final next = entry.next;
       if (next != null) {
         _entry = next;
         return true;
       }
       _entry = null;
     }
-    List buckets = _map._buckets;
-    int length = buckets.length;
+    final buckets = _map._buckets;
+    final length = buckets.length;
     for (int i = _index; i < length; i++) {
       entry = buckets[i];
       if (entry != null) {
@@ -515,20 +514,14 @@ abstract class _HashMapIterator<E> implements Iterator<E> {
   }
 }
 
-class _HashMapKeyIterator<K> extends _HashMapIterator<K> {
-  _HashMapKeyIterator(HashMap map) : super(map);
-  K get current {
-    _HashMapEntry entry = _entry;
-    return (entry == null) ? null : entry.key;
-  }
+class _HashMapKeyIterator<K, V> extends _HashMapIterator<K, V, K> {
+  _HashMapKeyIterator(_HashMap<K, V> map) : super(map);
+  K get current => _entry?.key;
 }
 
-class _HashMapValueIterator<V> extends _HashMapIterator<V> {
-  _HashMapValueIterator(HashMap map) : super(map);
-  V get current {
-    _HashMapEntry entry = _entry;
-    return (entry == null) ? null : entry.value;
-  }
+class _HashMapValueIterator<K, V> extends _HashMapIterator<K, V, V> {
+  _HashMapValueIterator(_HashMap<K, V> map) : super(map);
+  V get current => _entry?.value;
 }
 
 @patch
@@ -571,7 +564,8 @@ class HashSet<E> {
 class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   static const int _INITIAL_CAPACITY = 8;
 
-  List<_HashSetEntry> _buckets = new List(_INITIAL_CAPACITY);
+  List<_HashSetEntry<E>> _buckets =
+      new List<_HashSetEntry<E>>(_INITIAL_CAPACITY);
   int _elementCount = 0;
   int _modificationCount = 0;
 
@@ -590,7 +584,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 
   bool contains(Object object) {
     int index = _hashCode(object) & (_buckets.length - 1);
-    _HashSetEntry entry = _buckets[index];
+    _HashSetEntry<E> entry = _buckets[index];
     while (entry != null) {
       if (_equals(entry.key, object)) return true;
       entry = entry.next;
@@ -600,7 +594,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 
   E lookup(Object object) {
     int index = _hashCode(object) & (_buckets.length - 1);
-    _HashSetEntry entry = _buckets[index];
+    _HashSetEntry<E> entry = _buckets[index];
     while (entry != null) {
       var key = entry.key;
       if (_equals(key, object)) return key;
@@ -612,9 +606,9 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   // Set.
 
   bool add(E element) {
-    int hashCode = _hashCode(element);
-    int index = hashCode & (_buckets.length - 1);
-    _HashSetEntry entry = _buckets[index];
+    final hashCode = _hashCode(element);
+    final index = hashCode & (_buckets.length - 1);
+    _HashSetEntry<E> entry = _buckets[index];
     while (entry != null) {
       if (_equals(entry.key, element)) return false;
       entry = entry.next;
@@ -632,12 +626,12 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   }
 
   bool _remove(Object object, int hashCode) {
-    int index = hashCode & (_buckets.length - 1);
-    _HashSetEntry entry = _buckets[index];
-    _HashSetEntry previous = null;
+    final index = hashCode & (_buckets.length - 1);
+    _HashSetEntry<E> entry = _buckets[index];
+    _HashSetEntry<E> previous = null;
     while (entry != null) {
       if (_equals(entry.key, object)) {
-        _HashSetEntry next = entry.remove();
+        _HashSetEntry<E> next = entry.remove();
         if (previous == null) {
           _buckets[index] = next;
         } else {
@@ -665,8 +659,8 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   void _filterWhere(bool test(E element), bool removeMatching) {
     int length = _buckets.length;
     for (int index = 0; index < length; index++) {
-      _HashSetEntry entry = _buckets[index];
-      _HashSetEntry previous = null;
+      _HashSetEntry<E> entry = _buckets[index];
+      _HashSetEntry<E> previous = null;
       while (entry != null) {
         int modificationCount = _modificationCount;
         bool testResult = test(entry.key);
@@ -674,7 +668,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
           throw new ConcurrentModificationError(this);
         }
         if (testResult == removeMatching) {
-          _HashSetEntry next = entry.remove();
+          _HashSetEntry<E> next = entry.remove();
           if (previous == null) {
             _buckets[index] = next;
           } else {
@@ -709,7 +703,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   }
 
   void _addEntry(E key, int hashCode, int index) {
-    _buckets[index] = new _HashSetEntry(key, hashCode, _buckets[index]);
+    _buckets[index] = new _HashSetEntry<E>(key, hashCode, _buckets[index]);
     int newElements = _elementCount + 1;
     _elementCount = newElements;
     int length = _buckets.length;
@@ -725,9 +719,9 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     List oldBuckets = _buckets;
     List newBuckets = new List(newLength);
     for (int i = 0; i < oldLength; i++) {
-      _HashSetEntry entry = oldBuckets[i];
+      _HashSetEntry<E> entry = oldBuckets[i];
       while (entry != null) {
-        _HashSetEntry next = entry.next;
+        _HashSetEntry<E> next = entry.next;
         int newIndex = entry.hashCode & (newLength - 1);
         entry.next = newBuckets[newIndex];
         newBuckets[newIndex] = entry;
@@ -789,29 +783,27 @@ class _CustomHashSet<E> extends _HashSet<E> {
   HashSet<E> _newSet() => new _CustomHashSet<E>(_equality, _hasher, _validKey);
 }
 
-class _HashSetEntry {
-  final key;
+class _HashSetEntry<E> {
+  final E key;
   final int hashCode;
-  _HashSetEntry next;
+  _HashSetEntry<E> next;
   _HashSetEntry(this.key, this.hashCode, this.next);
 
-  _HashSetEntry remove() {
-    _HashSetEntry result = next;
+  _HashSetEntry<E> remove() {
+    final result = next;
     next = null;
     return result;
   }
 }
 
 class _HashSetIterator<E> implements Iterator<E> {
-  final _HashSet _set;
+  final _HashSet<E> _set;
   final int _modificationCount;
   int _index = 0;
-  _HashSetEntry _next;
+  _HashSetEntry<E> _next;
   E _current;
 
-  _HashSetIterator(_HashSet hashSet)
-      : _set = hashSet,
-        _modificationCount = hashSet._modificationCount;
+  _HashSetIterator(this._set) : _modificationCount = _set._modificationCount;
 
   bool moveNext() {
     if (_modificationCount != _set._modificationCount) {
@@ -822,7 +814,7 @@ class _HashSetIterator<E> implements Iterator<E> {
       _next = _next.next;
       return true;
     }
-    List<_HashSetEntry> buckets = _set._buckets;
+    List<_HashSetEntry<E>> buckets = _set._buckets;
     while (_index < buckets.length) {
       _next = buckets[_index];
       _index = _index + 1;
