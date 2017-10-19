@@ -456,13 +456,12 @@ class BrowserCommandOutput extends CommandOutput
       stdout = "message:\n${indent(result.lastKnownMessage, 2)}\n\n";
     }
 
-    stderr = '$stderr\n\n'
+    stderr = '$stderr\n'
         'BrowserOutput while running the test (* EXPERIMENTAL *):\n'
         'BrowserOutput.stdout:\n'
         '${indent(result.browserOutput.stdout.toString(), 2)}\n'
         'BrowserOutput.stderr:\n'
-        '${indent(result.browserOutput.stderr.toString(), 2)}\n'
-        '\n';
+        '${indent(result.browserOutput.stderr.toString(), 2)}\n';
     return new BrowserCommandOutput._internal(
         command, result, outcome, encodeUtf8(stdout), encodeUtf8(stderr));
   }

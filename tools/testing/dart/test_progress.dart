@@ -31,19 +31,24 @@ class Formatter {
 
   /// Formats a failure message.
   String failed(String message) => message;
+
+  /// Formats a section header.
+  String section(String message) => message;
 }
 
 class _ColorFormatter extends Formatter {
-  static const _green = 32;
-  static const _red = 31;
+  static const _gray = "1;30";
+  static const _green = "32";
+  static const _red = "31";
   static const _escape = '\u001b';
 
   const _ColorFormatter() : super._();
 
   String passed(String message) => _color(message, _green);
   String failed(String message) => _color(message, _red);
+  String section(String message) => _color(message, _gray);
 
-  static String _color(String message, int color) =>
+  static String _color(String message, String color) =>
       "$_escape[${color}m$message$_escape[0m";
 }
 
@@ -563,13 +568,6 @@ String _timeString(Duration duration) {
   return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
 }
 
-List<String> _linesWithoutCarriageReturn(List<int> output) {
-  return decodeUtf8(output)
-      .replaceAll('\r\n', '\n')
-      .replaceAll('\r', '\n')
-      .split('\n');
-}
-
 List<String> _buildFailureOutput(TestCase test,
     [Formatter formatter = Formatter.normal]) {
   var output = [
@@ -606,39 +604,62 @@ List<String> _buildFailureOutput(TestCase test,
     var command = test.commands[i];
     var commandOutput = test.commandOutputs[command];
     if (commandOutput != null) {
-      output.add("CommandOutput[${command.displayName}]:");
-      if (!commandOutput.diagnostics.isEmpty) {
-        String prefix = 'diagnostics:';
-        for (var s in commandOutput.diagnostics) {
-          output.add('$prefix ${s}');
-          prefix = '   ';
+      var showedHeader = false;
+
+      startSubsection(String name) {
+        if (!showedHeader) {
+          // Only show the header if there is some output.
+          output
+              .add(formatter.section('Output from "${command.displayName}":'));
+          showedHeader = true;
+        } else {
+          // Add a line break between subsections.
+          output.add('');
         }
+
+        output.add(formatter.section("$name:"));
       }
+
+      if (commandOutput.diagnostics.isNotEmpty) {
+        startSubsection('diagnostics');
+        output.addAll(commandOutput.diagnostics);
+      }
+
       if (!commandOutput.stdout.isEmpty) {
-        output.add('');
-        output.add('stdout:');
-        output.addAll(_linesWithoutCarriageReturn(commandOutput.stdout));
+        startSubsection('stdout');
+        output.addAll(decodeLines(commandOutput.stdout));
       }
+
       if (!commandOutput.stderr.isEmpty) {
-        output.add('');
-        output.add('stderr:');
-        output.addAll(_linesWithoutCarriageReturn(commandOutput.stderr));
+        startSubsection('stderr');
+        output.addAll(decodeLines(commandOutput.stderr));
       }
     }
   }
 
   if (test is BrowserTestCase) {
     // Additional command for rerunning the steps locally after the fact.
-    var command = test.configuration.servers.httpServerCommandLine();
-    output.add('');
-    output.add('To retest, run:  $command');
+    output.add(formatter.section('To debug locally, run:'));
+    output.add(test.configuration.servers.commandLine);
   }
 
   for (var i = 0; i < test.commands.length; i++) {
     var command = test.commands[i];
     var commandOutput = test.commandOutputs[command];
+
     output.add('');
-    output.add('Command[${command.displayName}]: $command');
+
+    // If the command is short enough, show it inline.
+    var commandString = command.toString();
+    if (commandString.length < 70) {
+      output.add(formatter.section('Command "${command.displayName}": ') +
+          commandString);
+    } else {
+      // Otherwise move it to the next line.
+      output.add(formatter.section('Command "${command.displayName}":'));
+      output.add(commandString);
+    }
+
     if (commandOutput != null) {
       output.add('Took ${commandOutput.time}');
     } else {
@@ -646,19 +667,16 @@ List<String> _buildFailureOutput(TestCase test,
     }
   }
 
-  var arguments;
+  var arguments = ['python', 'tools/test.py'];
   if (Platform.isFuchsia) {
     arguments = [Platform.executable, Platform.script.path];
-  } else {
-    arguments = ['python', 'tools/test.py'];
   }
   arguments.addAll(test.configuration.reproducingArguments);
   arguments.add(test.displayName);
-  var testCommandLine = arguments.map(escapeCommandLineArgument).join(' ');
 
   output.add('');
-  output.add('Short reproduction command (experimental):');
-  output.add("    $testCommandLine");
+  output.add(formatter.section('Re-run this test:'));
+  output.add(arguments.map(escapeCommandLineArgument).join(' '));
   return output;
 }
 

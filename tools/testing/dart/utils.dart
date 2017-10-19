@@ -191,6 +191,16 @@ String decodeUtf8(List<int> bytes) {
   return UTF8.decode(bytes, allowMalformed: true);
 }
 
+/// Given a chunk of UTF-8 output, splits it into lines, normalizes carriage
+/// returns, and deletes and trailing and leading whitespace.
+List<String> decodeLines(List<int> output) {
+  return decodeUtf8(output)
+      .replaceAll('\r\n', '\n')
+      .replaceAll('\r', '\n')
+      .trim()
+      .split('\n');
+}
+
 // This function is pretty stupid and only puts quotes around an argument if
 // it the argument contains a space.
 String escapeCommandLineArgument(String argument) {

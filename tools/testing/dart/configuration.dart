@@ -385,7 +385,7 @@ class Configuration {
 
     if (isVerbose) {
       future = future.then((_) {
-        print('Started HttpServers: ${servers.httpServerCommandLine()}');
+        print('Started HttpServers: ${servers.commandLine}');
       });
     }
 

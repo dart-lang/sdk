@@ -179,10 +179,12 @@ class TestingServers {
         port: crossOriginPort, allowedPort: _serverList[0].port);
   }
 
-  String httpServerCommandLine() {
+  /// Gets the command line string to spawn the server.
+  String get commandLine {
     var dart = Platform.resolvedExecutable;
     var script = _dartDirectory.resolve('tools/testing/dart/http_server.dart');
     var buildDirectory = _buildDirectory.toFilePath();
+
     var command = [
       dart,
       script.toFilePath(),
@@ -193,14 +195,17 @@ class TestingServers {
       '--build-directory=$buildDirectory',
       '--runtime=${runtime.name}'
     ];
+
     if (useContentSecurityPolicy) {
       command.add('--csp');
     }
+
     if (_packages != null) {
       command.add('--packages=${_packages.toFilePath()}');
     } else if (_packageRoot != null) {
       command.add('--package-root=${_packageRoot.toFilePath()}');
     }
+
     return command.join(' ');
   }
 
