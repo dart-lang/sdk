@@ -11,6 +11,7 @@
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/none: CompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
+deep_nesting2_negative_test: Skip  # Issue 31158
 
 [ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
