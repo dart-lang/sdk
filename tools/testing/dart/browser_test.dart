@@ -84,13 +84,35 @@ window.ddcSettings = {
         src="/root_dart/third_party/requirejs/require.js"></script>
 <script type="text/javascript">
 requirejs(["$testName", "dart_sdk", "async_helper"],
-    function($testName, dart_sdk, async_helper) {  
-  dart_sdk.dart.ignoreWhitelistedErrors(false);
+    function($testName, sdk, async_helper) {  
+  sdk.dart.ignoreWhitelistedErrors(false);
   
   // TODO(rnystrom): This uses DDC's forked version of async_helper. Unfork
   // these packages when possible.
   async_helper.async_helper.asyncTestInitialize(function() {});
-  dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
+  sdk._isolate_helper.startRootIsolate(function() {}, []);
+  
+  testErrorToStackTrace = function(error) {
+    var stackTrace = sdk.dart.stackTrace(error).toString();
+    
+    var lines = stackTrace.split("\\n");
+    
+    // Remove the first line, which is just "Error".
+    lines = lines.slice(1);
+
+    // Strip off all of the lines for the bowels of the test runner.
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i].indexOf("dartMainRunner") != -1) {
+        lines = lines.slice(0, i);
+        break;
+      }
+    }
+    
+    // TODO(rnystrom): It would be nice to shorten the URLs of the remaining
+    // lines too.
+    return lines.join("\\n");
+  };
+  
   dartMainRunner($testName.$testName.main);
 });
 </script>

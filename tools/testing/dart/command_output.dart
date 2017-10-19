@@ -12,6 +12,7 @@ import 'package:status_file/expectation.dart';
 import 'browser_controller.dart';
 import 'command.dart';
 import 'configuration.dart';
+import 'test_progress.dart';
 import 'test_runner.dart';
 import 'utils.dart';
 
@@ -296,9 +297,9 @@ class BrowserTestJsonResult {
   BrowserTestJsonResult(this.outcome, this.htmlDom, this.events);
 
   static BrowserTestJsonResult parseFromString(String content) {
-    void validate(String assertion, bool value) {
-      if (!value) {
-        throw "InvalidFormat sent from browser driving page: $assertion:\n\n"
+    void validate(String message, bool isValid) {
+      if (!isValid) {
+        throw "InvalidFormat sent from browser driving page: $message:\n\n"
             "$content";
       }
     }
@@ -312,19 +313,25 @@ class BrowserTestJsonResult {
         _allowedTypes.forEach((type) => messagesByType[type] = <String>[]);
 
         for (var entry in events) {
-          validate("An entry must be a Map", entry is Map);
+          validate("Entry must be a Map", entry is Map);
 
           var type = entry['type'];
-          var value = entry['value'] as String;
-          var timestamp = entry['timestamp'];
-
-          validate("'type' of an entry must be a String", type is String);
+          validate("'type' must be a String", type is String);
           validate("'type' has to be in $_allowedTypes.",
               _allowedTypes.contains(type));
-          validate(
-              "'timestamp' of an entry must be a number", timestamp is num);
 
-          messagesByType[type].add(value);
+          var value = entry['value'];
+          validate("'value' must be a String", value is String);
+
+          var timestamp = entry['timestamp'];
+          validate("'timestamp' must be a number", timestamp is num);
+
+          var stackTrace = entry['stack_trace'];
+          if (stackTrace != null) {
+            validate("'stack_trace' must be a String", stackTrace is String);
+          }
+
+          messagesByType[type].add(value as String);
         }
         validate("The message must have exactly one 'dom' entry.",
             messagesByType['dom'].length == 1);
@@ -348,7 +355,8 @@ class BrowserTestJsonResult {
   }
 
   static Expectation _getOutcome(Map<String, List<String>> messagesByType) {
-    occured(String type) => messagesByType[type].length > 0;
+    occured(String type) => messagesByType[type].isNotEmpty;
+
     searchForMsg(List<String> types, String message) {
       return types.any((type) => messagesByType[type].contains(message));
     }

@@ -30,6 +30,9 @@
  *     'value' : 'some content',
  *     'timestamp' : TimestampInMs,
  *   }
+ *
+ * If the type is 'sync_exception', it will have an additional 'stack_trace'
+ * field whose value is a string.
  */
 var recordedEventList = [];
 var timestampOfFirstEvent = null;
@@ -47,12 +50,17 @@ function stringifyEvent(event) {
   return JSON.stringify(event, null, 2);
 }
 
-function recordEvent(type, value) {
+function recordEvent(type, value, stackTrace) {
   var event = {
     type: type,
     value: value,
     timestamp: getCurrentTimestamp()
   };
+
+  if (stackTrace !== undefined) {
+    event['stack_trace'] = stackTrace;
+  }
+
   recordedEventList.push(event);
   printToConsole(stringifyEvent(event));
 }
@@ -112,6 +120,11 @@ var waitForDone = false;
 var driverWindowCached = false;
 var driverWindow;
 var reportingDriverWindowError = false;
+
+// This can be set to a function that takes an error and produces a stringified
+// stack trace for the error. DDC sets this to clean up its stack traces before
+// reporting them.
+var testErrorToStackTrace = null;
 
 // Returns the driving window object if available
 // This function occasionally returns null instead of the
@@ -305,12 +318,19 @@ function dartPrint(message) {
 
 // dart2js will generate code to call this function instead of calling
 // Dart [main] directly. The argument is a closure that invokes main.
-function dartMainRunner(main) {
+function dartMainRunner(main, getStackTrace) {
   dartPrint('dart-calling-main');
   try {
     main();
-  } catch (e) {
-    recordEvent('sync_exception', 'Exception: ' + e + '\nStack: ' + e.stack);
+  } catch (error) {
+    var stack;
+    // TODO(rnystrom): Use this for script tag and window onerror calls.
+    if (testErrorToStackTrace) {
+      stack = testErrorToStackTrace(error);
+    } else {
+      stack = error.stack.toString();
+    }
+    recordEvent('sync_exception', error.toString(), stack);
     notifyDone('FAIL');
     return;
   }
