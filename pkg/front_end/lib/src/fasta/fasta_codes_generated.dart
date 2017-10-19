@@ -2368,6 +2368,19 @@ const MessageCode messageMissingExponent = const MessageCode("MissingExponent",
         r"""Make sure there is an exponent, and remove any whitespace before it.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingFunctionParameters =
+    messageMissingFunctionParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingFunctionParameters = const MessageCode(
+    "MissingFunctionParameters",
+    analyzerCode: "MISSING_FUNCTION_PARAMETERS",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""A function declaration needs an explicit list of parameters.""",
+    tip: r"""Try adding a parameter list to the function declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingInput = messageMissingInput;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2382,6 +2395,17 @@ const MessageCode messageMissingMain = const MessageCode("MissingMain",
     dart2jsCode: "MISSING_MAIN",
     message: r"""No 'main' method found.""",
     tip: r"""Try adding a method named 'main' to your program.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingMethodParameters = messageMissingMethodParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingMethodParameters = const MessageCode(
+    "MissingMethodParameters",
+    analyzerCode: "MISSING_METHOD_PARAMETERS",
+    dart2jsCode: "*fatal*",
+    message: r"""A method declaration needs an explicit list of parameters.""",
+    tip: r"""Try adding a parameter list to the method declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2418,6 +2442,17 @@ const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
     dart2jsCode: "*fatal*",
     message: r"""Deferred imports should have a prefix.""",
     tip: r"""Try adding a prefix to the import.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingTypedefParameters = messageMissingTypedefParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingTypedefParameters = const MessageCode(
+    "MissingTypedefParameters",
+    analyzerCode: "MISSING_TYPEDEF_PARAMETERS",
+    dart2jsCode: "*fatal*",
+    message: r"""A typedef needs an explicit list of parameters.""",
+    tip: r"""Try adding a parameter list to the typedef.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleExtends = messageMultipleExtends;

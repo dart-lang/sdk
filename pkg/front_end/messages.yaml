@@ -1193,6 +1193,30 @@ TopLevelOperator:
     - "bool operator +(bool x, bool y) => x | y;"
     - "void operator +(bool x, bool y) => x | y;"
 
+MissingFunctionParameters:
+  template: "A function declaration needs an explicit list of parameters."
+  tip: "Try adding a parameter list to the function declaration."
+  analyzerCode: MISSING_FUNCTION_PARAMETERS
+  dart2jsCode: "*fatal*"
+  script:
+    - "void f {}"
+
+MissingMethodParameters:
+  template: "A method declaration needs an explicit list of parameters."
+  tip: "Try adding a parameter list to the method declaration."
+  analyzerCode: MISSING_METHOD_PARAMETERS
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { void m {} }"
+
+MissingTypedefParameters:
+  template: "A typedef needs an explicit list of parameters."
+  tip: "Try adding a parameter list to the typedef."
+  analyzerCode: MISSING_TYPEDEF_PARAMETERS
+  dart2jsCode: "*fatal*"
+  script:
+    - "typedef void F;"
+
 MissingPartOf:
   template: "Can't use '#uri' as a part, because it has no 'part of' declaration."
 

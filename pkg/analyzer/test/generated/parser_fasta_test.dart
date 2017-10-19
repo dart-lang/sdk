@@ -1677,30 +1677,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingTypedefParameters_nonVoid() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, found 0
-    super.test_missingTypedefParameters_nonVoid();
-  }
-
-  @override
-  @failingTest
-  void test_missingTypedefParameters_typeParameters() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, found 0
-    super.test_missingTypedefParameters_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void test_missingTypedefParameters_void() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, found 0
-    super.test_missingTypedefParameters_void();
-  }
-
-  @override
-  @failingTest
   void test_missingVariableInForEach() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'BinaryExpressionImpl' is not a subtype of type 'VariableDeclarationStatement' in type cast where
@@ -2661,7 +2637,7 @@ class FastaParserTestCase extends Object
     return _runParser(
         code,
         (parser) => (analyzer.Token token) {
-              return parser.parseFormalParameters(
+              return parser.parseFormalParametersRequiredOpt(
                   token,
                   inFunctionType
                       ? fasta.MemberKind.GeneralizedFunctionType
@@ -3074,7 +3050,7 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
-    return _run((parser) => (token) => parser.parseFormalParameters(
+    return _run((parser) => (token) => parser.parseFormalParametersRequiredOpt(
         token,
         inFunctionType
             ? fasta.MemberKind.GeneralizedFunctionType
@@ -3538,13 +3514,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_shiftExpression_precedence_unary_right() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_shiftExpression_precedence_unary_right();
-  }
-
-  @override
-  @failingTest
-  void test_typedef_eof() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_typedef_eof();
   }
 
   @override

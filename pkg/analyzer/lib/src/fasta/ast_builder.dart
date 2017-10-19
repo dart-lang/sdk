@@ -2306,13 +2306,25 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_DIGIT, offset, length);
         return;
+      case "MISSING_FUNCTION_PARAMETERS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_FUNCTION_PARAMETERS, offset, length);
+        return;
       case "MISSING_HEX_DIGIT":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
         return;
+      case "MISSING_METHOD_PARAMETERS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_METHOD_PARAMETERS, offset, length);
+        return;
       case "MISSING_STAR_AFTER_SYNC":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_STAR_AFTER_SYNC, offset, length);
+        return;
+      case "MISSING_TYPEDEF_PARAMETERS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, offset, length);
         return;
       case "MULTIPLE_EXTENDS_CLAUSES":
         errorReporter?.reportErrorForOffset(

@@ -827,7 +827,8 @@ class Parser {
       token = afterType;
       token = parseIdentifier(token, IdentifierContext.typedefDeclaration);
       token = parseTypeVariablesOpt(token);
-      token = parseFormalParameters(token, MemberKind.FunctionTypeAlias);
+      token =
+          parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
     }
     Token semicolon = ensureSemicolon(token);
     listener.endFunctionTypeAlias(typedefKeyword, equals, semicolon);
@@ -861,6 +862,7 @@ class Parser {
     if (!optional('(', token)) {
       if (optional(';', token)) {
         reportRecoverableError(token, fasta.messageExpectedOpenParens);
+        listener.endFormalParameters(0, token, token, kind);
         return token;
       }
       return reportUnrecoverableError(
@@ -876,10 +878,28 @@ class Parser {
   ///
   /// If `kind == MemberKind.GeneralizedFunctionType`, then names may be
   /// omitted (except for named arguments). Otherwise, types may be omitted.
+  Token parseFormalParametersRequiredOpt(Token token, MemberKind kind) {
+    if (!optional('(', token)) {
+      reportRecoverableError(token, missingParameterMessage(kind));
+      Token closeToken = rewriter.insertTokenBefore(
+          new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset), token);
+      token = rewriter.insertTokenBefore(
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
+          closeToken);
+      (token as BeginToken).endGroup = closeToken;
+    }
+    return parseFormalParameters(token, kind);
+  }
+
+  /// Parses the formal parameter list of a function given that the left
+  /// parenthesis is known to exist.
+  ///
+  /// If `kind == MemberKind.GeneralizedFunctionType`, then names may be
+  /// omitted (except for named arguments). Otherwise, types may be omitted.
   Token parseFormalParameters(Token token, MemberKind kind) {
+    assert(optional('(', token));
     Token begin = token;
     listener.beginFormalParameters(begin, kind);
-    expect('(', token);
     int parameterCount = 0;
     do {
       token = token.next;
@@ -904,6 +924,19 @@ class Parser {
     } while (optional(',', token));
     listener.endFormalParameters(parameterCount, begin, token, kind);
     return expect(')', token);
+  }
+
+  /// Return the message that should be produced when the formal parameters are
+  /// missing.
+  Message missingParameterMessage(MemberKind kind) {
+    if (kind == MemberKind.FunctionTypeAlias) {
+      return fasta.messageMissingTypedefParameters;
+    } else if (kind == MemberKind.NonStaticMethod ||
+        kind == MemberKind.StaticMethod ||
+        kind == MemberKind.TopLevelMethod) {
+      return fasta.messageMissingMethodParameters;
+    }
+    return fasta.messageMissingFunctionParameters;
   }
 
   Token parseFormalParameter(
@@ -1766,8 +1799,8 @@ class Parser {
           // Skip type parameters, they were parsed above.
           token = closeBraceTokenFor(token).next;
         }
-        token =
-            parseFormalParameters(token, MemberKind.GeneralizedFunctionType);
+        token = parseFormalParametersRequiredOpt(
+            token, MemberKind.GeneralizedFunctionType);
         listener.endFunctionType(functionToken, token);
       }
 
@@ -2101,8 +2134,8 @@ class Parser {
           } else {
             listener.handleNoType(begin);
           }
-          token =
-              parseFormalParameters(token, MemberKind.FunctionTypedParameter);
+          token = parseFormalParametersRequiredOpt(
+              token, MemberKind.FunctionTypedParameter);
           listener.endFunctionTypedFormalParameter();
 
           // Generalized function types don't allow inline function types.
@@ -3069,7 +3102,7 @@ class Parser {
     listener.beginFactoryMethod(factoryKeyword);
     token = expect('factory', token);
     token = parseConstructorReference(token);
-    token = parseFormalParameters(token, MemberKind.Factory);
+    token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token;
     token = parseAsyncModifier(token);
     if (!inPlainSync) {
@@ -3099,7 +3132,7 @@ class Parser {
   Token parseFunctionExpression(Token token) {
     Token beginToken = token;
     listener.beginFunctionExpression(token);
-    token = parseFormalParameters(token, MemberKind.Local);
+    token = parseFormalParametersRequiredOpt(token, MemberKind.Local);
     token = parseAsyncOptBody(token, true, false);
     listener.endFunctionExpression(beginToken, token);
     return token;
@@ -4728,7 +4761,7 @@ class Parser {
             reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
           }
         }
-        token = parseFormalParameters(token.next, MemberKind.Catch);
+        token = parseFormalParametersRequiredOpt(token.next, MemberKind.Catch);
       }
       listener.endCatchClause(token);
       token = parseBlock(token);
