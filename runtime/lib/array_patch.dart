@@ -54,7 +54,7 @@ class List<E> {
 
   @patch
   factory List.unmodifiable(Iterable elements) {
-    List result = new List<E>.from(elements, growable: false);
+    final result = new List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);
   }
 

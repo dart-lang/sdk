@@ -49,6 +49,8 @@ class String {
   @patch
   const factory String.fromEnvironment(String name, {String defaultValue})
       native "String_fromEnvironment";
+
+  bool get _isOneByte;
 }
 
 /**
@@ -166,8 +168,8 @@ abstract class _StringBase implements String {
     if (charCodes is EfficientLengthIterable) {
       int length = charCodes.length;
       end = RangeError.checkValidRange(start, end, length);
-      List charCodeList =
-          new List.from(charCodes.take(end).skip(start), growable: false);
+      final charCodeList =
+          new List<int>.from(charCodes.take(end).skip(start), growable: false);
       return createFromCharCodes(charCodeList, 0, charCodeList.length, null);
     }
     // Don't know length of iterable, so iterate and see if all the values
@@ -179,7 +181,7 @@ abstract class _StringBase implements String {
         throw new RangeError.range(start, 0, i);
       }
     }
-    List charCodeList;
+    List<int> charCodeList;
     int bits = 0; // Bitwise-or of all char codes in list.
     if (end == null) {
       var list = [];
@@ -188,22 +190,21 @@ abstract class _StringBase implements String {
         bits |= code;
         list.add(code);
       }
-      charCodeList = makeListFixedLength(list);
+      charCodeList = makeListFixedLength<int>(list);
     } else {
       if (end < start) {
         throw new RangeError.range(end, start, charCodes.length);
       }
       int len = end - start;
-      var list = new List(len);
+      charCodeList = new List<int>(len);
       for (int i = 0; i < len; i++) {
         if (!it.moveNext()) {
           throw new RangeError.range(end, start, start + i);
         }
         int code = it.current;
         bits |= code;
-        list[i] = code;
+        charCodeList[i] = code;
       }
-      charCodeList = list;
     }
     int length = charCodeList.length;
     if (bits < 0) {
@@ -250,16 +251,16 @@ abstract class _StringBase implements String {
     if (identical(this, other)) {
       return true;
     }
-    if ((other is! String) || (this.length != other.length)) {
-      return false;
-    }
-    final len = this.length;
-    for (int i = 0; i < len; i++) {
-      if (this.codeUnitAt(i) != other.codeUnitAt(i)) {
-        return false;
+    if (other is String && this.length == other.length) {
+      final len = this.length;
+      for (int i = 0; i < len; i++) {
+        if (this.codeUnitAt(i) != other.codeUnitAt(i)) {
+          return false;
+        }
       }
+      return true;
     }
-    return true;
+    return false;
   }
 
   int compareTo(String other) {
@@ -945,9 +946,14 @@ class _OneByteString extends _StringBase {
       native "OneByteString_splitWithCharCode";
 
   List<String> split(Pattern pattern) {
-    if ((ClassID.getID(pattern) == ClassID.cidOneByteString) &&
-        (pattern.length == 1)) {
-      return _splitWithCharCode(pattern.codeUnitAt(0));
+    // TODO(vegorov) investigate if this can be rewritten as `is _OneByteString`
+    // check without performance penalty. Front-end would then promote
+    // pattern variable to _OneByteString.
+    if (ClassID.getID(pattern) == ClassID.cidOneByteString) {
+      final String patternAsString = pattern;
+      if (patternAsString.length == 1) {
+        return _splitWithCharCode(patternAsString.codeUnitAt(0));
+      }
     }
     return super.split(pattern);
   }
@@ -978,9 +984,10 @@ class _OneByteString extends _StringBase {
     if ((pCid == ClassID.cidOneByteString) ||
         (pCid == ClassID.cidTwoByteString) ||
         (pCid == ClassID.cidExternalOneByteString)) {
+      final String patternAsString = pattern;
       final len = this.length;
-      if ((pattern.length == 1) && (start >= 0) && (start < len)) {
-        final patternCu0 = pattern.codeUnitAt(0);
+      if ((patternAsString.length == 1) && (start >= 0) && (start < len)) {
+        final patternCu0 = patternAsString.codeUnitAt(0);
         if (patternCu0 > 0xFF) {
           return -1;
         }
@@ -1000,9 +1007,10 @@ class _OneByteString extends _StringBase {
     if ((pCid == ClassID.cidOneByteString) ||
         (pCid == ClassID.cidTwoByteString) ||
         (pCid == ClassID.cidExternalOneByteString)) {
+      final String patternAsString = pattern;
       final len = this.length;
-      if ((pattern.length == 1) && (start >= 0) && (start < len)) {
-        final patternCu0 = pattern.codeUnitAt(0);
+      if ((patternAsString.length == 1) && (start >= 0) && (start < len)) {
+        final patternCu0 = patternAsString.codeUnitAt(0);
         if (patternCu0 > 0xFF) {
           return false;
         }
@@ -1223,7 +1231,7 @@ class _TwoByteString extends _StringBase {
         "_TwoByteString can only be allocated by the VM");
   }
 
-  static String _allocateFromTwoByteList(List list, int start, int end)
+  static String _allocateFromTwoByteList(List<int> list, int start, int end)
       native "TwoByteString_allocateFromTwoByteList";
 
   bool _isWhitespace(int codeUnit) {

@@ -341,7 +341,7 @@ abstract class NonGrowableListError {
  * conversion, at the cost of leaving the original list in an unspecified
  * state.
  */
-external List makeListFixedLength(List growableList);
+external List<T> makeListFixedLength<T>(List<T> growableList);
 
 /**
  * Converts a fixed-length list to an unmodifiable list.
@@ -357,4 +357,4 @@ external List makeListFixedLength(List growableList);
  *
  * The unmodifiable list type is similar to the one used by const lists.
  */
-external List makeFixedListUnmodifiable(List fixedLengthList);
+external List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList);
