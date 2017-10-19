@@ -68,8 +68,7 @@ class Command {
 
   static Command specParse(String executable, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    return new SpecParseCommand._(
-        executable, arguments, environmentOverrides);
+    return new SpecParseCommand._(executable, arguments, environmentOverrides);
   }
 
   static Command vm(String executable, List<String> arguments,

@@ -10,10 +10,10 @@ import "package:status_file/expectation.dart";
 import "../../../tools/testing/dart/command.dart";
 import "../../../tools/testing/dart/configuration.dart";
 import "../../../tools/testing/dart/options.dart";
+import "../../../tools/testing/dart/repository.dart";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/test_suite.dart";
 import "../../../tools/testing/dart/test_progress.dart" as progress;
-import "../../../tools/testing/dart/utils.dart";
 import "process_test_util.dart";
 
 final DEFAULT_TIMEOUT = 20;
@@ -144,7 +144,7 @@ class EventListener extends progress.EventListener {
 
 void main(List<String> arguments) {
   // This script is in [sdk]/tests/standalone/io.
-  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
+  Repository.uri = Platform.script.resolve('../../..');
   // Run the test_runner_test if there are no command-line options.
   // Otherwise, run one of the component tests that always pass,
   // fail, or timeout.

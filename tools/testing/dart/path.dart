@@ -1,14 +1,13 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library legacy_path;
-
 import 'dart:io';
 import 'dart:math';
 
 // TODO: Remove this class, and use the URI class for all path manipulation.
 class Path {
+  static Path workingDirectory = new Path(Directory.current.path);
+
   final String _path;
   final bool isWindowsShare;
 
@@ -52,6 +51,13 @@ class Path {
   bool get isEmpty => _path.isEmpty;
   bool get isAbsolute => _path.startsWith('/');
   bool get hasTrailingSeparator => _path.endsWith('/');
+
+  /// Convert this path to an absolute path relative to the [workingDirectory]
+  /// if it is not already absolute.
+  Path get absolute {
+    if (isAbsolute) return this;
+    return Path.workingDirectory.join(this);
+  }
 
   String toString() => _path;
 

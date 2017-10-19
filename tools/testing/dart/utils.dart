@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'configuration.dart';
 import 'path.dart';
@@ -314,28 +313,8 @@ class ExistsCache {
 }
 
 class TestUtils {
-  /**
-   * Any script using TestUtils must set dartDirUri to a file:// URI
-   * pointing to the root of the Dart checkout.
-   */
-  static void setDartDirUri(Uri uri) {
-    dartDirUri = uri;
-    dartDir = new Path(uri.toFilePath());
-  }
-
-  static math.Random rand = new math.Random.secure();
-  static Uri dartDirUri;
-  static Path dartDir;
   static LastModifiedCache lastModifiedCache = new LastModifiedCache();
   static ExistsCache existsCache = new ExistsCache();
-  static Path currentWorkingDirectory = new Path(Directory.current.path);
-
-  /**
-   * Generates a random number.
-   */
-  static int getRandomNumber() {
-    return rand.nextInt(0xffffffff);
-  }
 
   /**
    * Creates a directory using a [relativePath] to an existing
@@ -433,8 +412,8 @@ class TestUtils {
 
   static final debugLogFilePath = new Path(".debug.log");
 
-  /// If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
-  /// will be written to this file.
+  /// If a flaky test failed, information about it (test name, stdin, stdout)
+  /// is written to this file.
   ///
   /// This is useful for debugging flaky tests. When running on a buildbot, the
   /// file can be made visible in the waterfall UI.
@@ -454,17 +433,10 @@ class TestUtils {
     }
   }
 
-  static Path absolutePath(Path path) {
-    if (!path.isAbsolute) {
-      return currentWorkingDirectory.join(path);
-    }
-    return path;
-  }
-
   static int shortNameCounter = 0; // Make unique short file names on Windows.
 
   static String getShortName(String path) {
-    final PATH_REPLACEMENTS = const {
+    const pathReplacements = const {
       "tests_co19_src_Language_12_Expressions_14_Function_Invocation_":
           "co19_fn_invoke_",
       "tests_co19_src_LayoutTests_fast_css_getComputedStyle_getComputedStyle-":
@@ -515,25 +487,27 @@ class TestUtils {
     };
 
     // Some tests are already in [build_dir]/generated_tests.
-    String GEN_TESTS = 'generated_tests/';
-    if (path.contains(GEN_TESTS)) {
-      int index = path.indexOf(GEN_TESTS) + GEN_TESTS.length;
+    var generated = 'generated_tests/';
+    if (path.contains(generated)) {
+      var index = path.indexOf(generated) + generated.length;
       path = 'multitest/${path.substring(index)}';
     }
+
     path = path.replaceAll('/', '_');
-    final int WINDOWS_SHORTEN_PATH_LIMIT = 58;
-    final int WINDOWS_PATH_END_LENGTH = 30;
+    var windowsShortenPathLimit = 58;
+    var windowsPathEndLength = 30;
     if (Platform.operatingSystem == 'windows' &&
-        path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
-      for (var key in PATH_REPLACEMENTS.keys) {
+        path.length > windowsShortenPathLimit) {
+      for (var key in pathReplacements.keys) {
         if (path.startsWith(key)) {
-          path = path.replaceFirst(key, PATH_REPLACEMENTS[key]);
+          path = path.replaceFirst(key, pathReplacements[key]);
           break;
         }
       }
-      if (path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
-        ++shortNameCounter;
-        var pathEnd = path.substring(path.length - WINDOWS_PATH_END_LENGTH);
+
+      if (path.length > windowsShortenPathLimit) {
+        shortNameCounter++;
+        var pathEnd = path.substring(path.length - windowsPathEndLength);
         path = "short${shortNameCounter}_$pathEnd";
       }
     }

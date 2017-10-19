@@ -7,6 +7,7 @@ import 'dart:io';
 import 'command.dart';
 import 'configuration.dart';
 import 'path.dart';
+import 'repository.dart';
 import 'runtime_configuration.dart';
 import 'test_suite.dart';
 import 'utils.dart';
@@ -362,7 +363,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       CommandArtifact artifact) {
     Uri sdk = _useSdk
         ? new Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
-        : new Uri.directory(TestUtils.dartDir.toNativePath()).resolve('sdk/');
+        : new Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
     Uri preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
@@ -856,8 +857,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 
     // Since this is not a real compilation, no artifacts are produced.
     return new CommandArtifact([
-      Command.specParse(
-          computeCompilerPath(), arguments, environmentOverrides)
+      Command.specParse(computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
   }
 

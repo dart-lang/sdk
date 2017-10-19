@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:package_resolver/package_resolver.dart';
 
 import 'configuration.dart';
+import 'repository.dart';
 import 'vendored_pkg/args/args.dart';
 import 'utils.dart';
 
@@ -61,8 +62,6 @@ const PREFIX_BUILDDIR = 'root_build';
 const PREFIX_DARTDIR = 'root_dart';
 
 void main(List<String> arguments) {
-  // This script is in [dart]/tools/testing/dart.
-  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   /** Convenience method for local testing. */
   var parser = new ArgParser();
   parser.addOption('port',
@@ -141,7 +140,7 @@ class TestingServers {
       String packages]) {
     _buildDirectory = Uri.base.resolveUri(new Uri.directory(buildDirectory));
     if (dartDirectory == null) {
-      _dartDirectory = TestUtils.dartDirUri;
+      _dartDirectory = Repository.uri;
     } else {
       _dartDirectory = Uri.base.resolveUri(new Uri.directory(dartDirectory));
     }
