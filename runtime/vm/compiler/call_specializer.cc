@@ -1249,12 +1249,18 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   ASSERT(FLAG_experimental_strong_mode);
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
 
+  if (type.IsDynamicType() || type.IsObjectType() || !type.IsInstantiated()) {
+    return false;
+  }
+
   const intptr_t receiver_index = call->FirstArgIndex();
   Value* left_value = call->PushArgumentAt(receiver_index)->value();
 
   if (left_value->Type()->IsMoreSpecificThan(type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
-        call->token_pos(), Token::kNE_STRICT, left_value->CopyWithType(Z),
+        call->token_pos(),
+        type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
+        left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
         /* number_check = */ false, Thread::kNoDeoptId);
     if (FLAG_trace_experimental_strong_mode) {
