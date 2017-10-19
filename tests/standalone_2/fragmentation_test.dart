@@ -11,7 +11,6 @@
 // progress before the concurrent sweepers are done sweeping the heap.
 // In that time there is no freelist and so the issue does not arise.
 // VMOptions=--no-concurrent-sweep
-// VMOptions=--use-compactor
 
 main() {
   final List<List> arrays = [];

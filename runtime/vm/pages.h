@@ -257,8 +257,6 @@ class PageSpace {
 
   // Collect the garbage in the page space using mark-sweep.
   void MarkSweep();
-  // Compact the heap using evacuation.
-  void Compact();
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
 

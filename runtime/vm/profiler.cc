@@ -1329,18 +1329,11 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  if (thread->IsMutatorThread()) {
-    if (isolate->IsDeoptimizing()) {
-      AtomicOperations::IncrementInt64By(
-          &counters_.single_frame_sample_deoptimizing, 1);
-      SampleThreadSingleFrame(thread, pc);
-      return;
-    }
-    if (isolate->compaction_in_progress()) {
-      // The Dart stack isn't fully walkable.
-      SampleThreadSingleFrame(thread, pc);
-      return;
-    }
+  if (thread->IsMutatorThread() && isolate->IsDeoptimizing()) {
+    AtomicOperations::IncrementInt64By(
+        &counters_.single_frame_sample_deoptimizing, 1);
+    SampleThreadSingleFrame(thread, pc);
+    return;
   }
 
   if (!InitialRegisterCheck(pc, fp, sp)) {

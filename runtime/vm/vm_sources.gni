@@ -104,8 +104,6 @@ vm_sources = [
   "flags.h",
   "freelist.cc",
   "freelist.h",
-  "gc_compactor.cc",
-  "gc_compactor.h",
   "gc_marker.cc",
   "gc_marker.h",
   "gc_sweeper.cc",
