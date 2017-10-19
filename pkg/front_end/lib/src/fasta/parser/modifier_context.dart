@@ -5,6 +5,7 @@
 import '../../scanner/token.dart' show Token;
 import '../messages.dart' as fasta;
 import 'formal_parameter_kind.dart' show FormalParameterKind;
+import 'forwarding_listener.dart' show ForwardingListener;
 import 'member_kind.dart' show MemberKind;
 import 'parser.dart' show Parser;
 import 'type_continuation.dart' show TypeContinuation;
@@ -198,7 +199,6 @@ class ModifierContext {
 }
 
 class ModifierRecoveryContext extends ModifierContext {
-  final Token recoveryStart;
   Token constToken;
   Token covariantToken;
   Token externalToken;
@@ -206,37 +206,23 @@ class ModifierRecoveryContext extends ModifierContext {
   Token staticToken;
   Token varToken;
 
-  ModifierRecoveryContext(ModifierContext context, this.recoveryStart)
+  ModifierRecoveryContext(
+      Parser parser,
+      MemberKind memberKind,
+      FormalParameterKind parameterKind,
+      bool isVarAllowed,
+      TypeContinuation typeContinuation)
       : super(
-          context.parser,
-          context.memberKind,
-          context.parameterKind,
-          context.isVarAllowed,
-          context.typeContinuation,
-        ) {
-    this.modifierCount = context.modifierCount;
-  }
+            parser, memberKind, parameterKind, isVarAllowed, typeContinuation);
 
   @override
   Token parseOpt(Token token) {
-    // Determine which modifiers have already been parsed
-    while (token != recoveryStart) {
-      final value = token.stringValue;
-      if (identical('const', value)) {
-        constToken = token;
-      } else if (identical('covariant', value)) {
-        covariantToken = token;
-      } else if (identical('external', value)) {
-        externalToken = token;
-      } else if (identical('final', value)) {
-        finalToken = token;
-      } else if (identical('static', value)) {
-        staticToken = token;
-      } else if (identical('var', value)) {
-        varToken = token;
-      }
-      token = token.next;
-    }
+    // Reparse to determine which modifiers have already been parsed
+    // but intercept the events so they are not sent to the primary listener.
+    final primaryListener = parser.listener;
+    parser.listener = new ForwardingListener();
+    token = super.parseOpt(token);
+    parser.listener = primaryListener;
 
     // Process invalid and out-of-order modifiers
     while (isModifier(token)) {

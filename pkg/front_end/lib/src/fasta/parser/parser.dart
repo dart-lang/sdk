@@ -2824,7 +2824,8 @@ class Parser {
     // then it's probably out of order and we need to recover from that.
     if (context.isModifier(token)) {
       // Recovery
-      context = new ModifierRecoveryContext(context, token);
+      context = new ModifierRecoveryContext(this, memberKind, parameterKind,
+          isVarAllowed, typeContiunationFromFormalParameterKind(parameterKind));
       token = context.parseOpt(firstModifier);
     }
     listener.handleModifiers(context.modifierCount);
