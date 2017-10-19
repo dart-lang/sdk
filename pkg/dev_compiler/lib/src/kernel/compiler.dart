@@ -657,7 +657,12 @@ class ProgramCompiler
     var initArgs = _emitArgumentInitializers(f);
     var block = _visitStatement(f.body);
 
-    if (initArgs != null) block = new JS.Block([initArgs, block]);
+    if (initArgs != null) {
+      block = new JS.Block([initArgs, block]);
+    } else if (block is! JS.Block) {
+      // Kernel function bodies are statements, not blocks.
+      block = new JS.Block([block]);
+    }
 
     var body = f.body;
     if (body is Block) {
@@ -865,7 +870,11 @@ class ProgramCompiler
   visitIfStatement(node) => throw new UnimplementedError();
 
   @override
-  visitReturnStatement(node) => throw new UnimplementedError();
+  JS.Statement visitReturnStatement(ReturnStatement node) {
+    var e = node.expression;
+    if (e == null) return new JS.Return();
+    return _visitExpression(e).toReturn();
+  }
 
   @override
   visitTryCatch(node) => throw new UnimplementedError();
