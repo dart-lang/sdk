@@ -4,95 +4,24 @@
 
 /// Test to ensure that incremental_perf.dart is running without errors.
 
+import 'dart:async';
 import 'dart:io';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'incremental_perf.dart' as m;
 
-/// Run the incremental compiler on a couple examples.
 main() async {
   var sdkOutline = computePlatformBinariesLocation().resolve(
       // TODO(sigmund): switch to `vm_outline.dill` (issue #29881).
       "vm_platform.dill");
-  var tmp = Directory.systemTemp.createTempSync();
-  await runSmallExample(sdkOutline, tmp.uri);
-  await runLargeExample(sdkOutline, tmp.uri);
-  tmp.deleteSync(recursive: true);
+
+  final ikgBenchmarks = Platform.script.resolve('../benchmarks/ikg/');
+  await runExample(sdkOutline, ikgBenchmarks.resolve('hello.dart'),
+      ikgBenchmarks.resolve('hello.edits.json'));
+  await runExample(sdkOutline, ikgBenchmarks.resolve('dart2js.dart'),
+      ikgBenchmarks.resolve('dart2js.edits.json'));
 }
 
-/// Creates a small example with a few files in a temporary folder, and runs the
-/// benchmark on it. The example includes several edits in sequence.
-runSmallExample(Uri sdkOutline, Uri tmpUri) async {
-  Map<String, String> files = {
-    'a.dart': '''
-        import 'b.dart';
-        main() => b();
-    ''',
-    'b.dart': '''
-        import 'c.dart';
-        b() => new C().m1();
-    ''',
-    'c.dart': '''
-        class C {
-          m1() => print('hello1');
-          m2() => print('hello2');
-        }
-    ''',
-    //
-    // iteration 1: no edits
-    // iteration 2: edit b.dart (a.dart may recompile, c.dart unchanged)
-    // iteration 3: no edits
-    // iteration 4: edit c.dart (may recompile everything)
-    // iteration 4: edit b.dart and c.dart to revert to state of iteration 1
-    //              may skip recompile if compiler cached old results.
-    'edits.json': '''[
-      {
-        "name" : "a",
-        "edits": []
-      },
-      {
-        "name" : "b",
-        "edits": [
-          ["${tmpUri.resolve('b.dart')}", "m1()", "m2()"]
-        ]
-      },
-      {
-        "name" : "c",
-        "edits": []
-      },
-      {
-        "name" : "d",
-        "edits": [
-          ["${tmpUri.resolve('c.dart')}", "hello1", "hello3"]
-        ]
-      },
-      {
-        "name" : "e",
-        "edits": [
-          ["${tmpUri.resolve('b.dart')}", "m2()", "m1()"],
-          ["${tmpUri.resolve('c.dart')}", "hello3", "hello1"]
-        ]
-      }
-    ]''',
-  };
-
-  files.forEach((name, contents) {
-    new File.fromUri(tmpUri.resolve(name)).writeAsStringSync(contents);
-  });
-  var entryUri = tmpUri.resolve('a.dart');
-  var jsonUri = tmpUri.resolve('edits.json');
-  await m.main(['--sdk-summary', '$sdkOutline', '$entryUri', '$jsonUri']);
-}
-
-/// Create an example using the dart2js codebase. It can take a while to
-/// compile dart2js, so to avoid timeouts we only run a single iteration of the
-/// incremental compiler on this codebase.
-runLargeExample(Uri sdkOutline, Uri tmpUri) async {
-  var jsonUri = tmpUri.resolve('edits.json');
-  var loaderFile =
-      Platform.script.resolve('../../compiler/lib/src/library_loader.dart');
-  new File.fromUri(jsonUri).writeAsStringSync(
-      '[{ "name": "a", "edits": [["$loaderFile", "root=", "root2="]]}]');
-  var entryUri = Platform.script.resolve('../../compiler/lib/src/dart2js.dart');
+Future runExample(Uri sdkOutline, Uri entryUri, Uri jsonUri) async {
   await m.main(['--sdk-summary', '$sdkOutline', '$entryUri', '$jsonUri']);
 }
