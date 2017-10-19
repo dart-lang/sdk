@@ -907,8 +907,7 @@ abstract class _StringBase implements String {
 
   String toLowerCase() native "String_toLowerCase";
 
-  // Concatenate ['start', 'end'[ elements of 'strings'. 'strings' must contain
-  // String elements. TODO(srdjan): optimize it.
+  // Concatenate ['start', 'end'[ elements of 'strings'.
   static String _concatRange(List<String> strings, int start, int end) {
     if ((end - start) == 1) {
       return strings[start];
@@ -916,9 +915,9 @@ abstract class _StringBase implements String {
     return _concatRangeNative(strings, start, end);
   }
 
-  // Call this method if not all list elements are known to be OneByteString(s).
-  // 'strings' must be an _List or _GrowableList.
-  static String _concatRangeNative(List<String> strings, int start, int end)
+  // Call this method if all elements of [strings] are known to be strings
+  // but not all are known to be OneByteString(s).
+  static String _concatRangeNative(List strings, int start, int end)
       native "String_concatRange";
 }
 
@@ -960,8 +959,7 @@ class _OneByteString extends _StringBase {
   }
 
   // All element of 'strings' must be OneByteStrings.
-  static _concatAll(List<String> strings, int totalLength) {
-    // TODO(srdjan): Improve code below and raise or eliminate the limit.
+  static _concatAll(List strings, int totalLength) {
     if (totalLength > 128) {
       // Native is quicker.
       return _StringBase._concatRangeNative(strings, 0, strings.length);

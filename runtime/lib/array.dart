@@ -4,7 +4,6 @@
 
 // part of "core_patch.dart";
 
-// TODO(srdjan): Use shared array implementation.
 class _List<E> extends FixedLengthListBase<E> {
   factory _List(length) native "List_allocate";
 
@@ -40,10 +39,11 @@ class _List<E> extends FixedLengthListBase<E> {
     int length = end - start;
     if (length == 0) return;
     if (identical(this, iterable)) {
-      Lists.copy(iterable, skipCount, this, start, length);
+      Lists.copy(this, skipCount, this, start, length);
     } else if (ClassID.getID(iterable) == ClassID.cidArray) {
-      Lists.copy(iterable, skipCount, this, start, length);
-    } else if (iterable is List) {
+      final _List<E> iterableAsList = iterable;
+      Lists.copy(iterableAsList, skipCount, this, start, length);
+    } else if (iterable is List<E>) {
       Lists.copy(iterable, skipCount, this, start, length);
     } else {
       Iterator it = iterable.iterator;
@@ -101,8 +101,7 @@ class _List<E> extends FixedLengthListBase<E> {
     if (length > 0) {
       var result = _slice(0, length, !growable);
       if (growable) {
-        result = new _GrowableList<E>.withData(result);
-        result._setLength(length);
+        result = new _GrowableList<E>.withData(result).._setLength(length);
       }
       return result;
     }
