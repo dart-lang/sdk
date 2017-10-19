@@ -16,6 +16,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        AsExpression,
         AsyncMarker,
         BottomType,
         Class,
@@ -882,6 +883,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         fileOffset, calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
+    if (checkReturn) {
+      var expressionToReplace = desugaredInvocation ?? expression;
+      expressionToReplace.parent.replaceChild(
+          expressionToReplace,
+          new AsExpression(expressionToReplace, inferredType)
+            ..isTypeError = true);
+    }
     if (instrumentation != null) {
       int offset = arguments.fileOffset == -1
           ? expression.fileOffset

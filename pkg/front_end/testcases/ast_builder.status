@@ -440,6 +440,7 @@ runtime_checks/call_kinds_get: Crash
 runtime_checks/call_kinds_set: Crash
 runtime_checks/contravariant_generic_method_type_parameter: Crash
 runtime_checks/contravariant_generic_return: Crash
+runtime_checks/contravariant_generic_return_null_aware: Crash
 runtime_checks/contravariant_generic_return_tear_off: Crash
 runtime_checks/contravariant_getter: Crash
 runtime_checks/covariant_generic_method_type_parameter: Crash
