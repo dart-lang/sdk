@@ -27,8 +27,6 @@ import '../../scanner/token.dart'
         SyntheticToken,
         TokenType;
 
-import '../scanner/token.dart' show isUserDefinableOperator;
-
 import '../scanner/token_constants.dart'
     show
         COMMA_TOKEN,
@@ -3164,7 +3162,7 @@ class Parser {
 
   Token parseOperatorName(Token token) {
     assert(optional('operator', token));
-    if (isUserDefinableOperator(token.next.stringValue)) {
+    if (token.next.isUserDefinableOperator) {
       Token operator = token;
       token = token.next;
       listener.handleOperatorName(operator, token);
@@ -4283,8 +4281,7 @@ class Parser {
     Token hashToken = token;
     listener.beginLiteralSymbol(hashToken);
     token = token.next;
-    // TODO(brianwilkerson) Should this use `token.isUserDefinableOperator`?
-    if (isUserDefinableOperator(token.stringValue)) {
+    if (token.isUserDefinableOperator) {
       listener.handleOperator(token);
       listener.endLiteralSymbol(hashToken, 1);
       return token.next;
