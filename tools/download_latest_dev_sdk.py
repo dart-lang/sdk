@@ -18,7 +18,7 @@ HOST_OS = utils.GuessOS()
 HOST_ARCH = utils.GuessArchitecture()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
-FUCHSIA_ROOT = os.path.realpath(os.path.join(DART_ROOT, '..'))
+FUCHSIA_ROOT = os.path.realpath(os.path.join(DART_ROOT, '..', '..'))
 FLUTTER_ROOT = os.path.join(FUCHSIA_ROOT, 'lib', 'flutter')
 
 DEFAULT_DART_VERSION = 'latest'
