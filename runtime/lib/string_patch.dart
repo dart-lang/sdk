@@ -51,6 +51,7 @@ class String {
       native "String_fromEnvironment";
 
   bool get _isOneByte;
+  String _substringUnchecked(int startIndex, int endIndex);
 }
 
 /**
