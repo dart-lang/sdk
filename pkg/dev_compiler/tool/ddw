@@ -10,12 +10,22 @@
 #
 set -e
 DDC_PATH=$( cd $( dirname "${BASH_SOURCE[0]}" )/.. && pwd )
+KERNEL=false
+if [ "$1" = "-k" ]; then
+  KERNEL=true
+  shift
+fi
 BASENAME=$( basename "${1%.*}")
 LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
 export NODE_PATH=$DDC_PATH/lib/js/common:$LIBROOT:$NODE_PATH
-dart -c $DDC_PATH/bin/dartdevc.dart --modules=node --library-root=$LIBROOT \
-    --dart-sdk-summary=$DDC_PATH/lib/sdk/ddc_sdk.sum \
-    -o $LIBROOT/$BASENAME.js $*
+if [ "$KERNEL" = true ]; then
+  dart -c $DDC_PATH/bin/dartdevk.dart \
+      -o $BASENAME.js $*
+else
+  dart -c $DDC_PATH/bin/dartdevc.dart --modules=node --library-root=$LIBROOT \
+      --dart-sdk-summary=$DDC_PATH/lib/sdk/ddc_sdk.sum \
+      -o $LIBROOT/$BASENAME.js $*
+fi
 pushd $LIBROOT > /dev/null
 echo "
     // Fix the node.js search paths that Electron cleared out.
