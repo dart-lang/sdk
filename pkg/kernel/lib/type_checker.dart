@@ -234,7 +234,7 @@ class TypeCheckingVisitor
       return Substitution.empty; // Members on Object are always accessible.
     }
     while (type is TypeParameterType) {
-      type = (type as TypeParameterType).parameter.bound;
+      type = (type as TypeParameterType).bound;
     }
     if (type is BottomType) {
       // The bottom type is a subtype of all types, so it should be allowed.
