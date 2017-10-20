@@ -27,6 +27,19 @@ class PrefixBuilder extends Builder {
     return exportScope.lookup(name, charOffset, fileUri);
   }
 
+  void addToExportScope(String name, Builder member, int charOffset) {
+    Map<String, Builder> map =
+        member.isSetter ? exportScope.setters : exportScope.local;
+    Builder existing = map[name];
+    if (existing != null) {
+      map[name] = parent.buildAmbiguousBuilder(
+          name, existing, member, charOffset,
+          isExport: true);
+    } else {
+      map[name] = member;
+    }
+  }
+
   @override
   String get fullNameForErrors => name;
 }
