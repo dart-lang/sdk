@@ -28,6 +28,11 @@ class A {
     x++;
     return this;
   }
+
+  A operator +(int n) { // OK it is ok because it is an operator.
+    x += n;
+    return this;
+  }
 }
 
 class B extends A{

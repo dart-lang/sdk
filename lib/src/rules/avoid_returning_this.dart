@@ -63,6 +63,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isOperator) return;
     if (node.returnType?.type !=
             (node.parent as ClassDeclaration).element?.type ||
         _hasInheritedMethod(node)) {
