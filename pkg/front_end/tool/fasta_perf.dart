@@ -19,6 +19,9 @@ import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
 import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
+import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/vm.dart' show VmTarget;
+
 /// Cumulative total number of chars scanned.
 int inputSize = 0;
 
@@ -216,9 +219,11 @@ generateKernel(Uri entryUri,
   scanReachableFiles(entryUri);
 
   var timer = new Stopwatch()..start();
+  var flags = new TargetFlags(strongMode: strongMode);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..strongMode = strongMode
+    ..target = (strongMode ? new VmTarget(flags) : new LegacyVmTarget(flags))
     ..chaseDependencies = true
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = compileSdk;
@@ -269,3 +274,12 @@ ArgParser argParser = new ArgParser()
       help: 'run the compiler in legacy-mode',
       defaultsTo: false,
       negatable: false);
+
+// TODO(sigmund): delete as soon as the disableTypeInference flag and the
+// strongMode flag get merged.
+class LegacyVmTarget extends VmTarget {
+  LegacyVmTarget(TargetFlags flags) : super(flags);
+
+  @override
+  bool get disableTypeInference => true;
+}
