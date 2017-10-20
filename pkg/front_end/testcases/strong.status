@@ -154,7 +154,7 @@ rasta/unsupported_platform_library: Fail
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Issue 29976.
 regress/issue_29977: Crash # Issue 30997.
-regress/issue_29982: RuntimeError # Issue 29982.
+regress/issue_29982: Fail # Issue 29982.
 regress/issue_29987: Crash # Issue 30997.
 
 runtime_checks/contravariant_getter: Fail

@@ -1245,11 +1245,7 @@ class AstBuilder extends ScopeListener {
 
   void handleIndexedExpression(Token leftBracket, Token rightBracket) {
     assert(optional('[', leftBracket));
-    // TODO(brianwilkerson): Enable this assert.
-    // Parser.parseArgumentOrIndexStar can pass in the wrong token if there is
-    // a string interpolation with no closing bracket.
-    // (See ast_builder/regress/issue_29982.)
-//    assert(optional(']', rightBracket));
+    assert(optional(']', rightBracket));
     debugEvent("IndexedExpression");
 
     Expression index = pop();

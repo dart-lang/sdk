@@ -3955,8 +3955,14 @@ class Parser {
         mayParseFunctionExpressions = true;
         token = parseExpression(token.next);
         mayParseFunctionExpressions = old;
+        if (!optional(']', token)) {
+          Message message = fasta.templateExpectedButGot.withArguments(']');
+          Token newToken = new SyntheticToken(
+              TokenType.CLOSE_SQUARE_BRACKET, token.charOffset);
+          token = rewriteAndRecover(token, message, newToken);
+        }
         listener.handleIndexedExpression(openSquareBracket, token);
-        token = expect(']', token);
+        token = token.next;
       } else if (optional('(', token)) {
         listener.handleNoTypeArguments(token);
         token = parseArguments(token);
