@@ -517,6 +517,7 @@ class Compiler {
   static const dart2js = const Compiler._('dart2js');
   static const dart2analyzer = const Compiler._('dart2analyzer');
   static const dartdevc = const Compiler._('dartdevc');
+  static const dartdevk = const Compiler._('dartdevk');
   static const appJit = const Compiler._('app_jit');
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
@@ -530,6 +531,7 @@ class Compiler {
     dart2js,
     dart2analyzer,
     dartdevc,
+    dartdevk,
     appJit,
     dartk,
     dartkp,
@@ -573,6 +575,7 @@ class Compiler {
 
       case Compiler.dart2js:
       case Compiler.dartdevc:
+      case Compiler.dartdevk:
         // TODO(rnystrom): Expand to support other JS execution environments
         // (other browsers, d8) when tested and working.
         return const [

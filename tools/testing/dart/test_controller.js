@@ -328,7 +328,7 @@ function dartPrint(message) {
 
 // dart2js will generate code to call this function instead of calling
 // Dart [main] directly. The argument is a closure that invokes main.
-function dartMainRunner(main, getStackTrace) {
+function dartMainRunner(main) {
   dartPrint('dart-calling-main');
   try {
     main();

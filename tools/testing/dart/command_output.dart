@@ -12,7 +12,6 @@ import 'package:status_file/expectation.dart';
 import 'browser_controller.dart';
 import 'command.dart';
 import 'configuration.dart';
-import 'test_progress.dart';
 import 'test_runner.dart';
 import 'utils.dart';
 

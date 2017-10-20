@@ -1194,16 +1194,17 @@ String jsLibraryName(Library library) {
   if (uri.scheme == 'dart') return uri.path;
 
   // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
-  Iterable<String> segements;
+  Iterable<String> segments;
   if (uri.scheme == 'package') {
     // Strip the package name.
     // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
     // E.g., "foo/bar.dart" and "foo__bar.dart" would collide.
-    segements = uri.pathSegments.skip(1);
+    segments = uri.pathSegments.skip(1);
   } else {
-    segements = path.split(path.relative(uri.toFilePath()));
+    segments = path.split(path.relative(uri.toFilePath()));
   }
-  var qualifiedPath = segements.map((p) => p == '..' ? '' : p).join('__');
+
+  var qualifiedPath = segments.map((p) => p == '..' ? '' : p).join('__');
   return pathToJSIdentifier(qualifiedPath);
 }
 

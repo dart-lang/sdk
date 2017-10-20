@@ -5,7 +5,44 @@
 
 /// Experimental command line entry point for Dart Development Compiler.
 /// Unlike `dartdevc` this version uses the shared front end and IR.
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:dev_compiler/src/kernel/command.dart';
 
-main(List<String> args) => compile(args);
+Future main(List<String> args) async {
+  if (args.isNotEmpty && args.last == "--batch") {
+    await runBatch(args.sublist(0, args.length - 1));
+  } else {
+    var succeeded = await compile(args);
+    exitCode = succeeded ? 0 : 1;
+  }
+}
+
+/// Runs dartdevk in batch mode for test.dart.
+Future runBatch(List<String> batchArgs) async {
+  var tests = 0;
+  var failed = 0;
+  var watch = new Stopwatch()..start();
+
+  print('>>> BATCH START');
+
+  String line;
+  while ((line = stdin.readLineSync(encoding: UTF8)).isNotEmpty) {
+    tests++;
+    var args = batchArgs.toList()..addAll(line.split(new RegExp(r'\s+')));
+
+    var succeeded = await compile(args);
+
+    // TODO(rnystrom): If kernel has any internal static state that needs to
+    // be cleared, do it here.
+
+    stderr.writeln('>>> EOF STDERR');
+    var outcome = succeeded ? 'PASS' : 'FAIL';
+    print('>>> TEST $outcome ${watch.elapsedMilliseconds}ms');
+  }
+
+  var time = watch.elapsedMilliseconds;
+  print('>>> BATCH END (${tests - failed})/$tests ${time}ms');
+}

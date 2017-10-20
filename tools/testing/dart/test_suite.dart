@@ -1036,7 +1036,7 @@ class StandardTestSuite extends TestSuite {
       // Synthesize an HTML file for the test.
       var scriptPath = _createUrlPathFromFile(new Path(jsWrapperFileName));
 
-      if (configuration.compiler != Compiler.dartdevc) {
+      if (configuration.compiler == Compiler.dart2js) {
         content = dart2jsHtml(fileName, scriptPath);
       } else {
         var jsDir =
@@ -1059,6 +1059,7 @@ class StandardTestSuite extends TestSuite {
         break;
 
       case Compiler.dartdevc:
+      case Compiler.dartdevk:
         var toPath =
             new Path('$compilationTempDir/$nameNoExt.js').toNativePath();
         commands.add(configuration.compilerConfiguration.createCommand(fileName,
@@ -1082,6 +1083,7 @@ class StandardTestSuite extends TestSuite {
           break;
 
         case Compiler.dartdevc:
+        case Compiler.dartdevk:
           commands.add(configuration.compilerConfiguration.createCommand(
               fromPath.toNativePath(),
               toPath,
@@ -1154,9 +1156,9 @@ class StandardTestSuite extends TestSuite {
     var compiler = configuration.compiler;
     var runtime = configuration.runtime;
 
-    if (compiler == Compiler.dartdevc) {
+    if (compiler == Compiler.dartdevc || compiler == Compiler.dartdevk) {
       // TODO(rnystrom): Support this for dartdevc (#29919).
-      print("Ignoring $testName on dartdevc since HTML tests are not "
+      print("Ignoring $testName on ${compiler.name} since HTML tests are not "
           "implemented for that compiler yet.");
       return;
     }
