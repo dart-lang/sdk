@@ -913,7 +913,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   void doLogicalExpression(Token token) {
     Expression argument = popForValue();
-    Expression receiver = popForValue();
+    Expression receiver = pop();
     var logicalExpression =
         new ShadowLogicalExpression(receiver, token.stringValue, argument);
     typePromoter.exitLogicalExpression(argument, logicalExpression);
@@ -1411,7 +1411,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = popStatementIfNotNull(elseToken);
     Statement thenPart = popStatement();
-    Expression condition = popForValue();
+    Expression condition = pop();
     typePromoter.exitConditional();
     push(new ShadowIfStatement(condition, thenPart, elsePart)
       ..fileOffset = ifToken.charOffset);
@@ -1881,8 +1881,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endConditionalExpression(Token question, Token colon) {
     debugEvent("ConditionalExpression");
     Expression elseExpression = popForValue();
-    Expression thenExpression = popForValue();
-    Expression condition = popForValue();
+    Expression thenExpression = pop();
+    Expression condition = pop();
     typePromoter.exitConditional();
     push(new ShadowConditionalExpression(
         condition, thenExpression, elseExpression));
