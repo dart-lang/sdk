@@ -229,6 +229,7 @@ class PrecedenceInfoTest {
   void test_isUnaryPrefixOperator() {
     const unaryPrefixLexemes = const [
       '!',
+      '-',
       '--',
       '++',
       '~',

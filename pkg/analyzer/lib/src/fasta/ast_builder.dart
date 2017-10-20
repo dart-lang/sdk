@@ -1307,9 +1307,7 @@ class AstBuilder extends ScopeListener {
   }
 
   void handleUnaryPrefixExpression(Token operator) {
-    // TODO(brianwilkerson): Enable this assert.
-    // TokenType.isUnaryPrefixOperator currently return `false` for `-`.
-//    assert(operator.type.isUnaryPrefixOperator);
+    assert(operator.type.isUnaryPrefixOperator);
     debugEvent("UnaryPrefixExpression");
 
     push(ast.prefixExpression(operator, pop()));
