@@ -7069,7 +7069,6 @@ LayoutTests/fast/dom/Element/id-in-insert-hr_t01: RuntimeError # Please triage t
 LayoutTests/fast/dom/Element/offsetTop-table-cell_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Element/scrollWidth_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Element/setAttributeNS-namespace-err_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLAnchorElement/anchor-ismap-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/get-href-attribute-port_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/remove-href-from-focused-anchor_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-hash_t01: RuntimeError # Please triage this failure
