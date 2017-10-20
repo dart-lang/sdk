@@ -456,6 +456,9 @@ class Configuration {
         'enable_asserts': useEnableAsserts,
         'hot_reload': hotReload,
         'hot_reload_rollback': hotReloadRollback,
+        'batch': batch,
+        'batch_dart2js': batchDart2JS,
+        'reset_browser_configuration': resetBrowser,
         'selectors': selectors.keys.toList()
       };
     }
