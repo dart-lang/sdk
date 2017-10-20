@@ -14,7 +14,7 @@ import utils
 
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
-FUCHSIA_ROOT= os.path.realpath(os.path.join(DART_ROOT, '..'))
+FUCHSIA_ROOT= os.path.realpath(os.path.join(DART_ROOT, '..', '..'))
 
 FUCHSIA_TEST_MANIFEST_PREFIX = os.path.join('test', 'dart')
 
