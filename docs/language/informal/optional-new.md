@@ -2,7 +2,7 @@
 
 Author: eernst@.
 
-Version: 0.3 (2017-09-08)
+Version: 0.4 (2017-10-17)
 
 Status: Under implementation.
 
@@ -78,7 +78,7 @@ assignableExpression ::=
     primary (arguments* assignableSelector)+
 ```
 
-*As mentioned, this grammar update is a superset of the grammar updates for
+*As mentioned, this grammar update is a superset of the grammar update for
 [optional const](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-const.md).*
 
 
@@ -120,6 +120,10 @@ We define *new/const insertion* as the following transformation:
   `const` _e_,
 - otherwise replace _e_ by `new` _e_.
 
+We define *new insertion* as the following transformation:
+
+- replace _e_ by `new` _e_.
+
 For the purposes of describing the main transformation we need the following
 syntactic entity:
 
@@ -128,24 +132,40 @@ assignableExpressionTail ::=
     arguments assignableSelector (arguments* assignableSelector)*
 ```
 
-An expression on one of the following forms must be modified in top-down
+*We specify the transformation as based on a top-down traversal of an
+abstract syntax tree (AST). This means that the program is assumed to be
+free of syntax errors, and when the current AST is, e.g., a
+`postfixExpression`, the program as a whole has such a structure that
+the current location was parsed as a `postfixExpression`. This is
+different from the situation where we just require a given subsequence of the
+tokens of the program allows for such a parsing in isolation. For instance,
+an identifier like `x` parses as an `assignableExpression` in isolation,
+but if it occurs in the context `var x = 42;` or `var y = x;` then it
+will not be parsed as an `assignableExpression`, it will be parsed as a
+plain `identifier` which is part of a `declaredIdentifier` in the first
+case, and as a `primary` which is a `postfixExpression`, which is a
+`unaryExpression`, etc., in the second case. In short, we are
+transforming the AST of the program as a whole, not isolated snippets of
+code.*
+
+An expression of one of the following forms must be modified in top-down
 order to be or contain a `constantObjectExpression` or `newExpression`
 as described:
 
 With a `postfixExpression` _e_,
 
-- if _e_ is on the form `constructorInvocation`, i.e.,
+- if _e_ is of the form `constructorInvocation`, i.e.,
   `typeName typeArguments '.' identifier arguments` then perform
   new/const insertion on _e_.
-- if _e_ is on the form
+- if _e_ is of the form
   `typeIdentifier arguments` where `typeIdentifier` denotes a class then
   perform new/const insertion on _e_.
-- if _e_ is on the form
+- if _e_ is of the form
   `identifier1 '.' identifier2 arguments` where `identifier1` denotes
   a class and `identifier2` is the name of a named constructor in that class,
   or `identifier1` denotes a prefix for a library _L_ and `identifier2` denotes
   a class exported by _L_, perform new/const insertion on _e_.
-- if _e_ is on the form
+- if _e_ is of the form
   `identifier1 '.' typeIdentifier '.' identifier2 arguments` where
   `identifier1` denotes a library prefix for a library _L_, `typeIdentifier`
   denotes a class _C_ exported by _L_, and `identifier2` is the name of a named
@@ -153,23 +173,28 @@ With a `postfixExpression` _e_,
 
 With an `assignableExpression` _e_,
 
-- if _e_ is on the form
-  `constructorInvocation (arguments* assignableSelector)+`
-  then replace _e_ by `new` _e_.
-- if _e_ is on the form
+- if _e_ is of the form
+  `constructorInvocation assignableExpressionTail`
+  then perform new insertion on the initial
+  `constructorInvocation arguments`.
+- if _e_ is of the form
   `typeIdentifier assignableExpressionTail`
-  where `typeIdentifier` denotes a class then replace _e_ by `new` _e_.
-- if _e_ is on the form
+  where `typeIdentifier` denotes a class then perform new insertion on the
+  initial `typeIdentifier arguments`.
+- if _e_ is of the form
   `identifier1 '.' identifier2 assignableExpressionTail`
   where `identifier1` denotes a class and `identifier2` is the name of
   a named constructor in that class, or `identifier1` denotes a prefix
   for a library _L_ and `identifier2` denotes a class exported by _L_
-  then replace _e_ by `new` _e_.
-- if _e_ is on the form
+  then perform new insertion on the initial
+  `identifier1 '.' identifier2 arguments`.
+- if _e_ is of the form
   `identifier1 '.' typeIdentifier '.' identifier2 assignableExpressionTail`
   where `identifier1` denotes a library prefix for a library _L_,
   `typeIdentifier` denotes a class _C_ exported by _L_, and `identifier2`
-  is the name of a named constructor in _C_ then replace _e_ by `new` _e_.
+  is the name of a named constructor in _C_ then perform new insertion
+  on the initial
+  `identifier1 '.' typeIdentifier '.' identifier2 arguments`.
 
 For a list literal _e_ occurring in a constant context, replace _e_ by
 `const` _e_. For a map literal _e_ occurring in a constant context,
@@ -199,6 +224,10 @@ may be considered as background material.
 
 
 ## Revisions
+
+- 0.4 (2017-10-17) Reverted to use 'immediate subexpression' again, for
+  correctness. Adjusted terminology for consistency. Clarified the semantics
+  of the transformation.
 
 - 0.3 (2017-09-08) Included missing rule for transformation of composite
   literals (lists and maps). Eliminated the notion of an immediate
