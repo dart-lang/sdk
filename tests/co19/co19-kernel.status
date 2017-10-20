@@ -39,8 +39,6 @@ Language/Expressions/Constants/bitwise_operators_t02: Crash
 Language/Expressions/Constants/bitwise_operators_t03: Crash
 Language/Expressions/Constants/bitwise_operators_t04: Crash
 Language/Expressions/Constants/bitwise_operators_t06: Crash
-Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError
-Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError
 Language/Expressions/Constants/exception_t04: MissingCompileTimeError
@@ -50,10 +48,8 @@ Language/Expressions/Constants/math_operators_t04: Crash
 Language/Expressions/Constants/math_operators_t05: Crash
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Kernel Issue 28335 (deferred libraries)
-Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
