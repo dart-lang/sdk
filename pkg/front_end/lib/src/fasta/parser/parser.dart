@@ -263,6 +263,19 @@ class Parser {
 
   bool get inPlainSync => asyncState == AsyncModifier.Sync;
 
+  /// ```
+  /// libraryDefinition:
+  ///   scriptTag?
+  ///   libraryName?
+  ///   importOrExport*
+  ///   partDirective*
+  ///   topLevelDefinition*
+  /// ;
+  ///
+  /// partDeclaration:
+  ///   partHeader topLevelDefinition*
+  /// ;
+  /// ```
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
     int count = 0;
@@ -284,6 +297,21 @@ class Parser {
     return token;
   }
 
+  /// ```
+  /// topLevelDefinition:
+  ///   classDefinition |
+  ///   enumType |
+  ///   typeAlias |
+  ///   'external'? functionSignature ';' |
+  ///   'external'? getterSignature ';' |
+  ///   'external''? setterSignature ';' |
+  ///   functionSignature functionBody |
+  ///   returnType? 'get' identifier functionBody |
+  ///   returnType? 'set' identifier formalParameterList functionBody |
+  ///   ('final' | 'const') type? staticFinalDeclarationList ';' |
+  ///   variableDeclaration ';'
+  /// ;
+  /// ```
   Token parseTopLevelDeclarationImpl(
       Token token, DirectiveContext directiveState) {
     if (identical(token.type, TokenType.SCRIPT_TAG)) {
@@ -353,8 +381,10 @@ class Parser {
     }
   }
 
+  /// Parse any top-level declaration that begins with a keyword.
   Token parseTopLevelKeywordDeclaration(
       Token abstractToken, Token token, DirectiveContext directiveState) {
+    assert(token.isTopLevelKeyword);
     final String value = token.stringValue;
     if (identical(value, 'class')) {
       directiveState?.checkDeclaration();
@@ -820,12 +850,36 @@ class Parser {
     return token;
   }
 
+  /// ```
+  /// scriptTag:
+  ///   '#!' (˜NEWLINE)* NEWLINE
+  /// ;
+  /// ```
   Token parseScript(Token token) {
+    assert(identical(token.type, TokenType.SCRIPT_TAG));
     listener.handleScript(token);
     return token.next;
   }
 
+  /// ```
+  /// typeAlias:
+  ///   metadata 'typedef' typeAliasBody
+  /// ;
+  ///
+  /// typeAliasBody:
+  ///   functionTypeAlias
+  /// ;
+  ///
+  /// functionTypeAlias:
+  ///   functionPrefix typeParameters? formalParameterList ‘;’
+  /// ;
+  ///
+  /// functionPrefix:
+  ///   returnType? identifier
+  /// ;
+  /// ```
   Token parseTypedef(Token token) {
+    assert(optional('typedef', token));
     Token typedefKeyword = token;
     listener.beginFunctionTypeAlias(token);
     Token equals;
@@ -949,6 +1003,25 @@ class Parser {
     return fasta.messageMissingFunctionParameters;
   }
 
+  /// ```
+  /// normalFormalParameter:
+  ///   functionFormalParameter |
+  ///   fieldFormalParameter |
+  ///   simpleFormalParameter
+  /// ;
+  ///
+  /// functionFormalParameter:
+  ///   metadata 'covariant'? returnType? identifier formalParameterList
+  /// ;
+  ///
+  /// simpleFormalParameter:
+  ///   metadata 'covariant'? finalConstVarOrType? identifier |
+  /// ;
+  ///
+  /// fieldFormalParameter:
+  ///   metadata finalConstVarOrType? 'this' '.' identifier formalParameterList?
+  /// ;
+  /// ```
   Token parseFormalParameter(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     token = parseMetadataStar(token);
@@ -957,6 +1030,16 @@ class Parser {
     return token;
   }
 
+  /// ```
+  /// defaultFormalParameter:
+  ///   normalFormalParameter ('=' expression)?
+  /// ;
+  ///
+  /// defaultNamedParameter:
+  ///   normalFormalParameter ('=' expression)? |
+  ///   normalFormalParameter (':' expression)?
+  /// ;
+  /// ```
   Token parseOptionalFormalParameters(
       Token token, bool isNamed, MemberKind kind) {
     assert((isNamed && optional('{', token)) || optional('[', token));
@@ -1125,6 +1208,11 @@ class Parser {
     return closeBrace;
   }
 
+  /// ```
+  /// enumType:
+  ///   metadata 'enum' id '{' id [',' id]* [','] '}'
+  /// ;
+  /// ```
   Token parseEnum(Token token) {
     assert(optional('enum', token));
     listener.beginEnum(token);
@@ -2655,10 +2743,15 @@ class Parser {
     }
   }
 
+  /// ```
+  /// initializers:
+  ///   ':' initializerListEntry (',' initializerListEntry)*
+  /// ;
+  /// ```
   Token parseInitializers(Token token) {
+    assert(optional(':', token));
     Token begin = token;
     listener.beginInitializers(begin);
-    expect(':', token);
     int count = 0;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = false;
@@ -2671,6 +2764,17 @@ class Parser {
     return token;
   }
 
+  /// ```
+  /// initializerListEntry:
+  ///   'super' ('.' identifier)? arguments |
+  ///   fieldInitializer |
+  ///   assertion
+  /// ;
+  ///
+  /// fieldInitializer:
+  ///   ('this' '.')? identifier '=' conditionalExpression cascadeSection*
+  /// ;
+  /// ```
   Token parseInitializer(Token token) {
     listener.beginInitializer(token);
     if (optional('assert', token)) {
@@ -3483,6 +3587,11 @@ class Parser {
     }
   }
 
+  /// ```
+  /// yieldStatement:
+  ///   'yield' expression? ';'
+  /// ;
+  /// ```
   Token parseYieldStatement(Token token) {
     assert(identical('yield', token.stringValue));
     Token begin = token;
@@ -3499,8 +3608,13 @@ class Parser {
     return semicolon.next;
   }
 
+  /// ```
+  /// returnStatement:
+  ///   'return' expression? ';'
+  /// ;
+  /// ```
   Token parseReturnStatement(Token token) {
-    assert(identical('return', token.stringValue));
+    assert(optional('return', token));
     Token begin = token;
     listener.beginReturnStatement(begin);
     assert(optional('return', token));
@@ -3533,7 +3647,16 @@ class Parser {
     }
   }
 
+  /// ```
+  /// label:
+  ///   identifier ':'
+  /// ;
+  /// ```
   Token parseLabel(Token token) {
+    // TODO(brianwilkerson): Enable this assert.
+    // `parseType` is allowing `void` to be a label.
+//    assert(token.isIdentifier);
+    assert(optional(':', token.next));
     token = parseIdentifier(token, IdentifierContext.labelDeclaration);
     Token colon = token;
     token = expect(':', token);
@@ -3541,7 +3664,16 @@ class Parser {
     return token;
   }
 
+  /// ```
+  /// statement:
+  ///   label* nonLabelledStatement
+  /// ;
+  /// ```
   Token parseLabeledStatement(Token token) {
+    // TODO(brianwilkerson): Enable this assert.
+    // `parseType` is allowing `void` to be a label.
+//    assert(token.isIdentifier);
+    assert(optional(':', token.next));
     int labelCount = 0;
     do {
       token = parseLabel(token);
@@ -3553,8 +3685,13 @@ class Parser {
     return token;
   }
 
+  /// ```
+  /// expressionStatement:
+  ///   expression? ';'
+  /// ;
+  /// ```
   Token parseExpressionStatement(Token token) {
-    // TODO(brianwilkerson) If the next token is not the start of a valid
+    // TODO(brianwilkerson): If the next token is not the start of a valid
     // expression, then this method shouldn't report that we have an expression
     // statement.
     listener.beginExpressionStatement(token);
@@ -4095,8 +4232,8 @@ class Parser {
   Token parseMapLiteralEntry(Token token) {
     listener.beginLiteralMapEntry(token);
     // Assume the listener rejects non-string keys.
-    // TODO(brianwilkerson) Change the assumption above by moving error checking
-    // into the parser, making it possible to recover.
+    // TODO(brianwilkerson): Change the assumption above by moving error
+    // checking into the parser, making it possible to recover.
     token = parseExpression(token);
     Token colon = token;
     token = expect(':', token);
@@ -4123,11 +4260,16 @@ class Parser {
     return token;
   }
 
+  /// ```
+  /// newExpression:
+  ///   'new' type ('.' identifier)? arguments
+  /// ;
+  /// ```
   Token parseNewExpression(Token token) {
+    assert(optional('new', token));
     Token newKeyword = token;
-    token = expect('new', token);
     listener.beginNewExpression(newKeyword);
-    token = parseConstructorReference(token);
+    token = parseConstructorReference(token.next);
     token = parseRequiredArguments(token);
     listener.endNewExpression(newKeyword);
     return token;
@@ -4258,6 +4400,7 @@ class Parser {
   }
 
   Token parseSingleLiteralString(Token token) {
+    assert(identical(token.kind, STRING_TOKEN));
     listener.beginLiteralString(token);
     // Parsing the prefix, for instance 'x of 'x${id}y${id}z'
     token = token.next;
@@ -4388,6 +4531,11 @@ class Parser {
     return expect(')', token);
   }
 
+  /// ```
+  /// typeTest::
+  ///   'is' '!'? type
+  /// ;
+  /// ```
   Token parseIsOperatorRest(Token token) {
     assert(optional('is', token));
     Token operator = token;
@@ -4407,6 +4555,11 @@ class Parser {
     return token;
   }
 
+  /// ```
+  /// typeCast:
+  ///   'as' type
+  /// ;
+  /// ```
   Token parseAsOperatorRest(Token token) {
     assert(optional('as', token));
     Token operator = token;
