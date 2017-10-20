@@ -566,7 +566,7 @@ UnmatchedToken:
     - "main(){[}"
 
 UnsupportedPrefixPlus:
-  template: "'+' is not a prefix operator. "
+  template: "'+' is not a prefix operator."
   tip: "Try removing '+'."
   dart2jsCode: UNSUPPORTED_PREFIX_PLUS
   script: "main() => +2;  // No longer a valid way to write '2'"
@@ -818,14 +818,14 @@ NotAType:
   template: "'#name' isn't a type."
 
 FastaUsageShort:
-  template: >-
+  template: |
     Frequently used options:
 
       -o <file> Generate the output into <file>.
       -h        Display this message (add -v for information about all options).
 
 FastaUsageLong:
-  template: >-
+  template: |
     Supported options:
 
       -o <file>, --output=<file>
@@ -948,7 +948,9 @@ InternalProblemUriMissingScheme:
   template: "The URI '#uri' has no scheme."
 
 InternalVerificationError:
-  template: "Verification of the generated program failed: #string."
+  template: |
+    Verification of the generated program failed:
+    #string
 
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."

@@ -2154,9 +2154,8 @@ Message _withArgumentsInternalProblemUriMissingScheme(Uri uri_) {
 const Template<Message Function(String string)>
     templateInternalVerificationError =
     const Template<Message Function(String string)>(
-        messageTemplate:
-            r"""Verification of the generated program failed: #string.""",
-        withArguments: _withArgumentsInternalVerificationError);
+        messageTemplate: r"""Verification of the generated program failed:
+#string""", withArguments: _withArgumentsInternalVerificationError);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String string)> codeInternalVerificationError =
@@ -2168,8 +2167,8 @@ const Code<Message Function(String string)> codeInternalVerificationError =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalVerificationError(String string) {
   return new Message(codeInternalVerificationError,
-      message: """Verification of the generated program failed: $string.""",
-      arguments: {'string': string});
+      message: """Verification of the generated program failed:
+$string""", arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3082,9 +3081,9 @@ const MessageCode messagePositionalAfterNamedArgument = const MessageCode(
     "PositionalAfterNamedArgument",
     analyzerCode: "POSITIONAL_AFTER_NAMED_ARGUMENT",
     dart2jsCode: "*ignored*",
-    message: r"""Positional arguments must occur before named arguments.""",
+    message: r"""Place positional arguments before named arguments.""",
     tip:
-        r"""Try moving all of the positional arguments before the named arguments.""");
+        r"""Try moving the positional argument before the named arguments, or add a name to the argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePositionalParameterWithEquals =
@@ -3767,7 +3766,7 @@ const Code<Null> codeUnsupportedPrefixPlus = messageUnsupportedPrefixPlus;
 const MessageCode messageUnsupportedPrefixPlus = const MessageCode(
     "UnsupportedPrefixPlus",
     dart2jsCode: "UNSUPPORTED_PREFIX_PLUS",
-    message: r"""'+' is not a prefix operator. """,
+    message: r"""'+' is not a prefix operator.""",
     tip: r"""Try removing '+'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

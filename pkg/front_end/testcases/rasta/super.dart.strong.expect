@@ -253,7 +253,7 @@ class C extends self::B {
     self::use(super.{self::A::n} = super.{self::A::n}.-(42));
   }
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator. \n    +super;\n    ^", "pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator. \n    use(+super);\n        ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator.\n    +super;\n    ^", "pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator.\n    use(+super);\n        ^"]/* from null */;
 static method use(dynamic x) → dynamic {
   if(x.{core::Object::==}(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
     throw "Shouldn't happen";
