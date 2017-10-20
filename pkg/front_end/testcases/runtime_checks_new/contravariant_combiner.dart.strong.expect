@@ -1,0 +1,39 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class B<T extends core::Object, U extends (self::B::T) → void> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  generic-contravariant operator +(dynamic other) → self::B<self::B::T, (self::B::T) → void>
+    return null;
+}
+class C extends core::Object {
+  field self::B<core::num, (core::num) → void> x = null;
+  static field self::B<core::num, (core::num) → void> y = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator [](core::int i) → self::B<core::num, (core::num) → void>
+    return null;
+  operator []=(core::int i, self::B<core::num, (core::num) → void> v) → void {}
+}
+static method test1(self::B<core::num, (core::num) → void> b) → void {
+  b = b.{self::B::+}(1) as{TypeError} self::B<core::num, (core::num) → void>;
+  self::B<core::num, (core::num) → void> x = b = b.{self::B::+}(2) as{TypeError} self::B<core::num, (core::num) → void>;
+}
+static method test2(self::C c) → void {
+  let final self::C #t1 = c in let final core::int #t2 = 0 in #t1.{self::C::[]=}(#t2, #t1.{self::C::[]}(#t2).{self::B::+}(1) as{TypeError} self::B<core::num, (core::num) → void>);
+  self::B<core::num, (core::num) → void> x = let final self::C #t3 = c in let final core::int #t4 = 0 in let final self::B<core::num, (core::num) → void> #t5 = #t3.{self::C::[]}(#t4).{self::B::+}(2) as{TypeError} self::B<core::num, (core::num) → void> in let final void #t6 = #t3.{self::C::[]=}(#t4, #t5) in #t5;
+}
+static method test3(self::C c) → void {
+  let final self::C #t7 = c in #t7.{self::C::x} = #t7.{self::C::x}.{self::B::+}(1) as{TypeError} self::B<core::num, (core::num) → void>;
+  self::B<core::num, (core::num) → void> x = let final self::C #t8 = c in #t8.{self::C::x} = #t8.{self::C::x}.{self::B::+}(2) as{TypeError} self::B<core::num, (core::num) → void>;
+}
+static method test4(self::C c) → void {
+  self::C::y = self::C::y.{self::B::+}(1) as{TypeError} self::B<core::num, (core::num) → void>;
+  self::B<core::num, (core::num) → void> x = self::C::y = self::C::y.{self::B::+}(2) as{TypeError} self::B<core::num, (core::num) → void>;
+}
+static method main() → void {}

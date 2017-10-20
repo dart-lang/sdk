@@ -408,7 +408,8 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
     return parts;
   }
 
-  DartType _inferRhs(ShadowTypeInferrer inferrer, DartType writeContext) {
+  DartType _inferRhs(
+      ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
     DartType inferredType = writeContext ?? const DynamicType();
     if (nullAwareCombiner != null) {
       var rhsType = inferrer.inferExpression(rhs, writeContext, true);
@@ -453,7 +454,11 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
               .returnType;
         }
       }
-      _storeLetType(inferrer, combiner, combinedType);
+      var checkReturn = inferrer.preCheckInvocationContravariance(read,
+          readType, combinerMember, combiner, combiner.arguments, combiner);
+      var replacedCombiner = inferrer.handleInvocationContravariance(
+          checkReturn, combiner, combiner.arguments, combiner, combinedType);
+      _storeLetType(inferrer, replacedCombiner, combinedType);
       return combinedType;
     } else {
       var rhsType = inferrer.inferExpression(rhs, writeContext, true);
@@ -950,12 +955,13 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
         typeNeeded;
     var receiverType = _inferReceiver(inferrer);
     InvocationExpression read = this.read;
+    DartType readType;
     if (read != null) {
       var readMember =
           inferrer.findMethodInvocationMember(receiverType, read, silent: true);
       var calleeFunctionType =
           inferrer.getCalleeFunctionType(readMember, receiverType, false);
-      var readType = calleeFunctionType.returnType;
+      readType = calleeFunctionType.returnType;
       var desugaredInvocation = read is MethodInvocation ? read : null;
       var checkReturn = inferrer.preCheckInvocationContravariance(receiver,
           receiverType, readMember, desugaredInvocation, read.arguments, read);
@@ -981,7 +987,7 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     }
     var indexType = inferrer.inferExpression(index, indexContext, true);
     _storeLetType(inferrer, index, indexType);
-    var inferredType = _inferRhs(inferrer, writeContext);
+    var inferredType = _inferRhs(inferrer, readType, writeContext);
     inferrer.listener.indexAssignExit(desugared, inferredType);
     return inferredType;
   }
@@ -1457,10 +1463,11 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
         inferrer.listener.propertyAssignEnter(desugared, typeContext) ||
             typeNeeded;
     var receiverType = _inferReceiver(inferrer);
+    DartType readType;
     if (read != null) {
       var readMember =
           inferrer.findPropertyGetMember(receiverType, read, silent: true);
-      var readType = inferrer.getCalleeType(readMember, receiverType);
+      readType = inferrer.getCalleeType(readMember, receiverType);
       inferrer.handlePropertyGetContravariance(receiver, readMember,
           read is PropertyGet ? read : null, read, readType);
       _storeLetType(inferrer, read, readType);
@@ -1474,7 +1481,7 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     // doing compound assignment?
     var writeContext = inferrer.getSetterType(writeMember, receiverType);
     _storeLetType(inferrer, write, writeContext);
-    var inferredType = _inferRhs(inferrer, writeContext);
+    var inferredType = _inferRhs(inferrer, readType, writeContext);
     if (inferrer.strongMode) nullAwareGuard?.staticType = inferredType;
     inferrer.listener.propertyAssignExit(desugared, inferredType);
     return inferredType;
@@ -1569,9 +1576,11 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.staticAssignEnter(desugared, typeContext) ||
         typeNeeded;
+    DartType readType;
     var read = this.read;
     if (read is StaticGet) {
-      _storeLetType(inferrer, read, read.target.getterType);
+      readType = read.target.getterType;
+      _storeLetType(inferrer, read, readType);
     }
     DartType writeContext;
     var write = this.write;
@@ -1584,7 +1593,7 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
         target._inferenceNode = null;
       }
     }
-    var inferredType = _inferRhs(inferrer, writeContext);
+    var inferredType = _inferRhs(inferrer, readType, writeContext);
     inferrer.listener.staticAssignExit(desugared, inferredType);
     return inferredType;
   }
@@ -2131,6 +2140,11 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
     typeNeeded =
         inferrer.listener.variableAssignEnter(desugared, typeContext) ||
             typeNeeded;
+    DartType readType;
+    var read = this.read;
+    if (read is VariableGet) {
+      readType = read.promotedType ?? read.variable.type;
+    }
     DartType writeContext;
     var write = this.write;
     if (write is VariableSet) {
@@ -2140,7 +2154,7 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
       }
       _storeLetType(inferrer, write, writeContext);
     }
-    var inferredType = _inferRhs(inferrer, writeContext);
+    var inferredType = _inferRhs(inferrer, readType, writeContext);
     inferrer.listener.variableAssignExit(desugared, inferredType);
     return inferredType;
   }
