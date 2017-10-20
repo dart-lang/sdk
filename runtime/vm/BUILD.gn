@@ -479,7 +479,7 @@ template("generate_vm_patched_sdk") {
   other_outputs = [
     # Instead of listing all outputs we list those consumed by
     # other BUILD rules.
-    "$root_out_dir/${patched_sdk_dir}/lib/libraries.json",
+    "$root_out_dir/$patched_sdk_dir/lib/libraries.json",
   ]
 
   # Build the patched sdk out of the concatenated patches and the special

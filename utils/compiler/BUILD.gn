@@ -92,7 +92,7 @@ generate_patched_sdk("patched_dart2js_sdk") {
   outputs = [
     # Instead of listing all outputs we list those consumed by
     # other BUILD rules.
-    "$root_out_dir/${patched_sdk_dir}/lib/libraries.json",
+    "$root_out_dir/$patched_sdk_dir/lib/libraries.json",
   ]
 }
 
