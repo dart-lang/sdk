@@ -36,10 +36,11 @@ class IncrementalKernelGeneratorTest {
   IncrementalKernelGeneratorImpl incrementalKernelGenerator;
 
   /// Compute the initial [Program] for the given [entryPoint].
-  Future<Program> getInitialState(Uri entryPoint,
+  Future<DeltaProgram> getInitialState(Uri entryPoint,
       {Uri sdkOutlineUri,
       bool setPackages: true,
-      bool embedSourceText: true}) async {
+      bool embedSourceText: true,
+      String initialState}) async {
     createSdkFiles(fileSystem);
     // TODO(scheglov) Builder the SDK kernel and set it into the options.
 
@@ -56,9 +57,15 @@ class IncrementalKernelGeneratorTest {
     if (setPackages) {
       compilerOptions.packagesFileUri = Uri.parse('file:///test/.packages');
     }
+
     incrementalKernelGenerator = await IncrementalKernelGenerator
         .newInstance(compilerOptions, entryPoint, watch: watchFn);
-    return (await incrementalKernelGenerator.computeDelta()).newProgram;
+
+    if (initialState != null) {
+      incrementalKernelGenerator.setState(initialState);
+    }
+
+    return await incrementalKernelGenerator.computeDelta();
   }
 
   test_acceptLastDelta() async {
@@ -94,7 +101,8 @@ void main() {}
 ''');
 
     {
-      Program program = await getInitialState(cUri);
+      DeltaProgram delta = await getInitialState(cUri);
+      Program program = delta.newProgram;
       incrementalKernelGenerator.acceptLastDelta();
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
@@ -172,7 +180,8 @@ b() {
     Uri dUri = writeFile(dPath, 'd() {}');
 
     {
-      Program program = await getInitialState(aUri);
+      DeltaProgram delta = await getInitialState(aUri);
+      Program program = delta.newProgram;
       incrementalKernelGenerator.acceptLastDelta();
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri, dUri, Uri.parse('dart:core')]);
@@ -209,7 +218,8 @@ part 'b.dart';
 part of lib;
 ''');
 
-    Program program = await getInitialState(aUri);
+    DeltaProgram delta = await getInitialState(aUri);
+    Program program = delta.newProgram;
 
     // Sources for library and its part must be present.
     expect(program.uriToSource.keys, contains(aUri.toString()));
@@ -239,7 +249,9 @@ var a = 1;
 Future<String> b;
 ''');
 
-    Program program = await getInitialState(bUri, sdkOutlineUri: sdkOutlineUri);
+    DeltaProgram delta =
+        await getInitialState(bUri, sdkOutlineUri: sdkOutlineUri);
+    Program program = delta.newProgram;
     incrementalKernelGenerator.acceptLastDelta();
     _assertLibraryUris(program,
         includes: [bUri], excludes: [Uri.parse('dart:core')]);
@@ -304,7 +316,8 @@ int getValue() {
     String path = '/test/lib/test.dart';
     Uri uri = writeFile(path, 'main() {}');
 
-    Program program = await getInitialState(uri, embedSourceText: false);
+    DeltaProgram delta = await getInitialState(uri, embedSourceText: false);
+    Program program = delta.newProgram;
 
     // The Source object is present in the map, but is empty.
     Source source = program.uriToSource[uri.toString()];
@@ -324,7 +337,8 @@ var b = a;
 
     // Ensures that the `.packages` file can be discovered automatically
     // from the entry point file.
-    Program program = await getInitialState(bUri, setPackages: false);
+    DeltaProgram delta = await getInitialState(bUri, setPackages: false);
+    Program program = delta.newProgram;
     Library library = _getLibrary(program, bUri);
     expect(_getLibraryText(library), r'''
 library;
@@ -343,7 +357,8 @@ static field core::int b = a::a;
 
     // The first delta includes the the library.
     {
-      Program program = await getInitialState(uri);
+      DeltaProgram delta = await getInitialState(uri);
+      Program program = delta.newProgram;
       _assertLibraryUris(program, includes: [uri]);
       Library library = _getLibrary(program, uri);
       expect(_getLibraryText(library), contains('core::int v = 1'));
@@ -371,7 +386,8 @@ static field core::int b = a::a;
 
     // The first delta includes the the library.
     {
-      Program program = await getInitialState(uri);
+      DeltaProgram delta = await getInitialState(uri);
+      Program program = delta.newProgram;
       _assertLibraryUris(program, includes: [uri]);
       Library library = _getLibrary(program, uri);
       expect(_getLibraryText(library), contains('core::int v = 1'));
@@ -391,6 +407,44 @@ static field core::int b = a::a;
       Program program = delta.newProgram;
       _assertLibraryUris(program, includes: [uri]);
     }
+  }
+
+  test_setState() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, 'var a = 1;');
+    Uri bUri = writeFile(bPath, r'''
+var b = 1;
+''');
+    Uri cUri = writeFile(cPath, r'''
+import 'a.dart';
+import 'b.dart';
+var c1 = a;
+var c2 = b;
+''');
+
+    String initialState;
+    {
+      DeltaProgram delta = await getInitialState(cUri);
+      Program program = delta.newProgram;
+      incrementalKernelGenerator.acceptLastDelta();
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
+      initialState = delta.state;
+    }
+
+    // Update a.dart, don't notify the old generator - we throw it away.
+    writeFile(aPath, 'var a = 1.2');
+
+    // Create a new generator with the initial state.
+    var delta = await getInitialState(cUri, initialState: initialState);
+
+    // Only a.dart and c.dart are in the delta.
+    // The state of b.dart is the same as in the initial state.
+    _assertLibraryUris(delta.newProgram,
+        includes: [aUri, cUri], excludes: [bUri, Uri.parse('dart:core')]);
   }
 
   test_updateEntryPoint() async {
@@ -414,7 +468,8 @@ static method main() → dynamic {
 
     // Compute the initial state.
     {
-      Program program = await getInitialState(uri);
+      DeltaProgram delta = await getInitialState(uri);
+      Program program = delta.newProgram;
       incrementalKernelGenerator.acceptLastDelta();
       Library library = _getLibrary(program, uri);
       expect(_getLibraryText(library), initialText);

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/src/base/performace_logger.dart';
@@ -154,7 +155,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           }
         }
 
-        return new DeltaProgram(program);
+        var stateString = _ExternalState.asString(_lastSignatures);
+        return new DeltaProgram(stateString, program);
       } finally {
         _isComputeDeltaExecuting = false;
       }
@@ -178,6 +180,16 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     _lastSignatures = null;
   }
 
+  @override
+  void setState(String state) {
+    if (_isComputeDeltaExecuting) {
+      throw new StateError(MSG_PENDING_COMPUTE);
+    }
+    var signatures = _ExternalState.fromString(state);
+    _currentSignatures.clear();
+    _currentSignatures.addAll(signatures);
+  }
+
   /// Find files which are not referenced from the entry point and report
   /// them to the watch function.
   Future<Null> _gc() async {
@@ -199,6 +211,28 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     if (_lastSignatures == null) {
       throw new StateError(MSG_NO_LAST_DELTA);
     }
+  }
+}
+
+class _ExternalState {
+  /// Return the JSON encoding of the [signatures].
+  static String asString(Map<Uri, String> signatures) {
+    var json = <String, String>{};
+    signatures.forEach((uri, signature) {
+      json[uri.toString()] = signature;
+    });
+    return JSON.encode(json);
+  }
+
+  /// Decode the given JSON [state] into the program state.
+  static Map<Uri, String> fromString(String state) {
+    var signatures = <Uri, String>{};
+    Map<String, String> json = JSON.decode(state);
+    json.forEach((uriStr, signature) {
+      var uri = Uri.parse(uriStr);
+      signatures[uri] = signature;
+    });
+    return signatures;
   }
 }
 

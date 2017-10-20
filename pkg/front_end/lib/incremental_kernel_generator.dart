@@ -27,7 +27,13 @@ typedef Future<Null> WatchUsedFilesFn(Uri uri, bool used);
 ///
 /// Not intended to be implemented or extended by clients.
 class DeltaProgram {
-  /// The new state of the program.
+  /// The state of the program.
+  ///
+  /// It should be treated as opaque data by the clients. Its only purpose is
+  /// to be passed to [IncrementalKernelGeneratorImpl.setState].
+  final String state;
+
+  /// The new program.
   ///
   /// It includes full kernels for changed libraries and for libraries that
   /// are affected by the transitive change of API in the changed libraries.
@@ -40,9 +46,7 @@ class DeltaProgram {
   /// modified or affected.
   final Program newProgram;
 
-  DeltaProgram(this.newProgram);
-
-  /// TODO(paulberry): add information about libraries that were removed.
+  DeltaProgram(this.state, this.newProgram);
 }
 
 /// Interface for generating an initial kernel representation of a program and
@@ -107,7 +111,7 @@ abstract class IncrementalKernelGenerator {
   void invalidate(Uri uri);
 
   /// Notify the generator that the last [DeltaProgram] returned from the
-  /// [computeDelta] was rejected.  The "last program state" is discared and
+  /// [computeDelta] was rejected.  The "last program state" is discarded and
   /// the "current program state" is kept unchanged.
   void rejectLastDelta();
 
@@ -117,6 +121,12 @@ abstract class IncrementalKernelGenerator {
   /// [rejectLastDelta] are allowed after this method until the next
   /// [computeDelta] invocation.
   void reset();
+
+  /// Set the "current program state", so that the next invocation of
+  /// [computeDelta] will include only libraries changed since this [state].
+  ///
+  /// The [state] must be a value returned in [DeltaProgram.state].
+  void setState(String state);
 
   /// Creates an [IncrementalKernelGenerator] which is prepared to generate
   /// kernel representations of the program whose main library is in the given
