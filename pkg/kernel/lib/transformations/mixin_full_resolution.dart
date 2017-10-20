@@ -122,7 +122,12 @@ class MixinFullResolution {
       class_.addMember(cloner.clone(field));
     }
     for (var procedure in class_.mixin.procedures) {
-      class_.addMember(cloner.clone(procedure));
+      // Forwarding stubs in the mixin class are used when calling through the
+      // mixin class's interface, not when calling through the mixin
+      // application.  They should not be copied.
+      if (!procedure.isForwardingStub) {
+        class_.addMember(cloner.clone(procedure));
+      }
     }
     // For each generative constructor in the superclass we make a
     // corresponding forwarding constructor in the subclass.
