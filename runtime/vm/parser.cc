@@ -51,29 +51,11 @@ DEFINE_FLAG(bool,
             conditional_directives,
             true,
             "Enable conditional directives");
-DEFINE_FLAG(bool,
-            generic_method_syntax,
-            true,
-            "Enable generic function syntax.");
-DEFINE_FLAG(bool,
-            initializing_formal_access,
-            true,
-            "Make initializing formal parameters visible in initializer list.");
-DEFINE_FLAG(bool,
-            warn_super,
-            false,
-            "Warning if super initializer not last in initializer list.");
 DEFINE_FLAG(
     bool,
     await_is_keyword,
     false,
     "await and yield are treated as proper keywords in synchronous code.");
-// TODO(zra): Remove the assert_initializer flag once all references to it
-// from flutter and fuchsia scripts are deleted. Flag is a no-op (always on).
-DEFINE_FLAG(bool,
-            assert_initializer,
-            true,
-            "Allow asserts in initializer lists.");
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, trace_service);
@@ -687,15 +669,12 @@ struct ParamList {
   }
 
   // Make the parameter variables visible/invisible.
-  // Field initializer parameters are always invisible.
   void SetInvisible(bool invisible) {
     const intptr_t num_params = parameters->length();
     for (int i = 0; i < num_params; i++) {
       ParamDesc& param = (*parameters)[i];
       ASSERT(param.var != NULL);
-      if (FLAG_initializing_formal_access || !param.is_field_initializer) {
-        param.var->set_invisible(invisible);
-      }
+      param.var->set_invisible(invisible);
     }
   }
 
@@ -2013,9 +1992,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     ExpectToken(Token::kPERIOD);
     this_seen = true;
     parameter.is_field_initializer = true;
-    if (FLAG_initializing_formal_access) {
-      parameter.is_final = true;
-    }
+    parameter.is_final = true;
   }
   if ((parameter.type == NULL) && (CurrentToken() == Token::kVOID)) {
     ConsumeToken();
@@ -2068,9 +2045,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     ExpectToken(Token::kPERIOD);
     this_seen = true;
     parameter.is_field_initializer = true;
-    if (FLAG_initializing_formal_access) {
-      parameter.is_final = true;
-    }
+    parameter.is_final = true;
   }
 
   // At this point, we must see an identifier for the parameter name.
@@ -2122,9 +2097,6 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
       // Finish parsing the function type parameter.
       if (CurrentToken() == Token::kLT) {
-        if (!FLAG_generic_method_syntax) {
-          ReportError("generic function types not supported");
-        }
         ParseTypeParameters(false);  // Not parameterizing class, but function.
       }
 
@@ -3044,9 +3016,6 @@ void Parser::ParseInitializers(const Class& cls,
     // A(x) : super(x), f = x++ { ... }
     // is transformed to:
     // A(x) : temp = x, f = x++, super(temp) { ... }
-    if (FLAG_warn_super) {
-      ReportWarning("Super initializer not at end");
-    }
     ASSERT(super_init_index >= 0);
     ArgumentListNode* ctor_args = super_init_call->arguments();
     LetNode* saved_args = new (Z) LetNode(super_init_call->token_pos());
@@ -3369,9 +3338,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
 
   // Parsing of initializers done. Now we parse the constructor body.
   OpenBlock();  // Block to collect constructor body nodes.
-  if (FLAG_initializing_formal_access) {
-    params.HideInitFormals();
-  }
+  params.HideInitFormals();
   if (CurrentToken() == Token::kLBRACE) {
     // We checked in the top-level parse phase that a redirecting
     // constructor does not have a body.
@@ -3907,9 +3874,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   innermost_function_ = func.raw();
 
   if (CurrentToken() == Token::kLT) {
-    if (!FLAG_generic_method_syntax) {
-      ReportError("generic type arguments not supported.");
-    }
     TokenPosition type_param_pos = TokenPos();
     if (method->IsFactoryOrConstructor()) {
       ReportError(method->name_pos, "constructor cannot be generic");
@@ -5520,7 +5484,7 @@ void Parser::SkipTypeArguments() {
 }
 
 void Parser::SkipTypeParameters() {
-  // Function already parsed, no need to check FLAG_generic_method_syntax.
+  // Function already parsed.
   if (IsTypeParameters()) {
     const bool skipped = TryParseTypeParameters();
     ASSERT(skipped);
@@ -5910,9 +5874,6 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   innermost_function_ = func.raw();
 
   if (CurrentToken() == Token::kLT) {
-    if (!FLAG_generic_method_syntax) {
-      ReportError("generic functions not supported");
-    }
     ParseTypeParameters(false);  // Not parameterizing class, but function.
   }
 
@@ -7738,12 +7699,8 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
     if (param_desc.is_final) {
       parameter->set_is_final();
     }
-    if (FLAG_initializing_formal_access) {
-      // Field initializer parameters are implicitly final.
-      ASSERT(!param_desc.is_field_initializer || param_desc.is_final);
-    } else if (param_desc.is_field_initializer) {
-      parameter->set_invisible(true);
-    }
+    // Field initializer parameters are implicitly final.
+    ASSERT(!param_desc.is_field_initializer || param_desc.is_final);
   }
 }
 
@@ -8046,9 +8003,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   innermost_function_ = function.raw();
 
   if (CurrentToken() == Token::kLT) {
-    if (!FLAG_generic_method_syntax) {
-      ReportError("generic functions not supported");
-    }
     if (!found_func) {
       ParseTypeParameters(false);  // Not parameterizing class, but function.
     } else {
@@ -8213,7 +8167,7 @@ bool Parser::TryParseTypeParameters() {
         ConsumeToken();
       }
     } else if ((ct != Token::kCOMMA) && (ct != Token::kEXTENDS) &&
-               (!FLAG_generic_method_syntax || (ct != Token::kSUPER))) {
+               (ct != Token::kSUPER)) {
       // We are looking at something other than type parameters.
       return false;
     }
@@ -11853,9 +11807,6 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         TypeArguments& func_type_args = TypeArguments::ZoneHandle(Z);
         if (CurrentToken() == Token::kLT) {
           // Type arguments.
-          if (!FLAG_generic_method_syntax) {
-            ReportError("generic type arguments not supported.");
-          }
           func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
           if (FLAG_reify_generic_functions) {
             if (!func_type_args.IsNull() && !func_type_args.IsInstantiated() &&
@@ -11952,9 +11903,6 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       TypeArguments& func_type_args = TypeArguments::ZoneHandle(Z);
       if (CurrentToken() == Token::kLT) {
         // Type arguments.
-        if (!FLAG_generic_method_syntax) {
-          ReportError("generic type arguments not supported.");
-        }
         func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
         if (FLAG_reify_generic_functions) {
           if (!func_type_args.IsNull() && !func_type_args.IsInstantiated() &&
@@ -12944,9 +12892,6 @@ RawType* Parser::ParseFunctionType(
     type.SetScopeFunction(signature_function);
     // Parse optional type parameters.
     if (CurrentToken() == Token::kLT) {
-      if (!FLAG_generic_method_syntax) {
-        ReportError("generic type arguments not supported.");
-      }
       ParseTypeParameters(false);  // Not parameterizing class, but function.
     }
     ParamList params;
@@ -14251,9 +14196,6 @@ AstNode* Parser::ParsePrimary() {
         TypeArguments& func_type_args = TypeArguments::ZoneHandle(Z);
         if (CurrentToken() == Token::kLT) {
           // Type arguments.
-          if (!FLAG_generic_method_syntax) {
-            ReportError("generic type arguments not supported.");
-          }
           func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
           if (FLAG_reify_generic_functions) {
             if (!func_type_args.IsNull() && !func_type_args.IsInstantiated() &&
