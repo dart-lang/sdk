@@ -3269,6 +3269,26 @@ class C<T> {
     expectIdentifierType('f;', '<S₀>(S₀) → S');
   }
 
+  @failingTest // https://github.com/dart-lang/sdk/issues/30236
+  test_genericMethod_nestedCaptureBounds() async {
+    await resolveTestUnit(r'''
+class C<T> {
+  T f<S extends T>(S x) {
+    new C<S>().f<int>(3);
+    new C<S>().f; // tear-off
+    return null;
+  }
+}
+''');
+    MethodInvocation f = findIdentifier('f<int>(3);').parent;
+    expect(f.staticInvokeType.toString(), '(int) → S');
+    FunctionType ft = f.staticInvokeType;
+    expect('${ft.typeArguments}/${ft.typeParameters}',
+        '[S, int]/[T, S extends T]');
+
+    expectIdentifierType('f;', '<S₀ extends S>(S₀) → S');
+  }
+
   test_genericMethod_nestedFunctions() async {
     await resolveTestUnit(r'''
 S f<S>(S x) {
