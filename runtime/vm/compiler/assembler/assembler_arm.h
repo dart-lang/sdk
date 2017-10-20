@@ -1020,7 +1020,7 @@ class Assembler : public ValueObject {
   void MonomorphicCheckedEntry();
 
   // The register into which the allocation stats table is loaded with
-  // LoadAllocationStatsAddress should be passed to
+  // LoadAllocationStatsAddress should be passed to MaybeTraceAllocation and
   // IncrementAllocationStats(WithSize) as stats_addr_reg to update the
   // allocation stats. These are separate assembler macros so we can
   // avoid a dependent load too nearby the load of the table address.
@@ -1069,9 +1069,9 @@ class Assembler : public ValueObject {
   void LoadWordUnaligned(Register dst, Register addr, Register tmp);
   void StoreWordUnaligned(Register src, Register addr, Register tmp);
 
-  // If allocation tracing for |cid| is enabled, will jump to |trace| label,
+  // If allocation tracing is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
-  void MaybeTraceAllocation(intptr_t cid, Register temp_reg, Label* trace);
+  void MaybeTraceAllocation(Register stats_addr_reg, Label* trace);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
