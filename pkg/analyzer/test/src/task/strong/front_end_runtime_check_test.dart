@@ -317,7 +317,7 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         }
         var covariance = 'covariance=(${covariances.join(', ')})';
         var typeDescr = _typeToString(param.type);
-        var paramName = accessorType == 'set' ? 'value' : param.name;
+        var paramName = accessorType == 'set' ? '_' : param.name;
         var paramDescr = '$covariance $typeDescr $paramName';
         if (param.parameterKind != previousParameterKind) {
           String opener;
