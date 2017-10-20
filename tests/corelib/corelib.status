@@ -92,8 +92,10 @@ bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
 compare_to2_test: RuntimeError, OK    # Requires bigint support.
 string_base_vm_test: RuntimeError, OK # VM specific test.
 nan_infinity_test/01: Fail # Issue 11551
-regexp/pcre_test: Pass, Slow # Issue 21593
 regress_r21715_test: RuntimeError # Requires bigint support.
+
+[ $compiler == dart2js ]
+regexp/pcre_test: Pass, Slow # Issue 21593
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

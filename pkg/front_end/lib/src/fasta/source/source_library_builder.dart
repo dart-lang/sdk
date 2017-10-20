@@ -217,7 +217,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<TypeVariableBuilder> typeVariables,
       T supertype,
       List<T> interfaces,
-      int charOffset);
+      int charOffset,
+      int supertypeOffset);
 
   void addNamedMixinApplication(
       String documentationComment,

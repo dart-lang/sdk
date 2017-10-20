@@ -142,7 +142,8 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces,
-      int charOffset) {
+      int charOffset,
+      int supertypeOffset) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     var declaration = endNestedDeclaration(className)
       ..resolveTypes(typeVariables, this);
@@ -164,7 +165,7 @@ class KernelLibraryBuilder
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype,
+        applyMixins(supertype, supertypeOffset,
             isSyntheticMixinImplementation: true,
             subclassName: className,
             typeVariables: typeVariables),
@@ -293,7 +294,7 @@ class KernelLibraryBuilder
       ..bind(isNamed ? builder : null);
   }
 
-  KernelTypeBuilder applyMixins(KernelTypeBuilder type,
+  KernelTypeBuilder applyMixins(KernelTypeBuilder type, int charOffset,
       {String documentationComment,
       List<MetadataBuilder> metadata,
       bool isSyntheticMixinImplementation: false,
@@ -301,8 +302,7 @@ class KernelLibraryBuilder
       String subclassName,
       List<TypeVariableBuilder> typeVariables,
       int modifiers: abstractMask,
-      List<KernelTypeBuilder> interfaces,
-      int charOffset: -1}) {
+      List<KernelTypeBuilder> interfaces}) {
     if (type is KernelMixinApplicationBuilder) {
       subclassName ??= name;
       List<List<String>> signatureParts = <List<String>>[];
@@ -310,10 +310,6 @@ class KernelLibraryBuilder
       Map<String, String> unresolvedReversed = <String, String>{};
       int unresolvedCount = 0;
       Map<String, TypeBuilder> freeTypes = <String, TypeBuilder>{};
-
-      // TODO(30316): Use correct locations of mixin applications
-      // (e.g. identifiers for mixed-in classes).
-      if (charOffset == -1) charOffset = type.charOffset;
 
       if (name == null || type.mixins.length != 1) {
         TypeBuilder last = type.mixins.last;
@@ -445,7 +441,13 @@ class KernelLibraryBuilder
         supertype = applyMixin(supertype, mixin, signature,
             isSyntheticMixinImplementation: true,
             typeVariables: new List<TypeVariableBuilder>.from(variables.values),
-            charOffset: charOffset);
+            // TODO(ahe): Eventually, the charOffset should be -1 as these
+            // classes are canonicalized and synthetic. For now, for the
+            // benefit of dart2js, we add offsets to help the compiler during
+            // the migration process. We add i because dart2js uses these
+            // numbers to sort the classes by. Adding i isn't precisely what
+            // dart2js does, but it should be good enough.
+            charOffset: charOffset + i);
       }
       KernelNamedTypeBuilder mixin = type.mixins.last;
 
@@ -515,14 +517,13 @@ class KernelLibraryBuilder
       int charOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
-    KernelNamedTypeBuilder supertype = applyMixins(mixinApplication,
+    KernelNamedTypeBuilder supertype = applyMixins(mixinApplication, charOffset,
         documentationComment: documentationComment,
         metadata: metadata,
         name: name,
         typeVariables: typeVariables,
         modifiers: modifiers,
-        interfaces: interfaces,
-        charOffset: charOffset);
+        interfaces: interfaces);
     checkTypeVariables(typeVariables, supertype.builder);
   }
 

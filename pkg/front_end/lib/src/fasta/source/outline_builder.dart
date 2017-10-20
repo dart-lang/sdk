@@ -325,28 +325,40 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginClassOrNamedMixinApplication(Token token) {
+    debugEvent("beginClassOrNamedMixinApplication");
     library.beginNestedDeclaration("class or mixin application");
   }
 
   @override
   void beginClassDeclaration(Token begin, Token name) {
+    debugEvent("beginNamedMixinApplication");
     library.currentDeclaration.name = name.lexeme;
   }
 
   @override
   void beginNamedMixinApplication(Token beginToken, Token name) {
+    debugEvent("beginNamedMixinApplication");
     library.currentDeclaration.name = name.lexeme;
   }
 
   @override
   void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    debugEvent("handleClassImplements");
     push(popList(interfacesCount) ?? NullValue.TypeBuilderList);
   }
 
   @override
   void handleRecoverClassHeader() {
-    pop(NullValue.TypeBuilderList); // interfaces
-    pop(); // supertype
+    debugEvent("handleRecoverClassHeader");
+    pop(NullValue.TypeBuilderList); // Interfaces.
+    pop(); // Supertype offset.
+    pop(); // Supertype.
+  }
+
+  @override
+  void handleClassExtends(Token extendsKeyword) {
+    debugEvent("handleClassExtends");
+    push(extendsKeyword?.charOffset ?? -1);
   }
 
   @override
@@ -354,6 +366,7 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("endClassDeclaration");
     String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
+    int supertypeOffset = pop();
     TypeBuilder supertype = pop();
     List<TypeVariableBuilder> typeVariables = pop();
     int charOffset = pop();
@@ -365,7 +378,7 @@ class OutlineBuilder extends UnhandledListener {
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
     library.addClass(documentationComment, metadata, modifiers, name,
-        typeVariables, supertype, interfaces, charOffset);
+        typeVariables, supertype, interfaces, charOffset, supertypeOffset);
     checkEmpty(beginToken.charOffset);
   }
 
