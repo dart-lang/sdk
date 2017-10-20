@@ -16,6 +16,7 @@ isolate/typed_message_test: Crash
 
 [ $compiler == dartk || $compiler == dartkp ]
 async/future_or_strong_test: RuntimeError
+async/timer_not_available_test: RuntimeError
 isolate/issue_21398_parent_isolate2_test/none: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError

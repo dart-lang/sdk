@@ -53,6 +53,7 @@ async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError # Issue 29922
 async/stream_join_test: RuntimeError
 async/stream_subscription_as_future_test: RuntimeError
+async/timer_not_available_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by DDC/dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/json_utf8_chunk_test: Slow, Pass

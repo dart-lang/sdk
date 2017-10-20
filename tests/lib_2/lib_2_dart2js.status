@@ -188,6 +188,9 @@ html/js_extend_class_test: RuntimeError
 html/js_interop_constructor_name_error1_test: Fail # Issue 26838
 html/js_interop_constructor_name_error2_test: Fail # Issue 26838
 
+[ $compiler == dart2js && ($runtime != jsshell) ]
+async/timer_not_available_test: RuntimeError
+
 [ $compiler == dart2js && $fast_startup ]
 html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
 html/custom/document_register_basic_test: Pass, Slow, RuntimeError # Slow and sometimes times out
