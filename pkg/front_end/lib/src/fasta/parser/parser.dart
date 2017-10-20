@@ -947,7 +947,7 @@ class Parser {
   Token parseFormalParametersRequiredOpt(Token token, MemberKind kind) {
     if (!optional('(', token)) {
       reportRecoverableError(token, missingParameterMessage(kind));
-      Token replacement = _link(
+      Token replacement = link(
           new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
           new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset));
       token = rewriter.insertToken(replacement, token);
@@ -2958,7 +2958,7 @@ class Parser {
     if (!optional('{', token)) {
       reportRecoverableError(
           token, fasta.templateExpectedClassBody.withArguments(token));
-      BeginToken replacement = _link(
+      BeginToken replacement = link(
           new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
           new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
       rewriter.insertToken(replacement, token);
@@ -3839,7 +3839,7 @@ class Parser {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
           } else if (identical(type, TokenType.INDEX)) {
-            BeginToken replacement = _link(
+            BeginToken replacement = link(
                 new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.charOffset,
                     token.precedingComments),
                 new Token(
@@ -4063,7 +4063,7 @@ class Parser {
           token, fasta.templateExpectedToken.withArguments('('));
       reportRecoverableError(
           token, fasta.templateExpectedToken.withArguments(')'));
-      BeginToken replacement = _link(
+      BeginToken replacement = link(
           new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
           new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset));
       token = rewriter.insertToken(replacement, token);
@@ -5300,7 +5300,7 @@ class Parser {
 
   /// Create a short token chain from the [beginToken] and [endToken] and return
   /// the [beginToken].
-  Token _link(BeginToken beginToken, Token endToken) {
+  Token link(BeginToken beginToken, Token endToken) {
     beginToken.next = endToken;
     beginToken.endGroup = endToken;
     return beginToken;

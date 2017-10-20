@@ -11,9 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(brianwilkerson) Re-enable the following test when the rewriter no
-    // longer depends on having a previous pointer.
-//    defineReflectiveTests(TokenStreamRewriterTest_NoPrevious);
+    defineReflectiveTests(TokenStreamRewriterTest_NoPrevious);
     defineReflectiveTests(TokenStreamRewriterTest_UsingPrevious);
   });
 }
@@ -163,7 +161,53 @@ abstract class TokenStreamRewriterTest {
 /// finding previous tokens.
 @reflectiveTest
 class TokenStreamRewriterTest_NoPrevious extends TokenStreamRewriterTest {
+  // These tests are failing because the re-writer currently depends on the
+  // previous pointer.
+
+  @override
   bool get setPrevious => false;
+
+  @override
+  @failingTest
+  void test_insertToken_end_single() {
+    super.test_insertToken_end_single();
+  }
+
+  @override
+  @failingTest
+  void test_insertToken_middle_multiple() {
+    super.test_insertToken_middle_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_insertToken_middle_single() {
+    super.test_insertToken_middle_single();
+  }
+
+  @override
+  @failingTest
+  void test_replaceToken_multiple() {
+    super.test_replaceToken_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_replaceToken_single() {
+    super.test_replaceToken_single();
+  }
+
+  @override
+  @failingTest
+  void test_second_insertion_earlier_in_stream() {
+    super.test_second_insertion_earlier_in_stream();
+  }
+
+  @override
+  @failingTest
+  void test_skip_group() {
+    super.test_skip_group();
+  }
 }
 
 /// Concrete implementation of [TokenStreamRewriterTest] in which
@@ -174,5 +218,6 @@ class TokenStreamRewriterTest_NoPrevious extends TokenStreamRewriterTest {
 /// tokens.
 @reflectiveTest
 class TokenStreamRewriterTest_UsingPrevious extends TokenStreamRewriterTest {
+  @override
   bool get setPrevious => true;
 }
