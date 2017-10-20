@@ -241,8 +241,8 @@ void print(Object o) {}
 abstract class _SyncIterable<T> implements Iterable<T> {}
 
 class _SyncIterator<T> implements Iterator<T> {
-  bool isYieldEach;
   T _current;
+  Iterable<T> _yieldEachIterable;
 }
 
 class _InvocationMirror {}

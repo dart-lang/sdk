@@ -149,10 +149,12 @@ library dart:math:
 
 library dart:core:
   - member print
-  - typedef _SyncGeneratorCallback
   - class _SyncIterable
     - (default constructor)
     - iterator
+  - class _SyncIterator
+    - current
+    - moveNext
   - class _InvocationMirror
     - (default constructor)
     - memberName

@@ -10365,20 +10365,18 @@ AstNode* Parser::ParseYieldStatement() {
     LocalVariable* iterator_param =
         LookupLocalScope(Symbols::IteratorParameter());
     ASSERT(iterator_param != NULL);
-    // Generate :iterator.current = expr;
     AstNode* iterator =
         new (Z) LoadLocalNode(TokenPosition::kNoSource, iterator_param);
-    AstNode* store_current = new (Z) InstanceSetterNode(
-        TokenPosition::kNoSource, iterator,
-        Library::PrivateCoreLibName(Symbols::_current()), expr);
-    yield->AddNode(store_current);
     if (is_yield_each) {
-      // Generate :iterator.isYieldEach = true;
-      AstNode* set_is_yield_each = new (Z)
-          InstanceSetterNode(TokenPosition::kNoSource, iterator,
-                             String::ZoneHandle(Symbols::IsYieldEach().raw()),
-                             new (Z) LiteralNode(TokenPos(), Bool::True()));
-      yield->AddNode(set_is_yield_each);
+      // Generate :iterator._yieldEachIterable = expr;
+      yield->AddNode(new (Z) InstanceSetterNode(
+          TokenPosition::kNoSource, iterator,
+          Library::PrivateCoreLibName(Symbols::_yieldEachIterable()), expr));
+    } else {
+      // Generate :iterator._current = expr;
+      yield->AddNode(new (Z) InstanceSetterNode(
+          TokenPosition::kNoSource, iterator,
+          Library::PrivateCoreLibName(Symbols::_current()), expr));
     }
     AwaitMarkerNode* await_marker = new (Z) AwaitMarkerNode(
         async_temp_scope_, current_block_->scope, TokenPosition::kNoSource);

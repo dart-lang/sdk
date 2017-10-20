@@ -341,8 +341,8 @@ class CoreTypes {
     return _index.getMember('dart:core', '_SyncIterator', '_current');
   }
 
-  Member get syncIteratorIsYieldEach {
-    return _index.getMember('dart:core', '_SyncIterator', 'isYieldEach');
+  Member get syncIteratorYieldEachIterable {
+    return _index.getMember('dart:core', '_SyncIterator', '_yieldEachIterable');
   }
 
   Class get typeClass {

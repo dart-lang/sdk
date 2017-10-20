@@ -217,21 +217,19 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
 
     var statements = <Statement>[];
     if (node.isYieldStar) {
-      var markYieldEach = new ExpressionStatement(new PropertySet(
+      statements.add(new ExpressionStatement(new PropertySet(
           new VariableGet(iteratorVariable),
-          new Name("isYieldEach"),
-          new BoolLiteral(true),
-          helper.syncIteratorIsYieldEach));
-      statements.add(markYieldEach);
+          new Name("_yieldEachIterable", helper.coreLibrary),
+          transformedExpression,
+          helper.syncIteratorYieldEachIterable)));
+    } else {
+      statements.add(new ExpressionStatement(new PropertySet(
+          new VariableGet(iteratorVariable),
+          new Name("_current", helper.coreLibrary),
+          transformedExpression,
+          helper.syncIteratorCurrent)));
     }
 
-    var setCurrentIteratorValue = new ExpressionStatement(new PropertySet(
-        new VariableGet(iteratorVariable),
-        new Name("_current", helper.coreLibrary),
-        transformedExpression,
-        helper.syncIteratorCurrent));
-
-    statements.add(setCurrentIteratorValue);
     statements.add(createContinuationPoint(new BoolLiteral(true)));
     return new Block(statements);
   }
@@ -979,7 +977,7 @@ class HelperNodes {
   final Constructor syncIterableConstructor;
   final Class syncIteratorClass;
   final Member syncIteratorCurrent;
-  final Member syncIteratorIsYieldEach;
+  final Member syncIteratorYieldEachIterable;
 
   HelperNodes._(
       this.asyncErrorWrapper,
@@ -1016,7 +1014,7 @@ class HelperNodes {
       this.syncIterableConstructor,
       this.syncIteratorClass,
       this.syncIteratorCurrent,
-      this.syncIteratorIsYieldEach);
+      this.syncIteratorYieldEachIterable);
 
   factory HelperNodes.fromCoreTypes(CoreTypes coreTypes) {
     return new HelperNodes._(
@@ -1054,6 +1052,6 @@ class HelperNodes {
         coreTypes.syncIterableDefaultConstructor,
         coreTypes.syncIteratorClass,
         coreTypes.syncIteratorCurrent,
-        coreTypes.syncIteratorIsYieldEach);
+        coreTypes.syncIteratorYieldEachIterable);
   }
 }
