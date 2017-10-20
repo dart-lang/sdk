@@ -56,9 +56,9 @@ class BinaryBuilder {
   /// If binary contains metadata section with payloads referencing other nodes
   /// such Kernel binary can't be read lazily because metadata cross references
   /// will not be resolved correctly.
-  bool _noLazyReading = false;
+  bool _disableLazyReading = false;
 
-  BinaryBuilder(this._bytes, [this.filename]);
+  BinaryBuilder(this._bytes, [this.filename, this._disableLazyReading = false]);
 
   fail(String message) {
     throw new ParseError(message,
@@ -373,7 +373,7 @@ class BinaryBuilder {
     readLinkTable(program.root);
 
     _byteOffset = index.binaryOffsetForStringTable;
-    _noLazyReading = _readMetadataSection(program);
+    _disableLazyReading = _readMetadataSection(program) || _disableLazyReading;
 
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<String, Source> uriToSource = readUriToSource();
@@ -828,7 +828,7 @@ class BinaryBuilder {
     // Read small factories up front. Postpone everything else.
     bool readFunctionNodeNow =
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
-            _noLazyReading;
+            _disableLazyReading;
     var function;
     var transformerFlags;
     if (readFunctionNodeNow) {

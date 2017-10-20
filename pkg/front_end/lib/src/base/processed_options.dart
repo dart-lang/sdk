@@ -16,8 +16,7 @@ import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/multi_root_file_system.dart';
-import 'package:kernel/kernel.dart'
-    show Program, loadProgramFromBytes, CanonicalName;
+import 'package:kernel/kernel.dart' show Program, CanonicalName;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart';
 import 'package:package_config/packages.dart' show Packages;
@@ -27,6 +26,8 @@ import 'package:package_config/packages_file.dart' as package_config;
 import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
+
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'libraries_specification.dart';
 
@@ -291,7 +292,11 @@ class ProcessedOptions {
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
   Program loadProgram(List<int> bytes, CanonicalName nameRoot) {
-    return loadProgramFromBytes(bytes, new Program(nameRoot: nameRoot));
+    Program program = new Program(nameRoot: nameRoot);
+    // TODO(ahe): Pass file name to BinaryBuilder.
+    // TODO(ahe): Control lazy loading via an option.
+    new BinaryBuilder(bytes, null, true).readProgram(program);
+    return program;
   }
 
   /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.
