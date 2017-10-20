@@ -23,11 +23,15 @@ import 'native_types.dart';
 ///
 /// Returns `true` if the program compiled without any fatal errors.
 Future<bool> compile(List<String> args) async {
-  var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
-  var argResults = (new ArgParser(allowTrailingOptions: true)
-        ..addOption('out', abbr: 'o', help: 'Output file (required).'))
-      .parse(args);
+  var argParser = new ArgParser(allowTrailingOptions: true)
+    ..addOption('out', abbr: 'o', help: 'Output file (required).');
 
+  addModuleFormatOptions(argParser, singleOutFile: false);
+
+  var argResults = argParser.parse(args);
+
+  var moduleFormat = parseModuleFormatOption(argResults).first;
+  var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
   var succeeded = true;
 
   void errorHandler(CompilationMessage error) {
@@ -53,27 +57,26 @@ Future<bool> compile(List<String> args) async {
     writeProgramToText(program);
     // TODO(jmesserly): Save .dill file so other modules can link in this one.
     //await writeProgramToBinary(program, output);
-    var jsCode = compileToJSModule(program);
+    var jsCode = compileToJSModule(program, moduleFormat);
     new File(output).writeAsStringSync(jsCode);
   }
 
   return succeeded;
 }
 
-String compileToJSModule(Program p) {
+String compileToJSModule(Program p, ModuleFormat format) {
   var compiler = new ProgramCompiler(new NativeTypeSet(p, new CoreTypes(p)));
   var jsModule = compiler.emitProgram(p);
-  return jsProgramToString(jsModule);
+  return jsProgramToString(jsModule, format);
 }
 
-String jsProgramToString(JS.Program moduleTree) {
+String jsProgramToString(JS.Program moduleTree, ModuleFormat format) {
   var opts = new JS.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
   // TODO(jmesserly): Support source maps.
   var printer = new JS.SimpleJavaScriptPrintingContext();
 
-  // TODO(rnystrom): Allow specifying other module formats.
-  var tree = transformModuleFormat(ModuleFormat.amd, moduleTree);
+  var tree = transformModuleFormat(format, moduleTree);
   tree.accept(
       new JS.Printer(opts, printer, localNamer: new JS.TemporaryNamer(tree)));
 
