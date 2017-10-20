@@ -700,12 +700,9 @@ class AstBuilder extends ScopeListener {
 
   void handleLiteralList(
       int count, Token leftBracket, Token constKeyword, Token rightBracket) {
-    // TODO(brianwilkerson): Enable these asserts.
-    // Parser.parseLiteralListSuffix needs to break an index token into two
-    // tokens.
-//    assert(optional('[', leftBracket));
+    assert(optional('[', leftBracket));
     assert(optionalOrNull('const', constKeyword));
-//    assert(optional(']', rightBracket));
+    assert(optional(']', rightBracket));
     debugEvent("LiteralList");
 
     List<Expression> expressions = popList(count);

@@ -4143,11 +4143,12 @@ class Parser {
       listener.handleLiteralList(count, beginToken, constKeyword, token);
       return expect(']', token);
     }
-    // Looking at '[]'.
-    // TODO(brianwilkerson): Split the token into two tokens. Otherwise we're
-    // passing the wrong tokens to `handleLiteralList`.
-    listener.handleLiteralList(0, token, constKeyword, token);
-    return token.next;
+    BeginToken replacement = link(
+        new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.offset),
+        new Token(TokenType.CLOSE_SQUARE_BRACKET, token.offset + 1));
+    rewriter.replaceToken(token, replacement);
+    listener.handleLiteralList(0, replacement, constKeyword, replacement.next);
+    return replacement.next.next;
   }
 
   /// This method parses the portion of a map literal that starts with the left
