@@ -8,6 +8,9 @@
 [ $strong ]
 *: SkipByDesign # tests/language_strong has the strong mode versions of these tests.
 
+[ $compiler == precompiler && $runtime == dart_precompiled && $arch == simarm64 ]
+compile_time_constant_checked_test/none: Skip # Issue 31176
+
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/none: CompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
