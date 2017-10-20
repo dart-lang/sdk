@@ -3924,8 +3924,13 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                             parameter.name())) {
         Value* parameter_value =
             Bind(BuildLoadLocal(parameter, parameter.token_pos()));
+        const String& dst_name =
+            (function.kind() == RawFunction::kImplicitSetter)
+                ? String::ZoneHandle(Z, Field::NameFromSetter(
+                                            String::Handle(Z, function.name())))
+                : parameter.name();
         Do(BuildAssertAssignable(parameter.token_pos(), parameter_value,
-                                 parameter.type(), parameter.name()));
+                                 parameter.type(), dst_name));
       }
       pos++;
     }
