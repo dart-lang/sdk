@@ -42,6 +42,7 @@ export 'kernel_invalid_type_builder.dart' show KernelInvalidTypeBuilder;
 
 import 'package:kernel/ast.dart'
     show
+        Combinator,
         Constructor,
         DartType,
         DynamicType,
@@ -51,6 +52,8 @@ import 'package:kernel/ast.dart'
         TypeParameter;
 
 import '../builder/builder.dart' show LibraryBuilder;
+
+import '../combinator.dart' as fasta;
 
 List<DartType> computeDefaultTypeArguments(LibraryBuilder library,
     List<TypeParameter> typeParameters, List<DartType> arguments) {
@@ -73,4 +76,24 @@ bool isRedirectingGenerativeConstructorImplementation(Constructor constructor) {
   List<Initializer> initializers = constructor.initializers;
   return initializers.length == 1 &&
       initializers.single is RedirectingInitializer;
+}
+
+List<Combinator> toKernelCombinators(List<fasta.Combinator> fastaCombinators) {
+  if (fastaCombinators == null) {
+    // Note: it's safe to return null here as Kernel's LibraryDependency will
+    // convert null to an empty list.
+    return null;
+  }
+
+  List<Combinator> result = new List<Combinator>.filled(
+      fastaCombinators.length, null,
+      growable: true);
+  for (int i = 0; i < fastaCombinators.length; i++) {
+    fasta.Combinator combinator = fastaCombinators[i];
+    List<String> nameList = combinator.names.toList();
+    result[i] = combinator.isShow
+        ? new Combinator.show(nameList)
+        : new Combinator.hide(nameList);
+  }
+  return result;
 }

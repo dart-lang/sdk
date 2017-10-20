@@ -6,7 +6,6 @@ library fasta.kernel_library_builder;
 
 import 'dart:convert' show JSON;
 
-import 'package:front_end/src/fasta/combinator.dart' as fasta;
 import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
 import 'package:kernel/ast.dart';
@@ -77,7 +76,8 @@ import 'kernel_builder.dart'
         Scope,
         TypeBuilder,
         TypeVariableBuilder,
-        compareProcedures;
+        compareProcedures,
+        toKernelCombinators;
 
 import 'metadata_collector.dart';
 
@@ -786,16 +786,6 @@ class KernelLibraryBuilder
   @override
   Library build(LibraryBuilder coreLibrary) {
     super.build(coreLibrary);
-
-    List<Combinator> toKernelCombinators(
-        Iterable<fasta.Combinator> fastaCombinators) {
-      return fastaCombinators?.map((c) {
-        List<String> nameList = c.names.toList();
-        return c.isShow
-            ? new Combinator.show(nameList)
-            : new Combinator.hide(nameList);
-      })?.toList();
-    }
 
     for (Import import in imports) {
       Library importedLibrary = import.imported.target;
