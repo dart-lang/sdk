@@ -949,12 +949,19 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     typeNeeded = inferrer.listener.indexAssignEnter(desugared, typeContext) ||
         typeNeeded;
     var receiverType = _inferReceiver(inferrer);
+    InvocationExpression read = this.read;
     if (read != null) {
       var readMember =
           inferrer.findMethodInvocationMember(receiverType, read, silent: true);
       var calleeFunctionType =
           inferrer.getCalleeFunctionType(readMember, receiverType, false);
-      _storeLetType(inferrer, read, calleeFunctionType.returnType);
+      var readType = calleeFunctionType.returnType;
+      var desugaredInvocation = read is MethodInvocation ? read : null;
+      var checkReturn = inferrer.preCheckInvocationContravariance(receiver,
+          receiverType, readMember, desugaredInvocation, read.arguments, read);
+      var replacedRead = inferrer.handleInvocationContravariance(
+          checkReturn, desugaredInvocation, read.arguments, read, readType);
+      _storeLetType(inferrer, replacedRead, readType);
     }
     var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
     // To replicate analyzer behavior, we base type inference on the write

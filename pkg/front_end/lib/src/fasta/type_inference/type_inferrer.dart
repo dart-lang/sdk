@@ -544,6 +544,35 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
+  /// Adds an "as" check to a [MethodInvocation] if necessary due to
+  /// contravariance.
+  ///
+  /// The returned expression is the [AsExpression], if one was added; otherwise
+  /// it is the [MethodInvocation].
+  Expression handleInvocationContravariance(
+      bool checkReturn,
+      MethodInvocation desugaredInvocation,
+      Arguments arguments,
+      Expression expression,
+      DartType inferredType) {
+    var expressionToReplace = desugaredInvocation ?? expression;
+    if (checkReturn) {
+      var parent = expressionToReplace.parent;
+      var replacement = new AsExpression(expressionToReplace, inferredType)
+        ..isTypeError = true;
+      parent.replaceChild(expressionToReplace, replacement);
+      if (instrumentation != null) {
+        int offset = arguments.fileOffset == -1
+            ? expression.fileOffset
+            : arguments.fileOffset;
+        instrumentation.record(Uri.parse(uri), offset, 'checkReturn',
+            new InstrumentationValueForType(inferredType));
+      }
+      return replacement;
+    }
+    return expressionToReplace;
+  }
+
   /// Determines the dispatch category of a [PropertyGet] and adds an "as" check
   /// if necessary due to contravariance.
   void handlePropertyGetContravariance(
@@ -904,67 +933,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     var calleeType =
         getCalleeFunctionType(interfaceMember, receiverType, !isImplicitCall);
-    DispatchCategory callKind;
-    if (interfaceMember is Field ||
-        interfaceMember is Procedure &&
-            interfaceMember.kind == ProcedureKind.Getter) {
-      var getType = getCalleeType(interfaceMember, receiverType);
-      if (getType is DynamicType) {
-        callKind = DispatchCategory.dynamicDispatch;
-      } else {
-        callKind = DispatchCategory.closure;
-      }
-    } else if (receiver is ThisExpression) {
-      callKind = DispatchCategory.viaThis;
-    } else if (identical(interfaceMember, 'call')) {
-      callKind = DispatchCategory.closure;
-    } else if (interfaceMember == null) {
-      callKind = DispatchCategory.dynamicDispatch;
-    } else {
-      callKind = DispatchCategory.interface;
-    }
-    desugaredInvocation?.dispatchCategory = callKind;
-    bool checkReturn = false;
-    if (callKind == DispatchCategory.interface &&
-        interfaceMember is Procedure) {
-      checkReturn = interfaceMember.isGenericContravariant;
-    }
+    bool checkReturn = preCheckInvocationContravariance(receiver, receiverType,
+        interfaceMember, desugaredInvocation, arguments, expression);
     var inferredType = inferInvocation(typeContext, typeNeeded || checkReturn,
         fileOffset, calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
-    if (checkReturn) {
-      var expressionToReplace = desugaredInvocation ?? expression;
-      expressionToReplace.parent.replaceChild(
-          expressionToReplace,
-          new AsExpression(expressionToReplace, inferredType)
-            ..isTypeError = true);
-    }
-    if (instrumentation != null) {
-      int offset = arguments.fileOffset == -1
-          ? expression.fileOffset
-          : arguments.fileOffset;
-      switch (callKind) {
-        case DispatchCategory.closure:
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
-              new InstrumentationValueLiteral('closure'));
-          break;
-        case DispatchCategory.dynamicDispatch:
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
-              new InstrumentationValueLiteral('dynamic'));
-          break;
-        case DispatchCategory.viaThis:
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
-              new InstrumentationValueLiteral('this'));
-          break;
-        default:
-          break;
-      }
-      if (checkReturn) {
-        instrumentation.record(Uri.parse(uri), offset, 'checkReturn',
-            new InstrumentationValueForType(inferredType));
-      }
-    }
+    handleInvocationContravariance(
+        checkReturn, desugaredInvocation, arguments, expression, inferredType);
     listener.methodInvocationExit(
         expression, arguments, isImplicitCall, inferredType);
     return inferredType;
@@ -1027,6 +1003,65 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement(Statement statement);
+
+  /// Determines the dispatch category of a [MethodInvocation] and returns a
+  /// boolean indicating whether an "as" check will need to be added due to
+  /// contravariance.
+  bool preCheckInvocationContravariance(
+      Expression receiver,
+      DartType receiverType,
+      Object interfaceMember,
+      MethodInvocation desugaredInvocation,
+      Arguments arguments,
+      Expression expression) {
+    DispatchCategory callKind;
+    if (interfaceMember is Field ||
+        interfaceMember is Procedure &&
+            interfaceMember.kind == ProcedureKind.Getter) {
+      var getType = getCalleeType(interfaceMember, receiverType);
+      if (getType is DynamicType) {
+        callKind = DispatchCategory.dynamicDispatch;
+      } else {
+        callKind = DispatchCategory.closure;
+      }
+    } else if (receiver is ThisExpression) {
+      callKind = DispatchCategory.viaThis;
+    } else if (identical(interfaceMember, 'call')) {
+      callKind = DispatchCategory.closure;
+    } else if (interfaceMember == null) {
+      callKind = DispatchCategory.dynamicDispatch;
+    } else {
+      callKind = DispatchCategory.interface;
+    }
+    desugaredInvocation?.dispatchCategory = callKind;
+    bool checkReturn = false;
+    if (callKind == DispatchCategory.interface &&
+        interfaceMember is Procedure) {
+      checkReturn = interfaceMember.isGenericContravariant;
+    }
+    if (instrumentation != null) {
+      int offset = arguments.fileOffset == -1
+          ? expression.fileOffset
+          : arguments.fileOffset;
+      switch (callKind) {
+        case DispatchCategory.closure:
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('closure'));
+          break;
+        case DispatchCategory.dynamicDispatch:
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('dynamic'));
+          break;
+        case DispatchCategory.viaThis:
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('this'));
+          break;
+        default:
+          break;
+      }
+    }
+    return checkReturn;
+  }
 
   /// If the given [type] is a [TypeParameterType], resolve it to its bound.
   DartType resolveTypeParameter(DartType type) {
