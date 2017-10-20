@@ -159,7 +159,6 @@ regress/issue_29987: Crash # Issue 30997.
 
 runtime_checks/contravariant_getter: Fail
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
-runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Fail
 
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
