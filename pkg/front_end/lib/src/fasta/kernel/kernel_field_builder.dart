@@ -91,7 +91,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void prepareTopLevelInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
-    if (!library.disableTypeInference && isEligibleForInference) {
+    if (isEligibleForInference) {
       var memberScope =
           currentClass == null ? library.scope : currentClass.scope;
       var typeInferenceEngine = library.loader.typeInferenceEngine;

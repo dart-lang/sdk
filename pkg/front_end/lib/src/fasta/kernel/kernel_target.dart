@@ -260,8 +260,10 @@ class KernelTarget extends TargetImplementation {
       }
       loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
-      loader.prepareTopLevelInference(sourceClasses);
-      loader.performTopLevelInference(sourceClasses);
+      if (!loader.target.disableTypeInference) {
+        loader.prepareTopLevelInference(sourceClasses);
+        loader.performTopLevelInference(sourceClasses);
+      }
     } on deprecated_InputError catch (e) {
       handleInputError(e, isFullProgram: false);
     } catch (e, s) {
