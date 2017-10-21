@@ -160,6 +160,9 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
         args.add('--no-background-compilation');
       }
     }
+    if (_isStrong) {
+      args.add('--strong');
+    }
     if (_isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
