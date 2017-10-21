@@ -197,6 +197,20 @@ class ClosureContext {
   }
 }
 
+/// Enum denoting the kinds of contravariance check that might need to be
+/// inserted for a method call.
+enum MethodContravarianceCheckKind {
+  /// No contravariance check is needed.
+  none,
+
+  /// The return value from the method call needs to be checked.
+  checkMethodReturn,
+
+  /// The method call needs to be desugared into a getter call, followed by an
+  /// "as" check, followed by an invocation of the resulting function object.
+  checkGetterReturn,
+}
+
 /// Keeps track of the local state for the type inference that occurs during
 /// compilation of a single method body or top level initializer.
 ///
@@ -550,25 +564,46 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// The returned expression is the [AsExpression], if one was added; otherwise
   /// it is the [MethodInvocation].
   Expression handleInvocationContravariance(
-      bool checkReturn,
+      MethodContravarianceCheckKind checkKind,
       MethodInvocation desugaredInvocation,
       Arguments arguments,
       Expression expression,
-      DartType inferredType) {
+      DartType inferredType,
+      FunctionType functionType) {
     var expressionToReplace = desugaredInvocation ?? expression;
-    if (checkReturn) {
-      var parent = expressionToReplace.parent;
-      var replacement = new AsExpression(expressionToReplace, inferredType)
-        ..isTypeError = true;
-      parent.replaceChild(expressionToReplace, replacement);
-      if (instrumentation != null) {
-        int offset = arguments.fileOffset == -1
-            ? expression.fileOffset
-            : arguments.fileOffset;
-        instrumentation.record(Uri.parse(uri), offset, 'checkReturn',
-            new InstrumentationValueForType(inferredType));
-      }
-      return replacement;
+    switch (checkKind) {
+      case MethodContravarianceCheckKind.checkMethodReturn:
+        var parent = expressionToReplace.parent;
+        var replacement = new AsExpression(expressionToReplace, inferredType)
+          ..isTypeError = true;
+        parent.replaceChild(expressionToReplace, replacement);
+        if (instrumentation != null) {
+          int offset = arguments.fileOffset == -1
+              ? expression.fileOffset
+              : arguments.fileOffset;
+          instrumentation.record(Uri.parse(uri), offset, 'checkReturn',
+              new InstrumentationValueForType(inferredType));
+        }
+        return replacement;
+      case MethodContravarianceCheckKind.checkGetterReturn:
+        var parent = expressionToReplace.parent;
+        var propertyGet = new PropertyGet(desugaredInvocation.receiver,
+            desugaredInvocation.name, desugaredInvocation.interfaceTarget);
+        var asExpression = new AsExpression(propertyGet, functionType)
+          ..isTypeError = true;
+        var replacement = new MethodInvocation(
+            asExpression, callName, desugaredInvocation.arguments);
+        parent.replaceChild(expressionToReplace, replacement);
+        if (instrumentation != null) {
+          int offset = arguments.fileOffset == -1
+              ? expression.fileOffset
+              : arguments.fileOffset;
+          instrumentation.record(Uri.parse(uri), offset, 'checkGetterReturn',
+              new InstrumentationValueForType(functionType));
+        }
+        return replacement;
+      case MethodContravarianceCheckKind.none:
+        break;
     }
     return expressionToReplace;
   }
@@ -933,14 +968,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     var calleeType =
         getCalleeFunctionType(interfaceMember, receiverType, !isImplicitCall);
-    bool checkReturn = preCheckInvocationContravariance(receiver, receiverType,
+    var checkKind = preCheckInvocationContravariance(receiver, receiverType,
         interfaceMember, desugaredInvocation, arguments, expression);
-    var inferredType = inferInvocation(typeContext, typeNeeded || checkReturn,
-        fileOffset, calleeType, calleeType.returnType, arguments,
+    var inferredType = inferInvocation(
+        typeContext,
+        typeNeeded || checkKind != MethodContravarianceCheckKind.none,
+        fileOffset,
+        calleeType,
+        calleeType.returnType,
+        arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
-    handleInvocationContravariance(
-        checkReturn, desugaredInvocation, arguments, expression, inferredType);
+    handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
+        expression, inferredType, calleeType);
     listener.methodInvocationExit(
         expression, arguments, isImplicitCall, inferredType);
     return inferredType;
@@ -1007,7 +1047,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Determines the dispatch category of a [MethodInvocation] and returns a
   /// boolean indicating whether an "as" check will need to be added due to
   /// contravariance.
-  bool preCheckInvocationContravariance(
+  MethodContravarianceCheckKind preCheckInvocationContravariance(
       Expression receiver,
       DartType receiverType,
       Object interfaceMember,
@@ -1015,6 +1055,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Arguments arguments,
       Expression expression) {
     DispatchCategory callKind;
+    var checkKind = MethodContravarianceCheckKind.none;
     if (interfaceMember is Field ||
         interfaceMember is Procedure &&
             interfaceMember.kind == ProcedureKind.Getter) {
@@ -1023,6 +1064,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         callKind = DispatchCategory.dynamicDispatch;
       } else {
         callKind = DispatchCategory.closure;
+        if (receiver is! ThisExpression) {
+          if (interfaceMember is Field &&
+              interfaceMember.isGenericContravariant) {
+            checkKind = MethodContravarianceCheckKind.checkGetterReturn;
+          } else if (interfaceMember is Procedure &&
+              interfaceMember.isGenericContravariant) {
+            checkKind = MethodContravarianceCheckKind.checkGetterReturn;
+          }
+        }
       }
     } else if (receiver is ThisExpression) {
       callKind = DispatchCategory.viaThis;
@@ -1032,13 +1082,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       callKind = DispatchCategory.dynamicDispatch;
     } else {
       callKind = DispatchCategory.interface;
+      if (interfaceMember is Procedure &&
+          interfaceMember.isGenericContravariant) {
+        checkKind = MethodContravarianceCheckKind.checkMethodReturn;
+      }
     }
     desugaredInvocation?.dispatchCategory = callKind;
-    bool checkReturn = false;
-    if (callKind == DispatchCategory.interface &&
-        interfaceMember is Procedure) {
-      checkReturn = interfaceMember.isGenericContravariant;
-    }
     if (instrumentation != null) {
       int offset = arguments.fileOffset == -1
           ? expression.fileOffset
@@ -1060,7 +1109,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           break;
       }
     }
-    return checkReturn;
+    return checkKind;
   }
 
   /// If the given [type] is a [TypeParameterType], resolve it to its bound.

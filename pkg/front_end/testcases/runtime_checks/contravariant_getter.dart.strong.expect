@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class C<T extends core::Object> extends core::Object {
+  generic-contravariant field (self::C::T) → void y = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method f(generic-covariant-impl generic-covariant-interface self::C::T value) → void {
+    this.{self::C::y}(value);
+  }
+}
+static method g(self::C<core::num> c) → void {
+  (c.{self::C::y} as{TypeError} (core::num) → void).call(1.5);
+}
+static method main() → void {}

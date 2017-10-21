@@ -15,7 +15,7 @@ class C<T> {
 }
 
 void g(C<num> c) {
-  c. /*@checkReturn=(num) -> void*/ y /*@callKind=closure*/ (1.5);
+  c.y /*@checkGetterReturn=(num) -> void*/ /*@callKind=closure*/ (1.5);
 }
 
 void main() {}

@@ -32,6 +32,7 @@ class ValidatingInstrumentation implements Instrumentation {
     'checks': const [
       'callKind',
       'covariance',
+      'checkGetterReturn',
       'checkReturn',
       'forwardingStub',
     ],

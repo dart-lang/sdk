@@ -433,6 +433,8 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
                 combinerMember, writeContext);
       }
       DartType combinedType;
+      var combinerType =
+          inferrer.getCalleeFunctionType(combinerMember, writeContext, false);
       if (isPostIncDec) {
         combinedType = inferredType;
       } else {
@@ -449,15 +451,13 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
           combinedType = inferrer.typeSchemaEnvironment
               .getTypeOfOverloadedArithmetic(inferredType, rhsType);
         } else {
-          combinedType = inferrer
-              .getCalleeFunctionType(combinerMember, writeContext, false)
-              .returnType;
+          combinedType = combinerType.returnType;
         }
       }
-      var checkReturn = inferrer.preCheckInvocationContravariance(read,
-          readType, combinerMember, combiner, combiner.arguments, combiner);
-      var replacedCombiner = inferrer.handleInvocationContravariance(
-          checkReturn, combiner, combiner.arguments, combiner, combinedType);
+      var checkKind = inferrer.preCheckInvocationContravariance(read, readType,
+          combinerMember, combiner, combiner.arguments, combiner);
+      var replacedCombiner = inferrer.handleInvocationContravariance(checkKind,
+          combiner, combiner.arguments, combiner, combinedType, combinerType);
       _storeLetType(inferrer, replacedCombiner, combinedType);
       return combinedType;
     } else {
@@ -963,10 +963,15 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
           inferrer.getCalleeFunctionType(readMember, receiverType, false);
       readType = calleeFunctionType.returnType;
       var desugaredInvocation = read is MethodInvocation ? read : null;
-      var checkReturn = inferrer.preCheckInvocationContravariance(receiver,
+      var checkKind = inferrer.preCheckInvocationContravariance(receiver,
           receiverType, readMember, desugaredInvocation, read.arguments, read);
       var replacedRead = inferrer.handleInvocationContravariance(
-          checkReturn, desugaredInvocation, read.arguments, read, readType);
+          checkKind,
+          desugaredInvocation,
+          read.arguments,
+          read,
+          readType,
+          calleeFunctionType);
       _storeLetType(inferrer, replacedRead, readType);
     }
     var writeMember = inferrer.findMethodInvocationMember(receiverType, write);

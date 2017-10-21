@@ -110,8 +110,8 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     if (staticElement is PropertyAccessorElement) {
       // Method invocation resolves to a getter; treat it as a get followed by a
       // function invocation.
-      _annotateCheckReturn(
-          getImplicitOperationCast(node), node.methodName.offset);
+      _annotateCheckGetterReturn(
+          getImplicitOperationCast(node), node.argumentList.offset);
       _annotateCallKind(null, isThis, isDynamicInvoke(node.methodName), null,
           null, node.argumentList.offset);
     } else {
@@ -221,6 +221,19 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       }
     }
     _recordCallKind(offset, 'closure');
+  }
+
+  /// Generates the appropriate `@checkGetterReturn` annotation (if any) for a
+  /// call site.
+  ///
+  /// An annotation of `@checkGetterReturn=type` indicates that a method call
+  /// desugars to a getter invocation followed by a function invocation; the
+  /// value returned by the getter will have to be checked to make sure it is an
+  /// instance of the given type.
+  void _annotateCheckGetterReturn(DartType castType, int offset) {
+    if (castType != null) {
+      _recordCheckGetterReturn(offset, castType);
+    }
   }
 
   /// Generates the appropriate `@checkReturn` annotation (if any) for a call
@@ -410,6 +423,11 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   void _recordCallKind(int offset, String kind) {
     _instrumentation.record(
         uri, offset, 'callKind', new fasta.InstrumentationValueLiteral(kind));
+  }
+
+  void _recordCheckGetterReturn(int offset, DartType castType) {
+    _instrumentation.record(uri, offset, 'checkGetterReturn',
+        new InstrumentationValueForType(castType, _elementNamer));
   }
 
   void _recordCheckReturn(int offset, DartType castType) {
