@@ -103,7 +103,7 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
 
 /// A fake absolute directory used as the root of a memory-file system in the
 /// helpers above.
-Uri _defaultDir = Uri.parse('file:///a/b/c/');
+Uri _defaultDir = Uri.parse('org-dartlang-test:///a/b/c/');
 
 /// Convert relative file paths into an absolute Uri as expected by the test
 /// helpers above.

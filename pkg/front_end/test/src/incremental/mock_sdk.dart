@@ -249,8 +249,8 @@ class _InvocationMirror {}
 ''';
 
 /// Create SDK libraries which are used by Fasta to perform kernel generation.
-/// The root of the SDK is `file:///sdk`, it will contain a libraries
-/// specification file at `lib/libraries.json`.
+/// The root of the SDK is `org-dartlang-test:///sdk`, it will contain a
+/// libraries specification file at `lib/libraries.json`.
 ///
 /// Returns the [TargetLibrariesSpecification] whose contents are in
 /// libraries.json.
@@ -258,12 +258,14 @@ TargetLibrariesSpecification createSdkFiles(MemoryFileSystem fileSystem) {
   Map<String, LibraryInfo> dartLibraries = {};
   void addSdkLibrary(String name, String contents) {
     String path = '$name/$name.dart';
-    Uri uri = Uri.parse('file:///sdk/lib/$path');
+    Uri uri = Uri.parse('org-dartlang-test:///sdk/lib/$path');
     fileSystem.entityForUri(uri).writeAsStringSync(contents);
     dartLibraries[name] = new LibraryInfo(name, uri, const []);
   }
 
-  fileSystem.entityForUri(Uri.parse('file:///sdk/')).createDirectory();
+  fileSystem
+      .entityForUri(Uri.parse('org-dartlang-test:///sdk/'))
+      .createDirectory();
 
   addSdkLibrary('core', _CORE);
   addSdkLibrary('async', _ASYNC);
@@ -294,7 +296,7 @@ class ExternalName {
   var targetSpec = new TargetLibrariesSpecification(null, dartLibraries);
   var spec = new LibrariesSpecification({'none': targetSpec, 'vm': targetSpec});
 
-  Uri uri = Uri.parse('file:///sdk/lib/libraries.json');
+  Uri uri = Uri.parse('org-dartlang-test:///sdk/lib/libraries.json');
   fileSystem.entityForUri(uri).writeAsStringSync(spec.toJsonString(uri));
   return targetSpec;
 }

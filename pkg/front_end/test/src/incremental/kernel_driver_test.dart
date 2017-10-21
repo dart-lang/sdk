@@ -33,7 +33,7 @@ main() {
 @reflectiveTest
 class KernelDriverTest {
   /// Virtual filesystem for testing.
-  final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+  final fileSystem = new MemoryFileSystem(Uri.parse('org-dartlang-test:///'));
 
   /// The object under test.
   KernelDriver driver;
@@ -417,7 +417,7 @@ Future<String> b;
     // The result does not include SDK libraries.
     _assertLibraryUris(result,
         includes: [bUri],
-        excludes: [Uri.parse('dart:core'), Uri.parse('dart:core')]);
+        excludes: [Uri.parse('dart:core'), Uri.parse('dart:async')]);
 
     // The types of top-level variables are resolved.
     var library = _getLibrary(result, bUri);
@@ -688,8 +688,8 @@ import "dart:core" as core;
 
 static field core::int a = 1;
 static field core::int c = self::b;
-static field core::int b = 2 /* from file:///test/lib/bar.dart */;
-static field core::int d = self::a /* from file:///test/lib/bar.dart */;
+static field core::int b = 2 /* from org-dartlang-test:///test/lib/bar.dart */;
+static field core::int d = self::a /* from org-dartlang-test:///test/lib/bar.dart */;
 static method main() → void {}
 ''');
 
@@ -710,8 +710,8 @@ import "dart:core" as core;
 
 static field core::int a = 1;
 static field core::double c = self::b;
-static field core::double b = 2.3 /* from file:///test/lib/bar.dart */;
-static field core::int d = self::a /* from file:///test/lib/bar.dart */;
+static field core::double b = 2.3 /* from org-dartlang-test:///test/lib/bar.dart */;
+static field core::int d = self::a /* from org-dartlang-test:///test/lib/bar.dart */;
 static method main() → void {}
 ''');
     }
@@ -735,8 +735,8 @@ import "dart:core" as core;
 
 static field core::String a = "aaa";
 static field core::double c = self::b;
-static field core::double b = 2.3 /* from file:///test/lib/bar.dart */;
-static field core::String d = self::a /* from file:///test/lib/bar.dart */;
+static field core::double b = 2.3 /* from org-dartlang-test:///test/lib/bar.dart */;
+static field core::String d = self::a /* from org-dartlang-test:///test/lib/bar.dart */;
 static method main() → void {}
 ''');
     }
@@ -784,7 +784,7 @@ import 'b.dart';
   /// Write the given [text] of the file with the given [path] into the
   /// virtual filesystem.  Return the URI of the file.
   Uri writeFile(String path, String text) {
-    Uri uri = Uri.parse('file://$path');
+    Uri uri = Uri.parse('org-dartlang-test://$path');
     fileSystem.entityForUri(uri).writeAsStringSync(text);
     return uri;
   }
@@ -830,7 +830,7 @@ import 'b.dart';
   Future<List<int>> _computeSdkOutlineBytes() async {
     var options = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..sdkRoot = Uri.parse('file:///sdk/')
+      ..sdkRoot = Uri.parse('org-dartlang-test:///sdk/')
       ..compileSdk = true
       ..chaseDependencies = true
       ..strongMode = true
@@ -892,6 +892,6 @@ import 'b.dart';
   /// Return the [Uri] for the given Posix [path].
   static Uri _folderUri(String path) {
     if (!path.endsWith('/')) path += '/';
-    return Uri.parse('file://$path');
+    return Uri.parse('org-dartlang-test://$path');
   }
 }

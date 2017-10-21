@@ -94,8 +94,9 @@ class _WalkerNode extends Node<_WalkerNode> {
   Future<List<_WalkerNode>> computeDependencies() async {
     var dependencies = <_WalkerNode>[];
     // TODO(paulberry): add error recovery if the file can't be read.
-    var resolvedUri =
-        uri.scheme == 'file' ? uri : walker.uriTranslator.translate(uri);
+    var resolvedUri = uri.scheme == 'dart' || uri.scheme == 'package'
+        ? walker.uriTranslator.translate(uri)
+        : uri;
     if (resolvedUri == null) {
       // TODO(paulberry): If an error reporter was provided, report the error
       // in the proper way and continue.

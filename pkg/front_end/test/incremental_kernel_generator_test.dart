@@ -27,7 +27,7 @@ main() {
 @reflectiveTest
 class IncrementalKernelGeneratorTest {
   /// Virtual filesystem for testing.
-  final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+  final fileSystem = new MemoryFileSystem(Uri.parse('org-dartlang-test:///'));
 
   /// The used file watcher.
   WatchUsedFilesFn watchFn = (uri, used) {};
@@ -50,12 +50,14 @@ class IncrementalKernelGeneratorTest {
 //      ..logger = new PerformanceLog(stdout)
       ..strongMode = true
       ..chaseDependencies = true
-      ..librariesSpecificationUri = Uri.parse('file:///sdk/lib/libraries.json')
+      ..librariesSpecificationUri =
+          Uri.parse('org-dartlang-test:///sdk/lib/libraries.json')
       ..sdkSummary = sdkOutlineUri
       ..embedSourceText = embedSourceText;
 
     if (setPackages) {
-      compilerOptions.packagesFileUri = Uri.parse('file:///test/.packages');
+      compilerOptions.packagesFileUri =
+          Uri.parse('org-dartlang-test:///test/.packages');
     }
 
     incrementalKernelGenerator = await IncrementalKernelGenerator
@@ -230,7 +232,7 @@ part of lib;
     createSdkFiles(fileSystem);
     List<int> sdkOutlineBytes = await _computeSdkOutlineBytes();
 
-    Uri sdkOutlineUri = Uri.parse('file:///sdk/outline.dill');
+    Uri sdkOutlineUri = Uri.parse('org-dartlang-test:///sdk/outline.dill');
     fileSystem.entityForUri(sdkOutlineUri).writeAsBytesSync(sdkOutlineBytes);
 
     writeFile('/test/.packages', 'test:lib/');
@@ -596,7 +598,7 @@ import 'a.dart';
   /// Write the given [text] of the file with the given [path] into the
   /// virtual filesystem.  Return the URI of the file.
   Uri writeFile(String path, String text) {
-    Uri uri = Uri.parse('file://$path');
+    Uri uri = Uri.parse('org-dartlang-test://$path');
     fileSystem.entityForUri(uri).writeAsStringSync(text);
     return uri;
   }
@@ -645,7 +647,7 @@ import 'a.dart';
   Future<List<int>> _computeSdkOutlineBytes() async {
     var options = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..sdkRoot = Uri.parse('file:///sdk/')
+      ..sdkRoot = Uri.parse('org-dartlang-test:///sdk/')
       ..compileSdk = true
       ..chaseDependencies = true
       ..strongMode = true;

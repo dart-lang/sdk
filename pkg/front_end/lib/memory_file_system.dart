@@ -34,6 +34,13 @@ class MemoryFileSystem implements FileSystem {
         this, currentDirectory.resolveUri(uri).normalizePath());
   }
 
+  String get debugString {
+    var sb = new StringBuffer();
+    _files.forEach((uri, _) => sb.write("- $uri\n"));
+    _directories.forEach((uri) => sb.write("- $uri\n"));
+    return '$sb';
+  }
+
   static Uri _addTrailingSlash(Uri uri) {
     if (!uri.path.endsWith('/')) {
       uri = uri.replace(path: uri.path + '/');
