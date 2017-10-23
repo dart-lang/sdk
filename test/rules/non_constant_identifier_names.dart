@@ -7,6 +7,13 @@
 String YO = ''; //LINT
 const Z = 4; //OK
 
+//OK (#687):
+var cell_0_0;
+var cell_0_1;
+var cell_1_0;
+var cell_1_1;
+var cell_10_11;
+
 abstract class A {
   int _x; //OK
   int __x; //OK

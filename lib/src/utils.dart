@@ -7,7 +7,7 @@ import 'package:linter/src/ast.dart';
 final _identifier = new RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
 
 final _lowerCamelCase =
-    new RegExp(r'^(_)*[?$a-z][a-z0-9?$]*([A-Z][a-z0-9?$]*)*$');
+    new RegExp(r'^(_)*[?$a-z][a-z0-9?$]*(([A-Z][a-z0-9?$]*)|([_][0-9][a-z0-9?$]*))*$');
 
 final _lowerCaseUnderScore = new RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
 
