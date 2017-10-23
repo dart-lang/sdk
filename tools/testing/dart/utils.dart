@@ -201,6 +201,38 @@ List<String> decodeLines(List<int> output) {
       .split('\n');
 }
 
+String indent(String string, int numSpaces) {
+  var spaces = new List.filled(numSpaces, ' ').join('');
+  return string
+      .replaceAll('\r\n', '\n')
+      .split('\n')
+      .map((line) => "$spaces$line")
+      .join('\n');
+}
+
+/// Convert [duration] to a short but precise human-friendly string.
+String niceTime(Duration duration) {
+  String digits(int count, int n, int period) {
+    n = n.remainder(period).toInt();
+    return n.toString().padLeft(count, "0");
+  }
+
+  var minutes = digits(2, duration.inMinutes, Duration.MINUTES_PER_HOUR);
+  var seconds = digits(2, duration.inSeconds, Duration.SECONDS_PER_MINUTE);
+  var millis =
+      digits(6, duration.inMilliseconds, Duration.MILLISECONDS_PER_SECOND);
+
+  if (duration.inHours >= 1) {
+    return "${duration.inHours}:${minutes}:${seconds}s";
+  } else if (duration.inMinutes >= 1) {
+    return "${minutes}:${seconds}.${millis}s";
+  } else if (duration.inSeconds >= 1) {
+    return "${seconds}.${millis}s";
+  } else {
+    return "${duration.inMilliseconds}ms";
+  }
+}
+
 // This function is pretty stupid and only puts quotes around an argument if
 // it the argument contains a space.
 String escapeCommandLineArgument(String argument) {

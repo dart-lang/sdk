@@ -394,6 +394,7 @@ class TestFailurePrinter extends EventListener {
   final Formatter _formatter;
   final _failureSummary = <String>[];
   int _failedTests = 0;
+  int _passedTests = 0;
 
   TestFailurePrinter(this._printSummary, [this._formatter = Formatter.normal]);
 
@@ -409,21 +410,27 @@ class TestFailurePrinter extends EventListener {
         _failureSummary.addAll(lines);
         _failureSummary.add('');
       }
+    } else {
+      _passedTests++;
     }
   }
 
   void allDone() {
-    if (_printSummary) {
-      if (!_failureSummary.isEmpty) {
-        print('\n=== Failure summary:\n');
-        for (var line in _failureSummary) {
-          print(line);
-        }
-        print('');
+    if (!_printSummary || _failureSummary.isEmpty) return;
 
-        print(_buildSummaryEnd(_failedTests));
-      }
+    // Don't bother showing the summary if it's longer than the number of lines
+    // of successful test output. The benefit of the summary is that it saves
+    // you from scrolling past lots of passed tests to find the few failures.
+    // If most of the output *is* failures, showing them *twice* just makes it
+    // worse.
+    if (_passedTests <= _failureSummary.length) return;
+
+    print('\n=== Failure summary:\n');
+    for (var line in _failureSummary) {
+      print(line);
     }
+    print('');
+    print(_buildSummaryEnd(_formatter, _failedTests));
   }
 }
 
@@ -558,7 +565,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
       }
       print('');
     }
-    print(_buildSummaryEnd(_failedTests));
+    print(_buildSummaryEnd(Formatter.normal, _failedTests));
   }
 }
 
@@ -568,34 +575,76 @@ String _timeString(Duration duration) {
   return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
 }
 
+/// Builds and formats the failure output for a failed test.
+class OutputWriter {
+  final Formatter _formatter;
+  final List<String> _lines;
+  String _pendingSection;
+  String _pendingSubsection;
+
+  OutputWriter(this._formatter, this._lines);
+
+  void section(String name) {
+    _pendingSection = name;
+    _pendingSubsection = null;
+  }
+
+  void subsection(String name) {
+    _pendingSubsection = name;
+  }
+
+  void write(String line) {
+    _flushSection();
+    _lines.add(line);
+  }
+
+  void writeAll(Iterable<String> lines) {
+    if (lines.isEmpty) return;
+    _flushSection();
+    _lines.addAll(lines);
+  }
+
+  /// Writes the current section header.
+  void _flushSection() {
+    if (_pendingSection != null) {
+      if (_lines.isNotEmpty) _lines.add("");
+      _lines.add(_formatter.section("--- $_pendingSection:"));
+      _pendingSection = null;
+    }
+
+    if (_pendingSubsection != null) {
+      _lines.add("");
+      _lines.add(_formatter.section("$_pendingSubsection:"));
+      _pendingSubsection = null;
+    }
+  }
+}
+
 List<String> _buildFailureOutput(TestCase test,
     [Formatter formatter = Formatter.normal]) {
-  var output = [
-    '',
-    formatter.failed('FAILED: ${test.configurationString} ${test.displayName}')
-  ];
+  var lines = <String>[];
+  var output = new OutputWriter(formatter, lines);
 
-  var expected = new StringBuffer();
-  expected.write('Expected: ');
-  for (var expectation in test.expectedOutcomes) {
-    expected.write('$expectation ');
-  }
+  output.write('');
+  output.write(formatter
+      .failed('FAILED: ${test.configurationString} ${test.displayName}'));
 
-  output.add(expected.toString());
-  output.add('Actual: ${test.result}');
+  output.write('Expected: ${test.expectedOutcomes.join(" ")}');
+  output.write('Actual: ${test.result}');
+
+  var ranAllCommands = test.commandOutputs.length == test.commands.length;
   if (!test.lastCommandOutput.hasTimedOut) {
-    if (test.commandOutputs.length != test.commands.length &&
-        !test.expectCompileError) {
-      output.add('Unexpected compile-time error.');
+    if (!ranAllCommands && !test.expectCompileError) {
+      output.write('Unexpected compile error.');
     } else {
       if (test.expectCompileError) {
-        output.add('Compile-time error expected.');
+        output.write('Missing expected compile error.');
       }
       if (test.hasRuntimeError) {
-        output.add('Runtime error expected.');
+        output.write('Missing expected runtime error.');
       }
       if (test.configuration.isChecked && test.isNegativeIfChecked) {
-        output.add('Dynamic type error expected.');
+        output.write('Missing expected dynamic type error.');
       }
     }
   }
@@ -603,89 +652,41 @@ List<String> _buildFailureOutput(TestCase test,
   for (var i = 0; i < test.commands.length; i++) {
     var command = test.commands[i];
     var commandOutput = test.commandOutputs[command];
-    if (commandOutput != null) {
-      var showedHeader = false;
+    if (commandOutput == null) continue;
 
-      startSubsection(String name) {
-        if (!showedHeader) {
-          // Only show the header if there is some output.
-          output
-              .add(formatter.section('Output from "${command.displayName}":'));
-          showedHeader = true;
-        } else {
-          // Add a line break between subsections.
-          output.add('');
-        }
-
-        output.add(formatter.section("$name:"));
-      }
-
-      if (commandOutput.diagnostics.isNotEmpty) {
-        startSubsection('diagnostics');
-        output.addAll(commandOutput.diagnostics);
-      }
-
-      if (!commandOutput.stdout.isEmpty) {
-        startSubsection('stdout');
-        output.addAll(decodeLines(commandOutput.stdout));
-      }
-
-      if (!commandOutput.stderr.isEmpty) {
-        startSubsection('stderr');
-        output.addAll(decodeLines(commandOutput.stderr));
-      }
-    }
+    var time = niceTime(commandOutput.time);
+    output.section('Command "${command.displayName}" (took $time)');
+    output.write(command.toString());
+    commandOutput.describe(test.configuration.progress, output);
   }
 
-  if (test is BrowserTestCase) {
+  if (test is BrowserTestCase && ranAllCommands) {
     // Additional command for rerunning the steps locally after the fact.
-    output.add(formatter.section('To debug locally, run:'));
-    output.add(test.configuration.servers.commandLine);
+    output.section('To debug locally, run');
+    output.write(test.configuration.servers.commandLine);
   }
 
-  for (var i = 0; i < test.commands.length; i++) {
-    var command = test.commands[i];
-    var commandOutput = test.commandOutputs[command];
-
-    output.add('');
-
-    // If the command is short enough, show it inline.
-    var commandString = command.toString();
-    if (commandString.length < 70) {
-      output.add(formatter.section('Command "${command.displayName}": ') +
-          commandString);
-    } else {
-      // Otherwise move it to the next line.
-      output.add(formatter.section('Command "${command.displayName}":'));
-      output.add(commandString);
-    }
-
-    if (commandOutput != null) {
-      output.add('Took ${commandOutput.time}');
-    } else {
-      output.add('Did not run');
-    }
-  }
-
-  var arguments = ['python', 'tools/test.py'];
+  output.section('Re-run this test');
+  List<String> arguments;
   if (Platform.isFuchsia) {
     arguments = [Platform.executable, Platform.script.path];
+  } else {
+    arguments = ['python', 'tools/test.py'];
   }
   arguments.addAll(test.configuration.reproducingArguments);
   arguments.add(test.displayName);
 
-  output.add('');
-  output.add(formatter.section('Re-run this test:'));
-  output.add(arguments.map(escapeCommandLineArgument).join(' '));
-  return output;
+  output.write(arguments.map(escapeCommandLineArgument).join(' '));
+  return lines;
 }
 
-String _buildSummaryEnd(int failedTests) {
+String _buildSummaryEnd(Formatter formatter, int failedTests) {
   if (failedTests == 0) {
-    return '\n===\n=== All tests succeeded\n===\n';
+    return formatter.passed('\n===\n=== All tests succeeded\n===\n');
   } else {
     var pluralSuffix = failedTests != 1 ? 's' : '';
-    return '\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n';
+    return formatter
+        .failed('\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n');
   }
 }
 

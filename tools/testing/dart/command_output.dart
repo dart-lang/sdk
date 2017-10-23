@@ -12,6 +12,7 @@ import 'package:status_file/expectation.dart';
 import 'browser_controller.dart';
 import 'command.dart';
 import 'configuration.dart';
+import 'test_progress.dart';
 import 'test_runner.dart';
 import 'utils.dart';
 
@@ -100,6 +101,24 @@ class CommandOutput extends UniqueObject {
       return Expectation.pass;
     }
     return Expectation.fail;
+  }
+
+  /// Called when producing output for a test failure to describe this output.
+  void describe(Progress progress, OutputWriter output) {
+    if (diagnostics.isNotEmpty) {
+      output.subsection("diagnostics");
+      output.writeAll(diagnostics);
+    }
+
+    if (stdout.isNotEmpty) {
+      output.subsection("stdout");
+      output.writeAll(decodeLines(stdout));
+    }
+
+    if (stderr.isNotEmpty) {
+      output.subsection("stderr");
+      output.writeAll(decodeLines(stderr));
+    }
   }
 }
 
@@ -408,21 +427,11 @@ class BrowserTestJsonResult {
 
 class BrowserCommandOutput extends CommandOutput
     with UnittestSuiteMessagesMixin {
+  final BrowserTestJsonResult _jsonResult;
   final BrowserTestOutput _result;
   final Expectation _rawOutcome;
 
   factory BrowserCommandOutput(Command command, BrowserTestOutput result) {
-    String indent(String string, int numSpaces) {
-      var spaces = new List.filled(numSpaces, ' ').join('');
-      return string
-          .replaceAll('\r\n', '\n')
-          .split('\n')
-          .map((line) => "$spaces$line")
-          .join('\n');
-    }
-
-    String stdout = "";
-    String stderr = "";
     Expectation outcome;
 
     var parsedResult =
@@ -440,6 +449,7 @@ class BrowserCommandOutput extends CommandOutput
       }
     }
 
+    var stderr = "";
     if (result.didTimeout) {
       if (result.delayUntilTestStarted != null) {
         stderr = "This test timed out. The delay until the test actually "
@@ -449,24 +459,12 @@ class BrowserCommandOutput extends CommandOutput
       }
     }
 
-    if (parsedResult != null) {
-      stdout = "events:\n${indent(prettifyJson(parsedResult.events), 2)}\n\n";
-    } else {
-      stdout = "message:\n${indent(result.lastKnownMessage, 2)}\n\n";
-    }
-
-    stderr = '$stderr\n'
-        'BrowserOutput while running the test (* EXPERIMENTAL *):\n'
-        'BrowserOutput.stdout:\n'
-        '${indent(result.browserOutput.stdout.toString(), 2)}\n'
-        'BrowserOutput.stderr:\n'
-        '${indent(result.browserOutput.stderr.toString(), 2)}\n';
-    return new BrowserCommandOutput._internal(
-        command, result, outcome, encodeUtf8(stdout), encodeUtf8(stderr));
+    return new BrowserCommandOutput._internal(command, result, outcome,
+        parsedResult, encodeUtf8(""), encodeUtf8(stderr));
   }
 
   BrowserCommandOutput._internal(Command command, BrowserTestOutput result,
-      this._rawOutcome, List<int> stdout, List<int> stderr)
+      this._rawOutcome, this._jsonResult, List<int> stdout, List<int> stderr)
       : _result = result,
         super(command, 0, result.didTimeout, stdout, stderr, result.duration,
             false, 0);
@@ -491,6 +489,87 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     return _negateOutcomeIfNegativeTest(_rawOutcome, testCase.isNegative);
+  }
+
+  void describe(Progress progress, OutputWriter output) {
+    if (_jsonResult != null) {
+      _describeEvents(progress, output);
+    } else {
+      // We couldn't parse the events, so fallback to showing the last message.
+      output.section("Last message");
+      output.write(_result.lastKnownMessage);
+    }
+
+    super.describe(progress, output);
+
+    if (_result.browserOutput.stdout.isNotEmpty) {
+      output.subsection("Browser stdout");
+      output.write(_result.browserOutput.stdout.toString());
+    }
+
+    if (_result.browserOutput.stderr.isNotEmpty) {
+      output.subsection("Browser stderr");
+      output.write(_result.browserOutput.stdout.toString());
+    }
+  }
+
+  void _describeEvents(Progress progress, OutputWriter output) {
+    // Always show the error events since those are most useful.
+    var showedError = false;
+
+    void _showError(String header, event) {
+      output.subsection(header);
+      output.write((event["value"] as String).trim());
+      if (event["stack_trace"] != null) {
+        var stack = (event["stack_trace"] as String).trim().split("\n");
+        output.writeAll(stack);
+      }
+
+      showedError = true;
+    }
+
+    for (var event in _jsonResult.events) {
+      if (event["type"] == "sync_exception") {
+        _showError("Runtime error", event);
+      } else if (event["type"] == "window_onerror") {
+        _showError("Runtime window.onerror", event);
+      }
+    }
+
+    // Show the events unless the above error was sufficient.
+    // TODO(rnystrom): Let users enable or disable this explicitly?
+    if (showedError &&
+        progress != Progress.buildbot &&
+        progress != Progress.verbose) {
+      return;
+    }
+
+    output.subsection("Events");
+    for (var event in _jsonResult.events) {
+      switch (event["type"] as String) {
+        case "debug":
+          output.write('- debug "${event["value"] as String}"');
+          break;
+
+        case "dom":
+          output.write('- dom\n${indent(event["value"] as String, 2)}');
+          break;
+
+        case "print":
+          output.write('- print "${event["value"] as String}"');
+          break;
+
+        case "window_onerror":
+          var value = event["value"] as String;
+          value = indent(value.trim(), 2);
+          value = "- " + value.substring(2);
+          output.write(value);
+          break;
+
+        default:
+          output.write("- ${prettifyJson(event)}");
+      }
+    }
   }
 }
 
