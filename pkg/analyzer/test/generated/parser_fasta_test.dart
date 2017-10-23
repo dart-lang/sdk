@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
@@ -3034,12 +3035,29 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   ClassMember parseClassMember(String className) {
-    _astBuilder.className = className;
+    final ast = new AstFactoryImpl();
+    _astBuilder.classDeclaration = ast.classDeclaration(
+      null,
+      null,
+      null,
+      new analyzer.Token(analyzer.Keyword.CLASS, 0),
+      ast.simpleIdentifier(
+          new fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),
+      null,
+      null,
+      null,
+      null,
+      null, // leftBracket
+      <ClassMember>[],
+      null, // rightBracket
+    );
     _eventListener.begin('CompilationUnit');
-    var result = _run((parser) => parser.parseMember) as ClassMember;
+    _run((parser) => parser.parseMember, nodeCount: 0);
     _eventListener.end('CompilationUnit');
-    _astBuilder.className = null;
-    return result;
+    ClassDeclaration declaration = _astBuilder.classDeclaration;
+    _astBuilder.classDeclaration = null;
+    expect(declaration.members, hasLength(1));
+    return declaration.members.first;
   }
 
   List<Combinator> parseCombinators() {

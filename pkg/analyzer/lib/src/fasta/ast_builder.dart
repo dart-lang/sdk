@@ -6,7 +6,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
-import 'package:analyzer/src/dart/ast/ast.dart' show NodeListImpl;
 import 'package:front_end/src/fasta/parser.dart'
     show
         Assert,
@@ -56,9 +55,8 @@ class AstBuilder extends ScopeListener {
 
   bool parseGenericMethodComments = false;
 
-  /// The name of the class currently being parsed, or `null` if no class is
-  /// being parsed.
-  String className;
+  /// The class currently being parsed, or `null` if no class is being parsed.
+  ClassDeclaration classDeclaration;
 
   /// If true, this is building a full AST. Otherwise, only create method
   /// bodies.
@@ -1580,24 +1578,18 @@ class AstBuilder extends ScopeListener {
     assert(optional('}', rightBracket));
     debugEvent("ClassBody");
 
-    ClassDeclaration classDeclaration = declarations.last;
     classDeclaration.leftBracket = leftBracket;
-    NodeListImpl<ClassMember> members = classDeclaration.members;
-    members.setLength(memberCount);
-    popList(memberCount, members);
     classDeclaration.rightBracket = rightBracket;
   }
 
   @override
   void beginClassDeclaration(Token beginToken, Token name) {
-    assert(className == null);
+    assert(classDeclaration == null);
     // TODO(brianwilkerson): Enable this assert.
     // Parser.parseClassOrNamedMixinApplication will pass in a non-identifier if
     // `class` is at the end of the file.
     // (See partial_code class_declaration keyword_eof)
 //    assert(name.isIdentifier);
-
-    className = name.lexeme;
   }
 
   @override
@@ -1640,6 +1632,7 @@ class AstBuilder extends ScopeListener {
   void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
     assert(optional('class', classKeyword));
     assert(optionalOrNull('native', nativeToken));
+    assert(classDeclaration == null);
     debugEvent("ClassHeader");
 
     NativeClause nativeClause;
@@ -1651,13 +1644,12 @@ class AstBuilder extends ScopeListener {
     ExtendsClause extendsClause = pop(NullValue.ExtendsClause);
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
-    assert(className == name.name);
     _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, classKeyword);
     // leftBracket, members, and rightBracket are set in [endClassBody].
-    ClassDeclaration classDeclaration = ast.classDeclaration(
+    classDeclaration = ast.classDeclaration(
       comment,
       metadata,
       abstractKeyword,
@@ -1708,8 +1700,7 @@ class AstBuilder extends ScopeListener {
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
-
-    className = null;
+    classDeclaration = null;
   }
 
   @override
@@ -1912,7 +1903,7 @@ class AstBuilder extends ScopeListener {
           ast.simpleIdentifier(typeName.identifier.token, isDeclaration: true);
     }
 
-    push(ast.constructorDeclaration(
+    classDeclaration.members.add(ast.constructorDeclaration(
         comment,
         metadata,
         modifiers?.externalKeyword,
@@ -2036,7 +2027,7 @@ class AstBuilder extends ScopeListener {
 
     void constructor(
         SimpleIdentifier returnType, Token period, SimpleIdentifier name) {
-      push(ast.constructorDeclaration(
+      classDeclaration.members.add(ast.constructorDeclaration(
           comment,
           metadata,
           modifiers?.externalKeyword,
@@ -2053,7 +2044,7 @@ class AstBuilder extends ScopeListener {
     }
 
     void method(Token operatorKeyword, SimpleIdentifier name) {
-      push(ast.methodDeclaration(
+      classDeclaration.members.add(ast.methodDeclaration(
           comment,
           metadata,
           modifiers?.externalKeyword,
@@ -2068,7 +2059,7 @@ class AstBuilder extends ScopeListener {
     }
 
     if (name is SimpleIdentifier) {
-      if (name.name == className) {
+      if (name.name == classDeclaration.name.name) {
         constructor(name, null, null);
       } else {
         method(null, name);
@@ -2169,7 +2160,7 @@ class AstBuilder extends ScopeListener {
     Token covariantKeyword = modifiers?.covariantKeyword;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
-    push(ast.fieldDeclaration2(
+    classDeclaration.members.add(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
         covariantKeyword: covariantKeyword,
