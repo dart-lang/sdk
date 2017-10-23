@@ -250,6 +250,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       _returnType = _types.nonNullExact(cls);
     }
+    _inferrer.closedWorldRefiner
+        .registerSideEffects(_analyzedMember, _sideEffects);
+    assert(_breaksFor.isEmpty);
+    assert(_continuesFor.isEmpty);
     return _returnType;
   }
 
@@ -353,6 +357,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
         break;
     }
+    _inferrer.closedWorldRefiner
+        .registerSideEffects(_analyzedMember, _sideEffects);
+    assert(_breaksFor.isEmpty);
+    assert(_continuesFor.isEmpty);
     return _returnType;
   }
 
@@ -595,6 +603,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitStringConcatenation(ir.StringConcatenation node) {
+    // Interpolation could have any effects since it could call any toString()
+    // method.
+    // TODO(sra): This could be modelled by a call to toString() but with a
+    // guaranteed String return type.  Interpolation of known types would get
+    // specialized effects.  This would not currently be effective since the JS
+    // code in the toString methods for intercepted primitive types is assumed
+    // to have all effects.  Effect annotations on JS code would be needed to
+    // get the benefit.
+    _sideEffects.setAllSideEffects();
+
     node.visitChildren(this);
     return _types.stringType;
   }
@@ -809,7 +827,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           receiver.variable == node.variable &&
           invocation.arguments.positional.single is ir.NullLiteral) {
         // We have
-        //   let #t1 = local in #1 == null ? null : e
+        //   let #t1 = local in #t1 == null ? null : e
         alias = get.variable;
         _localRefinementMap[node.variable] = <Refinement>[];
       }

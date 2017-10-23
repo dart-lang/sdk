@@ -17,6 +17,7 @@ import '../elements/names.dart';
 import '../js_backend/annotations.dart' as optimizerHints;
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/no_such_method_registry.dart';
+import '../js_emitter/sorter.dart';
 import '../native/behavior.dart' as native;
 import '../options.dart';
 import '../types/constants.dart';
@@ -289,6 +290,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   final NoSuchMethodRegistry noSuchMethodRegistry;
 
+  final Sorter sorter;
+
   InferrerEngineImpl(
       this.options,
       this.progress,
@@ -299,6 +302,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       this.mirrorsData,
       this.noSuchMethodRegistry,
       this.mainElement,
+      this.sorter,
       TypeSystemStrategy<T> typeSystemStrategy)
       : this.types = new TypeSystem<T>(closedWorld, typeSystemStrategy);
 
@@ -659,10 +663,15 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     processLoopInformation();
   }
 
+  static bool useSorterForTesting = false;
+
   /// Call [analyze] for all live members.
   void analyzeAllElements() {
-    sortMembers(closedWorld.processedMembers, computeMemberSize)
-        .forEach((MemberEntity member) {
+    Iterable<MemberEntity> members = useSorterForTesting
+        ? sorter.sortMembers(closedWorld.processedMembers)
+        : sortMembers(closedWorld.processedMembers, computeMemberSize);
+
+    members.forEach((MemberEntity member) {
       progress.showProgress(
           'Added ', addedInGraph, ' elements in inferencing graph.');
       // This also forces the creation of the [ElementTypeInformation] to ensure

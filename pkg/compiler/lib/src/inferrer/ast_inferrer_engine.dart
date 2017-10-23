@@ -33,6 +33,7 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
             compiler.backend.mirrorsData,
             compiler.backend.noSuchMethodRegistry,
             mainElement,
+            compiler.backendStrategy.sorter,
             const TypeSystemStrategyImpl());
 
   GlobalTypeInferenceElementData<ast.Node> createElementData() =>

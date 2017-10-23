@@ -898,7 +898,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
         // Assert in initializer is currently not supported in dart2js.
         // TODO(johnniwinther): Use [_ErroneousInitializerVisitor] in
         // `ssa/builder_kernel.dart` to identify erroneous initializer.
-        // TODO(johnniwinther) Handle local initializer that are valid as
+        // TODO(johnniwinther) Handle local initializers that are valid as
         // constants, if any.
         String constructorName = '${cls.name}.${node.name}';
         elementMap.reporter.reportErrorMessage(

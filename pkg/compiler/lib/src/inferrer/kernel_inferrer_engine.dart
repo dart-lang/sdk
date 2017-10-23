@@ -8,12 +8,14 @@ import '../../compiler_new.dart';
 import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
+import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/no_such_method_registry.dart';
+import '../js_emitter/sorter.dart';
 import '../js_model/locals.dart';
 import '../kernel/element_map.dart';
 import '../options.dart';
@@ -56,7 +58,8 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
         closedWorldRefiner,
         _compiler.backend.mirrorsData,
         _compiler.backend.noSuchMethodRegistry,
-        main);
+        main,
+        _compiler.backendStrategy.sorter);
   }
 
   @override
@@ -108,7 +111,8 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       ClosedWorldRefiner closedWorldRefiner,
       MirrorsData mirrorsData,
       NoSuchMethodRegistry noSuchMethodRegistry,
-      FunctionEntity mainElement)
+      FunctionEntity mainElement,
+      Sorter sorter)
       : super(
             options,
             progress,
@@ -119,6 +123,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
             mirrorsData,
             noSuchMethodRegistry,
             mainElement,
+            sorter,
             new KernelTypeSystemStrategy(
                 _elementMap, _globalLocalsMap, _closureDataLookup));
 
@@ -167,7 +172,13 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
 
   @override
   FunctionEntity lookupCallMethod(ClassEntity cls) {
-    throw new UnimplementedError('KernelInferrerEngine.lookupCallMethod');
+    FunctionEntity function =
+        _elementEnvironment.lookupClassMember(cls, Identifiers.call);
+    if (function == null) {
+      function =
+          _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+    }
+    return function;
   }
 
   @override
