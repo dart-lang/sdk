@@ -401,6 +401,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         case SendStructureKind.UNARY:
         case SendStructureKind.EQUALS:
         case SendStructureKind.NOT_EQUALS:
+        case SendStructureKind.INDEX:
           ast.Node position =
               computeAccessPosition(node, sendStructure.semantics);
           if (position != null) {

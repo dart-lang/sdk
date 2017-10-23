@@ -1617,6 +1617,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeInformation operandType = visit(node.expression);
     return _inferrer.registerYield(node, operandType);
   }
+
+  @override
+  TypeInformation visitInvalidExpression(ir.InvalidExpression node) {
+    // TODO(johnniwinther): Maybe this should be [empty] instead?
+    return _types.dynamicType;
+  }
 }
 
 class IsCheck {

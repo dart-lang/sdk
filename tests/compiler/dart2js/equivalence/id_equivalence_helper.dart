@@ -69,7 +69,8 @@ Future<CompiledData> computeData(
     ComputeMemberDataFunction computeMemberData,
     CompileFunction compileFunction,
     {List<String> options: const <String>[],
-    bool verbose: false}) async {
+    bool verbose: false,
+    bool skipUnprocessedMembers: false}) async {
   Compiler compiler =
       await compileFunction(entryPoint, memorySourceFiles, options);
   ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
@@ -82,12 +83,20 @@ Future<CompiledData> computeData(
         !elementEnvironment.isEnumClass(cls)) {
       elementEnvironment.forEachConstructor(cls,
           (ConstructorEntity constructor) {
+        if (skipUnprocessedMembers &&
+            !closedWorld.processedMembers.contains(constructor)) {
+          return;
+        }
         computeMemberData(compiler, constructor, actualMap, verbose: verbose);
       });
     }
     elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
       if (cls == declarer) {
+        if (skipUnprocessedMembers &&
+            !closedWorld.processedMembers.contains(member)) {
+          return;
+        }
         if (elementEnvironment.isEnumClass(cls)) {
           if (member.isInstanceMember || member.name == 'values') {
             return;
@@ -98,6 +107,10 @@ Future<CompiledData> computeData(
     });
   });
   elementEnvironment.forEachLibraryMember(mainLibrary, (MemberEntity member) {
+    if (skipUnprocessedMembers &&
+        !closedWorld.processedMembers.contains(member)) {
+      return;
+    }
     computeMemberData(compiler, member, actualMap, verbose: verbose);
   });
 
@@ -403,13 +416,14 @@ Future compareData(
     Map<String, String> memorySourceFiles,
     ComputeMemberDataFunction computeAstData,
     ComputeMemberDataFunction computeIrData,
-    {List<String> options: const <String>[]}) async {
+    {List<String> options: const <String>[],
+    bool skipUnprocessedMembers: false}) async {
   CompiledData data1 = await computeData(
       entryPoint, memorySourceFiles, computeAstData, compileFromSource,
-      options: options);
+      options: options, skipUnprocessedMembers: skipUnprocessedMembers);
   CompiledData data2 = await computeData(
       entryPoint, memorySourceFiles, computeIrData, compileFromDill,
-      options: options);
+      options: options, skipUnprocessedMembers: skipUnprocessedMembers);
   await compareCompiledData(data1, data2);
 }
 
