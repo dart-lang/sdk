@@ -1444,6 +1444,53 @@ void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   }
 }
 
+void Intrinsifier::Double_hashCode(Assembler* assembler) {
+  // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
+
+  if (!TargetCPUFeatures::vfp_supported()) return;
+
+  // Load double value and check that it isn't NaN, since ARM gives an
+  // FPU exception if you try to convert NaN to an int.
+  Label double_hash;
+  __ ldr(R1, Address(SP, 0 * kWordSize));
+  __ LoadDFromOffset(D0, R1, Double::value_offset() - kHeapObjectTag);
+  __ vcmpd(D0, D0);
+  __ vmstat();
+  __ b(&double_hash, VS);
+
+  // Convert double value to signed 32-bit int in R0.
+  __ vcvtid(S2, D0);
+  __ vmovrs(R0, S2);
+
+  // Tag the int as a Smi, making sure that it fits; this checks for
+  // overflow in the conversion from double to int. Conversion
+  // overflow is signalled by vcvt through clamping R0 to either
+  // INT32_MAX or INT32_MIN (saturation).
+  Label fall_through;
+  ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
+  __ adds(R0, R0, Operand(R0));
+  __ b(&fall_through, VS);
+
+  // Compare the two double values. If they are equal, we return the
+  // Smi tagged result immediately as the hash code.
+  __ vcvtdi(D1, S2);
+  __ vcmpd(D0, D1);
+  __ vmstat();
+  __ bx(LR, EQ);
+
+  // Convert the double bits to a hash code that fits in a Smi.
+  __ Bind(&double_hash);
+  __ ldr(R0, FieldAddress(R1, Double::value_offset()));
+  __ ldr(R1, FieldAddress(R1, Double::value_offset() + 4));
+  __ eor(R0, R0, Operand(R1));
+  __ AndImmediate(R0, R0, kSmiMax);
+  __ SmiTag(R0);
+  __ Ret();
+
+  // Fall into the native C++ implementation.
+  __ Bind(&fall_through);
+}
+
 void Intrinsifier::MathSqrt(Assembler* assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     Label fall_through, is_smi, double_op;

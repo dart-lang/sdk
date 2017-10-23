@@ -118,6 +118,31 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
   return result.AsValidInteger();
 }
 
+DEFINE_NATIVE_ENTRY(Double_hashCode, 1) {
+  double val = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Double_hashCode %f\n", val);
+  }
+  if (val >= static_cast<double>(kMinInt64) &&
+      val <= static_cast<double>(kMaxInt64)) {
+    int64_t ival = static_cast<int64_t>(val);
+    if (static_cast<double>(ival) == val) {
+      return Integer::New(ival);
+    }
+  } else if (!FLAG_limit_ints_to_64_bits && !isinf(val) && !isnan(val)) {
+    // Since this code is temporary until we limit ints to 64 bits, we
+    // reuse the existing DoubleToInteger helper function and pass it
+    // an empty error message ("") because it cannot fail.
+    const Integer& bigint = Integer::Handle(DoubleToInteger(val, ""));
+    if (bigint.AsDoubleValue() == val) {
+      return bigint.raw();
+    }
+  }
+
+  uint64_t uval = bit_cast<uint64_t>(val);
+  return Smi::New(((uval >> 32) ^ (uval)) & kSmiMax);
+}
+
 DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));

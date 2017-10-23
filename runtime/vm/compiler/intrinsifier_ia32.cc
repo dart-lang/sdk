@@ -1558,6 +1558,44 @@ void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
+void Intrinsifier::Double_hashCode(Assembler* assembler) {
+  // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
+
+  // Convert double value to signed 32-bit int in EAX and
+  // back to a double in XMM1.
+  __ movl(ECX, Address(ESP, +1 * kWordSize));
+  __ movsd(XMM0, FieldAddress(ECX, Double::value_offset()));
+  __ cvttsd2si(EAX, XMM0);
+  __ cvtsi2sd(XMM1, EAX);
+
+  // Tag the int as a Smi, making sure that it fits; this checks for
+  // overflow and NaN in the conversion from double to int. Conversion
+  // overflow from cvttsd2si is signalled with an INT32_MIN value.
+  Label fall_through;
+  ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
+  __ addl(EAX, EAX);
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+
+  // Compare the two double values. If they are equal, we return the
+  // Smi tagged result immediately as the hash code.
+  Label double_hash;
+  __ comisd(XMM0, XMM1);
+  __ j(NOT_EQUAL, &double_hash, Assembler::kNearJump);
+  __ ret();
+
+  // Convert the double bits to a hash code that fits in a Smi.
+  __ Bind(&double_hash);
+  __ movl(EAX, FieldAddress(ECX, Double::value_offset()));
+  __ movl(ECX, FieldAddress(ECX, Double::value_offset() + 4));
+  __ xorl(EAX, ECX);
+  __ andl(EAX, Immediate(kSmiMax));
+  __ SmiTag(EAX);
+  __ ret();
+
+  // Fall into the native C++ implementation.
+  __ Bind(&fall_through);
+}
+
 // Argument type is not known
 void Intrinsifier::MathSqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;
