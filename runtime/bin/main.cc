@@ -1000,6 +1000,7 @@ void main(int argc, char** argv) {
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
     Log::PrintErr("Initialization failed\n");
+    Platform::Exit(kErrorExitCode);
   }
 
   // On Windows, the argv strings are code page encoded and not

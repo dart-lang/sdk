@@ -19,6 +19,7 @@
 #include "bin/loader.h"
 #include "bin/log.h"
 #include "bin/options.h"
+#include "bin/platform.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
@@ -1395,6 +1396,10 @@ int main(int argc, char** argv) {
     return kErrorExitCode;
   }
 
+  if (!Platform::Initialize()) {
+    Log::PrintErr("Initialization failed\n");
+    return kErrorExitCode;
+  }
   Thread::InitOnce();
   Loader::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
