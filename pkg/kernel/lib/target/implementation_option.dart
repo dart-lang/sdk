@@ -4,11 +4,15 @@
 
 library kernel.target.implementation_options;
 
+class VmOptions {
+  static final ImplementationOption strongAOT = new ImplementationOption._(
+      "strong-aot", Platform.vm, new DateTime.utc(2018, 1), """
+Enables strong-mode whole-program optimizations for AOT (precompiler) mode of the Dart VM.""");
+}
+
 final Map<String, ImplementationOption> implementationOptions =
     ImplementationOption._validateOptions(<ImplementationOption>[
-  new ImplementationOption._(
-      "strong-aot", Platform.vm, new DateTime.utc(2018, 1), """
-Enables strong-mode in AOT (precompiler) mode of the Dart VM."""),
+  VmOptions.strongAOT,
 ]);
 
 final RegExp _namePattern = new RegExp(r"^[-a-z0-9]+$");

@@ -576,11 +576,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var args = [
       '--packages=.packages',
       'pkg/front_end/tool/_fasta/compile.dart',
-      // TODO(dartbug.com/30480): use strong-mode version of platform.dill
-      '--platform=${buildDir}/vm_platform.dill',
-      '--target=vm_precompiler',
+      '--platform=${buildDir}/vm_platform_strong.dill',
       '--strong-mode',
       '--fatal=errors',
+      '--target-options=strong-aot',
       '-o',
       tempKernelFile(tempDir),
     ];
