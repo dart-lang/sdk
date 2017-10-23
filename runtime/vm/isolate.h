@@ -305,6 +305,13 @@ class Isolate : public BaseIsolate {
 #endif
   }
 
+  bool compaction_in_progress() const {
+    return CompactionInProgressBit::decode(isolate_flags_);
+  }
+  void set_compaction_in_progress(bool value) {
+    isolate_flags_ = CompactionInProgressBit::update(value, isolate_flags_);
+  }
+
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
@@ -835,7 +842,8 @@ class Isolate : public BaseIsolate {
   V(ErrorOnBadOverride)                                                        \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
-  V(Obfuscate)
+  V(Obfuscate)                                                                 \
+  V(CompactionInProgress)
 
   // Isolate specific flags.
   enum FlagBits {

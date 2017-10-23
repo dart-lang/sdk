@@ -6,7 +6,9 @@
 
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "vm/become.h"
 #include "vm/compiler_stats.h"
+#include "vm/gc_compactor.h"
 #include "vm/gc_marker.h"
 #include "vm/gc_sweeper.h"
 #include "vm/lockers.h"
@@ -1066,6 +1068,117 @@ void PageSpace::MarkSweep() {
     MonitorLocker ml(tasks_lock());
     set_tasks(tasks() - 1);
     ml.NotifyAll();
+  }
+}
+
+void PageSpace::Compact() {
+  for (HeapPage* page = pages_; page != NULL; page = page->next()) {
+    if (page->is_image_page()) {
+      // Implementation doesn't currently handle image pages.
+      return;
+    }
+  }
+
+  Thread* thread = Thread::Current();
+
+  // Wait for sweeper tasks.
+  {
+    MonitorLocker ml(tasks_lock());
+    while (tasks() > 0) {
+      ml.WaitWithSafepointCheck(thread);
+    }
+    set_tasks(1);
+  }
+
+  {
+    SafepointOperationScope safepoint(thread);
+    thread->isolate()->set_compaction_in_progress(true);
+
+    // Note this excludes code pages and large objects pages.
+    HeapPage* pages_to_evacuate = pages_;
+
+    // Prevent allocation into these pages during evacuation.
+    pages_ = pages_tail_ = NULL;
+    AbandonBumpAllocation();
+    freelist_[HeapPage::kData].Reset();
+
+    // Evacuate.
+    {
+      AcquireDataLock();
+
+      GCCompactor compactor(heap_);
+      HeapPage* page = pages_to_evacuate;
+      while (page != NULL) {
+        if (page->is_image_page()) {
+          UNIMPLEMENTED();
+        }
+        ASSERT(page->type() != HeapPage::kExecutable);
+        compactor.EvacuatePage(page);
+        page = page->next();
+      }
+
+      ReleaseDataLock();
+    }
+
+    // Forward.
+    Become::FollowForwardingPointers(thread);
+
+    // Free.
+    {
+      MutexLocker ml(pages_lock_);
+      HeapPage* page = pages_to_evacuate;
+      while (page != NULL) {
+        if (page->is_image_page()) {
+          UNIMPLEMENTED();
+        }
+        ASSERT(page->type() != HeapPage::kExecutable);
+        HeapPage* next = page->next();
+        IncreaseCapacityInWordsLocked(
+            -(page->memory_->size() >> kWordSizeLog2));
+        page->Deallocate();
+        page = next;
+      }
+    }
+
+    if (FLAG_verify_after_gc) {
+      OS::PrintErr("Verifying after compacting...");
+      heap_->VerifyGC(kForbidMarked);
+      OS::PrintErr(" done.\n");
+    }
+
+    thread->isolate()->set_compaction_in_progress(false);
+  }
+
+  // Done, reset the task count.
+  {
+    MonitorLocker ml(tasks_lock());
+    set_tasks(tasks() - 1);
+    ml.NotifyAll();
+  }
+
+  {
+    // Const object tables are hashed by address: rehash.
+    SafepointOperationScope safepoint(thread);
+    StackZone zone(thread);
+    Isolate* I = thread->isolate();
+
+    ClassTable* class_table = I->class_table();
+    Class& cls = Class::Handle(zone.GetZone());
+    const intptr_t top = class_table->NumCids();
+    for (intptr_t cid = kInstanceCid; cid < top; cid++) {
+      if (!class_table->IsValidIndex(cid) ||
+          !class_table->HasValidClassAt(cid)) {
+        continue;
+      }
+      if ((cid == kTypeArgumentsCid) || RawObject::IsStringClassId(cid)) {
+        // TypeArguments and Symbols have special tables for canonical objects
+        // that aren't based on address.
+        continue;
+      }
+      // Rehash constants.
+      cls = class_table->At(cid);
+      cls.RehashConstants(zone.GetZone());  // May allocate.
+    }
   }
 }
 
