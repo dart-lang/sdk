@@ -5079,6 +5079,7 @@ class Parser {
   Token parseSwitchCase(Token token) {
     Token begin = token;
     Token defaultKeyword = null;
+    Token colonAfterDefault = null;
     int expressionCount = 0;
     int labelCount = 0;
     Token peek = peekPastLabels(token);
@@ -5091,7 +5092,8 @@ class Parser {
           labelCount++;
         }
         defaultKeyword = token;
-        token = expect(':', token.next);
+        colonAfterDefault = token.next;
+        token = expect(':', colonAfterDefault);
         peek = token;
         break;
       } else if (identical(value, 'case')) {
@@ -5142,7 +5144,7 @@ class Parser {
       peek = peekPastLabels(token);
     }
     listener.endSwitchCase(labelCount, expressionCount, defaultKeyword,
-        statementCount, begin, token);
+        colonAfterDefault, statementCount, begin, token);
     return token;
   }
 

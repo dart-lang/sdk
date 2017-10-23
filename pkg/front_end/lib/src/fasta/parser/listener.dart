@@ -1110,8 +1110,14 @@ class Listener {
 
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {}
 
-  void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
-      int statementCount, Token firstToken, Token endToken) {
+  void endSwitchCase(
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      Token colonAfterDefault,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
     logEvent("SwitchCase");
   }
 

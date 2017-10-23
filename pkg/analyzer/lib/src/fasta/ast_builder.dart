@@ -1123,18 +1123,26 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
-      int statementCount, Token firstToken, Token endToken) {
+  void endSwitchCase(
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      Token colonAfterDefault,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
     assert(optionalOrNull('default', defaultKeyword));
+    assert(defaultKeyword == null
+        ? colonAfterDefault == null
+        : optional(':', colonAfterDefault));
     debugEvent("SwitchCase");
 
     List<Statement> statements = popList(statementCount);
     List<SwitchMember> members = popList(expressionCount) ?? [];
     List<Label> labels = popList(labelCount);
     if (defaultKeyword != null) {
-      // TODO(brianwilkerson) The parser needs to pass the colon token directly.
       members.add(ast.switchDefault(
-          <Label>[], defaultKeyword, defaultKeyword.next, <Statement>[]));
+          <Label>[], defaultKeyword, colonAfterDefault, <Statement>[]));
     }
     members.last.statements.addAll(statements);
     members.first.labels.addAll(labels);

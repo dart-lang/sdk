@@ -2917,8 +2917,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
-      int statementCount, Token firstToken, Token endToken) {
+  void endSwitchCase(
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      Token colonAfterDefault,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
     debugEvent("SwitchCase");
     // We always create a block here so that we later know that there's always
     // one synthetic block when we finish compiling the switch statement and
