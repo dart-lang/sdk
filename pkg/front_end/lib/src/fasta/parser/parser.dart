@@ -451,13 +451,15 @@ class Parser {
     if (optional('deferred', token) && optional('as', token.next)) {
       Token deferredToken = token;
       Token asKeyword = token.next;
-      token = parseIdentifier(
-          asKeyword.next, IdentifierContext.importPrefixDeclaration);
+      token = ensureIdentifier(
+              asKeyword.next, IdentifierContext.importPrefixDeclaration)
+          .next;
       listener.handleImportPrefix(deferredToken, asKeyword);
     } else if (optional('as', token)) {
       Token asKeyword = token;
-      token = parseIdentifier(
-          token.next, IdentifierContext.importPrefixDeclaration);
+      token = ensureIdentifier(
+              token.next, IdentifierContext.importPrefixDeclaration)
+          .next;
       listener.handleImportPrefix(null, asKeyword);
     } else {
       listener.handleImportPrefix(null, null);
@@ -634,15 +636,14 @@ class Parser {
   /// ```
   Token parseDottedName(Token token) {
     listener.beginDottedName(token);
-    // TODO(brianwilkerson): If `token` is not an identifier, then a synthetic
-    // identifier will be inserted, but `endDottedName` will be called with the
-    // wrong token.
-    Token firstIdentifier = token;
-    token = parseIdentifier(token, IdentifierContext.dottedName);
+    Token firstIdentifier =
+        ensureIdentifier(token, IdentifierContext.dottedName);
+    token = firstIdentifier.next;
     int count = 1;
     while (optional('.', token)) {
       token =
-          parseIdentifier(token.next, IdentifierContext.dottedNameContinuation);
+          ensureIdentifier(token.next, IdentifierContext.dottedNameContinuation)
+              .next;
       count++;
     }
     listener.endDottedName(count, firstIdentifier);
@@ -723,14 +724,13 @@ class Parser {
   /// ;
   /// ```
   Token parseIdentifierList(Token token) {
-    // TODO(brianwilkerson): If `token` is not an identifier, then a synthetic
-    // identifier will be inserted, but `beginIdentifierList` will be called
-    // with the wrong token.
-    listener.beginIdentifierList(token);
-    token = parseIdentifier(token, IdentifierContext.combinator);
+    Token firstIdentifier =
+        ensureIdentifier(token, IdentifierContext.combinator);
+    listener.beginIdentifierList(firstIdentifier);
+    token = firstIdentifier.next;
     int count = 1;
     while (optional(',', token)) {
-      token = parseIdentifier(token.next, IdentifierContext.combinator);
+      token = ensureIdentifier(token.next, IdentifierContext.combinator).next;
       count++;
     }
     listener.endIdentifierList(count);
@@ -832,7 +832,8 @@ class Parser {
     assert(optional('@', token));
     listener.beginMetadata(token);
     Token atToken = token;
-    token = parseIdentifier(token.next, IdentifierContext.metadataReference);
+    token =
+        ensureIdentifier(token.next, IdentifierContext.metadataReference).next;
     token =
         parseQualifiedRestOpt(token, IdentifierContext.metadataContinuation);
     if (optional("<", token)) {
@@ -842,8 +843,9 @@ class Parser {
     Token period = null;
     if (optional('.', token)) {
       period = token;
-      token = parseIdentifier(
-          token.next, IdentifierContext.metadataContinuationAfterTypeArguments);
+      token = ensureIdentifier(token.next,
+              IdentifierContext.metadataContinuationAfterTypeArguments)
+          .next;
     }
     token = parseArgumentsOpt(token);
     listener.endMetadata(atToken, period, token);
@@ -885,14 +887,15 @@ class Parser {
     Token equals;
     Token afterType = parseType(token.next, TypeContinuation.Typedef);
     if (afterType == null) {
-      token = parseIdentifier(token.next, IdentifierContext.typedefDeclaration);
+      token = ensureIdentifier(token.next, IdentifierContext.typedefDeclaration)
+          .next;
       token = parseTypeVariablesOpt(token);
       equals = token;
       token = expect('=', token);
       token = parseType(token);
     } else {
-      token = afterType;
-      token = parseIdentifier(token, IdentifierContext.typedefDeclaration);
+      token = ensureIdentifier(afterType, IdentifierContext.typedefDeclaration)
+          .next;
       token = parseTypeVariablesOpt(token);
       token =
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
@@ -1171,7 +1174,7 @@ class Parser {
   /// ```
   Token parseQualified(Token token, IdentifierContext context,
       IdentifierContext continuationContext) {
-    token = parseIdentifier(token, context);
+    token = ensureIdentifier(token, context).next;
     while (optional('.', token)) {
       token = parseQualifiedRest(token, continuationContext);
     }
@@ -1190,7 +1193,7 @@ class Parser {
   Token parseQualifiedRest(Token token, IdentifierContext context) {
     assert(optional('.', token));
     Token period = token;
-    token = parseIdentifier(token.next, context);
+    token = ensureIdentifier(token.next, context).next;
     listener.handleQualified(period);
     return token;
   }
@@ -1217,7 +1220,8 @@ class Parser {
     assert(optional('enum', token));
     listener.beginEnum(token);
     Token enumKeyword = token;
-    token = parseIdentifier(token.next, IdentifierContext.enumDeclaration);
+    token =
+        ensureIdentifier(token.next, IdentifierContext.enumDeclaration).next;
     Token leftBrace = token;
     token = expect('{', token);
     int count = 0;
@@ -1227,7 +1231,8 @@ class Parser {
       if (!identical(token, before)) {
         reportRecoverableError(before, fasta.messageAnnotationOnEnumConstant);
       }
-      token = parseIdentifier(token, IdentifierContext.enumValueDeclaration);
+      token =
+          ensureIdentifier(token, IdentifierContext.enumValueDeclaration).next;
       count++;
       while (optional(',', token)) {
         token = token.next;
@@ -1237,7 +1242,8 @@ class Parser {
         if (!identical(token, before)) {
           reportRecoverableError(before, fasta.messageAnnotationOnEnumConstant);
         }
-        token = parseIdentifier(token, IdentifierContext.enumValueDeclaration);
+        token = ensureIdentifier(token, IdentifierContext.enumValueDeclaration)
+            .next;
         count++;
       }
     } else {
@@ -1259,10 +1265,9 @@ class Parser {
     }
     Token classKeyword = token;
     token = expect("class", token);
-    Token name = token;
-    token =
-        parseIdentifier(name, IdentifierContext.classOrNamedMixinDeclaration);
-    token = parseTypeVariablesOpt(token);
+    Token name =
+        ensureIdentifier(token, IdentifierContext.classOrNamedMixinDeclaration);
+    token = parseTypeVariablesOpt(name.next);
     if (optional('=', token)) {
       listener.beginNamedMixinApplication(begin, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
@@ -1477,12 +1482,13 @@ class Parser {
     return rewriteAndRecover(token, message, identifier);
   }
 
-  /// Parse an identifier at the given [token], based on the given [context].
+  /// Parse a simple identifier at the given [token], and return the identifier
+  /// that was parsed.
   ///
-  /// If the token is not an identifier, or is not appropriate in the given
-  /// context, report an error. In addition, if [template] is not `null`, create
-  /// a synthetic identifier and use the template to report the error.
-  Token parseIdentifier(Token token, IdentifierContext context) {
+  /// If the token is not an identifier, or is not appropriate for use as an
+  /// identifier in the given [context], create a synthetic identifier, report
+  /// an error, and return the synthetic identifier.
+  Token ensureIdentifier(Token token, IdentifierContext context) {
     if (!token.isIdentifier) {
       if (optional("void", token)) {
         reportRecoverableError(token, fasta.messageInvalidVoid);
@@ -1520,7 +1526,7 @@ class Parser {
       }
     }
     listener.handleIdentifier(token, context);
-    return token.next;
+    return token;
   }
 
   /// Return `true` if the given [token] should be treated like an identifier in
@@ -1701,7 +1707,8 @@ class Parser {
   Token parseTypeVariable(Token token) {
     listener.beginTypeVariable(token);
     token = parseMetadataStar(token);
-    token = parseIdentifier(token, IdentifierContext.typeVariableDeclaration);
+    token =
+        ensureIdentifier(token, IdentifierContext.typeVariableDeclaration).next;
     Token extendsOrSuper = null;
     if (optional('extends', token) || optional('super', token)) {
       extendsOrSuper = token;
@@ -1876,7 +1883,7 @@ class Parser {
         listener.handleVoidKeyword(voidToken);
         token = voidToken.next;
       } else {
-        token = parseIdentifier(begin, context);
+        token = ensureIdentifier(begin, context).next;
         token = parseQualifiedRestOpt(
             token, IdentifierContext.typeReferenceContinuation);
         assert(typeArguments == null || typeArguments == token);
@@ -2256,7 +2263,7 @@ class Parser {
         }
 
         if (nameContext != null) {
-          parseIdentifier(nameToken, nameContext);
+          nameToken = ensureIdentifier(nameToken, nameContext);
         } else {
           listener.handleNoName(nameToken);
         }
@@ -2428,15 +2435,14 @@ class Parser {
     IdentifierContext context = isTopLevel
         ? IdentifierContext.topLevelVariableDeclaration
         : IdentifierContext.fieldDeclaration;
-    token = parseIdentifier(token, context);
+    token = ensureIdentifier(token, context).next;
 
     int fieldCount = 1;
     token = parseFieldInitializerOpt(token, name, varFinalOrConst, isTopLevel);
     while (optional(',', token)) {
-      name = token.next;
-      token = parseIdentifier(token.next, context);
-      token =
-          parseFieldInitializerOpt(token, name, varFinalOrConst, isTopLevel);
+      name = ensureIdentifier(token.next, context);
+      token = parseFieldInitializerOpt(
+          name.next, name, varFinalOrConst, isTopLevel);
       ++fieldCount;
     }
     Token semicolon = ensureSemicolon(token);
@@ -2494,8 +2500,9 @@ class Parser {
     } else {
       parseType(type, TypeContinuation.Optional);
     }
-    token =
-        parseIdentifier(name, IdentifierContext.topLevelFunctionDeclaration);
+    name =
+        ensureIdentifier(name, IdentifierContext.topLevelFunctionDeclaration);
+    token = name.next;
 
     bool isGetter = false;
     if (getOrSet == null) {
@@ -3156,7 +3163,7 @@ class Parser {
             staticModifier, fasta.templateExtraneousModifier);
       }
     } else {
-      token = parseIdentifier(name, IdentifierContext.methodDeclaration);
+      token = ensureIdentifier(name, IdentifierContext.methodDeclaration).next;
     }
 
     token = parseQualifiedRestOpt(
@@ -3239,7 +3246,7 @@ class Parser {
       listener.handleOperatorName(operator, token);
       return token.next;
     } else {
-      return parseIdentifier(token, IdentifierContext.operatorName);
+      return ensureIdentifier(token, IdentifierContext.operatorName).next;
     }
   }
 
@@ -3273,7 +3280,8 @@ class Parser {
       Token begin, Token name, Token formals, bool isFunctionExpression) {
     Token token = name;
     listener.beginFunctionName(token);
-    token = parseIdentifier(token, IdentifierContext.localFunctionDeclaration);
+    token = ensureIdentifier(token, IdentifierContext.localFunctionDeclaration)
+        .next;
     if (isFunctionExpression) {
       reportRecoverableError(name, fasta.messageNamedFunctionExpression);
     }
@@ -3307,17 +3315,20 @@ class Parser {
   }
 
   Token parseConstructorReference(Token token) {
-    Token start = token;
+    Token start =
+        ensureIdentifier(token, IdentifierContext.constructorReference);
     listener.beginConstructorReference(start);
-    token = parseIdentifier(token, IdentifierContext.constructorReference);
     token = parseQualifiedRestOpt(
-        token, IdentifierContext.constructorReferenceContinuation);
+        start.next, IdentifierContext.constructorReferenceContinuation);
     token = parseTypeArgumentsOpt(token);
     Token period = null;
     if (optional('.', token)) {
       period = token;
-      token = parseIdentifier(token.next,
-          IdentifierContext.constructorReferenceContinuationAfterTypeArguments);
+      token = ensureIdentifier(
+              token.next,
+              IdentifierContext
+                  .constructorReferenceContinuationAfterTypeArguments)
+          .next;
     } else {
       listener
           .handleNoConstructorReferenceContinuationAfterTypeArguments(token);
@@ -3657,7 +3668,7 @@ class Parser {
     // `parseType` is allowing `void` to be a label.
 //    assert(token.isIdentifier);
     assert(optional(':', token.next));
-    token = parseIdentifier(token, IdentifierContext.labelDeclaration);
+    token = ensureIdentifier(token, IdentifierContext.labelDeclaration).next;
     Token colon = token;
     token = expect(':', token);
     listener.handleLabel(colon);
@@ -4395,11 +4406,12 @@ class Parser {
       return token.next;
     } else {
       int count = 1;
-      token = parseIdentifier(token, IdentifierContext.literalSymbol);
+      token = ensureIdentifier(token, IdentifierContext.literalSymbol).next;
       while (optional('.', token)) {
         count++;
-        token = parseIdentifier(
-            token.next, IdentifierContext.literalSymbolContinuation);
+        token = ensureIdentifier(
+                token.next, IdentifierContext.literalSymbolContinuation)
+            .next;
       }
       listener.endLiteralSymbol(hashToken, count);
       return token;
@@ -4459,9 +4471,8 @@ class Parser {
   }
 
   Token parseSend(Token token, IdentifierContext context) {
-    Token beginToken = token;
-    token = parseIdentifier(token, context);
-    token = listener.injectGenericCommentTypeList(token);
+    Token beginToken = ensureIdentifier(token, context);
+    token = listener.injectGenericCommentTypeList(beginToken.next);
     if (isValidMethodTypeArguments(token)) {
       token = parseTypeArgumentsOpt(token);
     } else {
@@ -4520,7 +4531,8 @@ class Parser {
       Token colon = null;
       if (optional(':', token.next)) {
         token =
-            parseIdentifier(token, IdentifierContext.namedArgumentReference);
+            ensureIdentifier(token, IdentifierContext.namedArgumentReference)
+                .next;
         colon = token;
         token = token.next;
         hasSeenNamedArgument = true;
@@ -4633,10 +4645,10 @@ class Parser {
   }
 
   Token parseOptionallyInitializedIdentifier(Token token) {
-    Token nameToken = token;
-    listener.beginInitializedIdentifier(token);
-    token = parseIdentifier(token, IdentifierContext.localVariableDeclaration);
-    token = parseVariableInitializerOpt(token);
+    Token nameToken =
+        ensureIdentifier(token, IdentifierContext.localVariableDeclaration);
+    listener.beginInitializedIdentifier(nameToken);
+    token = parseVariableInitializerOpt(nameToken.next);
     listener.endInitializedIdentifier(nameToken);
     return token;
   }
@@ -5128,7 +5140,7 @@ class Parser {
     token = token.next;
     bool hasTarget = false;
     if (token.isIdentifier) {
-      token = parseIdentifier(token, IdentifierContext.labelReference);
+      token = ensureIdentifier(token, IdentifierContext.labelReference).next;
       hasTarget = true;
     }
     Token semicolon = ensureSemicolon(token);
@@ -5208,7 +5220,7 @@ class Parser {
     token = token.next;
     bool hasTarget = false;
     if (token.isIdentifier) {
-      token = parseIdentifier(token, IdentifierContext.labelReference);
+      token = ensureIdentifier(token, IdentifierContext.labelReference).next;
       hasTarget = true;
     }
     Token semicolon = ensureSemicolon(token);

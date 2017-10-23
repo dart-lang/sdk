@@ -76,6 +76,14 @@ f() {
     testUserDefinableOperatorWithSuper('|');
   }
 
+  void test_classDeclaration_missingName() {
+    testRecovery('''
+class {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+class _s_ {}
+''');
+  }
+
   @failingTest
   void test_combinatorsBeforePrefix() {
     //Expected 1 errors of type ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, found 0
