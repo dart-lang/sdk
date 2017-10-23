@@ -7273,6 +7273,11 @@ class OneByteString : public AllStatic {
     return &str.UnsafeMutableNonPointer(raw_ptr(str)->data())[index];
   }
 
+  static uint8_t* DataStart(const String& str) {
+    ASSERT(str.IsOneByteString());
+    return &str.UnsafeMutableNonPointer(raw_ptr(str)->data())[0];
+  }
+
   static RawOneByteString* ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
@@ -7285,6 +7290,7 @@ class OneByteString : public AllStatic {
   friend class ExternalOneByteString;
   friend class SnapshotReader;
   friend class StringHasher;
+  friend class Utf8;
 };
 
 class TwoByteString : public AllStatic {
@@ -7390,6 +7396,13 @@ class TwoByteString : public AllStatic {
     return &str.UnsafeMutableNonPointer(raw_ptr(str)->data())[index];
   }
 
+  // Use this instead of CharAddr(0).  It will not assert that the index is <
+  // length.
+  static uint16_t* DataStart(const String& str) {
+    ASSERT(str.IsTwoByteString());
+    return &str.UnsafeMutableNonPointer(raw_ptr(str)->data())[0];
+  }
+
   static RawTwoByteString* ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
@@ -7456,6 +7469,11 @@ class ExternalOneByteString : public AllStatic {
     return &(raw_ptr(str)->external_data_->data()[index]);
   }
 
+  static const uint8_t* DataStart(const String& str) {
+    ASSERT(str.IsExternalOneByteString());
+    return &(raw_ptr(str)->external_data_->data()[0]);
+  }
+
   static void SetExternalData(const String& str,
                               ExternalStringData<uint8_t>* data) {
     ASSERT(str.IsExternalOneByteString());
@@ -7483,6 +7501,7 @@ class ExternalOneByteString : public AllStatic {
   friend class String;
   friend class SnapshotReader;
   friend class Symbols;
+  friend class Utf8;
 };
 
 class ExternalTwoByteString : public AllStatic {
@@ -7533,6 +7552,11 @@ class ExternalTwoByteString : public AllStatic {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsExternalTwoByteString());
     return &(raw_ptr(str)->external_data_->data()[index]);
+  }
+
+  static const uint16_t* DataStart(const String& str) {
+    ASSERT(str.IsExternalTwoByteString());
+    return &(raw_ptr(str)->external_data_->data()[0]);
   }
 
   static void SetExternalData(const String& str,

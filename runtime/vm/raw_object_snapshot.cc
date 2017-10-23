@@ -2025,7 +2025,7 @@ void String::ReadFromImpl(SnapshotReader* reader,
       return;
     }
     NoSafepointScope no_safepoint;
-    CharacterType* str_addr = StringType::CharAddr(*str_obj, 0);
+    CharacterType* str_addr = StringType::DataStart(*str_obj);
     for (intptr_t i = 0; i < len; i++) {
       *str_addr = reader->Read<CharacterType>();
       str_addr++;
