@@ -22,13 +22,11 @@ class DFE {
   void set_frontend_filename(const char* name) { frontend_filename_ = name; }
   bool UseDartFrontend() const { return frontend_filename_ != NULL; }
 
-  const char* platform_binary_filename() const {
-    return platform_binary_filename_;
-  }
+  const char* GetPlatformBinaryFilename();
 
   void SetKernelBinaries(const char* name);
 
-  bool UsePlatformBinary() const { return platform_binary_filename_ != NULL; }
+  bool UsePlatformBinary() const { return kernel_binaries_path_ != NULL; }
 
   void* kernel_platform() const { return kernel_platform_; }
   void set_kernel_platform(void* kernel_platform) {
@@ -54,7 +52,7 @@ class DFE {
 
   // Reads the platform kernel file.
   // Returns an in memory kernel representation of the platform kernel file.
-  void* ReadPlatform() const;
+  void* ReadPlatform();
 
   // Reads the vmservice_io kernel file.
   // Returns the in memory representation of the vmservice_io kernel file.
@@ -76,6 +74,7 @@ class DFE {
                          intptr_t* kernel_ir_size) const;
 
   const char* frontend_filename_;
+  char* kernel_binaries_path_;
   char* platform_binary_filename_;
   char* vmservice_io_binary_filename_;
   void* kernel_platform_;

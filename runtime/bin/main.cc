@@ -1073,6 +1073,10 @@ void main(int argc, char** argv) {
     Process::SetExitHook(SnapshotOnExitHook);
   }
 
+  Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+
+// Note: must read platform only *after* VM flags are parsed because
+// they might affect how the platform is loaded.
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If a kernel platform binary file is specified, read it. This
   // step will become redundant once we have the snapshot version
@@ -1086,8 +1090,6 @@ void main(int argc, char** argv) {
     dfe.set_kernel_platform(kernel_platform);
   }
 #endif
-
-  Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Start event handler.
   TimerUtils::InitOnce();

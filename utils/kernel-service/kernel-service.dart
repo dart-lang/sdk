@@ -39,15 +39,15 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
-const bool strongMode = const bool.fromEnvironment('DFE_STRONG_MODE');
 
 abstract class Compiler {
   final FileSystem fileSystem;
+  final bool strongMode;
   final List<String> errors = new List<String>();
 
   CompilerOptions options;
 
-  Compiler(this.fileSystem, Uri platformKernel) {
+  Compiler(this.fileSystem, Uri platformKernel, {this.strongMode: false}) {
     Uri packagesUri = (Platform.packageConfig != null)
         ? Uri.parse(Platform.packageConfig)
         : null;
@@ -57,6 +57,7 @@ abstract class Compiler {
       print("DFE: packagesUri: ${packagesUri}");
       print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
       print("DFE: platformKernel: ${platformKernel}");
+      print("DFE: strongMode: ${strongMode}");
     }
 
     options = new CompilerOptions()
@@ -82,8 +83,9 @@ abstract class Compiler {
 class IncrementalCompiler extends Compiler {
   IncrementalKernelGenerator generator;
 
-  IncrementalCompiler(FileSystem fileSystem, Uri platformKernel)
-      : super(fileSystem, platformKernel);
+  IncrementalCompiler(FileSystem fileSystem, Uri platformKernel,
+      {strongMode: false})
+      : super(fileSystem, platformKernel, strongMode: strongMode);
 
   @override
   Future<Program> compile(Uri script) async {
@@ -104,9 +106,9 @@ class IncrementalCompiler extends Compiler {
 class SingleShotCompiler extends Compiler {
   final bool requireMain;
 
-  SingleShotCompiler(
-      FileSystem fileSystem, Uri platformKernel, this.requireMain)
-      : super(fileSystem, platformKernel);
+  SingleShotCompiler(FileSystem fileSystem, Uri platformKernel,
+      {this.requireMain: false, strongMode: false})
+      : super(fileSystem, platformKernel, strongMode: strongMode);
 
   @override
   Future<Program> compile(Uri script) async {
@@ -119,7 +121,8 @@ class SingleShotCompiler extends Compiler {
 final Map<int, Compiler> isolateCompilers = new Map<int, Compiler>();
 
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(
-    int isolateId, List sourceFiles, Uri platformKernel) async {
+    int isolateId, List sourceFiles, Uri platformKernel,
+    {strongMode: false}) async {
   IncrementalCompiler compiler;
   if (isolateCompilers.containsKey(isolateId)) {
     compiler = isolateCompilers[isolateId];
@@ -142,7 +145,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(
     // destroyed when corresponding isolate is shut down. To achieve that kernel
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
-    compiler = new IncrementalCompiler(fileSystem, platformKernel);
+    compiler = new IncrementalCompiler(fileSystem, platformKernel,
+        strongMode: strongMode);
     isolateCompilers[isolateId] = compiler;
   }
   return compiler;
@@ -165,8 +169,9 @@ Future _processLoadRequest(request) async {
           'vm_platform.dill');
 
   final bool incremental = request[4];
-
-  final List sourceFiles = request.length > 6 ? request[6] : null;
+  final bool strong = request[5];
+  final int isolateId = request[6];
+  final List sourceFiles = request[7];
 
   Compiler compiler;
   // TODO(aam): There should be no need to have an option to choose
@@ -174,15 +179,14 @@ Future _processLoadRequest(request) async {
   // compiler as its functionality is a super set of the other one. We need to
   // watch the performance though.
   if (incremental) {
-    final int isolateId = request[5];
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateId, sourceFiles, platformKernel);
   } else {
     final FileSystem fileSystem = sourceFiles == null
         ? PhysicalFileSystem.instance
         : _buildFileSystem(sourceFiles);
-    compiler = new SingleShotCompiler(
-        fileSystem, platformKernel, sourceFiles == null /* requireMain */);
+    compiler = new SingleShotCompiler(fileSystem, platformKernel,
+        requireMain: sourceFiles == null, strongMode: strong);
   }
 
   CompilationResult result;
@@ -265,7 +269,9 @@ train(String scriptUri) {
     scriptUri,
     null /* platformKernel */,
     false /* incremental */,
-    1 /* isolateId chosen randomly */
+    false /* strong */,
+    1 /* isolateId chosen randomly */,
+    null /* source files */
   ];
   _processLoadRequest(request);
 }
