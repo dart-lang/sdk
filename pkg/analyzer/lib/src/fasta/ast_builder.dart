@@ -998,9 +998,12 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     assert(optionalOrNull('this', thisKeyword));
+    assert(thisKeyword == null
+        ? periodAfterThis == null
+        : optional('.', periodAfterThis));
     debugEvent("FormalParameter");
 
     _ParameterDefaultValue defaultValue = pop();
@@ -1033,7 +1036,7 @@ class AstBuilder extends ScopeListener {
             covariantKeyword: covariantKeyword,
             type: typeOrFunctionTypedParameter.returnType,
             thisKeyword: thisKeyword,
-            period: unsafeToken(thisKeyword.next, TokenType.PERIOD),
+            period: periodAfterThis,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters);
       }
@@ -2769,14 +2772,6 @@ class AstBuilder extends ScopeListener {
   /// [value].
   bool optionalOrNull(String value, Token token) {
     return token == null || identical(value, token.stringValue);
-  }
-
-  /// A marker method used to mark locations where a token is being located in
-  /// an unsafe way. In all such cases the parser needs to be fixed to pass in
-  /// the token.
-  Token unsafeToken(Token token, TokenType tokenType) {
-    // TODO(brianwilkerson) Eliminate the need for this method.
-    return token.type == tokenType ? token : null;
   }
 }
 

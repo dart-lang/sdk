@@ -227,8 +227,8 @@ class Listener {
 
   void beginFormalParameter(Token token, MemberKind kind) {}
 
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     logEvent("FormalParameter");
   }
 

@@ -2190,6 +2190,7 @@ class Parser {
         }
 
         Token thisKeyword;
+        Token periodAfterThis;
         Token nameToken = token;
         IdentifierContext nameContext =
             IdentifierContext.formalParameterDeclaration;
@@ -2209,10 +2210,11 @@ class Parser {
             Message message = fasta.templateExpectedButGot.withArguments('.');
             Token newToken =
                 new SyntheticToken(TokenType.PERIOD, token.charOffset);
-            token = rewriteAndRecover(token, message, newToken).next;
+            periodAfterThis = rewriteAndRecover(token, message, newToken);
           } else {
-            token = token.next;
+            periodAfterThis = token;
           }
+          token = periodAfterThis.next;
           nameContext = IdentifierContext.fieldInitializer;
           if (!token.isIdentifier) {
             // Recover from a missing identifier by inserting one.
@@ -2307,7 +2309,7 @@ class Parser {
           listener.handleFormalParameterWithoutValue(token);
         }
         listener.endFormalParameter(
-            thisKeyword, nameToken, parameterKind, memberKind);
+            thisKeyword, periodAfterThis, nameToken, parameterKind, memberKind);
 
         return token;
     }
