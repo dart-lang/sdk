@@ -165,6 +165,7 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
   final DiagnosticReporter reporter;
   final ClassEntity cls;
   InterfaceType _objectType;
+  Set<InterfaceType> _multiplyImplementedTypes;
 
   // TODO(johnniwinther): Provide access to `Object` in deserialization and
   // make [objectType] mandatory.
@@ -176,6 +177,7 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
       covariant InterfaceType type, covariant InterfaceType context);
   int getHierarchyDepth(covariant ClassEntity cls);
   OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
+  bool isUnnamedMixinApplication(covariant ClassEntity cls);
 
   OrderedTypeSet createOrderedTypeSet(
       InterfaceType supertype, Link<DartType> interfaces) {
@@ -235,14 +237,50 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
       InterfaceType existingType = link.head;
       if (existingType == type) return;
       if (existingType.element == type.element) {
-        if (reporter != null) {
-          reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
-            'thisType': getThisType(cls),
-            'firstType': existingType,
-            'secondType': type
-          });
-        } else {
-          assert(false, failedAt(cls, 'Invalid ordered typeset for $cls'));
+        if (isUnnamedMixinApplication(cls)) {
+          // In this case the multiply inherited type might be created through
+          // mixin application reuse. For instance:
+          //
+          //     class One<R> {}
+          //     class TheMixin<Q> implements One<int>  {}
+          //     class Two<T> extends One<int> with TheMixin<T> {}
+          //
+          // Here this (overly generic) unnamed mixin application is created:
+          //
+          //     class One+TheMixin<X, Y> = One<X> with TheMixin<Y>;
+          //
+          // which introduces multiple inheritance of `One<X>` and `One<int>`.
+          //
+          // We skip the unneeded `One<X>` inheritance, leaving the actual
+          // inheritance of `One<int>` in, to avoid reporting such cases as
+          // unsupported.
+          //
+          // Note that by keeping `One<int>` in the ordered type set, multiple
+          // inheritance at the user level will still be caught at the user
+          // provided class. For instance when extending the `Two` class with
+          // a conflicting inheritance of `One<double>`:
+          //
+          //     class Three<T> extends Two<T> implements One<double> {}
+          //
+          assert(
+              type.typeArguments.any((t) => !t.isTypeVariable),
+              failedAt(
+                  cls,
+                  'Invalid ordered typeset for $cls: '
+                  'Implements both $existingType and $type.'));
+          return;
+        }
+        _multiplyImplementedTypes ??= new Set<InterfaceType>();
+        if (_multiplyImplementedTypes.add(type)) {
+          if (reporter != null) {
+            reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
+              'thisType': getThisType(cls),
+              'firstType': existingType,
+              'secondType': type
+            });
+          } else {
+            assert(false, failedAt(cls, 'Invalid ordered typeset for $cls'));
+          }
         }
         return;
       }
@@ -310,18 +348,23 @@ class ResolutionOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
       {DiagnosticReporter reporter, InterfaceType objectType})
       : super(cls, reporter: reporter, objectType: objectType);
 
+  @override
   InterfaceType getThisType(ClassElement cls) => cls.thisType;
 
+  @override
   ResolutionInterfaceType substByContext(
       ResolutionInterfaceType type, ResolutionInterfaceType context) {
     return type.substByContext(context);
   }
 
+  @override
   int getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
 
+  @override
   OrderedTypeSet getOrderedTypeSet(ClassElement cls) =>
       cls.allSupertypesAndSelf;
 
+  @override
   OrderedTypeSet createOrderedTypeSet(
       InterfaceType supertype, Link<DartType> interfaces) {
     if (_objectType == null) {
@@ -334,5 +377,10 @@ class ResolutionOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
       _objectType = objectType;
     }
     return super.createOrderedTypeSet(supertype, interfaces);
+  }
+
+  @override
+  bool isUnnamedMixinApplication(ClassElement cls) {
+    return cls.isUnnamedMixinApplication;
   }
 }

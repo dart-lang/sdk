@@ -86,20 +86,29 @@ class _KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
             reporter: elementMap.reporter,
             objectType: elementMap.commonElements.objectType);
 
+  @override
   InterfaceType getThisType(ClassEntity cls) {
     return elementMap._getThisType(cls);
   }
 
+  @override
   InterfaceType substByContext(InterfaceType type, InterfaceType context) {
     return elementMap._substByContext(type, context);
   }
 
+  @override
   int getHierarchyDepth(ClassEntity cls) {
     return elementMap._getHierarchyDepth(cls);
   }
 
+  @override
   OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
     return elementMap._getOrderedTypeSet(cls);
+  }
+
+  @override
+  bool isUnnamedMixinApplication(ClassEntity cls) {
+    return elementMap._isUnnamedMixinApplication(cls);
   }
 }
 
