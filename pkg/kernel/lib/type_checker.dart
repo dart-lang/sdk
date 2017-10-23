@@ -337,7 +337,17 @@ class TypeCheckingVisitor
 
       case AsyncMarker.SyncStar:
       case AsyncMarker.AsyncStar:
+        return null;
+
       case AsyncMarker.SyncYielding:
+        TreeNode parent = function.parent;
+        while (parent is! FunctionNode) {
+          parent = parent.parent;
+        }
+        final enclosingFunction = parent as FunctionNode;
+        if (enclosingFunction.dartAsyncMarker == AsyncMarker.SyncStar) {
+          return coreTypes.boolClass.rawType;
+        }
         return null;
 
       default:
