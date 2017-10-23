@@ -237,11 +237,7 @@ class AstBuilder extends ScopeListener {
   }
 
   void handleIdentifier(Token token, IdentifierContext context) {
-    // TODO(brianwilkerson): Enable this assert.
-    // The method `parseType` currently allows non-identifiers to be treated as
-    // identifiers. We ought to be able to add this assert after `parseClass` is
-    // recovering better.
-//    assert(token.isIdentifier);
+    assert(token.isKeywordOrIdentifier);
     debugEvent("handleIdentifier");
 
     if (context.inSymbol) {

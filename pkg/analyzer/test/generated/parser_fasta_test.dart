@@ -1486,14 +1486,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingIdentifier_inEnum() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_missingIdentifier_inEnum();
-  }
-
-  @override
-  @failingTest
   void test_missingKeywordOperator() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'DeclaredSimpleIdentifier' is not a subtype of type 'TypeAnnotation' of 'returnType' where
@@ -2088,6 +2080,24 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_topLevelOperator_withoutOperator() {
     super.test_topLevelOperator_withoutOperator();
+  }
+
+  @override
+  @failingTest
+  void test_topLevelOperator_withoutType() {
+    super.test_topLevelOperator_withoutType();
+  }
+
+  @override
+  @failingTest
+  void test_topLevelOperator_withType() {
+    super.test_topLevelOperator_withType();
+  }
+
+  @override
+  @failingTest
+  void test_topLevelOperator_withVoid() {
+    super.test_topLevelOperator_withVoid();
   }
 
   @override
