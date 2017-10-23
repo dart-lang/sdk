@@ -153,6 +153,54 @@ class CombineTest {
     });
   }
 
+  void test_procedure_getter_skipDuplicate() {
+    var libraryA1 = _newLibrary('a');
+    libraryA1.addProcedure(_newGetter('A'));
+    libraryA1.addProcedure(_newGetter('B'));
+
+    var libraryA2 = _newLibrary('a');
+    libraryA2.addProcedure(_newGetter('A'));
+    libraryA2.addProcedure(_newGetter('C'));
+
+    var outline1 = _newOutline([libraryA1]);
+    var outline2 = _newOutline([libraryA2]);
+
+    _runCombineTest([outline1, outline2], (result) {
+      var libraryA = _getLibrary(result.program, 'a');
+      _getProcedure(libraryA, 'A', '@getters');
+      _getProcedure(libraryA, 'B', '@getters');
+      _getProcedure(libraryA, 'C', '@getters');
+    });
+  }
+
+  void test_procedure_getter_updateReferences() {
+    var libraryA1 = _newLibrary('a');
+    var procedureA1A = _newGetter('A');
+    libraryA1.addProcedure(procedureA1A);
+
+    var libraryA2 = _newLibrary('a');
+    var procedureA2A = _newGetter('A');
+    libraryA2.addProcedure(procedureA2A);
+
+    var libraryB = _newLibrary('b');
+    libraryB.addProcedure(_newMainProcedure([
+      new StaticGet(procedureA2A),
+    ]));
+
+    var outline1 = _newOutline([libraryA1]);
+    var outline2 = _newOutline([libraryA2, libraryB]);
+
+    _runCombineTest([outline1, outline2], (result) {
+      var libraryA = _getLibrary(result.program, 'a');
+      _getProcedure(libraryA, 'A', '@getters');
+
+      var libraryB = _getLibrary(result.program, 'b');
+      var main = _getProcedure(libraryB, 'main', '@methods');
+      expect((_getMainExpression(main, 0) as StaticGet).targetReference,
+          same(procedureA1A.reference));
+    });
+  }
+
   void test_procedure_method() {
     var libraryA1 = _newLibrary('a');
     libraryA1.addProcedure(_newMethod('A'));
@@ -232,6 +280,54 @@ class CombineTest {
       var libraryA = _getLibrary(result.program, 'a');
       _getProcedure(libraryA, 'A', '@setters');
       _getProcedure(libraryA, 'B', '@setters');
+    });
+  }
+
+  void test_procedure_setter_skipDuplicate() {
+    var libraryA1 = _newLibrary('a');
+    libraryA1.addProcedure(_newSetter('A'));
+    libraryA1.addProcedure(_newSetter('B'));
+
+    var libraryA2 = _newLibrary('a');
+    libraryA2.addProcedure(_newSetter('A'));
+    libraryA2.addProcedure(_newSetter('C'));
+
+    var outline1 = _newOutline([libraryA1]);
+    var outline2 = _newOutline([libraryA2]);
+
+    _runCombineTest([outline1, outline2], (result) {
+      var libraryA = _getLibrary(result.program, 'a');
+      _getProcedure(libraryA, 'A', '@setters');
+      _getProcedure(libraryA, 'B', '@setters');
+      _getProcedure(libraryA, 'C', '@setters');
+    });
+  }
+
+  void test_procedure_setter_updateReferences() {
+    var libraryA1 = _newLibrary('a');
+    var procedureA1A = _newSetter('A');
+    libraryA1.addProcedure(procedureA1A);
+
+    var libraryA2 = _newLibrary('a');
+    var procedureA2A = _newSetter('A');
+    libraryA2.addProcedure(procedureA2A);
+
+    var libraryB = _newLibrary('b');
+    libraryB.addProcedure(_newMainProcedure([
+      new StaticSet(procedureA2A, new IntLiteral(0)),
+    ]));
+
+    var outline1 = _newOutline([libraryA1]);
+    var outline2 = _newOutline([libraryA2, libraryB]);
+
+    _runCombineTest([outline1, outline2], (result) {
+      var libraryA = _getLibrary(result.program, 'a');
+      _getProcedure(libraryA, 'A', '@setters');
+
+      var libraryB = _getLibrary(result.program, 'b');
+      var main = _getProcedure(libraryB, 'main', '@methods');
+      expect((_getMainExpression(main, 0) as StaticSet).targetReference,
+          same(procedureA1A.reference));
     });
   }
 
