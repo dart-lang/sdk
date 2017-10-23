@@ -95,10 +95,10 @@ var testSuppressedGlobalErrors = [];
 
 // Set window onerror to make sure that we catch test harness errors across all
 // browsers.
-window.onerror = function (message, url, line, column, error) {
+window.onerror = function (message, url, lineNumber) {
   if (url) {
     message = ('window.onerror called: \n\n' +
-        url + ':' + line + ':' + column + ':\n' + message + '\n\n');
+        url + ':' + lineNumber + ':\n' + message + '\n\n');
   }
   if (testExpectsGlobalError) {
     testSuppressedGlobalErrors.push({
@@ -106,9 +106,7 @@ window.onerror = function (message, url, line, column, error) {
     });
     return;
   }
-
-  var stack = getStackTrace(error);
-  recordEvent('window_onerror', message, stack);
+  recordEvent('window_onerror', message);
   notifyDone('FAIL');
 };
 
@@ -127,14 +125,6 @@ var reportingDriverWindowError = false;
 // stack trace for the error. DDC sets this to clean up its stack traces before
 // reporting them.
 var testErrorToStackTrace = null;
-
-function getStackTrace(error) {
-  if (testErrorToStackTrace) {
-    return testErrorToStackTrace(error);
-  } else {
-    return error.stack.toString();
-  }
-}
 
 // Returns the driving window object if available
 // This function occasionally returns null instead of the
@@ -333,7 +323,13 @@ function dartMainRunner(main) {
   try {
     main();
   } catch (error) {
-    var stack = getStackTrace(error);
+    var stack;
+    // TODO(rnystrom): Use this for script tag and window onerror calls.
+    if (testErrorToStackTrace) {
+      stack = testErrorToStackTrace(error);
+    } else {
+      stack = error.stack.toString();
+    }
     recordEvent('sync_exception', error.toString(), stack);
     notifyDone('FAIL');
     return;
