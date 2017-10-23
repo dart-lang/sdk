@@ -24,6 +24,7 @@ linter:
     - avoid_setters_without_getters
     - avoid_slow_async_io
     - avoid_types_on_closure_parameters
+    - avoid_unused_constructor_parameters
     - await_only_futures
     - camel_case_types
     - cancel_subscriptions
