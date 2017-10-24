@@ -26,11 +26,12 @@ import 'kernel_builder.dart'
 class KernelNamedTypeBuilder
     extends NamedTypeBuilder<KernelTypeBuilder, DartType>
     implements KernelTypeBuilder {
-  KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments,
-      int charOffset, Uri fileUri)
-      : super(name, arguments, charOffset, fileUri);
+  KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
+      : super(name, arguments);
 
   KernelInvalidTypeBuilder buildInvalidType() {
+    int charOffset = -1; // TODO(ahe): Provide these.
+    Uri fileUri = null; // TODO(ahe): Provide these.
     // TODO(ahe): Record error instead of printing.
     warning(templateTypeNotFound.withArguments("$name"), charOffset, fileUri);
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
@@ -39,6 +40,8 @@ class KernelNamedTypeBuilder
   }
 
   Supertype handleInvalidSupertype(LibraryBuilder library) {
+    int charOffset = -1; // TODO(ahe): Provide these.
+    Uri fileUri = null; // TODO(ahe): Provide these.
     var template = builder.isTypeVariable
         ? templateSupertypeIsTypeVariable
         : templateSupertypeIsIllegal;
@@ -77,8 +80,7 @@ class KernelNamedTypeBuilder
         i++;
       }
       if (arguments != null) {
-        return new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri)
-          ..builder = builder;
+        return new KernelNamedTypeBuilder(name, arguments)..bind(builder);
       }
     }
     return this;

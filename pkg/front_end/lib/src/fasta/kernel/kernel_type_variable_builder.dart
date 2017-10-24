@@ -35,10 +35,12 @@ class KernelTypeVariableBuilder
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     if (arguments != null) {
+      int charOffset = -1; // TODO(ahe): Provide these.
+      Uri fileUri = null; // TODO(ahe): Provide these.
       library.addWarning(
           templateTypeArgumentsOnTypeVariable.withArguments(name),
-          arguments.first.charOffset,
-          arguments.first.fileUri);
+          charOffset,
+          fileUri);
     }
     return new TypeParameterType(parameter);
   }
@@ -54,7 +56,7 @@ class KernelTypeVariableBuilder
   }
 
   KernelTypeBuilder asTypeBuilder() {
-    return new KernelNamedTypeBuilder(name, null, -1, null)..builder = this;
+    return new KernelNamedTypeBuilder(name, null)..bind(this);
   }
 
   void finish(LibraryBuilder library, KernelClassBuilder object) {

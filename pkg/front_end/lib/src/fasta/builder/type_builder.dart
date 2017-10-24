@@ -5,16 +5,10 @@
 library fasta.type_builder;
 
 import 'builder.dart'
-    show
-        Builder,
-        LibraryBuilder,
-        Scope,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder;
+    show LibraryBuilder, Scope, TypeDeclarationBuilder, TypeVariableBuilder;
 
-// TODO(ahe): Make const class.
-abstract class TypeBuilder extends Builder {
-  TypeBuilder(int charOffset, Uri fileUri) : super(null, charOffset, fileUri);
+abstract class TypeBuilder {
+  const TypeBuilder();
 
   void resolveIn(Scope scope);
 
@@ -35,10 +29,5 @@ abstract class TypeBuilder extends Builder {
 
   buildInvalidType();
 
-  @override
-  String get fullNameForErrors {
-    StringBuffer sb = new StringBuffer();
-    printOn(sb);
-    return "$sb";
-  }
+  String get fullNameForErrors => "${printOn(new StringBuffer())}";
 }

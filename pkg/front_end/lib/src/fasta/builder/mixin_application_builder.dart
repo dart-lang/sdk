@@ -14,9 +14,7 @@ abstract class MixinApplicationBuilder<T extends TypeBuilder>
   final T supertype;
   final List<T> mixins;
 
-  MixinApplicationBuilder(
-      this.supertype, this.mixins, int charOffset, Uri fileUri)
-      : super(charOffset, fileUri);
+  MixinApplicationBuilder(this.supertype, this.mixins);
 
   void set typeVariables(List<TypeVariableBuilder> variables);
 

@@ -106,19 +106,16 @@ class KernelEnumBuilder extends SourceClassBuilder
     constantNamesAndOffsetsAndDocs ??= const <Object>[];
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
-    KernelTypeBuilder intType =
-        new KernelNamedTypeBuilder("int", null, charOffset, parent.fileUri);
-    KernelTypeBuilder stringType =
-        new KernelNamedTypeBuilder("String", null, charOffset, parent.fileUri);
+    KernelTypeBuilder intType = new KernelNamedTypeBuilder("int", null);
+    KernelTypeBuilder stringType = new KernelNamedTypeBuilder("String", null);
     KernelNamedTypeBuilder objectType =
-        new KernelNamedTypeBuilder("Object", null, charOffset, parent.fileUri);
+        new KernelNamedTypeBuilder("Object", null);
     ShadowClass cls = new ShadowClass(name: name);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
-    KernelNamedTypeBuilder selfType =
-        new KernelNamedTypeBuilder(name, null, charOffset, parent.fileUri);
-    KernelTypeBuilder listType = new KernelNamedTypeBuilder(
-        "List", <KernelTypeBuilder>[selfType], charOffset, parent.fileUri);
+    KernelNamedTypeBuilder selfType = new KernelNamedTypeBuilder(name, null);
+    KernelTypeBuilder listType =
+        new KernelNamedTypeBuilder("List", <KernelTypeBuilder>[selfType]);
 
     /// From Dart Programming Language Specification 4th Edition/December 2015:
     ///     metadata class E {

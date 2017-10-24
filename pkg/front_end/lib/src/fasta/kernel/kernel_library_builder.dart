@@ -119,14 +119,13 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder addNamedType(
       Object name, List<KernelTypeBuilder> arguments, int charOffset) {
-    return addType(
-        new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri));
+    return addType(new KernelNamedTypeBuilder(name, arguments));
   }
 
   KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
       List<KernelTypeBuilder> mixins, int charOffset) {
-    KernelTypeBuilder type = new KernelMixinApplicationBuilder(
-        supertype, mixins, this, charOffset, fileUri);
+    KernelTypeBuilder type =
+        new KernelMixinApplicationBuilder(supertype, mixins, this);
     return addType(type);
   }
 
@@ -374,8 +373,7 @@ class KernelLibraryBuilder
               unresolvedReversed[name] = argument.name;
               freeTypes[name] = argument;
               part.add(name);
-              type.arguments[i] =
-                  new KernelNamedTypeBuilder(name, null, -1, fileUri);
+              type.arguments[i] = new KernelNamedTypeBuilder(name, null);
             }
             signatureParts.add(part);
           }
@@ -733,9 +731,9 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    var builder = new KernelFunctionTypeBuilder(
-        charOffset, fileUri, returnType, typeVariables, formals);
-    checkTypeVariables(typeVariables, builder);
+    var builder =
+        new KernelFunctionTypeBuilder(returnType, typeVariables, formals);
+    checkTypeVariables(typeVariables, null);
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
     endNestedDeclaration("#function_type").resolveTypes(typeVariables, this);

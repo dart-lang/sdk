@@ -113,8 +113,7 @@ class KernelTarget extends TargetImplementation {
 
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
-  final TypeBuilder dynamicType =
-      new KernelNamedTypeBuilder("dynamic", null, -1, null);
+  final TypeBuilder dynamicType = new KernelNamedTypeBuilder("dynamic", null);
 
   bool get strongMode => backendTarget.strongMode;
 
@@ -218,9 +217,8 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new KernelNamedTypeBuilder("Object", null,
-        builder.charOffset, builder.fileUri ?? Uri.parse(cls.fileUri))
-      ..builder = objectClassBuilder;
+    builder.supertype = new KernelNamedTypeBuilder("Object", null)
+      ..bind(objectClassBuilder);
     builder.interfaces = null;
     builder.mixedInType = null;
   }
