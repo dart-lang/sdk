@@ -605,6 +605,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           formals.required.length == 1 &&
           (formals.optional == null || formals.optional.formals.length == 0);
       if (!oneParameter) {
+        int charOffset = formals?.charOffset ??
+            body?.fileOffset ??
+            builder.target.fileOffset;
+        if (body == null) {
+          body = new EmptyStatement()..fileOffset = charOffset;
+        }
         if (builder.formals != null) {
           // Illegal parameters were removed by the function builder.
           // Add them as local variable to put them in scope of the body.
@@ -613,10 +619,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             statements.add(parameter.target);
           }
           statements.add(body);
-          body = new Block(statements);
-        }
-        if (formals != null) {
-          body.fileOffset = formals.charOffset;
+          body = new Block(statements)..fileOffset = charOffset;
         }
         body = wrapInCompileTimeErrorStatement(
             body, messageSetterWithWrongNumberOfFormals);

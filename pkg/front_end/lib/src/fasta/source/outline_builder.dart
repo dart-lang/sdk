@@ -405,8 +405,15 @@ class OutlineBuilder extends UnhandledListener {
     int charOffset = pop();
     String name = pop();
     TypeBuilder returnType = pop();
-    int modifiers =
-        Modifier.validate(pop(), isAbstract: kind == MethodBody.Abstract);
+    bool isAbstract = kind == MethodBody.Abstract;
+    if (getOrSet != null && optional("set", getOrSet)) {
+      if (formals == null || formals.length != 1) {
+        // This isn't abstract as we'll add an error-recovery node in
+        // [BodyBuilder.finishFunction].
+        isAbstract = false;
+      }
+    }
+    int modifiers = Modifier.validate(pop(), isAbstract: isAbstract);
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
     checkEmpty(beginToken.charOffset);
@@ -532,8 +539,15 @@ class OutlineBuilder extends UnhandledListener {
       kind = computeProcedureKind(getOrSet);
     }
     TypeBuilder returnType = pop();
-    int modifiers =
-        Modifier.validate(pop(), isAbstract: bodyKind == MethodBody.Abstract);
+    bool isAbstract = bodyKind == MethodBody.Abstract;
+    if (getOrSet != null && optional("set", getOrSet)) {
+      if (formals == null || formals.length != 1) {
+        // This isn't abstract as we'll add an error-recovery node in
+        // [BodyBuilder.finishFunction].
+        isAbstract = false;
+      }
+    }
+    int modifiers = Modifier.validate(pop(), isAbstract: isAbstract);
     if ((modifiers & externalMask) != 0) {
       modifiers &= ~abstractMask;
     }
