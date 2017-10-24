@@ -13,7 +13,7 @@ import 'package:gardening/src/luci.dart';
 import 'package:gardening/src/luci_api.dart';
 import 'package:gardening/src/results/configuration_environment.dart';
 import 'package:gardening/src/results/result_models.dart' as models;
-import 'package:gardening/src/results/status_files_wrapper.dart';
+import 'package:gardening/src/results/status_files.dart';
 import 'package:gardening/src/results/test_result_service.dart';
 import 'package:gardening/src/results/testpy_wrapper.dart';
 import 'package:gardening/src/results/util.dart';
@@ -86,16 +86,12 @@ class CheckStatusCommand extends Command {
         await getPrimaryBuilders(luciApi, DART_CLIENT, dayCache);
     var testResultService = new TestResultService(logger, createCache);
 
-    StatusFilesWrapper statusFilesWrapper =
-        StatusFilesWrapper.read(statusFilePaths);
+    StatusFiles statusFilesWrapper = StatusFiles.read(statusFilePaths);
 
-    var dtStart = new DateTime.now();
     List<models.TestResult> testResults =
-        await waitWithThrottle(primaryBuilders, 50, (builder) {
+        await waitWithThrottle(primaryBuilders, 20, (builder) {
       return testResultService.latestForBuilder(BUILDER_PROJECT, builder);
     });
-    var dtEnd = new DateTime.now();
-    print("DURATION: ${dtEnd.difference(dtStart).inMilliseconds}");
 
     var allResults = testResults.fold<models.TestResult>(
         new models.TestResult(),
@@ -123,7 +119,7 @@ class CheckStatusCommand extends Command {
   }
 
   void _checkTests(Iterable<models.Configuration> configurations,
-      Iterable<String> tests, StatusFilesWrapper wrapper) {
+      Iterable<String> tests, StatusFiles statusFiles) {
     int configurationLength = configurations.length;
     int configurationCounter = 1;
     var printer = new ExtendedPrinter();
@@ -140,10 +136,10 @@ class CheckStatusCommand extends Command {
       printer.println("");
       ConfigurationEnvironment environment =
           new ConfigurationEnvironment(configuration);
-      Map<String, Iterable<StatusSectionEntryResult>> results = {};
+      Map<String, Iterable<StatusSectionEntry>> results = {};
       for (var test in tests) {
-        Iterable<StatusSectionEntryResult> result =
-            wrapper.sectionsWithTestForConfiguration(environment, test);
+        Iterable<StatusSectionEntry> result =
+            statusFiles.sectionsWithTestForConfiguration(environment, test);
         if (result.length > 1) {
           results.putIfAbsent(test, () => result);
         }
@@ -162,23 +158,23 @@ class CheckStatusCommand extends Command {
   }
 
   void printOverlappingSectionsForTest(ExtendedPrinter printer,
-      Map<String, Iterable<StatusSectionEntryResult>> testSectionEntries) {
+      Map<String, Iterable<StatusSectionEntry>> testSectionEntries) {
     for (var test in testSectionEntries.keys) {
       printer.println(test);
       printer.printLinePattern("*");
       printer.printIterable(testSectionEntries[test],
-          (StatusSectionEntryResult entry) {
+          (StatusSectionEntry entry) {
         return "${entry.section.lineNumber}: [ ${entry.section.condition} ] \n"
-            "\t${entry.entry.lineNumber}: ${entry.entry.path}: ${entry.expectations}";
-      }, header: (StatusSectionEntryResult entry) {
+            "\t${entry.entry.lineNumber}: ${entry.entry.path}: ${entry.entry.expectations}";
+      }, header: (StatusSectionEntry entry) {
         return entry.statusFile.path;
       }, itemPreceding: "\t");
     }
   }
 
   void printOverlappingSectionsForTestsGrouped(ExtendedPrinter printer,
-      Map<String, Iterable<StatusSectionEntryResult>> testSectionEntries) {
-    Iterable<StatusSectionEntryResult> expandedResult =
+      Map<String, Iterable<StatusSectionEntry>> testSectionEntries) {
+    Iterable<StatusSectionEntry> expandedResult =
         testSectionEntries.values.expand((id) => id);
     var allFiles = expandedResult.map((result) => result.statusFile).toSet();
     for (var file in allFiles) {
