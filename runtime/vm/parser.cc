@@ -11040,6 +11040,11 @@ AstNode* Parser::OptimizeBinaryOpNode(TokenPosition op_pos,
     LoadLocalNode* load_left_temp = new (Z) LoadLocalNode(no_pos, left_temp);
     ComparisonNode* null_compare = new (Z)
         ComparisonNode(no_pos, Token::kNE_STRICT, load_left_temp, null_operand);
+    // If the expression is a compile-time constant, ensure that it
+    // is evaluated and canonicalized. See issue 31066.
+    if (rhs->EvalConstExpr() != NULL) {
+      rhs = FoldConstExpr(rhs->token_pos(), rhs);
+    }
     result->AddNode(
         new (Z) ConditionalExprNode(op_pos, null_compare, load_left_temp, rhs));
     return result;
