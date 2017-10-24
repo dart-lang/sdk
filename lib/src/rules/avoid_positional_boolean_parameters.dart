@@ -84,6 +84,7 @@ class _Visitor extends SimpleAstVisitor {
   visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isSetter &&
         !node.element.isPrivate &&
+        !node.isOperator &&
         !_hasInheritedMethod(node)) {
       final parametersToLint =
           node.parameters?.parameters?.where(_isFormalParameterToLint);
