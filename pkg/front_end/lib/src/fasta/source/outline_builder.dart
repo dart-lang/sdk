@@ -373,7 +373,6 @@ class OutlineBuilder extends UnhandledListener {
     String name = pop();
     if (typeVariables != null && supertype is MixinApplicationBuilder) {
       supertype.typeVariables = typeVariables;
-      supertype.subclassName = name;
     }
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();

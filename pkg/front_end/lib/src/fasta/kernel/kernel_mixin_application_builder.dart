@@ -25,8 +25,6 @@ class KernelMixinApplicationBuilder
 
   List<TypeVariableBuilder> typeVariables;
 
-  String subclassName;
-
   KernelMixinApplicationBuilder(
       KernelTypeBuilder supertype, List<KernelTypeBuilder> mixins, this.library)
       : super(supertype, mixins);

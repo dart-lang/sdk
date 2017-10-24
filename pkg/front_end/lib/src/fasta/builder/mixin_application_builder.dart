@@ -18,14 +18,6 @@ abstract class MixinApplicationBuilder<T extends TypeBuilder>
 
   void set typeVariables(List<TypeVariableBuilder> variables);
 
-  /// If this mixin application uses type variables, it needs a unique name
-  /// based on its subclass. If this name is provided, the name will be
-  /// `name^mixin`, otherwise it'll be `superclass&mixin`.
-  //
-  // TODO(ahe): This is to reduce diff against dartk. Consider if this is
-  // necessary.
-  void set subclassName(String value);
-
   String get name => null;
 
   void resolveIn(Scope scope) {
