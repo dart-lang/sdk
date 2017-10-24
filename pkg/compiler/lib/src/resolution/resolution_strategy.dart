@@ -257,9 +257,16 @@ class ComputeSpannableMixin {
       }
       Element element = currentElement;
       uri = element.compilationUnit.script.resourceUri;
+      String message;
       assert(() {
         bool sameToken(Token token, Token sought) {
           if (token == sought) return true;
+          if (token.stringValue == '[') {
+            // `[` is converted to `[]` in the parser when needed.
+            return sought.stringValue == '[]' &&
+                token.charOffset <= sought.charOffset &&
+                sought.charOffset < token.charEnd;
+          }
           if (token.stringValue == '>>') {
             // `>>` is converted to `>` in the parser when needed.
             return sought.stringValue == '>' &&
@@ -306,7 +313,8 @@ class ComputeSpannableMixin {
             }
             token = token.next;
           }
-          return sb.toString();
+          message = sb.toString();
+          return false;
         }
 
         if (element.enclosingClass != null &&
@@ -332,9 +340,7 @@ class ComputeSpannableMixin {
           }
         }
         return true;
-      },
-          failedAt(currentElement,
-              "Invalid current element: $element [$begin,$end]."));
+      }, failedAt(currentElement, message));
     }
     return new SourceSpan.fromTokens(uri, begin, end);
   }
