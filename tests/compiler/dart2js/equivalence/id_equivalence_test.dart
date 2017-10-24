@@ -159,6 +159,8 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
           return computeInvokeName(sendStructure.operator.selectorName);
         case SendStructureKind.INDEX:
           return computeInvokeName('[]');
+        case SendStructureKind.INDEX_SET:
+          return computeInvokeName('[]=');
         case SendStructureKind.EQUALS:
           return computeInvokeName('==');
         case SendStructureKind.NOT_EQUALS:

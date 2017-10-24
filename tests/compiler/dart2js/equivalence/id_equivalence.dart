@@ -318,7 +318,9 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   void run() {
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      resolvedAst.node.accept(this);
+      reporter.withCurrentElement(resolvedAst.element.implementation, () {
+        resolvedAst.node.accept(this);
+      });
     } else {
       computeForElement(resolvedAst.element);
     }
@@ -426,6 +428,9 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           if (position != null) {
             computeForNode(node, createUpdateId(position));
           }
+          break;
+        case SendStructureKind.INDEX_SET:
+          computeForNode(node, createInvokeId(node.selector));
           break;
         case SendStructureKind.PREFIX:
         case SendStructureKind.POSTFIX:
