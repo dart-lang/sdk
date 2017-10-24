@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+library fasta.scanner.main;
+
 import 'io.dart' show readBytesFromFileSync;
 
 import '../scanner.dart' show ErrorToken, Token, scan;

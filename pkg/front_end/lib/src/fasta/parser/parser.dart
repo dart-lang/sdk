@@ -98,21 +98,34 @@ import 'util.dart' show closeBraceTokenFor, optional;
 ///
 /// Subclasses of the class [Listener] are used to listen to events.
 ///
-/// Most methods of this class belong in one of three major categories: parse
-/// methods, peek methods, and skip methods. Parse methods all have the prefix
-/// `parse`, peek methods all have the prefix `peek`, and skip methods all have
-/// the prefix `skip`.
+/// Most methods of this class belong in one of four major categories: parse
+/// methods, peek methods, ensure methods, and skip methods.
 ///
-/// Parse methods generate events (by calling methods on [listener]) and return
-/// the next token to parse. Peek methods do not generate events (except for
-/// errors) and may return null. Skip methods are like parse methods, but skip
-/// over some parts of the file being parsed.
+/// Parse methods all have the prefix `parse`, generate events
+/// (by calling methods on [listener]), and return the next token to parse.
+/// Some exceptions to this last point are methods such as [parseFunctionBody]
+/// and [parseClassBody] which return the last token parsed
+/// rather than the next token to be parsed.
+/// Parse methods are generally named `parseGrammarProductionSuffix`.
+/// The suffix can be one of `opt`, or `star`.
+/// `opt` means zero or one matches, `star` means zero or more matches.
+/// For example, [parseMetadataStar] corresponds to this grammar snippet:
+/// `metadata*`, and [parseArgumentsOpt] corresponds to: `arguments?`.
 ///
-/// Parse methods are generally named `parseGrammarProductionSuffix`. The
-/// suffix can be one of `opt`, or `star`. `opt` means zero or one matches,
-/// `star` means zero or more matches. For example, [parseMetadataStar]
-/// corresponds to this grammar snippet: `metadata*`, and [parseArgumentsOpt]
-/// corresponds to: `arguments?`.
+/// Peek methods all have the prefix `peek`, do not generate events
+/// (except for errors) and may return null.
+///
+/// Ensure methods all have the prefix `ensure` and may generate events.
+/// They return the current token, or insert and return a synthetic token
+/// if the current token does not match. For example,
+/// [ensureSemicolon] returns the current token if the current token is a
+/// semicolon, otherwise inserts a synthetic semicolon in the token stream
+/// before the current token and then returns that new synthetic token.
+///
+/// Skip methods are like parse methods, but all have the prefix `skip`
+/// and skip over some parts of the file being parsed.
+/// Typically, skip methods generate an event for the structure being skipped,
+/// but not for its substructures.
 ///
 /// ## Current Token
 ///
@@ -129,12 +142,12 @@ import 'util.dart' show closeBraceTokenFor, optional;
 /// to the keyword table.
 ///
 /// As a consequence of this, one should not use `==` to compare strings in the
-/// parser. One should favor the methods [optional] and [expected] to recognize
+/// parser. One should favor the methods [optional] and [expect] to recognize
 /// keywords or identifiers. In some cases, it's possible to compare a token's
 /// `stringValue` using [identical], but normally [optional] will suffice.
 ///
-/// Historically, we over-used identical, and when identical is used on other
-/// objects than strings, it can often be replaced by `==`.
+/// Historically, we over-used identical, and when identical is used on objects
+/// other than strings, it can often be replaced by `==`.
 ///
 /// ## Flexibility, Extensibility, and Specification
 ///
@@ -3159,9 +3172,9 @@ class Parser {
             token = context.parseRecovery(token, externalModifier,
                 staticModifier, getOrSet, afterModifiers);
 
-            // If the modifiers form a partial top level directive or declaration
-            // and we have found the start of a new top level declaration
-            // then return to parse that new declaration.
+            // If the modifiers form a partial top level directive
+            // or declaration and we have found the start of a new top level
+            // declaration then return to parse that new declaration.
             if (context.endInvalidMemberToken != null) {
               listener.handleInvalidMember(context.endInvalidMemberToken);
               return context.endInvalidMemberToken.next;
