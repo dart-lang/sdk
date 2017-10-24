@@ -124,7 +124,7 @@ group("samples") {
 # by the Fuchsia build, add the GN build argument:
 #   extra_bootdata = [ "//third_party/dart:dart_test_bootfs" ]
 if (is_fuchsia) {
-  import("//build/bootdata.gni")
+  import("//build/config/fuchsia/bootdata.gni")
 
   action("generate_dart_test_manifest") {
     testonly = true
