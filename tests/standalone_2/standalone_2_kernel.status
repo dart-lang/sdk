@@ -34,10 +34,6 @@ package/package_test: CompileTimeError
 package/scenarios/invalid/invalid_utf8_test: CompileTimeError
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 package/scenarios/invalid/same_package_twice_test: CompileTimeError
-io/dependency_graph_test: Crash
-io/skipping_dart2js_compilations_test: Crash
-io/test_harness_analyzer_test: Crash
-io/test_runner_test: Crash
 
 [ $compiler == dartkp ]
 dwarf_stack_trace_test: RuntimeError

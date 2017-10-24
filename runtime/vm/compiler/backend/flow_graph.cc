@@ -954,7 +954,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
-      (FLAG_reify_generic_functions && (inlining_parameters != NULL) &&
+      (isolate()->reify_generic_functions() && (inlining_parameters != NULL) &&
        function().IsGeneric())
           ? 1
           : 0;
@@ -989,7 +989,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   // already been handled as parameters.
   if (!IsCompiledForOsr()) {
     intptr_t i = parameter_count();
-    if (FLAG_reify_generic_functions && function().IsGeneric()) {
+    if (isolate()->reify_generic_functions() && function().IsGeneric()) {
       // The first local is the slot holding the copied passed-in type args.
       // TODO(regis): Do we need the SpecialParameterInstr if the type_args_var
       // is not needed? Add an assert for now:

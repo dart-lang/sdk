@@ -129,12 +129,14 @@ typedef FixedCache<intptr_t, CatchEntryState, 16> CatchEntryStateCache;
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
 //
-//       V(name, Dart_IsolateFlags-member-name, command-line-flag-name)
+//       V(when, name, Dart_IsolateFlags-member-name, command-line-flag-name)
 //
 #define ISOLATE_FLAG_LIST(V)                                                   \
   V(NONPRODUCT, type_checks, EnableTypeChecks, enable_type_checks,             \
     FLAG_enable_type_checks)                                                   \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
+  V(NONPRODUCT, reify_generic_functions, ReifyGenericFunctions,                \
+    reify_generic_functions, FLAG_reify_generic_functions)                     \
   V(NONPRODUCT, error_on_bad_type, ErrorOnBadType, enable_error_on_bad_type,   \
     FLAG_error_on_bad_type)                                                    \
   V(NONPRODUCT, error_on_bad_override, ErrorOnBadOverride,                     \
@@ -840,6 +842,7 @@ class Isolate : public BaseIsolate {
   V(EnableAsserts)                                                             \
   V(ErrorOnBadType)                                                            \
   V(ErrorOnBadOverride)                                                        \
+  V(ReifyGenericFunctions)                                                     \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \

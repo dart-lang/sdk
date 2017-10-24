@@ -559,6 +559,7 @@ typedef struct {
   bool use_dart_frontend;
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
+  bool reify_generic_functions;
 } Dart_IsolateFlags;
 
 /**

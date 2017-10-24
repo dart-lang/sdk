@@ -68,6 +68,7 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.enable_asserts = false;
     api_flags.enable_error_on_bad_type = false;
     api_flags.enable_error_on_bad_override = false;
+    api_flags.reify_generic_functions = false;
 #if !defined(DART_PRECOMPILER)
     api_flags.use_field_guards = true;
     api_flags.use_osr = true;

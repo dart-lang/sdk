@@ -792,7 +792,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   scope_->set_end_token_pos(function.end_token_pos());
 
   // Add function type arguments variable before current context variable.
-  if (FLAG_reify_generic_functions && function.IsGeneric()) {
+  if (I->reify_generic_functions() && function.IsGeneric()) {
     LocalVariable* type_args_var = MakeVariable(
         TokenPosition::kNoSource, TokenPosition::kNoSource,
         Symbols::FunctionTypeArgumentsVar(), AbstractType::dynamic_type());
@@ -2366,7 +2366,7 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        if (FLAG_reify_generic_functions) {
+        if (I->reify_generic_functions()) {
           result_ ^=
               TypeArguments::Handle(Z, active_class_->member->type_parameters())
                   .TypeAt(parameter_index);
@@ -2381,7 +2381,7 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
 
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
-      if (FLAG_reify_generic_functions) {
+      if (I->reify_generic_functions()) {
         result_ ^=
             active_class_->local_type_parameters->TypeAt(parameter_index);
       } else {
@@ -3824,7 +3824,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     // TODO(30455): Kernel generic methods undone. When generic closures are
     // supported, the type arguments passed by the caller will actually need to
     // be used here.
-    if (dart_function.IsGeneric() && FLAG_reify_generic_functions) {
+    if (dart_function.IsGeneric() && I->reify_generic_functions()) {
       LocalVariable* type_args_slot =
           parsed_function()->function_type_arguments();
       ASSERT(type_args_slot != NULL);
@@ -3834,7 +3834,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     body += Drop();
   } else if (dart_function.IsClosureFunction() && dart_function.IsGeneric() &&
              dart_function.NumParentTypeParameters() > 0 &&
-             FLAG_reify_generic_functions) {
+             I->reify_generic_functions()) {
     LocalVariable* closure =
         parsed_function()->node_sequence()->scope()->VariableAt(0);
     LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
@@ -5977,7 +5977,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
   Fragment instructions;
   intptr_t type_args_len = 0;
-  if (FLAG_reify_generic_functions) {
+  if (I->reify_generic_functions()) {
     AlternativeReadingScope alt(reader_);
     SkipExpression();                         // skip receiver
     SkipName();                               // skip method name
@@ -6090,7 +6090,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
 
   Fragment instructions;
   intptr_t type_args_len = 0;
-  if (FLAG_reify_generic_functions) {
+  if (I->reify_generic_functions()) {
     AlternativeReadingScope alt(reader_);
     SkipExpression();                         // skip receiver
     ReadCanonicalNameReference();             // skip target reference
@@ -6201,7 +6201,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     const TypeArguments& type_arguments = PeekArgumentsInstantiatedType(klass);
     instructions += TranslateInstantiatedTypeArguments(type_arguments);
     instructions += PushArgument();
-  } else if (!special_case_identical && FLAG_reify_generic_functions) {
+  } else if (!special_case_identical && I->reify_generic_functions()) {
     AlternativeReadingScope alt(reader_);
     ReadUInt();                               // read argument count.
     intptr_t list_length = ReadListLength();  // read types list length.

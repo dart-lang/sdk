@@ -883,7 +883,7 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 // arguments of the current function.
 Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
   Fragment instructions;
-  if (!FLAG_reify_generic_functions) {
+  if (!Isolate::Current()->reify_generic_functions()) {
     instructions += NullConstant();
     return instructions;
   }

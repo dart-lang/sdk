@@ -1136,7 +1136,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     }
   }
   // ParseFunc has recorded the generic function type arguments variable.
-  ASSERT(!FLAG_reify_generic_functions ||
+  ASSERT(!Isolate::Current()->reify_generic_functions() ||
          !parser.current_function().IsGeneric() ||
          (parsed_function->function_type_arguments() != NULL));
 }
@@ -1457,7 +1457,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   const Function& parent = Function::Handle(func.parent_function());
   intptr_t type_args_len = 0;  // Length of type args vector passed to parent.
   LocalVariable* type_args_var = NULL;
-  if (FLAG_reify_generic_functions) {
+  if (Isolate::Current()->reify_generic_functions()) {
     // The parent function of an implicit closure is the original function, i.e.
     // non-closurized. It is not an enclosing function in the usual sense of a
     // parent function. Do not set parent_type_arguments() in parsed_function_.
@@ -3420,7 +3420,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
   ASSERT(!func.IsGenerativeConstructor());
   OpenFunctionBlock(func);  // Build local scope for function.
 
-  if (FLAG_reify_generic_functions) {
+  if (Isolate::Current()->reify_generic_functions()) {
     // Lookup function type arguments variable in parent function scope, if any.
     if (func.HasGenericParent()) {
       const String* variable_name = &Symbols::FunctionTypeArgumentsVar();
@@ -3677,7 +3677,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
          func.end_token_pos() == end_token_pos);
   func.set_end_token_pos(end_token_pos);
   SequenceNode* body = CloseBlock();
-  if (FLAG_reify_generic_functions && func.IsGeneric() &&
+  if (Isolate::Current()->reify_generic_functions() && func.IsGeneric() &&
       !generated_body_closure.IsNull()) {
     LocalVariable* existing_var = body->scope()->LookupVariable(
         Symbols::FunctionTypeArgumentsVar(), false);
@@ -7767,7 +7767,7 @@ void Parser::CaptureInstantiator() {
 void Parser::CaptureFunctionTypeArguments() {
   ASSERT(InGenericFunctionScope());
   ASSERT(FunctionLevel() > 0);
-  if (!FLAG_reify_generic_functions) {
+  if (!Isolate::Current()->reify_generic_functions()) {
     return;
   }
   const String* variable_name = &Symbols::FunctionTypeArgumentsVar();
@@ -11782,7 +11782,7 @@ AstNode* Parser::LoadTypeParameter(PrimaryNode* primary) {
     type_parameter ^= CanonicalizeType(type_parameter);
   } else {
     ASSERT(type_parameter.IsFunctionTypeParameter());
-    if (!FLAG_reify_generic_functions) {
+    if (!Isolate::Current()->reify_generic_functions()) {
       Type& type = Type::ZoneHandle(Z, Type::DynamicType());
       return new (Z) TypeNode(primary_pos, type);
     }
@@ -11827,7 +11827,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         if (CurrentToken() == Token::kLT) {
           // Type arguments.
           func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
-          if (FLAG_reify_generic_functions) {
+          if (Isolate::Current()->reify_generic_functions()) {
             if (!func_type_args.IsNull() && !func_type_args.IsInstantiated() &&
                 (FunctionLevel() > 0)) {
               // Make sure that the instantiators are captured.
@@ -11923,7 +11923,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       if (CurrentToken() == Token::kLT) {
         // Type arguments.
         func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
-        if (FLAG_reify_generic_functions) {
+        if (Isolate::Current()->reify_generic_functions()) {
           if (!func_type_args.IsNull() && !func_type_args.IsInstantiated() &&
               (FunctionLevel() > 0)) {
             // Make sure that the instantiators are captured.
@@ -12140,7 +12140,7 @@ void Parser::ResolveTypeParameters(AbstractType* type) {
                 String::Handle(Z, type_parameter.name()).ToCString());
             return;
           }
-          if (FLAG_reify_generic_functions) {
+          if (Isolate::Current()->reify_generic_functions()) {
             ASSERT(!type_parameter.IsMalformed());
             *type = type_parameter.raw();
           } else {
@@ -12745,7 +12745,7 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
       if ((resolved == NULL) || (resolved_func_level < type_param_func_level)) {
         // The identifier is a function type parameter, possibly shadowing
         // 'resolved'.
-        if (!FLAG_reify_generic_functions) {
+        if (!Isolate::Current()->reify_generic_functions()) {
           Type& type = Type::ZoneHandle(Z, Type::DynamicType());
           return new (Z) TypeNode(ident_pos, type);
         }
@@ -14216,7 +14216,7 @@ AstNode* Parser::ParsePrimary() {
         if (CurrentToken() == Token::kLT) {
           // Type arguments.
           func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
-          if (FLAG_reify_generic_functions) {
+          if (Isolate::Current()->reify_generic_functions()) {
             if (!func_type_args.IsNull() && !func_type_args.IsInstantiated() &&
                 (FunctionLevel() > 0)) {
               // Make sure that the instantiators are captured.

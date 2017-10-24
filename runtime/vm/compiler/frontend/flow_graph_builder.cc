@@ -2739,7 +2739,7 @@ Value* EffectGraphVisitor::BuildFunctionTypeArguments(TokenPosition token_pos) {
   LocalVariable* function_type_arguments_var =
       owner()->parsed_function().function_type_arguments();
   if (function_type_arguments_var == NULL) {
-    ASSERT(!FLAG_reify_generic_functions);
+    ASSERT(!owner()->isolate()->reify_generic_functions());
     return BuildNullValue(token_pos);
   }
   return Bind(BuildLoadLocal(*function_type_arguments_var, token_pos));
@@ -3764,7 +3764,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // Load the passed-in type argument vector from the temporary stack slot,
   // prepend the function type arguments of the generic parent function, and
   // store it to the final location, possibly in the context.
-  if (FLAG_reify_generic_functions && is_top_level_sequence &&
+  if (owner()->isolate()->reify_generic_functions() && is_top_level_sequence &&
       function.IsGeneric()) {
     const ParsedFunction& parsed_function = owner()->parsed_function();
     LocalVariable* type_args_var = parsed_function.function_type_arguments();

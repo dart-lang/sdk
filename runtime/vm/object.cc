@@ -6550,7 +6550,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-  if (FLAG_reify_generic_functions) {
+  if (Isolate::Current()->reify_generic_functions()) {
     // Check the type parameters and bounds of generic functions.
     if (!HasSameTypeParametersAndBounds(other)) {
       return false;
@@ -7199,7 +7199,7 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
   Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   String& name = String::Handle(zone);
-  if (FLAG_reify_generic_functions) {
+  if (Isolate::Current()->reify_generic_functions()) {
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, type_parameters());
     if (!type_params.IsNull()) {
@@ -16882,7 +16882,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   const Function& other_sig_fun =
       Function::Handle(zone, other_type.signature());
 
-  if (FLAG_reify_generic_functions) {
+  if (Isolate::Current()->reify_generic_functions()) {
     // Compare function type parameters and their bounds.
     // Check the type parameters and bounds of generic functions.
     if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun)) {
