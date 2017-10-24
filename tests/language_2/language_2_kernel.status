@@ -19,11 +19,14 @@ generic_function_type_as_type_argument_test/03: CompileTimeError # Issue 30931
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 library_env_test/has_no_mirror_support: RuntimeError
+missing_part_of_tag_test/01: Crash # Issue 30997
 regress_19413_test: MissingCompileTimeError
 regress_21793_test/01: MissingCompileTimeError
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
+script1_negative_test: Crash # Issue 30997
+script2_negative_test: Crash # Issue 30997
 setter_override2_test/none: CompileTimeError
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError

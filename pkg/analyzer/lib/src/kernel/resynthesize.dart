@@ -763,12 +763,25 @@ class _KernelLibraryResynthesizerContextImpl
 class _KernelUnitImpl implements KernelUnit {
   final _KernelUnitResynthesizerContextImpl context;
 
+  List<kernel.Expression> _annotations;
   List<kernel.Class> _classes;
   List<kernel.Field> _fields;
   List<kernel.Procedure> _procedures;
   List<kernel.Typedef> _typedefs;
 
   _KernelUnitImpl(this.context);
+
+  @override
+  List<kernel.Expression> get annotations {
+    if (_annotations == null) {
+      for (var part in context.libraryContext.library.parts) {
+        if (part.fileUri == context.fileUri) {
+          return _annotations = part.annotations;
+        }
+      }
+    }
+    return _annotations ?? const <kernel.Expression>[];
+  }
 
   @override
   List<kernel.Class> get classes =>

@@ -362,12 +362,6 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
-  test_metadata_partDirective() async {
-    await super.test_metadata_partDirective();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_simpleFormalParameter() async {
     await super.test_metadata_simpleFormalParameter();

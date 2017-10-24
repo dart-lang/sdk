@@ -180,6 +180,7 @@ class SourceLoader<L> extends Loader<L> {
         Token tokens = await tokenize(part);
         if (tokens != null) {
           listener.uri = part.fileUri;
+          listener.partDirectiveIndex = 0;
           parser.parseUnit(tokens);
         }
       }

@@ -52,6 +52,7 @@ class DietListener extends StackListener {
   final TypeInferenceEngine typeInferenceEngine;
 
   int importExportDirectiveIndex = 0;
+  int partDirectiveIndex = 0;
 
   ClassBuilder currentClass;
 
@@ -206,8 +207,13 @@ class DietListener extends StackListener {
     Token metadata = pop();
 
     Builder typedefBuilder = lookupBuilder(typedefKeyword, null, name);
-    parseMetadata(typedefBuilder, metadata,
-        (typedefBuilder.target as Typedef).addAnnotation);
+    Typedef target = typedefBuilder.target;
+    var metadataConstants = parseMetadata(typedefBuilder, metadata);
+    if (metadataConstants != null) {
+      for (var metadataConstant in metadataConstants) {
+        target.addAnnotation(metadataConstant);
+      }
+    }
 
     checkEmpty(typedefKeyword.charOffset);
   }
@@ -283,7 +289,13 @@ class DietListener extends StackListener {
     pop(); // name
 
     Token metadata = pop();
-    parseMetadata(library, metadata, (library.target as Library).addAnnotation);
+    Library target = library.target;
+    var metadataConstants = parseMetadata(library, metadata);
+    if (metadataConstants != null) {
+      for (var metadataConstant in metadataConstants) {
+        target.addAnnotation(metadataConstant);
+      }
+    }
   }
 
   @override
@@ -370,7 +382,12 @@ class DietListener extends StackListener {
     Library libraryNode = library.target;
     LibraryDependency dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
-    parseMetadata(library, metadata, dependency.addAnnotation);
+    var metadataConstants = parseMetadata(library, metadata);
+    if (metadataConstants != null) {
+      for (var metadataConstant in metadataConstants) {
+        dependency.addAnnotation(metadataConstant);
+      }
+    }
   }
 
   @override
@@ -386,13 +403,27 @@ class DietListener extends StackListener {
     Library libraryNode = library.target;
     LibraryDependency dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
-    parseMetadata(library, metadata, dependency.addAnnotation);
+    var metadataConstants = parseMetadata(library, metadata);
+    if (metadataConstants != null) {
+      for (var metadataConstant in metadataConstants) {
+        dependency.addAnnotation(metadataConstant);
+      }
+    }
   }
 
   @override
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("Part");
-    discard(1); // Metadata.
+
+    Token metadata = pop();
+    Library libraryNode = library.target;
+    LibraryPart part = libraryNode.parts[partDirectiveIndex++];
+    var metadataConstants = parseMetadata(library, metadata);
+    if (metadataConstants != null) {
+      for (var metadataConstant in metadataConstants) {
+        part.addAnnotation(metadataConstant);
+      }
+    }
   }
 
   @override
@@ -544,8 +575,13 @@ class DietListener extends StackListener {
     assert(memberScope == library.scope);
 
     Builder classBuilder = lookupBuilder(token, null, name);
-    parseMetadata(
-        classBuilder, metadata, (classBuilder.target as Class).addAnnotation);
+    Class target = classBuilder.target;
+    var metadataConstants = parseMetadata(classBuilder, metadata);
+    if (metadataConstants != null) {
+      for (var metadataConstant in metadataConstants) {
+        target.addAnnotation(metadataConstant);
+      }
+    }
 
     currentClass = classBuilder;
     memberScope = currentClass.scope;
@@ -573,8 +609,13 @@ class DietListener extends StackListener {
     Token metadata = pop();
 
     Builder enumBuilder = lookupBuilder(enumKeyword, null, name);
-    parseMetadata(
-        enumBuilder, metadata, (enumBuilder.target as Class).addAnnotation);
+    Class target = enumBuilder.target;
+    var metadataConstants = parseMetadata(enumBuilder, metadata);
+    if (metadataConstants != null) {
+      for (var metadataConstant in metadataConstants) {
+        target.addAnnotation(metadataConstant);
+      }
+    }
 
     checkEmpty(enumKeyword.charOffset);
   }
@@ -588,8 +629,13 @@ class DietListener extends StackListener {
     Token metadata = pop();
 
     Builder classBuilder = lookupBuilder(classKeyword, null, name);
-    parseMetadata(
-        classBuilder, metadata, (classBuilder.target as Class).addAnnotation);
+    Class target = classBuilder.target;
+    var metadataConstants = parseMetadata(classBuilder, metadata);
+    if (metadataConstants != null) {
+      for (var metadataConstant in metadataConstants) {
+        target.addAnnotation(metadataConstant);
+      }
+    }
 
     checkEmpty(beginToken.charOffset);
   }
@@ -726,14 +772,15 @@ class DietListener extends StackListener {
     // printEvent('DietListener: $name');
   }
 
-  void parseMetadata(ModifierBuilder builder, Token metadata,
-      void addAnnotation(Expression annotation)) {
+  /// If the [metadata] is not `null`, return the parsed metadata [Expression]s.
+  /// Otherwise, return `null`.
+  List<Expression> parseMetadata(ModifierBuilder builder, Token metadata) {
     if (metadata != null) {
       var listener = createListener(builder, memberScope, false);
       var parser = new Parser(listener);
       parser.parseMetadataStar(metadata);
-      List<Expression> metadataConstants = listener.finishMetadata();
-      metadataConstants.forEach(addAnnotation);
+      return listener.finishMetadata();
     }
+    return null;
   }
 }

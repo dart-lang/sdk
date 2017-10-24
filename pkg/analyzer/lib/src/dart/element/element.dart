@@ -1748,10 +1748,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_unlinkedPart != null) {
-      return _metadata ??= _buildAnnotations(
-          library.definingCompilationUnit as CompilationUnitElementImpl,
-          _unlinkedPart.annotations);
+    if (_metadata == null) {
+      if (_kernelContext != null) {
+        return _metadata = _kernelContext
+            .buildAnnotations(_kernelContext.kernelUnit.annotations);
+      }
+      if (_unlinkedPart != null) {
+        return _metadata = _buildAnnotations(
+            library.definingCompilationUnit as CompilationUnitElementImpl,
+            _unlinkedPart.annotations);
+      }
     }
     return super.metadata;
   }
@@ -5968,6 +5974,8 @@ abstract class KernelLibraryResynthesizerContext {
  * Top-level declarations of a Kernel library filtered by the unit.
  */
 abstract class KernelUnit {
+  List<kernel.Expression> get annotations;
+
   List<kernel.Class> get classes;
 
   List<kernel.Field> get fields;
