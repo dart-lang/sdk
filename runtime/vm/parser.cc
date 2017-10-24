@@ -2689,6 +2689,27 @@ StaticCallNode* Parser::ParseSuperInitializer(const Class& cls,
                 "invalid arguments passed to super class constructor '%s': %s",
                 ctor_name.ToCString(), error_message.ToCString());
   }
+  if (current_function().is_const()) {
+    // No need to check that the type arguments to the super const contructor
+    // are instantiated, because generic constructors are not supported.
+    ASSERT(arguments->type_args_len() == 0);
+
+    // All arguments to the super const constructor must be potentially const.
+    for (intptr_t i = 0; i < arguments->length(); i++) {
+      AstNode* argument = arguments->NodeAt(i);
+      if (!argument->IsPotentiallyConst()) {
+        ReportError(
+            argument->token_pos(),
+            "super initializer argument must be compile time constant.");
+      }
+      if (argument->EvalConstExpr() != NULL) {
+        // If the expression is a compile-time constant, ensure that it
+        // is evaluated and canonicalized. See issues 27164 and 31106.
+        argument = FoldConstExpr(argument->token_pos(), argument);
+        arguments->SetNodeAt(i, argument);
+      }
+    }
+  }
   return new StaticCallNode(supercall_pos, super_ctor, arguments,
                             StaticCallNode::kSuper);
 }
