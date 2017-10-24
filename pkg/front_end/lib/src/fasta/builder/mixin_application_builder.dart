@@ -4,10 +4,7 @@
 
 library fasta.mixin_application_builder;
 
-import '../problems.dart' show unsupported;
-
-import 'builder.dart'
-    show Scope, TypeBuilder, TypeDeclarationBuilder, TypeVariableBuilder;
+import 'builder.dart' show TypeBuilder, TypeVariableBuilder;
 
 abstract class MixinApplicationBuilder<T extends TypeBuilder>
     extends TypeBuilder {
@@ -19,17 +16,6 @@ abstract class MixinApplicationBuilder<T extends TypeBuilder>
   void set typeVariables(List<TypeVariableBuilder> variables);
 
   String get name => null;
-
-  void resolveIn(Scope scope) {
-    supertype.resolveIn(scope);
-    for (T t in mixins) {
-      t.resolveIn(scope);
-    }
-  }
-
-  void bind(TypeDeclarationBuilder builder) {
-    unsupported("bind", -1, null);
-  }
 
   String get debugName => "MixinApplicationBuilder";
 

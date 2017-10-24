@@ -4,13 +4,7 @@
 
 library fasta.function_type_builder;
 
-import 'builder.dart'
-    show
-        LibraryBuilder,
-        Scope,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder;
+import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeVariableBuilder;
 
 abstract class FunctionTypeBuilder extends TypeBuilder {
   final TypeBuilder returnType;
@@ -18,12 +12,6 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   final List formals;
 
   FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals);
-
-  @override
-  void resolveIn(Scope scope) {}
-
-  @override
-  void bind(TypeDeclarationBuilder builder) {}
 
   @override
   String get name => null;

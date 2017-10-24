@@ -10,9 +10,9 @@ import 'builder.dart'
 abstract class TypeBuilder {
   const TypeBuilder();
 
-  void resolveIn(Scope scope);
+  void resolveIn(Scope scope) {}
 
-  void bind(TypeDeclarationBuilder builder);
+  void bind(TypeDeclarationBuilder builder) {}
 
   /// May return null, for example, for mixin applications.
   Object get name;

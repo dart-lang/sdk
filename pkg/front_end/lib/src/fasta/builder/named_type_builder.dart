@@ -25,6 +25,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
 
   InvalidTypeBuilder<T, R> buildInvalidType();
 
+  @override
   void bind(TypeDeclarationBuilder builder) {
     this.builder = builder;
   }
