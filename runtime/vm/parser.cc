@@ -141,12 +141,12 @@ class RecursionChecker : public ValueObject {
  public:
   explicit RecursionChecker(Parser* p) : parser_(p) {
     parser_->recursion_counter_++;
-    // This limit also protects against stack overflow in the flow graph builder
-    // and some optimization passes, which may use more stack than the parser
-    // for the same function.
-    // The limit is somewhat arbitrary.
-    if (parser_->recursion_counter_ > 500) {
-      parser_->ReportError("stack overflow while parsing");
+    // No need to check the stack unless the parser is in an unusually deep
+    // recurive state. Thus, we omit the more expensive stack checks in
+    // the common case.
+    const int kMaxUncheckedDepth = 100;  // Somewhat arbitrary.
+    if (parser_->recursion_counter_ > kMaxUncheckedDepth) {
+      parser_->CheckStack();
     }
   }
   ~RecursionChecker() { parser_->recursion_counter_--; }
@@ -6553,6 +6553,14 @@ void Parser::ParseTopLevel() {
     toplevel_class.ResetFinalization();
   }
   pending_classes.Add(toplevel_class, Heap::kOld);
+}
+
+void Parser::CheckStack() {
+  uword c_stack_pos = Thread::GetCurrentStackPointer();
+  uword c_stack_limit = OSThread::Current()->stack_limit_with_headroom();
+  if (c_stack_pos < c_stack_limit) {
+    ReportError("stack overflow while parsing");
+  }
 }
 
 void Parser::ChainNewBlock(LocalScope* outer_scope) {

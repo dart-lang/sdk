@@ -454,6 +454,9 @@ class Parser : public ValueObject {
                                          const Function& constructor,
                                          const TypeArguments& type_arguments);
 
+  // Report error if parsed code is too deeply nested; avoid stack overflow.
+  void CheckStack();
+
   // Report already formatted error.
   static void ReportError(const Error& error);
 
