@@ -1585,11 +1585,6 @@ class AstBuilder extends ScopeListener {
   @override
   void beginClassDeclaration(Token beginToken, Token name) {
     assert(classDeclaration == null);
-    // TODO(brianwilkerson): Enable this assert.
-    // Parser.parseClassOrNamedMixinApplication will pass in a non-identifier if
-    // `class` is at the end of the file.
-    // (See partial_code class_declaration keyword_eof)
-//    assert(name.isIdentifier);
   }
 
   @override
@@ -2071,6 +2066,12 @@ class AstBuilder extends ScopeListener {
     } else {
       throw new UnimplementedError();
     }
+  }
+
+  @override
+  void handleInvalidMember(Token endToken) {
+    debugEvent("InvalidMember");
+    pop(); // metadata star
   }
 
   @override

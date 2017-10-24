@@ -524,6 +524,12 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleInvalidMember(Token endToken) {
+    debugEvent("InvalidMember");
+    pop(); // metadata star
+  }
+
+  @override
   void endMember() {
     debugEvent("Member");
     checkEmpty(-1);

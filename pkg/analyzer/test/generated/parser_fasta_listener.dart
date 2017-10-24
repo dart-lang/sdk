@@ -1119,6 +1119,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void handleInvalidMember(Token endToken) {
+    expectIn('Member');
+    super.handleInvalidMember(endToken);
+  }
+
+  @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
     expectIn('CompilationUnit');
     listener.handleInvalidTopLevelDeclaration(endToken);

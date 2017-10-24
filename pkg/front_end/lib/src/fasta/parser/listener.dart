@@ -615,6 +615,12 @@ class Listener {
 
   void beginMember(Token token) {}
 
+  /// Handle an invalid member declaration. Substructures:
+  /// - metadata
+  void handleInvalidMember(Token endToken) {
+    logEvent("InvalidMember");
+  }
+
   /// This event is added for convenience. Normally, one should override
   /// [endMethod] or [endFields] instead.
   void endMember() {

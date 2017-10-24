@@ -3116,7 +3116,6 @@ class Parser {
   Token parseMethod(Token token, Token afterModifiers, Token type,
       Token getOrSet, Token name) {
     Token start = token;
-    listener.beginMethod(start, name);
 
     Token externalModifier;
     Token staticModifier;
@@ -3159,14 +3158,25 @@ class Parser {
             final context = new ClassMethodModifierContext(this);
             token = context.parseRecovery(token, externalModifier,
                 staticModifier, getOrSet, afterModifiers);
+
+            // If the modifiers form a partial top level directive or declaration
+            // and we have found the start of a new top level declaration
+            // then return to parse that new declaration.
+            if (context.endInvalidMemberToken != null) {
+              listener.handleInvalidMember(context.endInvalidMemberToken);
+              return context.endInvalidMemberToken.next;
+            }
+
             externalModifier = context.externalToken;
             staticModifier = context.staticToken;
             modifierCount = context.modifierCount;
           }
         }
       }
+      listener.beginMethod(start, name);
       listener.handleModifiers(modifierCount);
     } else {
+      listener.beginMethod(start, name);
       listener.handleModifiers(0);
     }
 

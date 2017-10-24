@@ -19,6 +19,7 @@ import 'package:front_end/src/fasta/parser.dart' as fasta show Assert;
 
 class NodeListener extends ElementListener {
   int invalidTopLevelDeclarationCount = 0;
+  int invalidMemberCount = 0;
 
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
       CompilationUnitElement element)
@@ -231,7 +232,9 @@ class NodeListener extends ElementListener {
 
   @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    pushNode(makeNodeList(memberCount, beginToken, endToken, null));
+    pushNode(makeNodeList(
+        memberCount - invalidMemberCount, beginToken, endToken, null));
+    invalidMemberCount = 0;
   }
 
   @override
@@ -714,6 +717,12 @@ class NodeListener extends ElementListener {
   @override
   void handleNoInitializers() {
     pushNode(null);
+  }
+
+  @override
+  void handleInvalidMember(Token endToken) {
+    popNode(); // Discard metadata
+    ++invalidMemberCount;
   }
 
   @override

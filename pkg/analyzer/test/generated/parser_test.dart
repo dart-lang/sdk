@@ -2320,25 +2320,12 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_classInClass_abstract() {
     parseCompilationUnit(
-        "class C { abstract class B {} }",
-        usingFastaParser
-            ? [
-                ParserErrorCode.ABSTRACT_CLASS_MEMBER,
-                ParserErrorCode.CLASS_IN_CLASS,
-                ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-              ]
-            : [ParserErrorCode.CLASS_IN_CLASS]);
+        "class C { abstract class B {} }", [ParserErrorCode.CLASS_IN_CLASS]);
   }
 
   void test_classInClass_nonAbstract() {
     parseCompilationUnit(
-        "class C { class B {} }",
-        usingFastaParser
-            ? [
-                ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-                ParserErrorCode.CLASS_IN_CLASS,
-              ]
-            : [ParserErrorCode.CLASS_IN_CLASS]);
+        "class C { class B {} }", [ParserErrorCode.CLASS_IN_CLASS]);
   }
 
   void test_classTypeAlias_abstractAfterEq() {
@@ -2654,29 +2641,13 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_enumInClass() {
-    parseCompilationUnit(
-        r'''
+    parseCompilationUnit(r'''
 class Foo {
   enum Bar {
     Bar1, Bar2, Bar3
   }
 }
-''',
-        usingFastaParser
-            ? [
-                ParserErrorCode.ENUM_IN_CLASS,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
-              ]
-            : [ParserErrorCode.ENUM_IN_CLASS]);
+''', [ParserErrorCode.ENUM_IN_CLASS]);
   }
 
   void test_equalityCannotBeEqualityOperand_eq_eq() {
