@@ -120,14 +120,14 @@ group("samples") {
 }
 
 # The rules below build a Fuchsia OS image that includes the Dart tree
-# under /system/test/dart.
+# under /system/test/dart.  To get this into the `user.bootfs` generated
+# by the Fuchsia build, add the GN build argument:
+#   extra_bootdata = [ "//third_party/dart:dart_test_bootfs" ]
 if (is_fuchsia) {
+  import("//build/bootdata.gni")
+
   action("generate_dart_test_manifest") {
     testonly = true
-
-    deps = [
-      "//packages/gn:mkbootfs",
-    ]
 
     output_prefix = "$target_gen_dir/dart_test_tree"
     outputs = [
@@ -139,21 +139,16 @@ if (is_fuchsia) {
       mode = "debug"
     }
 
-    mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
-    system_manifest = "$mkbootfs_gen/system.bootfs.manifest"
-
     script = "tools/gen_fuchsia_test_manifest.py"
     args = [
       "-m",
       mode,
-      "-u",
-      rebase_path(system_manifest),
       "-o",
       rebase_path(output_prefix),
     ]
   }
 
-  action("generate_dart_test_image") {
+  bootdata("dart_test_bootfs") {
     testonly = true
     deps = [
       ":generate_dart_test_manifest",
@@ -161,46 +156,8 @@ if (is_fuchsia) {
       "runtime/bin:process_test",
       "runtime/bin:run_vm_tests",
     ]
-
-    mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
-    boot_manifest = "$mkbootfs_gen/boot.bootfs.manifest"
-
-    # Compute path to zircon bootdata.bin
-    if (current_cpu == "arm64") {
-      zircon_bootdata =
-          "//out/build-zircon/build-zircon-qemu-arm64/bootdata.bin"
-    } else if (current_cpu == "x64") {
-      zircon_bootdata = "//out/build-zircon/build-zircon-pc-x86-64/bootdata.bin"
-    } else {
-      assert(false, "unable to determine path to zircon's bootdata.bin")
-    }
-
-    packages_file = "$mkbootfs_gen/packages"
-
-    input = "$target_gen_dir/dart_test_tree.manifest"
     inputs = [
-      zircon_bootdata,
-      input,
+      "$target_gen_dir/dart_test_tree.manifest",
     ]
-
-    output = "$root_out_dir/dart_test_tree.bin"
-    outputs = [
-      output,
-    ]
-
-    script = "//packages/gn/make_bootfs.py"
-    args = [
-      "--boot-manifest",
-      rebase_path(boot_manifest),
-      "--system-manifest",
-      rebase_path(input),
-      "--output-file",
-      rebase_path(output),
-      "--build-id-map",
-      rebase_path("$target_gen_dir/build_id_map"),
-      "--pre-binaries",
-      rebase_path(zircon_bootdata),
-    ]
-    args += read_file(packages_file, "list lines")
   }
 }

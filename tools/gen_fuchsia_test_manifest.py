@@ -40,9 +40,6 @@ def parse_args(args):
   parser.add_argument('--output', '-o',
       type=str,
       help='Path to output file prefix.')
-  parser.add_argument('--user-manifest', '-u',
-      type=str,
-      help='Path to base userspace manifest.')
   parser.add_argument("-v", "--verbose",
       help='Verbose output.',
       default=False,
@@ -62,13 +59,7 @@ def main(argv):
 
   manifest_output = args.output + '.manifest'
   with open(manifest_output, 'w') as manifest:
-    # First copy the main user manifest.
-    with open(args.user_manifest, 'r') as user_manifest:
-      for line in user_manifest:
-        if '=' in line:
-          manifest.write(line)
-
-    # Now, write the Dart tree.
+    # Write the Dart tree.
     for root, dirs, files in os.walk(DART_ROOT):
       dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
       for file in files:
