@@ -58,7 +58,7 @@ class AccessorInferenceNode extends MemberInferenceNode {
     var overriddenTypes = <DartType>[];
     for (int i = _start; i < _end; i++) {
       var candidate = _candidates[i];
-      Member resolvedCandidate;
+      Procedure resolvedCandidate;
       if (candidate is ForwardingNode) {
         resolvedCandidate = candidate.resolve();
       } else {
@@ -69,8 +69,7 @@ class AccessorInferenceNode extends MemberInferenceNode {
         var field = resolvedCandidate._field;
         ShadowMember.resolveInferenceNode(field);
         overriddenType = field.type;
-      } else if (resolvedCandidate.function != null &&
-          resolvedCandidate is Procedure) {
+      } else if (resolvedCandidate.function != null) {
         switch (resolvedCandidate.kind) {
           case ProcedureKind.Getter:
             overriddenType = resolvedCandidate.function.returnType;
@@ -143,12 +142,12 @@ class ForwardingNode extends Procedure {
 
   /// Finishes handling of this node by propagating covariance and creating
   /// forwarding stubs if necessary.
-  Member finalize() => _finalResolution ??= _finalize();
+  Procedure finalize() => _finalResolution ??= _finalize();
 
   /// Returns the declared or inherited member this node resolves to.
   ///
   /// Does not create forwarding stubs.
-  Member resolve() => _resolution ??= _resolve();
+  Procedure resolve() => _resolution ??= _resolve();
 
   /// Determines which covariance fixes need to be applied to the given
   /// [interfaceMember].
@@ -421,7 +420,7 @@ class ForwardingNode extends Procedure {
 
   /// Creates a forwarding stubs for this node if necessary, and propagates
   /// covariance information.
-  Member _finalize() {
+  Procedure _finalize() {
     var inheritedMember = resolve();
     var inheritedMemberSubstitution =
         _interfaceResolver._substitutionFor(inheritedMember, enclosingClass);
@@ -455,8 +454,8 @@ class ForwardingNode extends Procedure {
   }
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
-  Member _finalizedCandidate(int i) {
-    var candidate = _candidates[i];
+  Procedure _finalizedCandidate(int i) {
+    Procedure candidate = _candidates[i];
     return candidate is ForwardingNode &&
             _interfaceResolver.isTypeInferencePrepared
         ? candidate.finalize()
@@ -484,8 +483,8 @@ class ForwardingNode extends Procedure {
 
   /// Determines which inherited member this node resolves to, and also performs
   /// type inference.
-  Member _resolve() {
-    var inheritedMember = _candidates[_start];
+  Procedure _resolve() {
+    Procedure inheritedMember = _candidates[_start];
     bool isDeclaredInThisClass =
         identical(inheritedMember.enclosingClass, enclosingClass);
     if (isDeclaredInThisClass) {
@@ -550,8 +549,8 @@ class ForwardingNode extends Procedure {
   }
 
   /// Returns the [i]th element of [_candidates], resolving it if necessary.
-  Member _resolvedCandidate(int i) {
-    var candidate = _candidates[i];
+  Procedure _resolvedCandidate(int i) {
+    Procedure candidate = _candidates[i];
     return candidate is ForwardingNode &&
             _interfaceResolver.isTypeInferencePrepared
         ? candidate.resolve()
