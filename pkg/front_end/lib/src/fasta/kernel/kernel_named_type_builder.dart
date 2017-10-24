@@ -7,11 +7,7 @@ library fasta.kernel_interface_type_builder;
 import 'package:kernel/ast.dart' show DartType, Supertype;
 
 import '../messages.dart'
-    show
-        templateSupertypeIsIllegal,
-        templateSupertypeIsTypeVariable,
-        templateTypeNotFound,
-        warning;
+    show templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
 import 'kernel_builder.dart'
     show
@@ -29,11 +25,7 @@ class KernelNamedTypeBuilder
   KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
       : super(name, arguments);
 
-  KernelInvalidTypeBuilder buildInvalidType() {
-    int charOffset = -1; // TODO(ahe): Provide these.
-    Uri fileUri = null; // TODO(ahe): Provide these.
-    // TODO(ahe): Record error instead of printing.
-    warning(templateTypeNotFound.withArguments("$name"), charOffset, fileUri);
+  KernelInvalidTypeBuilder buildInvalidType(int charOffset, Uri fileUri) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
     // KernelInvalidTypeBuilder?
     return new KernelInvalidTypeBuilder("$name", charOffset, fileUri);

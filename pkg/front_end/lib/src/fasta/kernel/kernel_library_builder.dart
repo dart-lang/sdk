@@ -119,14 +119,13 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder addNamedType(
       Object name, List<KernelTypeBuilder> arguments, int charOffset) {
-    return addType(new KernelNamedTypeBuilder(name, arguments));
+    return addType(new KernelNamedTypeBuilder(name, arguments), charOffset);
   }
 
   KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
       List<KernelTypeBuilder> mixins, int charOffset) {
-    KernelTypeBuilder type =
-        new KernelMixinApplicationBuilder(supertype, mixins);
-    return addType(type);
+    return addType(
+        new KernelMixinApplicationBuilder(supertype, mixins), charOffset);
   }
 
   KernelTypeBuilder addVoidType(int charOffset) {
@@ -737,7 +736,7 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
     endNestedDeclaration("#function_type").resolveTypes(typeVariables, this);
-    return addType(builder);
+    return addType(builder, charOffset);
   }
 
   KernelFormalParameterBuilder addFormalParameter(

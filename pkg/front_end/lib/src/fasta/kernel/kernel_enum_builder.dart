@@ -236,10 +236,10 @@ class KernelEnumBuilder extends SourceClassBuilder
       libraryBuilder.addCompileTimeError(
           messageEnumDeclarationEmpty, charOffset, fileUri);
     }
-    intType.resolveIn(coreLibrary.scope);
-    stringType.resolveIn(coreLibrary.scope);
-    objectType.resolveIn(coreLibrary.scope);
-    listType.resolveIn(coreLibrary.scope);
+    intType.resolveIn(coreLibrary.scope, charOffset, fileUri);
+    stringType.resolveIn(coreLibrary.scope, charOffset, fileUri);
+    objectType.resolveIn(coreLibrary.scope, charOffset, fileUri);
+    listType.resolveIn(coreLibrary.scope, charOffset, fileUri);
     toStringMap.keyType = intType.build(libraryBuilder);
     toStringMap.valueType = stringType.build(libraryBuilder);
     KernelFieldBuilder indexFieldBuilder = this["index"];

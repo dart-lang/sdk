@@ -41,9 +41,7 @@ class KernelMixinApplicationBuilder
   }
 
   @override
-  buildInvalidType() {
-    int charOffset = -1; // TODO(ahe): Provide these.
-    Uri fileUri = null; // TODO(ahe): Provide these.
+  buildInvalidType(int charOffset, Uri fileUri) {
     return unsupported("buildInvalidType", charOffset, fileUri);
   }
 }

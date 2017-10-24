@@ -60,6 +60,8 @@ export 'type_declaration_builder.dart' show TypeDeclarationBuilder;
 
 export 'type_variable_builder.dart' show TypeVariableBuilder;
 
+export 'unresolved_type.dart' show UnresolvedType;
+
 export 'void_type_builder.dart' show VoidTypeBuilder;
 
 abstract class Builder {
