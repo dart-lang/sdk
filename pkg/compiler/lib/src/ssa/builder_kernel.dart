@@ -668,6 +668,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // containing the super-constructor.
     while (supertype.classNode != target.enclosingClass) {
       _bindSupertypeTypeParameters(supertype);
+
+      if (supertype.classNode.mixedInType != null) {
+        _bindSupertypeTypeParameters(supertype.classNode.mixedInType);
+      }
+
+      // Fields from unnamed mixin application classes (ie Object&Foo) get
+      // "collected" with the regular supertype fields, so we must bind type
+      // parameters from both the supertype and the supertype's mixin classes
+      // before collecting the field values.
       _collectFieldValues(supertype.classNode, fieldValues);
       supertype = supertype.classNode.supertype;
     }
