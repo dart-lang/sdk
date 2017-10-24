@@ -24,3 +24,9 @@ class A {
   /// Writes [y]. #LINT
   void write(int x) {}
 }
+
+/// [
+/// ^--- Should not crash (#819).
+class B {
+
+}

@@ -68,7 +68,7 @@ class Visitor extends SimpleAstVisitor {
                   rule.lintCode, nameOffset, reference.length);
             }
           }
-          leftIndex = comment.indexOf('[', rightIndex);
+          leftIndex = rightIndex < 0 ? -1 : comment.indexOf('[', rightIndex);
         }
       }
     }
