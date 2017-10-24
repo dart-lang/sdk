@@ -1,3 +1,9 @@
+# 0.1.37
+
+* `avoid_positional_boolean_parameters` updated to allow booleans in operator declarations
+* `comment_references` fixed to handle incomplete references
+* `non_constant_identifier_names` updated to allow underscores around numbers
+
 # 0.1.36
 
 * new `avoid_unused_constructor_parameters` lint
