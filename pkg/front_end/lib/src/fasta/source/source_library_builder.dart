@@ -546,14 +546,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  int resolveTypes(_) {
+  /// Resolves all unresolved types in [types]. The list of types is cleared
+  /// when done.
+  int resolveTypes() {
     int typeCount = types.length;
     for (T t in types) {
       t.resolveIn(scope);
     }
-    forEach((String name, Builder member) {
-      typeCount += member.resolveTypes(this);
-    });
+    types.clear();
     return typeCount;
   }
 

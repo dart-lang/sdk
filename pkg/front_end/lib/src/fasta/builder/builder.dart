@@ -84,10 +84,6 @@ abstract class Builder {
         "which have an efficient implementation of `relativeFileUri`!";
   }
 
-  /// Resolve types (lookup names in scope) recorded in this builder and return
-  /// the number of types resolved.
-  int resolveTypes(covariant Builder parent) => 0;
-
   /// Resolve constructors (lookup names in scope) recorded in this builder and
   /// return the number of constructors resolved.
   int resolveConstructors(LibraryBuilder parent) => 0;

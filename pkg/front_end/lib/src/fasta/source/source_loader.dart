@@ -282,7 +282,10 @@ class SourceLoader<L> extends Loader<L> {
   void resolveTypes() {
     int typeCount = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
-      typeCount += library.resolveTypes(null);
+      if (library.loader == this) {
+        SourceLibraryBuilder sourceLibrary = library;
+        typeCount += sourceLibrary.resolveTypes();
+      }
     });
     ticker.logMs("Resolved $typeCount types");
   }
