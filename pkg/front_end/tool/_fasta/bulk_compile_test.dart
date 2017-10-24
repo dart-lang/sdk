@@ -13,6 +13,10 @@ testCompiler() async {
     ..debugDump = true
     ..verbose = true);
   await compiler.compile("main() { print('Hello, World!'); }");
+  await compiler.compile(
+      // This example is a regression test of lazy loading of FunctionNode
+      // which would break when this is preceeded by hello-world.
+      "main() { [].map(); }");
   await compiler.compile("main() { print('Hello, Brave New World!'); }");
   await compiler.compile("import 'package';");
 }
