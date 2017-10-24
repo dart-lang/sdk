@@ -509,12 +509,12 @@ class AssistProcessor {
         return;
       }
       InstanceCreationExpression newExpr = namedExp.parent.parent;
-      if (newExpr == null || !isFlutterInstanceCreationExpression(newExpr)) {
+      if (newExpr == null || !isFlutterWidgetCreation(newExpr)) {
         return;
       }
     } else {
       InstanceCreationExpression newExpr = identifyNewExpression(node);
-      if (newExpr == null || !isFlutterInstanceCreationExpression(newExpr)) {
+      if (newExpr == null || !isFlutterWidgetCreation(newExpr)) {
         _coverageMarker();
         return;
       }
@@ -1655,8 +1655,7 @@ class AssistProcessor {
 
   Future<Null> _addProposal_moveFlutterWidgetDown() async {
     InstanceCreationExpression exprGoingDown = identifyNewExpression(node);
-    if (exprGoingDown == null ||
-        !isFlutterInstanceCreationExpression(exprGoingDown)) {
+    if (exprGoingDown == null || !isFlutterWidgetCreation(exprGoingDown)) {
       _coverageMarker();
       return;
     }
@@ -1688,8 +1687,7 @@ class AssistProcessor {
 
   Future<Null> _addProposal_moveFlutterWidgetUp() async {
     InstanceCreationExpression exprGoingUp = identifyNewExpression(node);
-    if (exprGoingUp == null ||
-        !isFlutterInstanceCreationExpression(exprGoingUp)) {
+    if (exprGoingUp == null || !isFlutterWidgetCreation(exprGoingUp)) {
       _coverageMarker();
       return;
     }
@@ -1764,8 +1762,7 @@ class AssistProcessor {
       return;
     }
     if ((node as ListLiteral).elements.any((Expression exp) =>
-        !(exp is InstanceCreationExpression &&
-            isFlutterInstanceCreationExpression(exp)))) {
+        !(exp is InstanceCreationExpression && isFlutterWidgetCreation(exp)))) {
       _coverageMarker();
       return;
     }
@@ -1809,7 +1806,7 @@ class AssistProcessor {
 
   Future<Null> _addProposal_reparentFlutterWidget() async {
     InstanceCreationExpression newExpr = identifyNewExpression(node);
-    if (newExpr == null || !isFlutterInstanceCreationExpression(newExpr)) {
+    if (newExpr == null || !isFlutterWidgetCreation(newExpr)) {
       _coverageMarker();
       return;
     }

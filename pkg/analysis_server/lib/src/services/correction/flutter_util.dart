@@ -137,7 +137,7 @@ NamedExpression findFlutterNamedExpression(AstNode node, String name) {
     return null;
   }
   InstanceCreationExpression newExpr = namedExp.parent.parent;
-  if (newExpr == null || !isFlutterInstanceCreationExpression(newExpr)) {
+  if (newExpr == null || !isFlutterWidgetCreation(newExpr)) {
     return null;
   }
   return namedExp;
@@ -149,7 +149,7 @@ ListLiteral getChildList(NamedExpression child) {
     if (list.elements.isEmpty ||
         list.elements.every((element) =>
             element is InstanceCreationExpression &&
-            isFlutterInstanceCreationExpression(element))) {
+            isFlutterWidgetCreation(element))) {
       return list;
     }
   }
@@ -165,7 +165,7 @@ InstanceCreationExpression getChildWidget(NamedExpression child,
     [bool strict = false]) {
   if (child?.expression is InstanceCreationExpression) {
     InstanceCreationExpression childNewExpr = child.expression;
-    if (isFlutterInstanceCreationExpression(childNewExpr)) {
+    if (isFlutterWidgetCreation(childNewExpr)) {
       if (!strict || (findChildArgument(childNewExpr) != null)) {
         return childNewExpr;
       }
@@ -196,28 +196,29 @@ InstanceCreationExpression identifyNewExpression(AstNode node) {
 }
 
 /**
- * Return `true` if the given [newExpr] is a constructor invocation for a
- * class that has the Flutter class Widget as a superclass.
+ * Return `true` if the given [element] has the Flutter class `Widget` as
+ * a superclass.
  */
-bool isFlutterInstanceCreationExpression(InstanceCreationExpression newExpr) {
-  ClassElement classElement = newExpr.staticElement?.enclosingElement;
-  return isFlutterWidget(classElement);
+bool isFlutterWidget(ClassElement element) {
+  if (element == null) {
+    return false;
+  }
+  for (InterfaceType type in element.allSupertypes) {
+    if (type.name == _FLUTTER_WIDGET_NAME) {
+      Uri uri = type.element.source.uri;
+      if (uri.toString() == _FLUTTER_WIDGET_URI) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /**
- * Return `true` if the given [classElement] has the Flutter class Widget as a
- * superclass.
+ * Return `true` if the given [expr] is a constructor invocation for a
+ * class that has the Flutter class `Widget` as a superclass.
  */
-bool isFlutterWidget(ClassElement classElement) {
-  InterfaceType superType = classElement?.allSupertypes?.firstWhere(
-      (InterfaceType type) => _FLUTTER_WIDGET_NAME == type.name,
-      orElse: () => null);
-  if (superType == null) {
-    return false;
-  }
-  Uri uri = superType.element?.source?.uri;
-  if (uri.toString() != _FLUTTER_WIDGET_URI) {
-    return false;
-  }
-  return true;
+bool isFlutterWidgetCreation(InstanceCreationExpression expr) {
+  ClassElement element = expr.staticElement?.enclosingElement;
+  return isFlutterWidget(element);
 }

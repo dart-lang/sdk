@@ -643,7 +643,7 @@ class FixProcessor {
           builder.write('$paramName: $defaultValue');
           // Insert a trailing comma after Flutter instance creation params.
           InstanceCreationExpression newExpr = identifyNewExpression(node);
-          if (newExpr != null && isFlutterInstanceCreationExpression(newExpr)) {
+          if (newExpr != null && isFlutterWidgetCreation(newExpr)) {
             builder.write(',');
           }
         });

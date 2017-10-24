@@ -322,7 +322,7 @@ class ArgListContributor extends DartCompletionContributor {
     InstanceCreationExpression newExpr = containingNode != null
         ? identifyNewExpression(containingNode.parent)
         : null;
-    return newExpr != null && isFlutterInstanceCreationExpression(newExpr);
+    return newExpr != null && isFlutterWidgetCreation(newExpr);
   }
 
   /**
