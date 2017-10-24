@@ -48,6 +48,381 @@ class CombineTest {
     });
   }
 
+  /// We test two cases of class declarations:
+  ///   * When a class to merge is first time declared in the first library;
+  ///   * When a class to merge is first time declared in the second library.
+  ///
+  /// With two cases of setter declarations:
+  ///   * Already defined, so references to it should be rewritten.
+  ///   * First defined in this outline, so references to it can be kept as is.
+  ///
+  /// For each case we validate [DirectPropertyGet], [PropertyGet],
+  /// and [SuperPropertyGet].
+  void test_class_procedure_getter() {
+    var library1 = _newLibrary('test');
+    var procedureA11 = _newGetter('a1');
+    var classA1 = new Class(
+        name: 'A', supertype: objectSuper, procedures: [procedureA11]);
+    library1.addClass(classA1);
+
+    var library2 = _newLibrary('test');
+    var procedureA12 = _newGetter('a1');
+    var procedureA22 = _newGetter('a2');
+    var procedureB11 = _newGetter('b1');
+    var classA2 = new Class(
+        name: 'A',
+        supertype: objectSuper,
+        procedures: [procedureA12, procedureA22]);
+    library2.addClass(classA2);
+    library2.addClass(new Class(
+        name: 'B', supertype: objectSuper, procedures: [procedureB11]));
+    // Use 'A.a1' and 'A.a2' to validate later how they are rewritten.
+    library2.addProcedure(_newExpressionsProcedure([
+      new DirectPropertyGet(null, procedureA12),
+      new PropertyGet(null, null, procedureA12),
+      new DirectPropertyGet(null, procedureA22),
+      new PropertyGet(null, null, procedureA22),
+    ], name: 'main2'));
+    library2.addClass(
+        new Class(name: 'S1', supertype: classA2.asThisSupertype, procedures: [
+      _newExpressionsProcedure([
+        new SuperPropertyGet(null, procedureA12),
+        new SuperPropertyGet(null, procedureA22),
+      ], name: 'foo')
+    ]));
+
+    var library3 = _newLibrary('test');
+    var procedureB12 = _newGetter('b1');
+    var procedureB22 = _newGetter('b2');
+    library3.addClass(new Class(
+        name: 'B',
+        supertype: objectSuper,
+        procedures: [procedureB12, procedureB22]));
+    library3.addProcedure(_newExpressionsProcedure([
+      new DirectPropertyGet(null, procedureB12),
+      new PropertyGet(null, null, procedureB12),
+    ], name: 'main3'));
+    library3.addClass(
+        new Class(name: 'S2', supertype: classA2.asThisSupertype, procedures: [
+      _newExpressionsProcedure([
+        new SuperPropertyGet(null, procedureB12),
+        new SuperPropertyGet(null, procedureB22),
+      ], name: 'foo')
+    ]));
+
+    var outline1 = _newOutline([library1]);
+    var outline2 = _newOutline([library2]);
+    var outline3 = _newOutline([library3]);
+
+    _runCombineTest([outline1, outline2, outline3], (result) {
+      var library = _getLibrary(result.program, 'test');
+
+      var classA = _getClass(library, 'A');
+      expect(_getProcedure(classA, 'a1', '@getters'), same(procedureA11));
+      expect(_getProcedure(classA, 'a2', '@getters'), same(procedureA22));
+
+      // main2() is updated to point to "A.a1" from library1.
+      // But "A.a2" is still from library2.
+      var main2 = _getProcedure(library, 'main2', '@methods');
+      expect((_getProcedureExpression(main2, 0) as DirectPropertyGet).target,
+          same(procedureA11));
+      expect((_getProcedureExpression(main2, 1) as PropertyGet).interfaceTarget,
+          same(procedureA11));
+      expect((_getProcedureExpression(main2, 2) as DirectPropertyGet).target,
+          same(procedureA22));
+      expect((_getProcedureExpression(main2, 3) as PropertyGet).interfaceTarget,
+          same(procedureA22));
+
+      // Super invocations are updated.
+      var classS1 = _getClass(library, 'S1');
+      var fooS1 = _getProcedure(classS1, 'foo', '@methods');
+      expect(
+          (_getProcedureExpression(fooS1, 0) as SuperPropertyGet)
+              .interfaceTarget,
+          same(procedureA11));
+      expect(
+          (_getProcedureExpression(fooS1, 1) as SuperPropertyGet)
+              .interfaceTarget,
+          same(procedureA22));
+
+      var classB = _getClass(library, 'B');
+      expect(_getProcedure(classB, 'b1', '@getters'), same(procedureB11));
+      expect(_getProcedure(classB, 'b2', '@getters'), same(procedureB22));
+
+      // main3() is updated to point to "B.b1" from library2.
+      var main3 = _getProcedure(library, 'main3', '@methods');
+      expect((_getProcedureExpression(main3, 0) as DirectPropertyGet).target,
+          same(procedureB11));
+      expect((_getProcedureExpression(main3, 1) as PropertyGet).interfaceTarget,
+          same(procedureB11));
+
+      // Super invocations are updated.
+      var classS2 = _getClass(library, 'S2');
+      var fooS2 = _getProcedure(classS2, 'foo', '@methods');
+      expect(
+          (_getProcedureExpression(fooS2, 0) as SuperPropertyGet)
+              .interfaceTarget,
+          same(procedureB11));
+      expect(
+          (_getProcedureExpression(fooS2, 1) as SuperPropertyGet)
+              .interfaceTarget,
+          same(procedureB22));
+    });
+  }
+
+  /// We test two cases of class declarations:
+  ///   * When a class to merge is first time declared in the first library;
+  ///   * When a class to merge is first time declared in the second library.
+  ///
+  /// With two cases of method declarations:
+  ///   * Already defined, so references to it should be rewritten.
+  ///   * First defined in this outline, so references to it can be kept as is.
+  ///
+  /// For each case we validate [DirectMethodInvocation], [MethodInvocation],
+  /// and [SuperMethodInvocation].
+  void test_class_procedure_method() {
+    var library1 = _newLibrary('test');
+    var procedureA11 = _newMethod('a1');
+    var classA1 = new Class(
+        name: 'A', supertype: objectSuper, procedures: [procedureA11]);
+    library1.addClass(classA1);
+
+    var library2 = _newLibrary('test');
+    var procedureA12 = _newMethod('a1');
+    var procedureA22 = _newMethod('a2');
+    var procedureB11 = _newMethod('b1');
+    var classA2 = new Class(
+        name: 'A',
+        supertype: objectSuper,
+        procedures: [procedureA12, procedureA22]);
+    library2.addClass(classA2);
+    library2.addClass(new Class(
+        name: 'B', supertype: objectSuper, procedures: [procedureB11]));
+    // Use 'A.a1' and 'A.a2' to validate later how they are rewritten.
+    library2.addProcedure(_newExpressionsProcedure([
+      new DirectMethodInvocation(null, procedureA12, new Arguments.empty()),
+      new MethodInvocation(null, null, new Arguments.empty(), procedureA12),
+      new DirectMethodInvocation(null, procedureA22, new Arguments.empty()),
+      new MethodInvocation(null, null, new Arguments.empty(), procedureA22),
+    ], name: 'main2'));
+    library2.addClass(
+        new Class(name: 'S1', supertype: classA2.asThisSupertype, procedures: [
+      _newExpressionsProcedure([
+        new SuperMethodInvocation(null, null, procedureA12),
+        new SuperMethodInvocation(null, null, procedureA22),
+      ], name: 'foo')
+    ]));
+
+    var library3 = _newLibrary('test');
+    var procedureB12 = _newMethod('b1');
+    var procedureB22 = _newMethod('b2');
+    library3.addClass(new Class(
+        name: 'B',
+        supertype: objectSuper,
+        procedures: [procedureB12, procedureB22]));
+    library3.addProcedure(_newExpressionsProcedure([
+      new DirectMethodInvocation(null, procedureB12, new Arguments.empty()),
+      new MethodInvocation(null, null, new Arguments.empty(), procedureB12),
+    ], name: 'main3'));
+    library3.addClass(
+        new Class(name: 'S2', supertype: classA2.asThisSupertype, procedures: [
+      _newExpressionsProcedure([
+        new SuperMethodInvocation(null, null, procedureB12),
+        new SuperMethodInvocation(null, null, procedureB22),
+      ], name: 'foo')
+    ]));
+
+    var outline1 = _newOutline([library1]);
+    var outline2 = _newOutline([library2]);
+    var outline3 = _newOutline([library3]);
+
+    _runCombineTest([outline1, outline2, outline3], (result) {
+      var library = _getLibrary(result.program, 'test');
+
+      var classA = _getClass(library, 'A');
+      expect(_getProcedure(classA, 'a1', '@methods'), same(procedureA11));
+      expect(_getProcedure(classA, 'a2', '@methods'), same(procedureA22));
+
+      // main2() is updated to point to "A.a1" from library1.
+      // But "A.a2" is still from library2.
+      var main2 = _getProcedure(library, 'main2', '@methods');
+      expect(
+          (_getProcedureExpression(main2, 0) as DirectMethodInvocation).target,
+          same(procedureA11));
+      expect(
+          (_getProcedureExpression(main2, 1) as MethodInvocation)
+              .interfaceTarget,
+          same(procedureA11));
+      expect(
+          (_getProcedureExpression(main2, 2) as DirectMethodInvocation).target,
+          same(procedureA22));
+      expect(
+          (_getProcedureExpression(main2, 3) as MethodInvocation)
+              .interfaceTarget,
+          same(procedureA22));
+
+      // Super invocations are updated.
+      var classS1 = _getClass(library, 'S1');
+      var fooS1 = _getProcedure(classS1, 'foo', '@methods');
+      expect(
+          (_getProcedureExpression(fooS1, 0) as SuperMethodInvocation)
+              .interfaceTarget,
+          same(procedureA11));
+      expect(
+          (_getProcedureExpression(fooS1, 1) as SuperMethodInvocation)
+              .interfaceTarget,
+          same(procedureA22));
+
+      var classB = _getClass(library, 'B');
+      expect(_getProcedure(classB, 'b1', '@methods'), same(procedureB11));
+      expect(_getProcedure(classB, 'b2', '@methods'), same(procedureB22));
+
+      // main3() is updated to point to "B.b1" from library2.
+      var main3 = _getProcedure(library, 'main3', '@methods');
+      expect(
+          (_getProcedureExpression(main3, 0) as DirectMethodInvocation).target,
+          same(procedureB11));
+      expect(
+          (_getProcedureExpression(main3, 1) as MethodInvocation)
+              .interfaceTarget,
+          same(procedureB11));
+
+      // Super invocations are updated.
+      var classS2 = _getClass(library, 'S2');
+      var fooS2 = _getProcedure(classS2, 'foo', '@methods');
+      expect(
+          (_getProcedureExpression(fooS2, 0) as SuperMethodInvocation)
+              .interfaceTarget,
+          same(procedureB11));
+      expect(
+          (_getProcedureExpression(fooS2, 1) as SuperMethodInvocation)
+              .interfaceTarget,
+          same(procedureB22));
+    });
+  }
+
+  /// We test two cases of class declarations:
+  ///   * When a class to merge is first time declared in the first library;
+  ///   * When a class to merge is first time declared in the second library.
+  ///
+  /// With two cases of setter declarations:
+  ///   * Already defined, so references to it should be rewritten.
+  ///   * First defined in this outline, so references to it can be kept as is.
+  ///
+  /// For each case we validate [DirectPropertySet], [PropertySet],
+  /// and [SuperPropertySet].
+  void test_class_procedure_setter() {
+    var library1 = _newLibrary('test');
+    var procedureA11 = _newSetter('a1');
+    var classA1 = new Class(
+        name: 'A', supertype: objectSuper, procedures: [procedureA11]);
+    library1.addClass(classA1);
+
+    var library2 = _newLibrary('test');
+    var procedureA12 = _newSetter('a1');
+    var procedureA22 = _newSetter('a2');
+    var procedureB11 = _newSetter('b1');
+    var classA2 = new Class(
+        name: 'A',
+        supertype: objectSuper,
+        procedures: [procedureA12, procedureA22]);
+    library2.addClass(classA2);
+    library2.addClass(new Class(
+        name: 'B', supertype: objectSuper, procedures: [procedureB11]));
+    // Use 'A.a1' and 'A.a2' to validate later how they are rewritten.
+    library2.addProcedure(_newExpressionsProcedure([
+      new DirectPropertySet(null, procedureA12, new IntLiteral(0)),
+      new PropertySet(null, null, new IntLiteral(0), procedureA12),
+      new DirectPropertySet(null, procedureA22, new IntLiteral(0)),
+      new PropertySet(null, null, new IntLiteral(0), procedureA22),
+    ], name: 'main2'));
+    library2.addClass(
+        new Class(name: 'S1', supertype: classA2.asThisSupertype, procedures: [
+      _newExpressionsProcedure([
+        new SuperPropertySet(null, new IntLiteral(0), procedureA12),
+        new SuperPropertySet(null, new IntLiteral(0), procedureA22),
+      ], name: 'foo')
+    ]));
+
+    var library3 = _newLibrary('test');
+    var procedureB12 = _newSetter('b1');
+    var procedureB22 = _newSetter('b2');
+    library3.addClass(new Class(
+        name: 'B',
+        supertype: objectSuper,
+        procedures: [procedureB12, procedureB22]));
+    library3.addProcedure(_newExpressionsProcedure([
+      new DirectPropertySet(null, procedureB12, new IntLiteral(0)),
+      new PropertySet(null, null, new IntLiteral(0), procedureB12),
+    ], name: 'main3'));
+    library3.addClass(
+        new Class(name: 'S2', supertype: classA2.asThisSupertype, procedures: [
+      _newExpressionsProcedure([
+        new SuperPropertySet(null, new IntLiteral(0), procedureB12),
+        new SuperPropertySet(null, new IntLiteral(0), procedureB22),
+      ], name: 'foo')
+    ]));
+
+    var outline1 = _newOutline([library1]);
+    var outline2 = _newOutline([library2]);
+    var outline3 = _newOutline([library3]);
+
+    _runCombineTest([outline1, outline2, outline3], (result) {
+      var library = _getLibrary(result.program, 'test');
+
+      var classA = _getClass(library, 'A');
+      expect(_getProcedure(classA, 'a1', '@setters'), same(procedureA11));
+      expect(_getProcedure(classA, 'a2', '@setters'), same(procedureA22));
+
+      // main2() is updated to point to "A.a1" from library1.
+      // But "A.a2" is still from library2.
+      var main2 = _getProcedure(library, 'main2', '@methods');
+      expect((_getProcedureExpression(main2, 0) as DirectPropertySet).target,
+          same(procedureA11));
+      expect((_getProcedureExpression(main2, 1) as PropertySet).interfaceTarget,
+          same(procedureA11));
+      expect((_getProcedureExpression(main2, 2) as DirectPropertySet).target,
+          same(procedureA22));
+      expect((_getProcedureExpression(main2, 3) as PropertySet).interfaceTarget,
+          same(procedureA22));
+
+      // Super invocations are updated.
+      var classS1 = _getClass(library, 'S1');
+      var fooS1 = _getProcedure(classS1, 'foo', '@methods');
+      expect(
+          (_getProcedureExpression(fooS1, 0) as SuperPropertySet)
+              .interfaceTarget,
+          same(procedureA11));
+      expect(
+          (_getProcedureExpression(fooS1, 1) as SuperPropertySet)
+              .interfaceTarget,
+          same(procedureA22));
+
+      var classB = _getClass(library, 'B');
+      expect(_getProcedure(classB, 'b1', '@setters'), same(procedureB11));
+      expect(_getProcedure(classB, 'b2', '@setters'), same(procedureB22));
+
+      // main3() is updated to point to "B.b1" from library2.
+      var main3 = _getProcedure(library, 'main3', '@methods');
+      expect((_getProcedureExpression(main3, 0) as DirectPropertySet).target,
+          same(procedureB11));
+      expect((_getProcedureExpression(main3, 1) as PropertySet).interfaceTarget,
+          same(procedureB11));
+
+      // Super invocations are updated.
+      var classS2 = _getClass(library, 'S2');
+      var fooS2 = _getProcedure(classS2, 'foo', '@methods');
+      expect(
+          (_getProcedureExpression(fooS2, 0) as SuperPropertySet)
+              .interfaceTarget,
+          same(procedureB11));
+      expect(
+          (_getProcedureExpression(fooS2, 1) as SuperPropertySet)
+              .interfaceTarget,
+          same(procedureB22));
+    });
+  }
+
   void test_field() {
     var libraryA1 = _newLibrary('a');
     libraryA1.addField(_newField('A'));
@@ -95,7 +470,7 @@ class CombineTest {
     libraryA2.addField(fieldA2A);
 
     var libraryB = _newLibrary('b');
-    libraryB.addProcedure(_newMainProcedure([
+    libraryB.addProcedure(_newExpressionsProcedure([
       new StaticGet(fieldA2A),
       new StaticSet(fieldA2A, new IntLiteral(0)),
     ]));
@@ -109,9 +484,9 @@ class CombineTest {
 
       var libraryB = _getLibrary(result.program, 'b');
       var main = _getProcedure(libraryB, 'main', '@methods');
-      expect((_getMainExpression(main, 0) as StaticGet).targetReference,
+      expect((_getProcedureExpression(main, 0) as StaticGet).targetReference,
           same(fieldA1A.reference));
-      expect((_getMainExpression(main, 1) as StaticSet).targetReference,
+      expect((_getProcedureExpression(main, 1) as StaticSet).targetReference,
           same(fieldA1A.reference));
     });
   }
@@ -183,7 +558,7 @@ class CombineTest {
     libraryA2.addProcedure(procedureA2A);
 
     var libraryB = _newLibrary('b');
-    libraryB.addProcedure(_newMainProcedure([
+    libraryB.addProcedure(_newExpressionsProcedure([
       new StaticGet(procedureA2A),
     ]));
 
@@ -196,7 +571,7 @@ class CombineTest {
 
       var libraryB = _getLibrary(result.program, 'b');
       var main = _getProcedure(libraryB, 'main', '@methods');
-      expect((_getMainExpression(main, 0) as StaticGet).targetReference,
+      expect((_getProcedureExpression(main, 0) as StaticGet).targetReference,
           same(procedureA1A.reference));
     });
   }
@@ -248,7 +623,7 @@ class CombineTest {
     libraryA2.addProcedure(procedureA2A);
 
     var libraryB = _newLibrary('b');
-    libraryB.addProcedure(_newMainProcedure([
+    libraryB.addProcedure(_newExpressionsProcedure([
       new StaticInvocation(procedureA2A, new Arguments.empty()),
     ]));
 
@@ -261,7 +636,9 @@ class CombineTest {
 
       var libraryB = _getLibrary(result.program, 'b');
       var main = _getProcedure(libraryB, 'main', '@methods');
-      expect((_getMainExpression(main, 0) as StaticInvocation).targetReference,
+      expect(
+          (_getProcedureExpression(main, 0) as StaticInvocation)
+              .targetReference,
           same(procedureA1A.reference));
     });
   }
@@ -313,7 +690,7 @@ class CombineTest {
     libraryA2.addProcedure(procedureA2A);
 
     var libraryB = _newLibrary('b');
-    libraryB.addProcedure(_newMainProcedure([
+    libraryB.addProcedure(_newExpressionsProcedure([
       new StaticSet(procedureA2A, new IntLiteral(0)),
     ]));
 
@@ -326,7 +703,7 @@ class CombineTest {
 
       var libraryB = _getLibrary(result.program, 'b');
       var main = _getProcedure(libraryB, 'main', '@methods');
-      expect((_getMainExpression(main, 0) as StaticSet).targetReference,
+      expect((_getProcedureExpression(main, 0) as StaticSet).targetReference,
           same(procedureA1A.reference));
     });
   }
@@ -380,27 +757,44 @@ class CombineTest {
     return result;
   }
 
+  /// Get a single [Procedure] with the given [name].
+  /// Throw if there is not exactly one.
+  Procedure _getProcedure(NamedNode parent, String name, String prefixName) {
+    List<Procedure> procedures;
+    if (parent is Library) {
+      procedures = parent.procedures;
+    } else if (parent is Class) {
+      procedures = parent.procedures;
+    } else {
+      throw new ArgumentError('Only Library or Class expected');
+    }
+
+    Iterable<Procedure> results =
+        procedures.where((procedure) => procedure.name.name == name);
+    expect(results, hasLength(1), reason: 'Expected only one: $name');
+    Procedure result = results.first;
+    expect(result.parent, parent);
+
+    var parentName = parent.canonicalName.getChild(prefixName);
+    expect(result.canonicalName.parent, parentName);
+
+    return result;
+  }
+
   /// Return the [Expression] in the [index]th statement of the [procedure]'s
   /// block body.
-  Expression _getMainExpression(Procedure procedure, int index) {
+  Expression _getProcedureExpression(Procedure procedure, int index) {
     Block mainBlock = procedure.function.body;
     ExpressionStatement statement = mainBlock.statements[index];
     return statement.expression;
   }
 
-  /// Get a single [Procedure] with the given [name].
-  /// Throw if there is not exactly one.
-  Procedure _getProcedure(Library library, String name, String prefixName) {
-    var results =
-        library.procedures.where((procedure) => procedure.name.name == name);
-    expect(results, hasLength(1), reason: 'Expected only one: $name');
-    Procedure result = results.first;
-    expect(result.parent, library);
-
-    var parentName = library.canonicalName.getChild(prefixName);
-    expect(result.canonicalName.parent, parentName);
-
-    return result;
+  Procedure _newExpressionsProcedure(List<Expression> expressions,
+      {String name: 'main'}) {
+    var statements =
+        expressions.map((e) => new ExpressionStatement(e)).toList();
+    return new Procedure(new Name(name), ProcedureKind.Method,
+        new FunctionNode(new Block(statements)));
   }
 
   Field _newField(String name) {
@@ -417,16 +811,10 @@ class CombineTest {
     return new Library(uri, name: name);
   }
 
-  Procedure _newMainProcedure(List<Expression> expressions) {
-    var statements =
-        expressions.map((e) => new ExpressionStatement(e)).toList();
-    return new Procedure(new Name('main'), ProcedureKind.Method,
-        new FunctionNode(new Block(statements)));
-  }
-
-  Procedure _newMethod(String name) {
-    return new Procedure(new Name(name), ProcedureKind.Method,
-        new FunctionNode(new EmptyStatement()));
+  Procedure _newMethod(String name, {Statement body}) {
+    body ??= new EmptyStatement();
+    return new Procedure(
+        new Name(name), ProcedureKind.Method, new FunctionNode(body));
   }
 
   Program _newOutline(List<Library> libraries) {
