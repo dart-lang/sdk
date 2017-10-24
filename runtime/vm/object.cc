@@ -1258,6 +1258,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     Type& type = Type::Handle(zone);
     Array& array = Array::Handle(zone);
     Library& lib = Library::Handle(zone);
+    TypeArguments& type_args = TypeArguments::Handle(zone);
 
     // All RawArray fields will be initialized to an empty array, therefore
     // initialize array class first.
@@ -1733,6 +1734,19 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     // Consider removing when/if Null becomes an ordinary class.
     type = object_store->object_type();
     cls.set_super_type(type);
+
+    // Create and cache commonly used type arguments <int> and <String>
+    type_args = TypeArguments::New(1);
+    type = object_store->int_type();
+    type_args.SetTypeAt(0, type);
+    type_args.Canonicalize();
+    object_store->set_type_argument_int(type_args);
+
+    type_args = TypeArguments::New(1);
+    type = object_store->string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.Canonicalize();
+    object_store->set_type_argument_string(type_args);
 
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.

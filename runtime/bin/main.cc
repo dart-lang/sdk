@@ -84,7 +84,8 @@ static Dart_Isolate main_isolate = NULL;
 
 static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
   int options_count = options->count();
-  Dart_Handle dart_arguments = Dart_NewList(options_count);
+  Dart_Handle dart_arguments =
+      Dart_NewListOf(Dart_CoreType_String, options_count);
   if (Dart_IsError(dart_arguments)) {
     return dart_arguments;
   }

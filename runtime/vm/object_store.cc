@@ -138,9 +138,9 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
     JSONObject fields(jsobj, "fields");
     Object& value = Object::Handle();
 #define PRINT_OBJECT_STORE_FIELD(type, name)                                   \
-  value = name;                                                                \
-  fields.AddProperty(#name, value);
-    OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD);
+  value = name##_;                                                             \
+  fields.AddProperty(#name "_", value);
+    OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD, PRINT_OBJECT_STORE_FIELD);
 #undef PRINT_OBJECT_STORE_FIELD
   }
 }

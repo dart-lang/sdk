@@ -2474,10 +2474,36 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
 // --- Lists ---
 
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
+  return Dart_NewListOf(Dart_CoreType_Dynamic, length);
+}
+
+static RawTypeArguments* TypeArgumentsForElementType(
+    ObjectStore* store,
+    Dart_CoreType_Id element_type_id) {
+  switch (element_type_id) {
+    case Dart_CoreType_Dynamic:
+      return TypeArguments::null();
+    case Dart_CoreType_Int:
+      return store->type_argument_int();
+    case Dart_CoreType_String:
+      return store->type_argument_string();
+  }
+  UNREACHABLE();
+  return NULL;
+}
+
+DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
+                                       intptr_t length) {
   DARTSCOPE(Thread::Current());
   CHECK_LENGTH(length, Array::kMaxElements);
   CHECK_CALLBACK_STATE(T);
-  return Api::NewHandle(T, Array::New(length));
+  const Array& arr = Array::Handle(Z, Array::New(length));
+  if (element_type_id != Dart_CoreType_Dynamic) {
+    arr.SetTypeArguments(TypeArguments::Handle(
+        Z, TypeArgumentsForElementType(T->isolate()->object_store(),
+                                       element_type_id)));
+  }
+  return Api::NewHandle(T, arr.raw());
 }
 
 #define GET_LIST_LENGTH(zone, type, obj, len)                                  \
