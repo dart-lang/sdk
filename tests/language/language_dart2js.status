@@ -704,6 +704,7 @@ try_catch_test/01: MissingCompileTimeError
 type_checks_in_factory_method_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+application_negative_test: Crash # Issue 30997
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -889,6 +890,7 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
+missing_part_of_tag_test/01: Crash # Issue 30997
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
@@ -1062,6 +1064,8 @@ regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
 regress_28278_test: CompileTimeError
+script1_negative_test: Crash # Issue 30997
+script2_negative_test: Crash # Issue 30997
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stack_trace_test: RuntimeError
