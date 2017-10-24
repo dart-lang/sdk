@@ -723,7 +723,7 @@ class Class extends NamedNode {
 
   /// Procedures declared in the class.
   ///
-  /// For mixin applications this should be empty.
+  /// For mixin applications this should only contain forwarding stubs.
   final List<Procedure> procedures;
 
   Class(

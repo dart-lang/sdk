@@ -721,14 +721,7 @@ class InterfaceResolver {
       if (resolution is Procedure &&
           resolution.isForwardingStub &&
           identical(resolution.enclosingClass, class_)) {
-        if (strongMode) {
-          // Note: dartbug.com/30965 prevents us from adding forwarding stubs to
-          // mixin applications, so we skip for now.
-          // TODO(paulberry): get rid of this if-test after the bug is fixed.
-          if (class_.mixedInType == null) {
-            class_.addMember(resolution);
-          }
-        }
+        if (strongMode) class_.addMember(resolution);
         _instrumentation?.record(
             Uri.parse(class_.location.file),
             class_.fileOffset,

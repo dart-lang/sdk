@@ -121,13 +121,41 @@ class MixinFullResolution {
     for (var field in class_.mixin.fields) {
       class_.addMember(cloner.clone(field));
     }
+
+    // Existing procedures in the class should only be forwarding stubs.
+    // Replace them with methods from the mixin class if they have the same
+    // name, but keep their parameter flags.
+    int originalLength = class_.procedures.length;
+    outer:
     for (var procedure in class_.mixin.procedures) {
       // Forwarding stubs in the mixin class are used when calling through the
       // mixin class's interface, not when calling through the mixin
       // application.  They should not be copied.
-      if (!procedure.isForwardingStub) {
-        class_.addMember(cloner.clone(procedure));
+      if (procedure.isForwardingStub) continue;
+
+      Procedure clone = cloner.clone(procedure);
+      // Linear search for a forwarding stub with the same name.
+      for (int i = 0; i < originalLength; ++i) {
+        if (class_.procedures[i].name == clone.name) {
+          FunctionNode src = class_.procedures[i].function;
+          FunctionNode dst = clone.function;
+          assert(src.typeParameters.length == dst.typeParameters.length);
+          for (int j = 0; j < src.typeParameters.length; ++j) {
+            dst.typeParameters[j].flags = src.typeParameters[i].flags;
+          }
+          for (int j = 0; j < src.positionalParameters.length; ++j) {
+            dst.positionalParameters[j].flags =
+                src.positionalParameters[j].flags;
+          }
+          for (int j = 0; j < src.namedParameters.length; ++j) {
+            dst.namedParameters[j].flags = src.namedParameters[j].flags;
+          }
+
+          class_.procedures[i] = clone;
+          continue outer;
+        }
       }
+      class_.addMember(clone);
     }
     // For each generative constructor in the superclass we make a
     // corresponding forwarding constructor in the subclass.
