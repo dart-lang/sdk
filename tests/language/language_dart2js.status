@@ -364,9 +364,8 @@ cha_deopt3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-closure_in_field_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_field_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_field_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
+closure_in_field_test/01: RuntimeError
+closure_in_field_test/02: RuntimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
@@ -732,9 +731,8 @@ cha_deopt3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-closure_in_field_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_field_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_field_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
+closure_in_field_test/01: RuntimeError
+closure_in_field_test/02: RuntimeError
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
