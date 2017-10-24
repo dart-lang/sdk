@@ -125,7 +125,7 @@ class KernelLibraryBuilder
   KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
       List<KernelTypeBuilder> mixins, int charOffset) {
     KernelTypeBuilder type =
-        new KernelMixinApplicationBuilder(supertype, mixins, this);
+        new KernelMixinApplicationBuilder(supertype, mixins);
     return addType(type);
   }
 

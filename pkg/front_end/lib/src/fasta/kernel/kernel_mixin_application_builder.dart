@@ -10,7 +10,6 @@ import '../problems.dart' show unsupported;
 
 import 'kernel_builder.dart'
     show
-        KernelLibraryBuilder,
         KernelTypeBuilder,
         LibraryBuilder,
         MixinApplicationBuilder,
@@ -19,14 +18,12 @@ import 'kernel_builder.dart'
 class KernelMixinApplicationBuilder
     extends MixinApplicationBuilder<KernelTypeBuilder>
     implements KernelTypeBuilder {
-  final KernelLibraryBuilder library;
-
   Supertype builtType;
 
   List<TypeVariableBuilder> typeVariables;
 
   KernelMixinApplicationBuilder(
-      KernelTypeBuilder supertype, List<KernelTypeBuilder> mixins, this.library)
+      KernelTypeBuilder supertype, List<KernelTypeBuilder> mixins)
       : super(supertype, mixins);
 
   @override
