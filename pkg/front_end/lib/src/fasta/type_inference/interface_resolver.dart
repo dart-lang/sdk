@@ -879,6 +879,13 @@ class InterfaceResolver {
       }
     }
 
+    void recordContravariance(int fileOffset, bool isGenericContravariant) {
+      if (isGenericContravariant) {
+        _instrumentation.record(uri, fileOffset, 'genericContravariant',
+            new InstrumentationValueLiteral('true'));
+      }
+    }
+
     for (var procedure in class_.procedures) {
       if (procedure.isStatic) continue;
       // Forwarding stubs are annotated separately
@@ -899,11 +906,14 @@ class InterfaceResolver {
       procedure.function.positionalParameters.forEach(recordFormalAnnotations);
       procedure.function.namedParameters.forEach(recordFormalAnnotations);
       procedure.function.typeParameters.forEach(recordTypeParameterAnnotations);
+      recordContravariance(
+          procedure.fileOffset, procedure.isGenericContravariant);
     }
     for (var field in class_.fields) {
       if (field.isStatic) continue;
       recordCovariance(field.fileOffset, field.isCovariant,
           field.isGenericCovariantInterface, field.isGenericCovariantImpl);
+      recordContravariance(field.fileOffset, field.isGenericContravariant);
     }
   }
 

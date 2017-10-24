@@ -13,7 +13,7 @@ class B<T> {
 }
 
 class C<T> {
-  B<F<T>> operator [](int i) => null;
+  B<F<T>> operator /*@genericContravariant=true*/ [](int i) => null;
   void operator []=(int i, B<F<T>> x) {}
 }
 

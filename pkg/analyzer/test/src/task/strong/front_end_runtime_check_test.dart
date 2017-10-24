@@ -79,13 +79,13 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
-    _emitForwardingStubs(node, node.name.offset);
+    _emitForwardingStubs(node, node.typeParameters, node.name.offset);
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
-    _emitForwardingStubs(node, node.name.offset);
+    _emitForwardingStubs(node, node.typeParameters, node.name.offset);
   }
 
   @override
@@ -99,6 +99,12 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       _annotateFormalParameter(node.element, node.identifier.offset,
           node.getAncestor((n) => n is ClassDeclaration));
     }
+  }
+
+  @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    super.visitMethodDeclaration(node);
+    _annotateContravariant(node.element, node.name.offset, node.parent);
   }
 
   @override
@@ -168,10 +174,12 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     super.visitVariableDeclaration(node);
     if (node.parent.parent is FieldDeclaration) {
       FieldElement element = node.element;
+      var cls = node.getAncestor((n) => n is ClassDeclaration);
+      var offset = node.name.offset;
+      _annotateContravariant(element, offset, cls);
       if (!element.isFinal) {
         var setter = element.setter;
-        _annotateFormalParameter(setter.parameters[0], node.name.offset,
-            node.getAncestor((n) => n is ClassDeclaration));
+        _annotateFormalParameter(setter.parameters[0], offset, cls);
       }
     }
   }
@@ -248,6 +256,31 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
+  /// Generates the appropriate `@genericContravariant=true` annotation (if needed)
+  /// for a method or field declaration.
+  void _annotateContravariant(
+      Element element, int offset, ClassDeclaration cls) {
+    bool isContravariant = false;
+    if (cls?.typeParameters != null) {
+      if (element is ExecutableElement) {
+        if (_usesTypeParametersCovariantly(
+            cls.typeParameters.typeParameters, element.returnType,
+            flipVariance: true)) {
+          isContravariant = true;
+        }
+      } else if (element is FieldElement) {
+        if (_usesTypeParametersCovariantly(
+            cls.typeParameters.typeParameters, element.type,
+            flipVariance: true)) {
+          isContravariant = true;
+        }
+      }
+    }
+    if (isContravariant) {
+      _recordContravariance(offset);
+    }
+  }
+
   /// Generates the appropriate `@covariance` annotation (if any) for a method
   /// formal parameter, method type parameter, or field declaration.
   ///
@@ -276,7 +309,7 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       if (covariantParams != null && covariantParams.contains(element) ||
           cls?.typeParameters != null &&
               element is ParameterElement &&
-              _isFormalSemiTyped(
+              _usesTypeParametersCovariantly(
                   cls.typeParameters.typeParameters, element.type)) {
         isGenericImpl = true;
       }
@@ -284,12 +317,12 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     bool isGenericInterface = false;
     if (cls?.typeParameters != null) {
       if (element is ParameterElement) {
-        if (_isFormalSemiTyped(
+        if (_usesTypeParametersCovariantly(
             cls.typeParameters.typeParameters, element.type)) {
           isGenericInterface = true;
         }
       } else if (element is TypeParameterElement && element.bound != null) {
-        if (_isFormalSemiTyped(
+        if (_usesTypeParametersCovariantly(
             cls.typeParameters.typeParameters, element.bound)) {
           isGenericInterface = true;
         }
@@ -312,7 +345,8 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   /// return type.  Each argument is listed in `args` as
   /// `covariance=(...) type name`, where the words between the parentheses are
   /// the same as for the `@covariance=` annotation.
-  void _emitForwardingStubs(Declaration node, int offset) {
+  void _emitForwardingStubs(
+      Declaration node, TypeParameterList typeParameters, int offset) {
     var covariantParams = getSuperclassCovariantParameters(node);
     void emitStubFor(DartType returnType, String name,
         List<ParameterElement> parameters, String accessorType) {
@@ -321,6 +355,10 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       var paramDescrs = <String>[];
       for (var param in parameters) {
         var covariances = <String>[];
+        if (_usesTypeParametersCovariantly(
+            typeParameters?.typeParameters, param.type)) {
+          covariances.add('genericInterface');
+        }
         if (covariantParams.contains(param)) {
           if (param.isCovariant) {
             covariances.add('explicit');
@@ -350,7 +388,12 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         paramDescrs[paramDescrs.length - 1] += closer;
       }
       var returnTypeDescr = _typeToString(returnType);
-      var stubParts = [returnTypeDescr];
+      var stubParts = <String>[];
+      if (_usesTypeParametersCovariantly(
+          typeParameters?.typeParameters, returnType)) {
+        stubParts.add('genericContravariant');
+      }
+      stubParts.add(returnTypeDescr);
       if (accessorType != null) stubParts.add(accessorType);
       stubParts.add('$name(${paramDescrs.join(', ')})');
       _recordForwardingStub(offset, stubParts.join(' '));
@@ -398,28 +441,6 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
-  /// Determines whether a method formal parameter should be considered
-  /// "semi-typed".
-  ///
-  /// [typeParameters] is the list of type parameters of the enclosing class.
-  ///
-  /// [formalType] is the type of the formal parameter (or the type bound, if
-  /// we are looking at a type parameter of a generic method).
-  bool _isFormalSemiTyped(
-      List<TypeParameter> typeParameters, DartType formalType) {
-    // To see if this parameter needs to be semi-typed, we try substituting
-    // bottom for all the active type parameters.  If the resulting parameter
-    // static type is a supertype of its current static type, then that means
-    // that regardless of what we pass in, it won't fail a type check.
-    var substitutedType = formalType.substitute2(
-        new List<DartType>.filled(
-            typeParameters.length, BottomTypeImpl.instance),
-        typeParameters
-            .map((p) => new TypeParameterTypeImpl(p.element))
-            .toList());
-    return !_typeSystem.isSubtypeOf(formalType, substitutedType);
-  }
-
   void _recordCallKind(int offset, String kind) {
     _instrumentation.record(
         uri, offset, 'callKind', new fasta.InstrumentationValueLiteral(kind));
@@ -435,6 +456,11 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         new InstrumentationValueForType(castType, _elementNamer));
   }
 
+  void _recordContravariance(int offset) {
+    _instrumentation.record(uri, offset, 'genericContravariant',
+        new fasta.InstrumentationValueLiteral('true'));
+  }
+
   void _recordCovariance(int offset, String covariance) {
     _instrumentation.record(uri, offset, 'covariance',
         new fasta.InstrumentationValueLiteral(covariance));
@@ -447,5 +473,28 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
 
   String _typeToString(DartType type) {
     return new InstrumentationValueForType(type, _elementNamer).toString();
+  }
+
+  /// Determines whether the given type makes covariant use of type parameters.
+  bool _usesTypeParametersCovariantly(
+      List<TypeParameter> typeParameters, DartType formalType,
+      {bool flipVariance: false}) {
+    if (typeParameters == null) return false;
+    // To see if this parameter needs to be semi-typed, we try substituting
+    // bottom for all the active type parameters.  If the resulting parameter
+    // static type is a supertype of its current static type, then that means
+    // that regardless of what we pass in, it won't fail a type check.
+    var substitutedType = formalType.substitute2(
+        new List<DartType>.filled(
+            typeParameters.length, BottomTypeImpl.instance),
+        typeParameters
+            .map((p) => new TypeParameterTypeImpl(p.element))
+            .toList());
+    // To test contravariance, we flip the subtype check.
+    if (flipVariance) {
+      return !_typeSystem.isSubtypeOf(substitutedType, formalType);
+    } else {
+      return !_typeSystem.isSubtypeOf(formalType, substitutedType);
+    }
   }
 }

@@ -8,7 +8,7 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  F<T> operator [](int i) => null;
+  F<T> operator /*@genericContravariant=true*/ [](int i) => null;
 }
 
 F<num> test(C<num> c) {

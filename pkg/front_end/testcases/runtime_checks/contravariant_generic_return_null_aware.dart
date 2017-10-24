@@ -8,8 +8,8 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  F<T> f1() {}
-  List<F<T>> f2() {
+  F<T> /*@genericContravariant=true*/ f1() {}
+  List<F<T>> /*@genericContravariant=true*/ f2() {
     return [this?.f1 /*@callKind=this*/ ()];
   }
 }

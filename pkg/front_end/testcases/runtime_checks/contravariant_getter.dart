@@ -8,7 +8,7 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  F<T> y;
+  F<T> /*@genericContravariant=true*/ y;
   void f(T /*@covariance=genericInterface, genericImpl*/ value) {
     this.y /*@callKind=closure*/ (value);
   }

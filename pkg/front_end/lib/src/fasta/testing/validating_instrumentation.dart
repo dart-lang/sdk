@@ -35,6 +35,7 @@ class ValidatingInstrumentation implements Instrumentation {
       'checkGetterReturn',
       'checkReturn',
       'forwardingStub',
+      'genericContravariant',
     ],
   };
 

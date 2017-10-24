@@ -13,7 +13,7 @@ class B<T> {
 }
 
 class C<T> {
-  B<F<T>> get x => null;
+  B<F<T>> get /*@genericContravariant=true*/ x => null;
   void set x(B<F<T>> value) {}
 }
 
