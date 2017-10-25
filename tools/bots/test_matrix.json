@@ -1,0 +1,36 @@
+{
+  "filesets": {
+  },
+  "builders": {
+    "vm-linux-release-x64, vm-linux-release-x64-try, vm-linux-debug-x64, vm-linux-debug-x64-try, vm-linux-product-x64, vm-linux-product-x64-try, vm-mac-release-x64, vm-mac-release-x64-try, vm-mac-debug-x64, vm-mac-debug-x64-try, vm-win-release-x64, vm-win-release-x64-try, vm-win-debug-x64, vm-win-debug-x64-try": {
+      "meta": {},
+      "steps": [
+        {
+          "meta": {},
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "meta": {},
+          "name": "vm tests",
+          "arguments": []
+        },
+        {
+          "meta": {},
+          "name": "checked vm tests",
+          "arguments": [
+            "--checked"
+          ]
+        }
+      ]
+    },
+    "dart2js-win10-edge-try, dart2js-win10-ie11-try, precomp-linux-release-x64-try, vm-kernel-linux-debug-x64-try, vm-kernel-linux-release-x64-try, vm-kernel-mac-debug-x64-try": {
+      "meta": {
+      },
+      "steps": []
+    }
+  }
+}
