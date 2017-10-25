@@ -339,48 +339,78 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // Doing this instead of fieldValues.forEach because we haven't defined the
     // order of the arguments here. We can define that with JElements.
     ClassEntity cls = _elementMap.getClass(constructedClass);
+    bool isCustomElement = nativeData.isNativeOrExtendsNative(cls) &&
+        !nativeData.isJsInteropClass(cls);
     InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
+    List<FieldEntity> fields = <FieldEntity>[];
     _worldBuilder.forEachInstanceField(cls,
         (ClassEntity enclosingClass, FieldEntity member) {
       var value = fieldValues[member];
-      assert(value != null, 'No initializer value for field ${member}');
-      constructorArguments.add(value);
+      if (value == null) {
+        assert(isCustomElement || reporter.hasReportedError,
+            'No initializer value for field ${member}');
+      } else {
+        fields.add(member);
+        constructorArguments.add(value);
+      }
     });
 
-    // Create the runtime type information, if needed.
-    bool hasRtiInput = closedWorld.rtiNeed.classNeedsRtiField(cls);
-    if (hasRtiInput) {
-      // Read the values of the type arguments and create a HTypeInfoExpression
-      // to set on the newly create object.
-      List<HInstruction> typeArguments = <HInstruction>[];
-      for (ir.DartType typeParameter
-          in constructedClass.thisType.typeArguments) {
-        HInstruction argument = localsHandler.readLocal(localsHandler
-            .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)));
-        typeArguments.add(argument);
+    HInstruction newObject;
+    if (isCustomElement) {
+      // Bulk assign to the initialized fields.
+      newObject = graph.explicitReceiverParameter;
+      // Null guard ensures an error if we are being called from an explicit
+      // 'new' of the constructor instead of via an upgrade. It is optimized out
+      // if there are field initializers.
+      add(new HFieldGet(null, newObject, commonMasks.dynamicType,
+          isAssignable: false));
+      for (int i = 0; i < fields.length; i++) {
+        add(new HFieldSet(fields[i], newObject, constructorArguments[i]));
+      }
+    } else {
+      // Create the runtime type information, if needed.
+      bool hasRtiInput = closedWorld.rtiNeed.classNeedsRtiField(cls);
+      if (hasRtiInput) {
+        // Read the values of the type arguments and create a HTypeInfoExpression
+        // to set on the newly create object.
+        List<HInstruction> typeArguments = <HInstruction>[];
+        for (ir.DartType typeParameter
+            in constructedClass.thisType.typeArguments) {
+          HInstruction argument = localsHandler.readLocal(localsHandler
+              .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)));
+          typeArguments.add(argument);
+        }
+
+        HInstruction typeInfo = new HTypeInfoExpression(
+            TypeInfoExpressionKind.INSTANCE,
+            thisType,
+            typeArguments,
+            commonMasks.dynamicType);
+        add(typeInfo);
+        constructorArguments.add(typeInfo);
       }
 
-      HInstruction typeInfo = new HTypeInfoExpression(
-          TypeInfoExpressionKind.INSTANCE,
-          thisType,
-          typeArguments,
-          commonMasks.dynamicType);
-      add(typeInfo);
-      constructorArguments.add(typeInfo);
+      newObject = new HCreate(cls, constructorArguments,
+          new TypeMask.nonNullExact(cls, closedWorld),
+          instantiatedTypes: <InterfaceType>[thisType],
+          hasRtiInput: hasRtiInput);
+
+      add(newObject);
     }
 
-    HInstruction newObject = new HCreate(
-        cls, constructorArguments, new TypeMask.nonNullExact(cls, closedWorld),
-        instantiatedTypes: <InterfaceType>[thisType], hasRtiInput: hasRtiInput);
-
-    add(newObject);
-
+    HInstruction interceptor;
     // Generate calls to the constructor bodies.
-
     for (ir.Constructor body in constructorChain.reversed) {
       if (_isEmptyStatement(body.function.body)) continue;
 
       List<HInstruction> bodyCallInputs = <HInstruction>[];
+      if (isCustomElement) {
+        if (interceptor == null) {
+          ConstantValue constant = new InterceptorConstantValue(cls);
+          interceptor = graph.addConstant(constant, closedWorld);
+        }
+        bodyCallInputs.add(interceptor);
+      }
       bodyCallInputs.add(newObject);
 
       // Pass uncaptured arguments first, captured arguments in a box, then type
@@ -484,8 +514,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
           failedAt(field, "Unexpected member definition $definition.");
       }
       if (node.initializer == null) {
-        fieldValues[field] = graph.addConstantNull(closedWorld);
-      } else {
+        // Unassigned fields of native classes are not initialized to
+        // prevent overwriting pre-initialized native properties.
+        if (!nativeData.isNativeOrExtendsNative(cls)) {
+          fieldValues[field] = graph.addConstantNull(closedWorld);
+        }
+      } else if (node.initializer is! ir.NullLiteral ||
+          !nativeData.isNativeClass(cls)) {
         // Compile the initializer in the context of the field so we know that
         // class type parameters are accessed as values.
         // TODO(sra): It would be sufficient to know the context was a field
@@ -3490,10 +3525,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    // TODO(sra): For JS-interop targets, process arguments differently.
-    List<HInstruction> arguments =
-        _visitArgumentsForStaticTarget(target.function, invocation.arguments);
     ConstructorEntity constructor = _elementMap.getConstructor(target);
+
+    // TODO(sra): For JS-interop targets, process arguments differently.
+    List<HInstruction> arguments = <HInstruction>[];
+    if (constructor.isGenerativeConstructor &&
+        nativeData.isNativeOrExtendsNative(constructor.enclosingClass) &&
+        !nativeData.isJsInteropMember(constructor)) {
+      // Native class generative constructors take a pre-constructed object.
+      arguments.add(graph.addConstantNull(closedWorld));
+    }
+    arguments.addAll(
+        _visitArgumentsForStaticTarget(target.function, invocation.arguments));
     if (commonElements.isSymbolConstructor(constructor)) {
       constructor = commonElements.symbolValidatedConstructor;
     }
