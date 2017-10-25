@@ -6837,10 +6837,10 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block,
   completer_args->Add(
       new (Z) LoadLocalNode(TokenPosition::kNoSource, stack_trace_param.var));
   current_block_->statements->Add(new (Z) InstanceCallNode(
-      func_end_pos,
+      TokenPosition::kNoSource,
       new (Z) LoadLocalNode(TokenPosition::kNoSource, async_completer),
       Symbols::CompleterCompleteError(), completer_args));
-  ReturnNode* return_node = new (Z) ReturnNode(func_end_pos);
+  ReturnNode* return_node = new (Z) ReturnNode(TokenPosition::kNoSource);
   // Behavior like a continuation return, i.e,. don't call a completer.
   return_node->set_return_type(ReturnNode::kContinuation);
   current_block_->statements->Add(return_node);

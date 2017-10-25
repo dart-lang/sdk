@@ -41,7 +41,6 @@ async_star_step_out_test: RuntimeError # Issue 29158
 awaiter_async_stack_contents_test: RuntimeError # Issue 29158
 async_single_step_out_test: RuntimeError # Issue 29158
 async_generator_breakpoint_test: Skip # Issue 29158
-async_single_step_exception_test: RuntimeError # Issue 29218
 
 ###
 ### These tests currently crash the VM
