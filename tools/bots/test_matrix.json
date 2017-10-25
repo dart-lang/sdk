@@ -25,10 +25,8 @@
         "vm-win-release-ia32",
         "vm-win-release-x64"
       ],
-      "meta": {},
       "steps": [
         {
-          "meta": {},
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
@@ -36,16 +34,54 @@
           ]
         },
         {
-          "meta": {},
           "name": "vm tests",
           "arguments": []
         },
         {
-          "meta": {},
           "name": "checked vm tests",
           "arguments": [
             "--checked"
           ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart-sdk-linux"
+      ],
+      "steps": [
+        {
+          "name": "build dart ia32",
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32","create_sdk"]
+        },
+        {
+          "name": "build dart x64",
+          "script": "tools/build.py",
+          "arguments": [ "create_sdk" ]
+        },
+        {
+          "name": "generate API docs",
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [ "api_docs" ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart-sdk-mac",
+        "dart-sdk-win"
+      ],
+      "steps": [
+        {
+          "name": "build dart ia32",
+          "script": "tools/build.py",
+          "arguments": [ "--arch=ia32", "create_sdk" ]
+        },
+        {
+          "name": "build dart x64",
+          "script": "tools/build.py",
+          "arguments": [ "create_sdk" ]
         }
       ]
     }
