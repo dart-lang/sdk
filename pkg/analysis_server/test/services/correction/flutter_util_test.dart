@@ -4,10 +4,12 @@
 
 import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
+import 'flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,7 +22,55 @@ class FlutterUtilTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    _configureFlutterPackage();
+    Folder libFolder = configureFlutterPackage(provider);
+    packageMap['flutter'] = [libFolder];
+  }
+
+  test_getFlutterWidgetPresentationText_icon() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+var w = const Icon(Icons.book);
+''');
+    var w = _getTopVariableCreation('w');
+    expect(getFlutterWidgetPresentationText(w), "Icon(Icons.book)");
+  }
+
+  test_getFlutterWidgetPresentationText_notWidget() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+var w = new Object();
+''');
+    var w = _getTopVariableCreation('w');
+    expect(getFlutterWidgetPresentationText(w), isNull);
+  }
+
+  test_getFlutterWidgetPresentationText_text() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+var w = const Text('foo');
+''');
+    var w = _getTopVariableCreation('w');
+    expect(getFlutterWidgetPresentationText(w), "Text('foo')");
+  }
+
+  test_getFlutterWidgetPresentationText_text_longText() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+var w = const Text('${'abc' * 100}');
+''');
+    var w = _getTopVariableCreation('w');
+    expect(getFlutterWidgetPresentationText(w),
+        "Text('abcabcabcabca...cabcabcabcabc')");
+  }
+
+  test_getFlutterWidgetPresentationText_unresolved() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+var w = new Foo();
+''');
+    var w = _getTopVariableCreation('w');
+    expect(getFlutterWidgetPresentationText(w), isNull);
   }
 
   test_isFlutterWidget() async {
@@ -56,106 +106,11 @@ import 'package:flutter/widgets.dart';
 var a = new Object();
 var b = new Text('bbb');
 ''');
-    InstanceCreationExpression a = _getTopVariable('a').initializer;
+    InstanceCreationExpression a = _getTopVariableCreation('a');
     expect(isFlutterWidgetCreation(a), isFalse);
 
-    InstanceCreationExpression b = _getTopVariable('b').initializer;
+    InstanceCreationExpression b = _getTopVariableCreation('b');
     expect(isFlutterWidgetCreation(b), isTrue);
-  }
-
-  void _configureFlutterPackage() {
-    packageMap['flutter'] = [newFolder('/flutter/lib')];
-
-    newFile('/flutter/lib/widgets.dart', r'''
-export 'src/widgets/container.dart';
-export 'src/widgets/framework.dart';
-export 'src/widgets/text.dart';
-''');
-
-    newFile('/flutter/lib/src/widgets/container.dart', r'''
-import 'framework.dart';
-
-class Container extends StatelessWidget {
-  final Widget child;
-  Container({
-    Key key,
-    double width,
-    double height,
-    this.child,
-  })
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => child;
-}
-''');
-
-    newFile('/flutter/lib/src/widgets/framework.dart', r'''
-typedef void VoidCallback();
-
-abstract class BuildContext {
-  Widget get widget;
-}
-
-abstract class Key {
-  const factory Key(String value) = ValueKey<String>;
-
-  const Key._();
-}
-
-abstract class LocalKey extends Key {
-  const LocalKey() : super._();
-}
-
-abstract class State<T extends StatefulWidget> {
-  BuildContext get context => null;
-
-  T get widget => null;
-
-  Widget build(BuildContext context) {}
-
-  void dispose() {}
-
-  void setState(VoidCallback fn) {}
-}
-
-abstract class StatefulWidget extends Widget {
-  const StatefulWidget({Key key}) : super(key: key);
-
-  State createState() => null
-}
-
-abstract class StatelessWidget extends Widget {
-  const StatelessWidget({Key key}) : super(key: key);
-
-  Widget build(BuildContext context) => null;
-}
-
-class ValueKey<T> extends LocalKey {
-  final T value;
-
-  const ValueKey(this.value);
-}
-
-class Widget {
-  final Key key;
-
-  const Widget({this.key});
-}
-''');
-
-    newFile('/flutter/lib/src/widgets/text.dart', r'''
-import 'framework.dart';
-
-class Text extends StatelessWidget {
-  final String data;
-  const Text(
-    this.data, {
-    Key key,
-  })
-      : super(key: key);
-}
-''');
   }
 
   VariableDeclaration _getTopVariable(String name, [CompilationUnit unit]) {
@@ -171,5 +126,11 @@ class Text extends StatelessWidget {
     }
     fail('Not found $name in $unit');
     return null;
+  }
+
+  InstanceCreationExpression _getTopVariableCreation(String name,
+      [CompilationUnit unit]) {
+    return _getTopVariable(name, unit).initializer
+        as InstanceCreationExpression;
   }
 }

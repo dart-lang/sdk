@@ -175,6 +175,31 @@ InstanceCreationExpression getChildWidget(NamedExpression child,
 }
 
 /**
+ * Return the presentation for the given Flutter `Widget` creation [node].
+ */
+String getFlutterWidgetPresentationText(InstanceCreationExpression node) {
+  ClassElement element = node.staticElement?.enclosingElement;
+  if (!isFlutterWidget(element)) {
+    return null;
+  }
+  // TODO(scheglov) check that the required argument is actually provided.
+  List<Expression> arguments = node.argumentList.arguments;
+  if (_isExactWidget(
+      element, 'Icon', 'package:flutter/src/widgets/icon.dart')) {
+    String text = arguments[0].toString();
+    String arg = _shortenText(text, 32);
+    return 'Icon($arg)';
+  }
+  if (_isExactWidget(
+      element, 'Text', 'package:flutter/src/widgets/text.dart')) {
+    String text = arguments[0].toString();
+    String arg = _shortenText(text, 32);
+    return 'Text($arg)';
+  }
+  return element.name;
+}
+
+/**
  * Return the instance creation expression that surrounds the given
  * [node], if any, else null. The [node] may be the instance creation
  * expression itself or the identifier that names the constructor.
@@ -221,4 +246,22 @@ bool isFlutterWidget(ClassElement element) {
 bool isFlutterWidgetCreation(InstanceCreationExpression expr) {
   ClassElement element = expr.staticElement?.enclosingElement;
   return isFlutterWidget(element);
+}
+
+/**
+ * Return `true` if the given [element] is the exact [type] defined in the
+ * file with the given [uri].
+ */
+bool _isExactWidget(ClassElement element, String type, String uri) {
+  return element != null &&
+      element.name == type &&
+      element.source.uri.toString() == uri;
+}
+
+String _shortenText(String text, int limit) {
+  if (text.length > limit) {
+    int half = limit ~/ 2 - 2;
+    return text.substring(0, half) + '...' + text.substring(text.length - half);
+  }
+  return text;
 }

@@ -5,21 +5,24 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
+import '../../services/correction/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(FlutterOutlineComputerTest);
     defineReflectiveTests(OutlineComputerTest);
   });
 }
 
-@reflectiveTest
-class OutlineComputerTest extends AbstractContextTest {
+class AbstractOutlineComputerTest extends AbstractContextTest {
   String testPath;
   String testCode;
 
@@ -29,6 +32,115 @@ class OutlineComputerTest extends AbstractContextTest {
     testPath = provider.convertPath('/test.dart');
   }
 
+  Future<Outline> _computeOutline(String code) async {
+    testCode = code;
+    provider.newFile(testPath, code);
+    AnalysisResult analysisResult = await driver.getResult(testPath);
+    return new DartUnitOutlineComputer(
+            testPath, analysisResult.lineInfo, analysisResult.unit)
+        .compute();
+  }
+}
+
+@reflectiveTest
+class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
+  @override
+  void setUp() {
+    super.setUp();
+    Folder libFolder = configureFlutterPackage(provider);
+    packageMap['flutter'] = [libFolder];
+  }
+
+  test_columnWithChildren() async {
+    Outline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Column(children: [
+      const Text('aaa'),
+      const Text('bbb'),
+    ]); // Column
+  }
+}
+''');
+    expect(_toText(unitOutline), r'''
+MyWidget
+  build
+    Column
+      Text('aaa')
+      Text('bbb')
+''');
+    var myWidget = unitOutline.children[0];
+    var build = myWidget.children[0];
+
+    var columnOutline = build.children[0];
+    {
+      int offset = testCode.indexOf('new Column');
+      int length = testCode.indexOf('; // Column') - offset;
+      _expect(columnOutline,
+          name: 'Column',
+          elementOffset: offset,
+          offset: offset,
+          length: length);
+    }
+
+    {
+      var textOutline = columnOutline.children[0];
+      String text = "const Text('aaa')";
+      int offset = testCode.indexOf(text);
+      _expect(textOutline,
+          name: "Text('aaa')",
+          elementOffset: offset,
+          offset: offset,
+          length: text.length);
+    }
+
+    {
+      var textOutline = columnOutline.children[1];
+      String text = "const Text('bbb')";
+      int offset = testCode.indexOf(text);
+      _expect(textOutline,
+          name: "Text('bbb')",
+          elementOffset: offset,
+          offset: offset,
+          length: text.length);
+    }
+  }
+
+  void _expect(Outline outline,
+      {@required String name,
+      @required int elementOffset,
+      @required int offset,
+      @required int length}) {
+    Element element = outline.element;
+    expect(element.name, name);
+    expect(element.location.offset, elementOffset);
+    expect(outline.offset, offset);
+    expect(outline.length, length);
+  }
+
+  static String _toText(Outline outline) {
+    var buffer = new StringBuffer();
+
+    void writeOutline(Outline outline, String indent) {
+      buffer.write(indent);
+      buffer.writeln(outline.element.name);
+      for (var child in outline.children ?? const []) {
+        writeOutline(child, '$indent  ');
+      }
+    }
+
+    for (var child in outline.children) {
+      writeOutline(child, '');
+    }
+    return buffer.toString();
+  }
+}
+
+@reflectiveTest
+class OutlineComputerTest extends AbstractOutlineComputerTest {
   test_class() async {
     Outline unitOutline = await _computeOutline('''
 class A<K, V> {
@@ -863,15 +975,6 @@ set propB(int v) {}
       expect(element.parameters, "(int v)");
       expect(element.returnType, "");
     }
-  }
-
-  Future<Outline> _computeOutline(String code) async {
-    testCode = code;
-    provider.newFile(testPath, code);
-    AnalysisResult analysisResult = await driver.getResult(testPath);
-    return new DartUnitOutlineComputer(
-            testPath, analysisResult.lineInfo, analysisResult.unit)
-        .compute();
   }
 
   void _expect(Outline outline,
