@@ -14,7 +14,7 @@ abstract class I {
 }
 
 class
-/*@forwardingStub=void f(covariance=(explicit) int x, covariance=() Object y)*/
+/*@forwardingStub=abstract void f(covariance=(explicit) int x, covariance=() Object y)*/
     C extends B implements I {}
 
 void main() {}

@@ -12,11 +12,13 @@ abstract class I<T extends core::Object> extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  abstract method f(self::I::T x, core::Object y) → void;
+  abstract method f(generic-covariant-impl generic-covariant-interface self::I::T x, core::Object y) → void;
 }
 class C extends self::B implements self::I<core::int> {
   default constructor •() → void
     : super self::B::•()
     ;
+  forwarding-stub method f(generic-covariant-impl core::int x, core::Object y) → void
+    return super.{self::B::f}(x, y);
 }
 static method main() → void {}

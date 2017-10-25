@@ -13,7 +13,7 @@ class C {
   int x;
 }
 
-class /*@forwardingStub=abstract void set x(covariance=(explicit) num _)*/ D
-    extends C implements B {}
+class /*@forwardingStub=void set x(covariance=(explicit) num _)*/ D extends C
+    implements B {}
 
 void main() {}

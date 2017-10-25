@@ -8,15 +8,17 @@ class B extends core::Object {
     ;
   method f(core::int x, core::int y) → void {}
 }
-abstract class I<T extends core::Object> extends core::Object {
+abstract class I extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  abstract method f(self::I::T x, core::Object y) → void;
+  abstract method f(covariant core::int x, core::Object y) → void;
 }
-class C extends self::B implements self::I<core::int> {
+class C extends self::B implements self::I {
   default constructor •() → void
     : super self::B::•()
     ;
+  forwarding-stub method f(covariant core::int x, core::Object y) → void
+    return super.{self::B::f}(x, y);
 }
 static method main() → void {}

@@ -18,7 +18,6 @@ class C extends self::B implements self::I {
   default constructor •() → void
     : super self::B::•()
     ;
-  forwarding-stub method f(covariant core::int x, core::Object y) → void
-    return super.{self::B::f}(x, y);
+  abstract forwarding-stub method f(covariant core::int x, core::Object y) → void;
 }
 static method main() → void {}

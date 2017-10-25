@@ -18,6 +18,7 @@ class D extends self::C implements self::B {
   default constructor •() → void
     : super self::C::•()
     ;
-  abstract forwarding-stub set x(covariant core::num _) → void;
+  forwarding-stub set x(covariant core::num _) → void
+    return super.{self::C::x} = _;
 }
 static method main() → void {}

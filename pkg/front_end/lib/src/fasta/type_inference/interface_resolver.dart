@@ -207,14 +207,16 @@ class ForwardingNode extends Procedure {
       var isGenericCovariantImpl =
           isGenericCovariantInterface || parameter.isGenericCovariantImpl;
       var isCovariant = parameter.isCovariant;
+      var superParameter = parameter;
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
-        if (identical(otherMember, interfaceMember)) continue;
         if (otherMember is ForwardingNode) continue;
         var otherPositionalParameters =
             otherMember.function.positionalParameters;
         if (otherPositionalParameters.length <= i) continue;
         var otherParameter = otherPositionalParameters[i];
+        if (j == _start) superParameter = otherParameter;
+        if (identical(otherMember, interfaceMember)) continue;
         if (otherParameter.isGenericCovariantImpl) {
           isGenericCovariantImpl = true;
         }
@@ -222,13 +224,17 @@ class ForwardingNode extends Procedure {
           isCovariant = true;
         }
       }
-      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
+      if (isGenericCovariantImpl != superParameter.isGenericCovariantImpl) {
         createImplIfNeeded();
+      }
+      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
         fixes.add((FunctionNode function) => function.positionalParameters[i]
             .isGenericCovariantImpl = isGenericCovariantImpl);
       }
-      if (isCovariant != parameter.isCovariant) {
+      if (isCovariant != superParameter.isCovariant) {
         createImplIfNeeded();
+      }
+      if (isCovariant != parameter.isCovariant) {
         fixes.add((FunctionNode function) =>
             function.positionalParameters[i].isCovariant = isCovariant);
       }
@@ -244,13 +250,15 @@ class ForwardingNode extends Procedure {
       var isGenericCovariantImpl =
           isGenericCovariantInterface || parameter.isGenericCovariantImpl;
       var isCovariant = parameter.isCovariant;
+      var superParameter = parameter;
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
-        if (identical(otherMember, interfaceMember)) continue;
         if (otherMember is ForwardingNode) continue;
         var otherParameter =
             getNamedFormal(otherMember.function, parameter.name);
         if (otherParameter == null) continue;
+        if (j == _start) superParameter = otherParameter;
+        if (identical(otherMember, interfaceMember)) continue;
         if (otherParameter.isGenericCovariantImpl) {
           isGenericCovariantImpl = true;
         }
@@ -258,13 +266,17 @@ class ForwardingNode extends Procedure {
           isCovariant = true;
         }
       }
-      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
+      if (isGenericCovariantImpl != superParameter.isGenericCovariantImpl) {
         createImplIfNeeded();
+      }
+      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
         fixes.add((FunctionNode function) => function.namedParameters[i]
             .isGenericCovariantImpl = isGenericCovariantImpl);
       }
-      if (isCovariant != parameter.isCovariant) {
+      if (isCovariant != superParameter.isCovariant) {
         createImplIfNeeded();
+      }
+      if (isCovariant != parameter.isCovariant) {
         fixes.add((FunctionNode function) =>
             function.namedParameters[i].isCovariant = isCovariant);
       }
@@ -279,19 +291,23 @@ class ForwardingNode extends Procedure {
       }
       var isGenericCovariantImpl =
           isGenericCovariantInterface || typeParameter.isGenericCovariantImpl;
+      var superTypeParameter = typeParameter;
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
-        if (identical(otherMember, interfaceMember)) continue;
         if (otherMember is ForwardingNode) continue;
         var otherTypeParameters = otherMember.function.typeParameters;
         if (otherTypeParameters.length <= i) continue;
         var otherTypeParameter = otherTypeParameters[i];
+        if (j == _start) superTypeParameter = otherTypeParameter;
+        if (identical(otherMember, interfaceMember)) continue;
         if (otherTypeParameter.isGenericCovariantImpl) {
           isGenericCovariantImpl = true;
         }
       }
-      if (isGenericCovariantImpl != typeParameter.isGenericCovariantImpl) {
+      if (isGenericCovariantImpl != superTypeParameter.isGenericCovariantImpl) {
         createImplIfNeeded();
+      }
+      if (isGenericCovariantImpl != typeParameter.isGenericCovariantImpl) {
         fixes.add((FunctionNode function) => function
             .typeParameters[i].isGenericCovariantImpl = isGenericCovariantImpl);
       }

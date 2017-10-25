@@ -15,6 +15,6 @@ abstract class I<T> {
 
 class
 /*@forwardingStub=void f(covariance=(genericImpl) int x, covariance=() Object y)*/
-    C extends B<int> implements I {}
+    C extends B implements I<int> {}
 
 void main() {}

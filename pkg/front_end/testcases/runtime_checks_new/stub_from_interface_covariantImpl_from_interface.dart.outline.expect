@@ -13,7 +13,7 @@ abstract class I<T extends core::Object> extends core::Object {
     ;
   abstract method f(self::I::T x, core::Object y) → void;
 }
-class C extends self::B implements self::I<dynamic> {
+class C extends self::B implements self::I<core::int> {
   default constructor •() → void
     ;
 }
