@@ -5827,6 +5827,12 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitGenericFunctionType(GenericFunctionType node) => null;
 
   @override
+  void visitGenericTypeAliasInFunctionScope(GenericTypeAlias node) {
+    super.visitGenericTypeAliasInFunctionScope(node);
+    safelyVisitComment(node.documentationComment);
+  }
+
+  @override
   Object visitHideCombinator(HideCombinator node) => null;
 
   @override
@@ -7432,7 +7438,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitGenericTypeAlias(GenericTypeAlias node) {
-    TypeParameterizedElement element = node.element;
+    GenericTypeAliasElement element = node.element;
     Scope outerScope = nameScope;
     try {
       if (element == null) {
@@ -7443,10 +7449,21 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       } else {
         nameScope = new TypeParameterScope(nameScope, element);
         super.visitGenericTypeAlias(node);
+
+        GenericFunctionTypeElement functionElement = element.function;
+        if (functionElement != null) {
+          nameScope = new FunctionScope(nameScope, functionElement)
+            ..defineParameters();
+          visitGenericTypeAliasInFunctionScope(node);
+        }
       }
     } finally {
       nameScope = outerScope;
     }
+    return null;
+  }
+
+  Object visitGenericTypeAliasInFunctionScope(GenericTypeAlias node) {
     return null;
   }
 
