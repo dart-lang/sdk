@@ -5,5 +5,5 @@
 library TopLevelMultipleFilesTest.dart;
 
 import "package:expect/expect.dart";
-import 'top_level_prefixed_library_test.lib';
+import 'top_level_prefixed_library.dart';
 part 'top_level_file1.dart';

@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of LibraryPrefixes.lib;
+library LibraryPrefixes.lib;
+
+import "library_prefixes_test1.dart";
+import "library_prefixes_test2.dart" as other;
 
 class LibraryPrefixes {
   static void main(var expectEquals) {

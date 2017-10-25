@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Dart test for testing access to private fields.
+library PrivateOther;
 
-part of PrivateOther;
+import "private_test.dart";
 
 class LibOther3 {
   static accessFieldA3(var a) => a.fieldA;

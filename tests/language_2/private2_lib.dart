@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing access to private fields across class hierarchies.
 
-part of Private2Lib;
+library Private2Lib;
+
+import "private2_test.dart";
 
 class B extends A {
   B() : super();
