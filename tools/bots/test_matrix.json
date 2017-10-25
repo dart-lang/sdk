@@ -1,8 +1,30 @@
 {
   "filesets": {
   },
-  "builders": {
-    "vm-linux-release-x64, vm-linux-release-x64-try, vm-linux-debug-x64, vm-linux-debug-x64-try, vm-linux-product-x64, vm-linux-product-x64-try, vm-mac-release-x64, vm-mac-release-x64-try, vm-mac-debug-x64, vm-mac-debug-x64-try, vm-win-release-x64, vm-win-release-x64-try, vm-win-debug-x64, vm-win-debug-x64-try": {
+  "configurations": [
+    {
+      "builders": [
+        "vm-linux-debug-ia32",
+        "vm-linux-debug-simarm",
+        "vm-linux-debug-x64",
+        "vm-linux-product-x64",
+        "vm-linux-release-ia32",
+        "vm-linux-release-simarm",
+        "vm-linux-release-simarm64",
+        "vm-linux-release-x64",
+        "vm-mac-debug-ia32",
+        "vm-mac-debug-simdbc64",
+        "vm-mac-debug-x64",
+        "vm-mac-product-x64",
+        "vm-mac-release-ia32",
+        "vm-mac-release-simdbc64",
+        "vm-mac-release-x64",
+        "vm-win-debug-ia32",
+        "vm-win-debug-x64",
+        "vm-win-product-x64",
+        "vm-win-release-ia32",
+        "vm-win-release-x64"
+      ],
       "meta": {},
       "steps": [
         {
@@ -26,11 +48,6 @@
           ]
         }
       ]
-    },
-    "dart2js-win10-edge-try, dart2js-win10-ie11-try, precomp-linux-release-x64-try, vm-kernel-linux-debug-x64-try, vm-kernel-linux-release-x64-try, vm-kernel-mac-debug-x64-try": {
-      "meta": {
-      },
-      "steps": []
     }
-  }
+  ]
 }
