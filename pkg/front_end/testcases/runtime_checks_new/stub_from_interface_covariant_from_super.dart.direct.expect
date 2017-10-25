@@ -1,0 +1,22 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method f(covariant core::int x, core::int y) → void {}
+}
+abstract class I extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method f(core::int x, core::Object y) → void;
+}
+class C extends self::B implements self::I {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+}
+static method main() → void {}

@@ -471,6 +471,8 @@ runtime_checks_new/derived_class_typed: Crash
 runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Crash
 runtime_checks_new/field_forwarding_stub_explicit_covariant: Crash
 runtime_checks_new/generic_covariance_based_on_inference: Crash
+runtime_checks_new/stub_from_interface_covariantImpl_from_interface: Fail
+runtime_checks_new/stub_from_interface_covariant_from_interface: Fail
 static_setter: Crash
 store_load: Crash
 stringliteral: Crash
