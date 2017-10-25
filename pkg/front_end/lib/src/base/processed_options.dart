@@ -295,7 +295,7 @@ class ProcessedOptions {
     Program program = new Program(nameRoot: nameRoot);
     // TODO(ahe): Pass file name to BinaryBuilder.
     // TODO(ahe): Control lazy loading via an option.
-    new BinaryBuilder(bytes, null, true).readProgram(program);
+    new BinaryBuilder(bytes, null, false).readProgram(program);
     return program;
   }
 

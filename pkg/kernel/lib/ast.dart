@@ -1282,42 +1282,12 @@ class Procedure extends Member {
   int flags = 0;
   // function is null if and only if abstract, external,
   // or builder (below) is set.
-  FunctionNode _function;
-
-  void Function() lazyBuilder;
-
-  void _buildLazy() {
-    if (lazyBuilder != null) {
-      var lazyBuilderLocal = lazyBuilder;
-      lazyBuilder = null;
-      lazyBuilderLocal();
-    }
-  }
-
-  void set transformerFlags(int flags) {
-    _buildLazy();
-    super.transformerFlags = flags;
-  }
-
-  int get transformerFlags {
-    _buildLazy();
-    return super.transformerFlags;
-  }
-
-  void set function(FunctionNode function) {
-    _buildLazy();
-    _function = function;
-  }
-
-  FunctionNode get function {
-    _buildLazy();
-    return _function;
-  }
+  FunctionNode function;
 
   /// The uri of the source file this procedure was loaded from.
   String fileUri;
 
-  Procedure(Name name, this.kind, this._function,
+  Procedure(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -1647,9 +1617,29 @@ class FunctionNode extends TreeNode {
   @nocoq
   List<VariableDeclaration> namedParameters;
   DartType returnType; // Not null.
-  Statement body;
+  Statement _body;
 
-  FunctionNode(this.body,
+  void Function() lazyBuilder;
+
+  void _buildLazy() {
+    if (lazyBuilder != null) {
+      var lazyBuilderLocal = lazyBuilder;
+      lazyBuilder = null;
+      lazyBuilderLocal();
+    }
+  }
+
+  Statement get body {
+    _buildLazy();
+    return _body;
+  }
+
+  void set body(Statement body) {
+    _buildLazy();
+    _body = body;
+  }
+
+  FunctionNode(this._body,
       {List<TypeParameter> typeParameters,
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
@@ -1667,7 +1657,7 @@ class FunctionNode extends TreeNode {
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
-    body?.parent = this;
+    _body?.parent = this;
     dartAsyncMarker ??= asyncMarker;
   }
 
