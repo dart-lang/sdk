@@ -32,7 +32,7 @@ import 'package:flutter/material.dart';
 var w = const Icon(Icons.book);
 ''');
     var w = _getTopVariableCreation('w');
-    expect(getFlutterWidgetPresentationText(w), "Icon(Icons.book)");
+    expect(getWidgetPresentationText(w), "Icon(Icons.book)");
   }
 
   test_getFlutterWidgetPresentationText_notWidget() async {
@@ -41,7 +41,7 @@ import 'package:flutter/material.dart';
 var w = new Object();
 ''');
     var w = _getTopVariableCreation('w');
-    expect(getFlutterWidgetPresentationText(w), isNull);
+    expect(getWidgetPresentationText(w), isNull);
   }
 
   test_getFlutterWidgetPresentationText_text() async {
@@ -50,7 +50,7 @@ import 'package:flutter/material.dart';
 var w = const Text('foo');
 ''');
     var w = _getTopVariableCreation('w');
-    expect(getFlutterWidgetPresentationText(w), "Text('foo')");
+    expect(getWidgetPresentationText(w), "Text('foo')");
   }
 
   test_getFlutterWidgetPresentationText_text_longText() async {
@@ -59,8 +59,8 @@ import 'package:flutter/material.dart';
 var w = const Text('${'abc' * 100}');
 ''');
     var w = _getTopVariableCreation('w');
-    expect(getFlutterWidgetPresentationText(w),
-        "Text('abcabcabcabca...cabcabcabcabc')");
+    expect(
+        getWidgetPresentationText(w), "Text('abcabcabcabca...cabcabcabcabc')");
   }
 
   test_getFlutterWidgetPresentationText_unresolved() async {
@@ -70,7 +70,7 @@ import 'package:flutter/material.dart';
 var w = new Foo();
 ''');
     var w = _getTopVariableCreation('w');
-    expect(getFlutterWidgetPresentationText(w), isNull);
+    expect(getWidgetPresentationText(w), isNull);
   }
 
   test_isFlutterWidget() async {
@@ -84,19 +84,19 @@ class NotFlutter {}
 class NotWidget extends State {}
 ''');
     var myStatelessWidget = testUnitElement.getType('MyStatelessWidget');
-    expect(isFlutterWidget(myStatelessWidget), isTrue);
+    expect(isWidget(myStatelessWidget), isTrue);
 
     var myStatefulWidget = testUnitElement.getType('MyStatefulWidget');
-    expect(isFlutterWidget(myStatefulWidget), isTrue);
+    expect(isWidget(myStatefulWidget), isTrue);
 
     var myContainer = testUnitElement.getType('MyContainer');
-    expect(isFlutterWidget(myContainer), isTrue);
+    expect(isWidget(myContainer), isTrue);
 
     var notFlutter = testUnitElement.getType('NotFlutter');
-    expect(isFlutterWidget(notFlutter), isFalse);
+    expect(isWidget(notFlutter), isFalse);
 
     var notWidget = testUnitElement.getType('NotWidget');
-    expect(isFlutterWidget(notWidget), isFalse);
+    expect(isWidget(notWidget), isFalse);
   }
 
   test_isFlutterWidgetCreation() async {
@@ -107,10 +107,10 @@ var a = new Object();
 var b = new Text('bbb');
 ''');
     InstanceCreationExpression a = _getTopVariableCreation('a');
-    expect(isFlutterWidgetCreation(a), isFalse);
+    expect(isWidgetCreation(a), isFalse);
 
     InstanceCreationExpression b = _getTopVariableCreation('b');
-    expect(isFlutterWidgetCreation(b), isTrue);
+    expect(isWidgetCreation(b), isTrue);
   }
 
   VariableDeclaration _getTopVariable(String name, [CompilationUnit unit]) {

@@ -8,7 +8,8 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/services/correction/flutter_util.dart';
+import 'package:analysis_server/src/services/correction/flutter_util.dart'
+    as flutter;
 import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -240,7 +241,7 @@ class ArgListContributor extends DartCompletionContributor {
       // Optionally add Flutter child widget details.
       Element element = parameter.enclosingElement;
       if (element is ConstructorElement) {
-        if (isFlutterWidget(element.enclosingElement) &&
+        if (flutter.isWidget(element.enclosingElement) &&
             parameter.name == 'children') {
           String value = getDefaultStringParameterValue(parameter);
           if (value != null) {
@@ -320,9 +321,9 @@ class ArgListContributor extends DartCompletionContributor {
   bool _isInFlutterCreation(DartCompletionRequest request) {
     AstNode containingNode = request?.target?.containingNode;
     InstanceCreationExpression newExpr = containingNode != null
-        ? identifyNewExpression(containingNode.parent)
+        ? flutter.identifyNewExpression(containingNode.parent)
         : null;
-    return newExpr != null && isFlutterWidgetCreation(newExpr);
+    return newExpr != null && flutter.isWidgetCreation(newExpr);
   }
 
   /**

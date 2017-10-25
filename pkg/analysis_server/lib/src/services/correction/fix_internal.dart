@@ -10,7 +10,8 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/flutter_util.dart';
+import 'package:analysis_server/src/services/correction/flutter_util.dart'
+    as flutter;
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
@@ -642,8 +643,9 @@ class FixProcessor {
           String defaultValue = getDefaultStringParameterValue(element);
           builder.write('$paramName: $defaultValue');
           // Insert a trailing comma after Flutter instance creation params.
-          InstanceCreationExpression newExpr = identifyNewExpression(node);
-          if (newExpr != null && isFlutterWidgetCreation(newExpr)) {
+          InstanceCreationExpression newExpr =
+              flutter.identifyNewExpression(node);
+          if (newExpr != null && flutter.isWidgetCreation(newExpr)) {
             builder.write(',');
           }
         });
@@ -749,15 +751,16 @@ class FixProcessor {
   }
 
   Future<Null> _addFix_convertFlutterChild() async {
-    NamedExpression namedExp = findFlutterNamedExpression(node, 'child');
+    NamedExpression namedExp = flutter.findNamedExpression(node, 'child');
     if (namedExp == null) {
       return;
     }
-    InstanceCreationExpression childArg = getChildWidget(namedExp, false);
+    InstanceCreationExpression childArg =
+        flutter.getChildWidget(namedExp, false);
     if (childArg != null) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        convertFlutterChildToChildren2(
+        flutter.convertChildToChildren2(
             builder,
             childArg,
             namedExp,
@@ -771,7 +774,7 @@ class FixProcessor {
       _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_FLUTTER_CHILD);
       return;
     }
-    ListLiteral listArg = getChildList(namedExp);
+    ListLiteral listArg = flutter.getChildList(namedExp);
     if (listArg != null) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {

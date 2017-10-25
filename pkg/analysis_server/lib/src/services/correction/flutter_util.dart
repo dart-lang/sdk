@@ -8,10 +8,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
-const _FLUTTER_WIDGET_NAME = "Widget";
-const _FLUTTER_WIDGET_URI = "package:flutter/src/widgets/framework.dart";
+const _WIDGET_NAME = "Widget";
+const _WIDGET_URI = "package:flutter/src/widgets/framework.dart";
 
-void convertFlutterChildToChildren(
+void convertChildToChildren(
     InstanceCreationExpression childArg,
     NamedExpression namedExp,
     String eol,
@@ -54,7 +54,7 @@ void convertFlutterChildToChildren(
   }
 }
 
-void convertFlutterChildToChildren2(
+void convertChildToChildren2(
     DartFileEditBuilder builder,
     InstanceCreationExpression childArg,
     NamedExpression namedExp,
@@ -119,7 +119,7 @@ InstanceCreationExpression findChildWidget(InstanceCreationExpression newExpr) {
  * name is the given [name] that is an argument to a Flutter instance creation
  * expression. Return null if any condition cannot be satisfied.
  */
-NamedExpression findFlutterNamedExpression(AstNode node, String name) {
+NamedExpression findNamedExpression(AstNode node, String name) {
   if (node is! SimpleIdentifier) {
     return null;
   }
@@ -137,7 +137,7 @@ NamedExpression findFlutterNamedExpression(AstNode node, String name) {
     return null;
   }
   InstanceCreationExpression newExpr = namedExp.parent.parent;
-  if (newExpr == null || !isFlutterWidgetCreation(newExpr)) {
+  if (newExpr == null || !isWidgetCreation(newExpr)) {
     return null;
   }
   return namedExp;
@@ -149,7 +149,7 @@ ListLiteral getChildList(NamedExpression child) {
     if (list.elements.isEmpty ||
         list.elements.every((element) =>
             element is InstanceCreationExpression &&
-            isFlutterWidgetCreation(element))) {
+            isWidgetCreation(element))) {
       return list;
     }
   }
@@ -165,7 +165,7 @@ InstanceCreationExpression getChildWidget(NamedExpression child,
     [bool strict = false]) {
   if (child?.expression is InstanceCreationExpression) {
     InstanceCreationExpression childNewExpr = child.expression;
-    if (isFlutterWidgetCreation(childNewExpr)) {
+    if (isWidgetCreation(childNewExpr)) {
       if (!strict || (findChildArgument(childNewExpr) != null)) {
         return childNewExpr;
       }
@@ -177,9 +177,9 @@ InstanceCreationExpression getChildWidget(NamedExpression child,
 /**
  * Return the presentation for the given Flutter `Widget` creation [node].
  */
-String getFlutterWidgetPresentationText(InstanceCreationExpression node) {
+String getWidgetPresentationText(InstanceCreationExpression node) {
   ClassElement element = node.staticElement?.enclosingElement;
-  if (!isFlutterWidget(element)) {
+  if (!isWidget(element)) {
     return null;
   }
   // TODO(scheglov) check that the required argument is actually provided.
@@ -224,14 +224,14 @@ InstanceCreationExpression identifyNewExpression(AstNode node) {
  * Return `true` if the given [element] has the Flutter class `Widget` as
  * a superclass.
  */
-bool isFlutterWidget(ClassElement element) {
+bool isWidget(ClassElement element) {
   if (element == null) {
     return false;
   }
   for (InterfaceType type in element.allSupertypes) {
-    if (type.name == _FLUTTER_WIDGET_NAME) {
+    if (type.name == _WIDGET_NAME) {
       Uri uri = type.element.source.uri;
-      if (uri.toString() == _FLUTTER_WIDGET_URI) {
+      if (uri.toString() == _WIDGET_URI) {
         return true;
       }
     }
@@ -243,9 +243,9 @@ bool isFlutterWidget(ClassElement element) {
  * Return `true` if the given [expr] is a constructor invocation for a
  * class that has the Flutter class `Widget` as a superclass.
  */
-bool isFlutterWidgetCreation(InstanceCreationExpression expr) {
+bool isWidgetCreation(InstanceCreationExpression expr) {
   ClassElement element = expr.staticElement?.enclosingElement;
-  return isFlutterWidget(element);
+  return isWidget(element);
 }
 
 /**
