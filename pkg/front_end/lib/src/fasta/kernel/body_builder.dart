@@ -2401,7 +2401,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             push(new ShadowSyntheticExpression(evaluateArgumentsBefore(
                 arguments,
                 buildAbstractClassInstantiationError(
-                    type.name, nameToken.charOffset))));
+                    fasta.templateAbstractClassInstantiation
+                        .withArguments(type.name),
+                    type.name,
+                    nameToken.charOffset))));
             return;
           } else {
             target = initialTarget;
@@ -2413,6 +2416,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             push(deprecated_buildCompileTimeError(
                 "Cyclic definition of factory '${name}'.",
                 nameToken.charOffset));
+            return;
+          }
+          if (target is Constructor && target.enclosingClass.isAbstract) {
+            push(new ShadowSyntheticExpression(evaluateArgumentsBefore(
+                arguments,
+                buildAbstractClassInstantiationError(
+                    fasta.templateAbstractRedirectedClassInstantiation
+                        .withArguments(target.enclosingClass.name),
+                    target.enclosingClass.name,
+                    nameToken.charOffset))));
             return;
           }
           RedirectingFactoryBody body = getRedirectingFactoryBody(target);
@@ -3237,10 +3250,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         charOffset: charOffset));
   }
 
-  Expression buildAbstractClassInstantiationError(String className,
+  Expression buildAbstractClassInstantiationError(
+      Message message, String className,
       [int charOffset = -1]) {
-    warning(fasta.templateAbstractClassInstantiation.withArguments(className),
-        charOffset);
+    warning(message, charOffset);
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     return new Throw(buildStaticInvocation(constructor.target,
         new ShadowArguments(<Expression>[new StringLiteral(className)])));

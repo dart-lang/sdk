@@ -52,6 +52,32 @@ const MessageCode messageAbstractNotSync = const MessageCode("AbstractNotSync",
     message: r"""Abstract methods can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateAbstractRedirectedClassInstantiation = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Factory redirects to class '#name', which is abstract and can't be instantiated.""",
+    withArguments: _withArgumentsAbstractRedirectedClassInstantiation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeAbstractRedirectedClassInstantiation =
+    const Code<Message Function(String name)>(
+  "AbstractRedirectedClassInstantiation",
+  templateAbstractRedirectedClassInstantiation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
+  return new Message(codeAbstractRedirectedClassInstantiation,
+      message:
+          """Factory redirects to class '$name', which is abstract and can't be instantiated.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateAccessError =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Access error: '#name'.""",

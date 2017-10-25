@@ -804,6 +804,9 @@ CandidateFoundIsDefaultConstructor:
 AbstractClassInstantiation:
   template: "The class '#name' is abstract and can't be instantiated."
 
+AbstractRedirectedClassInstantiation:
+  template: "Factory redirects to class '#name', which is abstract and can't be instantiated."
+
 ListLiteralTooManyTypeArguments:
   template: "Too many type arguments on List literal."
 
