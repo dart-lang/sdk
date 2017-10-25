@@ -3179,7 +3179,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleRecoverableError(Token token, Message message) {
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation) {
       return;
@@ -3187,7 +3188,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     bool silent = hasParserError ||
         message.code == fasta.codeFinalFieldWithoutInitializer ||
         message.code == fasta.codeConstFieldWithoutInitializer;
-    deprecated_addCompileTimeError(offsetForToken(token), message.message,
+    deprecated_addCompileTimeError(offsetForToken(startToken), message.message,
         silent: silent);
   }
 
@@ -3197,7 +3198,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       String expected = message.arguments["string"];
       const List<String> trailing = const <String>[")", "}", ";", ","];
       if (trailing.contains(token.stringValue) && trailing.contains(expected)) {
-        handleRecoverableError(token, message);
+        handleRecoverableError(message, token, token);
         return newSyntheticToken(token);
       }
     }

@@ -327,13 +327,15 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, Message message) {
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation) {
       return;
     }
     debugEvent("Error: ${message.message}");
-    addCompileTimeError(message, token.offset, token.length);
+    int offset = startToken.offset;
+    addCompileTimeError(message, offset, endToken.end - offset);
   }
 
   void addCompileTimeError(Message message, int offset, int length);

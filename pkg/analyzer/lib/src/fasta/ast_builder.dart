@@ -1770,13 +1770,16 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleRecoverableError(Token token, Message message) {
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
       return;
     }
     debugEvent("Error: ${message.message}");
-    addCompileTimeError(message, token.offset, token.length);
+    int offset = startToken.offset;
+    int length = endToken.end - offset;
+    addCompileTimeError(message, offset, length);
   }
 
   @override

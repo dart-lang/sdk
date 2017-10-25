@@ -1026,11 +1026,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverableError(Token token, Message message) {
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
     if (silenceParserErrors) {
       debugEvent("RecoverableError");
     } else {
-      super.handleRecoverableError(token, message);
+      super.handleRecoverableError(message, startToken, endToken);
     }
   }
 

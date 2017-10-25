@@ -1200,8 +1200,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, Message message) {
-    listener?.handleRecoverableError(token, message);
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    listener?.handleRecoverableError(message, startToken, endToken);
   }
 
   @override

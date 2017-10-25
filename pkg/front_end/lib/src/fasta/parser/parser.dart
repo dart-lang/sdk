@@ -5299,7 +5299,7 @@ class Parser {
     if (token is ErrorToken) {
       reportErrorToken(token, true);
     } else {
-      listener.handleRecoverableError(token, message);
+      listener.handleRecoverableError(message, token, token);
     }
   }
 
@@ -5320,7 +5320,8 @@ class Parser {
     if (token is ErrorToken) {
       reportErrorToken(token, true);
     } else {
-      listener.handleRecoverableError(token, template.withArguments(token));
+      listener.handleRecoverableError(
+          template.withArguments(token), token, token);
     }
   }
 
@@ -5331,7 +5332,7 @@ class Parser {
     // listeners still need to handle errors, there should not be a distinction
     // between recoverable and non-recoverable errors.
     if (isRecoverable) {
-      listener.handleRecoverableError(token, message);
+      listener.handleRecoverableError(message, token, token);
       return null;
     } else {
       Token next = listener.handleUnrecoverableError(token, message);
