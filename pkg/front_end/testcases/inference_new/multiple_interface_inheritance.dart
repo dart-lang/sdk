@@ -26,7 +26,7 @@ class F extends E {
 }
 
 void g1(C c) {
-  c. /*@target=I2::f*/ f('hi');
+  c. /*@target=C::f*/ f('hi');
 }
 
 void g2(E e) {

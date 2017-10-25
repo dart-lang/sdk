@@ -356,7 +356,6 @@ inference_new/infer_instance_accessor_ref: Crash
 inference_new/infer_instance_field_ref: Crash
 inference_new/infer_instance_field_ref_circular: Crash
 inference_new/infer_logical: Crash
-inference_new/multiple_interface_inheritance: Fail # Issue #30547
 inference_new/property_assign_combiner: Crash
 inference_new/property_get_toplevel: Crash
 inference_new/static_assign_combiner: Crash
