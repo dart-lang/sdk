@@ -7,7 +7,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'assist_test.dart' as assist_test;
 import 'change_test.dart' as change_test;
 import 'fix_test.dart' as fix_test;
-import 'flutter_util_test.dart' as flutter_util_test;
 import 'levenshtein_test.dart' as levenshtein_test;
 import 'name_suggestion_test.dart' as name_suggestion_test;
 import 'organize_directives_test.dart' as organize_directives_test;
@@ -22,7 +21,6 @@ main() {
     assist_test.main();
     change_test.main();
     fix_test.main();
-    flutter_util_test.main();
     levenshtein_test.main();
     name_suggestion_test.main();
     organize_directives_test.main();

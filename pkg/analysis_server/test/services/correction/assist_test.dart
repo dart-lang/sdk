@@ -25,7 +25,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import 'flutter_util.dart';
+import '../../src/utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {

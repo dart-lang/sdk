@@ -13,7 +13,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
-import '../../services/correction/flutter_util.dart';
+import '../utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
