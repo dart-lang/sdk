@@ -441,3 +441,6 @@ profiler/metrics_test: Crash
 typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
+
+[ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug]
+isolate/isolate_complex_messages_test: Crash

@@ -260,13 +260,7 @@ function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
-function_subtype_named1_test: RuntimeError
-function_subtype_named2_test: RuntimeError
 function_subtype_not1_test: RuntimeError
-function_subtype_optional1_test: RuntimeError
-function_subtype_optional2_test: RuntimeError
-function_subtype_typearg2_test: RuntimeError
-function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 generic_closure_test: RuntimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
@@ -277,14 +271,11 @@ generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError, OK # No type inference
 generic_function_typedef2_test/04: MissingCompileTimeError
-generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
-generic_methods_named_parameters_test: RuntimeError
-generic_methods_optional_parameters_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_overriding_test/03: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
@@ -341,8 +332,6 @@ inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 instanceof2_test: RuntimeError
-instanceof4_test/01: RuntimeError
-instanceof4_test/none: RuntimeError
 interface_test/00: MissingCompileTimeError
 least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_test/03: MissingCompileTimeError
@@ -391,13 +380,11 @@ malbounded_type_cast2_test: MissingCompileTimeError
 malbounded_type_cast_test/00: MissingCompileTimeError
 malbounded_type_cast_test/01: MissingCompileTimeError
 malbounded_type_cast_test/02: MissingCompileTimeError
-malbounded_type_cast_test/none: RuntimeError
 malbounded_type_literal_test/00: MissingCompileTimeError
 malbounded_type_test2_test/00: MissingCompileTimeError
 malbounded_type_test_test/00: MissingCompileTimeError
 malbounded_type_test_test/01: MissingCompileTimeError
 malbounded_type_test_test/02: MissingCompileTimeError
-malbounded_type_test_test/none: RuntimeError
 malformed2_test/01: MissingCompileTimeError
 malformed2_test/02: MissingCompileTimeError
 malformed2_test/03: MissingCompileTimeError
@@ -443,7 +430,6 @@ malformed_test/23: MissingCompileTimeError
 malformed_test/24: MissingCompileTimeError
 malformed_type_test: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
-map_literal8_test: RuntimeError
 method_override2_test/00: MissingCompileTimeError
 method_override2_test/01: MissingCompileTimeError
 method_override2_test/02: MissingCompileTimeError
@@ -509,10 +495,6 @@ mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
-mixin_type_parameters_mixin_extends_test: RuntimeError
-mixin_type_parameters_mixin_test: RuntimeError
-mixin_type_parameters_super_extends_test: RuntimeError
-mixin_type_parameters_super_test: RuntimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_constructor_test/01: MissingCompileTimeError
@@ -539,7 +521,6 @@ new_expression_type_args_test/01: MissingCompileTimeError
 new_expression_type_args_test/02: MissingCompileTimeError
 new_prefix_test/01: MissingCompileTimeError
 no_such_constructor_test/01: MissingCompileTimeError
-no_such_method_mock_test: RuntimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
@@ -616,7 +597,6 @@ override_inheritance_method_test/32: MissingCompileTimeError
 override_inheritance_method_test/33: MissingCompileTimeError
 override_inheritance_mixed_test/06: MissingCompileTimeError
 override_inheritance_mixed_test/07: MissingCompileTimeError
-override_inheritance_mixed_test/08: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/01: MissingCompileTimeError
 override_inheritance_no_such_method_test/02: MissingCompileTimeError
@@ -656,7 +636,6 @@ regress_23089_test: MissingCompileTimeError
 regress_23408_test: RuntimeError
 regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
-regress_28341_test: Fail # Issue 28340
 return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
@@ -798,8 +777,6 @@ type_variable_conflict2_test/05: MissingCompileTimeError
 type_variable_conflict2_test/07: MissingCompileTimeError
 type_variable_conflict2_test/09: MissingCompileTimeError
 type_variable_identifier_expression_test: MissingCompileTimeError
-type_variable_nested_test/01: RuntimeError
-type_variable_promotion_test: RuntimeError
 type_variable_scope2_test: MissingCompileTimeError
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError
@@ -814,6 +791,31 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+
+[ $runtime == vm && ! $strong ]
+type_variable_promotion_test: RuntimeError
+type_variable_nested_test/01: RuntimeError
+regress_28341_test: Fail # Issue 28340
+override_inheritance_mixed_test/08: MissingCompileTimeError
+no_such_method_mock_test: RuntimeError
+mixin_type_parameters_super_test: RuntimeError
+mixin_type_parameters_super_extends_test: RuntimeError
+mixin_type_parameters_mixin_test: RuntimeError
+mixin_type_parameters_mixin_extends_test: RuntimeError
+map_literal8_test: RuntimeError
+malbounded_type_cast_test/none: RuntimeError
+instanceof4_test/01: RuntimeError
+instanceof4_test/none: RuntimeError
+generic_methods_optional_parameters_test: RuntimeError
+generic_function_typedef_test/01: RuntimeError
+function_subtype_named1_test: RuntimeError
+function_subtype_named2_test: RuntimeError
+function_subtype_optional1_test: RuntimeError
+function_subtype_optional2_test: RuntimeError
+function_subtype_typearg2_test: RuntimeError
+function_subtype_typearg3_test: RuntimeError
+generic_methods_named_parameters_test: RuntimeError
+malbounded_type_test_test/none: RuntimeError
 
 [ $runtime == vm && $checked ]
 constructor_call_as_function_test/01: MissingCompileTimeError

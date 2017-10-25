@@ -192,7 +192,7 @@ wrong_number_type_arguments_test/none: Pass
 map_literal11_test/none: MissingRuntimeError
 map_literal7_test: RuntimeError # Requires strong mode
 
-[ $strong ]
+[ $strong && $compiler != dartk && $compiler != dartkp ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/21: CompileTimeError # Issue 30546

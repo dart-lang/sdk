@@ -626,3 +626,7 @@ list_insert_all_test: RuntimeError
 list_insert_test: RuntimeError
 stacktrace_fromstring_test: Crash
 typed_data_with_limited_ints_test: Crash
+
+[ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug ]
+list_test/none: Crash
+list_test/01: Crash

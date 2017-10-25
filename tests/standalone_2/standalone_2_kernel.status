@@ -87,6 +87,7 @@ io/regress_21160_test: RuntimeError
 io/regress_8828_test: RuntimeError
 io/regress_9194_test: RuntimeError
 io/secure_bad_certificate_test: RuntimeError
+io/secure_builtin_roots_test: RuntimeError
 io/secure_socket_alpn_test: RuntimeError
 io/secure_socket_test: RuntimeError
 io/socket_bind_test: RuntimeError
@@ -260,3 +261,11 @@ regress31114_test: Crash
 typed_array_int64_uint64_test: Crash
 typed_array_test: Crash
 typed_data_isolate_test: Crash
+
+[ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug]
+io/raw_socket_test: Crash
+io/socket_exception_test: Crash
+io/socket_finalizer_test: Crash
+io/socket_info_ipv4_test: Crash
+io/socket_info_ipv6_test: Crash
+io/socket_port_test: Crash
