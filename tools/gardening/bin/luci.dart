@@ -30,9 +30,6 @@ ArgParser setupArgs() {
     ..addFlag("build-bots-all",
         negatable: false,
         help: "Use this flag to see all build bots for --client.")
-    ..addFlag("master",
-        negatable: false,
-        help: "Use this flag to see information about master for --client.")
     ..addFlag("builder-groups",
         negatable: false,
         help: "Use this flag to see all builder-groups not -dev, -stable "
@@ -83,8 +80,6 @@ main(List<String> args) async {
     await performBuildBotsPrimary(luciApi, createCache, results);
   } else if (results["build-bots-all"]) {
     await performBuildBotsAll(luciApi, createCache, results);
-  } else if (results["master"]) {
-    await performMaster(luciApi, createCache, results);
   } else if (results["builder-groups"]) {
     await performBuilderGroups(luciApi, createCache, results);
   } else if (results["builders-in-group"]) {
@@ -118,14 +113,6 @@ Future performBuildBotsAll(
           luciApi, results['client'], cache(duration: new Duration(hours: 1)))
       .then((bots) => bots.forEach(print),
           onError: exceptionPrint("Could not perform command"));
-}
-
-/// Get master information for `results[client]`.
-Future performMaster(
-    LuciApi luciApi, CreateCacheFunction cache, ArgResults results) {
-  return luciApi
-      .getMaster(results['client'], cache(duration: new Duration(minutes: 15)))
-      .then(print, onError: exceptionPrint("Could not perform command"));
 }
 
 /// Get build groups for a `results[client]`.

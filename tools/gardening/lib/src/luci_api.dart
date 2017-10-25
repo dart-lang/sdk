@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:archive/archive.dart';
 import 'cache_new.dart';
 
 const String LUCI_HOST = "luci-milo.appspot.com";
@@ -36,27 +35,6 @@ class LuciApi {
                 path: "/get_master/${client}")),
             "cbe")
         .then(JSON.decode);
-  }
-
-  /// [getMaster] fetches master information for all bots.
-  Future<dynamic> getMaster(String client, WithCacheFunction withCache) async {
-    var uri = new Uri(
-        scheme: "https",
-        host: LUCI_HOST,
-        path: "prpc/milo.Buildbot/GetCompressedMasterJSON");
-    var body = {"name": client};
-    return withCache(
-            () => _makePostRequest(uri, JSON.encode(body), {
-                  HttpHeaders.CONTENT_TYPE: "application/json",
-                  HttpHeaders.ACCEPT: "application/json"
-                }),
-            '${uri.path}')
-        .then(JSON.decode)
-        .then((json) {
-      var data = JSON.decode(UTF8
-          .decode(new GZipDecoder().decodeBytes(BASE64.decode(json["data"]))));
-      return data;
-    });
   }
 
   /// Calling the Milo Api to get latest builds for this bot,
