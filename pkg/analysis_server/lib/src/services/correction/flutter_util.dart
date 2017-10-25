@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -187,13 +188,13 @@ String getWidgetPresentationText(InstanceCreationExpression node) {
   if (_isExactWidget(
       element, 'Icon', 'package:flutter/src/widgets/icon.dart')) {
     String text = arguments[0].toString();
-    String arg = _shortenText(text, 32);
+    String arg = shorten(text, 32);
     return 'Icon($arg)';
   }
   if (_isExactWidget(
       element, 'Text', 'package:flutter/src/widgets/text.dart')) {
     String text = arguments[0].toString();
-    String arg = _shortenText(text, 32);
+    String arg = shorten(text, 32);
     return 'Text($arg)';
   }
   return element.name;
@@ -256,12 +257,4 @@ bool _isExactWidget(ClassElement element, String type, String uri) {
   return element != null &&
       element.name == type &&
       element.source.uri.toString() == uri;
-}
-
-String _shortenText(String text, int limit) {
-  if (text.length > limit) {
-    int half = limit ~/ 2 - 2;
-    return text.substring(0, half) + '...' + text.substring(text.length - half);
-  }
-  return text;
 }

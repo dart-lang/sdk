@@ -60,7 +60,7 @@ var w = const Text('${'abc' * 100}');
 ''');
     var w = _getTopVariableCreation('w');
     expect(
-        getWidgetPresentationText(w), "Text('abcabcabcabca...cabcabcabcabc')");
+        getWidgetPresentationText(w), "Text('abcabcabcabcab...cabcabcabcabc')");
   }
 
   test_getFlutterWidgetPresentationText_unresolved() async {
