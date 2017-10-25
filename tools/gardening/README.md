@@ -21,9 +21,14 @@ these. Below is a detailed description of each of the tools.
 The results tool should be the primary tool for looking at failures and updating
 of status files. The tool fetches results.logs generated for each invocation of
 test.py on either the build bots or the CQ and matches the actual result for
-each test against the status files in your repository.
+each test against the status files in your repository. Use it by calling:
 
-(Note, it is important to run the tool in the root of the repository.)
+`dart results.dart get failures <argument>`
+
+The argument can be a builder-group, a specific builder, a builder and a
+build-number, a CL number and patchset, or an uri to a result.log file.
+
+Some common workflows are listed below.
 
 #### Finding failures on the CQ by link ####
 If a CQ job fails then you will receive an email about try jobs failing. There
