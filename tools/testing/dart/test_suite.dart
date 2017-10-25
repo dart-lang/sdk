@@ -317,15 +317,16 @@ abstract class TestSuite {
     }
 
     // Update Summary report
-    if (configuration.printReport) {
-      if (testCase.expectCompileError &&
-          configuration.runtime.isBrowser &&
-          configuration.compilerConfiguration.hasCompiler) {
+    if (testCase.expectCompileError &&
+        configuration.runtime.isBrowser &&
+        configuration.compilerConfiguration.hasCompiler) {
+      if (configuration.printReport) {
         summaryReport.addCompileErrorSkipTest();
-        return;
-      } else {
-        summaryReport.add(testCase);
       }
+      return;
+    }
+    if (configuration.printReport) {
+      summaryReport.add(testCase);
     }
 
     // Handle skipped tests
