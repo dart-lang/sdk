@@ -7,19 +7,19 @@ library kernel.transformations.reify.standalone_runner;
 import 'analysis/program_analysis.dart';
 import 'dart:io' show File, IOSink;
 
-import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
+import '../../binary/ast_to_binary.dart' show BinaryPrinter;
 
-import 'package:kernel/ast.dart';
+import '../../ast.dart';
 
-import 'package:kernel/kernel.dart';
-import 'package:kernel/verifier.dart';
-import 'package:kernel/text/ast_to_text.dart' show Printer;
+import '../../kernel.dart';
+import '../../verifier.dart';
+import '../../text/ast_to_text.dart' show Printer;
 
 import 'transformation/remove_generics.dart';
 import 'transformation/transformer.dart'
     show ReifyVisitor, RuntimeLibrary, RuntimeTypeSupportBuilder;
 
-import 'package:kernel/core_types.dart' show CoreTypes;
+import '../../core_types.dart' show CoreTypes;
 
 RuntimeLibrary findRuntimeTypeLibrary(Program p) {
   Library findLibraryEndingWith(String postfix) {

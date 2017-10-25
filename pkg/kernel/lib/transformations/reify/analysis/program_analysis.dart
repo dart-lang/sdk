@@ -5,7 +5,7 @@
 library kernel.transformation.reify.analysis.program_analysis;
 
 import '../asts.dart';
-import 'package:kernel/ast.dart';
+import '../../../ast.dart';
 
 // TODO(karlklose): keep all predicates and derived information here and move
 // the actual data to a builder class.

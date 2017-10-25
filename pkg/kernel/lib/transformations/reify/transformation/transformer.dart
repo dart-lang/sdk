@@ -5,7 +5,7 @@
 library kernel.transformations.reify.transformation.transformer;
 
 import '../analysis/program_analysis.dart';
-import 'package:kernel/ast.dart';
+import '../../../ast.dart';
 import 'binding.dart' show RuntimeLibrary;
 import 'builder.dart' show RuntimeTypeSupportBuilder;
 import 'dart:collection' show LinkedHashMap;

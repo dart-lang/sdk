@@ -4,7 +4,7 @@
 
 library kernel.transformations.reify.transformation.remove_generics;
 
-import 'package:kernel/ast.dart';
+import '../../../ast.dart';
 import 'transformer.dart';
 
 class Erasure extends Transformer with DartTypeVisitor<DartType> {
