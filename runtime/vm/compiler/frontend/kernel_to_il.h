@@ -529,7 +529,8 @@ class FlowGraphBuilder {
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);
 
-  Fragment EnterScope(intptr_t kernel_offset, bool* new_context = NULL);
+  Fragment EnterScope(intptr_t kernel_offset,
+                      intptr_t* num_context_variables = NULL);
   Fragment ExitScope(intptr_t kernel_offset);
 
   Fragment LoadContextAt(int depth);
@@ -569,7 +570,7 @@ class FlowGraphBuilder {
   Fragment TryCatch(int try_handler_index);
   Fragment CheckStackOverflowInPrologue();
   Fragment CheckStackOverflow();
-  Fragment CloneContext();
+  Fragment CloneContext(intptr_t num_context_variables);
   Fragment Constant(const Object& value);
   Fragment CreateArray();
   Fragment Goto(JoinEntryInstr* destination);

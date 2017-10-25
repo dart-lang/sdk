@@ -5420,8 +5420,9 @@ Fragment StreamingFlowGraphBuilder::CheckStackOverflow() {
   return flow_graph_builder_->CheckStackOverflow();
 }
 
-Fragment StreamingFlowGraphBuilder::CloneContext() {
-  return flow_graph_builder_->CloneContext();
+Fragment StreamingFlowGraphBuilder::CloneContext(
+    intptr_t num_context_variables) {
+  return flow_graph_builder_->CloneContext(num_context_variables);
 }
 
 Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
@@ -5524,9 +5525,10 @@ Fragment StreamingFlowGraphBuilder::CheckVariableTypeInCheckedMode(
                                                              name_symbol);
 }
 
-Fragment StreamingFlowGraphBuilder::EnterScope(intptr_t kernel_offset,
-                                               bool* new_context) {
-  return flow_graph_builder_->EnterScope(kernel_offset, new_context);
+Fragment StreamingFlowGraphBuilder::EnterScope(
+    intptr_t kernel_offset,
+    intptr_t* num_context_variables) {
+  return flow_graph_builder_->EnterScope(kernel_offset, num_context_variables);
 }
 
 Fragment StreamingFlowGraphBuilder::ExitScope(intptr_t kernel_offset) {
@@ -6885,8 +6887,11 @@ Fragment StreamingFlowGraphBuilder::BuildVectorCopy(TokenPosition* position) {
 
   Fragment instructions = BuildExpression();  // read vector expression.
   Value* context_to_copy = Pop();
+  // TODO(dartbug.com/31218) VectorCopy should contain size of the context
+  // as a constant.
   CloneContextInstr* clone_instruction =
       new (Z) CloneContextInstr(TokenPosition::kNoSource, context_to_copy,
+                                CloneContextInstr::kUnknownContextSize,
                                 Thread::Current()->GetNextDeoptId());
   instructions <<= clone_instruction;
   Push(clone_instruction);
@@ -7160,8 +7165,8 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 
   loop_depth_inc();
 
-  bool new_context = false;
-  declarations += EnterScope(offset, &new_context);
+  intptr_t num_context_variables = 0;
+  declarations += EnterScope(offset, &num_context_variables);
 
   intptr_t list_length = ReadListLength();  // read number of variables.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -7193,7 +7198,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     // the context object (at same depth) which ensures the next iteration of
     // the body gets a fresh set of [ForStatement] variables (with the old
     // (possibly updated) values).
-    if (new_context) body += CloneContext();
+    if (num_context_variables > 0) body += CloneContext(num_context_variables);
 
     body += updates;
     JoinEntryInstr* join = BuildJoinEntry();

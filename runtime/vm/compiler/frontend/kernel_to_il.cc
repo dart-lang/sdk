@@ -790,16 +790,16 @@ Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
 }
 
 Fragment FlowGraphBuilder::EnterScope(intptr_t kernel_offset,
-                                      bool* new_context) {
+                                      intptr_t* num_context_variables) {
   Fragment instructions;
   const intptr_t context_size =
       scopes_->scopes.Lookup(kernel_offset)->num_context_variables();
   if (context_size > 0) {
     instructions += PushContext(context_size);
     instructions += Drop();
-    if (new_context != NULL) {
-      *new_context = true;
-    }
+  }
+  if (num_context_variables != NULL) {
+    *num_context_variables = context_size;
   }
   return instructions;
 }
@@ -1128,13 +1128,13 @@ Fragment FlowGraphBuilder::CheckStackOverflow() {
       TokenPosition::kNoSource, loop_depth_, GetNextDeoptId()));
 }
 
-Fragment FlowGraphBuilder::CloneContext() {
+Fragment FlowGraphBuilder::CloneContext(intptr_t num_context_variables) {
   LocalVariable* context_variable = parsed_function_->current_context_var();
 
   Fragment instructions = LoadLocal(context_variable);
 
-  CloneContextInstr* clone_instruction = new (Z)
-      CloneContextInstr(TokenPosition::kNoSource, Pop(), GetNextDeoptId());
+  CloneContextInstr* clone_instruction = new (Z) CloneContextInstr(
+      TokenPosition::kNoSource, Pop(), num_context_variables, GetNextDeoptId());
   instructions <<= clone_instruction;
   Push(clone_instruction);
 

@@ -263,13 +263,18 @@ class SequenceNode : public AstNode {
 
 class CloneContextNode : public AstNode {
  public:
-  explicit CloneContextNode(TokenPosition token_pos) : AstNode(token_pos) {}
+  explicit CloneContextNode(TokenPosition token_pos, LocalScope* scope)
+      : AstNode(token_pos), scope_(scope) {}
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {}
+
+  LocalScope* scope() const { return scope_; }
 
   DECLARE_COMMON_NODE_FUNCTIONS(CloneContextNode);
 
  private:
+  LocalScope* scope_;
+
   DISALLOW_COPY_AND_ASSIGN(CloneContextNode);
 };
 

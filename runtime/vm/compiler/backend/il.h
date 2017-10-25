@@ -4622,13 +4622,19 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
  public:
   CloneContextInstr(TokenPosition token_pos,
                     Value* context_value,
+                    intptr_t num_context_variables,
                     intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), token_pos_(token_pos) {
+      : TemplateDefinition(deopt_id),
+        token_pos_(token_pos),
+        num_context_variables_(num_context_variables) {
     SetInputAt(0, context_value);
   }
 
+  static const intptr_t kUnknownContextSize = -1;
+
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* context_value() const { return inputs_[0]; }
+  intptr_t num_context_variables() const { return num_context_variables_; }
 
   DECLARE_INSTRUCTION(CloneContext)
   virtual CompileType ComputeType() const;
@@ -4639,6 +4645,7 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
+  const intptr_t num_context_variables_;
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextInstr);
 };

@@ -1073,7 +1073,7 @@ class StreamingFlowGraphBuilder {
   Fragment CreateArray();
   Fragment StoreIndexed(intptr_t class_id);
   Fragment CheckStackOverflow();
-  Fragment CloneContext();
+  Fragment CloneContext(intptr_t num_context_variables);
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
@@ -1105,7 +1105,8 @@ class StreamingFlowGraphBuilder {
   Fragment CheckVariableTypeInCheckedMode(intptr_t variable_kernel_position);
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
-  Fragment EnterScope(intptr_t kernel_offset, bool* new_context = NULL);
+  Fragment EnterScope(intptr_t kernel_offset,
+                      intptr_t* num_context_variables = NULL);
   Fragment ExitScope(intptr_t kernel_offset);
 
   Fragment TranslateCondition(bool* negate);

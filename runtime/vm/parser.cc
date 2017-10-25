@@ -9546,7 +9546,7 @@ AstNode* Parser::ParseForStatement(String* label_name) {
     if (init_scope->VariableAt(i)->is_captured() &&
         (init_scope->VariableAt(i)->owner() == init_scope)) {
       SequenceNode* incr_sequence = new (Z) SequenceNode(incr_pos, NULL);
-      incr_sequence->Add(new (Z) CloneContextNode(for_pos));
+      incr_sequence->Add(new (Z) CloneContextNode(for_pos, init_scope));
       if (increment != NULL) {
         incr_sequence->Add(increment);
       }

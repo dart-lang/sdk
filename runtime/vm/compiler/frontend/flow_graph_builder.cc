@@ -2575,8 +2575,9 @@ void EffectGraphVisitor::VisitInitStaticFieldNode(InitStaticFieldNode* node) {
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
   Value* context = Bind(BuildCurrentContext(node->token_pos()));
-  Value* clone = Bind(new (Z) CloneContextInstr(node->token_pos(), context,
-                                                owner()->GetNextDeoptId()));
+  Value* clone = Bind(new (Z) CloneContextInstr(
+      node->token_pos(), context, node->scope()->num_context_variables(),
+      owner()->GetNextDeoptId()));
   Do(BuildStoreContext(clone, node->token_pos()));
 }
 
