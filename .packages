@@ -38,6 +38,7 @@ fasta:pkg/fasta/lib
 fixnum:third_party/pkg/fixnum/lib
 front_end:pkg/front_end/lib
 func:third_party/pkg/func/lib
+gardening:tools/gardening/lib
 glob:third_party/pkg/glob/lib
 html:third_party/pkg/html/lib
 http:third_party/pkg/http/lib

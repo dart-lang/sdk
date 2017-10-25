@@ -247,6 +247,13 @@ Future testConfigurations(List<Configuration> configurations) async {
 
   if (firstConf.writeResultLog) {
     eventListener.add(new ResultLogWriter());
+    // TODO(mkroghj): The recipe fails if a test.py step doesn't create a
+    // results.log when no tests are run.  Temporary fix to always make a log.
+    if (firstConf.outputDirectory != null) {
+      var path = new Path(firstConf.outputDirectory);
+      new File(path.append(TestUtils.resultLogFileName).toNativePath())
+          .createSync(recursive: true);
+    }
   }
 
   if (firstConf.copyCoreDumps) {
