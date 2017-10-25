@@ -30,6 +30,8 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(ActiveClass* active_class,
                                                      const Function& innermost,
                                                      Zone* Z)
     : active_class_(active_class), saved_(*active_class) {
+  active_class_->enclosing = &innermost;
+
   intptr_t num_params = 0;
 
   Function& f = Function::Handle(Z);
@@ -58,9 +60,12 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(ActiveClass* active_class,
 
 ActiveTypeParametersScope::ActiveTypeParametersScope(
     ActiveClass* active_class,
+    const Function* function,
     const TypeArguments& new_params,
     Zone* Z)
     : active_class_(active_class), saved_(*active_class) {
+  active_class_->enclosing = function;
+
   if (new_params.IsNull()) return;
 
   const TypeArguments* old_params = active_class->local_type_parameters;

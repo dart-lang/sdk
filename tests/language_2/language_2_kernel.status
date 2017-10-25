@@ -674,11 +674,6 @@ cyclic_type_variable_test/none: Crash
 type_parameter_test/04: Crash
 type_parameter_test/05: Crash
 const_instance_field_test/01: Crash
-generic_function_typedef_test/none: Crash
-generic_function_typedef_test/01: Crash
-generic_local_functions_test: Crash
-generic_methods_closure_test: Crash
-generic_typedef_test: Crash
 
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 constructor3_test: Fail, OK, Pass

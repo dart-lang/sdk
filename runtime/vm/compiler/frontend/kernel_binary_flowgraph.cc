@@ -2226,17 +2226,28 @@ void StreamingDartTypeTranslator::BuildInterfaceType(bool simple) {
 
 void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
   Function& signature_function = Function::ZoneHandle(
-      Z,
-      Function::NewSignatureFunction(*active_class_->klass, Function::Handle(Z),
-                                     TokenPosition::kNoSource));
+      Z, Function::NewSignatureFunction(*active_class_->klass,
+                                        active_class_->enclosing != NULL
+                                            ? *active_class_->enclosing
+                                            : Function::Handle(Z),
+                                        TokenPosition::kNoSource));
+
+  // Suspend finalization of types inside this one. They will be finalized after
+  // the whole function type is constructed.
+  //
+  // TODO(31213): Test further when nested generic function types
+  // are supported by fasta.
+  bool finalize = finalize_;
+  finalize_ = false;
 
   if (!simple) {
     builder_->LoadAndSetupTypeParameters(active_class_, signature_function,
                                          builder_->ReadListLength(),
                                          signature_function);
   }
+
   ActiveTypeParametersScope scope(
-      active_class_,
+      active_class_, &signature_function,
       TypeArguments::Handle(Z, signature_function.type_parameters()), Z);
 
   intptr_t required_count;
@@ -2305,6 +2316,8 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
     result_ = AbstractType::dynamic_type().raw();
   }
   signature_function.set_result_type(result_);
+
+  finalize_ = finalize;
 
   Type& signature_type =
       Type::ZoneHandle(Z, signature_function.SignatureType());
@@ -8073,7 +8086,11 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
     Function::Cast(set_on).set_type_parameters(type_parameters);
   }
 
-  ActiveTypeParametersScope(active_class, type_parameters, Z);
+  const Function* enclosing = NULL;
+  if (!parameterized_function.IsNull()) {
+    enclosing = &parameterized_function;
+  }
+  ActiveTypeParametersScope(active_class, enclosing, type_parameters, Z);
 
   // Step b) Fill in the bounds of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
@@ -8117,7 +8134,8 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
   }
 
   ActiveTypeParametersScope scope(
-      active_class, TypeArguments::Handle(Z, function.type_parameters()), Z);
+      active_class, &function,
+      TypeArguments::Handle(Z, function.type_parameters()), Z);
 
   function_node_helper->ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);

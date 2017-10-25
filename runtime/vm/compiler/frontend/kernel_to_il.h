@@ -190,7 +190,11 @@ typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 
 class ActiveClass {
  public:
-  ActiveClass() : klass(NULL), member(NULL), local_type_parameters(NULL) {}
+  ActiveClass()
+      : klass(NULL),
+        member(NULL),
+        enclosing(NULL),
+        local_type_parameters(NULL) {}
 
   bool HasMember() { return member != NULL; }
 
@@ -220,6 +224,10 @@ class ActiveClass {
   const Class* klass;
 
   const Function* member;
+
+  // The innermost enclosing function. This is used for building types, as a
+  // parent for function types.
+  const Function* enclosing;
 
   const TypeArguments* local_type_parameters;
 };
@@ -258,14 +266,20 @@ class ActiveTypeParametersScope {
   // Set the local type parameters of the ActiveClass to be exactly all type
   // parameters defined by 'innermost' and any enclosing *closures* (but not
   // enclosing methods/top-level functions/classes).
+  //
+  // Also, the enclosing function is set to 'innermost'.
   ActiveTypeParametersScope(ActiveClass* active_class,
                             const Function& innermost,
                             Zone* Z);
 
   // Append the list of the local type parameters to the list in ActiveClass.
+  //
+  // Also, the enclosing function is set to 'function'.
   ActiveTypeParametersScope(ActiveClass* active_class,
+                            const Function* function,
                             const TypeArguments& new_params,
                             Zone* Z);
+
   ~ActiveTypeParametersScope() { *active_class_ = saved_; }
 
  private:
