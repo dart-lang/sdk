@@ -1776,7 +1776,7 @@ class AstBuilder extends ScopeListener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    addCompileTimeErrorWithLength(message, token.offset, token.length);
+    addCompileTimeError(message, token.offset, token.length);
   }
 
   @override
@@ -2359,11 +2359,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset) {
-    addCompileTimeErrorWithLength(message, charOffset, 1);
-  }
-
-  void addCompileTimeErrorWithLength(Message message, int offset, int length) {
+  void addCompileTimeError(Message message, int offset, int length) {
     Code code = message.code;
     Map<String, dynamic> arguments = message.arguments;
 

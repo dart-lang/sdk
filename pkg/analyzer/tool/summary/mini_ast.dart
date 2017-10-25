@@ -156,8 +156,8 @@ class MiniAstBuilder extends StackListener {
   Uri get uri => null;
 
   @override
-  void addCompileTimeError(Message message, int charOffset) {
-    internalProblem(message, charOffset, uri);
+  void addCompileTimeError(Message message, int offset, int length) {
+    internalProblem(message, offset, uri);
   }
 
   @override

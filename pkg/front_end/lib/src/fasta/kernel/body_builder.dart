@@ -1032,7 +1032,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         ? fasta.templateSuperclassHasNoGetter.withArguments(name.name)
         : fasta.templateGetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset, context: context);
+      warning(message, charOffset, name.name.length, context: context);
     }
     return message;
   }
@@ -1044,7 +1044,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         ? fasta.templateSuperclassHasNoSetter.withArguments(name.name)
         : fasta.templateSetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset, context: context);
+      warning(message, charOffset, name.name.length, context: context);
     }
     return message;
   }
@@ -1056,7 +1056,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         ? fasta.templateSuperclassHasNoMethod.withArguments(name.name)
         : fasta.templateMethodNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset, context: context);
+      warning(message, charOffset, name.name.length, context: context);
     }
     return message;
   }
@@ -1065,7 +1065,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset) {
     warning(
         fasta.templateTypeArgumentMismatch.withArguments(name, '${expected}'),
-        charOffset);
+        charOffset,
+        name.length);
   }
 
   @override
@@ -3253,7 +3254,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Expression buildAbstractClassInstantiationError(
       Message message, String className,
       [int charOffset = -1]) {
-    warning(message, charOffset);
+    warning(message, charOffset, className.length);
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     return new Throw(buildStaticInvocation(constructor.target,
         new ShadowArguments(<Expression>[new StringLiteral(className)])));
@@ -3409,11 +3410,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void warning(Message message, int charOffset, {LocatedMessage context}) {
+  void warning(Message message, int offset, int length,
+      {LocatedMessage context}) {
     if (constantExpressionRequired) {
-      addCompileTimeError(message, charOffset);
+      addCompileTimeError(message, offset, length);
     } else {
-      library.addWarning(message, charOffset, uri, context: context);
+      library.addWarning(message, offset, uri, context: context);
     }
   }
 
@@ -3427,10 +3429,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       TypeParameterType type, int offset, bool nonInstanceAccessIsError) {
     if (!isInstanceContext && type.parameter.parent is Class) {
       Message message = fasta.messageTypeVariableInStaticContext;
+      int length = type.parameter.name.length;
       if (nonInstanceAccessIsError) {
-        addCompileTimeError(message, offset);
+        addCompileTimeError(message, offset, length);
       } else {
-        warning(message, offset);
+        warning(message, offset, length);
       }
       return const InvalidType();
     } else if (constantExpressionRequired) {
@@ -3486,7 +3489,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           warning(
               fasta.templateSuperclassMethodArgumentMismatch
                   .withArguments(name.name),
-              offset);
+              offset,
+              name.name.length);
         }
         return new ShadowSuperMethodInvocation(name, arguments, target)
           ..fileOffset = offset;
@@ -3519,8 +3523,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset) {
-    library.addCompileTimeError(message, charOffset, uri);
+  void addCompileTimeError(Message message, int offset, int length) {
+    library.addCompileTimeError(message, offset, uri);
   }
 
   @override

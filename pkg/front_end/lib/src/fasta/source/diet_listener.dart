@@ -761,8 +761,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset) {
-    library.addCompileTimeError(message, charOffset, uri,
+  void addCompileTimeError(Message message, int offset, int length) {
+    library.addCompileTimeError(message, offset, uri,
         // We assume this error has already been reported by OutlineBuilder.
         silent: true);
   }

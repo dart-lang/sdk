@@ -193,7 +193,8 @@ class OutlineBuilder extends UnhandledListener {
         // (Assumes the import is using a single-line string.)
         addCompileTimeError(
             templateCouldNotParseUri.withArguments(uri, e.message),
-            uriOffset + 1 + (e.offset ?? -1));
+            uriOffset + 1 + (e.offset ?? -1),
+            1);
       }
     }
     checkEmpty(importKeyword.charOffset);
@@ -522,13 +523,15 @@ class OutlineBuilder extends UnhandledListener {
             unhandled("$requiredArgumentCount", "operatorRequiredArgumentCount",
                 charOffset, uri);
         }
-        addCompileTimeError(template.withArguments(name), charOffset);
+        String string = name;
+        addCompileTimeError(
+            template.withArguments(name), charOffset, string.length);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequired) {
-              addCompileTimeError(
-                  messageOperatorWithOptionalFormals, formal.charOffset);
+              addCompileTimeError(messageOperatorWithOptionalFormals,
+                  formal.charOffset, formal.name.length);
             }
           }
         }
@@ -710,11 +713,13 @@ class OutlineBuilder extends UnhandledListener {
         if (formals[0].name != null && formals[0].name == formals[1].name) {
           addCompileTimeError(
               templateDuplicatedParameterName.withArguments(formals[1].name),
-              formals[1].charOffset);
+              formals[1].charOffset,
+              formals[1].name.length);
           addCompileTimeError(
               templateDuplicatedParameterNameCause
                   .withArguments(formals[1].name),
-              formals[0].charOffset);
+              formals[0].charOffset,
+              formals[0].name.length);
         }
       } else if (formals.length > 2) {
         Map<String, FormalParameterBuilder> seenNames =
@@ -724,10 +729,12 @@ class OutlineBuilder extends UnhandledListener {
           if (seenNames.containsKey(formal.name)) {
             addCompileTimeError(
                 templateDuplicatedParameterName.withArguments(formal.name),
-                formal.charOffset);
+                formal.charOffset,
+                formal.name.length);
             addCompileTimeError(
                 templateDuplicatedParameterNameCause.withArguments(formal.name),
-                seenNames[formal.name].charOffset);
+                seenNames[formal.name].charOffset,
+                seenNames[formal.name].name.length);
           } else {
             seenNames[formal.name] = formal;
           }
@@ -831,7 +838,8 @@ class OutlineBuilder extends UnhandledListener {
         functionType = type;
       } else {
         // TODO(ahe): Improve this error message.
-        addCompileTimeError(messageTypedefNotFunction, equals.charOffset);
+        addCompileTimeError(
+            messageTypedefNotFunction, equals.charOffset, equals.length);
       }
     }
     List<MetadataBuilder> metadata = pop();
@@ -1027,8 +1035,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset) {
-    library.addCompileTimeError(message, charOffset, uri);
+  void addCompileTimeError(Message message, int offset, int length) {
+    library.addCompileTimeError(message, offset, uri);
   }
 
   /// Return the documentation comment for the entity that starts at the
