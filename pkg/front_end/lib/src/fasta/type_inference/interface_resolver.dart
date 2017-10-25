@@ -488,7 +488,11 @@ class ForwardingNode extends Procedure {
   String _printProcedure(Procedure procedure, [Class class_]) {
     class_ ??= procedure.enclosingClass;
     var buffer = new StringBuffer();
-    procedure.accept(new Printer(buffer));
+    if (procedure.function == null) {
+      buffer.write(procedure.toString());
+    } else {
+      procedure.accept(new Printer(buffer));
+    }
     var text = buffer.toString();
     var newlineIndex = text.indexOf('\n');
     if (newlineIndex != -1) {
