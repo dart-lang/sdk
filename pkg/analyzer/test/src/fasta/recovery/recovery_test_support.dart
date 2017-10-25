@@ -18,7 +18,8 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
       String invalidCode, List<ErrorCode> errorCodes, String validCode,
       {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit)}) {
-    CompilationUnit invalidUnit = parseCompilationUnit(invalidCode, errorCodes);
+    CompilationUnit invalidUnit =
+        parseCompilationUnit(invalidCode, codes: errorCodes);
     CompilationUnit validUnit = parseCompilationUnit(validCode);
     if (adjustValidUnitBeforeComparison != null) {
       validUnit = adjustValidUnitBeforeComparison(validUnit);

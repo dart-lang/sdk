@@ -107,6 +107,22 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
+  void test_annotationOnEnumConstant_first() {
+    // TODO(brianwilkerson) Fix highlight region.
+    // This is highlighting the '@', but should highlight the whole annotation.
+    super.test_annotationOnEnumConstant_first();
+  }
+
+  @override
+  @failingTest
+  void test_annotationOnEnumConstant_middle() {
+    // TODO(brianwilkerson) Fix highlight region.
+    // This is highlighting the '@', but should highlight the whole annotation.
+    super.test_annotationOnEnumConstant_middle();
+  }
+
+  @override
+  @failingTest
   void test_breakOutsideOfLoop_breakInIfStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
@@ -2494,6 +2510,11 @@ class FastaParserTestCase extends Object
   }
 
   @override
+  ExpectedError expectedError(ErrorCode code, int offset, int length) =>
+      new ExpectedError(
+          _toFastaGeneratedAnalyzerErrorCode(code), offset, length);
+
+  @override
   void expectNotNullIfNoErrors(Object result) {
     if (!listener.hasErrors) {
       expect(result, isNotNull);
@@ -2551,10 +2572,11 @@ class FastaParserTestCase extends Object
 
   @override
   CompilationUnit parseCompilationUnit(String content,
-      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
+      {List<ErrorCode> codes, List<ExpectedError> errors}) {
     // Scan tokens
     var source = new StringSource(content, 'parser_test_StringSource.dart');
-    GatheringErrorListener listener = new GatheringErrorListener();
+    GatheringErrorListener listener =
+        new GatheringErrorListener(checkRanges: true);
     var scanner = new Scanner.fasta(source, listener);
     scanner.scanGenericMethodComments = enableGenericMethodComments;
     _fastaTokens = scanner.tokenize();
@@ -2563,11 +2585,17 @@ class FastaParserTestCase extends Object
     analyzer.Parser parser =
         new analyzer.Parser(source, listener, useFasta: true);
     CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
+    expect(unit, isNotNull);
 
     // Assert and return result
-    listener.assertErrorsWithCodes(
-        _toFastaGeneratedAnalyzerErrorCodes(expectedErrorCodes));
-    expect(unit, isNotNull);
+    if (codes != null) {
+      listener
+          .assertErrorsWithCodes(_toFastaGeneratedAnalyzerErrorCodes(codes));
+    } else if (errors != null) {
+      listener.assertErrors(errors);
+    } else {
+      listener.assertNoErrors();
+    }
     return unit;
   }
 
@@ -2840,22 +2868,24 @@ class FastaParserTestCase extends Object
     return result;
   }
 
+  ErrorCode _toFastaGeneratedAnalyzerErrorCode(ErrorCode code) {
+    if (code == ParserErrorCode.ABSTRACT_ENUM ||
+        code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
+        code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE ||
+        code == ParserErrorCode.ABSTRACT_TYPEDEF ||
+        code == ParserErrorCode.CONST_ENUM ||
+        code == ParserErrorCode.CONST_TYPEDEF ||
+        code == ParserErrorCode.FINAL_CLASS ||
+        code == ParserErrorCode.FINAL_ENUM ||
+        code == ParserErrorCode.FINAL_TYPEDEF ||
+        code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION)
+      return ParserErrorCode.EXTRANEOUS_MODIFIER;
+    return code;
+  }
+
   List<ErrorCode> _toFastaGeneratedAnalyzerErrorCodes(
           List<ErrorCode> expectedErrorCodes) =>
-      expectedErrorCodes.map((code) {
-        if (code == ParserErrorCode.ABSTRACT_ENUM ||
-            code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
-            code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE ||
-            code == ParserErrorCode.ABSTRACT_TYPEDEF ||
-            code == ParserErrorCode.CONST_ENUM ||
-            code == ParserErrorCode.CONST_TYPEDEF ||
-            code == ParserErrorCode.FINAL_CLASS ||
-            code == ParserErrorCode.FINAL_ENUM ||
-            code == ParserErrorCode.FINAL_TYPEDEF ||
-            code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION)
-          return ParserErrorCode.EXTRANEOUS_MODIFIER;
-        return code;
-      }).toList();
+      expectedErrorCodes.map(_toFastaGeneratedAnalyzerErrorCode).toList();
 }
 
 /**
@@ -3001,7 +3031,7 @@ class ParserProxy implements analyzer.Parser {
     var member = new BuilderProxy();
     var scope = new ScopeProxy();
     TestSource source = new TestSource();
-    var errorListener = new GatheringErrorListener();
+    var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
     var astBuilder =
         new AstBuilder(errorReporter, library, member, scope, true);
