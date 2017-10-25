@@ -29,14 +29,14 @@ abstract class Test2 extends core::Object {
     core::int v1 = let final core::String #t27 = "x" in let final core::int #t28 = self::getInt() in let final void #t29 = this.{self::Test2::[]=}(#t27, #t28) in #t28;
     core::num v2 = let final core::String #t30 = "x" in let final core::num #t31 = self::getNum() in let final void #t32 = this.{self::Test2::[]=}(#t30, #t31) in #t31;
     core::double v3 = let final core::String #t33 = "x" in let final core::double #t34 = self::getDouble() in let final void #t35 = this.{self::Test2::[]=}(#t33, #t34) in #t34;
-    core::num v4 = let final core::String #t36 = "x" in let final core::int #t37 = this.{self::Test2::[]}(#t36) in #t37.{core::num::==}(null) ?{core::num} let final core::int #t38 = self::getInt() in let final void #t39 = this.{self::Test2::[]=}(#t36, #t38) in #t38 : #t37;
+    core::int v4 = let final core::String #t36 = "x" in let final core::int #t37 = this.{self::Test2::[]}(#t36) in #t37.{core::num::==}(null) ?{core::int} let final core::int #t38 = self::getInt() in let final void #t39 = this.{self::Test2::[]=}(#t36, #t38) in #t38 : #t37;
     core::num v5 = let final core::String #t40 = "x" in let final core::int #t41 = this.{self::Test2::[]}(#t40) in #t41.{core::num::==}(null) ?{core::num} let final core::num #t42 = self::getNum() in let final void #t43 = this.{self::Test2::[]=}(#t40, #t42) in #t42 : #t41;
     core::num v6 = let final core::String #t44 = "x" in let final core::int #t45 = this.{self::Test2::[]}(#t44) in #t45.{core::num::==}(null) ?{core::num} let final core::double #t46 = self::getDouble() in let final void #t47 = this.{self::Test2::[]=}(#t44, #t46) in #t46 : #t45;
-    core::num v7 = let final core::String #t48 = "x" in let final core::num #t49 = this.{self::Test2::[]}(#t48).{core::num::+}(self::getInt()) in let final void #t50 = this.{self::Test2::[]=}(#t48, #t49) in #t49;
+    core::int v7 = let final core::String #t48 = "x" in let final core::int #t49 = this.{self::Test2::[]}(#t48).{core::num::+}(self::getInt()) in let final void #t50 = this.{self::Test2::[]=}(#t48, #t49) in #t49;
     core::num v8 = let final core::String #t51 = "x" in let final core::num #t52 = this.{self::Test2::[]}(#t51).{core::num::+}(self::getNum()) in let final void #t53 = this.{self::Test2::[]=}(#t51, #t52) in #t52;
-    core::num v9 = let final core::String #t54 = "x" in let final core::num #t55 = this.{self::Test2::[]}(#t54).{core::num::+}(self::getDouble()) in let final void #t56 = this.{self::Test2::[]=}(#t54, #t55) in #t55;
-    core::num v10 = let final core::String #t57 = "x" in let final core::num #t58 = this.{self::Test2::[]}(#t57).{core::num::+}(1) in let final void #t59 = this.{self::Test2::[]=}(#t57, #t58) in #t58;
-    core::num v11 = let final core::String #t60 = "x" in let final core::int #t61 = this.{self::Test2::[]}(#t60) in let final void #t62 = this.{self::Test2::[]=}(#t60, #t61.{core::num::+}(1)) in #t61;
+    core::double v9 = let final core::String #t54 = "x" in let final core::double #t55 = this.{self::Test2::[]}(#t54).{core::num::+}(self::getDouble()) in let final void #t56 = this.{self::Test2::[]=}(#t54, #t55) in #t55;
+    core::int v10 = let final core::String #t57 = "x" in let final core::int #t58 = this.{self::Test2::[]}(#t57).{core::num::+}(1) in let final void #t59 = this.{self::Test2::[]=}(#t57, #t58) in #t58;
+    core::int v11 = let final core::String #t60 = "x" in let final core::int #t61 = this.{self::Test2::[]}(#t60) in let final void #t62 = this.{self::Test2::[]=}(#t60, #t61.{core::num::+}(1)) in #t61;
   }
 }
 abstract class Test3 extends core::Object {
@@ -49,12 +49,12 @@ abstract class Test3 extends core::Object {
     core::num v2 = let final core::String #t63 = "x" in let final core::num #t64 = self::getNum() in let final void #t65 = this.{self::Test3::[]=}(#t63, #t64) in #t64;
     core::double v3 = let final core::String #t66 = "x" in let final core::double #t67 = self::getDouble() in let final void #t68 = this.{self::Test3::[]=}(#t66, #t67) in #t67;
     core::num v5 = let final core::String #t69 = "x" in let final core::int #t70 = this.{self::Test3::[]}(#t69) in #t70.{core::num::==}(null) ?{core::num} let final core::num #t71 = self::getNum() in let final void #t72 = this.{self::Test3::[]=}(#t69, #t71) in #t71 : #t70;
-    core::double v6 = let final core::String #t73 = "x" in let final core::int #t74 = this.{self::Test3::[]}(#t73) in #t74.{core::num::==}(null) ?{core::double} let final core::double #t75 = self::getDouble() in let final void #t76 = this.{self::Test3::[]=}(#t73, #t75) in #t75 : #t74;
-    core::double v7 = let final core::String #t77 = "x" in let final core::double #t78 = this.{self::Test3::[]}(#t77).{core::double::+}(self::getInt()) in let final void #t79 = this.{self::Test3::[]=}(#t77, #t78) in #t78;
-    core::double v8 = let final core::String #t80 = "x" in let final core::double #t81 = this.{self::Test3::[]}(#t80).{core::double::+}(self::getNum()) in let final void #t82 = this.{self::Test3::[]=}(#t80, #t81) in #t81;
-    core::double v9 = let final core::String #t83 = "x" in let final core::double #t84 = this.{self::Test3::[]}(#t83).{core::double::+}(self::getDouble()) in let final void #t85 = this.{self::Test3::[]=}(#t83, #t84) in #t84;
-    core::double v10 = let final core::String #t86 = "x" in let final core::double #t87 = this.{self::Test3::[]}(#t86).{core::double::+}(1) in let final void #t88 = this.{self::Test3::[]=}(#t86, #t87) in #t87;
-    core::double v11 = let final core::String #t89 = "x" in let final core::int #t90 = this.{self::Test3::[]}(#t89) in let final void #t91 = this.{self::Test3::[]=}(#t89, #t90.{core::double::+}(1)) in #t90;
+    core::num v6 = let final core::String #t73 = "x" in let final core::int #t74 = this.{self::Test3::[]}(#t73) in #t74.{core::num::==}(null) ?{core::num} let final core::double #t75 = self::getDouble() in let final void #t76 = this.{self::Test3::[]=}(#t73, #t75) in #t75 : #t74;
+    core::int v7 = let final core::String #t77 = "x" in let final core::int #t78 = this.{self::Test3::[]}(#t77).{core::num::+}(self::getInt()) in let final void #t79 = this.{self::Test3::[]=}(#t77, #t78) in #t78;
+    core::num v8 = let final core::String #t80 = "x" in let final core::num #t81 = this.{self::Test3::[]}(#t80).{core::num::+}(self::getNum()) in let final void #t82 = this.{self::Test3::[]=}(#t80, #t81) in #t81;
+    core::double v9 = let final core::String #t83 = "x" in let final core::double #t84 = this.{self::Test3::[]}(#t83).{core::num::+}(self::getDouble()) in let final void #t85 = this.{self::Test3::[]=}(#t83, #t84) in #t84;
+    core::int v10 = let final core::String #t86 = "x" in let final core::int #t87 = this.{self::Test3::[]}(#t86).{core::num::+}(1) in let final void #t88 = this.{self::Test3::[]=}(#t86, #t87) in #t87;
+    core::int v11 = let final core::String #t89 = "x" in let final core::int #t90 = this.{self::Test3::[]}(#t89) in let final void #t91 = this.{self::Test3::[]=}(#t89, #t90.{core::num::+}(1)) in #t90;
   }
 }
 abstract class Test4 extends core::Object {
@@ -66,12 +66,12 @@ abstract class Test4 extends core::Object {
   method test() → void {
     core::int v1 = let final core::String #t92 = "x" in let final core::int #t93 = self::getInt() in let final void #t94 = this.{self::Test4::[]=}(#t92, #t93) in #t93;
     core::num v2 = let final core::String #t95 = "x" in let final core::num #t96 = self::getNum() in let final void #t97 = this.{self::Test4::[]=}(#t95, #t96) in #t96;
-    core::int v4 = let final core::String #t98 = "x" in let final core::num #t99 = this.{self::Test4::[]}(#t98) in #t99.{core::num::==}(null) ?{core::int} let final core::int #t100 = self::getInt() in let final void #t101 = this.{self::Test4::[]=}(#t98, #t100) in #t100 : #t99;
+    core::num v4 = let final core::String #t98 = "x" in let final core::num #t99 = this.{self::Test4::[]}(#t98) in #t99.{core::num::==}(null) ?{core::num} let final core::int #t100 = self::getInt() in let final void #t101 = this.{self::Test4::[]=}(#t98, #t100) in #t100 : #t99;
     core::num v5 = let final core::String #t102 = "x" in let final core::num #t103 = this.{self::Test4::[]}(#t102) in #t103.{core::num::==}(null) ?{core::num} let final core::num #t104 = self::getNum() in let final void #t105 = this.{self::Test4::[]=}(#t102, #t104) in #t104 : #t103;
-    core::int v7 = let final core::String #t106 = "x" in let final core::int #t107 = this.{self::Test4::[]}(#t106).{core::num::+}(self::getInt()) in let final void #t108 = this.{self::Test4::[]=}(#t106, #t107) in #t107;
+    core::num v7 = let final core::String #t106 = "x" in let final core::num #t107 = this.{self::Test4::[]}(#t106).{core::num::+}(self::getInt()) in let final void #t108 = this.{self::Test4::[]=}(#t106, #t107) in #t107;
     core::num v8 = let final core::String #t109 = "x" in let final core::num #t110 = this.{self::Test4::[]}(#t109).{core::num::+}(self::getNum()) in let final void #t111 = this.{self::Test4::[]=}(#t109, #t110) in #t110;
-    core::int v10 = let final core::String #t112 = "x" in let final core::int #t113 = this.{self::Test4::[]}(#t112).{core::num::+}(1) in let final void #t114 = this.{self::Test4::[]=}(#t112, #t113) in #t113;
-    core::int v11 = let final core::String #t115 = "x" in let final core::num #t116 = this.{self::Test4::[]}(#t115) in let final void #t117 = this.{self::Test4::[]=}(#t115, #t116.{core::num::+}(1)) in #t116;
+    core::num v10 = let final core::String #t112 = "x" in let final core::num #t113 = this.{self::Test4::[]}(#t112).{core::num::+}(1) in let final void #t114 = this.{self::Test4::[]=}(#t112, #t113) in #t113;
+    core::num v11 = let final core::String #t115 = "x" in let final core::num #t116 = this.{self::Test4::[]}(#t115) in let final void #t117 = this.{self::Test4::[]=}(#t115, #t116.{core::num::+}(1)) in #t116;
   }
 }
 abstract class Test5 extends core::Object {
@@ -104,12 +104,12 @@ abstract class Test6 extends core::Object {
     core::num v2 = let final core::String #t154 = "x" in let final core::num #t155 = self::getNum() in let final void #t156 = this.{self::Test6::[]=}(#t154, #t155) in #t155;
     core::double v3 = let final core::String #t157 = "x" in let final core::double #t158 = self::getDouble() in let final void #t159 = this.{self::Test6::[]=}(#t157, #t158) in #t158;
     core::num v5 = let final core::String #t160 = "x" in let final core::num #t161 = this.{self::Test6::[]}(#t160) in #t161.{core::num::==}(null) ?{core::num} let final core::num #t162 = self::getNum() in let final void #t163 = this.{self::Test6::[]=}(#t160, #t162) in #t162 : #t161;
-    core::double v6 = let final core::String #t164 = "x" in let final core::num #t165 = this.{self::Test6::[]}(#t164) in #t165.{core::num::==}(null) ?{core::double} let final core::double #t166 = self::getDouble() in let final void #t167 = this.{self::Test6::[]=}(#t164, #t166) in #t166 : #t165;
-    core::double v7 = let final core::String #t168 = "x" in let final core::double #t169 = this.{self::Test6::[]}(#t168).{core::double::+}(self::getInt()) in let final void #t170 = this.{self::Test6::[]=}(#t168, #t169) in #t169;
-    core::double v8 = let final core::String #t171 = "x" in let final core::double #t172 = this.{self::Test6::[]}(#t171).{core::double::+}(self::getNum()) in let final void #t173 = this.{self::Test6::[]=}(#t171, #t172) in #t172;
-    core::double v9 = let final core::String #t174 = "x" in let final core::double #t175 = this.{self::Test6::[]}(#t174).{core::double::+}(self::getDouble()) in let final void #t176 = this.{self::Test6::[]=}(#t174, #t175) in #t175;
-    core::double v10 = let final core::String #t177 = "x" in let final core::double #t178 = this.{self::Test6::[]}(#t177).{core::double::+}(1) in let final void #t179 = this.{self::Test6::[]=}(#t177, #t178) in #t178;
-    core::double v11 = let final core::String #t180 = "x" in let final core::num #t181 = this.{self::Test6::[]}(#t180) in let final void #t182 = this.{self::Test6::[]=}(#t180, #t181.{core::double::+}(1)) in #t181;
+    core::num v6 = let final core::String #t164 = "x" in let final core::num #t165 = this.{self::Test6::[]}(#t164) in #t165.{core::num::==}(null) ?{core::num} let final core::double #t166 = self::getDouble() in let final void #t167 = this.{self::Test6::[]=}(#t164, #t166) in #t166 : #t165;
+    core::num v7 = let final core::String #t168 = "x" in let final core::num #t169 = this.{self::Test6::[]}(#t168).{core::num::+}(self::getInt()) in let final void #t170 = this.{self::Test6::[]=}(#t168, #t169) in #t169;
+    core::num v8 = let final core::String #t171 = "x" in let final core::num #t172 = this.{self::Test6::[]}(#t171).{core::num::+}(self::getNum()) in let final void #t173 = this.{self::Test6::[]=}(#t171, #t172) in #t172;
+    core::num v9 = let final core::String #t174 = "x" in let final core::num #t175 = this.{self::Test6::[]}(#t174).{core::num::+}(self::getDouble()) in let final void #t176 = this.{self::Test6::[]=}(#t174, #t175) in #t175;
+    core::num v10 = let final core::String #t177 = "x" in let final core::num #t178 = this.{self::Test6::[]}(#t177).{core::num::+}(1) in let final void #t179 = this.{self::Test6::[]=}(#t177, #t178) in #t178;
+    core::num v11 = let final core::String #t180 = "x" in let final core::num #t181 = this.{self::Test6::[]}(#t180) in let final void #t182 = this.{self::Test6::[]=}(#t180, #t181.{core::num::+}(1)) in #t181;
   }
 }
 abstract class Test7 extends core::Object {
@@ -121,12 +121,12 @@ abstract class Test7 extends core::Object {
   method test() → void {
     core::int v1 = let final core::String #t183 = "x" in let final core::int #t184 = self::getInt() in let final void #t185 = this.{self::Test7::[]=}(#t183, #t184) in #t184;
     core::num v2 = let final core::String #t186 = "x" in let final core::num #t187 = self::getNum() in let final void #t188 = this.{self::Test7::[]=}(#t186, #t187) in #t187;
-    core::int v4 = let final core::String #t189 = "x" in let final core::double #t190 = this.{self::Test7::[]}(#t189) in #t190.{core::num::==}(null) ?{core::int} let final core::int #t191 = self::getInt() in let final void #t192 = this.{self::Test7::[]=}(#t189, #t191) in #t191 : #t190;
+    core::num v4 = let final core::String #t189 = "x" in let final core::double #t190 = this.{self::Test7::[]}(#t189) in #t190.{core::num::==}(null) ?{core::num} let final core::int #t191 = self::getInt() in let final void #t192 = this.{self::Test7::[]=}(#t189, #t191) in #t191 : #t190;
     core::num v5 = let final core::String #t193 = "x" in let final core::double #t194 = this.{self::Test7::[]}(#t193) in #t194.{core::num::==}(null) ?{core::num} let final core::num #t195 = self::getNum() in let final void #t196 = this.{self::Test7::[]=}(#t193, #t195) in #t195 : #t194;
-    core::int v7 = let final core::String #t197 = "x" in let final core::int #t198 = this.{self::Test7::[]}(#t197).{core::num::+}(self::getInt()) in let final void #t199 = this.{self::Test7::[]=}(#t197, #t198) in #t198;
-    core::num v8 = let final core::String #t200 = "x" in let final core::num #t201 = this.{self::Test7::[]}(#t200).{core::num::+}(self::getNum()) in let final void #t202 = this.{self::Test7::[]=}(#t200, #t201) in #t201;
-    core::int v10 = let final core::String #t203 = "x" in let final core::int #t204 = this.{self::Test7::[]}(#t203).{core::num::+}(1) in let final void #t205 = this.{self::Test7::[]=}(#t203, #t204) in #t204;
-    core::int v11 = let final core::String #t206 = "x" in let final core::double #t207 = this.{self::Test7::[]}(#t206) in let final void #t208 = this.{self::Test7::[]=}(#t206, #t207.{core::num::+}(1)) in #t207;
+    core::double v7 = let final core::String #t197 = "x" in let final core::double #t198 = this.{self::Test7::[]}(#t197).{core::double::+}(self::getInt()) in let final void #t199 = this.{self::Test7::[]=}(#t197, #t198) in #t198;
+    core::double v8 = let final core::String #t200 = "x" in let final core::double #t201 = this.{self::Test7::[]}(#t200).{core::double::+}(self::getNum()) in let final void #t202 = this.{self::Test7::[]=}(#t200, #t201) in #t201;
+    core::double v10 = let final core::String #t203 = "x" in let final core::double #t204 = this.{self::Test7::[]}(#t203).{core::double::+}(1) in let final void #t205 = this.{self::Test7::[]=}(#t203, #t204) in #t204;
+    core::double v11 = let final core::String #t206 = "x" in let final core::double #t207 = this.{self::Test7::[]}(#t206) in let final void #t208 = this.{self::Test7::[]=}(#t206, #t207.{core::double::+}(1)) in #t207;
   }
 }
 abstract class Test8 extends core::Object {
@@ -141,12 +141,12 @@ abstract class Test8 extends core::Object {
     core::double v3 = let final core::String #t215 = "x" in let final core::double #t216 = self::getDouble() in let final void #t217 = this.{self::Test8::[]=}(#t215, #t216) in #t216;
     core::num v4 = let final core::String #t218 = "x" in let final core::double #t219 = this.{self::Test8::[]}(#t218) in #t219.{core::num::==}(null) ?{core::num} let final core::int #t220 = self::getInt() in let final void #t221 = this.{self::Test8::[]=}(#t218, #t220) in #t220 : #t219;
     core::num v5 = let final core::String #t222 = "x" in let final core::double #t223 = this.{self::Test8::[]}(#t222) in #t223.{core::num::==}(null) ?{core::num} let final core::num #t224 = self::getNum() in let final void #t225 = this.{self::Test8::[]=}(#t222, #t224) in #t224 : #t223;
-    core::num v6 = let final core::String #t226 = "x" in let final core::double #t227 = this.{self::Test8::[]}(#t226) in #t227.{core::num::==}(null) ?{core::num} let final core::double #t228 = self::getDouble() in let final void #t229 = this.{self::Test8::[]=}(#t226, #t228) in #t228 : #t227;
-    core::num v7 = let final core::String #t230 = "x" in let final core::num #t231 = this.{self::Test8::[]}(#t230).{core::num::+}(self::getInt()) in let final void #t232 = this.{self::Test8::[]=}(#t230, #t231) in #t231;
-    core::num v8 = let final core::String #t233 = "x" in let final core::num #t234 = this.{self::Test8::[]}(#t233).{core::num::+}(self::getNum()) in let final void #t235 = this.{self::Test8::[]=}(#t233, #t234) in #t234;
-    core::num v9 = let final core::String #t236 = "x" in let final core::num #t237 = this.{self::Test8::[]}(#t236).{core::num::+}(self::getDouble()) in let final void #t238 = this.{self::Test8::[]=}(#t236, #t237) in #t237;
-    core::num v10 = let final core::String #t239 = "x" in let final core::num #t240 = this.{self::Test8::[]}(#t239).{core::num::+}(1) in let final void #t241 = this.{self::Test8::[]=}(#t239, #t240) in #t240;
-    core::num v11 = let final core::String #t242 = "x" in let final core::double #t243 = this.{self::Test8::[]}(#t242) in let final void #t244 = this.{self::Test8::[]=}(#t242, #t243.{core::num::+}(1)) in #t243;
+    core::double v6 = let final core::String #t226 = "x" in let final core::double #t227 = this.{self::Test8::[]}(#t226) in #t227.{core::num::==}(null) ?{core::double} let final core::double #t228 = self::getDouble() in let final void #t229 = this.{self::Test8::[]=}(#t226, #t228) in #t228 : #t227;
+    core::double v7 = let final core::String #t230 = "x" in let final core::double #t231 = this.{self::Test8::[]}(#t230).{core::double::+}(self::getInt()) in let final void #t232 = this.{self::Test8::[]=}(#t230, #t231) in #t231;
+    core::double v8 = let final core::String #t233 = "x" in let final core::double #t234 = this.{self::Test8::[]}(#t233).{core::double::+}(self::getNum()) in let final void #t235 = this.{self::Test8::[]=}(#t233, #t234) in #t234;
+    core::double v9 = let final core::String #t236 = "x" in let final core::double #t237 = this.{self::Test8::[]}(#t236).{core::double::+}(self::getDouble()) in let final void #t238 = this.{self::Test8::[]=}(#t236, #t237) in #t237;
+    core::double v10 = let final core::String #t239 = "x" in let final core::double #t240 = this.{self::Test8::[]}(#t239).{core::double::+}(1) in let final void #t241 = this.{self::Test8::[]=}(#t239, #t240) in #t240;
+    core::double v11 = let final core::String #t242 = "x" in let final core::double #t243 = this.{self::Test8::[]}(#t242) in let final void #t244 = this.{self::Test8::[]=}(#t242, #t243.{core::double::+}(1)) in #t243;
   }
 }
 abstract class Test9 extends core::Object {

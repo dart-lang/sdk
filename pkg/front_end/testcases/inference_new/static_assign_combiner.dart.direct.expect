@@ -1,0 +1,60 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(core::int value) → self::C
+    return null;
+  operator *(self::D value) → self::C
+    return null;
+}
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(core::int value) → self::E
+    return null;
+  operator *(self::F value) → self::E
+    return null;
+}
+class C extends self::B {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+}
+class D extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class E extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class F extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static get target() → self::A
+  return null;
+static set target(self::B value) → void {}
+static method test1() → void {
+  self::target = self::target.*(self::f<dynamic>());
+  dynamic x = self::target = self::target.*(self::f<dynamic>());
+}
+static method test2() → void {
+  self::target = self::target.+(1);
+  dynamic x = self::target = self::target.+(1);
+}
+static method test3() → void {
+  self::target = self::target.+(1);
+  dynamic x = let final dynamic #t1 = self::target in let final dynamic #t2 = self::target = #t1.+(1) in #t1;
+}
+static method main() → dynamic {}

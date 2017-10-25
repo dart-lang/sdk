@@ -1,0 +1,65 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(core::int value) → self::C
+    return null;
+  operator *(self::D value) → self::C
+    return null;
+}
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(core::int value) → self::E
+    return null;
+  operator *(self::F value) → self::E
+    return null;
+}
+class C extends self::B {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+}
+class D extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class E extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class F extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class G extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator [](core::int i) → self::A
+    return null;
+  operator []=(core::int i, self::B value) → void {}
+}
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method test1(self::G g) → void {
+  let final self::G #t1 = g in let final core::int #t2 = 0 in #t1.{self::G::[]=}(#t2, #t1.{self::G::[]}(#t2).{self::A::*}(self::f<dynamic>()));
+  self::C x = let final self::G #t3 = g in let final core::int #t4 = 0 in let final self::C #t5 = #t3.{self::G::[]}(#t4).{self::A::*}(self::f<dynamic>()) in let final void #t6 = #t3.{self::G::[]=}(#t4, #t5) in #t5;
+}
+static method test2(self::G g) → void {
+  let final self::G #t7 = g in let final core::int #t8 = 0 in let final self::C #t9 = #t7.{self::G::[]}(#t8).{self::A::+}(1) in let final void #t10 = #t7.{self::G::[]=}(#t8, #t9) in #t9;
+  self::C x = let final self::G #t11 = g in let final core::int #t12 = 0 in let final self::C #t13 = #t11.{self::G::[]}(#t12).{self::A::+}(1) in let final void #t14 = #t11.{self::G::[]=}(#t12, #t13) in #t13;
+}
+static method test3(self::G g) → void {
+  let final self::G #t15 = g in let final core::int #t16 = 0 in #t15.{self::G::[]=}(#t16, #t15.{self::G::[]}(#t16).{self::A::+}(1));
+  self::A x = let final self::G #t17 = g in let final core::int #t18 = 0 in let final self::A #t19 = #t17.{self::G::[]}(#t18) in let final void #t20 = #t17.{self::G::[]=}(#t18, #t19.{self::A::+}(1)) in #t19;
+}
+static method main() → dynamic {}

@@ -410,61 +410,63 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
 
   DartType _inferRhs(
       ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
-    DartType inferredType = writeContext ?? const DynamicType();
+    DartType combinedType;
     if (nullAwareCombiner != null) {
       var rhsType = inferrer.inferExpression(rhs, writeContext, true);
       _storeLetType(inferrer, rhs, rhsType);
       MethodInvocation equalsInvocation = nullAwareCombiner.condition;
       inferrer.findMethodInvocationMember(writeContext, equalsInvocation,
           silent: true);
-      var combinedType = inferrer.typeSchemaEnvironment
-          .getLeastUpperBound(inferredType, rhsType);
+      // Note: the case of readType=null only happens for erroneous code.
+      combinedType = readType == null
+          ? rhsType
+          : inferrer.typeSchemaEnvironment
+              .getLeastUpperBound(readType, rhsType);
       if (inferrer.strongMode) {
         nullAwareCombiner.staticType = combinedType;
       }
-      return combinedType;
     } else if (combiner != null) {
       bool isOverloadedArithmeticOperator = false;
-      var combinerMember = inferrer
-          .findMethodInvocationMember(writeContext, combiner, silent: true);
+      var combinerMember =
+          inferrer.findMethodInvocationMember(readType, combiner, silent: true);
       if (combinerMember is Procedure) {
         isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
-            .isOverloadedArithmeticOperatorAndType(
-                combinerMember, writeContext);
+            .isOverloadedArithmeticOperatorAndType(combinerMember, readType);
       }
-      DartType combinedType;
+      DartType rhsType;
       var combinerType =
           inferrer.getCalleeFunctionType(combinerMember, writeContext, false);
-      if (isPostIncDec) {
-        combinedType = inferredType;
+      if (isPreIncDec || isPostIncDec) {
+        rhsType = inferrer.coreTypes.intClass.rawType;
       } else {
-        DartType rhsType;
-        if (isPreIncDec) {
-          rhsType = inferrer.coreTypes.intClass.rawType;
-        } else {
-          // Analyzer uses a null context for the RHS here.
-          // TODO(paulberry): improve on this.
-          rhsType = inferrer.inferExpression(rhs, null, true);
-          _storeLetType(inferrer, rhs, rhsType);
-        }
-        if (isOverloadedArithmeticOperator) {
-          combinedType = inferrer.typeSchemaEnvironment
-              .getTypeOfOverloadedArithmetic(inferredType, rhsType);
-        } else {
-          combinedType = combinerType.returnType;
-        }
+        // Analyzer uses a null context for the RHS here.
+        // TODO(paulberry): improve on this.
+        rhsType = inferrer.inferExpression(rhs, null, true);
+        _storeLetType(inferrer, rhs, rhsType);
+      }
+      if (isOverloadedArithmeticOperator) {
+        combinedType = inferrer.typeSchemaEnvironment
+            .getTypeOfOverloadedArithmetic(readType, rhsType);
+      } else {
+        combinedType = combinerType.returnType;
       }
       var checkKind = inferrer.preCheckInvocationContravariance(read, readType,
           combinerMember, combiner, combiner.arguments, combiner);
       var replacedCombiner = inferrer.handleInvocationContravariance(checkKind,
           combiner, combiner.arguments, combiner, combinedType, combinerType);
       _storeLetType(inferrer, replacedCombiner, combinedType);
-      return combinedType;
     } else {
-      var rhsType = inferrer.inferExpression(rhs, writeContext, true);
-      _storeLetType(inferrer, rhs, rhsType);
-      return rhsType;
+      combinedType = inferrer.inferExpression(rhs, writeContext, true);
+      _storeLetType(inferrer, rhs, combinedType);
     }
+    if (write != null) {
+      if (this is ShadowIndexAssign) {
+        _storeLetType(inferrer, write, const VoidType());
+      } else {
+        _storeLetType(inferrer, write, combinedType);
+      }
+    }
+    return isPostIncDec ? readType : combinedType;
   }
 }
 
@@ -980,7 +982,6 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     // when doing compound assignment?
     var calleeType =
         inferrer.getCalleeFunctionType(writeMember, receiverType, false);
-    _storeLetType(inferrer, write, calleeType.returnType);
     DartType indexContext;
     DartType writeContext;
     if (calleeType.positionalParameters.length >= 2) {
@@ -1485,7 +1486,6 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     // member.  TODO(paulberry): would it be better to use the read member when
     // doing compound assignment?
     var writeContext = inferrer.getSetterType(writeMember, receiverType);
-    _storeLetType(inferrer, write, writeContext);
     var inferredType = _inferRhs(inferrer, readType, writeContext);
     if (inferrer.strongMode) nullAwareGuard?.staticType = inferredType;
     inferrer.listener.propertyAssignExit(desugared, inferredType);
@@ -1591,7 +1591,6 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
     var write = this.write;
     if (write is StaticSet) {
       writeContext = write.target.setterType;
-      _storeLetType(inferrer, write, writeContext);
       var target = write.target;
       if (target is ShadowField && target._inferenceNode != null) {
         target._inferenceNode.resolve();
@@ -2157,7 +2156,6 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
       if (read != null) {
         _storeLetType(inferrer, read, writeContext);
       }
-      _storeLetType(inferrer, write, writeContext);
     }
     var inferredType = _inferRhs(inferrer, readType, writeContext);
     inferrer.listener.variableAssignExit(desugared, inferredType);

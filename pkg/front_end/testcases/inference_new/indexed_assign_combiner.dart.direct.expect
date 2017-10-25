@@ -1,0 +1,65 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(core::int value) → self::C
+    return null;
+  operator *(self::D value) → self::C
+    return null;
+}
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(core::int value) → self::E
+    return null;
+  operator *(self::F value) → self::E
+    return null;
+}
+class C extends self::B {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+}
+class D extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class E extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class F extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class G extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator [](core::int i) → self::A
+    return null;
+  operator []=(core::int i, self::B value) → void {}
+}
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method test1(self::G g) → void {
+  let final dynamic #t1 = g in let final dynamic #t2 = 0 in #t1.[]=(#t2, #t1.[](#t2).*(self::f<dynamic>()));
+  dynamic x = let final dynamic #t3 = g in let final dynamic #t4 = 0 in let final dynamic #t5 = #t3.[](#t4).*(self::f<dynamic>()) in let final dynamic #t6 = #t3.[]=(#t4, #t5) in #t5;
+}
+static method test2(self::G g) → void {
+  let final dynamic #t7 = g in let final dynamic #t8 = 0 in let final dynamic #t9 = #t7.[](#t8).+(1) in let final dynamic #t10 = #t7.[]=(#t8, #t9) in #t9;
+  dynamic x = let final dynamic #t11 = g in let final dynamic #t12 = 0 in let final dynamic #t13 = #t11.[](#t12).+(1) in let final dynamic #t14 = #t11.[]=(#t12, #t13) in #t13;
+}
+static method test3(self::G g) → void {
+  let final dynamic #t15 = g in let final dynamic #t16 = 0 in #t15.[]=(#t16, #t15.[](#t16).+(1));
+  dynamic x = let final dynamic #t17 = g in let final dynamic #t18 = 0 in let final dynamic #t19 = #t17.[](#t18) in let final dynamic #t20 = #t17.[]=(#t18, #t19.+(1)) in #t19;
+}
+static method main() → dynamic {}

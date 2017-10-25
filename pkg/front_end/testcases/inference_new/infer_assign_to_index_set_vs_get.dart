@@ -43,10 +43,10 @@ class Test {
         /*@typeArgs=dynamic*/ f()] = /*@typeArgs=A*/ f();
     var /*@type=A*/ v2 = t /*@target=Test::[]=*/ [
         /*@typeArgs=dynamic*/ f()] ??= /*@typeArgs=A*/ f();
-    var /*@type=C*/ v3 = t /*@target=Test::[]=*/ [
+    var /*@type=D*/ v3 = t /*@target=Test::[]=*/ [
         /*@typeArgs=dynamic*/ f()] += /*@typeArgs=dynamic*/ f();
-    var /*@type=C*/ v4 = --t /*@target=Test::[]=*/ [/*@typeArgs=dynamic*/ f()];
-    var /*@type=A*/ v5 = t /*@target=Test::[]=*/ [/*@typeArgs=dynamic*/ f()]--;
+    var /*@type=D*/ v4 = --t /*@target=Test::[]=*/ [/*@typeArgs=dynamic*/ f()];
+    var /*@type=B*/ v5 = t /*@target=Test::[]=*/ [/*@typeArgs=dynamic*/ f()]--;
   }
 }
 
