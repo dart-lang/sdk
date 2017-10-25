@@ -179,6 +179,27 @@ void Isolate::ValidateClassTable() {
   class_table()->Validate();
 }
 
+void Isolate::RehashConstants() {
+  StackZone stack_zone(Thread::Current());
+  Zone* zone = stack_zone.GetZone();
+
+  Class& cls = Class::Handle(zone);
+  intptr_t top = class_table()->NumCids();
+  for (intptr_t cid = kInstanceCid; cid < top; cid++) {
+    if (!class_table()->IsValidIndex(cid) ||
+        !class_table()->HasValidClassAt(cid)) {
+      continue;
+    }
+    if ((cid == kTypeArgumentsCid) || RawObject::IsStringClassId(cid)) {
+      // TypeArguments and Symbols have special tables for canonical objects
+      // that aren't based on address.
+      continue;
+    }
+    cls = class_table()->At(cid);
+    cls.RehashConstants(zone);
+  }
+}
+
 void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   const Array& msg = Array::Handle(Array::New(3));
   Object& element = Object::Handle();

@@ -422,12 +422,6 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectOldGeneration");
     NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kOld));
     old_space_.MarkSweep();
-#if !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
-    // TODO(30978): Enable more broadly.
-    if (FLAG_use_compactor) {
-      old_space_.Compact();
-    }
-#endif
     RecordAfterGC(kOld);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));

@@ -170,7 +170,9 @@
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
-  R(use_compactor, false, bool, false,                                         \
+  R(use_compactor_evacuating, false, bool, false,                              \
+    "Compact the heap during old-space GC.")                                   \
+  R(use_compactor_sliding, false, bool, false,                                 \
     "Compact the heap during old-space GC.")                                   \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \

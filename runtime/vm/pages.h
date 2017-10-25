@@ -83,6 +83,7 @@ class HeapPage {
   PageType type_;
 
   friend class PageSpace;
+  friend class GCCompactor;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(HeapPage);
@@ -257,8 +258,6 @@ class PageSpace {
 
   // Collect the garbage in the page space using mark-sweep.
   void MarkSweep();
-  // Compact the heap using evacuation.
-  void Compact();
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
@@ -380,6 +379,11 @@ class PageSpace {
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
 
+  void BlockingSweep();
+  void ConcurrentSweep(Isolate* isolate);
+  void EvacuatingCompact(Thread* thread);
+  void SlidingCompact(Thread* thread);
+
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
 
   bool CanIncreaseCapacityInWords(intptr_t increase_in_words) {
@@ -439,6 +443,7 @@ class PageSpace {
   friend class HeapIterationScope;
   friend class PageSpaceController;
   friend class SweeperTask;
+  friend class GCCompactor;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };

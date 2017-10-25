@@ -184,6 +184,8 @@ class Isolate : public BaseIsolate {
   void RegisterClassAt(intptr_t index, const Class& cls);
   void ValidateClassTable();
 
+  void RehashConstants();
+
   // Visits weak object pointers.
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
@@ -998,6 +1000,7 @@ class Isolate : public BaseIsolate {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class Become;    // VisitObjectPointers
+  friend class GCCompactor;  // VisitObjectPointers
   friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
   friend class ObjectGraph;  // VisitObjectPointers

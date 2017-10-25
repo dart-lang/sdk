@@ -355,6 +355,7 @@ class Heap {
   bool gc_old_space_in_progress_;
 
   friend class Become;       // VisitObjectPointers
+  friend class GCCompactor;  // VisitObjectPointers
   friend class Precompiler;  // VisitObjects
   friend class Unmarker;     // VisitObjects
   friend class ServiceEvent;

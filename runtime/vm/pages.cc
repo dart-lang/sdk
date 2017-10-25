@@ -996,31 +996,20 @@ void PageSpace::MarkSweep() {
 
       mid3 = OS::GetCurrentMonotonicMicros();
 
-      if (!FLAG_concurrent_sweep) {
-        // Sweep all regular sized pages now.
-        prev_page = NULL;
-        page = pages_;
-        while (page != NULL) {
-          HeapPage* next_page = page->next();
-          bool page_in_use =
-              sweeper.SweepPage(page, &freelist_[page->type()], true);
-          if (page_in_use) {
-            prev_page = page;
-          } else {
-            FreePage(page, prev_page);
-          }
-          // Advance to the next page.
-          page = next_page;
-        }
-        if (FLAG_verify_after_gc) {
-          OS::PrintErr("Verifying after sweeping...");
-          heap_->VerifyGC(kForbidMarked);
-          OS::PrintErr(" done.\n");
-        }
+#if defined(TARGET_ARCH_DBC)
+      const bool dbc = true;
+#else
+      const bool dbc = false;
+#endif
+
+      if (FLAG_use_compactor_evacuating && !dbc) {
+        EvacuatingCompact(thread);
+      } else if (FLAG_use_compactor_sliding && !dbc) {
+        SlidingCompact(thread);
+      } else if (FLAG_concurrent_sweep) {
+        ConcurrentSweep(isolate);
       } else {
-        // Start the concurrent sweeper task now.
-        GCSweeper::SweepConcurrent(isolate, pages_, pages_tail_,
-                                   &freelist_[HeapPage::kData]);
+        BlockingSweep();
       }
     }
 
@@ -1069,116 +1058,88 @@ void PageSpace::MarkSweep() {
     set_tasks(tasks() - 1);
     ml.NotifyAll();
   }
-}
 
-void PageSpace::Compact() {
-  for (HeapPage* page = pages_; page != NULL; page = page->next()) {
-    if (page->is_image_page()) {
-      // Implementation doesn't currently handle image pages.
-      return;
-    }
-  }
-
-  Thread* thread = Thread::Current();
-
-  // Wait for sweeper tasks.
-  {
-    MonitorLocker ml(tasks_lock());
-    while (tasks() > 0) {
-      ml.WaitWithSafepointCheck(thread);
-    }
-    set_tasks(1);
-  }
-
-  {
-    SafepointOperationScope safepoint(thread);
-    thread->isolate()->set_compaction_in_progress(true);
-
-    // Note this excludes code pages and large objects pages.
-    HeapPage* pages_to_evacuate = pages_;
-
-    // Prevent allocation into these pages during evacuation.
-    pages_ = pages_tail_ = NULL;
-    AbandonBumpAllocation();
-    freelist_[HeapPage::kData].Reset();
-
-    // Evacuate.
-    {
-      AcquireDataLock();
-
-      GCCompactor compactor(heap_);
-      HeapPage* page = pages_to_evacuate;
-      while (page != NULL) {
-        if (page->is_image_page()) {
-          UNIMPLEMENTED();
-        }
-        ASSERT(page->type() != HeapPage::kExecutable);
-        compactor.EvacuatePage(page);
-        page = page->next();
-      }
-
-      ReleaseDataLock();
-    }
-
-    // Forward.
-    Become::FollowForwardingPointers(thread);
-
-    // Free.
-    {
-      MutexLocker ml(pages_lock_);
-      HeapPage* page = pages_to_evacuate;
-      while (page != NULL) {
-        if (page->is_image_page()) {
-          UNIMPLEMENTED();
-        }
-        ASSERT(page->type() != HeapPage::kExecutable);
-        HeapPage* next = page->next();
-        IncreaseCapacityInWordsLocked(
-            -(page->memory_->size() >> kWordSizeLog2));
-        page->Deallocate();
-        page = next;
-      }
-    }
-
-    if (FLAG_verify_after_gc) {
-      OS::PrintErr("Verifying after compacting...");
-      heap_->VerifyGC(kForbidMarked);
-      OS::PrintErr(" done.\n");
-    }
-
-    thread->isolate()->set_compaction_in_progress(false);
-  }
-
-  // Done, reset the task count.
-  {
-    MonitorLocker ml(tasks_lock());
-    set_tasks(tasks() - 1);
-    ml.NotifyAll();
-  }
-
-  {
+  if (FLAG_use_compactor_evacuating || FLAG_use_compactor_sliding) {
     // Const object tables are hashed by address: rehash.
     SafepointOperationScope safepoint(thread);
-    StackZone zone(thread);
-    Isolate* I = thread->isolate();
+    thread->isolate()->RehashConstants();
+  }
+}
 
-    ClassTable* class_table = I->class_table();
-    Class& cls = Class::Handle(zone.GetZone());
-    const intptr_t top = class_table->NumCids();
-    for (intptr_t cid = kInstanceCid; cid < top; cid++) {
-      if (!class_table->IsValidIndex(cid) ||
-          !class_table->HasValidClassAt(cid)) {
-        continue;
-      }
-      if ((cid == kTypeArgumentsCid) || RawObject::IsStringClassId(cid)) {
-        // TypeArguments and Symbols have special tables for canonical objects
-        // that aren't based on address.
-        continue;
-      }
-      // Rehash constants.
-      cls = class_table->At(cid);
-      cls.RehashConstants(zone.GetZone());  // May allocate.
+void PageSpace::BlockingSweep() {
+  // Sweep all regular sized pages now.
+  GCSweeper sweeper;
+  HeapPage* prev_page = NULL;
+  HeapPage* page = pages_;
+  while (page != NULL) {
+    HeapPage* next_page = page->next();
+    bool page_in_use = sweeper.SweepPage(page, &freelist_[page->type()], true);
+    if (page_in_use) {
+      prev_page = page;
+    } else {
+      FreePage(page, prev_page);
     }
+    // Advance to the next page.
+    page = next_page;
+  }
+
+  if (FLAG_verify_after_gc) {
+    OS::PrintErr("Verifying after sweeping...");
+    heap_->VerifyGC(kForbidMarked);
+    OS::PrintErr(" done.\n");
+  }
+}
+
+void PageSpace::ConcurrentSweep(Isolate* isolate) {
+  // Start the concurrent sweeper task now.
+  GCSweeper::SweepConcurrent(isolate, pages_, pages_tail_,
+                             &freelist_[HeapPage::kData]);
+}
+
+void PageSpace::EvacuatingCompact(Thread* thread) {
+  thread->isolate()->set_compaction_in_progress(true);
+  HeapPage* pages_to_evacuate = pages_;
+  pages_ = pages_tail_ = NULL;
+
+  GCCompactor compactor(thread, heap_);
+  intptr_t moved_bytes = compactor.EvacuatePages(pages_to_evacuate);
+  usage_.used_in_words -= (moved_bytes / kWordSize);
+
+  Become::FollowForwardingPointers(thread);
+
+  {
+    MutexLocker ml(pages_lock_);
+    HeapPage* page = pages_to_evacuate;
+    while (page != NULL) {
+      HeapPage* next = page->next();
+      IncreaseCapacityInWordsLocked(-(page->memory_->size() >> kWordSizeLog2));
+      page->Deallocate();
+      page = next;
+    }
+  }
+  thread->isolate()->set_compaction_in_progress(false);
+
+  if (FLAG_verify_after_gc) {
+    OS::PrintErr("Verifying after compacting...");
+    heap_->VerifyGC(kForbidMarked);
+    OS::PrintErr(" done.\n");
+  }
+}
+
+void PageSpace::SlidingCompact(Thread* thread) {
+  thread->isolate()->set_compaction_in_progress(true);
+  GCCompactor compactor(thread, heap_);
+  {
+    MutexLocker ml(pages_lock_);
+    pages_tail_ = compactor.SlidePages(pages_, &freelist_[HeapPage::kData]);
+  }
+  compactor.ForwardPointers();
+  thread->isolate()->set_compaction_in_progress(false);
+
+  if (FLAG_verify_after_gc) {
+    OS::PrintErr("Verifying after compacting...");
+    heap_->VerifyGC(kForbidMarked);
+    OS::PrintErr(" done.\n");
   }
 }
 

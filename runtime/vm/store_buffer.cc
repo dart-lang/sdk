@@ -87,6 +87,13 @@ void BlockStack<BlockSize>::PushBlockImpl(Block* block) {
   }
 }
 
+template <int Size>
+void PointerBlock<Size>::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  // Generated code appends to store buffers; tell MemorySanitizer.
+  MSAN_UNPOISON(this, sizeof(*this));
+  visitor->VisitPointers(&pointers_[0], top_);
+}
+
 void StoreBuffer::PushBlock(Block* block, ThresholdPolicy policy) {
   BlockStack<Block::kSize>::PushBlockImpl(block);
   if ((policy == kCheckThreshold) && Overflowed()) {
@@ -177,6 +184,15 @@ void BlockStack<BlockSize>::List::Push(Block* block) {
 bool StoreBuffer::Overflowed() {
   MutexLocker ml(mutex_);
   return (full_.length() + partial_.length()) > kMaxNonEmpty;
+}
+
+void StoreBuffer::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  for (Block* block = full_.Peek(); block != NULL; block = block->next()) {
+    block->VisitObjectPointers(visitor);
+  }
+  for (Block* block = partial_.Peek(); block != NULL; block = block->next()) {
+    block->VisitObjectPointers(visitor);
+  }
 }
 
 template <int BlockSize>

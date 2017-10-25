@@ -6,25 +6,66 @@
 #define RUNTIME_VM_GC_COMPACTOR_H_
 
 #include "vm/allocation.h"
+#include "vm/dart_api_state.h"
 #include "vm/globals.h"
+#include "vm/visitor.h"
 
 namespace dart {
 
 // Forward declarations.
-class HeapPage;
+class FreeList;
 class Heap;
+class HeapPage;
+class RawObject;
 
-// The class GCCompactor is used to relocate objects to fresh pages to remove
-// fragmentation.
-class GCCompactor : public ValueObject {
+// Binary search table for updating pointers during a sliding compaction.
+// TODO(rmacnak): Replace with lookup scheme based on bitmap of live allocation
+// units.
+class ForwardingMap : public ValueObject {
  public:
-  explicit GCCompactor(Heap* heap) : heap_(heap) {}
-  ~GCCompactor() {}
+  ForwardingMap();
+  ~ForwardingMap();
 
-  void EvacuatePage(HeapPage* page);
+  void Insert(RawObject* before, RawObject* after);
+  void Sort();
+  RawObject* Lookup(RawObject* before);
 
  private:
+  struct Entry {
+    RawObject* before;
+    RawObject* after;
+  };
+
+  static int CompareEntries(Entry* a, Entry* b);
+
+  intptr_t size_;
+  intptr_t capacity_;
+  Entry* entries_;
+  bool sorted_;
+};
+
+// Implements an evacuating compactor and a sliding compactor.
+class GCCompactor : public ValueObject,
+                    private HandleVisitor,
+                    private ObjectPointerVisitor {
+ public:
+  GCCompactor(Thread* thread, Heap* heap)
+      : HandleVisitor(thread),
+        ObjectPointerVisitor(thread->isolate()),
+        heap_(heap) {}
+  ~GCCompactor() {}
+
+  HeapPage* SlidePages(HeapPage* pages, FreeList* freelist);
+  void ForwardPointers();
+
+  intptr_t EvacuatePages(HeapPage* page);
+
+ private:
+  void VisitPointers(RawObject** first, RawObject** last);
+  void VisitHandle(uword addr);
+
   Heap* heap_;
+  ForwardingMap forwarding_map_;
 };
 
 }  // namespace dart
