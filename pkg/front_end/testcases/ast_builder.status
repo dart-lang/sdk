@@ -477,6 +477,7 @@ runtime_checks_new/generic_covariance_based_on_inference: Crash
 runtime_checks_new/mixin_forwarding_stub_field: Crash
 runtime_checks_new/mixin_forwarding_stub_getter: Crash
 runtime_checks_new/mixin_forwarding_stub_setter: Crash
+runtime_checks_new/stub_checked_via_target: Crash
 static_setter: Crash
 store_load: Crash
 stringliteral: Crash
