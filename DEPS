@@ -95,7 +95,7 @@ vars = {
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@0.11.4",
   "matcher_tag": "@0.12.1+4",
-  "mime_rev": "@367087506c0a8a746bd75c685487b01ffed7f1c5",
+  "mime_tag": "@0.9.4",
   "mockito_tag": "@2.0.2",
   "mustache4dart_tag" : "@v1.1.0",
   "oauth2_tag": "@1.1.0",
@@ -245,7 +245,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/matcher":
       Var("github_mirror") + "matcher.git" + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/mime":
-      Var("github_mirror") + "mime.git" + Var("mime_rev"),
+      Var("github_mirror") + "mime.git" + Var("mime_tag"),
   Var("dart_root") + "/third_party/pkg/mockito":
       Var("github_mirror") + "mockito.git" + Var("mockito_tag"),
   Var("dart_root") + "/third_party/pkg/mustache4dart":
