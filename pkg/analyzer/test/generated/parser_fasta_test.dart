@@ -240,22 +240,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_duplicatedModifier_factory() {
-    // TODO(brianwilkerson) Does not recover.
-    //   UnimplementedError: Failed to map Instance of 'Message' at C
-    //   package:analyzer/src/fasta/ast_builder.dart 1091:7                 AstBuilder.handleUnrecoverableError
-    //   test/generated/parser_fasta_listener.dart 1498:21                  ForwardingTestListener.handleUnrecoverableError
-    //   package:front_end/src/fasta/parser/parser.dart 4076:23             Parser.reportUnrecoverableError
-    //   package:front_end/src/fasta/parser/parser.dart 947:14              Parser.expect
-    //   package:front_end/src/fasta/parser/parser.dart 610:5               Parser.parseFormalParameters
-    //   package:front_end/src/fasta/parser/parser.dart 2454:13             Parser.parseFactoryMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2240:15             Parser.parseMember
-    //   test/generated/parser_fasta_test.dart 2825:39                      ParserProxy._run
-    super.test_duplicatedModifier_factory();
-  }
-
-  @override
-  @failingTest
   void test_duplicateLabelInSwitchStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, found 0
@@ -516,22 +500,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_externalAfterFactory() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_AFTER_FACTORY, found 0
-    super.test_externalAfterFactory();
-  }
-
-  @override
-  @failingTest
-  void test_externalConstructorWithBody_factory() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, found 0
-    super.test_externalConstructorWithBody_factory();
-  }
-
-  @override
-  @failingTest
   void test_externalConstructorWithBody_named() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, found 0
@@ -649,14 +617,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:front_end/src/fasta/parser/parser.dart 2240:15             Parser.parseMember
     //   test/generated/parser_fasta_test.dart 3051:39                      ParserProxy._run
     super.test_factoryWithInitializers();
-  }
-
-  @override
-  @failingTest
-  void test_factoryWithoutBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.FACTORY_WITHOUT_BODY, found 0
-    super.test_factoryWithoutBody();
   }
 
   @override

@@ -11,6 +11,26 @@ import 'parser.dart' show Parser;
 import 'type_continuation.dart' show TypeContinuation;
 import 'util.dart' show optional;
 
+bool isModifier(Token token) {
+  if (!token.isModifier) {
+    return false;
+  }
+  if (token.type.isBuiltIn) {
+    // A built-in identifier can only be a modifier as long as it is
+    // followed by another modifier or an identifier. Otherwise, it is the
+    // identifier.
+    //
+    // For example, `external` is a modifier in this declaration:
+    //   external Foo foo();
+    // but is the identifier in this declaration
+    //   external() => true;
+    if (!token.next.type.isKeyword && !token.next.isIdentifier) {
+      return false;
+    }
+  }
+  return true;
+}
+
 class ModifierContext {
   final Parser parser;
   MemberKind memberKind;
@@ -21,26 +41,6 @@ class ModifierContext {
 
   ModifierContext(this.parser, this.memberKind, this.parameterKind,
       this.isVarAllowed, this.typeContinuation);
-
-  bool isModifier(Token token) {
-    if (!token.isModifier) {
-      return false;
-    }
-    if (token.type.isBuiltIn) {
-      // A built-in identifier can only be a modifier as long as it is
-      // followed by another modifier or an identifier. Otherwise, it is the
-      // identifier.
-      //
-      // For example, `external` is a modifier in this declaration:
-      //   external Foo foo();
-      // but is the identifier in this declaration
-      //   external() => true;
-      if (!token.next.type.isKeyword && !token.next.isIdentifier) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   Token parseOpt(Token token) {
     if (optional('external', token)) {
@@ -590,6 +590,89 @@ class ClassMethodModifierContext {
     } else {
       parser.reportRecoverableErrorWithToken(
           token, fasta.templateExtraneousModifier);
+    }
+  }
+}
+
+class FactoryModifierContext {
+  final Parser parser;
+  int modifierCount;
+  Token constToken;
+  Token externalToken;
+  Token factoryKeyword;
+
+  FactoryModifierContext(
+      this.parser, this.modifierCount, this.externalToken, this.constToken);
+
+  Token parseRecovery(Token token) {
+    while (true) {
+      final value = token.stringValue;
+      if (identical('const', value)) {
+        parseConst(token);
+      } else if (identical('external', value)) {
+        parseExternal(token);
+      } else if (identical('factory', value)) {
+        parseFactory(token);
+      } else if (isModifier(token)) {
+        parser.reportRecoverableErrorWithToken(
+            token, fasta.templateExtraneousModifier);
+      } else {
+        break;
+      }
+      token = token.next;
+    }
+    while (isModifier(token)) {
+      final value = token.stringValue;
+      if (identical('const', value)) {
+        parseConst(token);
+      } else {
+        parser.reportRecoverableErrorWithToken(
+            token, fasta.templateExtraneousModifier);
+      }
+      token = token.next;
+    }
+    return token;
+  }
+
+  void parseConst(Token token) {
+    assert(optional('const', token));
+    if (constToken == null) {
+      if (factoryKeyword != null) {
+        parser.reportRecoverableError(token, fasta.messageConstAfterFactory);
+      }
+      constToken = token;
+      parser.parseModifier(token);
+      ++modifierCount;
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          token, fasta.templateDuplicatedModifier);
+    }
+  }
+
+  void parseExternal(Token token) {
+    assert(optional('external', token));
+    if (externalToken == null) {
+      if (constToken != null) {
+        parser.reportRecoverableError(token, fasta.messageExternalAfterConst);
+      } else if (factoryKeyword != null) {
+        parser.reportRecoverableError(token, fasta.messageExternalAfterFactory);
+      }
+      externalToken = token;
+      parser.parseModifier(token);
+      ++modifierCount;
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          token, fasta.templateDuplicatedModifier);
+    }
+  }
+
+  void parseFactory(Token token) {
+    assert(optional('factory', token));
+    if (factoryKeyword == null) {
+      factoryKeyword = token;
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          token, fasta.templateDuplicatedModifier);
     }
   }
 }

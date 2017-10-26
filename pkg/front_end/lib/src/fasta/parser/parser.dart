@@ -76,9 +76,11 @@ import 'member_kind.dart' show MemberKind;
 import 'modifier_context.dart'
     show
         ClassMethodModifierContext,
+        FactoryModifierContext,
         ModifierContext,
         ModifierRecoveryContext,
-        TopLevelMethodModifierContext;
+        TopLevelMethodModifierContext,
+        isModifier;
 
 import 'recovery_listeners.dart'
     show ClassHeaderRecoveryListener, ImportRecoveryListener;
@@ -2935,7 +2937,7 @@ class Parser {
 
     // If the next token is a modifier,
     // then it's probably out of order and we need to recover from that.
-    if (context.isModifier(token)) {
+    if (isModifier(token)) {
       // Recovery
       context = new ModifierRecoveryContext(this, memberKind, parameterKind,
           isVarAllowed, typeContiunationFromFormalParameterKind(parameterKind));
@@ -3020,10 +3022,14 @@ class Parser {
   }
 
   bool isFactoryDeclaration(Token token) {
-    if (optional('external', token)) token = token.next;
-    if (optional('const', token)) token = token.next;
+    while (isModifier(token)) {
+      token = token.next;
+    }
     return optional('factory', token);
   }
+
+  bool isModifierOrFactory(Token next) =>
+      optional('factory', next) || isModifier(next);
 
   /// ```
   /// classMember:
@@ -3036,6 +3042,9 @@ class Parser {
     token = parseMetadataStar(token);
     Token start = token;
     listener.beginMember(token);
+    // TODO(danrubel): isFactoryDeclaration scans forward over modifiers
+    // which findMemberName does as well. See if this can be done once
+    // instead of twice.
     if (isFactoryDeclaration(token)) {
       token = parseFactoryMethod(token);
       listener.endMember();
@@ -3251,19 +3260,45 @@ class Parser {
   Token parseFactoryMethod(Token token) {
     assert(isFactoryDeclaration(token));
     Token start = token;
-    bool isExternal = false;
-    int modifierCount = 0;
-    while (token.isModifier) {
+    Token constToken;
+    Token externalToken;
+    Token factoryKeyword;
+
+    if (optional('factory', token) && !isModifierOrFactory(token.next)) {
+      listener.handleModifiers(0);
+      factoryKeyword = token;
+      token = token.next;
+    } else {
+      int modifierCount = 0;
       if (optional('external', token)) {
-        isExternal = true;
+        externalToken = token;
+        parseModifier(token);
+        ++modifierCount;
+        token = token.next;
       }
-      token = parseModifier(token);
-      modifierCount++;
+      if (optional('const', token)) {
+        constToken = token;
+        parseModifier(token);
+        ++modifierCount;
+        token = token.next;
+      }
+      if (optional('factory', token) && !isModifierOrFactory(token.next)) {
+        factoryKeyword = token;
+        token = token.next;
+      } else {
+        // Recovery
+        FactoryModifierContext context = new FactoryModifierContext(
+            this, modifierCount, externalToken, constToken);
+        token = context.parseRecovery(token);
+        externalToken = context.externalToken;
+        constToken = context.constToken;
+        factoryKeyword = context.factoryKeyword;
+        modifierCount = context.modifierCount;
+      }
+      listener.handleModifiers(modifierCount);
     }
-    listener.handleModifiers(modifierCount);
-    Token factoryKeyword = token;
+
     listener.beginFactoryMethod(factoryKeyword);
-    token = expect('factory', token);
     token = parseConstructorReference(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token;
@@ -3272,9 +3307,28 @@ class Parser {
       reportRecoverableError(asyncToken, fasta.messageFactoryNotSync);
     }
     if (optional('=', token)) {
+      // TODO(danrubel): There is a duplicate check at the semantic level
+      // that needs to be removed now that the check is performed here.
+      if (externalToken != null) {
+        // TODO(danrubel): The more correct error message here would be
+        // that a redirecting factory cannot be external.
+        reportRecoverableError(token, fasta.messageExternalConstructorWithBody);
+      }
       token = parseRedirectingFactoryBody(token);
+    } else if (externalToken != null) {
+      if (!optional(';', token)) {
+        // TODO(danrubel): The more correct error message here would be
+        // that an external *factory* cannot have a body.
+        reportRecoverableError(token, fasta.messageExternalConstructorWithBody);
+      }
+      token = parseFunctionBody(token, false, true);
     } else {
-      token = parseFunctionBody(token, false, isExternal);
+      if (constToken != null && !optional('native', token)) {
+        // TODO(danrubel): report error to fix
+        // test_constFactory in parser_fasta_test.dart
+        //reportRecoverableError(constToken, fasta.messageConstFactory);
+      }
+      token = parseFunctionBody(token, false, false);
     }
     listener.endFactoryMethod(start, factoryKeyword, token);
     return token.next;

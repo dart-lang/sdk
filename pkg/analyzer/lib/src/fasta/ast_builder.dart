@@ -1860,9 +1860,9 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token semicolon) {
+      Token beginToken, Token factoryKeyword, Token endToken) {
     assert(optional('factory', factoryKeyword));
-    assert(optional(';', semicolon));
+    assert(optional(';', endToken) || optional('}', endToken));
     debugEvent("FactoryMethod");
 
     FunctionBody body;
@@ -1874,7 +1874,7 @@ class AstBuilder extends ScopeListener {
     } else if (bodyObject is _RedirectingFactoryBody) {
       separator = bodyObject.equalToken;
       redirectedConstructor = bodyObject.constructorName;
-      body = ast.emptyFunctionBody(semicolon);
+      body = ast.emptyFunctionBody(endToken);
     } else {
       unhandled("${bodyObject.runtimeType}", "bodyObject",
           beginToken.charOffset, uri);
@@ -2410,6 +2410,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
         return;
+      case "CONST_AFTER_FACTORY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_AFTER_FACTORY, offset, length);
+        return;
       case "CONST_AND_COVARIANT":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_AND_COVARIANT, offset, length);
@@ -2425,6 +2429,10 @@ class AstBuilder extends ScopeListener {
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, offset, length);
+        return;
+      case "CONST_FACTORY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_FACTORY, offset, length);
         return;
       case "CONST_NOT_INITIALIZED":
         String name = arguments['name'];
@@ -2507,6 +2515,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_AFTER_CONST, offset, length);
         return;
+      case "EXTERNAL_AFTER_FACTORY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_AFTER_FACTORY, offset, length);
+        return;
       case "EXTERNAL_AFTER_STATIC":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_AFTER_STATIC, offset, length);
@@ -2514,6 +2526,10 @@ class AstBuilder extends ScopeListener {
       case "EXTERNAL_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_CLASS, offset, length);
+        return;
+      case "EXTERNAL_CONSTRUCTOR_WITH_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, offset, length);
         return;
       case "EXTERNAL_ENUM":
         errorReporter?.reportErrorForOffset(

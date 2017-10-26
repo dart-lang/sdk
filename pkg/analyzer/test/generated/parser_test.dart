@@ -1373,6 +1373,9 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseConstructor_factory_const_external() {
+    // Although the spec does not allow external const factory,
+    // there are several instances of this in the Dart SDK.
+    // For example `external const factory bool.fromEnvironment(...)`.
     createParser('external const factory C();');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
@@ -3049,7 +3052,9 @@ class Foo {
     createParser('factory C();');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.FACTORY_WITHOUT_BODY]);
+    listener.assertErrorsWithCodes(usingFastaParser
+        ? [ParserErrorCode.MISSING_FUNCTION_BODY]
+        : [ParserErrorCode.FACTORY_WITHOUT_BODY]);
   }
 
   void test_fieldInitializerOutsideConstructor() {

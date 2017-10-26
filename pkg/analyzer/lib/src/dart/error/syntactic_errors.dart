@@ -82,6 +82,11 @@ class ParserErrorCode extends ErrorCode {
       "For-in loops use 'in' rather than a colon.",
       "Try replacing the colon with the keyword 'in'.");
 
+  static const ParserErrorCode CONST_AFTER_FACTORY = const ParserErrorCode(
+      'CONST_AFTER_FACTORY',
+      "The modifier 'const' should be before the modifier 'factory'.",
+      "Try re-ordering the modifiers.");
+
   static const ParserErrorCode CONST_AND_COVARIANT = const ParserErrorCode(
       'CONST_AND_COVARIANT',
       "Members can't be declared to be both 'const' and 'covariant'.",

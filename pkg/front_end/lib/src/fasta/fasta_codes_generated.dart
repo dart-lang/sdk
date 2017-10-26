@@ -475,6 +475,18 @@ const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     message: r"""This is the type variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstAfterFactory = messageConstAfterFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstAfterFactory = const MessageCode(
+    "ConstAfterFactory",
+    analyzerCode: "CONST_AFTER_FACTORY",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""The modifier 'const' should be before the modifier 'factory'.""",
+    tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstAndCovariant = messageConstAndCovariant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -542,6 +554,18 @@ const Code<Null> codeConstConstructorWithBody = messageConstConstructorWithBody;
 const MessageCode messageConstConstructorWithBody = const MessageCode(
     "ConstConstructorWithBody",
     message: r"""A const constructor can't have a body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstFactory = messageConstFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstFactory = const MessageCode("ConstFactory",
+    analyzerCode: "CONST_FACTORY",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""Only redirecting factory constructors can be declared to be 'const'.""",
+    tip:
+        r"""Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1364,6 +1388,18 @@ const MessageCode messageExternalAfterConst = const MessageCode(
     tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalAfterFactory = messageExternalAfterFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalAfterFactory = const MessageCode(
+    "ExternalAfterFactory",
+    analyzerCode: "EXTERNAL_AFTER_FACTORY",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""The modifier 'external' should be before the modifier 'factory'.""",
+    tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalAfterStatic = messageExternalAfterStatic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1384,6 +1420,19 @@ const MessageCode messageExternalClass = const MessageCode("ExternalClass",
     dart2jsCode: "*ignored*",
     message: r"""Classes can't be declared to be 'external'.""",
     tip: r"""Try removing the keyword 'external'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalConstructorWithBody =
+    messageExternalConstructorWithBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalConstructorWithBody = const MessageCode(
+    "ExternalConstructorWithBody",
+    analyzerCode: "EXTERNAL_CONSTRUCTOR_WITH_BODY",
+    dart2jsCode: "*ignored*",
+    message: r"""External constructors can't have a body.""",
+    tip:
+        r"""Try removing the body of the constructor, or removing the keyword 'external'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalEnum = messageExternalEnum;

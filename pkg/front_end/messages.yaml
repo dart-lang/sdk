@@ -340,6 +340,22 @@ ConstAndVar:
     - "class C { const var x; }"
     - "class C { var const x; }"
 
+ConstFactory:
+  template: "Only redirecting factory constructors can be declared to be 'const'."
+  tip: "Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target."
+  analyzerCode: CONST_FACTORY
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { const factory C() {} }"
+
+ConstAfterFactory:
+  template: "The modifier 'const' should be before the modifier 'factory'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: CONST_AFTER_FACTORY
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { factory const C() = prefix.B.foo; }"
+
 CovariantAfterFinal:
   template: "The modifier 'covariant' should be before the modifier 'final'."
   tip: "Try re-ordering the modifiers."
@@ -385,6 +401,14 @@ ExternalAfterConst:
   script:
     - "class C { const external C(); }"
 
+ExternalAfterFactory:
+  template: "The modifier 'external' should be before the modifier 'factory'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: EXTERNAL_AFTER_FACTORY
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { factory external C(); }"
+
 ExternalAfterStatic:
   template: "The modifier 'external' should be before the modifier 'static'."
   tip: "Try re-ordering the modifiers."
@@ -392,6 +416,14 @@ ExternalAfterStatic:
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
     - "class C { static external f(); }"
+
+ExternalConstructorWithBody:
+  template: "External constructors can't have a body."
+  tip: "Try removing the body of the constructor, or removing the keyword 'external'."
+  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { external factory C() {} }"
 
 ExtraneousModifier:
   template: "Can't have modifier '#lexeme' here."
