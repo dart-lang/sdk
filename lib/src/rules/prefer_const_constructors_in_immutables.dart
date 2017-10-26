@@ -65,12 +65,16 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
+    final isRedirected =
+        node.element.isFactory && node.element.redirectedConstructor != null;
     if (node.body is EmptyFunctionBody &&
         !node.element.isConst &&
         !_hasMixin(node.element.enclosingElement) &&
         _hasImmutableAnnotation(node.element.enclosingElement) &&
-        _hasConstConstructorInvocation(node) &&
-        _hasOnlyConstExpressionsInIntializerList(node)) {
+        (isRedirected && node.element.redirectedConstructor.isConst ||
+            (!isRedirected &&
+                _hasConstConstructorInvocation(node) &&
+                _hasOnlyConstExpressionsInIntializerList(node)))) {
       rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
     }
   }

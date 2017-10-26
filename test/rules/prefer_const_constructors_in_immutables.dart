@@ -85,3 +85,12 @@ class I {
   final f = new Object();
   I(f); // OK
 }
+
+// no lint for factory redirected to non const constructor
+@immutable
+class J {
+  factory J.f1() = J.c1; // OK
+  factory J.f2() = J.c2; // LINT
+  J.c1() {} // OK
+  const J.c2(); // OK
+}
