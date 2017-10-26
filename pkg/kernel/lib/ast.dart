@@ -417,7 +417,7 @@ class Library extends NamedNode implements Comparable<Library> {
   String toString() => debugLibraryName(this);
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
   }
 }
 
@@ -891,7 +891,7 @@ class Class extends NamedNode {
   }
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
   }
 }
 
@@ -1172,7 +1172,7 @@ class Field extends Member {
   DartType get setterType => isMutable ? type : const BottomType();
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
   }
 }
 
@@ -1395,7 +1395,7 @@ class Procedure extends Member {
   }
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
   }
 }
 
@@ -5268,3 +5268,11 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
 /// other words, if this information (or any information it refers to) changes,
 /// static analysis and runtime behavior of the library are unaffected.
 const informative = null;
+
+Location _getLocationInProgram(Program program, String fileUri, int offset) {
+  if (program != null) {
+    return program.getLocation(fileUri, offset);
+  } else {
+    return new Location(fileUri, TreeNode.noOffset, TreeNode.noOffset);
+  }
+}
