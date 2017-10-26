@@ -288,6 +288,7 @@ class KernelTarget extends TargetImplementation {
     try {
       await loader.buildBodies();
       loader.finishStaticInvocations();
+      loader.finishDeferredLoadTearoffs();
       finishAllConstructors();
       loader.finishNativeMethods();
       runBuildTransformations();

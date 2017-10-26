@@ -143,6 +143,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
       String name, Builder builder, Builder other, int charOffset,
       {bool isExport: false, bool isImport: false});
 
+  int finishDeferredLoadTearoffs() => 0;
+
   int finishStaticInvocations() => 0;
 
   int finishNativeMethods() => 0;

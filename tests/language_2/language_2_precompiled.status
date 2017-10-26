@@ -226,9 +226,6 @@ deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTi
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_global_test: Fail
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
-deferred_load_constants_test/02: Fail
-deferred_load_constants_test/03: Fail
-deferred_load_constants_test/05: Fail
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
@@ -930,6 +927,11 @@ vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers
 void_block_return_test/00: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
+
+[ $runtime == dart_precompiled && $compiler != dartkp ]
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/05: Fail
 
 [ $runtime == dart_precompiled && $checked ]
 function_subtype_checked0_test: Pass

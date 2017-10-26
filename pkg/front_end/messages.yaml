@@ -845,6 +845,13 @@ ListLiteralTooManyTypeArguments:
 ListLiteralTypeArgumentMismatch:
   template: "Map literal requires two type arguments."
 
+LoadLibraryTakesNoArguments:
+  template: "'loadLibrary' takes no arguments."
+
+LoadLibraryHidesMember:
+  template: "The library '#uri' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading."
+  tip: "Try to rename or hide the member."
+
 TypeArgumentMismatch:
   # TODO(sigmund): #string should be a number instead.
   template: "'#name' expects #string type arguments."

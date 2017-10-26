@@ -9,6 +9,8 @@ import 'package:kernel/ast.dart'
 
 import '../../scanner/token.dart' show Token;
 
+import '../fasta_codes.dart' show messageLoadLibraryTakesNoArguments;
+
 import '../messages.dart' show Message;
 
 import '../names.dart' show callName, lengthName;
@@ -23,6 +25,7 @@ import 'frontend_accessors.dart' as kernel
     show
         IndexAccessor,
         NullAwarePropertyAccessor,
+        LoadLibraryAccessor,
         PropertyAccessor,
         ReadOnlyAccessor,
         StaticAccessor,
@@ -41,6 +44,7 @@ import 'kernel_builder.dart'
         KernelClassBuilder,
         KernelInvalidTypeBuilder,
         LibraryBuilder,
+        LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder;
 
@@ -776,6 +780,23 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
   @override
   ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
       new ShadowStaticAssignment(rhs);
+}
+
+class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
+    with FastaAccessor {
+  LoadLibraryAccessor(
+      BuilderHelper helper, Token token, LoadLibraryBuilder builder)
+      : super(helper, token, builder);
+
+  String get plainNameForRead => 'loadLibrary';
+
+  Expression doInvocation(int offset, Arguments arguments) {
+    if (arguments.positional.length > 0 || arguments.named.length > 0) {
+      helper.warning(
+          messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
+    }
+    return builder.createLoadLibrary(offset);
+  }
 }
 
 class SuperPropertyAccessor extends kernel.SuperPropertyAccessor

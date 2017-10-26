@@ -27,6 +27,7 @@ import '../fasta_codes.dart'
         templateExportHidesExport,
         templateIllegalMethodName,
         templateImportHidesImport,
+        templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
         templateLocalDefinitionHidesImport,
         templateTypeVariableDuplicatedNameCause;
@@ -68,6 +69,7 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
+        LoadLibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
         NamedTypeBuilder,
@@ -792,11 +794,8 @@ class KernelLibraryBuilder
     for (Import import in imports) {
       Library importedLibrary = import.imported.target;
       if (importedLibrary != null) {
-        if (import.deferred && import.prefix != null) {
-          library.addDependency(new LibraryDependency.deferredImport(
-              importedLibrary, import.prefix,
-              combinators: toKernelCombinators(import.combinators))
-            ..fileOffset = import.charOffset);
+        if (import.deferred && import.prefixBuilder?.dependency != null) {
+          library.addDependency(import.prefixBuilder.dependency);
         } else {
           library.addDependency(new LibraryDependency.import(importedLibrary,
               name: import.prefix,
@@ -853,6 +852,7 @@ class KernelLibraryBuilder
       other = error.builder;
     }
     bool isLocal = false;
+    bool isLoadLibrary = false;
     Builder preferred;
     Uri uri;
     Uri otherUri;
@@ -865,7 +865,15 @@ class KernelLibraryBuilder
     } else {
       uri = builder.computeLibraryUri();
       otherUri = other.computeLibraryUri();
-      if (otherUri?.scheme == "dart" && uri?.scheme != "dart") {
+      if (builder is LoadLibraryBuilder) {
+        isLoadLibrary = true;
+        preferred = builder;
+        preferredUri = otherUri;
+      } else if (other is LoadLibraryBuilder) {
+        isLoadLibrary = true;
+        preferred = other;
+        preferredUri = uri;
+      } else if (otherUri?.scheme == "dart" && uri?.scheme != "dart") {
         preferred = builder;
         preferredUri = uri;
         hiddenUri = otherUri;
@@ -881,6 +889,9 @@ class KernelLibraryBuilder
             ? templateLocalDefinitionHidesExport
             : templateLocalDefinitionHidesImport;
         addNit(template.withArguments(name, hiddenUri), charOffset, fileUri);
+      } else if (isLoadLibrary) {
+        addNit(templateLoadLibraryHidesMember.withArguments(preferredUri),
+            charOffset, fileUri);
       } else {
         var template =
             isExport ? templateExportHidesExport : templateImportHidesImport;
@@ -906,6 +917,18 @@ class KernelLibraryBuilder
     Message message = template.withArguments(name, uri, otherUri);
     addNit(message, charOffset, fileUri);
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri, message);
+  }
+
+  int finishDeferredLoadTearoffs() {
+    int total = 0;
+    for (var import in imports) {
+      if (import.deferred) {
+        Procedure tearoff = import.prefixBuilder.loadLibraryBuilder.tearoff;
+        if (tearoff != null) library.addMember(tearoff);
+        total++;
+      }
+    }
+    return total;
   }
 
   int finishStaticInvocations() {

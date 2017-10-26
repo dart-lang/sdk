@@ -1180,9 +1180,9 @@ call_function_apply_test: RuntimeError
 canonical_const2_test: RuntimeError
 cast_test/02: MissingRuntimeError
 cast_test/03: MissingRuntimeError
-cha_deopt1_test: CompileTimeError
-cha_deopt2_test: CompileTimeError
-cha_deopt3_test: CompileTimeError
+cha_deopt1_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+cha_deopt2_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+cha_deopt3_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
@@ -1190,8 +1190,8 @@ closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-conditional_import_string_test: CompileTimeError
-conditional_import_test: CompileTimeError
+conditional_import_string_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+conditional_import_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 conditional_method_invocation_test/05: MissingCompileTimeError
 conditional_method_invocation_test/06: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
@@ -1290,42 +1290,56 @@ covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 deferred_call_empty_before_load_test: RuntimeError
-deferred_closurize_load_library_test: CompileTimeError
-deferred_constant_list_test: CompileTimeError
-deferred_constraints_constants_test/none: CompileTimeError
-deferred_constraints_constants_test/reference_after_load: CompileTimeError
-deferred_constraints_type_annotation_test/new: CompileTimeError
-deferred_constraints_type_annotation_test/new_generic1: CompileTimeError
-deferred_constraints_type_annotation_test/none: CompileTimeError
-deferred_constraints_type_annotation_test/static_method: CompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
-deferred_function_type_test: CompileTimeError
-deferred_global_test: CompileTimeError
-deferred_import_core_test: CompileTimeError
+deferred_closurize_load_library_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constant_list_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_constants_test/default_argument2: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_constants_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_constants_test/reference_after_load: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/as_operation: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/catch_check: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/is_check: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/new: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/new_before_load: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/new_generic1: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/new_generic2: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/new_generic3: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/static_method: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation1: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_null: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_function_type_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_global_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_import_core_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_inlined_test: CompileTimeError
-deferred_load_constants_test/none: CompileTimeError
-deferred_load_inval_code_test: CompileTimeError
-deferred_load_library_wrong_args_test/01: CompileTimeError
-deferred_load_library_wrong_args_test/none: CompileTimeError
-deferred_mixin_test: CompileTimeError
-deferred_no_such_method_test: CompileTimeError
+deferred_inlined_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_load_constants_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_load_inval_code_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_load_library_wrong_args_test/01: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_load_library_wrong_args_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_mixin_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_no_such_method_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_not_loaded_check_test: RuntimeError
-deferred_only_constant_test: CompileTimeError
-deferred_optimized_test: CompileTimeError
-deferred_redirecting_factory_test: CompileTimeError
-deferred_regression_22995_test: CompileTimeError
-deferred_regression_28678_test: CompileTimeError
-deferred_shadow_load_library_test: RuntimeError
-deferred_shared_and_unshared_classes_test: CompileTimeError
-deferred_static_seperate_test: CompileTimeError
-deferred_super_dependency_test/01: Pass
-deferred_type_dependency_test/as: CompileTimeError
-deferred_type_dependency_test/is: CompileTimeError
-deferred_type_dependency_test/none: CompileTimeError
-deferred_type_dependency_test/type_annotation: CompileTimeError
+deferred_only_constant_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_optimized_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_redirecting_factory_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_regression_22995_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_regression_28678_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_shadow_load_library_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_shared_and_unshared_classes_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_static_seperate_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_super_dependency_test/01: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_type_dependency_test/as: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_type_dependency_test/is: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_type_dependency_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_type_dependency_test/type_annotation: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -1408,7 +1422,7 @@ internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of 
 invocation_mirror2_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: RuntimeError
-issue_1751477_test: CompileTimeError
+issue_1751477_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
@@ -1563,17 +1577,17 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
-regress_22443_test: CompileTimeError
+regress_22443_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
-regress_23408_test: CompileTimeError
+regress_23408_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 regress_24283_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
-regress_28278_test: CompileTimeError
+regress_28278_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 regress_28341_test: RuntimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ko).
@@ -1620,17 +1634,17 @@ call_function_apply_test: RuntimeError
 canonical_const2_test: RuntimeError
 cast_test/02: MissingRuntimeError
 cast_test/03: MissingRuntimeError
-cha_deopt1_test: CompileTimeError
-cha_deopt2_test: CompileTimeError
-cha_deopt3_test: CompileTimeError
+cha_deopt1_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+cha_deopt2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+cha_deopt3_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-conditional_import_string_test: CompileTimeError
-conditional_import_test: CompileTimeError
+conditional_import_string_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+conditional_import_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 conditional_method_invocation_test/05: MissingCompileTimeError
 conditional_method_invocation_test/06: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
@@ -1729,42 +1743,56 @@ covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 deferred_call_empty_before_load_test: RuntimeError
-deferred_closurize_load_library_test: CompileTimeError
-deferred_constant_list_test: CompileTimeError
-deferred_constraints_constants_test/none: CompileTimeError
-deferred_constraints_constants_test/reference_after_load: CompileTimeError
-deferred_constraints_type_annotation_test/new: CompileTimeError
-deferred_constraints_type_annotation_test/new_generic1: CompileTimeError
-deferred_constraints_type_annotation_test/none: CompileTimeError
-deferred_constraints_type_annotation_test/static_method: CompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
-deferred_function_type_test: CompileTimeError
-deferred_global_test: CompileTimeError
-deferred_import_core_test: CompileTimeError
+deferred_closurize_load_library_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constant_list_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_constants_test/default_argument2: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_constants_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_constants_test/reference_after_load: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/as_operation: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/catch_check: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/is_check: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/new: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/new_before_load: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/new_generic1: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/new_generic2: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/new_generic3: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/static_method: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation1: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_null: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_function_type_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_global_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_import_core_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_inlined_test: CompileTimeError
-deferred_load_constants_test/none: CompileTimeError
-deferred_load_inval_code_test: CompileTimeError
-deferred_load_library_wrong_args_test/01: CompileTimeError
-deferred_load_library_wrong_args_test/none: CompileTimeError
-deferred_mixin_test: CompileTimeError
-deferred_no_such_method_test: CompileTimeError
+deferred_inlined_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_load_constants_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_load_inval_code_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_load_library_wrong_args_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_load_library_wrong_args_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_mixin_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_no_such_method_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_not_loaded_check_test: RuntimeError
-deferred_only_constant_test: CompileTimeError
-deferred_optimized_test: CompileTimeError
-deferred_redirecting_factory_test: CompileTimeError
-deferred_regression_22995_test: CompileTimeError
-deferred_regression_28678_test: CompileTimeError
-deferred_shadow_load_library_test: RuntimeError
-deferred_shared_and_unshared_classes_test: CompileTimeError
-deferred_static_seperate_test: CompileTimeError
-deferred_super_dependency_test/01: Pass
-deferred_type_dependency_test/as: CompileTimeError
-deferred_type_dependency_test/is: CompileTimeError
-deferred_type_dependency_test/none: CompileTimeError
-deferred_type_dependency_test/type_annotation: CompileTimeError
+deferred_only_constant_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_optimized_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_redirecting_factory_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_regression_22995_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_regression_28678_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_shadow_load_library_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_shared_and_unshared_classes_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_static_seperate_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_super_dependency_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_type_dependency_test/as: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_type_dependency_test/is: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_type_dependency_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_type_dependency_test/type_annotation: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -1848,7 +1876,7 @@ invocation_mirror2_test: RuntimeError
 invocation_mirror_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: RuntimeError
-issue_1751477_test: CompileTimeError
+issue_1751477_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
@@ -2001,17 +2029,17 @@ redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
-regress_22443_test: CompileTimeError
+regress_22443_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
-regress_23408_test: CompileTimeError
+regress_23408_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
-regress_28278_test: CompileTimeError
+regress_28278_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 regress_28341_test: RuntimeError
 regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: Crash # Issue 29784

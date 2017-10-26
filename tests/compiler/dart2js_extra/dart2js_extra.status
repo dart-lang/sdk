@@ -145,25 +145,25 @@ closure_capture2_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-deferred/default_arg_is_tearoff_test: CompileTimeError
-deferred/deferred_class_test: CompileTimeError
-deferred/deferred_constant2_test: CompileTimeError
-deferred/deferred_constant3_test: CompileTimeError
-deferred/deferred_constant4_test: CompileTimeError
-deferred/deferred_function_test: CompileTimeError
-deferred/deferred_mirrors1_test: CompileTimeError
+deferred/default_arg_is_tearoff_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/deferred_class_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/deferred_constant2_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/deferred_constant3_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/deferred_constant4_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/deferred_function_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/deferred_mirrors1_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/deferred_mirrors2_test: RuntimeError
-deferred/deferred_overlapping_test: CompileTimeError
-deferred/interface_type_variable_test: CompileTimeError
-deferred/multiple_default_arg_test: CompileTimeError
-deferred/reflect_multiple_annotations_test: CompileTimeError
-deferred/reflect_multiple_default_arg_test: CompileTimeError
-deferred/uninstantiated_type_variable_test: CompileTimeError
-deferred_custom_loader_test: CompileTimeError
-deferred_fail_and_retry_test: CompileTimeError
-deferred_fail_and_retry_worker_test: CompileTimeError
-deferred_inheritance_test: CompileTimeError
-deferred_split_test: CompileTimeError
+deferred/deferred_overlapping_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/interface_type_variable_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/multiple_default_arg_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/reflect_multiple_annotations_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/reflect_multiple_default_arg_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/uninstantiated_type_variable_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_custom_loader_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_fail_and_retry_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_fail_and_retry_worker_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_inheritance_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_split_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 invalid_annotation2_test/none: RuntimeError
 label_test/06: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
@@ -203,23 +203,25 @@ unconditional_dartio_import_test: RuntimeError # Issue 30902
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-deferred/default_arg_is_tearoff_test: CompileTimeError
-deferred/deferred_class_test: CompileTimeError
-deferred/deferred_constant2_test: CompileTimeError
-deferred/deferred_constant3_test: CompileTimeError
-deferred/deferred_constant4_test: CompileTimeError
-deferred/deferred_function_test: CompileTimeError
-deferred/deferred_mirrors1_test: CompileTimeError
+deferred/default_arg_is_tearoff_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/deferred_class_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/deferred_constant2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/deferred_constant3_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/deferred_constant4_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/deferred_function_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/deferred_mirrors1_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/deferred_mirrors2_test: RuntimeError
-deferred/deferred_overlapping_test: CompileTimeError
-deferred/interface_type_variable_test: CompileTimeError
-deferred/multiple_default_arg_test: CompileTimeError
-deferred/uninstantiated_type_variable_test: CompileTimeError
-deferred_custom_loader_test: CompileTimeError
-deferred_fail_and_retry_test: CompileTimeError
-deferred_fail_and_retry_worker_test: CompileTimeError
-deferred_inheritance_test: CompileTimeError
-deferred_split_test: CompileTimeError
+deferred/deferred_overlapping_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/interface_type_variable_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/multiple_default_arg_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/reflect_multiple_annotations_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/reflect_multiple_default_arg_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/uninstantiated_type_variable_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_custom_loader_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_fail_and_retry_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_fail_and_retry_worker_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_inheritance_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_split_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 dummy_compiler_test: CompileTimeError
 invalid_annotation2_test/none: RuntimeError
 label_test/06: MissingCompileTimeError

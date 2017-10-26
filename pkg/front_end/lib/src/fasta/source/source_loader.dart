@@ -291,6 +291,14 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $typeCount types");
   }
 
+  void finishDeferredLoadTearoffs() {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      count += library.finishDeferredLoadTearoffs();
+    });
+    ticker.logMs("Finished deferred load tearoffs $count");
+  }
+
   void finishStaticInvocations() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {

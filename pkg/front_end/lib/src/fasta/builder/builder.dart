@@ -38,6 +38,8 @@ export 'invalid_type_builder.dart' show InvalidTypeBuilder;
 
 export 'library_builder.dart' show LibraryBuilder;
 
+export 'load_library_builder.dart' show LoadLibraryBuilder;
+
 export 'member_builder.dart' show MemberBuilder;
 
 export 'metadata_builder.dart' show MetadataBuilder;

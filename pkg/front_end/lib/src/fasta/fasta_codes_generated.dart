@@ -2354,6 +2354,41 @@ const MessageCode messageListLiteralTypeArgumentMismatch = const MessageCode(
     message: r"""Map literal requires two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(Uri uri_)> templateLoadLibraryHidesMember = const Template<
+        Message Function(Uri uri_)>(
+    messageTemplate:
+        r"""The library '#uri' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading.""",
+    tipTemplate: r"""Try to rename or hide the member.""",
+    withArguments: _withArgumentsLoadLibraryHidesMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_)> codeLoadLibraryHidesMember =
+    const Code<Message Function(Uri uri_)>(
+  "LoadLibraryHidesMember",
+  templateLoadLibraryHidesMember,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLoadLibraryHidesMember(Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeLoadLibraryHidesMember,
+      message:
+          """The library '$uri' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading.""",
+      tip: """Try to rename or hide the member.""",
+      arguments: {'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLoadLibraryTakesNoArguments =
+    messageLoadLibraryTakesNoArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
+    "LoadLibraryTakesNoArguments",
+    message: r"""'loadLibrary' takes no arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_)>
     templateLocalDefinitionHidesExport =
     const Template<Message Function(String name, Uri uri_)>(

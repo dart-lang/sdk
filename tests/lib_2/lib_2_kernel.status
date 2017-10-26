@@ -17,7 +17,7 @@ isolate/typed_message_test: Crash
 [ $compiler == dartk || $compiler == dartkp ]
 async/future_or_strong_test: RuntimeError
 async/timer_not_available_test: RuntimeError
-isolate/issue_21398_parent_isolate2_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+isolate/issue_21398_parent_isolate2_test/01: Crash # Deferred loading kernel issue 28335.
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
 mirrors/generic_interface_test/01: RuntimeError
@@ -54,10 +54,10 @@ mirrors/deferred_type_test: RuntimeError
 mirrors/empty_test: Crash
 mirrors/enum_test: RuntimeError
 mirrors/equality_test: RuntimeError
-mirrors/deferred_mirrors_test: CompileTimeError
-mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_test: Crash
+mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_update_test: Crash # Deferred loading kernel issue 28335.
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
@@ -93,8 +93,8 @@ mirrors/library_metadata_test: RuntimeError
 mirrors/list_constructor_test/01: Crash
 mirrors/list_constructor_test/none: Crash
 mirrors/load_library_test: RuntimeError
-mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
+mirrors/library_import_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
 mirrors/mirrors_test: Crash
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
@@ -131,7 +131,7 @@ mirrors/symbol_validation_test/none: RuntimeError
 mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/typedef_in_signature_test: RuntimeError
-mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/typedef_deferred_library_test: Crash # Deferred loading kernel issue 28335.
 mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError
 mirrors/typedef_reflected_type_test/01: RuntimeError
@@ -244,8 +244,8 @@ mirrors/reflected_type_generics_test/02: Pass
 
 [ ($compiler == dartk || $compiler == dartkp) ]
 isolate/compile_time_error_test/01: MissingCompileTimeError
-isolate/deferred_in_isolate2_test: Skip # Deferred loading kernel issue 28335.
-isolate/deferred_in_isolate_test: Skip # Deferred loading kernel issue 28335.
+isolate/deferred_in_isolate2_test: Crash # Deferred loading kernel issue 28335.
+isolate/deferred_in_isolate_test: Crash # Deferred loading kernel issue 28335.
 isolate/message3_test/int32x4: Crash
 isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_function_custom_class_test: Pass, Timeout
