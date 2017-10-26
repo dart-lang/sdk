@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    if (node?.initializer is FunctionExpression) {
+    if (node.initializer is FunctionExpression) {
       FunctionBody function = node.getAncestor((a) => a is FunctionBody);
       if (function == null ||
           !function.isPotentiallyMutatedInScope(node.element)) {
