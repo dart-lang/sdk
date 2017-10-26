@@ -2,23 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart';
-import 'package:kernel/type_checker.dart' as type_checker;
-import 'package:kernel/type_algebra.dart';
+import 'class_hierarchy.dart';
+import 'core_types.dart';
+import 'kernel.dart';
+import 'type_checker.dart' as type_checker;
+import 'type_algebra.dart';
 
-import 'package:kernel/text/ast_to_text.dart';
+abstract class FailureListener {
+  void reportFailure(TreeNode node, String message);
+  void reportNotAssignable(TreeNode node, DartType first, DartType second);
+  void reportInvalidOverride(Member member, Member inherited, String message);
+}
 
-class TypeChecker extends type_checker.TypeChecker {
-  /// Number of fails found.
-  int fails = 0;
+class StrongModeTypeChecker extends type_checker.TypeChecker {
+  final FailureListener failures;
 
-  TypeChecker(Program program, {bool ignoreSdk: false})
-      : this._(new CoreTypes(program), new ClosedWorldClassHierarchy(program),
-            ignoreSdk);
+  StrongModeTypeChecker(FailureListener failures, Program program,
+      {bool ignoreSdk: false})
+      : this._(failures, new CoreTypes(program),
+            new ClosedWorldClassHierarchy(program), ignoreSdk);
 
-  TypeChecker._(CoreTypes coreTypes, ClassHierarchy hierarchy, bool ignoreSdk)
+  StrongModeTypeChecker._(this.failures, CoreTypes coreTypes,
+      ClassHierarchy hierarchy, bool ignoreSdk)
       : super(coreTypes, hierarchy, strongMode: true, ignoreSdk: ignoreSdk);
 
   // TODO(vegorov) this only gets called for immediate overrides which leads
@@ -32,10 +37,26 @@ class TypeChecker extends type_checker.TypeChecker {
     final superMemberIsFieldOrAccessor =
         superMember is Field || (superMember as Procedure).isAccessor;
 
+    // TODO: move to error reporting code
+    String _memberKind(Member m) {
+      if (m is Field) {
+        return 'field';
+      } else {
+        final p = m as Procedure;
+        if (p.isGetter) {
+          return 'getter';
+        } else if (p.isSetter) {
+          return 'setter';
+        } else {
+          return 'method';
+        }
+      }
+    }
+
     // First check if we are overriding field/accessor with a normal method
     // or other way around.
     if (ownMemberIsFieldOrAccessor != superMemberIsFieldOrAccessor) {
-      return _reportInvalidOverride(ownMember, superMember, '''
+      return failures.reportInvalidOverride(ownMember, superMember, '''
 ${ownMember} is a ${_memberKind(ownMember)}
 ${superMember} is a ${_memberKind(superMember)}
 ''');
@@ -50,11 +71,11 @@ ${superMember} is a ${_memberKind(superMember)}
             : ownMember.function.positionalParameters[0].isCovariant;
         if (!_isValidParameterOverride(isCovariant, ownType, superType)) {
           if (isCovariant) {
-            return _reportInvalidOverride(ownMember, superMember, '''
+            return failures.reportInvalidOverride(ownMember, superMember, '''
 ${ownType} is neither a subtype nor supertype of ${superType}
 ''');
           } else {
-            return _reportInvalidOverride(ownMember, superMember, '''
+            return failures.reportInvalidOverride(ownMember, superMember, '''
 ${ownType} is not a subtype of ${superType}
 ''');
           }
@@ -63,7 +84,7 @@ ${ownType} is not a subtype of ${superType}
         final DartType ownType = getterType(host, ownMember);
         final DartType superType = getterType(host, superMember);
         if (!environment.isSubtypeOf(ownType, superType)) {
-          return _reportInvalidOverride(ownMember, superMember, '''
+          return failures.reportInvalidOverride(ownMember, superMember, '''
 ${ownType} is not a subtype of ${superType}
 ''');
         }
@@ -71,30 +92,7 @@ ${ownType} is not a subtype of ${superType}
     } else {
       final msg = _checkFunctionOverride(host, ownMember, superMember);
       if (msg != null) {
-        return _reportInvalidOverride(ownMember, superMember, msg);
-      }
-    }
-  }
-
-  void _reportInvalidOverride(
-      Member ownMember, Member superMember, String message) {
-    fail(ownMember, '''
-Incompatible override of ${superMember} with ${ownMember}:
-
-    ${_realign(message, '    ')}''');
-  }
-
-  String _memberKind(Member m) {
-    if (m is Field) {
-      return 'field';
-    } else {
-      final p = m as Procedure;
-      if (p.isGetter) {
-        return 'getter';
-      } else if (p.isSetter) {
-        return 'setter';
-      } else {
-        return 'method';
+        return failures.reportInvalidOverride(ownMember, superMember, msg);
       }
     }
   }
@@ -159,7 +157,8 @@ Incompatible override of ${superMember} with ${ownMember}:
 
     if (!_isSubtypeOf(ownSubstitution.substituteType(ownFunction.returnType),
         superSubstitution.substituteType(superFunction.returnType))) {
-      return 'return type of override ${ownFunction.returnType} is not a subtype'
+      return 'return type of override ${ownFunction
+          .returnType} is not a subtype'
           ' of ${superFunction.returnType}';
     }
 
@@ -229,10 +228,7 @@ super method declares ${superParameter.type}
     if (from != to &&
         !environment.isSubtypeOf(from, to) &&
         !environment.isSubtypeOf(to, from)) {
-      fail(
-          where,
-          '${ansiBlue}${from}${ansiReset} ${ansiYellow}is not assignable to'
-          '${ansiReset} ${ansiBlue}${to}${ansiReset}');
+      failures.reportNotAssignable(where, from, to);
     }
   }
 
@@ -254,157 +250,6 @@ super method declares ${superParameter.type}
 
   @override
   void fail(TreeNode where, String message) {
-    fails++;
-
-    final context = _findEnclosingMember(where);
-    String sourceLocation = '<unknown source>';
-    String sourceLine = null;
-
-    // Try finding original source line.
-    final fileOffset = _findFileOffset(where);
-    if (fileOffset != TreeNode.noOffset) {
-      final fileUri = _fileUriOf(context);
-
-      final program = context.enclosingProgram;
-      final source = program.uriToSource[fileUri];
-      final location = program.getLocation(fileUri, fileOffset);
-      final lineStart = source.lineStarts[location.line - 1];
-      final lineEnd = (location.line < source.lineStarts.length)
-          ? source.lineStarts[location.line]
-          : (source.source.length - 1);
-      if (lineStart < source.source.length &&
-          lineEnd < source.source.length &&
-          lineStart < lineEnd) {
-        sourceLocation = '${fileUri}:${location.line}';
-        sourceLine = new String.fromCharCodes(
-            source.source.getRange(lineStart, lineEnd));
-      }
-    }
-
-    // Find the name of the enclosing member.
-    var name = "", body = context;
-    if (context is Procedure || context is Constructor) {
-      final parent = context.parent;
-      final parentName =
-          parent is Class ? parent.name : (parent as Library).name;
-      name = "${parentName}::${context.name.name}";
-      body = context;
-    } else {
-      final field = context as Field;
-      if (where is Field) {
-        name = "${field.parent}.${field.name}";
-      } else {
-        name = "field initializer for ${field.parent}.${field.name}";
-      }
-    }
-
-    print('''
------------------------------------------------------------------------
-In ${name} at ${sourceLocation}:
-
-    ${message.replaceAll('\n', '\n    ')}
-
-Kernel:
-|
-|   ${_realign(HighlightingPrinter.stringifyContainingLines(body, where))}
-|
-''');
-
-    if (sourceLine != null) {
-      print('''
-Source:
-|
-|   ${_realign(sourceLine)}
-|
-''');
-    }
-  }
-
-  static String _fileUriOf(Member context) {
-    if (context is Procedure) {
-      return context.fileUri;
-    } else if (context is Field) {
-      return context.fileUri;
-    } else {
-      final klass = context.enclosingClass;
-      if (klass != null) {
-        return klass.fileUri;
-      }
-      return context.enclosingLibrary.fileUri;
-    }
-  }
-
-  static String _realign(String str, [String prefix = '|   ']) =>
-      str.trimRight().replaceAll('\n', '\n${prefix}');
-
-  static int _findFileOffset(TreeNode context) {
-    while (context != null && context.fileOffset == TreeNode.noOffset) {
-      context = context.parent;
-    }
-
-    return context?.fileOffset ?? TreeNode.noOffset;
-  }
-
-  static Member _findEnclosingMember(TreeNode n) {
-    var context = n;
-    while (context is! Member) {
-      context = context.parent;
-    }
-    return context;
+    failures.reportFailure(where, message);
   }
 }
-
-/// Extension of a [Printer] that highlights the given node using ANSI
-/// escape sequences.
-class HighlightingPrinter extends Printer {
-  final highlight;
-
-  HighlightingPrinter(this.highlight)
-      : super(new StringBuffer(), syntheticNames: globalDebuggingNames);
-
-  @override
-  bool shouldHighlight(Node node) => highlight == node;
-
-  static const kHighlightStart = ansiRed;
-  static const kHighlightEnd = ansiReset;
-
-  @override
-  void startHighlight(Node node) {
-    sink.write(kHighlightStart);
-  }
-
-  @override
-  void endHighlight(Node node) {
-    sink.write(kHighlightEnd);
-  }
-
-  /// Stringify the given [node] but only return lines that contain string
-  /// representation of the [highlight] node.
-  static String stringifyContainingLines(Node node, Node highlight) {
-    if (node == highlight) {
-      assert(node is Member);
-      final firstLine = debugNodeToString(node).split('\n').first;
-      return "${kHighlightStart}${firstLine}${kHighlightEnd}";
-    }
-
-    final HighlightingPrinter p = new HighlightingPrinter(highlight);
-    p.writeNode(node);
-    final String text = p.sink.toString();
-    return _onlyHighlightedLines(text).join('\n');
-  }
-
-  static Iterable<String> _onlyHighlightedLines(String text) sync* {
-    for (var line
-        in text.split('\n').skipWhile((l) => !l.contains(kHighlightStart))) {
-      yield line;
-      if (line.contains(kHighlightEnd)) {
-        break;
-      }
-    }
-  }
-}
-
-const ansiBlue = "\u001b[1;34m";
-const ansiYellow = "\u001b[1;33m";
-const ansiRed = "\u001b[1;31m";
-const ansiReset = "\u001b[0;0m";
