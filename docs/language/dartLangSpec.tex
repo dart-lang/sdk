@@ -30,6 +30,7 @@
 % - Remove the, now unnecessary, handling of invalid overrides of noSuchMethod.
 % - Add >>> as overridable operator.
 % - If initializing formal has type annotation, require subtype of field.
+% - Constant `==` operations now also allowed if just one operand is null.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -2632,7 +2633,7 @@ A constant expression is one of the following:
 \item A simple or qualified identifier denoting a top-level function (\ref{functions}) or a static method (\ref{staticMethods}) that is not qualified by a deferred prefix.
 \item A parenthesized expression \code{($e$)} where $e$ is a constant expression.
 \item An expression of the form \code{identical($e_1$, $e_2$)} where $e_1$ and $e_2$ are constant expressions  and \code{identical()} is statically bound to the predefined dart function   \code{identical()} discussed above (\ref{objectIdentity}).
-\item An expression of one of the forms  \code{$e_1$ == $e_2$} or  \code{$e_1$ != $e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric, string or boolean value or to \NULL{}.
+\item An expression of one of the forms  \code{$e_1$ == $e_2$} or  \code{$e_1$ != $e_2$} where $e_1$ and $e_2$ are constant expressions, and either both evaluate to a numeric, string or boolean value, or at least one of $e_1$ or $e_2$ evaluates to \NULL{}.
 \item An expression of one of the forms \code{!$e$}, \code{$e_1$ \&\& $e_2$} or \code{$e_1 || e_2$}, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a boolean value.
 \item An expression of one of the forms \~{}$e$, $e_1$ \^{} $e_2$, \code{$e_1$ \& $e_2$}, $e_1 | e_2$, $e_1 << e_2$, $e_1 >> e_2$ or $e_1 >>> e_2$, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value or to \NULL{}.
 \item An expression of the form \code{$e_1 + e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to \NULL{}.
