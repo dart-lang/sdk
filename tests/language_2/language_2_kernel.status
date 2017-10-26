@@ -830,7 +830,6 @@ map_literal4_test/04: MissingCompileTimeError
 map_literal4_test/05: MissingCompileTimeError
 map_literal4_test/06: MissingCompileTimeError
 method_override_test: RuntimeError
-mixin_bound_test: DartkCrash
 named_parameters_default_eq_test/none: RuntimeError
 number_identifier_test/05: MissingCompileTimeError
 number_identifier_test/08: MissingCompileTimeError
