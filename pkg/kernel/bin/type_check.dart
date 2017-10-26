@@ -74,7 +74,7 @@ Incompatible override of ${superMember} with ${ownMember}:
       }
     }
 
-    failures.add('''
+    String failure = '''
 -----------------------------------------------------------------------
 In ${name} at ${sourceLocation}:
 
@@ -84,16 +84,17 @@ Kernel:
 |
 |   ${_realign(HighlightingPrinter.stringifyContainingLines(body, where))}
 |
-''');
+''';
 
     if (sourceLine != null) {
-      print('''
+      failure = '''$failure
 Source:
 |
 |   ${_realign(sourceLine)}
 |
-''');
+''';
     }
+    failures.add(failure);
   }
 
   static String _fileUriOf(Member context) {
