@@ -202,7 +202,6 @@ type Library {
   Byte flags (isExternal);
   CanonicalNameReference canonicalName;
   StringReference name;
-  StringReference documentationComment;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
   List<Expression> annotations;
@@ -279,7 +278,6 @@ type Class extends Node {
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
-  StringReference documentationComment;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
   Option<DartType> superClass;
@@ -308,7 +306,6 @@ type Field extends Member {
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
-  StringReference documentationComment;
   List<Expression> annotations;
   DartType type;
   Option<Expression> initializer;
@@ -321,7 +318,6 @@ type Constructor extends Member {
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
   Name name;
-  StringReference documentationComment;
   List<Expression> annotations;
   FunctionNode function;
   List<Initializer> initializers;
@@ -348,7 +344,6 @@ type Procedure extends Member {
   Name name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
-  StringReference documentationComment;
   List<Expression> annotations;
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;

@@ -241,6 +241,11 @@ ExpectedString:
   analyzerCode: EXPECTED_STRING_LITERAL
   dart2jsCode: "*fatal*"
 
+ExpectedToken:
+  template: "Expected to find '#string'."
+  analyzerCode: EXPECTED_TOKEN
+  dart2jsCode: GENERIC
+
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
   analyzerCode: EXPECTED_TYPE_NAME
@@ -561,7 +566,7 @@ UnmatchedToken:
     - "main(){[}"
 
 UnsupportedPrefixPlus:
-  template: "'+' is not a prefix operator. "
+  template: "'+' is not a prefix operator."
   tip: "Try removing '+'."
   dart2jsCode: UNSUPPORTED_PREFIX_PLUS
   script: "main() => +2;  // No longer a valid way to write '2'"
@@ -703,6 +708,12 @@ AssertExtraneousArgument:
   template: "`assert` can't have more than two arguments."
   dart2jsCode: "*fatal*"
 
+PositionalAfterNamedArgument:
+  template: "Place positional arguments before named arguments."
+  tip: "Try moving the positional argument before the named arguments, or add a name to the argument."
+  analyzerCode: POSITIONAL_AFTER_NAMED_ARGUMENT
+  dart2jsCode: "*ignored*"
+
 AssertAsExpression:
   template: "`assert` can't be used as an expression."
   dart2jsCode: "*fatal*"
@@ -793,6 +804,9 @@ CandidateFoundIsDefaultConstructor:
 AbstractClassInstantiation:
   template: "The class '#name' is abstract and can't be instantiated."
 
+AbstractRedirectedClassInstantiation:
+  template: "Factory redirects to class '#name', which is abstract and can't be instantiated."
+
 ListLiteralTooManyTypeArguments:
   template: "Too many type arguments on List literal."
 
@@ -807,14 +821,14 @@ NotAType:
   template: "'#name' isn't a type."
 
 FastaUsageShort:
-  template: >-
+  template: |
     Frequently used options:
 
       -o <file> Generate the output into <file>.
       -h        Display this message (add -v for information about all options).
 
 FastaUsageLong:
-  template: >-
+  template: |
     Supported options:
 
       -o <file>, --output=<file>
@@ -937,7 +951,9 @@ InternalProblemUriMissingScheme:
   template: "The URI '#uri' has no scheme."
 
 InternalVerificationError:
-  template: "Verification of the generated program failed: #string."
+  template: |
+    Verification of the generated program failed:
+    #string
 
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
@@ -1181,6 +1197,30 @@ TopLevelOperator:
     - "operator +(bool x, bool y) => x | y;"
     - "bool operator +(bool x, bool y) => x | y;"
     - "void operator +(bool x, bool y) => x | y;"
+
+MissingFunctionParameters:
+  template: "A function declaration needs an explicit list of parameters."
+  tip: "Try adding a parameter list to the function declaration."
+  analyzerCode: MISSING_FUNCTION_PARAMETERS
+  dart2jsCode: "*fatal*"
+  script:
+    - "void f {}"
+
+MissingMethodParameters:
+  template: "A method declaration needs an explicit list of parameters."
+  tip: "Try adding a parameter list to the method declaration."
+  analyzerCode: MISSING_METHOD_PARAMETERS
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { void m {} }"
+
+MissingTypedefParameters:
+  template: "A typedef needs an explicit list of parameters."
+  tip: "Try adding a parameter list to the typedef."
+  analyzerCode: MISSING_TYPEDEF_PARAMETERS
+  dart2jsCode: "*fatal*"
+  script:
+    - "typedef void F;"
 
 MissingPartOf:
   template: "Can't use '#uri' as a part, because it has no 'part of' declaration."

@@ -7,7 +7,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   set x(dynamic #synthetic) → void
-    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/property_set_bad_setter.dart:9:13: Error: A setter should have exactly one formal parameter.\n  void set x() {}\n            ^"));
+    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/property_set_bad_setter.dart:9:16: Error: A setter should have exactly one formal parameter.\n  void set x() {}\n               ^"));
 }
 static method f(self::A a) → void {
   dynamic x = a.x = 0;

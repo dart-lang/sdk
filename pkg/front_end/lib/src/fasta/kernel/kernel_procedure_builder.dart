@@ -222,7 +222,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   final ConstructorReferenceBuilder redirectionTarget;
 
   KernelProcedureBuilder(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -239,8 +238,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       : procedure = new ShadowProcedure(null, kind, null, returnType == null,
             fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..documentationComment = documentationComment,
+          ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
@@ -340,7 +338,6 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   RedirectingInitializer redirectingInitializer;
 
   KernelConstructorBuilder(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -354,8 +351,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       [String nativeMethodName])
       : constructor = new Constructor(null)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..documentationComment = documentationComment,
+          ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 

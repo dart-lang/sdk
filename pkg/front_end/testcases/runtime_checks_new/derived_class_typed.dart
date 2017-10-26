@@ -11,9 +11,9 @@ class B<T> {
   void h< /*@covariance=genericInterface, genericImpl*/ U extends T>() {}
 }
 
-class /*@forwardingStub=void f(covariance=(genericImpl) int x)*/
-/*@forwardingStub=void h<covariance=(genericImpl) U extends int>()*/
-/*@forwardingStub=void g({covariance=(genericImpl) int x})*/
+class /*@forwardingStub=abstract void f(covariance=(genericImpl) int x)*/
+/*@forwardingStub=abstract void h<covariance=(genericImpl) U extends int>()*/
+/*@forwardingStub=abstract void g({covariance=(genericImpl) int x})*/
     C extends B<int> {}
 
 void g1(B<num> b) {

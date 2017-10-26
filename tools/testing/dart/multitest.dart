@@ -312,6 +312,6 @@ Path createMultitestDirectory(String outputDir, Path suiteDir, Path sourceDir) {
       .append('generated_tests')
       .append(suiteNameFromPath(suiteDir))
       .join(relative);
-  TestUtils.mkdirRecursive(TestUtils.currentWorkingDirectory, path);
+  TestUtils.mkdirRecursive(Path.workingDirectory, path);
   return new Path(new File(path.toNativePath()).absolute.path);
 }

@@ -409,6 +409,61 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
             false);
 
   /**
+   * Initialize a newly created function type that is semantically the same as
+   * [original], but which has been syntactically renamed with fresh type
+   * parameters at its outer binding site (if any).
+   */
+  factory FunctionTypeImpl.fresh(FunctionType original) {
+    // We build up a substitution for the type parameters,
+    // {variablesFresh/variables} then apply it.
+
+    var originalFormals = original.typeFormals;
+    var formalCount = originalFormals.length;
+    if (formalCount == 0) return original;
+
+    // Allocate fresh type variables
+    var typeVars = <DartType>[];
+    var freshTypeVars = <DartType>[];
+    var freshVarElements = <TypeParameterElement>[];
+    for (int i = 0; i < formalCount; i++) {
+      var typeParamElement = originalFormals[i];
+      var freshElement =
+          new TypeParameterElementImpl.synthetic(typeParamElement.name);
+      var freshTypeVar = new TypeParameterTypeImpl(freshElement);
+      freshElement.type = freshTypeVar;
+
+      typeVars.add(typeParamElement.type);
+      freshTypeVars.add(freshTypeVar);
+      freshVarElements.add(freshElement);
+    }
+
+    // Simultaneous substitution to rename the bounds
+    for (int i = 0; i < formalCount; i++) {
+      var typeParamElement = originalFormals[i];
+      var bound = typeParamElement.bound;
+      if (bound != null) {
+        var freshElement = freshVarElements[i] as TypeParameterElementImpl;
+        freshElement.bound = bound.substitute2(freshTypeVars, typeVars);
+      }
+    }
+
+    // Instantiate the original type with the fresh type variables
+    // (replacing the old type variables)
+    var newType = original.instantiate(freshTypeVars);
+
+    // Build a synthetic element for the type, binding the fresh type parameters
+    var name = original.name ?? "";
+    var element = original.element;
+    var function = new FunctionElementImpl(name, -1);
+    function.enclosingElement = element.enclosingElement;
+    function.isSynthetic = true;
+    function.returnType = newType.returnType;
+    function.typeParameters = freshVarElements;
+    function.shareParameters(newType.parameters);
+    return function.type = new FunctionTypeImpl(function);
+  }
+
+  /**
    * Private constructor.
    */
   FunctionTypeImpl._(
@@ -607,7 +662,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         specializedParams[i] = new FieldFormalParameterMember(parameter, this);
         continue;
       }
-
       var baseType = parameter.type as TypeImpl;
       TypeImpl type;
       if (typeArguments.isEmpty ||
@@ -939,10 +993,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   FunctionType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
-    // Pruned types should only ever result from performing type variable
-    // substitution, and it doesn't make sense to substitute again after
-    // substituting once.
-    assert(this.prunedTypedefs == null);
     if (argumentTypes.length != parameterTypes.length) {
       throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
@@ -1048,14 +1098,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // instantiated type arguments, that way we wouldn't need to recover them.
     //
     // For now though, this is a pretty quick operation.
-    assert(identical(g.element, f.element));
     if (g.typeFormals.isEmpty) {
       assert(g == f);
       return DartType.EMPTY_LIST;
     }
     assert(f.typeFormals.isEmpty);
-    assert(g.typeFormals.length + g.typeArguments.length ==
-        f.typeArguments.length);
+    assert(g.typeFormals.length <= f.typeArguments.length);
 
     // Instantiation in Analyzer works like this:
     // Given:
@@ -1068,7 +1116,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     //
     // Therefore, we can recover the typeArguments from our instantiated
     // function.
-    return f.typeArguments.skip(g.typeArguments.length);
+    return f.typeArguments.skip(f.typeArguments.length - g.typeFormals.length);
   }
 
   /**

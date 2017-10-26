@@ -598,9 +598,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
-    listener?.endFormalParameter(thisKeyword, nameToken, kind, memberKind);
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+    listener?.endFormalParameter(
+        thisKeyword, periodAfterThis, nameToken, kind, memberKind);
   }
 
   @override
@@ -786,10 +787,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
-      int statementCount, Token firstToken, Token endToken) {
+  void endSwitchCase(
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      Token colonAfterDefault,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
     listener?.endSwitchCase(labelCount, expressionCount, defaultKeyword,
-        statementCount, firstToken, endToken);
+        colonAfterDefault, statementCount, firstToken, endToken);
   }
 
   @override
@@ -1006,6 +1013,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleInvalidMember(Token endToken) {
+    listener?.handleInvalidMember(endToken);
+  }
+
+  @override
   void handleInvalidTypeReference(Token token) {
     listener?.handleInvalidTypeReference(token);
   }
@@ -1188,8 +1200,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, Message message) {
-    listener?.handleRecoverableError(token, message);
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    listener?.handleRecoverableError(message, startToken, endToken);
   }
 
   @override

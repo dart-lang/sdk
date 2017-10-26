@@ -19,7 +19,7 @@ import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart' hide Source;
+import 'package:kernel/kernel.dart';
 import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:meta/meta.dart';
@@ -65,7 +65,7 @@ class KernelDriver {
   final ByteStore _byteStore;
 
   /// The object that knows how to resolve "package:" and "dart:" URIs.
-  final UriTranslator _uriTranslator;
+  final UriTranslator uriTranslator;
 
   /// The function that is invoked when a new file is about to be added to
   /// the current file state. The [Future] that it returns is awaited before
@@ -92,7 +92,7 @@ class KernelDriver {
   /// The object that provides additional information for tests.
   final _TestView _testView = new _TestView();
 
-  KernelDriver(this._options, this._uriTranslator,
+  KernelDriver(this._options, this.uriTranslator,
       {List<int> sdkOutlineBytes,
       KernelDriverFileAddedFn fileAddedFn,
       MetadataFactory metadataFactory})
@@ -112,7 +112,7 @@ class KernelDriver {
     }
 
     _fsState = new FileSystemState(_byteStore, _fileSystem, _options.target,
-        _uriTranslator, _salt, onFileAdded);
+        uriTranslator, _salt, onFileAdded);
   }
 
   /// Return the [FileSystemState] that contains the current file state.
@@ -156,7 +156,7 @@ class KernelDriver {
       });
 
       DillTarget dillTarget = new DillTarget(
-          new Ticker(isVerbose: false), _uriTranslator, _options.target);
+          new Ticker(isVerbose: false), uriTranslator, _options.target);
 
       // If there is SDK outline, load it.
       if (_sdkOutline != null) {
@@ -263,13 +263,14 @@ class KernelDriver {
 
           await appendNewDillLibraries(program);
 
-          return new LibraryCycleResult(cycle, signature, program.libraries);
+          return new LibraryCycleResult(
+              cycle, signature, program.uriToSource, program.libraries);
         });
       }
 
       // Create KernelTarget and configure it for compiling the cycle URIs.
       KernelTarget kernelTarget = new KernelTarget(
-          _fsState.fileSystemView, true, dillTarget, _uriTranslator,
+          _fsState.fileSystemView, true, dillTarget, uriTranslator,
           metadataCollector: _metadataFactory?.newCollector());
       for (FileState library in cycle.libraries) {
         kernelTarget.read(library.uri);
@@ -308,7 +309,8 @@ class KernelDriver {
         _logger.writeln('Stored ${bytes.length} bytes.');
       });
 
-      return new LibraryCycleResult(cycle, signature, kernelLibraries);
+      return new LibraryCycleResult(
+          cycle, signature, program.uriToSource, kernelLibraries);
     });
   }
 
@@ -416,11 +418,15 @@ class LibraryCycleResult {
   /// application).
   final String signature;
 
+  /// Map from the [cycle] file URIs to their [Source]s.
+  final Map<String, Source> uriToSource;
+
   /// Kernel libraries for libraries in the [cycle].  Bodies of dependencies
   /// are not included, but but references to those dependencies are included.
   final List<Library> kernelLibraries;
 
-  LibraryCycleResult(this.cycle, this.signature, this.kernelLibraries);
+  LibraryCycleResult(
+      this.cycle, this.signature, this.uriToSource, this.kernelLibraries);
 }
 
 /// Factory for creating [MetadataCollector]s and [MetadataRepository]s.

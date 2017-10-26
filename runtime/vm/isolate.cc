@@ -179,6 +179,27 @@ void Isolate::ValidateClassTable() {
   class_table()->Validate();
 }
 
+void Isolate::RehashConstants() {
+  StackZone stack_zone(Thread::Current());
+  Zone* zone = stack_zone.GetZone();
+
+  Class& cls = Class::Handle(zone);
+  intptr_t top = class_table()->NumCids();
+  for (intptr_t cid = kInstanceCid; cid < top; cid++) {
+    if (!class_table()->IsValidIndex(cid) ||
+        !class_table()->HasValidClassAt(cid)) {
+      continue;
+    }
+    if ((cid == kTypeArgumentsCid) || RawObject::IsStringClassId(cid)) {
+      // TypeArguments and Symbols have special tables for canonical objects
+      // that aren't based on address.
+      continue;
+    }
+    cls = class_table()->At(cid);
+    cls.RehashConstants(zone);
+  }
+}
+
 void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   const Array& msg = Array::Handle(Array::New(3));
   Object& element = Object::Handle();
@@ -645,6 +666,13 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
 
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
+  if (FLAG_trace_isolates) {
+    OS::Print(
+        "[!] Unhandled exception in %s:\n"
+        "         exception: %s\n",
+        T->isolate()->name(), result.ToErrorCString());
+  }
+
   NoReloadScope no_reload_scope(T->isolate(), T);
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());

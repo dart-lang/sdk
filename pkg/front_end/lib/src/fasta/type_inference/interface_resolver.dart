@@ -58,7 +58,7 @@ class AccessorInferenceNode extends MemberInferenceNode {
     var overriddenTypes = <DartType>[];
     for (int i = _start; i < _end; i++) {
       var candidate = _candidates[i];
-      Member resolvedCandidate;
+      Procedure resolvedCandidate;
       if (candidate is ForwardingNode) {
         resolvedCandidate = candidate.resolve();
       } else {
@@ -69,8 +69,7 @@ class AccessorInferenceNode extends MemberInferenceNode {
         var field = resolvedCandidate._field;
         ShadowMember.resolveInferenceNode(field);
         overriddenType = field.type;
-      } else if (resolvedCandidate.function != null &&
-          resolvedCandidate is Procedure) {
+      } else if (resolvedCandidate.function != null) {
         switch (resolvedCandidate.kind) {
           case ProcedureKind.Getter:
             overriddenType = resolvedCandidate.function.returnType;
@@ -143,12 +142,12 @@ class ForwardingNode extends Procedure {
 
   /// Finishes handling of this node by propagating covariance and creating
   /// forwarding stubs if necessary.
-  Member finalize() => _finalResolution ??= _finalize();
+  Procedure finalize() => _finalResolution ??= _finalize();
 
   /// Returns the declared or inherited member this node resolves to.
   ///
   /// Does not create forwarding stubs.
-  Member resolve() => _resolution ??= _resolve();
+  Procedure resolve() => _resolution ??= _resolve();
 
   /// Determines which covariance fixes need to be applied to the given
   /// [interfaceMember].
@@ -208,14 +207,16 @@ class ForwardingNode extends Procedure {
       var isGenericCovariantImpl =
           isGenericCovariantInterface || parameter.isGenericCovariantImpl;
       var isCovariant = parameter.isCovariant;
+      var superParameter = parameter;
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
-        if (identical(otherMember, interfaceMember)) continue;
         if (otherMember is ForwardingNode) continue;
         var otherPositionalParameters =
             otherMember.function.positionalParameters;
         if (otherPositionalParameters.length <= i) continue;
         var otherParameter = otherPositionalParameters[i];
+        if (j == _start) superParameter = otherParameter;
+        if (identical(otherMember, interfaceMember)) continue;
         if (otherParameter.isGenericCovariantImpl) {
           isGenericCovariantImpl = true;
         }
@@ -223,13 +224,17 @@ class ForwardingNode extends Procedure {
           isCovariant = true;
         }
       }
-      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
+      if (isGenericCovariantImpl != superParameter.isGenericCovariantImpl) {
         createImplIfNeeded();
+      }
+      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
         fixes.add((FunctionNode function) => function.positionalParameters[i]
             .isGenericCovariantImpl = isGenericCovariantImpl);
       }
-      if (isCovariant != parameter.isCovariant) {
+      if (isCovariant != superParameter.isCovariant) {
         createImplIfNeeded();
+      }
+      if (isCovariant != parameter.isCovariant) {
         fixes.add((FunctionNode function) =>
             function.positionalParameters[i].isCovariant = isCovariant);
       }
@@ -245,13 +250,15 @@ class ForwardingNode extends Procedure {
       var isGenericCovariantImpl =
           isGenericCovariantInterface || parameter.isGenericCovariantImpl;
       var isCovariant = parameter.isCovariant;
+      var superParameter = parameter;
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
-        if (identical(otherMember, interfaceMember)) continue;
         if (otherMember is ForwardingNode) continue;
         var otherParameter =
             getNamedFormal(otherMember.function, parameter.name);
         if (otherParameter == null) continue;
+        if (j == _start) superParameter = otherParameter;
+        if (identical(otherMember, interfaceMember)) continue;
         if (otherParameter.isGenericCovariantImpl) {
           isGenericCovariantImpl = true;
         }
@@ -259,13 +266,17 @@ class ForwardingNode extends Procedure {
           isCovariant = true;
         }
       }
-      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
+      if (isGenericCovariantImpl != superParameter.isGenericCovariantImpl) {
         createImplIfNeeded();
+      }
+      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
         fixes.add((FunctionNode function) => function.namedParameters[i]
             .isGenericCovariantImpl = isGenericCovariantImpl);
       }
-      if (isCovariant != parameter.isCovariant) {
+      if (isCovariant != superParameter.isCovariant) {
         createImplIfNeeded();
+      }
+      if (isCovariant != parameter.isCovariant) {
         fixes.add((FunctionNode function) =>
             function.namedParameters[i].isCovariant = isCovariant);
       }
@@ -280,19 +291,23 @@ class ForwardingNode extends Procedure {
       }
       var isGenericCovariantImpl =
           isGenericCovariantInterface || typeParameter.isGenericCovariantImpl;
+      var superTypeParameter = typeParameter;
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
-        if (identical(otherMember, interfaceMember)) continue;
         if (otherMember is ForwardingNode) continue;
         var otherTypeParameters = otherMember.function.typeParameters;
         if (otherTypeParameters.length <= i) continue;
         var otherTypeParameter = otherTypeParameters[i];
+        if (j == _start) superTypeParameter = otherTypeParameter;
+        if (identical(otherMember, interfaceMember)) continue;
         if (otherTypeParameter.isGenericCovariantImpl) {
           isGenericCovariantImpl = true;
         }
       }
-      if (isGenericCovariantImpl != typeParameter.isGenericCovariantImpl) {
+      if (isGenericCovariantImpl != superTypeParameter.isGenericCovariantImpl) {
         createImplIfNeeded();
+      }
+      if (isGenericCovariantImpl != typeParameter.isGenericCovariantImpl) {
         fixes.add((FunctionNode function) => function
             .typeParameters[i].isGenericCovariantImpl = isGenericCovariantImpl);
       }
@@ -421,7 +436,7 @@ class ForwardingNode extends Procedure {
 
   /// Creates a forwarding stubs for this node if necessary, and propagates
   /// covariance information.
-  Member _finalize() {
+  Procedure _finalize() {
     var inheritedMember = resolve();
     var inheritedMemberSubstitution =
         _interfaceResolver._substitutionFor(inheritedMember, enclosingClass);
@@ -455,8 +470,8 @@ class ForwardingNode extends Procedure {
   }
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
-  Member _finalizedCandidate(int i) {
-    var candidate = _candidates[i];
+  Procedure _finalizedCandidate(int i) {
+    Procedure candidate = _candidates[i];
     return candidate is ForwardingNode &&
             _interfaceResolver.isTypeInferencePrepared
         ? candidate.finalize()
@@ -473,7 +488,11 @@ class ForwardingNode extends Procedure {
   String _printProcedure(Procedure procedure, [Class class_]) {
     class_ ??= procedure.enclosingClass;
     var buffer = new StringBuffer();
-    procedure.accept(new Printer(buffer));
+    if (procedure.function == null) {
+      buffer.write(procedure.toString());
+    } else {
+      procedure.accept(new Printer(buffer));
+    }
     var text = buffer.toString();
     var newlineIndex = text.indexOf('\n');
     if (newlineIndex != -1) {
@@ -484,8 +503,8 @@ class ForwardingNode extends Procedure {
 
   /// Determines which inherited member this node resolves to, and also performs
   /// type inference.
-  Member _resolve() {
-    var inheritedMember = _candidates[_start];
+  Procedure _resolve() {
+    Procedure inheritedMember = _candidates[_start];
     bool isDeclaredInThisClass =
         identical(inheritedMember.enclosingClass, enclosingClass);
     if (isDeclaredInThisClass) {
@@ -550,8 +569,8 @@ class ForwardingNode extends Procedure {
   }
 
   /// Returns the [i]th element of [_candidates], resolving it if necessary.
-  Member _resolvedCandidate(int i) {
-    var candidate = _candidates[i];
+  Procedure _resolvedCandidate(int i) {
+    Procedure candidate = _candidates[i];
     return candidate is ForwardingNode &&
             _interfaceResolver.isTypeInferencePrepared
         ? candidate.resolve()
@@ -721,14 +740,7 @@ class InterfaceResolver {
       if (resolution is Procedure &&
           resolution.isForwardingStub &&
           identical(resolution.enclosingClass, class_)) {
-        if (strongMode) {
-          // Note: dartbug.com/30965 prevents us from adding forwarding stubs to
-          // mixin applications, so we skip for now.
-          // TODO(paulberry): get rid of this if-test after the bug is fixed.
-          if (class_.mixedInType == null) {
-            class_.addMember(resolution);
-          }
-        }
+        if (strongMode) class_.addMember(resolution);
         _instrumentation?.record(
             Uri.parse(class_.location.file),
             class_.fileOffset,
@@ -887,6 +899,13 @@ class InterfaceResolver {
       }
     }
 
+    void recordContravariance(int fileOffset, bool isGenericContravariant) {
+      if (isGenericContravariant) {
+        _instrumentation.record(uri, fileOffset, 'genericContravariant',
+            new InstrumentationValueLiteral('true'));
+      }
+    }
+
     for (var procedure in class_.procedures) {
       if (procedure.isStatic) continue;
       // Forwarding stubs are annotated separately
@@ -907,11 +926,14 @@ class InterfaceResolver {
       procedure.function.positionalParameters.forEach(recordFormalAnnotations);
       procedure.function.namedParameters.forEach(recordFormalAnnotations);
       procedure.function.typeParameters.forEach(recordTypeParameterAnnotations);
+      recordContravariance(
+          procedure.fileOffset, procedure.isGenericContravariant);
     }
     for (var field in class_.fields) {
       if (field.isStatic) continue;
       recordCovariance(field.fileOffset, field.isCovariant,
           field.isGenericCovariantInterface, field.isGenericCovariantImpl);
+      recordContravariance(field.fileOffset, field.isGenericContravariant);
     }
   }
 

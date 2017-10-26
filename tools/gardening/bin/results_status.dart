@@ -3,123 +3,217 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:gardening/src/cache_new.dart';
+import 'package:gardening/src/extended_printer.dart';
+import 'package:gardening/src/logger.dart';
 import 'package:gardening/src/luci.dart';
+import 'package:gardening/src/luci_api.dart';
+import 'package:gardening/src/results/configuration_environment.dart';
 import 'package:gardening/src/results/result_models.dart' as models;
+import 'package:gardening/src/results/status_files.dart';
+import 'package:gardening/src/results/test_result_service.dart';
+import 'package:gardening/src/results/testpy_wrapper.dart';
+import 'package:gardening/src/results/util.dart';
+import 'package:gardening/src/util.dart';
 import 'package:gardening/src/workflow/workflow.dart';
 
-/// Class [StatusCommand] handles the 'status' subcommand and updates status
-/// files.
+import 'results_status_workflow.dart';
+
+/// Class [StatusCommand] handles the 'status' subcommand and provides
+/// sub-commands for interacting with status files.
 class StatusCommand extends Command {
+  @override
+  String get description => "Tools for checking and updating status files.";
+
+  @override
+  String get name => "status";
+
+  StatusCommand() {
+    addSubcommand(new CheckStatusCommand());
+    addSubcommand(new UpdateStatusCommand());
+  }
+}
+
+/// Class [CheckStatusCommand] checks a suite of status files for overlapping
+/// sections.
+class CheckStatusCommand extends Command {
+  String usage = "Usage: check <suite> or check <suite> <test>";
+
+  @override
+  String get description => "Checks a suite of status files for duplicate "
+      "entries. $usage";
+
+  @override
+  String get name => "check";
+
+  CheckStatusCommand() {
+    argParser.addFlag("print-test",
+        negatable: false, help: "Print entries in status files for each test");
+  }
+
+  Future run() async {
+    if (argResults.rest.length == 0 || argResults.rest.length > 2) {
+      print("Incorrect number of arguments.\n$usage");
+      return;
+    }
+
+    var suite = argResults.rest.first;
+    bool specificTest = argResults.rest.length == 2;
+
+    String testArg = specificTest ? "$suite/${argResults.rest.last}" : suite;
+
+    Map<String, Iterable<String>> statusFilesMap =
+        await statusFileListerMapFromArgs([testArg]);
+
+    var statusFilePaths = statusFilesMap[suite].map((file) {
+      return "${PathHelper.sdkRepositoryRoot()}/$file";
+    }).where((sf) {
+      return new File(sf).existsSync();
+    }).toList();
+
+    print("We need to download all latest configurations. "
+        "This may take some time...");
+
+    Logger logger = createLogger();
+    CreateCacheFunction createCache = createCacheFunction(logger);
+    WithCacheFunction dayCache = createCache(duration: new Duration(days: 1));
+
+    var luciApi = new LuciApi();
+    var primaryBuilders =
+        await getPrimaryBuilders(luciApi, DART_CLIENT, dayCache);
+    var testResultService = new TestResultService(logger, createCache);
+
+    StatusFiles statusFilesWrapper = StatusFiles.read(statusFilePaths);
+
+    List<models.TestResult> testResults =
+        await waitWithThrottle(primaryBuilders, 20, (builder) {
+      return testResultService.latestForBuilder(BUILDER_PROJECT, builder);
+    });
+
+    var allResults = testResults.fold<models.TestResult>(
+        new models.TestResult(),
+        (sum, testResult) => sum..combineWith([testResult]));
+
+    var activeConfigurations = await futureWhere(
+        allResults.configurations.values, (configuration) async {
+      // Check that this configuration is using the suite from arguments.
+      var confStatusFiles = await statusFileListerMap(configuration);
+      return statusFilesMap.keys
+          .any((testSuite) => confStatusFiles.containsKey(testSuite));
+    });
+
+    if (!specificTest) {
+      // Get all tests from test.py and check every one.
+      var suiteTests = await testsForSuite(suite);
+      _checkTests(
+          activeConfigurations,
+          suiteTests.map((test) => getQualifiedNameForTest(test)),
+          statusFilesWrapper);
+    } else {
+      _checkTests(
+          activeConfigurations, [argResults.rest.last], statusFilesWrapper);
+    }
+  }
+
+  void _checkTests(Iterable<models.Configuration> configurations,
+      Iterable<String> tests, StatusFiles statusFiles) {
+    int configurationLength = configurations.length;
+    int configurationCounter = 1;
+    var printer = new ExtendedPrinter();
+    for (var configuration in configurations) {
+      printer.preceding = "";
+      var conf = configuration
+          .toArgs(includeSelectors: false)
+          .map((arg) => arg.replaceAll("--", ""));
+      printer.println("");
+      printer.printLinePattern("=");
+      printer.println("Configuration $configurationCounter of "
+          "$configurationLength: ${conf.join(', ')}");
+      printer.printLinePattern("=");
+      printer.println("");
+      ConfigurationEnvironment environment =
+          new ConfigurationEnvironment(configuration);
+      Map<String, Iterable<StatusSectionEntry>> results = {};
+      for (var test in tests) {
+        Iterable<StatusSectionEntry> result =
+            statusFiles.sectionsWithTestForConfiguration(environment, test);
+        if (result.length > 1) {
+          results.putIfAbsent(test, () => result);
+        }
+      }
+      if (results.length > 0) {
+        if (argResults["print-test"]) {
+          printOverlappingSectionsForTest(printer, results);
+        } else {
+          printOverlappingSectionsForTestsGrouped(printer, results);
+        }
+      } else {
+        printer.println("No overlapping status sections.");
+      }
+      configurationCounter++;
+    }
+  }
+
+  void printOverlappingSectionsForTest(ExtendedPrinter printer,
+      Map<String, Iterable<StatusSectionEntry>> testSectionEntries) {
+    for (var test in testSectionEntries.keys) {
+      printer.println(test);
+      printer.printLinePattern("*");
+      printer.printIterable(testSectionEntries[test],
+          (StatusSectionEntry entry) {
+        return "${entry.section.lineNumber}: [ ${entry.section.condition} ] \n"
+            "\t${entry.entry.lineNumber}: ${entry.entry.path}: ${entry.entry.expectations}";
+      }, header: (StatusSectionEntry entry) {
+        return entry.statusFile.path;
+      }, itemPreceding: "\t");
+    }
+  }
+
+  void printOverlappingSectionsForTestsGrouped(ExtendedPrinter printer,
+      Map<String, Iterable<StatusSectionEntry>> testSectionEntries) {
+    Iterable<StatusSectionEntry> expandedResult =
+        testSectionEntries.values.expand((id) => id);
+    var allFiles = expandedResult.map((result) => result.statusFile).toSet();
+    for (var file in allFiles) {
+      printer.preceding = "";
+      printer.println(file.path);
+      var all = expandedResult.where((x) => x.statusFile == file).toList();
+      all.sort((a, b) => a.entry.lineNumber.compareTo(b.entry.lineNumber));
+      var sections = all.map((entry) => entry.section).toSet();
+      for (var section in sections) {
+        printer.preceding = "\t";
+        printer.println("${section.lineNumber}: [ ${section.condition} ]");
+        var entries = all
+            .where((entry) => entry.section == section)
+            .map((entry) => entry.entry)
+            .toSet();
+        printer.preceding = "\t\t";
+        for (var entry in entries) {
+          printer.println("${entry.lineNumber}: "
+              "${entry.path}: "
+              "${entry.expectations}");
+        }
+        printer.println("");
+      }
+    }
+  }
+}
+
+/// Class [UpdateStatusCommand] handles the 'status update' subcommand and
+/// updates status files.
+class UpdateStatusCommand extends Command {
   @override
   String get description => "Update status files, from failure data and "
       "existing status entries.";
 
   @override
-  String get name => "status";
+  String get name => "update";
 
   Future run() async {
     var workflow = new Workflow();
     return workflow.start(new AskForLogs());
-  }
-}
-
-Future<models.TestResult> getTestResults(String input) {
-  return new Future.value(new models.TestResult());
-}
-
-class AskForLogs extends WorkflowStep {
-  List<Future<models.TestResult>> futureTestResults = new List<Future>();
-
-  @override
-  Future<WorkflowAction> input(String input) {
-    // No input entered.
-    if (input == null || input.isEmpty && futureTestResults.length == 0) {
-      print("ERROR: Needs to add at least one result log.");
-      return new Future.value(new WaitForInputWorkflowAction());
-    }
-    // Navigate to next step.
-    if (input == null || input.isEmpty) {
-      return new Future.value(new NavigateStepWorkflowAction(
-          new ComputeStep(),
-          new ComputeStepPayload(Future.wait(futureTestResults),
-              "The tool is fetching result logs...", new PresentFailures())));
-    }
-
-    // Otherwise, add fetch results via future and return input to the user.
-    var newFutureTestResult = getTestResults(input);
-    if (newFutureTestResult == null) {
-      print("ERROR: The input '$input' is invalid.");
-    } else {
-      print("The tool is acquiring the logs from the input. Add another log or "
-          "<Enter> to continue.");
-      futureTestResults.add(newFutureTestResult);
-    }
-    return new Future.value(new WaitForInputWorkflowAction());
-  }
-
-  @override
-  Future<bool> onLeave() {
-    return new Future.value(false);
-  }
-
-  @override
-  Future<WorkflowAction> onShow(payload) async {
-    // This is the first step, so payload is disregarded.
-    if (futureTestResults.length == 0) {
-      askForInputFirstTime();
-      // prefetch builders
-    } else {
-      askForInputOtherTimes();
-    }
-    return new WaitForInputWorkflowAction();
-  }
-
-  void askForInputFirstTime() {
-    print("The tool needs to lookup tests and their expectations to make "
-        "suggestions. The more data-points the tool can find, the better it "
-        "can report on potential changes to status files.");
-    print("You can add test results by the following commands:");
-    print("\t<uri>                   : Either a relative file path, url to a "
-        "try builder or url to result log.");
-    print("\t<builder-group>         : The builder-group name.");
-    print("\t<builder-name>          : Name of the builder.");
-    print("\t<builder-name> <number> : Name and build number for a builder.");
-    print("\tall <commit>            : All bots for a commit (slow)");
-    print("\t<number> <patchset>     : The commit number and patchset "
-        "for a CL.");
-    print("");
-    print("Input one of the above commands to add a log:");
-  }
-
-  void askForInputOtherTimes() {
-    print("Add additional logs or write <Enter> to continue.");
-  }
-}
-
-class PresentFailures extends WorkflowStep<List<models.TestResult>> {
-  @override
-  Future<WorkflowAction> input(String input) {
-    if (input == "back") {
-      return new Future.value(new BackWorkflowAction());
-    }
-    return new Future.value(null);
-  }
-
-  @override
-  Future<bool> onLeave() {
-    return new Future.value(false);
-  }
-
-  @override
-  Future<WorkflowAction> onShow(List<models.TestResult> payload) {
-    print("The tool has observed that the following tests have failed. The "
-        "tests are grouped by their resulting expectation and all failing "
-        "configurations are shown below.");
-    print("If you would like to go back and add more result logs, type the "
-        "'back' command.");
-    print(payload.length);
-    return new Future.value(new WaitForInputWorkflowAction());
   }
 }

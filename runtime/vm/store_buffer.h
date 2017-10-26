@@ -14,6 +14,7 @@ namespace dart {
 class Isolate;
 class Mutex;
 class RawObject;
+class ObjectPointerVisitor;
 
 // A set of RawObject*. Must be emptied before destruction (using Pop/Reset).
 template <int Size>
@@ -57,6 +58,8 @@ class PointerBlock {
   static intptr_t pointers_offset() {
     return OFFSET_OF(PointerBlock<Size>, pointers_);
   }
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
   PointerBlock() : next_(NULL), top_(0) {}
@@ -112,6 +115,7 @@ class BlockStack {
     intptr_t length() const { return length_; }
     bool IsEmpty() const { return head_ == NULL; }
     Block* PopAll();
+    Block* Peek() { return head_; }
 
    private:
     Block* head_;
@@ -154,6 +158,8 @@ class StoreBuffer : public BlockStack<kStoreBufferBlockSize> {
   // Check whether non-empty blocks have exceeded kMaxNonEmpty (but takes no
   // action).
   bool Overflowed();
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
 };
 
 typedef StoreBuffer::Block StoreBufferBlock;

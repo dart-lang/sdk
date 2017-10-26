@@ -270,10 +270,6 @@ class Library extends NamedNode implements Comparable<Library> {
   /// and all members are loaded.
   bool isExternal;
 
-  /// Documentation comment of the library, or `null`.
-  @informative
-  String documentationComment;
-
   String name;
 
   @nocoq
@@ -666,10 +662,6 @@ class Class extends NamedNode {
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
 
-  /// Documentation comment of the class, or `null`.
-  @informative
-  String documentationComment;
-
   /// List of metadata annotations on the class.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
@@ -731,7 +723,7 @@ class Class extends NamedNode {
 
   /// Procedures declared in the class.
   ///
-  /// For mixin applications this should be empty.
+  /// For mixin applications this should only contain forwarding stubs.
   final List<Procedure> procedures;
 
   Class(
@@ -913,10 +905,6 @@ abstract class Member extends NamedNode {
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
-
-  /// Documentation comment of the member, or `null`.
-  @informative
-  String documentationComment;
 
   /// List of metadata annotations on the member.
   ///
@@ -1294,42 +1282,12 @@ class Procedure extends Member {
   int flags = 0;
   // function is null if and only if abstract, external,
   // or builder (below) is set.
-  FunctionNode _function;
-
-  void Function() lazyBuilder;
-
-  void _buildLazy() {
-    if (lazyBuilder != null) {
-      var lazyBuilderLocal = lazyBuilder;
-      lazyBuilder = null;
-      lazyBuilderLocal();
-    }
-  }
-
-  void set transformerFlags(int flags) {
-    _buildLazy();
-    super.transformerFlags = flags;
-  }
-
-  int get transformerFlags {
-    _buildLazy();
-    return super.transformerFlags;
-  }
-
-  void set function(FunctionNode function) {
-    _buildLazy();
-    _function = function;
-  }
-
-  FunctionNode get function {
-    _buildLazy();
-    return _function;
-  }
+  FunctionNode function;
 
   /// The uri of the source file this procedure was loaded from.
   String fileUri;
 
-  Procedure(Name name, this.kind, this._function,
+  Procedure(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -1659,9 +1617,29 @@ class FunctionNode extends TreeNode {
   @nocoq
   List<VariableDeclaration> namedParameters;
   DartType returnType; // Not null.
-  Statement body;
+  Statement _body;
 
-  FunctionNode(this.body,
+  void Function() lazyBuilder;
+
+  void _buildLazy() {
+    if (lazyBuilder != null) {
+      var lazyBuilderLocal = lazyBuilder;
+      lazyBuilder = null;
+      lazyBuilderLocal();
+    }
+  }
+
+  Statement get body {
+    _buildLazy();
+    return _body;
+  }
+
+  void set body(Statement body) {
+    _buildLazy();
+    _body = body;
+  }
+
+  FunctionNode(this._body,
       {List<TypeParameter> typeParameters,
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
@@ -1679,7 +1657,7 @@ class FunctionNode extends TreeNode {
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
-    body?.parent = this;
+    _body?.parent = this;
     dartAsyncMarker ??= asyncMarker;
   }
 

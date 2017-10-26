@@ -19,11 +19,14 @@ class DietParser extends ClassMemberParser {
     return skipFormals(token, kind);
   }
 
+  // TODO(brianwilkerson) Move this method to Parser, and, if possible, merge it
+  // with skipFormalParameters.
   Token skipFormals(Token token, MemberKind kind) {
     listener.beginOptionalFormalParameters(token);
     if (!optional('(', token)) {
       if (optional(';', token)) {
         reportRecoverableError(token, messageExpectedOpenParens);
+        listener.endFormalParameters(0, token, token, kind);
         return token;
       }
       return reportUnexpectedToken(token).next;

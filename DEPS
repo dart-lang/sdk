@@ -79,7 +79,7 @@ vars = {
 
   "dartdoc_tag" : "@v0.14.1",
   "fixnum_tag": "@0.10.5",
-  "func_tag": "@1.0.0",
+  "func_rev": "@25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "@1.1.5",
   "html_tag" : "@0.13.2",
   "http_multi_server_tag" : "@2.0.4",
@@ -91,7 +91,7 @@ vars = {
   "isolate_tag": "@1.1.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.4",
-  "linter_tag": "@0.1.35",
+  "linter_tag": "@0.1.37",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@0.11.4",
   "matcher_tag": "@0.12.1+4",
@@ -215,7 +215,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("github_mirror") + "fixnum.git" + Var("fixnum_tag"),
   Var("dart_root") + "/third_party/pkg/func":
-      Var("github_mirror") + "func.git" + Var("func_tag"),
+      Var("github_mirror") + "func.git" + Var("func_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       Var("github_mirror") + "glob.git" + Var("glob_tag"),
   Var("dart_root") + "/third_party/pkg/html":

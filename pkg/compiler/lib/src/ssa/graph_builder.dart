@@ -244,14 +244,6 @@ abstract class GraphBuilder {
   /// The returned element is a declaration element.
   MemberEntity get sourceElement;
 
-  // TODO(karlklose): this is needed to avoid a bug where the resolved type is
-  // not stored on a type annotation in the closure translator. Remove when
-  // fixed.
-  bool hasDirectLocal(Local local) {
-    return !localsHandler.isAccessedDirectly(local) ||
-        localsHandler.directLocals[local] != null;
-  }
-
   HLiteralList buildLiteralList(List<HInstruction> inputs) {
     return new HLiteralList(inputs, commonMasks.extendableArrayType);
   }

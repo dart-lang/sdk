@@ -10,6 +10,7 @@
 #include "vm/isolate.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/symbols.h"
 #include "vm/unicode.h"
 
@@ -280,6 +281,8 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
   str = OneByteString::SubStringUnchecked(receiver, start, (i - start),
                                           Heap::kNew);
   result.Add(str);
+  result.SetTypeArguments(TypeArguments::Handle(
+      zone, isolate->object_store()->type_argument_string()));
   return result.raw();
 }
 

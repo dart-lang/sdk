@@ -9,8 +9,8 @@ import 'dart:io';
 import 'compiler_configuration.dart';
 import 'http_server.dart';
 import 'path.dart';
+import 'repository.dart';
 import 'runtime_configuration.dart';
-import 'utils.dart';
 
 /// All of the contextual information to determine how a test suite should be
 /// run.
@@ -151,7 +151,7 @@ class Configuration {
   String get packages {
     // If the .packages file path wasn't given, find it.
     if (packageRoot == null && _packages == null) {
-      _packages = TestUtils.dartDirUri.resolve('.packages').toFilePath();
+      _packages = Repository.uri.resolve('.packages').toFilePath();
     }
 
     return _packages;
@@ -385,7 +385,7 @@ class Configuration {
 
     if (isVerbose) {
       future = future.then((_) {
-        print('Started HttpServers: ${servers.httpServerCommandLine()}');
+        print('Started HttpServers: ${servers.commandLine}');
       });
     }
 
@@ -456,6 +456,9 @@ class Configuration {
         'enable_asserts': useEnableAsserts,
         'hot_reload': hotReload,
         'hot_reload_rollback': hotReloadRollback,
+        'batch': batch,
+        'batch_dart2js': batchDart2JS,
+        'reset_browser_configuration': resetBrowser,
         'selectors': selectors.keys.toList()
       };
     }
@@ -492,7 +495,7 @@ class Architecture {
     simarm64,
     simdbc,
     simdbc64
-  ], key: (Architecture architecture) => architecture.name);
+  ], key: (architecture) => (architecture as Architecture).name);
 
   static Architecture find(String name) {
     var architecture = _all[name];
@@ -514,6 +517,7 @@ class Compiler {
   static const dart2js = const Compiler._('dart2js');
   static const dart2analyzer = const Compiler._('dart2analyzer');
   static const dartdevc = const Compiler._('dartdevc');
+  static const dartdevk = const Compiler._('dartdevk');
   static const appJit = const Compiler._('app_jit');
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
@@ -527,11 +531,12 @@ class Compiler {
     dart2js,
     dart2analyzer,
     dartdevc,
+    dartdevk,
     appJit,
     dartk,
     dartkp,
     specParser,
-  ], key: (Compiler compiler) => compiler.name);
+  ], key: (compiler) => (compiler as Compiler).name);
 
   static Compiler find(String name) {
     var compiler = _all[name];
@@ -570,6 +575,7 @@ class Compiler {
 
       case Compiler.dart2js:
       case Compiler.dartdevc:
+      case Compiler.dartdevk:
         // TODO(rnystrom): Expand to support other JS execution environments
         // (other browsers, d8) when tested and working.
         return const [
@@ -612,7 +618,7 @@ class Mode {
 
   static final _all = new Map<String, Mode>.fromIterable(
       [debug, product, release],
-      key: (Mode mode) => mode.name);
+      key: (mode) => (mode as Mode).name);
 
   static Mode find(String name) {
     var mode = _all[name];
@@ -644,7 +650,7 @@ class Progress {
 
   static final _all = new Map<String, Progress>.fromIterable(
       [compact, color, line, verbose, silent, status, buildbot, diff],
-      key: (Progress progress) => progress.name);
+      key: (progress) => (progress as Progress).name);
 
   static Progress find(String name) {
     var progress = _all[name];
@@ -701,7 +707,7 @@ class Runtime {
     contentShellOnAndroid,
     selfCheck,
     none
-  ], key: (Runtime runtime) => runtime.name);
+  ], key: (runtime) => (runtime as Runtime).name);
 
   static Runtime find(String name) {
     // Allow "ff" as a synonym for Firefox.
@@ -754,7 +760,7 @@ class System {
 
   static final _all = new Map<String, System>.fromIterable(
       [android, fuchsia, linux, macos, windows],
-      key: (System system) => system.name);
+      key: (system) => (system as System).name);
 
   static System find(String name) {
     var system = _all[name];

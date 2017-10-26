@@ -11,12 +11,12 @@ main() {
       var jsonString = '[]';
       expect(
           () => LibrariesSpecification.parse(
-              Uri.parse('org-dartlang-custom:///f.json'), jsonString),
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
           throwsA((e) => e is LibrariesSpecificationException));
       jsonString = '""';
       expect(
           () => LibrariesSpecification.parse(
-              Uri.parse('org-dartlang-custom:///f.json'), jsonString),
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
           throwsA((e) => e is LibrariesSpecificationException));
     });
 
@@ -24,12 +24,12 @@ main() {
       var jsonString = '{"vm" : []}';
       expect(
           () => LibrariesSpecification.parse(
-              Uri.parse('org-dartlang-custom:///f.json'), jsonString),
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
           throwsA((e) => e is LibrariesSpecificationException));
       jsonString = '{"vm" : ""}';
       expect(
           () => LibrariesSpecification.parse(
-              Uri.parse('org-dartlang-custom:///f.json'), jsonString),
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
           throwsA((e) => e is LibrariesSpecificationException));
     });
 
@@ -37,7 +37,7 @@ main() {
       var jsonString = '{"vm" : {}}';
       expect(
           () => LibrariesSpecification.parse(
-              Uri.parse('org-dartlang-custom:///f.json'), jsonString),
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
           throwsA((e) => e is LibrariesSpecificationException));
     });
 
@@ -45,7 +45,7 @@ main() {
       var jsonString = '{"vm" : {"libraries": []}}';
       expect(
           () => LibrariesSpecification.parse(
-              Uri.parse('org-dartlang-custom:///f.json'), jsonString),
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
           throwsA((e) => e is LibrariesSpecificationException));
     });
 
@@ -53,7 +53,7 @@ main() {
       var jsonString = '{"vm" : {"libraries": {"core": {"uri": 3}}}';
       expect(
           () => LibrariesSpecification.parse(
-              Uri.parse('org-dartlang-custom:///f.json'), jsonString),
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
           throwsA((e) => e is LibrariesSpecificationException));
     });
 
@@ -72,7 +72,7 @@ main() {
       ''';
       expect(
           () => LibrariesSpecification.parse(
-              Uri.parse('org-dartlang-custom:///f.json'), jsonString),
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
           throwsA((e) => e is LibrariesSpecificationException));
 
       jsonString = '''
@@ -88,9 +88,9 @@ main() {
       }
       ''';
       var spec = LibrariesSpecification.parse(
-          Uri.parse('org-dartlang-custom:///f.json'), jsonString);
+          Uri.parse('org-dartlang-test:///f.json'), jsonString);
       expect(spec.specificationFor("none").libraryInfoFor("c").patches.first,
-          Uri.parse('org-dartlang-custom:///a.dart'));
+          Uri.parse('org-dartlang-test:///a.dart'));
 
       jsonString = '''
       { 
@@ -105,9 +105,9 @@ main() {
       }
       ''';
       spec = LibrariesSpecification.parse(
-          Uri.parse('org-dartlang-custom:///f.json'), jsonString);
+          Uri.parse('org-dartlang-test:///f.json'), jsonString);
       expect(spec.specificationFor("none").libraryInfoFor("c").patches.first,
-          Uri.parse('org-dartlang-custom:///a.dart'));
+          Uri.parse('org-dartlang-test:///a.dart'));
     });
 
     test('patches are optional in the format', () async {
@@ -115,7 +115,7 @@ main() {
       { "none": { "libraries": {"c" : { "uri": "c/main.dart" }}}}
       ''';
       var spec = LibrariesSpecification.parse(
-          Uri.parse('org-dartlang-custom:///one/two/f.json'), jsonString);
+          Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
       expect(spec, isNotNull);
       expect(
           spec.specificationFor('none').libraryInfoFor('c').patches, isEmpty);
@@ -127,9 +127,9 @@ main() {
       ''';
 
       var spec = LibrariesSpecification.parse(
-          Uri.parse('org-dartlang-custom:///one/two/f.json'), jsonString);
+          Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
       expect(spec.specificationFor('none').libraryInfoFor('c').uri,
-          Uri.parse('org-dartlang-custom:///one/two/c/main.dart'));
+          Uri.parse('org-dartlang-test:///one/two/c/main.dart'));
     });
 
     test('patches paths are resolved from spec uri', () async {
@@ -150,11 +150,11 @@ main() {
       ''';
 
       var spec = LibrariesSpecification.parse(
-          Uri.parse('org-dartlang-custom:///one/two/f.json'), jsonString);
+          Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
       expect(spec.specificationFor('none').libraryInfoFor('c').patches[0],
-          Uri.parse('org-dartlang-custom:///one/a/p1.dart'));
+          Uri.parse('org-dartlang-test:///one/a/p1.dart'));
       expect(spec.specificationFor('none').libraryInfoFor('c').patches[1],
-          Uri.parse('org-dartlang-custom:///one/a/p2.dart'));
+          Uri.parse('org-dartlang-test:///one/a/p2.dart'));
     });
 
     test('multiple targets are supported', () async {
@@ -188,14 +188,14 @@ main() {
       ''';
 
       var spec = LibrariesSpecification.parse(
-          Uri.parse('org-dartlang-custom:///one/two/f.json'), jsonString);
+          Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
 
       expect(spec.specificationFor('vm').libraryInfoFor('foo').uri,
-          Uri.parse('org-dartlang-custom:///one/two/a/main.dart'));
+          Uri.parse('org-dartlang-test:///one/two/a/main.dart'));
       expect(spec.specificationFor('vm').libraryInfoFor('bar').uri,
-          Uri.parse('org-dartlang-custom:///one/two/b/main.dart'));
+          Uri.parse('org-dartlang-test:///one/two/b/main.dart'));
       expect(spec.specificationFor('none').libraryInfoFor('c').uri,
-          Uri.parse('org-dartlang-custom:///one/two/c/main.dart'));
+          Uri.parse('org-dartlang-test:///one/two/c/main.dart'));
     });
   });
 
@@ -232,9 +232,9 @@ main() {
       ''';
 
       var spec = LibrariesSpecification.parse(
-          Uri.parse('org-dartlang-custom:///one/two/f.json'), jsonString);
+          Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
       var newJson =
-          spec.toJsonString(Uri.parse('org-dartlang-custom:///one/two/g.json'));
+          spec.toJsonString(Uri.parse('org-dartlang-test:///one/two/g.json'));
       expect(jsonString.replaceAll(new RegExp('\\s'), ''), newJson);
     });
 
@@ -269,9 +269,9 @@ main() {
       ''';
 
       var spec = LibrariesSpecification.parse(
-          Uri.parse('org-dartlang-custom:///one/two/f.json'), jsonString);
+          Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
       var newJson =
-          spec.toJsonString(Uri.parse('org-dartlang-custom:///one/g.json'));
+          spec.toJsonString(Uri.parse('org-dartlang-test:///one/g.json'));
 
       var expected = '''
       {

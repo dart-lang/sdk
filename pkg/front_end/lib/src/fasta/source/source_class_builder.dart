@@ -42,14 +42,25 @@ import '../problems.dart' show unhandled;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-ShadowClass initializeClass(ShadowClass cls, String documentationComment,
-    String name, KernelLibraryBuilder parent, int charOffset) {
+ShadowClass initializeClass(
+    ShadowClass cls,
+    List<TypeVariableBuilder> typeVariables,
+    String name,
+    KernelLibraryBuilder parent,
+    int charOffset) {
   cls ??= new ShadowClass(name: name);
-  cls.documentationComment = documentationComment;
   cls.fileUri ??= parent.library.fileUri;
   if (cls.fileOffset == TreeNode.noOffset) {
     cls.fileOffset = charOffset;
   }
+
+  if (typeVariables != null) {
+    for (KernelTypeVariableBuilder t in typeVariables) {
+      cls.typeParameters.add(t.parameter);
+    }
+    setParents(cls.typeParameters, cls);
+  }
+
   return cls;
 }
 
@@ -61,7 +72,6 @@ class SourceClassBuilder extends KernelClassBuilder {
   KernelTypeBuilder mixedInType;
 
   SourceClassBuilder(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String name,
@@ -75,24 +85,10 @@ class SourceClassBuilder extends KernelClassBuilder {
       int charOffset,
       [ShadowClass cls,
       this.mixedInType])
-      : cls = initializeClass(
-            cls, documentationComment, name, parent, charOffset),
+      : cls = initializeClass(cls, typeVariables, name, parent, charOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             scope, constructors, parent, charOffset) {
     ShadowClass.setBuilder(this.cls, this);
-  }
-
-  @override
-  int resolveTypes(LibraryBuilder library) {
-    int count = 0;
-    if (typeVariables != null) {
-      for (KernelTypeVariableBuilder t in typeVariables) {
-        cls.typeParameters.add(t.parameter);
-      }
-      setParents(cls.typeParameters, cls);
-      count += cls.typeParameters.length;
-    }
-    return count + super.resolveTypes(library);
   }
 
   Class build(KernelLibraryBuilder library, LibraryBuilder coreLibrary) {

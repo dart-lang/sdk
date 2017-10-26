@@ -21,12 +21,17 @@ class JitCallSpecializer : public CallSpecializer {
   // specialization of calls. They are here for historical reasons.
   // Find a better place for them.
   virtual void VisitAllocateContext(AllocateContextInstr* instr);
+  virtual void VisitCloneContext(CloneContextInstr* instr);
   virtual void VisitStoreInstanceField(StoreInstanceFieldInstr* instr);
 
  private:
   virtual bool IsAllowedForInlining(intptr_t deopt_id) const;
 
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call);
+
+  void LowerContextAllocation(Definition* instr,
+                              intptr_t num_context_variables,
+                              Value* context_value);
 
   DISALLOW_COPY_AND_ASSIGN(JitCallSpecializer);
 };

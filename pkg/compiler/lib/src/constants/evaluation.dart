@@ -52,8 +52,6 @@ abstract class EvaluationEnvironment {
 abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
   Link<Spannable> _spannableStack = const Link<Spannable>();
   final Set<FieldEntity> _currentlyEvaluatedFields = new Set<FieldEntity>();
-  final Set<ConstructorEntity> _currentlyEvaluatedConstructors =
-      new Set<ConstructorEntity>();
   final bool constantRequired;
 
   EvaluationEnvironmentBase(Spannable spannable, {this.constantRequired}) {
@@ -81,18 +79,10 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
   @override
   ConstantValue evaluateConstructor(
       ConstructorEntity constructor, ConstantValue evaluate()) {
-    if (_currentlyEvaluatedConstructors.add(constructor)) {
-      _spannableStack = _spannableStack.prepend(constructor);
-      ConstantValue result = evaluate();
-      _currentlyEvaluatedConstructors.remove(constructor);
-      _spannableStack = _spannableStack.tail;
-      return result;
-    }
-    if (constantRequired) {
-      reporter.reportErrorMessage(
-          constructor, MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS);
-    }
-    return new NonConstantValue();
+    _spannableStack = _spannableStack.prepend(constructor);
+    ConstantValue result = evaluate();
+    _spannableStack = _spannableStack.tail;
+    return result;
   }
 
   @override

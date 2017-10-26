@@ -708,7 +708,8 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
 #if defined(TARGET_ARCH_DBC)
     intptr_t slot_index = flow_graph_.num_copied_params();
     if ((param->kind() == SpecialParameterInstr::kContext) &&
-        FLAG_reify_generic_functions && flow_graph_.function().IsGeneric()) {
+        flow_graph_.isolate()->reify_generic_functions() &&
+        flow_graph_.function().IsGeneric()) {
       // The first slot is used for function type arguments, either as their
       // permanent location or as their temporary location when captured.
       // So use the next one for the context.

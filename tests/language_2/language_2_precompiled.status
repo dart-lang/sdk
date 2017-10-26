@@ -205,6 +205,8 @@ cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError
 cyclic_type_variable_test/04: MissingCompileTimeError
 cyclic_typedef_test/13: MissingCompileTimeError
+deep_nesting1_negative_test: Skip  # Issue 31158
+deep_nesting2_negative_test: Skip  # Issue 31158
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
 deferred_constraints_constants_test: SkipByDesign
@@ -354,13 +356,9 @@ generic_methods_overriding_test/03: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: Crash
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash, Pass
-generic_methods_reuse_type_variables_test: RuntimeError
-generic_methods_simple_as_expression_test/02: MissingRuntimeError
-generic_methods_simple_is_expression_test: RuntimeError
 generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_tearoff_test: RuntimeError
-generic_typedef_test: RuntimeError
 getter_no_setter2_test/00: MissingCompileTimeError
 getter_no_setter2_test/01: MissingCompileTimeError
 getter_no_setter2_test/03: MissingCompileTimeError

@@ -5,5 +5,5 @@
 
 library Private2Test;
 
-import "private2_lib.lib";
+import "private2_lib.dart";
 part "private2_main.dart";

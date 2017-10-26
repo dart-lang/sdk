@@ -546,12 +546,13 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, Message message) {
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
     if (message == codes.messageNativeClauseShouldBeAnnotation) {
-      native.checkAllowedLibrary(this, token);
+      native.checkAllowedLibrary(this, startToken);
       return;
     }
-    handleError(token, message);
+    handleError(startToken, message);
   }
 
   @override

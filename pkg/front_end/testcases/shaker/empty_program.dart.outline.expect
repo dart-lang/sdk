@@ -193,10 +193,13 @@ import "dart:collection" as col;
 import "dart:_internal" as _in;
 import "dart:math" as math;
 
-typedef _SyncGeneratorCallback = (self::Iterator<dynamic>) → self::bool;
 class _SyncIterable<T extends self::Object> extends col::IterableBase<self::_SyncIterable::T> {
-  const constructor •((self::Iterator<dynamic>) → self::bool _moveNextFn) → void;
+  const constructor •((self::_SyncIterator<self::_SyncIterable::T>) → self::bool _moveNextFn) → void;
   get iterator() → self::Iterator<self::_SyncIterable::T>;
+}
+class _SyncIterator<T extends self::Object> extends self::Object implements self::Iterator<self::_SyncIterator::T> {
+  get current() → self::_SyncIterator::T;
+  method moveNext() → self::bool;
 }
 class _InvocationMirror extends self::Object implements self::Invocation {
   constructor •(self::String _functionName, self::List<dynamic> _argumentsDescriptor, self::List<dynamic> _arguments, self::bool _isSuperInvocation) → void;

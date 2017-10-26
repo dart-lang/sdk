@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
@@ -104,6 +105,22 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
+  @override
+  @failingTest
+  void test_annotationOnEnumConstant_first() {
+    // TODO(brianwilkerson) Fix highlight region.
+    // This is highlighting the '@', but should highlight the whole annotation.
+    super.test_annotationOnEnumConstant_first();
+  }
+
+  @override
+  @failingTest
+  void test_annotationOnEnumConstant_middle() {
+    // TODO(brianwilkerson) Fix highlight region.
+    // This is highlighting the '@', but should highlight the whole annotation.
+    super.test_annotationOnEnumConstant_middle();
+  }
+
   @override
   @failingTest
   void test_breakOutsideOfLoop_breakInIfStatement() {
@@ -1486,14 +1503,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingIdentifier_inEnum() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_missingIdentifier_inEnum();
-  }
-
-  @override
-  @failingTest
   void test_missingKeywordOperator() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'DeclaredSimpleIdentifier' is not a subtype of type 'TypeAnnotation' of 'returnType' where
@@ -1673,30 +1682,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ScannerErrorCode.EXPECTED_TOKEN, found 0
     super.test_missingTerminatorForParameterGroup_optional();
-  }
-
-  @override
-  @failingTest
-  void test_missingTypedefParameters_nonVoid() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, found 0
-    super.test_missingTypedefParameters_nonVoid();
-  }
-
-  @override
-  @failingTest
-  void test_missingTypedefParameters_typeParameters() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, found 0
-    super.test_missingTypedefParameters_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void test_missingTypedefParameters_void() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, found 0
-    super.test_missingTypedefParameters_void();
   }
 
   @override
@@ -1930,14 +1915,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_positionalAfterNamedArgument() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, found 0
-    super.test_positionalAfterNamedArgument();
-  }
-
-  @override
-  @failingTest
   void test_positionalParameterOutsideGroup() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, found 0
@@ -2120,6 +2097,24 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_topLevelOperator_withoutOperator() {
     super.test_topLevelOperator_withoutOperator();
+  }
+
+  @override
+  @failingTest
+  void test_topLevelOperator_withoutType() {
+    super.test_topLevelOperator_withoutType();
+  }
+
+  @override
+  @failingTest
+  void test_topLevelOperator_withType() {
+    super.test_topLevelOperator_withType();
+  }
+
+  @override
+  @failingTest
+  void test_topLevelOperator_withVoid() {
+    super.test_topLevelOperator_withVoid();
   }
 
   @override
@@ -2515,6 +2510,11 @@ class FastaParserTestCase extends Object
   }
 
   @override
+  ExpectedError expectedError(ErrorCode code, int offset, int length) =>
+      new ExpectedError(
+          _toFastaGeneratedAnalyzerErrorCode(code), offset, length);
+
+  @override
   void expectNotNullIfNoErrors(Object result) {
     if (!listener.hasErrors) {
       expect(result, isNotNull);
@@ -2572,10 +2572,11 @@ class FastaParserTestCase extends Object
 
   @override
   CompilationUnit parseCompilationUnit(String content,
-      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
+      {List<ErrorCode> codes, List<ExpectedError> errors}) {
     // Scan tokens
     var source = new StringSource(content, 'parser_test_StringSource.dart');
-    GatheringErrorListener listener = new GatheringErrorListener();
+    GatheringErrorListener listener =
+        new GatheringErrorListener(checkRanges: true);
     var scanner = new Scanner.fasta(source, listener);
     scanner.scanGenericMethodComments = enableGenericMethodComments;
     _fastaTokens = scanner.tokenize();
@@ -2584,11 +2585,17 @@ class FastaParserTestCase extends Object
     analyzer.Parser parser =
         new analyzer.Parser(source, listener, useFasta: true);
     CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
+    expect(unit, isNotNull);
 
     // Assert and return result
-    listener.assertErrorsWithCodes(
-        _toFastaGeneratedAnalyzerErrorCodes(expectedErrorCodes));
-    expect(unit, isNotNull);
+    if (codes != null) {
+      listener
+          .assertErrorsWithCodes(_toFastaGeneratedAnalyzerErrorCodes(codes));
+    } else if (errors != null) {
+      listener.assertErrors(errors);
+    } else {
+      listener.assertNoErrors();
+    }
     return unit;
   }
 
@@ -2669,7 +2676,7 @@ class FastaParserTestCase extends Object
     return _runParser(
         code,
         (parser) => (analyzer.Token token) {
-              return parser.parseFormalParameters(
+              return parser.parseFormalParametersRequiredOpt(
                   token,
                   inFunctionType
                       ? fasta.MemberKind.GeneralizedFunctionType
@@ -2861,22 +2868,24 @@ class FastaParserTestCase extends Object
     return result;
   }
 
+  ErrorCode _toFastaGeneratedAnalyzerErrorCode(ErrorCode code) {
+    if (code == ParserErrorCode.ABSTRACT_ENUM ||
+        code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
+        code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE ||
+        code == ParserErrorCode.ABSTRACT_TYPEDEF ||
+        code == ParserErrorCode.CONST_ENUM ||
+        code == ParserErrorCode.CONST_TYPEDEF ||
+        code == ParserErrorCode.FINAL_CLASS ||
+        code == ParserErrorCode.FINAL_ENUM ||
+        code == ParserErrorCode.FINAL_TYPEDEF ||
+        code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION)
+      return ParserErrorCode.EXTRANEOUS_MODIFIER;
+    return code;
+  }
+
   List<ErrorCode> _toFastaGeneratedAnalyzerErrorCodes(
           List<ErrorCode> expectedErrorCodes) =>
-      expectedErrorCodes.map((code) {
-        if (code == ParserErrorCode.ABSTRACT_ENUM ||
-            code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
-            code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE ||
-            code == ParserErrorCode.ABSTRACT_TYPEDEF ||
-            code == ParserErrorCode.CONST_ENUM ||
-            code == ParserErrorCode.CONST_TYPEDEF ||
-            code == ParserErrorCode.FINAL_CLASS ||
-            code == ParserErrorCode.FINAL_ENUM ||
-            code == ParserErrorCode.FINAL_TYPEDEF ||
-            code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION)
-          return ParserErrorCode.EXTRANEOUS_MODIFIER;
-        return code;
-      }).toList();
+      expectedErrorCodes.map(_toFastaGeneratedAnalyzerErrorCode).toList();
 }
 
 /**
@@ -3022,7 +3031,7 @@ class ParserProxy implements analyzer.Parser {
     var member = new BuilderProxy();
     var scope = new ScopeProxy();
     TestSource source = new TestSource();
-    var errorListener = new GatheringErrorListener();
+    var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
     var astBuilder =
         new AstBuilder(errorReporter, library, member, scope, true);
@@ -3056,12 +3065,29 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   ClassMember parseClassMember(String className) {
-    _astBuilder.className = className;
+    final ast = new AstFactoryImpl();
+    _astBuilder.classDeclaration = ast.classDeclaration(
+      null,
+      null,
+      null,
+      new analyzer.Token(analyzer.Keyword.CLASS, 0),
+      ast.simpleIdentifier(
+          new fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),
+      null,
+      null,
+      null,
+      null,
+      null, // leftBracket
+      <ClassMember>[],
+      null, // rightBracket
+    );
     _eventListener.begin('CompilationUnit');
-    var result = _run((parser) => parser.parseMember) as ClassMember;
+    _run((parser) => parser.parseMember, nodeCount: 0);
     _eventListener.end('CompilationUnit');
-    _astBuilder.className = null;
-    return result;
+    ClassDeclaration declaration = _astBuilder.classDeclaration;
+    _astBuilder.classDeclaration = null;
+    expect(declaration.members, hasLength(1));
+    return declaration.members.first;
   }
 
   List<Combinator> parseCombinators() {
@@ -3082,7 +3108,7 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
-    return _run((parser) => (token) => parser.parseFormalParameters(
+    return _run((parser) => (token) => parser.parseFormalParametersRequiredOpt(
         token,
         inFunctionType
             ? fasta.MemberKind.GeneralizedFunctionType
@@ -3112,7 +3138,6 @@ class ParserProxy implements analyzer.Parser {
 
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
     _eventListener.begin('CompilationUnit');
-    _fastaParser.firstToken = _currentFastaToken;
     _currentFastaToken =
         _fastaParser.parseTopLevelDeclaration(_currentFastaToken);
     expect(_currentFastaToken.isEof, isTrue);
@@ -3161,7 +3186,6 @@ class ParserProxy implements analyzer.Parser {
     ParseFunction parseFunction;
     if (getParseFunction != null) {
       parseFunction = getParseFunction(_fastaParser);
-      _fastaParser.firstToken = _currentFastaToken;
     } else {
       parseFunction = _fastaParser.parseUnit;
       // firstToken should be set by beginCompilationUnit event.
@@ -3546,13 +3570,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_shiftExpression_precedence_unary_right() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_shiftExpression_precedence_unary_right();
-  }
-
-  @override
-  @failingTest
-  void test_typedef_eof() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_typedef_eof();
   }
 
   @override

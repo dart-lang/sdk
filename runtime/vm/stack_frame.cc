@@ -5,6 +5,7 @@
 #include "vm/stack_frame.h"
 
 #include "platform/memory_sanitizer.h"
+#include "vm/become.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/deopt_instructions.h"
 #include "vm/isolate.h"
@@ -100,7 +101,11 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // helper functions to the raw object interface.
   NoSafepointScope no_safepoint;
   Code code;
-  code = GetCodeObject();
+  RawCode* raw_code = UncheckedGetCodeObject();
+  // May forward raw_code. Note we don't just visit the pc marker slot first
+  // because the visitor's forwarding might not be idempotent.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&raw_code));
+  code ^= raw_code;
   if (!code.IsNull()) {
     // Optimized frames have a stack map. We need to visit the frame based
     // on the stack map.
@@ -238,12 +243,15 @@ RawCode* StackFrame::LookupDartCode() const {
 }
 
 RawCode* StackFrame::GetCodeObject() const {
-  const uword pc_marker =
-      *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
-  ASSERT(pc_marker != 0);
-  ASSERT(reinterpret_cast<RawObject*>(pc_marker)->GetClassId() == kCodeCid ||
-         reinterpret_cast<RawObject*>(pc_marker) == Object::null());
-  return reinterpret_cast<RawCode*>(pc_marker);
+  RawCode* pc_marker = UncheckedGetCodeObject();
+  ASSERT((pc_marker == Object::null()) ||
+         (pc_marker->GetClassId() == kCodeCid));
+  return pc_marker;
+}
+
+RawCode* StackFrame::UncheckedGetCodeObject() const {
+  return *(
+      reinterpret_cast<RawCode**>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
 }
 
 bool StackFrame::FindExceptionHandler(Thread* thread,
@@ -442,7 +450,7 @@ StackFrame* StackFrameIterator::NextFrame() {
     current_frame_ = NULL;  // No more frames.
     return current_frame_;
   }
-  ASSERT(current_frame_->IsExitFrame() ||
+  ASSERT((validate_ == kDontValidateFrames) || current_frame_->IsExitFrame() ||
          current_frame_->IsDartFrame(validate_) ||
          current_frame_->IsStubFrame());
 
@@ -475,7 +483,7 @@ ExitFrame* StackFrameIterator::NextExitFrame() {
   frames_.sp_ = exit_.GetCallerSp();
   frames_.fp_ = exit_.GetCallerFp();
   frames_.pc_ = exit_.GetCallerPc();
-  ASSERT(exit_.IsValid());
+  ASSERT((validate_ == kDontValidateFrames) || exit_.IsValid());
   return &exit_;
 }
 
@@ -485,7 +493,7 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
   entry_.fp_ = frames_.fp_;
   entry_.pc_ = frames_.pc_;
   SetupNextExitFrameData();  // Setup data for next exit frame in chain.
-  ASSERT(entry_.IsValid());
+  ASSERT((validate_ == kDontValidateFrames) || entry_.IsValid());
   return &entry_;
 }
 

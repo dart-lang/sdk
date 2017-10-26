@@ -4,11 +4,11 @@
 
 import 'configuration.dart';
 import 'options.dart';
+import 'repository.dart';
 import 'test_configurations.dart';
-import 'utils.dart';
 
 void main(List<String> arguments) {
-  TestUtils.setDartDirUri(Uri.base);
+  Repository.uri = Uri.base;
   var configurations = <Configuration>[];
   for (var argument in arguments) {
     configurations.addAll(new OptionsParser().parse(argument.split(" ")));

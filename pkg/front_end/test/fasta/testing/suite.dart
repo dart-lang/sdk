@@ -103,7 +103,7 @@ class FastaContext extends ChainContext {
   final bool strongMode;
   final bool onlyCrashes;
   final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
-  Uri platformBinaries;
+  final Uri platformBinaries;
   Uri platformUri;
   Uri outlineUri;
   Program outline;
@@ -115,6 +115,7 @@ class FastaContext extends ChainContext {
   FastaContext(
       this.vm,
       this.strongMode,
+      this.platformBinaries,
       this.onlyCrashes,
       bool ignoreExpectations,
       bool updateExpectations,
@@ -147,8 +148,7 @@ class FastaContext extends ChainContext {
   }
 
   Future ensurePlatformUris() async {
-    if (platformBinaries == null) {
-      platformBinaries = computePlatformBinariesLocation();
+    if (platformUri == null) {
       platformUri = platformBinaries.resolve("vm_platform.dill");
       outlineUri = platformBinaries
           .resolve(strongMode ? "vm_outline_strong.dill" : "vm_outline.dill");
@@ -192,12 +192,19 @@ class FastaContext extends ChainContext {
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
     bool skipVm = environment["skipVm"] == "true";
+    String platformBinaries = environment["platformBinaries"];
+    if (platformBinaries != null && !platformBinaries.endsWith('/')) {
+      platformBinaries = '$platformBinaries/';
+    }
     String astKindString = environment[AST_KIND_INDEX];
     AstKind astKind =
         astKindString == null ? null : AstKind.values[int.parse(astKindString)];
     return new FastaContext(
         vm,
         strongMode,
+        platformBinaries == null
+            ? computePlatformBinariesLocation()
+            : Uri.base.resolve(platformBinaries),
         onlyCrashes,
         ignoreExpectations,
         updateExpectations,

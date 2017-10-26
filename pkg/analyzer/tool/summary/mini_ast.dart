@@ -156,8 +156,8 @@ class MiniAstBuilder extends StackListener {
   Uri get uri => null;
 
   @override
-  void addCompileTimeError(Message message, int charOffset) {
-    internalProblem(message, charOffset, uri);
+  void addCompileTimeError(Message message, int offset, int length) {
+    internalProblem(message, offset, uri);
   }
 
   @override
@@ -255,8 +255,8 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     pop(); // Name
     pop(); // Type
@@ -318,6 +318,12 @@ class MiniAstBuilder extends StackListener {
     if (hasName) {
       pop(); // Pop the native name which is a StringLiteral.
     }
+  }
+
+  @override
+  void handleInvalidMember(Token endToken) {
+    debugEvent("InvalidMember");
+    pop(); // metadata star
   }
 
   @override

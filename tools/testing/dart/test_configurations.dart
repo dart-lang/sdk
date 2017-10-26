@@ -246,7 +246,7 @@ Future testConfigurations(List<Configuration> configurations) async {
   }
 
   if (firstConf.writeResultLog) {
-    eventListener.add(new ResultLogWriter());
+    eventListener.add(new ResultLogWriter(firstConf.outputDirectory));
   }
 
   if (firstConf.copyCoreDumps) {

@@ -4111,6 +4111,7 @@ LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # 
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/media/color-does-not-include-alpha_t01: RuntimeError # Issue 31161
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 LayoutTests/fast/canvas/webgl/*: Skip # Issue 26725

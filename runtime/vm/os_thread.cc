@@ -35,7 +35,19 @@ OSThread::OSThread()
       thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
       log_(new class Log()),
       stack_base_(0),
+      stack_limit_(0),
       thread_(NULL) {
+  // Try to get accurate stack bounds from pthreads, etc.
+  if (!GetCurrentStackBounds(&stack_limit_, &stack_base_)) {
+    // Fall back to a guess based on the stack pointer.
+    RefineStackBoundsFromSP(Thread::GetCurrentStackPointer());
+  }
+
+  ASSERT(stack_base_ != 0);
+  ASSERT(stack_limit_ != 0);
+  ASSERT(stack_base_ > stack_limit_);
+  ASSERT(stack_base_ > Thread::GetCurrentStackPointer());
+  ASSERT(stack_limit_ < Thread::GetCurrentStackPointer());
 }
 
 OSThread* OSThread::CreateOSThread() {

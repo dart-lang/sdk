@@ -22,8 +22,8 @@ import 'dart:io';
 import '../../../tools/testing/dart/command.dart';
 import '../../../tools/testing/dart/command_output.dart';
 import '../../../tools/testing/dart/path.dart';
+import '../../../tools/testing/dart/repository.dart';
 import '../../../tools/testing/dart/test_runner.dart' as runner;
-import '../../../tools/testing/dart/utils.dart';
 
 /**
  * This class is reponsible for setting up the files necessary for this test
@@ -57,8 +57,7 @@ class FileUtils {
     }
     if (createJsDeps) {
       testJsDeps = _createFile(testJsDepsFilePath);
-      var path =
-          TestUtils.absolutePath(new Path(tempDir.path)).append("test.dart");
+      var path = new Path(tempDir.path).append("test.dart").absolute;
       _writeToFile(testJsDeps, "file://$path");
     }
   }
@@ -79,26 +78,25 @@ class FileUtils {
   }
 
   Path get scriptOutputPath {
-    return TestUtils.absolutePath(
-        new Path(tempDir.path).append('created_if_command_did_run.txt'));
+    return new Path(tempDir.path)
+        .append('created_if_command_did_run.txt')
+        .absolute;
   }
 
   Path get testDartFilePath {
-    return TestUtils.absolutePath(new Path(tempDir.path).append('test.dart'));
+    return new Path(tempDir.path).append('test.dart').absolute;
   }
 
   Path get testJsFilePath {
-    return TestUtils.absolutePath(new Path(tempDir.path).append('test.js'));
+    return new Path(tempDir.path).append('test.js').absolute;
   }
 
   Path get testJsDepsFilePath {
-    return TestUtils
-        .absolutePath(new Path(tempDir.path).append('test.js.deps'));
+    return new Path(tempDir.path).append('test.js.deps').absolute;
   }
 
   Path get testSnapshotFilePath {
-    return TestUtils
-        .absolutePath(new Path(tempDir.path).append('test_dart2js.snapshot'));
+    return new Path(tempDir.path).append('test_dart2js.snapshot').absolute;
   }
 
   void touchFile(File file) {
@@ -159,7 +157,7 @@ Command makeCompilationCommand(String testName, FileUtils fileUtils) {
 
 void main() {
   // This script is in [sdk]/tests/standalone/io.
-  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
+  Repository.uri = Platform.script.resolve('../../..');
 
   var fs_noTestJs = new FileUtils(
       createJs: false,

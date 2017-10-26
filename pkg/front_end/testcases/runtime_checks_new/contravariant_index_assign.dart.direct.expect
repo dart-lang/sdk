@@ -1,0 +1,28 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class B<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(self::B<self::B::T> other) → self::B<self::B::T>
+    return null;
+}
+class C<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator [](core::int i) → self::B<(self::C::T) → void>
+    return null;
+  operator []=(core::int i, self::B<(self::C::T) → void> x) → void {}
+}
+static method test(self::C<core::num> c) → void {
+  c.[]=(0, new self::B::•<(core::num) → void>());
+  let final dynamic #t1 = c in let final dynamic #t2 = 0 in #t1.[]=(#t2, #t1.[](#t2).+(new self::B::•<(core::num) → void>()));
+  dynamic x = let final dynamic #t3 = c in let final dynamic #t4 = 0 in let final dynamic #t5 = #t3.[](#t4).+(new self::B::•<(core::num) → void>()) in let final dynamic #t6 = #t3.[]=(#t4, #t5) in #t5;
+  let final dynamic #t7 = c in let final dynamic #t8 = 0 in #t7.[](#t8).==(null) ? let final dynamic #t9 = new self::B::•<(core::num) → void>() in let final dynamic #t10 = #t7.[]=(#t8, #t9) in #t9 : null;
+  dynamic y = let final dynamic #t11 = c in let final dynamic #t12 = 0 in let final dynamic #t13 = #t11.[](#t12) in #t13.==(null) ? let final dynamic #t14 = new self::B::•<(core::num) → void>() in let final dynamic #t15 = #t11.[]=(#t12, #t14) in #t14 : #t13;
+}
+static method main() → dynamic {}

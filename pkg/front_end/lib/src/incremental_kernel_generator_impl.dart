@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/src/base/performace_logger.dart';
@@ -134,9 +135,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         Program program = new Program(nameRoot: kernelResult.nameRoot);
         for (LibraryCycleResult result in results) {
           if (vmRequiredLibraryCycles.contains(result.cycle)) {
-            for (FileState libraryFile in result.cycle.libraries) {
-              _addLibrarySources(program, libraryFile);
-            }
+            program.uriToSource.addAll(result.uriToSource);
             for (Library library in result.kernelLibraries) {
               program.libraries.add(library);
               library.parent = program;
@@ -156,7 +155,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           }
         }
 
-        return new DeltaProgram(program);
+        var stateString = _ExternalState.asString(_lastSignatures);
+        return new DeltaProgram(stateString, program);
       } finally {
         _isComputeDeltaExecuting = false;
       }
@@ -180,15 +180,14 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     _lastSignatures = null;
   }
 
-  /// Add [Source]s for the [libraryFile] and its parts into [program] URI
-  /// to [Source] map.
-  void _addLibrarySources(Program program, FileState libraryFile) {
-    program.uriToSource[libraryFile.uriStr] =
-        new Source(libraryFile.lineStarts, libraryFile.content);
-    for (var partFile in libraryFile.partFiles) {
-      program.uriToSource[partFile.uriStr] =
-          new Source(partFile.lineStarts, partFile.content);
+  @override
+  void setState(String state) {
+    if (_isComputeDeltaExecuting) {
+      throw new StateError(MSG_PENDING_COMPUTE);
     }
+    var signatures = _ExternalState.fromString(state);
+    _currentSignatures.clear();
+    _currentSignatures.addAll(signatures);
   }
 
   /// Find files which are not referenced from the entry point and report
@@ -212,6 +211,28 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     if (_lastSignatures == null) {
       throw new StateError(MSG_NO_LAST_DELTA);
     }
+  }
+}
+
+class _ExternalState {
+  /// Return the JSON encoding of the [signatures].
+  static String asString(Map<Uri, String> signatures) {
+    var json = <String, String>{};
+    signatures.forEach((uri, signature) {
+      json[uri.toString()] = signature;
+    });
+    return JSON.encode(json);
+  }
+
+  /// Decode the given JSON [state] into the program state.
+  static Map<Uri, String> fromString(String state) {
+    var signatures = <Uri, String>{};
+    Map<String, String> json = JSON.decode(state);
+    json.forEach((uriStr, signature) {
+      var uri = Uri.parse(uriStr);
+      signatures[uri] = signature;
+    });
+    return signatures;
   }
 }
 

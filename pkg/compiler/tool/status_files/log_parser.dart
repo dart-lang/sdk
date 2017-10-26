@@ -71,7 +71,7 @@ List<Record> parse(String log) {
       paragraph.clear();
       reproIsNext = false;
     }
-    if (line.startsWith("Short reproduction command (experimental):")) {
+    if (line.startsWith("--- Re-run this test:")) {
       reproIsNext = true;
     }
   }

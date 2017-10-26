@@ -79,13 +79,13 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
-    _emitForwardingStubs(node, node.name.offset);
+    _emitForwardingStubs(node, node.typeParameters, node.name.offset);
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
-    _emitForwardingStubs(node, node.name.offset);
+    _emitForwardingStubs(node, node.typeParameters, node.name.offset);
   }
 
   @override
@@ -102,6 +102,12 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   }
 
   @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    super.visitMethodDeclaration(node);
+    _annotateContravariant(node.element, node.name.offset, node.parent);
+  }
+
+  @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
     var staticElement = node.methodName.staticElement;
@@ -110,8 +116,8 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     if (staticElement is PropertyAccessorElement) {
       // Method invocation resolves to a getter; treat it as a get followed by a
       // function invocation.
-      _annotateCheckReturn(
-          getImplicitOperationCast(node), node.methodName.offset);
+      _annotateCheckGetterReturn(
+          getImplicitOperationCast(node), node.argumentList.offset);
       _annotateCallKind(null, isThis, isDynamicInvoke(node.methodName), null,
           null, node.argumentList.offset);
     } else {
@@ -129,8 +135,28 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     super.visitPrefixedIdentifier(node);
-    if (node.identifier.staticElement is MethodElement) {
-      _annotateTearOff(node, node.identifier.offset);
+    _handlePropertyAccess(node, node.prefix, node.identifier);
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    super.visitPropertyAccess(node);
+    _handlePropertyAccess(node, node.target, node.propertyName);
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    super.visitSimpleIdentifier(node);
+    var staticElement = node.staticElement;
+    var parent = node.parent;
+    if (parent is! MethodInvocation &&
+        parent is! PrefixedIdentifier &&
+        parent is! PropertyAccess &&
+        !node.inDeclarationContext() &&
+        node.inGetterContext() &&
+        staticElement is PropertyAccessorElement &&
+        staticElement.isGetter) {
+      _annotateCallKind(staticElement, true, false, null, null, node.offset);
     }
   }
 
@@ -148,10 +174,12 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     super.visitVariableDeclaration(node);
     if (node.parent.parent is FieldDeclaration) {
       FieldElement element = node.element;
+      var cls = node.getAncestor((n) => n is ClassDeclaration);
+      var offset = node.name.offset;
+      _annotateContravariant(element, offset, cls);
       if (!element.isFinal) {
         var setter = element.setter;
-        _annotateFormalParameter(setter.parameters[0], node.name.offset,
-            node.getAncestor((n) => n is ClassDeclaration));
+        _annotateFormalParameter(setter.parameters[0], offset, cls);
       }
     }
   }
@@ -203,6 +231,19 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     _recordCallKind(offset, 'closure');
   }
 
+  /// Generates the appropriate `@checkGetterReturn` annotation (if any) for a
+  /// call site.
+  ///
+  /// An annotation of `@checkGetterReturn=type` indicates that a method call
+  /// desugars to a getter invocation followed by a function invocation; the
+  /// value returned by the getter will have to be checked to make sure it is an
+  /// instance of the given type.
+  void _annotateCheckGetterReturn(DartType castType, int offset) {
+    if (castType != null) {
+      _recordCheckGetterReturn(offset, castType);
+    }
+  }
+
   /// Generates the appropriate `@checkReturn` annotation (if any) for a call
   /// site.
   ///
@@ -212,6 +253,31 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   void _annotateCheckReturn(DartType castType, int offset) {
     if (castType != null) {
       _recordCheckReturn(offset, castType);
+    }
+  }
+
+  /// Generates the appropriate `@genericContravariant=true` annotation (if needed)
+  /// for a method or field declaration.
+  void _annotateContravariant(
+      Element element, int offset, ClassDeclaration cls) {
+    bool isContravariant = false;
+    if (cls?.typeParameters != null) {
+      if (element is ExecutableElement) {
+        if (_usesTypeParametersCovariantly(
+            cls.typeParameters.typeParameters, element.returnType,
+            flipVariance: true)) {
+          isContravariant = true;
+        }
+      } else if (element is FieldElement) {
+        if (_usesTypeParametersCovariantly(
+            cls.typeParameters.typeParameters, element.type,
+            flipVariance: true)) {
+          isContravariant = true;
+        }
+      }
+    }
+    if (isContravariant) {
+      _recordContravariance(offset);
     }
   }
 
@@ -243,7 +309,7 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       if (covariantParams != null && covariantParams.contains(element) ||
           cls?.typeParameters != null &&
               element is ParameterElement &&
-              _isFormalSemiTyped(
+              _usesTypeParametersCovariantly(
                   cls.typeParameters.typeParameters, element.type)) {
         isGenericImpl = true;
       }
@@ -251,12 +317,12 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     bool isGenericInterface = false;
     if (cls?.typeParameters != null) {
       if (element is ParameterElement) {
-        if (_isFormalSemiTyped(
+        if (_usesTypeParametersCovariantly(
             cls.typeParameters.typeParameters, element.type)) {
           isGenericInterface = true;
         }
       } else if (element is TypeParameterElement && element.bound != null) {
-        if (_isFormalSemiTyped(
+        if (_usesTypeParametersCovariantly(
             cls.typeParameters.typeParameters, element.bound)) {
           isGenericInterface = true;
         }
@@ -271,21 +337,6 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
-  /// Generates the appropriate `@checkTearOff` annotation (if any) for a call
-  /// site.
-  ///
-  /// An annotation of `@checkTearOff=type` indicates that the torn off function
-  /// will have to be checked to make sure it is an instance of the given type.
-  void _annotateTearOff(Expression node, int offset) {
-    // TODO(paulberry): handle dynamic tear offs
-    // Note: we don't annotate that non-dynamic tear offs use "interface"
-    // dispatch because that's the common case.
-    var castType = getImplicitCast(node);
-    if (castType != null) {
-      _recordCheckTearOff(offset, castType);
-    }
-  }
-
   /// Generates the appropriate `@forwardingStub` annotation (if any) for a
   /// class declaration or mixin application.
   ///
@@ -294,7 +345,8 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   /// return type.  Each argument is listed in `args` as
   /// `covariance=(...) type name`, where the words between the parentheses are
   /// the same as for the `@covariance=` annotation.
-  void _emitForwardingStubs(Declaration node, int offset) {
+  void _emitForwardingStubs(
+      Declaration node, TypeParameterList typeParameters, int offset) {
     var covariantParams = getSuperclassCovariantParameters(node);
     void emitStubFor(DartType returnType, String name,
         List<ParameterElement> parameters, String accessorType) {
@@ -303,6 +355,10 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       var paramDescrs = <String>[];
       for (var param in parameters) {
         var covariances = <String>[];
+        if (_usesTypeParametersCovariantly(
+            typeParameters?.typeParameters, param.type)) {
+          covariances.add('genericInterface');
+        }
         if (covariantParams.contains(param)) {
           if (param.isCovariant) {
             covariances.add('explicit');
@@ -312,7 +368,7 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         }
         var covariance = 'covariance=(${covariances.join(', ')})';
         var typeDescr = _typeToString(param.type);
-        var paramName = accessorType == 'set' ? 'value' : param.name;
+        var paramName = accessorType == 'set' ? '_' : param.name;
         var paramDescr = '$covariance $typeDescr $paramName';
         if (param.parameterKind != previousParameterKind) {
           String opener;
@@ -332,7 +388,12 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         paramDescrs[paramDescrs.length - 1] += closer;
       }
       var returnTypeDescr = _typeToString(returnType);
-      var stubParts = [returnTypeDescr];
+      var stubParts = <String>[];
+      if (_usesTypeParametersCovariantly(
+          typeParameters?.typeParameters, returnType)) {
+        stubParts.add('genericContravariant');
+      }
+      stubParts.add(returnTypeDescr);
       if (accessorType != null) stubParts.add(accessorType);
       stubParts.add('$name(${paramDescrs.join(', ')})');
       _recordForwardingStub(offset, stubParts.join(' '));
@@ -362,26 +423,22 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
-  /// Determines whether a method formal parameter should be considered
-  /// "semi-typed".
-  ///
-  /// [typeParameters] is the list of type parameters of the enclosing class.
-  ///
-  /// [formalType] is the type of the formal parameter (or the type bound, if
-  /// we are looking at a type parameter of a generic method).
-  bool _isFormalSemiTyped(
-      List<TypeParameter> typeParameters, DartType formalType) {
-    // To see if this parameter needs to be semi-typed, we try substituting
-    // bottom for all the active type parameters.  If the resulting parameter
-    // static type is a supertype of its current static type, then that means
-    // that regardless of what we pass in, it won't fail a type check.
-    var substitutedType = formalType.substitute2(
-        new List<DartType>.filled(
-            typeParameters.length, BottomTypeImpl.instance),
-        typeParameters
-            .map((p) => new TypeParameterTypeImpl(p.element))
-            .toList());
-    return !_typeSystem.isSubtypeOf(formalType, substitutedType);
+  /// Generates the appropriate annotations for a property access, whether it
+  /// arises from a [PrefixedIdentifier] or a [PropertyAccess].
+  void _handlePropertyAccess(
+      Expression node, Expression target, SimpleIdentifier propertyName) {
+    var staticElement = propertyName.staticElement;
+    if (propertyName.inGetterContext()) {
+      var isThis = target is ThisExpression || target == null;
+      _annotateCheckReturn(getImplicitCast(node), propertyName.offset);
+      _annotateCallKind(
+          staticElement,
+          isThis,
+          target.staticType is DynamicTypeImpl,
+          target.staticType,
+          null,
+          propertyName.offset);
+    }
   }
 
   void _recordCallKind(int offset, String kind) {
@@ -389,14 +446,19 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         uri, offset, 'callKind', new fasta.InstrumentationValueLiteral(kind));
   }
 
+  void _recordCheckGetterReturn(int offset, DartType castType) {
+    _instrumentation.record(uri, offset, 'checkGetterReturn',
+        new InstrumentationValueForType(castType, _elementNamer));
+  }
+
   void _recordCheckReturn(int offset, DartType castType) {
     _instrumentation.record(uri, offset, 'checkReturn',
         new InstrumentationValueForType(castType, _elementNamer));
   }
 
-  void _recordCheckTearOff(int offset, DartType castType) {
-    _instrumentation.record(uri, offset, 'checkTearOff',
-        new InstrumentationValueForType(castType, _elementNamer));
+  void _recordContravariance(int offset) {
+    _instrumentation.record(uri, offset, 'genericContravariant',
+        new fasta.InstrumentationValueLiteral('true'));
   }
 
   void _recordCovariance(int offset, String covariance) {
@@ -411,5 +473,28 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
 
   String _typeToString(DartType type) {
     return new InstrumentationValueForType(type, _elementNamer).toString();
+  }
+
+  /// Determines whether the given type makes covariant use of type parameters.
+  bool _usesTypeParametersCovariantly(
+      List<TypeParameter> typeParameters, DartType formalType,
+      {bool flipVariance: false}) {
+    if (typeParameters == null) return false;
+    // To see if this parameter needs to be semi-typed, we try substituting
+    // bottom for all the active type parameters.  If the resulting parameter
+    // static type is a supertype of its current static type, then that means
+    // that regardless of what we pass in, it won't fail a type check.
+    var substitutedType = formalType.substitute2(
+        new List<DartType>.filled(
+            typeParameters.length, BottomTypeImpl.instance),
+        typeParameters
+            .map((p) => new TypeParameterTypeImpl(p.element))
+            .toList());
+    // To test contravariance, we flip the subtype check.
+    if (flipVariance) {
+      return !_typeSystem.isSubtypeOf(substitutedType, formalType);
+    } else {
+      return !_typeSystem.isSubtypeOf(formalType, substitutedType);
+    }
   }
 }

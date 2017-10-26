@@ -506,8 +506,8 @@ RawString* Symbols::FromConcatAll(
         const String& str = strs[i];
         ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
         const uint8_t* src_p = str.IsOneByteString()
-                                   ? OneByteString::CharAddr(str, 0)
-                                   : ExternalOneByteString::CharAddr(str, 0);
+                                   ? OneByteString::DataStart(str)
+                                   : ExternalOneByteString::DataStart(str);
         memmove(buffer, src_p, str_len);
         buffer += str_len;
       }
@@ -523,15 +523,15 @@ RawString* Symbols::FromConcatAll(
       if (str_len > 0) {
         const String& str = strs[i];
         if (str.IsTwoByteString()) {
-          memmove(buffer, TwoByteString::CharAddr(str, 0), str_len * 2);
+          memmove(buffer, TwoByteString::DataStart(str), str_len * 2);
         } else if (str.IsExternalTwoByteString()) {
-          memmove(buffer, ExternalTwoByteString::CharAddr(str, 0), str_len * 2);
+          memmove(buffer, ExternalTwoByteString::DataStart(str), str_len * 2);
         } else {
           // One-byte to two-byte string copy.
           ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
           const uint8_t* src_p = str.IsOneByteString()
-                                     ? OneByteString::CharAddr(str, 0)
-                                     : ExternalOneByteString::CharAddr(str, 0);
+                                     ? OneByteString::DataStart(str)
+                                     : ExternalOneByteString::DataStart(str);
           for (int n = 0; n < str_len; n++) {
             buffer[n] = src_p[n];
           }

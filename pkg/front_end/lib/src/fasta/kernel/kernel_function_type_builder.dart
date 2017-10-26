@@ -29,15 +29,11 @@ import 'kernel_builder.dart'
 
 class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     implements KernelTypeBuilder {
-  final int charOffset;
-
   KernelFunctionTypeBuilder(
-      this.charOffset,
-      Uri fileUri,
       KernelTypeBuilder returnType,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals)
-      : super(charOffset, fileUri, returnType, typeVariables, formals);
+      : super(returnType, typeVariables, formals);
 
   FunctionType build(LibraryBuilder library) {
     DartType builtReturnType =
@@ -77,13 +73,15 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   }
 
   Supertype buildSupertype(LibraryBuilder library) {
+    int charOffset = -1; // TODO(ahe): Provide these.
+    Uri fileUri = null; // TODO(ahe): Provide these.
     library.addCompileTimeError(
         messageSupertypeIsFunction, charOffset, fileUri);
     return null;
   }
 
   @override
-  buildInvalidType() {
+  buildInvalidType(int charOffset, Uri fileUri) {
     return unsupported("buildInvalidType", charOffset, fileUri);
   }
 }

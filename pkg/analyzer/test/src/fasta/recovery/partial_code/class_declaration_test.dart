@@ -35,7 +35,15 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class _s_ {}',
-              failing: allExceptEof),
+              failing: <String>[
+                'typedef',
+                'functionVoid',
+                'functionNonVoid',
+                'const',
+                'final',
+                'getter',
+                'setter'
+              ]),
           new TestDescriptor('named', 'class A',
               [ParserErrorCode.MISSING_CLASS_BODY], 'class A {}',
               failing: onlyConstAndFinal),

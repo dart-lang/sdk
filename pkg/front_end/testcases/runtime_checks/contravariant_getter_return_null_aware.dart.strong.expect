@@ -1,0 +1,28 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class C<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  generic-contravariant get f1() → (self::C::T) → void
+    return null;
+  generic-contravariant get f2() → core::List<(self::C::T) → void> {
+    return <(self::C::T) → void>[this.{self::C::f1}];
+  }
+}
+static method g1(self::C<core::num> c) → void {
+  (core::num) → void x = let final self::C<core::num> #t1 = c in #t1.==(null) ?{(core::num) → void} null : #t1.{self::C::f1} as{TypeError} (core::num) → void;
+  core::print("hello");
+  x.call(1.5);
+}
+static method g2(self::C<core::num> c) → void {
+  (core::int) → void x = let final self::C<core::num> #t2 = c in #t2.==(null) ?{(core::num) → void} null : #t2.{self::C::f1} as{TypeError} (core::num) → void;
+  x.call(1);
+}
+static method g3(self::C<core::num> c) → void {
+  core::List<(core::num) → void> x = let final self::C<core::num> #t3 = c in #t3.==(null) ?{core::List<(core::num) → void>} null : #t3.{self::C::f2} as{TypeError} core::List<(core::num) → void>;
+}
+static method main() → void {}

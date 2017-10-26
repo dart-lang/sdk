@@ -28,6 +28,7 @@ const Map<String, List /* <String|MessageKind> */ > WHITE_LIST = const {
 const List<String> SKIP_LIST = const <String>[
   // Helper files:
   "/data/",
+  "/side_effects/",
   "quarantined/http_launch_data/",
   "mirrors_helper.dart",
   "path%20with%20spaces/",

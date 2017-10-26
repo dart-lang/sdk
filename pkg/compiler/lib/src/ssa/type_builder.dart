@@ -7,7 +7,6 @@ import 'nodes.dart';
 import '../common.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../types/types.dart';
@@ -42,16 +41,16 @@ abstract class TypeBuilder {
   TypeBuilder(this.builder);
 
   /// Create an instruction to simply trust the provided type.
-  HInstruction _trustType(HInstruction original, ResolutionDartType type) {
+  HInstruction _trustType(HInstruction original, DartType type) {
     assert(builder.options.trustTypeAnnotations);
     assert(type != null);
     type = builder.localsHandler.substInContext(type);
     type = type.unaliased;
     if (type.isDynamic) return original;
     if (!type.isInterfaceType) return original;
-    if (type.isObject) return original;
+    if (type == builder.commonElements.objectType) return original;
     // The type element is either a class or the void element.
-    ClassElement element = type.element;
+    ClassEntity element = (type as InterfaceType).element;
     TypeMask mask = new TypeMask.subtype(element, builder.closedWorld);
     return new HTypeKnown.pinned(mask, original);
   }

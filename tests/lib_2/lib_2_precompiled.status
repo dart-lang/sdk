@@ -9,6 +9,7 @@ isolate/message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
 isolate/ping_pause_test: Skip     # Resolve test issues
 isolate/ping_test: Skip           # Resolve test issues
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
+async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
 [ $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout

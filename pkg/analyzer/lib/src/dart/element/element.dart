@@ -619,7 +619,8 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   String get documentationComment {
     if (_kernel != null) {
-      return _kernel.documentationComment;
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.documentationComment;
     }
     if (_unlinkedClass != null) {
       return _unlinkedClass.documentationComment?.text;
@@ -1747,10 +1748,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_unlinkedPart != null) {
-      return _metadata ??= _buildAnnotations(
-          library.definingCompilationUnit as CompilationUnitElementImpl,
-          _unlinkedPart.annotations);
+    if (_metadata == null) {
+      if (_kernelContext != null) {
+        return _metadata = _kernelContext
+            .buildAnnotations(_kernelContext.kernelUnit.annotations);
+      }
+      if (_unlinkedPart != null) {
+        return _metadata = _buildAnnotations(
+            library.definingCompilationUnit as CompilationUnitElementImpl,
+            _unlinkedPart.annotations);
+      }
     }
     return super.metadata;
   }
@@ -2038,7 +2045,8 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   @override
   String get documentationComment {
     if (_kernelEnumValue != null) {
-      return _kernelEnumValue.documentationComment;
+      var metadata = AnalyzerMetadata.forNode(_kernelEnumValue);
+      return metadata?.documentationComment;
     }
     if (_unlinkedEnumValue != null) {
       return _unlinkedEnumValue.documentationComment?.text;
@@ -3779,7 +3787,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   String get documentationComment {
     if (_kernel != null) {
-      return _kernel.documentationComment;
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.documentationComment;
     }
     if (_unlinkedEnum != null) {
       return _unlinkedEnum.documentationComment?.text;
@@ -4064,7 +4073,8 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   String get documentationComment {
     if (_kernel != null) {
-      return _kernel.documentationComment;
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.documentationComment;
     }
     if (serializedExecutable != null) {
       return serializedExecutable.documentationComment?.text;
@@ -4467,10 +4477,16 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_unlinkedExportNonPublic != null) {
-      return _metadata ??= _buildAnnotations(
-          library.definingCompilationUnit as CompilationUnitElementImpl,
-          _unlinkedExportNonPublic.annotations);
+    if (_metadata == null) {
+      CompilationUnitElementImpl definingUnit = library.definingCompilationUnit;
+      if (_kernel != null) {
+        return _metadata =
+            definingUnit._kernelContext.buildAnnotations(_kernel.annotations);
+      }
+      if (_unlinkedExportNonPublic != null) {
+        return _metadata = _buildAnnotations(
+            definingUnit, _unlinkedExportNonPublic.annotations);
+      }
     }
     return super.metadata;
   }
@@ -5748,10 +5764,16 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_unlinkedImport != null) {
-      return _metadata ??= _buildAnnotations(
-          library.definingCompilationUnit as CompilationUnitElementImpl,
-          _unlinkedImport.annotations);
+    if (_metadata == null) {
+      CompilationUnitElementImpl definingUnit = library.definingCompilationUnit;
+      if (_kernel != null) {
+        return _metadata =
+            definingUnit._kernelContext.buildAnnotations(_kernel.annotations);
+      }
+      if (_unlinkedImport != null) {
+        return _metadata =
+            _buildAnnotations(definingUnit, _unlinkedImport.annotations);
+      }
     }
     return super.metadata;
   }
@@ -5952,6 +5974,8 @@ abstract class KernelLibraryResynthesizerContext {
  * Top-level declarations of a Kernel library filtered by the unit.
  */
 abstract class KernelUnit {
+  List<kernel.Expression> get annotations;
+
   List<kernel.Class> get classes;
 
   List<kernel.Field> get fields;
@@ -6270,7 +6294,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   String get documentationComment {
     if (_kernelContext != null) {
-      return _kernelContext.library.documentationComment;
+      var metadata = AnalyzerMetadata.forNode(_kernelContext.library);
+      return metadata?.documentationComment;
     }
     if (_unlinkedDefiningUnit != null) {
       return _unlinkedDefiningUnit.libraryDocumentationComment?.text;
@@ -7675,7 +7700,8 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   @override
   String get documentationComment {
     if (_kernel != null) {
-      return _kernel.documentationComment;
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.documentationComment;
     }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.documentationComment?.text;

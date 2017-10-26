@@ -1585,6 +1585,90 @@ Consider passing explicit type argument(s) to the generic.
     verify([source]);
   }
 
+  test_inference_simplePolymorphicRecursion_function() async {
+    // Regression test for https://github.com/dart-lang/sdk/issues/30980
+    // Check that inference works properly when inferring the type argument
+    // for a self-recursive call with a function type
+    var source = addSource(r'''
+void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) target) {
+  _mergeSort(list, compare, target);
+  _mergeSort(list, compare, list);
+  _mergeSort(target, compare, target);
+  _mergeSort(target, compare, list);
+}
+    ''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    var unit = analysisResult.unit;
+    var body = (AstFinder
+        .getTopLevelFunction(unit, '_mergeSort')
+        .functionExpression
+        .body as BlockFunctionBody);
+    var stmts = body.block.statements;
+    for (ExpressionStatement stmt in stmts) {
+      MethodInvocation invoke = stmt.expression;
+      ParameterizedType fType = invoke.staticInvokeType;
+      expect(fType.typeArguments[0].toString(), 'T');
+    }
+  }
+
+  test_inference_simplePolymorphicRecursion_interface() async {
+    // Regression test for https://github.com/dart-lang/sdk/issues/30980
+    // Check that inference works properly when inferring the type argument
+    // for a self-recursive call with an interface type
+    var source = addSource(r'''
+void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
+  _mergeSort(list, compare, target);
+  _mergeSort(list, compare, list);
+  _mergeSort(target, compare, target);
+  _mergeSort(target, compare, list);
+}
+    ''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    var unit = analysisResult.unit;
+    var body = (AstFinder
+        .getTopLevelFunction(unit, '_mergeSort')
+        .functionExpression
+        .body as BlockFunctionBody);
+    var stmts = body.block.statements;
+    for (ExpressionStatement stmt in stmts) {
+      MethodInvocation invoke = stmt.expression;
+      ParameterizedType fType = invoke.staticInvokeType;
+      expect(fType.typeArguments[0].toString(), 'T');
+    }
+  }
+
+  test_inference_simplePolymorphicRecursion_simple() async {
+    // Regression test for https://github.com/dart-lang/sdk/issues/30980
+    // Check that inference works properly when inferring the type argument
+    // for a self-recursive call with a simple type parameter
+    var source = addSource(r'''
+void _mergeSort<T>(T list, int compare(T a, T b), T target) {
+  _mergeSort(list, compare, target);
+  _mergeSort(list, compare, list);
+  _mergeSort(target, compare, target);
+  _mergeSort(target, compare, list);
+}
+    ''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    var unit = analysisResult.unit;
+    var body = (AstFinder
+        .getTopLevelFunction(unit, '_mergeSort')
+        .functionExpression
+        .body as BlockFunctionBody);
+    var stmts = body.block.statements;
+    for (ExpressionStatement stmt in stmts) {
+      MethodInvocation invoke = stmt.expression;
+      ParameterizedType fType = invoke.staticInvokeType;
+      expect(fType.typeArguments[0].toString(), 'T');
+    }
+  }
+
   test_inferGenericInstantiation() async {
     // Verify that we don't infer '?` when we instantiate a generic function.
     var source = addSource(r'''
@@ -3183,6 +3267,26 @@ class C<T> {
     expect('${ft.typeArguments}/${ft.typeParameters}', '[S, int]/[T, S]');
 
     expectIdentifierType('f;', '<S₀>(S₀) → S');
+  }
+
+  @failingTest // https://github.com/dart-lang/sdk/issues/30236
+  test_genericMethod_nestedCaptureBounds() async {
+    await resolveTestUnit(r'''
+class C<T> {
+  T f<S extends T>(S x) {
+    new C<S>().f<int>(3);
+    new C<S>().f; // tear-off
+    return null;
+  }
+}
+''');
+    MethodInvocation f = findIdentifier('f<int>(3);').parent;
+    expect(f.staticInvokeType.toString(), '(int) → S');
+    FunctionType ft = f.staticInvokeType;
+    expect('${ft.typeArguments}/${ft.typeParameters}',
+        '[S, int]/[T, S extends T]');
+
+    expectIdentifierType('f;', '<S₀ extends S>(S₀) → S');
   }
 
   test_genericMethod_nestedFunctions() async {

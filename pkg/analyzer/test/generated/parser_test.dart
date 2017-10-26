@@ -99,6 +99,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
    */
   void createParser(String content);
 
+  ExpectedError expectedError(ErrorCode code, int offset, int length);
+
   void expectNotNullIfNoErrors(Object result);
 
   Expression parseAdditiveExpression(String code);
@@ -119,7 +121,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Expression parseCascadeSection(String code);
 
   CompilationUnit parseCompilationUnit(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
+      {List<ErrorCode> codes, List<ExpectedError> errors});
 
   ConditionalExpression parseConditionalExpression(String code);
 
@@ -2165,7 +2167,8 @@ class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {
     createParser('1');
     SimpleIdentifier expression = parser.parseSimpleIdentifier();
     expectNotNullIfNoErrors(expression);
-    listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 1)]);
     expect(expression.isSynthetic, isTrue);
   }
 
@@ -2174,7 +2177,8 @@ class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {
     createParser('extends B?');
     ExtendsClause clause = parser.parseExtendsClause();
     expectNotNullIfNoErrors(clause);
-    listener.assertErrorsWithCodes([ParserErrorCode.NULLABLE_TYPE_IN_EXTENDS]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.NULLABLE_TYPE_IN_EXTENDS, 9, 1)]);
   }
 
   void test_nullableTypeInImplements() {
@@ -2182,8 +2186,8 @@ class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {
     createParser('implements I?');
     ImplementsClause clause = parser.parseImplementsClause();
     expectNotNullIfNoErrors(clause);
-    listener
-        .assertErrorsWithCodes([ParserErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS, 12, 1)]);
   }
 
   void test_nullableTypeInWith() {
@@ -2191,7 +2195,8 @@ class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {
     createParser('with M?');
     WithClause clause = parser.parseWithClause();
     expectNotNullIfNoErrors(clause);
-    listener.assertErrorsWithCodes([ParserErrorCode.NULLABLE_TYPE_IN_WITH]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.NULLABLE_TYPE_IN_WITH, 6, 1)]);
   }
 
   void test_nullableTypeParameter() {
@@ -2199,7 +2204,8 @@ class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {
     createParser('T?');
     TypeParameter parameter = parser.parseTypeParameter();
     expectNotNullIfNoErrors(parameter);
-    listener.assertErrorsWithCodes([ParserErrorCode.NULLABLE_TYPE_PARAMETER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.NULLABLE_TYPE_PARAMETER, 1, 1)]);
   }
 }
 
@@ -2208,75 +2214,86 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('abstract C.c();');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.ABSTRACT_CLASS_MEMBER, 0, 8)]);
   }
 
   void test_abstractClassMember_field() {
     createParser('abstract C f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.ABSTRACT_CLASS_MEMBER, 0, 8)]);
   }
 
   void test_abstractClassMember_getter() {
     createParser('abstract get m;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.ABSTRACT_CLASS_MEMBER, 0, 8)]);
   }
 
   void test_abstractClassMember_method() {
     createParser('abstract m();');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.ABSTRACT_CLASS_MEMBER, 0, 8)]);
   }
 
   void test_abstractClassMember_setter() {
     createParser('abstract set m(v);');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.ABSTRACT_CLASS_MEMBER, 0, 8)]);
   }
 
   void test_abstractEnum() {
-    parseCompilationUnit(
-        "abstract enum E {ONE}", [ParserErrorCode.ABSTRACT_ENUM]);
+    parseCompilationUnit("abstract enum E {ONE}",
+        errors: [expectedError(ParserErrorCode.ABSTRACT_ENUM, 0, 8)]);
   }
 
   void test_abstractTopLevelFunction_function() {
-    parseCompilationUnit(
-        "abstract f(v) {}", [ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION]);
+    parseCompilationUnit("abstract f(v) {}", errors: [
+      expectedError(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, 0, 8)
+    ]);
   }
 
   void test_abstractTopLevelFunction_getter() {
-    parseCompilationUnit(
-        "abstract get m {}", [ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION]);
+    parseCompilationUnit("abstract get m {}", errors: [
+      expectedError(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, 0, 8)
+    ]);
   }
 
   void test_abstractTopLevelFunction_setter() {
-    parseCompilationUnit(
-        "abstract set m(v) {}", [ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION]);
+    parseCompilationUnit("abstract set m(v) {}", errors: [
+      expectedError(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, 0, 8)
+    ]);
   }
 
   void test_abstractTopLevelVariable() {
-    parseCompilationUnit(
-        "abstract C f;", [ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE]);
+    parseCompilationUnit("abstract C f;", errors: [
+      expectedError(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE, 0, 8)
+    ]);
   }
 
   void test_abstractTypeDef() {
-    parseCompilationUnit(
-        "abstract typedef F();", [ParserErrorCode.ABSTRACT_TYPEDEF]);
+    parseCompilationUnit("abstract typedef F();",
+        errors: [expectedError(ParserErrorCode.ABSTRACT_TYPEDEF, 0, 8)]);
   }
 
   void test_annotationOnEnumConstant_first() {
-    parseCompilationUnit("enum E { @override C }",
-        [ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT]);
+    parseCompilationUnit("enum E { @override C }", errors: [
+      expectedError(ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, 9, 9)
+    ]);
   }
 
   void test_annotationOnEnumConstant_middle() {
-    parseCompilationUnit("enum E { C, @override D, E }",
-        [ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT]);
+    parseCompilationUnit("enum E { C, @override D, E }", errors: [
+      expectedError(ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, 12, 9)
+    ]);
   }
 
   void test_breakOutsideOfLoop_breakInDoStatement() {
@@ -2319,26 +2336,13 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_classInClass_abstract() {
-    parseCompilationUnit(
-        "class C { abstract class B {} }",
-        usingFastaParser
-            ? [
-                ParserErrorCode.ABSTRACT_CLASS_MEMBER,
-                ParserErrorCode.CLASS_IN_CLASS,
-                ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-              ]
-            : [ParserErrorCode.CLASS_IN_CLASS]);
+    parseCompilationUnit("class C { abstract class B {} }",
+        codes: [ParserErrorCode.CLASS_IN_CLASS]);
   }
 
   void test_classInClass_nonAbstract() {
-    parseCompilationUnit(
-        "class C { class B {} }",
-        usingFastaParser
-            ? [
-                ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-                ParserErrorCode.CLASS_IN_CLASS,
-              ]
-            : [ParserErrorCode.CLASS_IN_CLASS]);
+    parseCompilationUnit("class C { class B {} }",
+        codes: [ParserErrorCode.CLASS_IN_CLASS]);
   }
 
   void test_classTypeAlias_abstractAfterEq() {
@@ -2378,7 +2382,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_constClass() {
-    parseCompilationUnit("const class C {}", [ParserErrorCode.CONST_CLASS]);
+    parseCompilationUnit("const class C {}",
+        codes: [ParserErrorCode.CONST_CLASS]);
   }
 
   void test_constConstructorWithBody() {
@@ -2390,7 +2395,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_constEnum() {
-    parseCompilationUnit("const enum E {ONE}", [ParserErrorCode.CONST_ENUM]);
+    parseCompilationUnit("const enum E {ONE}",
+        codes: [ParserErrorCode.CONST_ENUM]);
   }
 
   void test_constFactory() {
@@ -2425,7 +2431,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_constTypedef() {
-    parseCompilationUnit("const typedef F();", [ParserErrorCode.CONST_TYPEDEF]);
+    parseCompilationUnit("const typedef F();",
+        codes: [ParserErrorCode.CONST_TYPEDEF]);
   }
 
   void test_continueOutsideOfLoop_continueInDoStatement() {
@@ -2550,7 +2557,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_covariantTopLevelDeclaration_typedef() {
     parseCompilationUnit("covariant typedef F();",
-        [ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION]);
+        codes: [ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION]);
   }
 
   void test_defaultValueInFunctionType_named_colon() {
@@ -2581,9 +2588,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_directiveAfterDeclaration_classBeforeDirective() {
-    CompilationUnit unit = parseCompilationUnit(
-        "class Foo{} library l;",
-        usingFastaParser
+    CompilationUnit unit = parseCompilationUnit("class Foo{} library l;",
+        codes: usingFastaParser
             ? [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST]
             : [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
     expect(unit, isNotNull);
@@ -2592,7 +2598,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   void test_directiveAfterDeclaration_classBetweenDirectives() {
     CompilationUnit unit = parseCompilationUnit(
         "library l;\nclass Foo{}\npart 'a.dart';",
-        [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
+        codes: [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
     expect(unit, isNotNull);
   }
 
@@ -2654,29 +2660,13 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_enumInClass() {
-    parseCompilationUnit(
-        r'''
+    parseCompilationUnit(r'''
 class Foo {
   enum Bar {
     Bar1, Bar2, Bar3
   }
 }
-''',
-        usingFastaParser
-            ? [
-                ParserErrorCode.ENUM_IN_CLASS,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
-              ]
-            : [ParserErrorCode.ENUM_IN_CLASS]);
+''', codes: [ParserErrorCode.ENUM_IN_CLASS]);
   }
 
   void test_equalityCannotBeEqualityOperand_eq_eq() {
@@ -2715,7 +2705,7 @@ class Foo {
   }
 
   void test_expectedExecutable_afterAnnotation_atEOF() {
-    parseCompilationUnit('@A', [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    parseCompilationUnit('@A', codes: [ParserErrorCode.EXPECTED_EXECUTABLE]);
   }
 
   void test_expectedExecutable_inClass_afterVoid() {
@@ -2751,7 +2741,7 @@ class Foo {
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [new AnalysisError(null, 0, 1, ParserErrorCode.EXPECTED_EXECUTABLE)]);
+        [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1)]);
   }
 
   void test_expectedInterpolationIdentifier() {
@@ -2811,8 +2801,8 @@ class Foo {
   }
 
   void test_expectedToken_semicolonMissingAfterExport() {
-    CompilationUnit unit = parseCompilationUnit(
-        "export '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
+    CompilationUnit unit = parseCompilationUnit("export '' class A {}",
+        codes: [ParserErrorCode.EXPECTED_TOKEN]);
     ExportDirective directive = unit.directives[0] as ExportDirective;
     expect(directive.uri, isNotNull);
     expect(directive.uri.stringValue, '');
@@ -2831,8 +2821,8 @@ class Foo {
   }
 
   void test_expectedToken_semicolonMissingAfterImport() {
-    CompilationUnit unit = parseCompilationUnit(
-        "import '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
+    CompilationUnit unit = parseCompilationUnit("import '' class A {}",
+        codes: [ParserErrorCode.EXPECTED_TOKEN]);
     ImportDirective directive = unit.directives[0] as ImportDirective;
     Token semicolon = directive.semicolon;
     expect(semicolon, isNotNull);
@@ -2840,7 +2830,7 @@ class Foo {
   }
 
   void test_expectedToken_uriAndSemicolonMissingAfterExport() {
-    CompilationUnit unit = parseCompilationUnit("export class A {}", [
+    CompilationUnit unit = parseCompilationUnit("export class A {}", codes: [
       ParserErrorCode.EXPECTED_STRING_LITERAL,
       ParserErrorCode.EXPECTED_TOKEN,
     ]);
@@ -2879,7 +2869,7 @@ class Foo {
 
   void test_exportDirectiveAfterPartDirective() {
     parseCompilationUnit("part 'a.dart'; export 'b.dart';",
-        [ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE]);
+        codes: [ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE]);
   }
 
   void test_externalAfterConst() {
@@ -2904,8 +2894,8 @@ class Foo {
   }
 
   void test_externalClass() {
-    parseCompilationUnit(
-        "external class C {}", [ParserErrorCode.EXTERNAL_CLASS]);
+    parseCompilationUnit("external class C {}",
+        codes: [ParserErrorCode.EXTERNAL_CLASS]);
   }
 
   void test_externalConstructorWithBody_factory() {
@@ -2925,8 +2915,8 @@ class Foo {
   }
 
   void test_externalEnum() {
-    parseCompilationUnit(
-        "external enum E {ONE}", [ParserErrorCode.EXTERNAL_ENUM]);
+    parseCompilationUnit("external enum E {ONE}",
+        codes: [ParserErrorCode.EXTERNAL_ENUM]);
   }
 
   void test_externalField_const() {
@@ -2994,8 +2984,8 @@ class Foo {
   }
 
   void test_externalTypedef() {
-    parseCompilationUnit(
-        "external typedef F();", [ParserErrorCode.EXTERNAL_TYPEDEF]);
+    parseCompilationUnit("external typedef F();",
+        codes: [ParserErrorCode.EXTERNAL_TYPEDEF]);
   }
 
   void test_extraCommaInParameterList() {
@@ -3034,18 +3024,18 @@ class Foo {
   }
 
   void test_factoryTopLevelDeclaration_class() {
-    parseCompilationUnit(
-        "factory class C {}", [ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION]);
+    parseCompilationUnit("factory class C {}",
+        codes: [ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION]);
   }
 
   void test_factoryTopLevelDeclaration_enum() {
     parseCompilationUnit("factory enum E { v }",
-        [ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION]);
+        codes: [ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION]);
   }
 
   void test_factoryTopLevelDeclaration_typedef() {
     parseCompilationUnit("factory typedef F();",
-        [ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION]);
+        codes: [ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION]);
   }
 
   void test_factoryWithInitializers() {
@@ -3085,7 +3075,8 @@ class Foo {
   }
 
   void test_finalClass() {
-    parseCompilationUnit("final class C {}", [ParserErrorCode.FINAL_CLASS]);
+    parseCompilationUnit("final class C {}",
+        codes: [ParserErrorCode.FINAL_CLASS]);
   }
 
   void test_finalConstructor() {
@@ -3098,7 +3089,8 @@ class Foo {
   }
 
   void test_finalEnum() {
-    parseCompilationUnit("final enum E {ONE}", [ParserErrorCode.FINAL_ENUM]);
+    parseCompilationUnit("final enum E {ONE}",
+        codes: [ParserErrorCode.FINAL_ENUM]);
   }
 
   void test_finalMethod() {
@@ -3111,24 +3103,24 @@ class Foo {
   }
 
   void test_finalTypedef() {
-    parseCompilationUnit("final typedef F();", [ParserErrorCode.FINAL_TYPEDEF]);
+    parseCompilationUnit("final typedef F();",
+        codes: [ParserErrorCode.FINAL_TYPEDEF]);
   }
 
   void test_functionTypedParameter_const() {
-    parseCompilationUnit(
-        "void f(const x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
+    parseCompilationUnit("void f(const x()) {}",
+        codes: [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
   }
 
   void test_functionTypedParameter_final() {
-    parseCompilationUnit(
-        "void f(final x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
+    parseCompilationUnit("void f(final x()) {}",
+        codes: [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
   }
 
   void test_functionTypedParameter_incomplete1() {
     // This caused an exception at one point.
-    parseCompilationUnit(
-        "void f(int Function(",
-        fe.Scanner.useFasta
+    parseCompilationUnit("void f(int Function(",
+        codes: fe.Scanner.useFasta
             ? [
                 ScannerErrorCode.EXPECTED_TOKEN,
                 ScannerErrorCode.EXPECTED_TOKEN,
@@ -3146,8 +3138,8 @@ class Foo {
   }
 
   void test_functionTypedParameter_var() {
-    parseCompilationUnit(
-        "void f(var x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
+    parseCompilationUnit("void f(var x()) {}",
+        codes: [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
   }
 
   void test_genericFunctionType_extraLessThan() {
@@ -3231,17 +3223,17 @@ class Wrong<T> {
 
   void test_implementsBeforeExtends() {
     parseCompilationUnit("class A implements B extends C {}",
-        [ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS]);
+        codes: [ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS]);
   }
 
   void test_implementsBeforeWith() {
     parseCompilationUnit("class A extends B implements C with D {}",
-        [ParserErrorCode.IMPLEMENTS_BEFORE_WITH]);
+        codes: [ParserErrorCode.IMPLEMENTS_BEFORE_WITH]);
   }
 
   void test_importDirectiveAfterPartDirective() {
     parseCompilationUnit("part 'a.dart'; import 'b.dart';",
-        [ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE]);
+        codes: [ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE]);
   }
 
   void test_initializedVariableInForEach() {
@@ -3417,12 +3409,12 @@ class Wrong<T> {
 
   void test_libraryDirectiveNotFirst() {
     parseCompilationUnit("import 'x.dart'; library l;",
-        [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST]);
+        codes: [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST]);
   }
 
   void test_libraryDirectiveNotFirst_afterPart() {
     CompilationUnit unit = parseCompilationUnit("part 'a.dart';\nlibrary l;",
-        [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST]);
+        codes: [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST]);
     expect(unit, isNotNull);
   }
 
@@ -3593,8 +3585,8 @@ class Wrong<T> {
   }
 
   void test_missingClassBody() {
-    parseCompilationUnit(
-        "class A class B {}", [ParserErrorCode.MISSING_CLASS_BODY]);
+    parseCompilationUnit("class A class B {}",
+        codes: [ParserErrorCode.MISSING_CLASS_BODY]);
   }
 
   @failingTest
@@ -3614,7 +3606,7 @@ class Wrong<T> {
 
   void test_missingConstFinalVarOrType_static() {
     parseCompilationUnit("class A { static f; }",
-        [ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
+        codes: [ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
   }
 
   void test_missingConstFinalVarOrType_topLevel() {
@@ -3685,25 +3677,25 @@ class Wrong<T> {
   }
 
   void test_missingFunctionParameters_topLevel_nonVoid_block() {
-    parseCompilationUnit(
-        "int f { return x;}", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
+    parseCompilationUnit("int f { return x;}",
+        codes: [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
   }
 
   void test_missingFunctionParameters_topLevel_nonVoid_expression() {
-    parseCompilationUnit(
-        "int f => x;", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
+    parseCompilationUnit("int f => x;",
+        codes: [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
   }
 
   void test_missingFunctionParameters_topLevel_void_block() {
-    CompilationUnit unit = parseCompilationUnit(
-        "void f { return x;}", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
+    CompilationUnit unit = parseCompilationUnit("void f { return x;}",
+        codes: [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
     FunctionDeclaration funct = unit.declarations[0];
     expect(funct.functionExpression.parameters, hasLength(0));
   }
 
   void test_missingFunctionParameters_topLevel_void_expression() {
-    CompilationUnit unit = parseCompilationUnit(
-        "void f => x;", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
+    CompilationUnit unit = parseCompilationUnit("void f => x;",
+        codes: [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
     FunctionDeclaration funct = unit.declarations[0];
     expect(funct.functionExpression.parameters, hasLength(0));
   }
@@ -3829,20 +3821,20 @@ class Wrong<T> {
   }
 
   void test_missingNameInLibraryDirective() {
-    CompilationUnit unit = parseCompilationUnit(
-        "library;", [ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE]);
+    CompilationUnit unit = parseCompilationUnit("library;",
+        codes: [ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE]);
     expect(unit, isNotNull);
   }
 
   void test_missingNameInPartOfDirective() {
-    CompilationUnit unit = parseCompilationUnit(
-        "part of;", [ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE]);
+    CompilationUnit unit = parseCompilationUnit("part of;",
+        codes: [ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE]);
     expect(unit, isNotNull);
   }
 
   void test_missingPrefixInDeferredImport() {
     parseCompilationUnit("import 'foo.dart' deferred;",
-        [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT]);
+        codes: [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT]);
   }
 
   void test_missingStartAfterSync() {
@@ -3885,18 +3877,18 @@ class Wrong<T> {
   }
 
   void test_missingTypedefParameters_nonVoid() {
-    parseCompilationUnit(
-        "typedef int F;", [ParserErrorCode.MISSING_TYPEDEF_PARAMETERS]);
+    parseCompilationUnit("typedef int F;",
+        codes: [ParserErrorCode.MISSING_TYPEDEF_PARAMETERS]);
   }
 
   void test_missingTypedefParameters_typeParameters() {
-    parseCompilationUnit(
-        "typedef F<E>;", [ParserErrorCode.MISSING_TYPEDEF_PARAMETERS]);
+    parseCompilationUnit("typedef F<E>;",
+        codes: [ParserErrorCode.MISSING_TYPEDEF_PARAMETERS]);
   }
 
   void test_missingTypedefParameters_void() {
-    parseCompilationUnit(
-        "typedef void F;", [ParserErrorCode.MISSING_TYPEDEF_PARAMETERS]);
+    parseCompilationUnit("typedef void F;",
+        codes: [ParserErrorCode.MISSING_TYPEDEF_PARAMETERS]);
   }
 
   void test_missingVariableInForEach() {
@@ -3921,22 +3913,23 @@ class Wrong<T> {
   }
 
   void test_mixin_application_lacks_with_clause() {
-    parseCompilationUnit("class Foo = Bar;", [ParserErrorCode.EXPECTED_TOKEN]);
+    parseCompilationUnit("class Foo = Bar;",
+        codes: [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_multipleExtendsClauses() {
     parseCompilationUnit("class A extends B extends C {}",
-        [ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES]);
+        codes: [ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES]);
   }
 
   void test_multipleImplementsClauses() {
     parseCompilationUnit("class A implements B implements C {}",
-        [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES]);
+        codes: [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES]);
   }
 
   void test_multipleLibraryDirectives() {
-    parseCompilationUnit(
-        "library l; library m;", [ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES]);
+    parseCompilationUnit("library l; library m;",
+        codes: [ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES]);
   }
 
   void test_multipleNamedParameterGroups() {
@@ -3948,8 +3941,8 @@ class Wrong<T> {
   }
 
   void test_multiplePartOfDirectives() {
-    parseCompilationUnit(
-        "part of l; part of m;", [ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES]);
+    parseCompilationUnit("part of l; part of m;",
+        codes: [ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES]);
   }
 
   void test_multiplePositionalParameterGroups() {
@@ -3969,7 +3962,7 @@ class Wrong<T> {
 
   void test_multipleWithClauses() {
     parseCompilationUnit("class A extends B with C with D {}",
-        [ParserErrorCode.MULTIPLE_WITH_CLAUSES]);
+        codes: [ParserErrorCode.MULTIPLE_WITH_CLAUSES]);
   }
 
   @failingTest
@@ -4005,13 +3998,13 @@ class Wrong<T> {
   }
 
   void test_nonIdentifierLibraryName_library() {
-    CompilationUnit unit = parseCompilationUnit(
-        "library 'lib';", [ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME]);
+    CompilationUnit unit = parseCompilationUnit("library 'lib';",
+        codes: [ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME]);
     expect(unit, isNotNull);
   }
 
   void test_nonIdentifierLibraryName_partOf() {
-    CompilationUnit unit = parseCompilationUnit("part of 3;", [
+    CompilationUnit unit = parseCompilationUnit("part of 3;", codes: [
       ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE,
       ParserErrorCode.UNEXPECTED_TOKEN
     ]);
@@ -4020,12 +4013,12 @@ class Wrong<T> {
 
   void test_nonPartOfDirectiveInPart_after() {
     parseCompilationUnit("part of l; part 'f.dart';",
-        [ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART]);
+        codes: [ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART]);
   }
 
   void test_nonPartOfDirectiveInPart_before() {
     parseCompilationUnit("part 'f.dart'; part of m;",
-        [ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART]);
+        codes: [ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART]);
   }
 
   void test_nonUserDefinableOperator() {
@@ -4037,13 +4030,13 @@ class Wrong<T> {
   }
 
   void test_optionalAfterNormalParameters_named() {
-    parseCompilationUnit(
-        "f({a}, b) {}", [ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS]);
+    parseCompilationUnit("f({a}, b) {}",
+        codes: [ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS]);
   }
 
   void test_optionalAfterNormalParameters_positional() {
-    parseCompilationUnit(
-        "f([a], b) {}", [ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS]);
+    parseCompilationUnit("f([a], b) {}",
+        codes: [ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS]);
   }
 
   void test_parseCascadeSection_missingIdentifier() {
@@ -4179,38 +4172,37 @@ class Wrong<T> {
   }
 
   void test_staticTopLevelDeclaration_class() {
-    parseCompilationUnit(
-        "static class C {}", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
+    parseCompilationUnit("static class C {}",
+        codes: [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
   }
 
   void test_staticTopLevelDeclaration_enum() {
-    parseCompilationUnit(
-        "static enum E { v }", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
+    parseCompilationUnit("static enum E { v }",
+        codes: [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
   }
 
   void test_staticTopLevelDeclaration_function() {
-    parseCompilationUnit(
-        "static f() {}", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
+    parseCompilationUnit("static f() {}",
+        codes: [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
   }
 
   void test_staticTopLevelDeclaration_typedef() {
-    parseCompilationUnit(
-        "static typedef F();", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
+    parseCompilationUnit("static typedef F();",
+        codes: [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
   }
 
   void test_staticTopLevelDeclaration_variable() {
-    parseCompilationUnit(
-        "static var x;", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
+    parseCompilationUnit("static var x;",
+        codes: [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
   }
 
   void test_string_unterminated_interpolation_block() {
-    parseCompilationUnit(
-        r'''
+    parseCompilationUnit(r'''
 m() {
  {
  '${${
 ''',
-        fe.Scanner.useFasta
+        codes: fe.Scanner.useFasta
             ? [
                 ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
                 ScannerErrorCode.EXPECTED_TOKEN,
@@ -4332,7 +4324,7 @@ m() {
   }
 
   void test_topLevelVariable_withMetadata() {
-    parseCompilationUnit("String @A string;", [
+    parseCompilationUnit("String @A string;", codes: [
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.EXPECTED_TOKEN,
       ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -4350,7 +4342,7 @@ typedef T
 main() {
   Function<
 }
-''', [
+''', codes: [
       ParserErrorCode.EXPECTED_TOKEN,
       ParserErrorCode.UNEXPECTED_TOKEN,
       ParserErrorCode.EXPECTED_EXECUTABLE
@@ -4359,7 +4351,7 @@ main() {
 
   void test_typedef_namedFunction() {
     // TODO(brianwilkerson) Improve recovery for this case.
-    parseCompilationUnit('typedef void Function();', [
+    parseCompilationUnit('typedef void Function();', codes: [
       ParserErrorCode.UNEXPECTED_TOKEN,
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.EXPECTED_EXECUTABLE,
@@ -4368,13 +4360,13 @@ main() {
   }
 
   void test_typedefInClass_withoutReturnType() {
-    parseCompilationUnit(
-        "class C { typedef F(x); }", [ParserErrorCode.TYPEDEF_IN_CLASS]);
+    parseCompilationUnit("class C { typedef F(x); }",
+        codes: [ParserErrorCode.TYPEDEF_IN_CLASS]);
   }
 
   void test_typedefInClass_withReturnType() {
     parseCompilationUnit("class C { typedef int F(int x); }",
-        [ParserErrorCode.TYPEDEF_IN_CLASS]);
+        codes: [ParserErrorCode.TYPEDEF_IN_CLASS]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_named() {
@@ -4406,8 +4398,8 @@ main() {
   }
 
   void test_unexpectedToken_returnInExpressionFunctionBody() {
-    parseCompilationUnit(
-        "f() => return null;", [ParserErrorCode.UNEXPECTED_TOKEN]);
+    parseCompilationUnit("f() => return null;",
+        codes: [ParserErrorCode.UNEXPECTED_TOKEN]);
   }
 
   void test_unexpectedToken_semicolonBetweenClassMembers() {
@@ -4418,7 +4410,8 @@ main() {
   }
 
   void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() {
-    parseCompilationUnit("int x; ; int y;", [ParserErrorCode.UNEXPECTED_TOKEN]);
+    parseCompilationUnit("int x; ; int y;",
+        codes: [ParserErrorCode.UNEXPECTED_TOKEN]);
   }
 
   void test_unterminatedString_at_eof() {
@@ -4427,7 +4420,7 @@ main() {
     // produced by the scanner when an unterminated string is encountered.
     parseCompilationUnit(r'''
 void main() {
-  var x = "''', [
+  var x = "''', codes: [
       ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
       fe.Scanner.useFasta
           ? ScannerErrorCode.EXPECTED_TOKEN
@@ -4445,7 +4438,7 @@ void main() {
   var x = "
 ;
 }
-''', [ScannerErrorCode.UNTERMINATED_STRING_LITERAL]);
+''', codes: [ScannerErrorCode.UNTERMINATED_STRING_LITERAL]);
   }
 
   void test_unterminatedString_multiline_at_eof_3_quotes() {
@@ -4454,7 +4447,7 @@ void main() {
     // produced by the scanner when an unterminated string is encountered.
     parseCompilationUnit(r'''
 void main() {
-  var x = """''', [
+  var x = """''', codes: [
       ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
       fe.Scanner.useFasta
           ? ScannerErrorCode.EXPECTED_TOKEN
@@ -4469,7 +4462,7 @@ void main() {
     // produced by the scanner when an unterminated string is encountered.
     parseCompilationUnit(r'''
 void main() {
-  var x = """"''', [
+  var x = """"''', codes: [
       ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
       fe.Scanner.useFasta
           ? ScannerErrorCode.EXPECTED_TOKEN
@@ -4484,7 +4477,7 @@ void main() {
     // produced by the scanner when an unterminated string is encountered.
     parseCompilationUnit(r'''
 void main() {
-  var x = """""''', [
+  var x = """""''', codes: [
       ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
       fe.Scanner.useFasta
           ? ScannerErrorCode.EXPECTED_TOKEN
@@ -4503,8 +4496,8 @@ void main() {
   }
 
   void test_varAndType_field() {
-    parseCompilationUnit(
-        "class C { var int x; }", [ParserErrorCode.VAR_AND_TYPE]);
+    parseCompilationUnit("class C { var int x; }",
+        codes: [ParserErrorCode.VAR_AND_TYPE]);
   }
 
   @failingTest
@@ -4526,7 +4519,7 @@ void main() {
   }
 
   void test_varAndType_topLevelVariable() {
-    parseCompilationUnit("var int x;", [ParserErrorCode.VAR_AND_TYPE]);
+    parseCompilationUnit("var int x;", codes: [ParserErrorCode.VAR_AND_TYPE]);
   }
 
   void test_varAsTypeName_as() {
@@ -4534,17 +4527,15 @@ void main() {
   }
 
   void test_varClass() {
-    parseCompilationUnit(
-        "var class C {}",
-        usingFastaParser
+    parseCompilationUnit("var class C {}",
+        codes: usingFastaParser
             ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
             : [ParserErrorCode.VAR_CLASS]);
   }
 
   void test_varEnum() {
-    parseCompilationUnit(
-        "var enum E {ONE}",
-        usingFastaParser
+    parseCompilationUnit("var enum E {ONE}",
+        codes: usingFastaParser
             ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
             : [ParserErrorCode.VAR_ENUM]);
   }
@@ -4557,9 +4548,8 @@ void main() {
   }
 
   void test_varTypedef() {
-    parseCompilationUnit(
-        "var typedef F();",
-        usingFastaParser
+    parseCompilationUnit("var typedef F();",
+        codes: usingFastaParser
             ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
             : [ParserErrorCode.VAR_TYPEDEF]);
   }
@@ -4618,8 +4608,8 @@ void main() {
   }
 
   void test_withBeforeExtends() {
-    parseCompilationUnit(
-        "class A with B extends C {}", [ParserErrorCode.WITH_BEFORE_EXTENDS]);
+    parseCompilationUnit("class A with B extends C {}",
+        codes: [ParserErrorCode.WITH_BEFORE_EXTENDS]);
   }
 
   void test_withWithoutExtends() {
@@ -8534,6 +8524,10 @@ class ParserTestCase extends EngineTestCase
   }
 
   @override
+  ExpectedError expectedError(ErrorCode code, int offset, int length) =>
+      new ExpectedError(code, offset, length);
+
+  @override
   void expectNotNullIfNoErrors(Object result) {
     if (!listener.hasErrors) {
       expect(result, isNotNull);
@@ -8602,7 +8596,7 @@ class ParserTestCase extends EngineTestCase
    *           not match those that are expected, or if the result would have been `null`
    */
   CompilationUnit parseCompilationUnit(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+      {List<ErrorCode> codes, List<ExpectedError> errors}) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
@@ -8611,7 +8605,13 @@ class ParserTestCase extends EngineTestCase
     Parser parser = new Parser(null, listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
-    listener.assertErrorsWithCodes(errorCodes);
+    if (codes != null) {
+      listener.assertErrorsWithCodes(codes);
+    } else if (errors != null) {
+      listener.assertErrors(errors);
+    } else {
+      listener.assertNoErrors();
+    }
     return unit;
   }
 
@@ -9302,7 +9302,7 @@ abstract class RecoveryParserTestMixin implements AbstractParserTestCase {
   void test_classTypeAlias_withBody() {
     parseCompilationUnit(r'''
 class A {}
-class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
+class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_conditionalExpression_missingElse() {
@@ -9330,7 +9330,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   void test_declarationBeforeDirective() {
     CompilationUnit unit = parseCompilationUnit(
         "class foo { } import 'bar.dart';",
-        [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
+        codes: [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
     expect(unit.directives, hasLength(1));
     expect(unit.declarations, hasLength(1));
     ClassDeclaration classDecl = unit.childEntities.first;
@@ -9439,9 +9439,11 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_functionExpression_in_ConstructorFieldInitializer() {
-    CompilationUnit unit = parseCompilationUnit(
-        "class A { A() : a = (){}; var v; }",
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.UNEXPECTED_TOKEN]);
+    CompilationUnit unit =
+        parseCompilationUnit("class A { A() : a = (){}; var v; }", codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.UNEXPECTED_TOKEN
+    ]);
     // Make sure we recovered and parsed "var v" correctly
     ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;
     NodeList<ClassMember> members = declaration.members;
@@ -9459,8 +9461,8 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_importDirectivePartial_as() {
-    CompilationUnit unit = parseCompilationUnit(
-        "import 'b.dart' d as b;", [ParserErrorCode.UNEXPECTED_TOKEN]);
+    CompilationUnit unit = parseCompilationUnit("import 'b.dart' d as b;",
+        codes: [ParserErrorCode.UNEXPECTED_TOKEN]);
     ImportDirective importDirective = unit.childEntities.first;
     expect(importDirective.asKeyword, isNotNull);
     expect(unit.directives, hasLength(1));
@@ -9468,8 +9470,8 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_importDirectivePartial_hide() {
-    CompilationUnit unit = parseCompilationUnit(
-        "import 'b.dart' d hide foo;", [ParserErrorCode.UNEXPECTED_TOKEN]);
+    CompilationUnit unit = parseCompilationUnit("import 'b.dart' d hide foo;",
+        codes: [ParserErrorCode.UNEXPECTED_TOKEN]);
     ImportDirective importDirective = unit.childEntities.first;
     expect(importDirective.combinators, hasLength(1));
     expect(unit.directives, hasLength(1));
@@ -9477,8 +9479,8 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_importDirectivePartial_show() {
-    CompilationUnit unit = parseCompilationUnit(
-        "import 'b.dart' d show foo;", [ParserErrorCode.UNEXPECTED_TOKEN]);
+    CompilationUnit unit = parseCompilationUnit("import 'b.dart' d show foo;",
+        codes: [ParserErrorCode.UNEXPECTED_TOKEN]);
     ImportDirective importDirective = unit.childEntities.first;
     expect(importDirective.combinators, hasLength(1));
     expect(unit.directives, hasLength(1));
@@ -9537,12 +9539,13 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incomplete_topLevelFunction() {
-    parseCompilationUnit("foo();", [ParserErrorCode.MISSING_FUNCTION_BODY]);
+    parseCompilationUnit("foo();",
+        codes: [ParserErrorCode.MISSING_FUNCTION_BODY]);
   }
 
   void test_incomplete_topLevelVariable() {
-    CompilationUnit unit =
-        parseCompilationUnit("String", [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    CompilationUnit unit = parseCompilationUnit("String",
+        codes: [ParserErrorCode.EXPECTED_EXECUTABLE]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -9556,8 +9559,10 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incomplete_topLevelVariable_const() {
-    CompilationUnit unit = parseCompilationUnit("const ",
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
+    CompilationUnit unit = parseCompilationUnit("const ", codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -9571,8 +9576,10 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incomplete_topLevelVariable_final() {
-    CompilationUnit unit = parseCompilationUnit("final ",
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
+    CompilationUnit unit = parseCompilationUnit("final ", codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -9586,8 +9593,10 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incomplete_topLevelVariable_var() {
-    CompilationUnit unit = parseCompilationUnit("var ",
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
+    CompilationUnit unit = parseCompilationUnit("var ", codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -9604,7 +9613,10 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   const
-}''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
+}''', codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
@@ -9628,7 +9640,10 @@ class C {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   final
-}''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
+}''', codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
@@ -9652,7 +9667,10 @@ class C {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   var
-}''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
+}''', codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
@@ -9723,7 +9741,7 @@ class C {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   final List<int f;
-}''', [ParserErrorCode.EXPECTED_TOKEN]);
+}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -9750,7 +9768,7 @@ class C {
   void test_incompleteTypeParameters() {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C<K {
-}''', [ParserErrorCode.EXPECTED_TOKEN]);
+}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -9765,17 +9783,18 @@ class C<K {
   }
 
   void test_invalidFunctionBodyModifier() {
-    parseCompilationUnit(
-        "f() sync {}", [ParserErrorCode.MISSING_STAR_AFTER_SYNC]);
+    parseCompilationUnit("f() sync {}",
+        codes: [ParserErrorCode.MISSING_STAR_AFTER_SYNC]);
   }
 
   void test_isExpression_noType() {
     CompilationUnit unit = parseCompilationUnit(
-        "class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}", [
-      ParserErrorCode.EXPECTED_TYPE_NAME,
-      ParserErrorCode.EXPECTED_TYPE_NAME,
-      ParserErrorCode.MISSING_STATEMENT
-    ]);
+        "class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}",
+        codes: [
+          ParserErrorCode.EXPECTED_TYPE_NAME,
+          ParserErrorCode.EXPECTED_TYPE_NAME,
+          ParserErrorCode.MISSING_STATEMENT
+        ]);
     ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;
     MethodDeclaration method = declaration.members[0] as MethodDeclaration;
     BlockFunctionBody body = method.body as BlockFunctionBody;
@@ -9793,7 +9812,7 @@ class C<K {
 
   void test_keywordInPlaceOfIdentifier() {
     // TODO(brianwilkerson) We could do better with this.
-    parseCompilationUnit("do() {}", [
+    parseCompilationUnit("do() {}", codes: [
       ParserErrorCode.EXPECTED_EXECUTABLE,
       ParserErrorCode.UNEXPECTED_TOKEN
     ]);
@@ -9914,7 +9933,7 @@ class C<K {
 class C {
   int length {}
   void foo() {}
-}''', [ParserErrorCode.MISSING_GET]);
+}''', codes: [ParserErrorCode.MISSING_GET]);
     expect(unit, isNotNull);
     ClassDeclaration classDeclaration =
         unit.declarations[0] as ClassDeclaration;
@@ -9956,7 +9975,7 @@ class C {
       expect(declaration.semicolon.lexeme, expectedSemicolon);
     }
 
-    CompilationUnit unit = parseCompilationUnit('String n x = "";', [
+    CompilationUnit unit = parseCompilationUnit('String n x = "";', codes: [
       ParserErrorCode.EXPECTED_TOKEN,
       ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
     ]);
@@ -10030,7 +10049,7 @@ class C {
 
   void test_nonStringLiteralUri_import() {
     parseCompilationUnit("import dart:io; class C {}",
-        [ParserErrorCode.NON_STRING_LITERAL_AS_URI]);
+        codes: [ParserErrorCode.NON_STRING_LITERAL_AS_URI]);
   }
 
   void test_prefixExpression_missing_operand_minus() {
@@ -10155,7 +10174,7 @@ class C {
   }
 
   void test_typedef_eof() {
-    CompilationUnit unit = parseCompilationUnit("typedef n", [
+    CompilationUnit unit = parseCompilationUnit("typedef n", codes: [
       ParserErrorCode.EXPECTED_TOKEN,
       ParserErrorCode.MISSING_TYPEDEF_PARAMETERS
     ]);
@@ -14128,7 +14147,8 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
       errorCodes.add(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
     }
     CompilationUnit unit = parseCompilationUnit(
-        'abstract<dynamic> _abstract = new abstract.A();', errorCodes);
+        'abstract<dynamic> _abstract = new abstract.A();',
+        codes: errorCodes);
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));

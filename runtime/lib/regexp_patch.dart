@@ -50,6 +50,8 @@ class RegExp {
       new HashMap<_RegExpHashKey, _RegExpHashValue>();
   static final LinkedList<_RegExpHashKey> _recentlyUsed =
       new LinkedList<_RegExpHashKey>();
+
+  int get _groupCount;
 }
 
 // Represents both a key in the regular expression cache as well as its
@@ -62,8 +64,9 @@ class _RegExpHashKey extends LinkedListEntry<_RegExpHashKey> {
   _RegExpHashKey(this.pattern, this.multiLine, this.caseSensitive);
 
   int get hashCode => pattern.hashCode;
-  bool operator ==(_RegExpHashKey that) {
-    return (this.pattern == that.pattern) &&
+  bool operator ==(that) {
+    return (that is _RegExpHashKey) &&
+        (this.pattern == that.pattern) &&
         (this.multiLine == that.multiLine) &&
         (this.caseSensitive == that.caseSensitive);
   }

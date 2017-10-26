@@ -25,6 +25,7 @@ import 'command.dart';
 import 'command_output.dart';
 import 'configuration.dart';
 import 'dependency_graph.dart';
+import 'repository.dart';
 import 'runtime_configuration.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
@@ -107,8 +108,7 @@ class TestCase extends UniqueObject {
     }
     if (info != null) {
       _setExpectations(info);
-      hash =
-          info.originTestPath.relativeTo(TestUtils.dartDir).toString().hashCode;
+      hash = info.originTestPath.relativeTo(Repository.dir).toString().hashCode;
     }
   }
 
@@ -394,7 +394,7 @@ class RunningProcess {
     } else {
       var processEnvironment = _createProcessEnvironment();
       var args = command.arguments;
-      Future processFuture = io.Process.start(command.executable, args,
+      var processFuture = io.Process.start(command.executable, args,
           environment: processEnvironment,
           workingDirectory: command.workingDirectory);
       processFuture.then((io.Process process) {
@@ -737,7 +737,7 @@ class BatchRunnerProcess {
         environment[key] = _processEnvironmentOverrides[key];
       }
     }
-    Future processFuture =
+    var processFuture =
         io.Process.start(executable, arguments, environment: environment);
     processFuture.then((io.Process p) {
       _process = p;

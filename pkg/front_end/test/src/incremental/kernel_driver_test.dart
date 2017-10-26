@@ -33,7 +33,7 @@ main() {
 @reflectiveTest
 class KernelDriverTest {
   /// Virtual filesystem for testing.
-  final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+  final fileSystem = new MemoryFileSystem(Uri.parse('org-dartlang-test:///'));
 
   /// The object under test.
   KernelDriver driver;
@@ -417,7 +417,7 @@ Future<String> b;
     // The result does not include SDK libraries.
     _assertLibraryUris(result,
         includes: [bUri],
-        excludes: [Uri.parse('dart:core'), Uri.parse('dart:core')]);
+        excludes: [Uri.parse('dart:core'), Uri.parse('dart:async')]);
 
     // The types of top-level variables are resolved.
     var library = _getLibrary(result, bUri);
@@ -688,8 +688,8 @@ import "dart:core" as core;
 
 static field core::int a = 1;
 static field core::int c = self::b;
-static field core::int b = 2 /* from file:///test/lib/bar.dart */;
-static field core::int d = self::a /* from file:///test/lib/bar.dart */;
+static field core::int b = 2 /* from org-dartlang-test:///test/lib/bar.dart */;
+static field core::int d = self::a /* from org-dartlang-test:///test/lib/bar.dart */;
 static method main() → void {}
 ''');
 
@@ -710,8 +710,8 @@ import "dart:core" as core;
 
 static field core::int a = 1;
 static field core::double c = self::b;
-static field core::double b = 2.3 /* from file:///test/lib/bar.dart */;
-static field core::int d = self::a /* from file:///test/lib/bar.dart */;
+static field core::double b = 2.3 /* from org-dartlang-test:///test/lib/bar.dart */;
+static field core::int d = self::a /* from org-dartlang-test:///test/lib/bar.dart */;
 static method main() → void {}
 ''');
     }
@@ -735,8 +735,8 @@ import "dart:core" as core;
 
 static field core::String a = "aaa";
 static field core::double c = self::b;
-static field core::double b = 2.3 /* from file:///test/lib/bar.dart */;
-static field core::String d = self::a /* from file:///test/lib/bar.dart */;
+static field core::double b = 2.3 /* from org-dartlang-test:///test/lib/bar.dart */;
+static field core::String d = self::a /* from org-dartlang-test:///test/lib/bar.dart */;
 static method main() → void {}
 ''');
     }
@@ -784,7 +784,7 @@ import 'b.dart';
   /// Write the given [text] of the file with the given [path] into the
   /// virtual filesystem.  Return the URI of the file.
   Uri writeFile(String path, String text) {
-    Uri uri = Uri.parse('file://$path');
+    Uri uri = Uri.parse('org-dartlang-test://$path');
     fileSystem.entityForUri(uri).writeAsStringSync(text);
     return uri;
   }
@@ -807,22 +807,30 @@ import 'b.dart';
 
   void _assertLibraryUris(KernelResult result,
       {List<Uri> includes: const [], List<Uri> excludes: const []}) {
-    List<Uri> libraryUris = result.results
-        .map((cycle) => cycle.kernelLibraries.map((lib) => lib.importUri))
-        .expand((uris) => uris)
-        .toList();
+    Map<String, Source> uriToSource = {};
+    List<Uri> libraryUris = [];
+    for (LibraryCycleResult cycleResult in result.results) {
+      uriToSource.addAll(cycleResult.uriToSource);
+      for (var library in cycleResult.kernelLibraries) {
+        libraryUris.add(library.importUri);
+      }
+    }
     for (var shouldInclude in includes) {
       expect(libraryUris, contains(shouldInclude));
+      var shouldIncludeFileUri = _resolveUriToFileUri(shouldInclude);
+      expect(uriToSource.keys, contains(shouldIncludeFileUri));
     }
     for (var shouldExclude in excludes) {
       expect(libraryUris, isNot(contains(shouldExclude)));
+      var shouldExcludeFileUri = _resolveUriToFileUri(shouldExclude);
+      expect(uriToSource.keys, isNot(contains(shouldExcludeFileUri)));
     }
   }
 
   Future<List<int>> _computeSdkOutlineBytes() async {
     var options = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..sdkRoot = Uri.parse('file:///sdk/')
+      ..sdkRoot = Uri.parse('org-dartlang-test:///sdk/')
       ..compileSdk = true
       ..chaseDependencies = true
       ..strongMode = true
@@ -873,9 +881,17 @@ import 'b.dart';
     return buffer.toString();
   }
 
+  /// Resolve the given `dart` or `package` [inputUri] into the corresponding
+  /// file URI, or return the same URI if it is already a file URI.
+  String _resolveUriToFileUri(Uri inputUri) {
+    var translator = driver.uriTranslator;
+    var outputUri = translator.translate(inputUri) ?? inputUri;
+    return outputUri.toString();
+  }
+
   /// Return the [Uri] for the given Posix [path].
   static Uri _folderUri(String path) {
     if (!path.endsWith('/')) path += '/';
-    return Uri.parse('file://$path');
+    return Uri.parse('org-dartlang-test://$path');
   }
 }

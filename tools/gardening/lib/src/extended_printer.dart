@@ -41,7 +41,7 @@ class ExtendedPrinter {
     stdout.writeln(pattern * (width ~/ pattern.length));
   }
 
-  /// Prints an iterable while maintaining state for index and preceeding.
+  /// Prints an iterable while maintaining state for index and preceding.
   void printIterable<T>(Iterable<T> items, ItemCallBack cb,
       {ItemCallBack header,
       String separatorPattern: "",

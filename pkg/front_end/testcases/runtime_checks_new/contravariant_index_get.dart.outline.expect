@@ -1,0 +1,15 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class C<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    ;
+  operator [](core::int i) → (self::C::T) → void
+    ;
+}
+static method test(self::C<core::num> c) → (core::num) → void
+  ;
+static method main() → dynamic
+  ;

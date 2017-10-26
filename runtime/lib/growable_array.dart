@@ -173,8 +173,9 @@ class _GrowableList<T> extends ListBase<T> {
           throw new ConcurrentModificationError(this);
         }
         this._setLength(newLen);
+        final ListBase<T> iterableAsList = iterable;
         for (int i = 0; i < iterLen; i++) {
-          this[len++] = iterable[i];
+          this[len++] = iterableAsList[i];
         }
         return;
       }
@@ -280,9 +281,8 @@ class _GrowableList<T> extends ListBase<T> {
     var codeUnitCount = 0;
     while (i < length) {
       final element = this[i];
-      final int cid = ClassID.getID(element);
       // While list contains one-byte strings.
-      if (ClassID.cidOneByteString == cid) {
+      if (element is _OneByteString) {
         codeUnitCount += element.length;
         i++;
         // Loop back while strings are one-byte strings.

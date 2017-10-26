@@ -84,7 +84,8 @@ static Dart_Isolate main_isolate = NULL;
 
 static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
   int options_count = options->count();
-  Dart_Handle dart_arguments = Dart_NewList(options_count);
+  Dart_Handle dart_arguments =
+      Dart_NewListOf(Dart_CoreType_String, options_count);
   if (Dart_IsError(dart_arguments)) {
     return dart_arguments;
   }
@@ -1000,6 +1001,7 @@ void main(int argc, char** argv) {
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
     Log::PrintErr("Initialization failed\n");
+    Platform::Exit(kErrorExitCode);
   }
 
   // On Windows, the argv strings are code page encoded and not
@@ -1073,6 +1075,10 @@ void main(int argc, char** argv) {
     Process::SetExitHook(SnapshotOnExitHook);
   }
 
+  Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+
+// Note: must read platform only *after* VM flags are parsed because
+// they might affect how the platform is loaded.
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If a kernel platform binary file is specified, read it. This
   // step will become redundant once we have the snapshot version
@@ -1086,8 +1092,6 @@ void main(int argc, char** argv) {
     dfe.set_kernel_platform(kernel_platform);
   }
 #endif
-
-  Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Start event handler.
   TimerUtils::InitOnce();

@@ -11,20 +11,8 @@
 
 # Temporalily disable the following tests until we figure out why they started failing.
 
-async/future_microtask_test: Skip
-async/future_or_bad_type_test/00: Skip
-async/future_or_bad_type_test/01: Skip
-async/future_or_bad_type_test/implements: Skip
-async/future_or_only_in_async_test/00: Skip
-async/future_test/01: Skip
-async/future_test/none: Skip
-async/future_test/none: Skip
-async/future_value_chain4_test: Skip
 async/print_test/01: Skip
 async/print_test/none: Skip
-async/stream_event_transformed_test: Skip
-async/stream_transformer_test: Skip
-async/zone_debug_test: Skip
 html/cross_frame_test: Skip
 html/custom/created_callback_test: CompileTimeError # Issue 28969
 html/custom/document_register_basic_test: CompileTimeError # Issue 28969
@@ -113,9 +101,7 @@ html/two_scripts_htmltest: Skip # Issue 29919
 html/two_scripts_htmltest: Skip # Issue 29919
 
 [ $compiler == dartdevc && $runtime != none ]
-async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
-async/futures_test: RuntimeError # Issue 29922
 html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure

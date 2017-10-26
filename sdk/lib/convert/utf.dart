@@ -452,7 +452,7 @@ class _Utf8Decoder {
     _expectedUnits = 0;
     _extraUnits = 0;
 
-    int scanOneByteCharacters(units, int from) {
+    int scanOneByteCharacters(List<int> units, int from) {
       final to = endIndex;
       final mask = _ONE_BYTE_LIMIT;
       for (var i = from; i < to; i++) {

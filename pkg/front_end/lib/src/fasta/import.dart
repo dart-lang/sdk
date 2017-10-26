@@ -43,11 +43,7 @@ class Import {
       prefix =
           new PrefixBuilder(this.prefix, deferred, importer, prefixCharOffset);
       add = (String name, Builder member) {
-        if (member.isSetter) {
-          prefix.exportScope.setters[name] = member;
-        } else {
-          prefix.exportScope.local[name] = member;
-        }
+        prefix.addToExportScope(name, member, charOffset);
       };
     }
     imported.exportScope.forEach((String name, Builder member) {

@@ -8,6 +8,7 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart';
 import '../constants/constant_system.dart';
+import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
@@ -249,6 +250,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       _returnType = _types.nonNullExact(cls);
     }
+    _inferrer.closedWorldRefiner
+        .registerSideEffects(_analyzedMember, _sideEffects);
+    assert(_breaksFor.isEmpty);
+    assert(_continuesFor.isEmpty);
     return _returnType;
   }
 
@@ -267,7 +272,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
         _elementMap.getCallStructure(node.arguments));
     TypeMask mask = _memberData.typeOfSend(node);
-    handleConstructorInvoke(node, selector, mask, constructor, arguments);
+    handleConstructorInvoke(
+        node, node.arguments, selector, mask, constructor, arguments);
 
     _inferrer.analyze(constructor);
     if (_inferrer.checkIfExposesThis(constructor)) {
@@ -282,7 +288,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
         _elementMap.getCallStructure(node.arguments));
     TypeMask mask = _memberData.typeOfSend(node);
-    handleConstructorInvoke(node, selector, mask, constructor, arguments);
+    handleConstructorInvoke(
+        node, node.arguments, selector, mask, constructor, arguments);
 
     _inferrer.analyze(constructor);
     if (_inferrer.checkIfExposesThis(constructor)) {
@@ -309,8 +316,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitFunctionNode(ir.FunctionNode node) {
-    // TODO(redemption): Handle native methods.
     handleParameters(node);
+
+    if (_closedWorld.nativeData.isNativeMember(_analyzedMember)) {
+      // Native methods do not have a body, and we currently just say
+      // they return dynamic.
+      return _types.dynamicType;
+    }
+
     visit(node.body);
     switch (node.asyncMarker) {
       case ir.AsyncMarker.Sync:
@@ -344,6 +357,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
         break;
     }
+    _inferrer.closedWorldRefiner
+        .registerSideEffects(_analyzedMember, _sideEffects);
+    assert(_breaksFor.isEmpty);
+    assert(_continuesFor.isEmpty);
     return _returnType;
   }
 
@@ -586,6 +603,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitStringConcatenation(ir.StringConcatenation node) {
+    // Interpolation could have any effects since it could call any toString()
+    // method.
+    // TODO(sra): This could be modelled by a call to toString() but with a
+    // guaranteed String return type.  Interpolation of known types would get
+    // specialized effects.  This would not currently be effective since the JS
+    // code in the toString methods for intercepted primitive types is assumed
+    // to have all effects.  Effect annotations on JS code would be needed to
+    // get the benefit.
+    _sideEffects.setAllSideEffects();
+
     node.visitChildren(this);
     return _types.stringType;
   }
@@ -800,7 +827,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           receiver.variable == node.variable &&
           invocation.arguments.positional.single is ir.NullLiteral) {
         // We have
-        //   let #t1 = local in #1 == null ? null : e
+        //   let #t1 = local in #t1 == null ? null : e
         alias = get.variable;
         _localRefinementMap[node.variable] = <Refinement>[];
       }
@@ -929,19 +956,95 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitConstructorInvocation(ir.ConstructorInvocation node) {
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    // TODO(redemption): Handle foreign constructors.
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
     return handleConstructorInvoke(
-        node, selector, mask, constructor, arguments);
+        node, node.arguments, selector, mask, constructor, arguments);
   }
 
-  TypeInformation handleConstructorInvoke(ir.Node node, Selector selector,
-      TypeMask mask, ConstructorEntity constructor, ArgumentsTypes arguments) {
+  /// Try to find the length given to a fixed array constructor call.
+  int _findLength(ir.Arguments arguments) {
+    ir.Expression firstArgument = arguments.positional.first;
+    if (firstArgument is ir.IntLiteral) {
+      return firstArgument.value;
+    } else if (firstArgument is ir.StaticGet) {
+      MemberEntity member = _elementMap.getMember(firstArgument.target);
+      if (member.isField &&
+          (member.isStatic || member.isTopLevel) &&
+          _closedWorld.fieldNeverChanges(member)) {
+        ConstantValue value = _elementMap.getFieldConstantValue(member);
+        if (value != null && value.isInt) {
+          IntConstantValue intValue = value;
+          return intValue.primitiveValue;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Returns `true` if
+  bool _isConstructorOfTypedArraySubclass(ConstructorEntity constructor) {
+    ClassEntity cls = constructor.enclosingClass;
+    return cls.library.canonicalUri == Uris.dart__native_typed_data &&
+        _closedWorld.nativeData.isNativeClass(cls) &&
+        _closedWorld.isSubtypeOf(
+            cls, _closedWorld.commonElements.typedDataClass) &&
+        _closedWorld.isSubtypeOf(cls, _closedWorld.commonElements.listClass) &&
+        constructor.name == '';
+  }
+
+  TypeInformation handleConstructorInvoke(
+      ir.Node node,
+      ir.Arguments arguments,
+      Selector selector,
+      TypeMask mask,
+      ConstructorEntity constructor,
+      ArgumentsTypes argumentsTypes) {
     TypeInformation returnType =
-        handleStaticInvoke(node, selector, mask, constructor, arguments);
-    // TODO(redemption): Special-case `List` constructors.
-    return returnType;
+        handleStaticInvoke(node, selector, mask, constructor, argumentsTypes);
+    if (_elementMap.commonElements.isUnnamedListConstructor(constructor)) {
+      // We have `new List(...)`.
+      if (arguments.positional.isEmpty && arguments.named.isEmpty) {
+        // We have `new List()`.
+        return _inferrer.concreteTypes.putIfAbsent(
+            node,
+            () => _types.allocateList(_types.growableListType, node,
+                _analyzedMember, _types.nonNullEmpty(), 0));
+      } else {
+        // We have `new List(len)`.
+        int length = _findLength(arguments);
+        return _inferrer.concreteTypes.putIfAbsent(
+            node,
+            () => _types.allocateList(_types.fixedListType, node,
+                _analyzedMember, _types.nullType, length));
+      }
+    } else if (_elementMap.commonElements
+        .isFilledListConstructor(constructor)) {
+      // We have `new Uint32List(len, fill)`.
+      int length = _findLength(arguments);
+      TypeInformation elementType = argumentsTypes.positional[1];
+
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(_types.fixedListType, node, _analyzedMember,
+              elementType, length));
+    } else if (_isConstructorOfTypedArraySubclass(constructor)) {
+      // We have something like `new List.filled(len, fill)`.
+      int length = _findLength(arguments);
+      MemberEntity member = _elementMap.elementEnvironment
+          .lookupClassMember(constructor.enclosingClass, '[]');
+      TypeInformation elementType = _inferrer.returnTypeOfMember(member);
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              _types.nonNullExact(constructor.enclosingClass),
+              node,
+              _analyzedMember,
+              elementType,
+              length));
+    } else {
+      return returnType;
+    }
   }
 
   TypeInformation handleStaticInvoke(ir.Node node, Selector selector,
@@ -1003,7 +1106,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (_closedWorld.commonElements.isForeign(member)) {
       return handleForeignInvoke(node, member, arguments, selector, mask);
     } else if (member.isConstructor) {
-      return handleConstructorInvoke(node, selector, mask, member, arguments);
+      return handleConstructorInvoke(
+          node, node.arguments, selector, mask, member, arguments);
     } else if (member.isFunction) {
       return handleStaticInvoke(node, selector, mask, member, arguments);
     } else {
@@ -1309,8 +1413,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _locals.update(local, localFunctionType, node, type);
     }
 
-    // TODO(redemption): Track exposure of `this`.
-
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
@@ -1329,7 +1431,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     visitor.run();
     _inferrer.recordReturnType(info.callMethod, visitor._returnType);
 
-    // TODO(redemption): Handle captured variables.
     return localFunctionType;
   }
 
@@ -1515,6 +1616,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitYieldStatement(ir.YieldStatement node) {
     TypeInformation operandType = visit(node.expression);
     return _inferrer.registerYield(node, operandType);
+  }
+
+  @override
+  TypeInformation visitInvalidExpression(ir.InvalidExpression node) {
+    // TODO(johnniwinther): Maybe this should be [empty] instead?
+    return _types.dynamicType;
   }
 }
 

@@ -36,7 +36,6 @@ import 'package:test/test.dart' show expect, isFalse, isTrue, test;
 import 'package:status_file/expectation.dart';
 import 'package:test_dart/path.dart' as test_dart;
 import 'package:test_dart/test_suite.dart' show StandardTestSuite;
-import 'package:test_dart/utils.dart';
 import 'package:test_dart/options.dart';
 
 import '../tool/build_sdk.dart' as build_sdk;
@@ -91,7 +90,6 @@ main(List<String> arguments) {
 
   // Copy all of the test files and expanded multitest files to
   // gen/codegen_tests. We'll compile from there.
-  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   var testFiles = _setUpTests(testDirs);
   _writeRuntimeStatus(testFiles);
 

@@ -6,7 +6,7 @@
 library Library1Test.dart;
 
 import "package:expect/expect.dart";
-import "library1_lib.lib";
+import "library1_lib.dart";
 
 main() {
   Library1Test.testMain();

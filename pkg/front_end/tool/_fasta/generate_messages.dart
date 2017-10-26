@@ -58,6 +58,10 @@ String compileTemplate(String name, String template, String tip,
     exitCode = 1;
     return '';
   }
+  // Remove trailing whitespace. This is necessary for templates defined with
+  // `|` (verbatim) as they always contain a trailing newline that we don't
+  // want.
+  template = template.trimRight();
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();

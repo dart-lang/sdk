@@ -16,10 +16,7 @@
 namespace dart {
 
 bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
-  if (page->is_image_page()) {
-    // Don't clear mark bits.
-    return true;
-  }
+  ASSERT(!page->is_image_page());
 
   // Keep track whether this page is still in use.
   intptr_t used_in_bytes = 0;
@@ -74,6 +71,8 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
 }
 
 intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
+  ASSERT(!page->is_image_page());
+
   intptr_t words_to_end = 0;
   RawObject* raw_obj = RawObject::FromAddr(page->object_start());
   if (raw_obj->IsMarked()) {

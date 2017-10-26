@@ -1377,16 +1377,21 @@ void IsolateReloadContext::Commit() {
 
   // Rehash constants map for all classes. Constants are hashed by address, and
   // addresses may change during a become operation.
-  RehashConstants();
+  {
+    TIMELINE_SCOPE(RehashConstants);
+    I->RehashConstants();
+  }
 
 #ifdef DEBUG
-  // Verify that all canonical instances are correctly setup in the
-  // corresponding canonical tables.
-  Thread* thread = Thread::Current();
-  I->heap()->CollectAllGarbage();
-  HeapIterationScope iteration(thread);
-  VerifyCanonicalVisitor check_canonical(thread);
-  iteration.IterateObjects(&check_canonical);
+  {
+    // Verify that all canonical instances are correctly setup in the
+    // corresponding canonical tables.
+    Thread* thread = Thread::Current();
+    I->heap()->CollectAllGarbage();
+    HeapIterationScope iteration(thread);
+    VerifyCanonicalVisitor check_canonical(thread);
+    iteration.IterateObjects(&check_canonical);
+  }
 #endif  // DEBUG
 
   if (FLAG_identity_reload) {
@@ -1406,30 +1411,6 @@ void IsolateReloadContext::Commit() {
 
   // Run the initializers for new instance fields.
   RunNewFieldInitializers();
-}
-
-void IsolateReloadContext::RehashConstants() {
-  TIMELINE_SCOPE(RehashConstants);
-  ClassTable* class_table = I->class_table();
-  Class& cls = Class::Handle(zone_);
-  const intptr_t top = class_table->NumCids();
-  for (intptr_t cid = kInstanceCid; cid < top; cid++) {
-    if (cid == kTypeArgumentsCid) {
-      continue;
-    }
-    if (!class_table->IsValidIndex(cid) || !class_table->HasValidClassAt(cid)) {
-      // Skip invalid classes.
-      continue;
-    }
-    if (RawObject::IsNumberClassId(cid) || RawObject::IsStringClassId(cid)) {
-      // Skip classes that cannot be affected by the 'become' operation.
-      continue;
-    }
-    // Rehash constants.
-    cls = class_table->At(cid);
-    VTIR_Print("Rehashing constants in class `%s`\n", cls.ToCString());
-    cls.RehashConstants(zone_);
-  }
 }
 
 bool IsolateReloadContext::IsDirty(const Library& lib) {

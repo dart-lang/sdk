@@ -161,6 +161,8 @@ namespace dart {
   V(_Double, -, Double_sub, Double, 0x76768546)                                \
   V(_Double, *, Double_mul, Double, 0x66c66e3d)                                \
   V(_Double, /, Double_div, Double, 0x034b9f08)                                \
+  V(_Double, get:hashCode, Double_hashCode, Dynamic, 0x702b0358)               \
+  V(_Double, get:_identityHashCode, Double_identityHash, Dynamic, 0x7bd9e0ea)  \
   V(_Double, get:isNaN, Double_getIsNaN, Bool, 0x0af9604a)                     \
   V(_Double, get:isInfinite, Double_getIsInfinite, Bool, 0x0f7a56e8)           \
   V(_Double, get:isNegative, Double_getIsNegative, Bool, 0x3a597395)           \
@@ -228,8 +230,7 @@ namespace dart {
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, Bool, 0x57491a62)    \
   V(_IntegerImplementation, <<, Integer_shl, Dynamic, 0x1050c9a8)              \
   V(_IntegerImplementation, >>, Integer_sar, Dynamic, 0x39af1c69)              \
-  V(_Double, toInt, DoubleToInteger, Dynamic, 0x26ef344b)
-
+  V(_Double, toInt, DoubleToInteger, Dynamic, 0x26ef344b)                      \
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
   V(::, sqrt, MathSqrt, Double, 0x70482cf3)                                    \

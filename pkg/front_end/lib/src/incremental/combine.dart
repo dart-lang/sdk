@@ -27,9 +27,15 @@ class CombineResult {
   final Map<Field, Library> _undoFieldToLibrary = {};
   final Map<Procedure, Library> _undoProcedureToLibrary = {};
 
+  final Map<Member, Class> _undoMemberToClass = {};
+
   final Map<Library, int> _undoLibraryToClasses = {};
   final Map<Library, int> _undoLibraryToFields = {};
   final Map<Library, int> _undoLibraryToProcedures = {};
+
+  final Map<Class, int> _undoClassToConstructors = {};
+  final Map<Class, int> _undoClassToFields = {};
+  final Map<Class, int> _undoClassToProcedures = {};
 
   final Map<Program, Map<Reference, Reference>> _undoReferenceMap = {};
 
@@ -65,14 +71,31 @@ class CombineResult {
       child.parent = parent;
     });
 
+    _undoMemberToClass.forEach((child, parent) {
+      var qualifier = CanonicalName.getMemberQualifier(child);
+      var parentName = parent.canonicalName.getChild(qualifier);
+      parentName.adoptChild(child.canonicalName);
+      child.parent = parent;
+    });
+
     _undoLibraryToClasses.forEach((library, classesLength) {
       library.classes.length = classesLength;
     });
     _undoLibraryToFields.forEach((library, fieldsLength) {
       library.fields.length = fieldsLength;
     });
-    _undoLibraryToProcedures.forEach((library, fieldsLength) {
-      library.procedures.length = fieldsLength;
+    _undoLibraryToProcedures.forEach((library, proceduresLength) {
+      library.procedures.length = proceduresLength;
+    });
+
+    _undoClassToConstructors.forEach((class_, length) {
+      class_.constructors.length = length;
+    });
+    _undoClassToFields.forEach((class_, length) {
+      class_.fields.length = length;
+    });
+    _undoClassToProcedures.forEach((class_, length) {
+      class_.procedures.length = length;
     });
 
     _undoReferenceMap.forEach((outline, map) {
@@ -123,11 +146,35 @@ class _Combiner {
   void _combineClass(Library target, Class source) {
     String name = source.name;
     if (target.canonicalName.hasChild(name)) {
-      // TODO(scheglov): combine members
+      var existingReference = target.canonicalName.getChild(name).reference;
+      _referenceMap[source.reference] = existingReference;
+      Class existingNode = existingReference.node;
+      for (var procedure in source.procedures) {
+        _combineClassMember(existingNode, procedure);
+      }
+      // TODO(scheglov): combine fields and constructors
     } else {
       result._undoClassToLibrary[source] = source.parent;
+      _putUndoForClassMembers(source);
       target.canonicalName.adoptChild(source.canonicalName);
       target.addClass(source);
+    }
+  }
+
+  /// If [source] is the first node with a particular name, we remember its
+  /// original parent into [CombineResult._undoMemberToClass], and add it
+  /// into the [target].
+  ///
+  /// If [source] is not the first node with this name, we don't add it,
+  /// instead we remember that references to this node should be replaced
+  /// with the reference to the first node.
+  void _combineClassMember(Class target, Member source) {
+    CanonicalName existing = _adoptMemberName(target, source);
+    if (existing == null) {
+      result._undoMemberToClass[source] = source.parent;
+      target.addMember(source);
+    } else {
+      _referenceMap[source.reference] = existing.reference;
     }
   }
 
@@ -181,6 +228,7 @@ class _Combiner {
       result._undoLibraryToClasses[source] = source.classes.length;
       result._undoLibraryToFields[source] = source.fields.length;
       result._undoLibraryToProcedures[source] = source.procedures.length;
+      source.classes.forEach(_putUndoForClassMembers);
       target.root.adoptChild(source.canonicalName);
       source.parent = target;
       target.libraries.add(source);
@@ -214,6 +262,12 @@ class _Combiner {
       _referenceMap[source.reference] = existing.reference;
     }
   }
+
+  void _putUndoForClassMembers(Class source) {
+    result._undoClassToConstructors[source] = source.constructors.length;
+    result._undoClassToFields[source] = source.fields.length;
+    result._undoClassToProcedures[source] = source.procedures.length;
+  }
 }
 
 class _ReplaceReferencesVisitor extends RecursiveVisitor {
@@ -223,50 +277,81 @@ class _ReplaceReferencesVisitor extends RecursiveVisitor {
   _ReplaceReferencesVisitor(this.map, this.undoMap);
 
   @override
+  void visitDirectMethodInvocation(DirectMethodInvocation node) {
+    node.targetReference = _newReferenceFor(node.targetReference);
+  }
+
+  @override
+  void visitDirectPropertyGet(DirectPropertyGet node) {
+    node.targetReference = _newReferenceFor(node.targetReference);
+  }
+
+  @override
+  void visitDirectPropertySet(DirectPropertySet node) {
+    node.targetReference = _newReferenceFor(node.targetReference);
+  }
+
+  @override
   void visitLibraryDependency(LibraryDependency node) {
-    var reference = node.importedLibraryReference;
-    var newReference = map[reference];
-    if (newReference != null) {
-      node.importedLibraryReference = newReference;
-      if (undoMap != null) {
-        undoMap[newReference] = reference;
-      }
-    }
+    node.importedLibraryReference =
+        _newReferenceFor(node.importedLibraryReference);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    node.interfaceTargetReference =
+        _newReferenceFor(node.interfaceTargetReference);
+  }
+
+  @override
+  void visitPropertyGet(PropertyGet node) {
+    node.interfaceTargetReference =
+        _newReferenceFor(node.interfaceTargetReference);
+  }
+
+  @override
+  void visitPropertySet(PropertySet node) {
+    node.interfaceTargetReference =
+        _newReferenceFor(node.interfaceTargetReference);
   }
 
   @override
   void visitStaticGet(StaticGet node) {
-    var reference = node.targetReference;
-    var newReference = map[reference];
-    if (newReference != null) {
-      node.targetReference = newReference;
-      if (undoMap != null) {
-        undoMap[newReference] = reference;
-      }
-    }
+    node.targetReference = _newReferenceFor(node.targetReference);
   }
 
   @override
   void visitStaticInvocation(StaticInvocation node) {
-    var reference = node.targetReference;
-    var newReference = map[reference];
-    if (newReference != null) {
-      node.targetReference = newReference;
-      if (undoMap != null) {
-        undoMap[newReference] = reference;
-      }
-    }
+    node.targetReference = _newReferenceFor(node.targetReference);
   }
 
   @override
   void visitStaticSet(StaticSet node) {
-    var reference = node.targetReference;
+    node.targetReference = _newReferenceFor(node.targetReference);
+  }
+
+  @override
+  void visitSuperMethodInvocation(SuperMethodInvocation node) {
+    node.interfaceTargetReference =
+        _newReferenceFor(node.interfaceTargetReference);
+  }
+
+  @override
+  void visitSuperPropertyGet(SuperPropertyGet node) {
+    node.interfaceTargetReference =
+        _newReferenceFor(node.interfaceTargetReference);
+  }
+
+  @override
+  void visitSuperPropertySet(SuperPropertySet node) {
+    node.interfaceTargetReference =
+        _newReferenceFor(node.interfaceTargetReference);
+  }
+
+  Reference _newReferenceFor(Reference reference) {
     var newReference = map[reference];
-    if (newReference != null) {
-      node.targetReference = newReference;
-      if (undoMap != null) {
-        undoMap[newReference] = reference;
-      }
-    }
+    if (newReference == null) return reference;
+    if (undoMap != null) undoMap[newReference] = reference;
+    return newReference;
   }
 }

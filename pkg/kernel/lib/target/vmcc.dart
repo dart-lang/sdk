@@ -7,8 +7,6 @@ import '../ast.dart' show Program, Library;
 import '../core_types.dart' show CoreTypes;
 import '../class_hierarchy.dart';
 import '../transformations/continuation.dart' as cont;
-import '../transformations/insert_covariance_checks.dart';
-import '../transformations/insert_type_checks.dart';
 import '../transformations/mixin_full_resolution.dart' as mix;
 import '../transformations/sanitize_for_vm.dart';
 import '../transformations/treeshaker.dart';
@@ -42,12 +40,6 @@ class VmClosureConvertedTarget extends vm_target.VmTarget {
   @override
   void performGlobalTransformations(CoreTypes coreTypes, Program program,
       {void logger(String msg)}) {
-    if (strongMode) {
-      new InsertTypeChecks(coreTypes, _hierarchy).transformProgram(program);
-      new InsertCovarianceChecks(coreTypes, _hierarchy)
-          .transformProgram(program);
-    }
-
     if (flags.treeShake) {
       performTreeShaking(coreTypes, program);
     }

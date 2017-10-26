@@ -559,6 +559,7 @@ typedef struct {
   bool use_dart_frontend;
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
+  bool reify_generic_functions;
 } Dart_IsolateFlags;
 
 /**
@@ -1829,7 +1830,7 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle str,
  */
 
 /**
- * Returns a List of the desired length.
+ * Returns a List<dynamic> of the desired length.
  *
  * \param length The length of the list.
  *
@@ -1837,6 +1838,25 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle str,
  *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length);
+
+typedef enum {
+  Dart_CoreType_Dynamic,
+  Dart_CoreType_Int,
+  Dart_CoreType_String,
+} Dart_CoreType_Id;
+
+/**
+ * Returns a List of the desired length with the desired element type.
+ *
+ * \param element_type_id The type of elements of the list.
+ *
+ * \param length The length of the list.
+ *
+ * \return The List object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
+                                       intptr_t length);
 
 /**
  * Gets the length of a List.

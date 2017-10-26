@@ -21,17 +21,11 @@
 ///
 /// The default test directory layout is documented in "test_suite.dart", above
 /// `factory StandardTestSuite.forDirectory`.
-import "dart:io";
-
 import "options.dart";
 import "test_configurations.dart";
-import 'utils.dart';
 
 /// Runs all of the tests specified by the given command line [arguments].
 void main(List<String> arguments) {
-  // This script is in "<repo>/tools/testing/dart".
-  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
-
   // Parse the command line arguments to a configuration.
   var parser = new OptionsParser();
   var configurations = parser.parse(arguments);

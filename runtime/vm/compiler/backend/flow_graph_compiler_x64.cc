@@ -1018,7 +1018,7 @@ void FlowGraphCompiler::CompileGraph() {
   const int num_locals = parsed_function().num_stack_locals();
 
   // The prolog of OSR functions is never executed, hence greatly simplified.
-  const bool expect_type_args = FLAG_reify_generic_functions &&
+  const bool expect_type_args = isolate()->reify_generic_functions() &&
                                 function.IsGeneric() &&
                                 !flow_graph().IsCompiledForOsr();
 
@@ -1312,7 +1312,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     LocationSummary* locs) {
   ASSERT(!function.IsClosureFunction());
   if (function.HasOptionalParameters() ||
-      (FLAG_reify_generic_functions && function.IsGeneric())) {
+      (isolate()->reify_generic_functions() && function.IsGeneric())) {
     __ LoadObject(R10, arguments_descriptor);
   } else {
     __ xorq(R10, R10);  // GC safe smi zero because of stub.

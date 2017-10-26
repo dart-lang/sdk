@@ -337,17 +337,12 @@ regress_26855_test/4: Crash # Issue 26867
 switch_case_warn_test: SKIP # Analyzer only, see language_analyzer2.status
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+application_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_no_cancel2_test: RuntimeError
-async_star_no_cancel_test: RuntimeError
-async_star_regression_fisk_test: RuntimeError
-await_exceptions_test: RuntimeError
-await_for_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -370,10 +365,8 @@ cha_deopt3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-closure_in_field_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_field_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_field_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
+closure_in_field_test/01: RuntimeError
+closure_in_field_test/02: RuntimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
@@ -393,7 +386,7 @@ constants_test/05: MissingCompileTimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
-constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
+constructor6_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Issue 30856
 constructor_redirect2_negative_test: Crash # Issue 30856
@@ -461,7 +454,6 @@ dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
 enum_mirror_test: RuntimeError
 example_constructor_test: RuntimeError
-execute_finally7_test: RuntimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -509,8 +501,6 @@ library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 list_literal4_test: RuntimeError
-local_function3_test: RuntimeError
-local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
@@ -522,6 +512,7 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
+missing_part_of_tag_test/01: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
@@ -693,6 +684,8 @@ regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
 regress_28278_test: CompileTimeError
+script1_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+script2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
@@ -715,17 +708,12 @@ try_catch_test/01: MissingCompileTimeError
 type_checks_in_factory_method_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+application_negative_test: Crash # Issue 30997
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_no_cancel2_test: RuntimeError
-async_star_no_cancel_test: RuntimeError
-async_star_regression_fisk_test: RuntimeError
-await_exceptions_test: RuntimeError
-await_for_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -748,10 +736,8 @@ cha_deopt3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-closure_in_field_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_field_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_field_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (type_variable_local(Class.T), type_variable_local(_Object&Mixin^^#T0.#T0))in j:constructor(Class.).
-closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
+closure_in_field_test/01: RuntimeError
+closure_in_field_test/02: RuntimeError
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
@@ -770,7 +756,7 @@ constants_test/05: MissingCompileTimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
-constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
+constructor6_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Issue 30856
 constructor_redirect2_negative_test: Crash # Issue 30856
@@ -844,7 +830,6 @@ dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
 enum_mirror_test: RuntimeError
 example_constructor_test: RuntimeError
-execute_finally7_test: RuntimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -898,8 +883,6 @@ library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 list_literal4_test: RuntimeError
-local_function3_test: RuntimeError
-local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
@@ -911,6 +894,7 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
+missing_part_of_tag_test/01: Crash # Issue 30997
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
@@ -1084,6 +1068,8 @@ regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
 regress_28278_test: CompileTimeError
+script1_negative_test: Crash # Issue 30997
+script2_negative_test: Crash # Issue 30997
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stack_trace_test: RuntimeError

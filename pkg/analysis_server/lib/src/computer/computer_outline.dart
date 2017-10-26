@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
@@ -413,6 +414,24 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
     contents.add(outlineComputer._newFunctionOutline(node, false));
+  }
+
+  @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (flutter.isWidgetCreation(node)) {
+      List<Outline> children = <Outline>[];
+      node.argumentList
+          .accept(new _FunctionBodyOutlinesVisitor(outlineComputer, children));
+
+      String text = flutter.getWidgetPresentationText(node);
+      Element element = new Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
+          location: outlineComputer._getLocationOffsetLength(node.offset, 0));
+
+      contents.add(new Outline(element, node.offset, node.length,
+          children: nullIfEmpty(children)));
+    } else {
+      super.visitInstanceCreationExpression(node);
+    }
   }
 
   @override

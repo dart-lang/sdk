@@ -1,0 +1,89 @@
+{
+  "filesets": {
+  },
+  "configurations": [
+    {
+      "builders": [
+        "vm-linux-debug-ia32",
+        "vm-linux-debug-simarm",
+        "vm-linux-debug-x64",
+        "vm-linux-product-x64",
+        "vm-linux-release-ia32",
+        "vm-linux-release-simarm",
+        "vm-linux-release-simarm64",
+        "vm-linux-release-x64",
+        "vm-mac-debug-ia32",
+        "vm-mac-debug-simdbc64",
+        "vm-mac-debug-x64",
+        "vm-mac-product-x64",
+        "vm-mac-release-ia32",
+        "vm-mac-release-simdbc64",
+        "vm-mac-release-x64",
+        "vm-win-debug-ia32",
+        "vm-win-debug-x64",
+        "vm-win-product-x64",
+        "vm-win-release-ia32",
+        "vm-win-release-x64"
+      ],
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": []
+        },
+        {
+          "name": "checked vm tests",
+          "arguments": [
+            "--checked"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart-sdk-linux"
+      ],
+      "steps": [
+        {
+          "name": "build dart ia32",
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32","create_sdk"]
+        },
+        {
+          "name": "build dart x64",
+          "script": "tools/build.py",
+          "arguments": [ "create_sdk" ]
+        },
+        {
+          "name": "generate API docs",
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [ "api_docs" ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart-sdk-mac",
+        "dart-sdk-win"
+      ],
+      "steps": [
+        {
+          "name": "build dart ia32",
+          "script": "tools/build.py",
+          "arguments": [ "--arch=ia32", "create_sdk" ]
+        },
+        {
+          "name": "build dart x64",
+          "script": "tools/build.py",
+          "arguments": [ "create_sdk" ]
+        }
+      ]
+    }
+  ]
+}

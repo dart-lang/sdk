@@ -36,7 +36,8 @@ class Utf8Decoder {
   @patch
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     if (next is JsonDecoder) {
-      return new _JsonUtf8Decoder(next._reviver, this._allowMalformed)
+      return new _JsonUtf8Decoder(
+              (next as JsonDecoder)._reviver, this._allowMalformed)
           as dynamic/*=Converter<List<int>, T>*/;
     }
     // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
@@ -193,7 +194,7 @@ class _BuildJsonListener extends _JsonListener {
 
 class _ReviverJsonListener extends _BuildJsonListener {
   final _Reviver reviver;
-  _ReviverJsonListener(reviver(key, value)) : this.reviver = reviver;
+  _ReviverJsonListener(this.reviver);
 
   void arrayElement() {
     List list = currentContainer;
@@ -1424,15 +1425,14 @@ class JsonDecoder {
  * The sink only creates one object, but its input can be chunked.
  */
 class _JsonStringDecoderSink extends StringConversionSinkBase {
-  _ChunkedJsonParser _parser;
-  Function _reviver;
+  _JsonStringParser _parser;
+  final Function _reviver;
   final Sink<Object> _sink;
 
-  _JsonStringDecoderSink(reviver, this._sink)
-      : _reviver = reviver,
-        _parser = _createParser(reviver);
+  _JsonStringDecoderSink(this._reviver, this._sink)
+      : _parser = _createParser(_reviver);
 
-  static _ChunkedJsonParser _createParser(reviver) {
+  static _JsonStringParser _createParser(reviver) {
     _BuildJsonListener listener;
     if (reviver == null) {
       listener = new _BuildJsonListener();
@@ -1601,7 +1601,7 @@ class _Utf8StringBuffer {
     Uint16List newBuffer;
     if ((length + INITIAL_CAPACITY) * 2 <= buffer.length) {
       // Reuse existing buffer if it's big enough.
-      newBuffer = new Uint16List.view(buffer.buffer);
+      newBuffer = new Uint16List.view((buffer as Uint8List).buffer);
     } else {
       int newCapacity = buffer.length;
       if (newCapacity - length < INITIAL_CAPACITY) {
@@ -1779,7 +1779,7 @@ double _parseDouble(String source, int start, int end) native "Double_parse";
  * to its corresponding object.
  */
 class _JsonUtf8DecoderSink extends ByteConversionSinkBase {
-  _JsonUtf8Parser _parser;
+  final _JsonUtf8Parser _parser;
   final Sink<Object> _sink;
 
   _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)

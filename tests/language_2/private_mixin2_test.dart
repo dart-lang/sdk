@@ -7,7 +7,7 @@
 library private_mixin2;
 
 import 'package:expect/expect.dart';
-import 'private_other_mixin2.lib';
+import 'private_other_mixin2.dart';
 
 void main() {
   var c1;

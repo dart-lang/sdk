@@ -1154,7 +1154,7 @@ main() {
 main() {
   f(a, this.b) {}
 }
-''', [ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+''', codes: [ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
     var main = unit.declarations[0] as FunctionDeclaration;
     var mainBody = main.functionExpression.body as BlockFunctionBody;
     var mainBlock = mainBody.block;

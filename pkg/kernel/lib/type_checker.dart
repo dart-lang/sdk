@@ -234,7 +234,7 @@ class TypeCheckingVisitor
       return Substitution.empty; // Members on Object are always accessible.
     }
     while (type is TypeParameterType) {
-      type = (type as TypeParameterType).parameter.bound;
+      type = (type as TypeParameterType).bound;
     }
     if (type is BottomType) {
       // The bottom type is a subtype of all types, so it should be allowed.
@@ -337,7 +337,17 @@ class TypeCheckingVisitor
 
       case AsyncMarker.SyncStar:
       case AsyncMarker.AsyncStar:
+        return null;
+
       case AsyncMarker.SyncYielding:
+        TreeNode parent = function.parent;
+        while (parent is! FunctionNode) {
+          parent = parent.parent;
+        }
+        final enclosingFunction = parent as FunctionNode;
+        if (enclosingFunction.dartAsyncMarker == AsyncMarker.SyncStar) {
+          return coreTypes.boolClass.rawType;
+        }
         return null;
 
       default:

@@ -20,6 +20,8 @@ class C<V extends core::Object> extends self::_Super&Mixin^#T0^#T0<self::C::V> {
     ;
 }
 abstract class _Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> {
+  abstract forwarding-stub method g(generic-covariant-impl dynamic a) → dynamic;
+  abstract forwarding-stub set t(generic-covariant-impl dynamic _) → void;
 }
 class D extends self::_Super&Mixin {
   default constructor •() → void
@@ -36,6 +38,8 @@ class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
   constructor •() → void
     : super self::Super::•()
     ;
+  abstract forwarding-stub method g(generic-covariant-impl dynamic a) → dynamic;
+  abstract forwarding-stub set t(generic-covariant-impl dynamic _) → void;
 }
 static method main() → dynamic {
   core::print(new self::C::•<dynamic>().{mix::Mixin::foo}());

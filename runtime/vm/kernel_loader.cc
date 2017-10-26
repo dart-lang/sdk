@@ -390,9 +390,10 @@ void KernelLoader::LoadLibrary(intptr_t index) {
     const Object& script_class =
         ClassForScriptAt(toplevel_class, field_helper.source_uri_index_);
     Field& field = Field::Handle(
-        Z, Field::NewTopLevel(name, field_helper.IsFinal(),
-                              field_helper.IsConst(), script_class,
-                              field_helper.position_, field_helper.position_));
+        Z,
+        Field::NewTopLevel(name, field_helper.IsFinal(), field_helper.IsConst(),
+                           script_class, field_helper.position_,
+                           field_helper.end_position_));
     field.set_kernel_offset(field_offset);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
@@ -619,13 +620,14 @@ Class& KernelLoader::LoadClass(const Library& library,
           field_helper.position_.IsReal() &&
           !(library.is_dart_scheme() && library.IsPrivate(name));
       Field& field = Field::Handle(
-          Z, Field::New(name, field_helper.IsStatic(),
-                        // In the VM all const fields are implicitly final
-                        // whereas in Kernel they are not final because they
-                        // are not explicitly declared that way.
-                        field_helper.IsFinal() || field_helper.IsConst(),
-                        field_helper.IsConst(), is_reflectable, script_class,
-                        type, field_helper.position_, field_helper.position_));
+          Z,
+          Field::New(name, field_helper.IsStatic(),
+                     // In the VM all const fields are implicitly final
+                     // whereas in Kernel they are not final because they
+                     // are not explicitly declared that way.
+                     field_helper.IsFinal() || field_helper.IsConst(),
+                     field_helper.IsConst(), is_reflectable, script_class, type,
+                     field_helper.position_, field_helper.end_position_));
       field.set_kernel_offset(field_offset);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = builder_.ReaderOffset();

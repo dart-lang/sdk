@@ -27,12 +27,13 @@ main() {
 
 @reflectiveTest
 class ProcessedOptionsTest {
-  MemoryFileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+  MemoryFileSystem fileSystem =
+      new MemoryFileSystem(Uri.parse('org-dartlang-test:///'));
 
   Program _mockOutline;
 
-  Program get mockSummary => _mockOutline ??=
-      new Program(libraries: [new Library(Uri.parse('file:///a/b.dart'))]);
+  Program get mockSummary => _mockOutline ??= new Program(
+      libraries: [new Library(Uri.parse('org-dartlang-test:///a/b.dart'))]);
 
   test_compileSdk_false() {
     for (var value in [false, true]) {
@@ -46,14 +47,14 @@ class ProcessedOptionsTest {
     // The sdk-summary is inferred by default form sdk-root, when compile-sdk is
     // false
     var raw = new CompilerOptions()
-      ..sdkRoot = Uri.parse('file:///sdk/dir/')
+      ..sdkRoot = Uri.parse('org-dartlang-test:///sdk/dir/')
       ..compileSdk = false;
     expect(new ProcessedOptions(raw).sdkSummary,
-        Uri.parse('file:///sdk/dir/vm_outline.dill'));
+        Uri.parse('org-dartlang-test:///sdk/dir/vm_outline.dill'));
 
     // But it is left null when compile-sdk is true
     raw = new CompilerOptions()
-      ..sdkRoot = Uri.parse('file:///sdk/dir/')
+      ..sdkRoot = Uri.parse('org-dartlang-test:///sdk/dir/')
       ..compileSdk = true;
     expect(new ProcessedOptions(raw).sdkSummary, null);
   }
@@ -67,7 +68,7 @@ class ProcessedOptionsTest {
   }
 
   test_getSdkSummaryBytes_summaryLocationProvided() async {
-    var uri = Uri.parse('file:///sdkSummary');
+    var uri = Uri.parse('org-dartlang-test:///sdkSummary');
 
     writeMockSummaryTo(uri);
 
@@ -85,7 +86,7 @@ class ProcessedOptionsTest {
   }
 
   test_getSdkSummary_summaryLocationProvided() async {
-    var uri = Uri.parse('file:///sdkSummary');
+    var uri = Uri.parse('org-dartlang-test:///sdkSummary');
     writeMockSummaryTo(uri);
     checkMockSummary(new CompilerOptions()
       ..fileSystem = fileSystem
@@ -107,15 +108,16 @@ class ProcessedOptionsTest {
 
   test_getUriTranslator_explicitLibrariesSpec() async {
     fileSystem
-        .entityForUri(Uri.parse('file:///.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('');
     fileSystem
-        .entityForUri(Uri.parse('file:///libraries.json'))
+        .entityForUri(Uri.parse('org-dartlang-test:///libraries.json'))
         .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
     var raw = new CompilerOptions()
-      ..packagesFileUri = Uri.parse('file:///.packages')
+      ..packagesFileUri = Uri.parse('org-dartlang-test:///.packages')
       ..fileSystem = fileSystem
-      ..librariesSpecificationUri = Uri.parse('file:///libraries.json');
+      ..librariesSpecificationUri =
+          Uri.parse('org-dartlang-test:///libraries.json');
     var processed = new ProcessedOptions(raw);
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.dartLibraries.libraryInfoFor('foo').uri.path,
@@ -124,16 +126,17 @@ class ProcessedOptionsTest {
 
   test_getUriTranslator_inferredLibrariesSpec() async {
     fileSystem
-        .entityForUri(Uri.parse('file:///.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('');
     fileSystem
-        .entityForUri(Uri.parse('file:///mysdk/lib/libraries.json'))
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///mysdk/lib/libraries.json'))
         .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFileUri = Uri.parse('file:///.packages')
+      ..packagesFileUri = Uri.parse('org-dartlang-test:///.packages')
       ..compileSdk = true
-      ..sdkRoot = Uri.parse('file:///mysdk/');
+      ..sdkRoot = Uri.parse('org-dartlang-test:///mysdk/');
     var processed = new ProcessedOptions(raw);
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.dartLibraries.libraryInfoFor('foo').uri.path,
@@ -142,16 +145,17 @@ class ProcessedOptionsTest {
 
   test_getUriTranslator_notInferredLibrariesSpec() async {
     fileSystem
-        .entityForUri(Uri.parse('file:///.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('');
     fileSystem
-        .entityForUri(Uri.parse('file:///mysdk/lib/libraries.json'))
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///mysdk/lib/libraries.json'))
         .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFileUri = Uri.parse('file:///.packages')
+      ..packagesFileUri = Uri.parse('org-dartlang-test:///.packages')
       ..compileSdk = false // libraries.json is only inferred if true
-      ..sdkRoot = Uri.parse('file:///mysdk/');
+      ..sdkRoot = Uri.parse('org-dartlang-test:///mysdk/');
     var processed = new ProcessedOptions(raw);
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.dartLibraries.libraryInfoFor('foo'), isNull);
@@ -160,22 +164,22 @@ class ProcessedOptionsTest {
   checkPackageExpansion(
       String packageName, String packageDir, Packages packages) {
     var input = Uri.parse('package:$packageName/a.dart');
-    var expected = Uri.parse('file:///$packageDir/a.dart');
+    var expected = Uri.parse('org-dartlang-test:///$packageDir/a.dart');
     expect(packages.resolve(input), expected);
   }
 
   test_getUriTranslator_explicitPackagesFile() async {
     // This .packages file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('file:///.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('foo:bar\n');
     // This one should be used.
     fileSystem
-        .entityForUri(Uri.parse('file:///explicit.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///explicit.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFileUri = Uri.parse('file:///explicit.packages');
+      ..packagesFileUri = Uri.parse('org-dartlang-test:///explicit.packages');
     var processed = new ProcessedOptions(raw);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion('foo', 'baz', uriTranslator.packages);
@@ -184,15 +188,17 @@ class ProcessedOptionsTest {
   test_getUriTranslator_explicitPackagesFile_withBaseLocation() async {
     // This .packages file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('file:///.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('foo:bar\n');
     // This one should be used.
     fileSystem
-        .entityForUri(Uri.parse('file:///base/location/explicit.packages'))
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///base/location/explicit.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFileUri = Uri.parse('file:///base/location/explicit.packages');
+      ..packagesFileUri =
+          Uri.parse('org-dartlang-test:///base/location/explicit.packages');
     var processed = new ProcessedOptions(raw);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion('foo', 'base/location/baz', uriTranslator.packages);
@@ -201,15 +207,15 @@ class ProcessedOptionsTest {
   test_getUriTranslator_implicitPackagesFile_ambiguous() async {
     // This .packages file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('file:///.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('foo:bar\n');
     // This one should be used.
     fileSystem
-        .entityForUri(Uri.parse('file:///explicit.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///explicit.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFileUri = Uri.parse('file:///explicit.packages');
+      ..packagesFileUri = Uri.parse('org-dartlang-test:///explicit.packages');
     var processed = new ProcessedOptions(raw);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion('foo', 'baz', uriTranslator.packages);
@@ -218,23 +224,23 @@ class ProcessedOptionsTest {
   test_getUriTranslator_implicitPackagesFile_nextToScript() async {
     // Create the base directory.
     fileSystem
-        .entityForUri(Uri.parse('file:///base/location/'))
+        .entityForUri(Uri.parse('org-dartlang-test:///base/location/'))
         .createDirectory();
     // Packages directory should be ignored (.packages file takes precedence).
     fileSystem
-        .entityForUri(Uri.parse('file:///base/location/packages/'))
+        .entityForUri(Uri.parse('org-dartlang-test:///base/location/packages/'))
         .createDirectory();
     // This .packages file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('file:///.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('foo:bar\n');
     // This one should be used.
     fileSystem
-        .entityForUri(Uri.parse('file:///base/location/.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///base/location/.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()..fileSystem = fileSystem;
-    var processed = new ProcessedOptions(
-        raw, false, [Uri.parse('file:///base/location/script.dart')]);
+    var processed = new ProcessedOptions(raw, false,
+        [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion('foo', 'base/location/baz', uriTranslator.packages);
   }
@@ -242,19 +248,19 @@ class ProcessedOptionsTest {
   test_getUriTranslator_implicitPackagesFile_searchAbove() async {
     // Create the base directory.
     fileSystem
-        .entityForUri(Uri.parse('file:///base/location/'))
+        .entityForUri(Uri.parse('org-dartlang-test:///base/location/'))
         .createDirectory();
     // This .packages file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('file:///.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('foo:bar\n');
     // This one should be used.
     fileSystem
-        .entityForUri(Uri.parse('file:///base/.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///base/.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()..fileSystem = fileSystem;
-    var processed = new ProcessedOptions(
-        raw, false, [Uri.parse('file:///base/location/script.dart')]);
+    var processed = new ProcessedOptions(raw, false,
+        [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion('foo', 'base/baz', uriTranslator.packages);
   }
@@ -262,22 +268,22 @@ class ProcessedOptionsTest {
   test_getUriTranslator_implicitPackagesFile_packagesDirectory() async {
     // Create the base directory.
     fileSystem
-        .entityForUri(Uri.parse('file:///base/location/'))
+        .entityForUri(Uri.parse('org-dartlang-test:///base/location/'))
         .createDirectory();
     fileSystem
-        .entityForUri(Uri.parse('file:///base/location/packages/'))
+        .entityForUri(Uri.parse('org-dartlang-test:///base/location/packages/'))
         .createDirectory();
 
     // Both of these .packages file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('file:///.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('foo:bar\n');
     fileSystem
-        .entityForUri(Uri.parse('file:///base/.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///base/.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()..fileSystem = fileSystem;
-    var processed = new ProcessedOptions(
-        raw, false, [Uri.parse('file:///base/location/script.dart')]);
+    var processed = new ProcessedOptions(raw, false,
+        [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion(
         'foo', 'base/location/packages/foo', uriTranslator.packages);
@@ -286,15 +292,15 @@ class ProcessedOptionsTest {
   test_getUriTranslator_implicitPackagesFile_noPackages() async {
     // Create the base directory.
     fileSystem
-        .entityForUri(Uri.parse('file:///base/location/'))
+        .entityForUri(Uri.parse('org-dartlang-test:///base/location/'))
         .createDirectory();
     var errors = [];
     // .packages file should be ignored.
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..onError = (e) => errors.add(e);
-    var processed = new ProcessedOptions(
-        raw, false, [Uri.parse('file:///base/location/script.dart')]);
+    var processed = new ProcessedOptions(raw, false,
+        [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
     var uriTranslator = await processed.getUriTranslator();
     expect(errors, isEmpty);
     expect(uriTranslator.packages.asMap(), isEmpty);
@@ -304,7 +310,7 @@ class ProcessedOptionsTest {
     var errors = [];
     // .packages file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('file:///.packages'))
+        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('foo:bar\n');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
@@ -319,7 +325,7 @@ class ProcessedOptionsTest {
 
   test_validateOptions_noInputs() async {
     fileSystem
-        .entityForUri(Uri.parse('file:///foo.dart'))
+        .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
     var errors = [];
     var raw = new CompilerOptions()
@@ -344,7 +350,7 @@ class ProcessedOptionsTest {
   }
 
   test_validateOptions_root_exists() async {
-    var sdkRoot = Uri.parse('file:///sdk/root/');
+    var sdkRoot = Uri.parse('org-dartlang-test:///sdk/root/');
     fileSystem
         // Note: this test is a bit hackish because the memory file system
         // doesn't have the notion of directories.
@@ -354,7 +360,7 @@ class ProcessedOptionsTest {
         .entityForUri(sdkRoot.resolve('vm_outline.dill'))
         .writeAsStringSync('\n');
     fileSystem
-        .entityForUri(Uri.parse('file:///foo.dart'))
+        .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
 
     var errors = [];
@@ -371,9 +377,9 @@ class ProcessedOptionsTest {
 
   test_validateOptions_root_doesnt_exists() async {
     fileSystem
-        .entityForUri(Uri.parse('file:///foo.dart'))
+        .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
-    var sdkRoot = Uri.parse('file:///sdk/root');
+    var sdkRoot = Uri.parse('org-dartlang-test:///sdk/root');
     var errors = [];
     var raw = new CompilerOptions()
       ..sdkRoot = sdkRoot
@@ -386,10 +392,10 @@ class ProcessedOptionsTest {
   }
 
   test_validateOptions_summary_exists() async {
-    var sdkSummary = Uri.parse('file:///sdk/root/outline.dill');
+    var sdkSummary = Uri.parse('org-dartlang-test:///sdk/root/outline.dill');
     fileSystem.entityForUri(sdkSummary).writeAsStringSync('\n');
     fileSystem
-        .entityForUri(Uri.parse('file:///foo.dart'))
+        .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
 
     var errors = [];
@@ -405,9 +411,9 @@ class ProcessedOptionsTest {
 
   test_validateOptions_summary_doesnt_exists() async {
     fileSystem
-        .entityForUri(Uri.parse('file:///foo.dart'))
+        .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
-    var sdkSummary = Uri.parse('file:///sdk/root/outline.dill');
+    var sdkSummary = Uri.parse('org-dartlang-test:///sdk/root/outline.dill');
     var errors = [];
     var raw = new CompilerOptions()
       ..sdkSummary = sdkSummary
@@ -420,12 +426,12 @@ class ProcessedOptionsTest {
   }
 
   test_validateOptions_inferred_summary_exists() async {
-    var sdkRoot = Uri.parse('file:///sdk/root/');
-    var sdkSummary = Uri.parse('file:///sdk/root/vm_outline.dill');
+    var sdkRoot = Uri.parse('org-dartlang-test:///sdk/root/');
+    var sdkSummary = Uri.parse('org-dartlang-test:///sdk/root/vm_outline.dill');
     fileSystem.entityForUri(sdkRoot).writeAsStringSync('\n');
     fileSystem.entityForUri(sdkSummary).writeAsStringSync('\n');
     fileSystem
-        .entityForUri(Uri.parse('file:///foo.dart'))
+        .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
 
     var errors = [];
@@ -440,11 +446,11 @@ class ProcessedOptionsTest {
   }
 
   test_validateOptions_inferred_summary_doesnt_exists() async {
-    var sdkRoot = Uri.parse('file:///sdk/root/');
-    var sdkSummary = Uri.parse('file:///sdk/root/outline.dill');
+    var sdkRoot = Uri.parse('org-dartlang-test:///sdk/root/');
+    var sdkSummary = Uri.parse('org-dartlang-test:///sdk/root/outline.dill');
     fileSystem.entityForUri(sdkRoot).writeAsStringSync('\n');
     fileSystem
-        .entityForUri(Uri.parse('file:///foo.dart'))
+        .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
     var errors = [];
     var raw = new CompilerOptions()

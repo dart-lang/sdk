@@ -481,7 +481,6 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeByte(insideExternalLibrary ? 1 : 0);
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
-    writeStringReference(node.documentationComment ?? '');
     // TODO(jensj): We save (almost) the same URI twice.
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
@@ -612,7 +611,6 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeByte(flags);
     writeStringReference(node.name ?? '');
     writeUriReference(node.fileUri ?? '');
-    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
@@ -646,7 +644,6 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
-    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
@@ -672,7 +669,6 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeByte(node.flags);
     writeName(node.name ?? '');
     writeUriReference(node.fileUri ?? '');
-    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     writeOptionalNode(node.function);
     _variableIndexer = null;
@@ -691,7 +687,6 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeByte(node.flags2);
     writeName(node.name);
     writeUriReference(node.fileUri ?? '');
-    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);

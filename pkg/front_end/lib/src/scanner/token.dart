@@ -1662,6 +1662,7 @@ class TokenType {
    */
   bool get isUnaryPrefixOperator =>
       precedence == PREFIX_PRECEDENCE ||
+      this == TokenType.MINUS ||
       this == TokenType.PLUS_PLUS ||
       this == TokenType.MINUS_MINUS;
 

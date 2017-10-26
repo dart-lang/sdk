@@ -6,7 +6,6 @@ library fasta.kernel_library_builder;
 
 import 'dart:convert' show JSON;
 
-import 'package:front_end/src/fasta/combinator.dart' as fasta;
 import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
 import 'package:kernel/ast.dart';
@@ -77,7 +76,10 @@ import 'kernel_builder.dart'
         Scope,
         TypeBuilder,
         TypeVariableBuilder,
-        compareProcedures;
+        compareProcedures,
+        toKernelCombinators;
+
+import 'metadata_collector.dart';
 
 class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
@@ -117,15 +119,13 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder addNamedType(
       Object name, List<KernelTypeBuilder> arguments, int charOffset) {
-    return addType(
-        new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri));
+    return addType(new KernelNamedTypeBuilder(name, arguments), charOffset);
   }
 
   KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
       List<KernelTypeBuilder> mixins, int charOffset) {
-    KernelTypeBuilder type = new KernelMixinApplicationBuilder(
-        supertype, mixins, this, charOffset, fileUri);
-    return addType(type);
+    return addType(
+        new KernelMixinApplicationBuilder(supertype, mixins), charOffset);
   }
 
   KernelTypeBuilder addVoidType(int charOffset) {
@@ -140,7 +140,8 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces,
-      int charOffset) {
+      int charOffset,
+      int supertypeOffset) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     var declaration = endNestedDeclaration(className)
       ..resolveTypes(typeVariables, this);
@@ -158,12 +159,11 @@ class KernelLibraryBuilder
     Scope constructorScope = new Scope(constructors, null, null, "constructors",
         isModifiable: false);
     ClassBuilder cls = new SourceClassBuilder(
-        documentationComment,
         metadata,
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype,
+        applyMixins(supertype, supertypeOffset,
             isSyntheticMixinImplementation: true,
             subclassName: className,
             typeVariables: typeVariables),
@@ -173,6 +173,9 @@ class KernelLibraryBuilder
         this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
         charOffset);
+    loader.target.metadataCollector
+        ?.setDocumentationComment(cls.target, documentationComment);
+
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
         checkTypeVariables(typeVariables, cls);
@@ -260,7 +263,6 @@ class KernelLibraryBuilder
     }
     if (builder == null) {
       builder = new SourceClassBuilder(
-          documentationComment,
           metadata,
           modifiers,
           name,
@@ -277,6 +279,8 @@ class KernelLibraryBuilder
           charOffset,
           null,
           mixin);
+      loader.target.metadataCollector
+          ?.setDocumentationComment(builder.target, documentationComment);
       builder.cls.isSyntheticMixinImplementation =
           isSyntheticMixinImplementation;
       addBuilder(name, builder, charOffset);
@@ -288,7 +292,7 @@ class KernelLibraryBuilder
       ..bind(isNamed ? builder : null);
   }
 
-  KernelTypeBuilder applyMixins(KernelTypeBuilder type,
+  KernelTypeBuilder applyMixins(KernelTypeBuilder type, int charOffset,
       {String documentationComment,
       List<MetadataBuilder> metadata,
       bool isSyntheticMixinImplementation: false,
@@ -296,8 +300,7 @@ class KernelLibraryBuilder
       String subclassName,
       List<TypeVariableBuilder> typeVariables,
       int modifiers: abstractMask,
-      List<KernelTypeBuilder> interfaces,
-      int charOffset: -1}) {
+      List<KernelTypeBuilder> interfaces}) {
     if (type is KernelMixinApplicationBuilder) {
       subclassName ??= name;
       List<List<String>> signatureParts = <List<String>>[];
@@ -305,10 +308,6 @@ class KernelLibraryBuilder
       Map<String, String> unresolvedReversed = <String, String>{};
       int unresolvedCount = 0;
       Map<String, TypeBuilder> freeTypes = <String, TypeBuilder>{};
-
-      // TODO(30316): Use correct locations of mixin applications
-      // (e.g. identifiers for mixed-in classes).
-      if (charOffset == -1) charOffset = type.charOffset;
 
       if (name == null || type.mixins.length != 1) {
         TypeBuilder last = type.mixins.last;
@@ -373,8 +372,7 @@ class KernelLibraryBuilder
               unresolvedReversed[name] = argument.name;
               freeTypes[name] = argument;
               part.add(name);
-              type.arguments[i] =
-                  new KernelNamedTypeBuilder(name, null, -1, fileUri);
+              type.arguments[i] = new KernelNamedTypeBuilder(name, null);
             }
             signatureParts.add(part);
           }
@@ -440,7 +438,13 @@ class KernelLibraryBuilder
         supertype = applyMixin(supertype, mixin, signature,
             isSyntheticMixinImplementation: true,
             typeVariables: new List<TypeVariableBuilder>.from(variables.values),
-            charOffset: charOffset);
+            // TODO(ahe): Eventually, the charOffset should be -1 as these
+            // classes are canonicalized and synthetic. For now, for the
+            // benefit of dart2js, we add offsets to help the compiler during
+            // the migration process. We add i because dart2js uses these
+            // numbers to sort the classes by. Adding i isn't precisely what
+            // dart2js does, but it should be good enough.
+            charOffset: charOffset + i);
       }
       KernelNamedTypeBuilder mixin = type.mixins.last;
 
@@ -510,14 +514,13 @@ class KernelLibraryBuilder
       int charOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
-    KernelNamedTypeBuilder supertype = applyMixins(mixinApplication,
+    KernelNamedTypeBuilder supertype = applyMixins(mixinApplication, charOffset,
         documentationComment: documentationComment,
         metadata: metadata,
         name: name,
         typeVariables: typeVariables,
         modifiers: modifiers,
-        interfaces: interfaces,
-        charOffset: charOffset);
+        interfaces: interfaces);
     checkTypeVariables(typeVariables, supertype.builder);
   }
 
@@ -531,19 +534,11 @@ class KernelLibraryBuilder
       int charOffset,
       Token initializerTokenForInference,
       bool hasInitializer) {
-    addBuilder(
-        name,
-        new KernelFieldBuilder(
-            documentationComment,
-            metadata,
-            type,
-            name,
-            modifiers,
-            this,
-            charOffset,
-            initializerTokenForInference,
-            hasInitializer),
-        charOffset);
+    var builder = new KernelFieldBuilder(metadata, type, name, modifiers, this,
+        charOffset, initializerTokenForInference, hasInitializer);
+    addBuilder(name, builder, charOffset);
+    loader.target.metadataCollector
+        ?.setDocumentationComment(builder.target, documentationComment);
   }
 
   String computeAndValidateConstructorName(Object name, int charOffset) {
@@ -592,10 +587,10 @@ class KernelLibraryBuilder
     ProcedureBuilder procedure;
     String constructorName =
         isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
+    MetadataCollector metadataCollector = loader.target.metadataCollector;
     if (constructorName != null) {
       procedureName = constructorName;
       procedure = new KernelConstructorBuilder(
-          documentationComment,
           metadata,
           modifiers & ~abstractMask,
           returnType,
@@ -607,13 +602,13 @@ class KernelLibraryBuilder
           charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
-      loader.target.metadataCollector
-          ?.setConstructorNameOffset(procedure.target, name);
+      metadataCollector?.setDocumentationComment(
+          procedure.target, documentationComment);
+      metadataCollector?.setConstructorNameOffset(procedure.target, name);
     } else {
       assert(name is String);
       procedureName = name;
       procedure = new KernelProcedureBuilder(
-          documentationComment,
           metadata,
           modifiers,
           returnType,
@@ -626,6 +621,8 @@ class KernelLibraryBuilder
           charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
+      metadataCollector?.setDocumentationComment(
+          procedure.target, documentationComment);
     }
     checkTypeVariables(typeVariables, procedure);
     addBuilder(procedureName, procedure, charOffset);
@@ -664,7 +661,6 @@ class KernelLibraryBuilder
 
     assert(constructorNameReference.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
-        documentationComment,
         metadata,
         staticMask | modifiers,
         returnType,
@@ -679,9 +675,10 @@ class KernelLibraryBuilder
         nativeMethodName,
         redirectionTarget);
 
-    // Record the named constructor name offset.
-    loader.target.metadataCollector
-        ?.setConstructorNameOffset(procedure.target, name);
+    var metadataCollector = loader.target.metadataCollector;
+    metadataCollector?.setDocumentationComment(
+        procedure.target, documentationComment);
+    metadataCollector?.setConstructorNameOffset(procedure.target, name);
 
     currentDeclaration.addFactoryDeclaration(procedure, factoryDeclaration);
     addBuilder(procedureName, procedure, charOffset);
@@ -697,11 +694,18 @@ class KernelLibraryBuilder
       List<Object> constantNamesAndOffsets,
       int charOffset,
       int charEndOffset) {
-    addBuilder(
+    MetadataCollector metadataCollector = loader.target.metadataCollector;
+    KernelEnumBuilder builder = new KernelEnumBuilder(
+        metadataCollector,
+        metadata,
         name,
-        new KernelEnumBuilder(documentationComment, metadata, name,
-            constantNamesAndOffsets, this, charOffset, charEndOffset),
-        charOffset);
+        constantNamesAndOffsets,
+        this,
+        charOffset,
+        charEndOffset);
+    addBuilder(name, builder, charOffset);
+    metadataCollector?.setDocumentationComment(
+        builder.target, documentationComment);
   }
 
   void addFunctionTypeAlias(
@@ -726,13 +730,13 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    var builder = new KernelFunctionTypeBuilder(
-        charOffset, fileUri, returnType, typeVariables, formals);
-    checkTypeVariables(typeVariables, builder);
+    var builder =
+        new KernelFunctionTypeBuilder(returnType, typeVariables, formals);
+    checkTypeVariables(typeVariables, null);
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
     endNestedDeclaration("#function_type").resolveTypes(typeVariables, this);
-    return addType(builder);
+    return addType(builder, charOffset);
   }
 
   KernelFormalParameterBuilder addFormalParameter(
@@ -780,16 +784,6 @@ class KernelLibraryBuilder
   Library build(LibraryBuilder coreLibrary) {
     super.build(coreLibrary);
 
-    List<Combinator> toKernelCombinators(
-        Iterable<fasta.Combinator> fastaCombinators) {
-      return fastaCombinators?.map((c) {
-        List<String> nameList = c.names.toList();
-        return c.isShow
-            ? new Combinator.show(nameList)
-            : new Combinator.hide(nameList);
-      })?.toList();
-    }
-
     for (Import import in imports) {
       Library importedLibrary = import.imported.target;
       if (importedLibrary != null) {
@@ -819,11 +813,11 @@ class KernelLibraryBuilder
     for (var part in parts) {
       // TODO(scheglov): Add support for annotations, see
       // https://github.com/dart-lang/sdk/issues/30284.
-      String fileUri = part.fileUri.toString();
-      library.addPart(new LibraryPart(<Expression>[], fileUri));
+      library.addPart(new LibraryPart(<Expression>[], part.relativeFileUri));
     }
 
-    library.documentationComment = documentationComment;
+    loader.target.metadataCollector
+        ?.setDocumentationComment(library, documentationComment);
     library.name = name;
     library.procedures.sort(compareProcedures);
 

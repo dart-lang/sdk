@@ -93,7 +93,6 @@ class KernelSsaBuilder implements SsaBuilder {
 
   @override
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
-    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(work.element);
     KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
         work.element,
         _elementMap.getMemberThisType(work.element),
@@ -101,7 +100,7 @@ class KernelSsaBuilder implements SsaBuilder {
         _elementMap,
         new KernelToTypeInferenceMapImpl(
             work.element, _compiler.globalInference.results),
-        localsMap,
+        _globalLocalsMap,
         closedWorld,
         _compiler.codegenWorldBuilder,
         work.registry,

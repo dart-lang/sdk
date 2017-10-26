@@ -1045,6 +1045,27 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return new HFieldSet(field, receiver, value);
   }
 
+  HInstruction visitInvokeClosure(HInvokeClosure node) {
+    HInstruction closure = node.getDartReceiver(_closedWorld);
+
+    // Replace indirect call to static method tear-off closure with direct call
+    // to static method.
+    if (closure is HConstant) {
+      ConstantValue constant = closure.constant;
+      if (constant is FunctionConstantValue) {
+        FunctionEntity target = constant.element;
+        ParameterStructure parameterStructure = target.parameterStructure;
+        if (parameterStructure.callStructure == node.selector.callStructure) {
+          // TODO(sra): Handle adding optional arguments default values.
+          assert(!node.isInterceptedCall);
+          return new HInvokeStatic(
+              target, node.inputs.skip(1).toList(), node.instructionType);
+        }
+      }
+    }
+    return node;
+  }
+
   HInstruction visitInvokeStatic(HInvokeStatic node) {
     propagateConstantValueToUses(node);
     MemberEntity element = node.element;

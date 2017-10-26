@@ -367,12 +367,13 @@ class CapturedScopeBuilder extends ir.Visitor {
     _executableContext = node;
 
     _currentScopeInfo = new KernelScopeInfo(_hasThisLocal);
+
     if (_isInsideClosure) {
       _closuresToGenerate[node] = _currentScopeInfo;
     } else {
       _outermostNode = node;
+      _model.scopeInfo = _currentScopeInfo;
     }
-    _model.scopeInfo = _currentScopeInfo;
 
     enterNewScope(node, () {
       node.visitChildren(this);

@@ -11,7 +11,10 @@ import '../transformations/mixin_full_resolution.dart' as transformMixins
     show transformLibraries;
 import '../transformations/continuation.dart' as transformAsync
     show transformLibraries;
+import '../transformations/precompiler.dart' as transformPrecompiler
+    show transformProgram;
 
+import 'implementation_option.dart' show VmOptions;
 import 'targets.dart';
 
 /// Specializes the kernel IR to the Dart VM.
@@ -69,7 +72,13 @@ class VmTarget extends Target {
 
   @override
   void performGlobalTransformations(CoreTypes coreTypes, Program program,
-      {void logger(String msg)}) {}
+      {void logger(String msg)}) {
+    if (strongMode &&
+        (flags.implementationOptions != null) &&
+        flags.implementationOptions.contains(VmOptions.strongAOT)) {
+      transformPrecompiler.transformProgram(coreTypes, program);
+    }
+  }
 
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,

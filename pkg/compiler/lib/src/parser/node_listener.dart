@@ -19,6 +19,7 @@ import 'package:front_end/src/fasta/parser.dart' as fasta show Assert;
 
 class NodeListener extends ElementListener {
   int invalidTopLevelDeclarationCount = 0;
+  int invalidMemberCount = 0;
 
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
       CompilationUnitElement element)
@@ -231,7 +232,9 @@ class NodeListener extends ElementListener {
 
   @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    pushNode(makeNodeList(memberCount, beginToken, endToken, null));
+    pushNode(makeNodeList(
+        memberCount - invalidMemberCount, beginToken, endToken, null));
+    invalidMemberCount = 0;
   }
 
   @override
@@ -256,8 +259,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -717,6 +720,12 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleInvalidMember(Token endToken) {
+    popNode(); // Discard metadata
+    ++invalidMemberCount;
+  }
+
+  @override
   void endMember() {
     // TODO(sigmund): consider moving metadata into each declaration
     // element instead.
@@ -914,8 +923,14 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endSwitchCase(int labelCount, int caseCount, Token defaultKeyword,
-      int statementCount, Token firstToken, Token endToken) {
+  void endSwitchCase(
+      int labelCount,
+      int caseCount,
+      Token defaultKeyword,
+      Token colonAfterDefault,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
     NodeList labelsAndCases =
         makeNodeList(labelCount + caseCount, null, null, null);

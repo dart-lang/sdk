@@ -218,34 +218,77 @@ void JitCallSpecializer::VisitStoreInstanceField(
   }
 }
 
-void JitCallSpecializer::VisitAllocateContext(AllocateContextInstr* instr) {
-  // Replace generic allocation with a sequence of inlined allocation and
-  // explicit initializing stores.
-  AllocateUninitializedContextInstr* replacement =
-      new AllocateUninitializedContextInstr(instr->token_pos(),
-                                            instr->num_context_variables());
-  instr->ReplaceWith(replacement, current_iterator());
+// Replace generic context allocation or cloning with a sequence of inlined
+// allocation and explicit initializing stores.
+// If context_value is not NULL then newly allocated context is a populated
+// with values copied from it, otherwise it is initialized with null.
+void JitCallSpecializer::LowerContextAllocation(Definition* alloc,
+                                                intptr_t num_context_variables,
+                                                Value* context_value) {
+  ASSERT(alloc->IsAllocateContext() || alloc->IsCloneContext());
 
-  StoreInstanceFieldInstr* store = new (Z)
-      StoreInstanceFieldInstr(Context::parent_offset(), new Value(replacement),
-                              new Value(flow_graph()->constant_null()),
-                              kNoStoreBarrier, instr->token_pos());
+  AllocateUninitializedContextInstr* replacement =
+      new AllocateUninitializedContextInstr(alloc->token_pos(),
+                                            num_context_variables);
+  alloc->ReplaceWith(replacement, current_iterator());
+
+  Definition* cursor = replacement;
+
+  Value* initial_value;
+  if (context_value != NULL) {
+    LoadFieldInstr* load = new (Z)
+        LoadFieldInstr(context_value->CopyWithType(Z), Context::parent_offset(),
+                       AbstractType::ZoneHandle(Z), alloc->token_pos());
+    flow_graph()->InsertAfter(cursor, load, NULL, FlowGraph::kValue);
+    cursor = load;
+    initial_value = new (Z) Value(load);
+  } else {
+    initial_value = new (Z) Value(flow_graph()->constant_null());
+  }
+  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
+      Context::parent_offset(), new (Z) Value(replacement), initial_value,
+      kNoStoreBarrier, alloc->token_pos());
   // Storing into uninitialized memory; remember to prevent dead store
   // elimination and ensure proper GC barrier.
   store->set_is_initialization(true);
-  flow_graph()->InsertAfter(replacement, store, NULL, FlowGraph::kEffect);
-  Definition* cursor = store;
-  for (intptr_t i = 0; i < instr->num_context_variables(); ++i) {
+  flow_graph()->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
+  cursor = replacement;
+
+  for (intptr_t i = 0; i < num_context_variables; ++i) {
+    if (context_value != NULL) {
+      LoadFieldInstr* load = new (Z) LoadFieldInstr(
+          context_value->CopyWithType(Z), Context::variable_offset(i),
+          AbstractType::ZoneHandle(Z), alloc->token_pos());
+      flow_graph()->InsertAfter(cursor, load, NULL, FlowGraph::kValue);
+      cursor = load;
+      initial_value = new (Z) Value(load);
+    } else {
+      initial_value = new (Z) Value(flow_graph()->constant_null());
+    }
+
     store = new (Z) StoreInstanceFieldInstr(
-        Context::variable_offset(i), new Value(replacement),
-        new Value(flow_graph()->constant_null()), kNoStoreBarrier,
-        instr->token_pos());
+        Context::variable_offset(i), new (Z) Value(replacement), initial_value,
+        kNoStoreBarrier, alloc->token_pos());
     // Storing into uninitialized memory; remember to prevent dead store
     // elimination and ensure proper GC barrier.
     store->set_is_initialization(true);
     flow_graph()->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
     cursor = store;
   }
+}
+
+void JitCallSpecializer::VisitAllocateContext(AllocateContextInstr* instr) {
+  LowerContextAllocation(instr, instr->num_context_variables(), NULL);
+}
+
+void JitCallSpecializer::VisitCloneContext(CloneContextInstr* instr) {
+  if (instr->num_context_variables() ==
+      CloneContextInstr::kUnknownContextSize) {
+    return;
+  }
+
+  LowerContextAllocation(instr, instr->num_context_variables(),
+                         instr->context_value());
 }
 
 }  // namespace dart

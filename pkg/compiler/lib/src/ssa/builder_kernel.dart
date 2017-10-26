@@ -26,7 +26,7 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
-import '../js_model/locals.dart' show JumpVisitor;
+import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
 import '../kernel/element_map.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -90,7 +90,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   SourceInformationBuilder sourceInformationBuilder;
   final KernelToElementMapForBuilding _elementMap;
   final KernelToTypeInferenceMap _typeInferenceMap;
-  final KernelToLocalsMap localsMap;
+  final GlobalLocalsMap _globalLocalsMap;
+  KernelToLocalsMap _localsMap;
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
 
@@ -110,7 +111,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.compiler,
       this._elementMap,
       this._typeInferenceMap,
-      this.localsMap,
+      this._globalLocalsMap,
       this.closedWorld,
       this._worldBuilder,
       this.registry,
@@ -119,6 +120,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
       this.sourceInformationBuilder,
       this.functionNode) {
+    _localsMap = _globalLocalsMap.getLocalsMap(targetElement);
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new KernelTypeBuilder(this, _elementMap);
     graph.element = targetElement;
@@ -128,6 +130,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         instanceType, nativeData, interceptorData);
     _targetStack.add(targetElement);
   }
+
+  KernelToLocalsMap get localsMap => _localsMap;
 
   CommonElements get _commonElements => _elementMap.commonElements;
 
@@ -335,54 +339,87 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // Doing this instead of fieldValues.forEach because we haven't defined the
     // order of the arguments here. We can define that with JElements.
     ClassEntity cls = _elementMap.getClass(constructedClass);
+    bool isCustomElement = nativeData.isNativeOrExtendsNative(cls) &&
+        !nativeData.isJsInteropClass(cls);
     InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
+    List<FieldEntity> fields = <FieldEntity>[];
     _worldBuilder.forEachInstanceField(cls,
         (ClassEntity enclosingClass, FieldEntity member) {
       var value = fieldValues[member];
-      assert(value != null, 'No initializer value for field ${member}');
-      constructorArguments.add(value);
+      if (value == null) {
+        assert(isCustomElement || reporter.hasReportedError,
+            'No initializer value for field ${member}');
+      } else {
+        fields.add(member);
+        constructorArguments.add(value);
+      }
     });
 
-    // Create the runtime type information, if needed.
-    bool hasRtiInput = closedWorld.rtiNeed.classNeedsRtiField(cls);
-    if (hasRtiInput) {
-      // Read the values of the type arguments and create a HTypeInfoExpression
-      // to set on the newly create object.
-      List<HInstruction> typeArguments = <HInstruction>[];
-      for (ir.DartType typeParameter
-          in constructedClass.thisType.typeArguments) {
-        HInstruction argument = localsHandler.readLocal(localsHandler
-            .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)));
-        typeArguments.add(argument);
+    HInstruction newObject;
+    if (isCustomElement) {
+      // Bulk assign to the initialized fields.
+      newObject = graph.explicitReceiverParameter;
+      // Null guard ensures an error if we are being called from an explicit
+      // 'new' of the constructor instead of via an upgrade. It is optimized out
+      // if there are field initializers.
+      add(new HFieldGet(null, newObject, commonMasks.dynamicType,
+          isAssignable: false));
+      for (int i = 0; i < fields.length; i++) {
+        add(new HFieldSet(fields[i], newObject, constructorArguments[i]));
+      }
+    } else {
+      // Create the runtime type information, if needed.
+      bool hasRtiInput = closedWorld.rtiNeed.classNeedsRtiField(cls);
+      if (hasRtiInput) {
+        // Read the values of the type arguments and create a HTypeInfoExpression
+        // to set on the newly create object.
+        List<HInstruction> typeArguments = <HInstruction>[];
+        for (ir.DartType typeParameter
+            in constructedClass.thisType.typeArguments) {
+          HInstruction argument = localsHandler.readLocal(localsHandler
+              .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)));
+          typeArguments.add(argument);
+        }
+
+        HInstruction typeInfo = new HTypeInfoExpression(
+            TypeInfoExpressionKind.INSTANCE,
+            thisType,
+            typeArguments,
+            commonMasks.dynamicType);
+        add(typeInfo);
+        constructorArguments.add(typeInfo);
       }
 
-      HInstruction typeInfo = new HTypeInfoExpression(
-          TypeInfoExpressionKind.INSTANCE,
-          thisType,
-          typeArguments,
-          commonMasks.dynamicType);
-      add(typeInfo);
-      constructorArguments.add(typeInfo);
+      newObject = new HCreate(cls, constructorArguments,
+          new TypeMask.nonNullExact(cls, closedWorld),
+          instantiatedTypes: <InterfaceType>[thisType],
+          hasRtiInput: hasRtiInput);
+
+      add(newObject);
     }
 
-    HInstruction newObject = new HCreate(
-        cls, constructorArguments, new TypeMask.nonNullExact(cls, closedWorld),
-        instantiatedTypes: <InterfaceType>[thisType], hasRtiInput: hasRtiInput);
-
-    add(newObject);
-
+    HInstruction interceptor;
     // Generate calls to the constructor bodies.
-
     for (ir.Constructor body in constructorChain.reversed) {
       if (_isEmptyStatement(body.function.body)) continue;
 
       List<HInstruction> bodyCallInputs = <HInstruction>[];
+      if (isCustomElement) {
+        if (interceptor == null) {
+          ConstantValue constant = new InterceptorConstantValue(cls);
+          interceptor = graph.addConstant(constant, closedWorld);
+        }
+        bodyCallInputs.add(interceptor);
+      }
       bodyCallInputs.add(newObject);
 
       // Pass uncaptured arguments first, captured arguments in a box, then type
       // arguments.
 
       ConstructorEntity constructorElement = _elementMap.getConstructor(body);
+
+      KernelToLocalsMap oldLocalsMap = _localsMap;
+      _localsMap = _globalLocalsMap.getLocalsMap(constructorElement);
 
       void handleParameter(ir.VariableDeclaration node) {
         Local parameter = localsMap.getLocalVariable(node);
@@ -419,6 +456,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
 
       _invokeConstructorBody(body, bodyCallInputs);
+      _localsMap = oldLocalsMap;
     }
 
     closeAndGotoExit(new HReturn(newObject, null));
@@ -476,8 +514,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
           failedAt(field, "Unexpected member definition $definition.");
       }
       if (node.initializer == null) {
-        fieldValues[field] = graph.addConstantNull(closedWorld);
-      } else {
+        // Unassigned fields of native classes are not initialized to
+        // prevent overwriting pre-initialized native properties.
+        if (!nativeData.isNativeOrExtendsNative(cls)) {
+          fieldValues[field] = graph.addConstantNull(closedWorld);
+        }
+      } else if (node.initializer is! ir.NullLiteral ||
+          !nativeData.isNativeClass(cls)) {
         // Compile the initializer in the context of the field so we know that
         // class type parameters are accessed as values.
         // TODO(sra): It would be sufficient to know the context was a field
@@ -660,6 +703,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // containing the super-constructor.
     while (supertype.classNode != target.enclosingClass) {
       _bindSupertypeTypeParameters(supertype);
+
+      if (supertype.classNode.mixedInType != null) {
+        _bindSupertypeTypeParameters(supertype.classNode.mixedInType);
+      }
+
+      // Fields from unnamed mixin application classes (ie Object&Foo) get
+      // "collected" with the regular supertype fields, so we must bind type
+      // parameters from both the supertype and the supertype's mixin classes
+      // before collecting the field values.
       _collectFieldValues(supertype.classNode, fieldValues);
       supertype = supertype.classNode.supertype;
     }
@@ -678,6 +730,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       Map<FieldEntity, HInstruction> fieldValues,
       ir.Constructor caller) {
     var index = 0;
+
+    KernelToLocalsMap oldLocalsMap = _localsMap;
+    ConstructorEntity element = _elementMap.getConstructor(constructor);
+    _localsMap = _globalLocalsMap.getLocalsMap(element);
     void handleParameter(ir.VariableDeclaration node) {
       Local parameter = localsMap.getLocalVariable(node);
       HInstruction argument = arguments[index++];
@@ -694,7 +750,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ..forEach(handleParameter);
 
     // Set the locals handler state as if we were inlining the constructor.
-    ConstructorEntity element = _elementMap.getConstructor(constructor);
     ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
     ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(element);
     localsHandler.scopeInfo = newScopeInfo;
@@ -703,6 +758,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _buildInitializers(constructor, constructorChain, fieldValues);
     });
     localsHandler.scopeInfo = oldScopeInfo;
+    _localsMap = oldLocalsMap;
   }
 
   /// Builds generative constructor body.
@@ -3469,10 +3525,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    // TODO(sra): For JS-interop targets, process arguments differently.
-    List<HInstruction> arguments =
-        _visitArgumentsForStaticTarget(target.function, invocation.arguments);
     ConstructorEntity constructor = _elementMap.getConstructor(target);
+
+    // TODO(sra): For JS-interop targets, process arguments differently.
+    List<HInstruction> arguments = <HInstruction>[];
+    if (constructor.isGenerativeConstructor &&
+        nativeData.isNativeOrExtendsNative(constructor.enclosingClass) &&
+        !nativeData.isJsInteropMember(constructor)) {
+      // Native class generative constructors take a pre-constructed object.
+      arguments.add(graph.addConstantNull(closedWorld));
+    }
+    arguments.addAll(
+        _visitArgumentsForStaticTarget(target.function, invocation.arguments));
     if (commonElements.isSymbolConstructor(constructor)) {
       constructor = commonElements.symbolValidatedConstructor;
     }

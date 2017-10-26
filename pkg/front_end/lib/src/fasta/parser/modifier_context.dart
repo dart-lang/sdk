@@ -5,6 +5,7 @@
 import '../../scanner/token.dart' show Token;
 import '../messages.dart' as fasta;
 import 'formal_parameter_kind.dart' show FormalParameterKind;
+import 'forwarding_listener.dart' show ForwardingListener;
 import 'member_kind.dart' show MemberKind;
 import 'parser.dart' show Parser;
 import 'type_continuation.dart' show TypeContinuation;
@@ -198,7 +199,6 @@ class ModifierContext {
 }
 
 class ModifierRecoveryContext extends ModifierContext {
-  final Token recoveryStart;
   Token constToken;
   Token covariantToken;
   Token externalToken;
@@ -206,37 +206,23 @@ class ModifierRecoveryContext extends ModifierContext {
   Token staticToken;
   Token varToken;
 
-  ModifierRecoveryContext(ModifierContext context, this.recoveryStart)
+  ModifierRecoveryContext(
+      Parser parser,
+      MemberKind memberKind,
+      FormalParameterKind parameterKind,
+      bool isVarAllowed,
+      TypeContinuation typeContinuation)
       : super(
-          context.parser,
-          context.memberKind,
-          context.parameterKind,
-          context.isVarAllowed,
-          context.typeContinuation,
-        ) {
-    this.modifierCount = context.modifierCount;
-  }
+            parser, memberKind, parameterKind, isVarAllowed, typeContinuation);
 
   @override
   Token parseOpt(Token token) {
-    // Determine which modifiers have already been parsed
-    while (token != recoveryStart) {
-      final value = token.stringValue;
-      if (identical('const', value)) {
-        constToken = token;
-      } else if (identical('covariant', value)) {
-        covariantToken = token;
-      } else if (identical('external', value)) {
-        externalToken = token;
-      } else if (identical('final', value)) {
-        finalToken = token;
-      } else if (identical('static', value)) {
-        staticToken = token;
-      } else if (identical('var', value)) {
-        varToken = token;
-      }
-      token = token.next;
-    }
+    // Reparse to determine which modifiers have already been parsed
+    // but intercept the events so they are not sent to the primary listener.
+    final primaryListener = parser.listener;
+    parser.listener = new ForwardingListener();
+    token = super.parseOpt(token);
+    parser.listener = primaryListener;
 
     // Process invalid and out-of-order modifiers
     while (isModifier(token)) {
@@ -413,6 +399,11 @@ class ClassMethodModifierContext {
   Token externalToken;
   Token staticToken;
 
+  /// If recovery finds an invalid class member declaration
+  /// (e.g. an enum declared inside a class),
+  /// then this is set to the last token in the invalid declaration.
+  Token endInvalidMemberToken;
+
   ClassMethodModifierContext(this.parser);
 
   Token parseRecovery(Token token, Token externalToken, Token staticToken,
@@ -430,35 +421,75 @@ class ClassMethodModifierContext {
     while (token != afterModifiers) {
       String value = token.stringValue;
       if (identical(value, 'abstract')) {
-        parser.reportRecoverableError(token, fasta.messageAbstractClassMember);
+        token = parseAbstractRecovery(token);
       } else if (identical(value, 'class')) {
-        parser.reportRecoverableError(token, fasta.messageClassInClass);
-      } else if (identical(value, 'enum')) {
-        parser.reportRecoverableError(token, fasta.messageEnumInClass);
+        token = parseClassRecovery(token);
       } else if (identical(value, 'const')) {
         parseConstRecovery(token);
+        token = token.next;
       } else if (identical(value, 'covariant')) {
         parseCovariantRecovery(token);
+        token = token.next;
+      } else if (identical(value, 'enum')) {
+        token = parseEnumRecovery(token);
       } else if (identical(value, 'external')) {
         parseExternalRecovery(token);
+        token = token.next;
       } else if (identical(value, 'static')) {
         parseStaticRecovery(token);
+        token = token.next;
       } else if (identical(value, 'typedef')) {
         parser.reportRecoverableError(token, fasta.messageTypedefInClass);
+        token = token.next;
       } else if (identical(value, 'var')) {
         parseVarRecovery(token);
+        token = token.next;
       } else if (token.isModifier) {
         parser.reportRecoverableErrorWithToken(
             token, fasta.templateExtraneousModifier);
+        token = token.next;
       } else {
         parser.reportRecoverableErrorWithToken(
             token, fasta.templateUnexpectedToken);
         // We found something that doesn't look like a modifier,
         // so skip the rest of the tokens.
-        token = afterModifiers;
+        token = afterModifiers.next;
         break;
       }
+      if (endInvalidMemberToken != null) {
+        return afterModifiers;
+      }
+    }
+    return token;
+  }
+
+  Token parseAbstractRecovery(Token token) {
+    assert(optional('abstract', token));
+    if (optional('class', token.next)) {
+      return parseClassRecovery(token.next);
+    }
+    parser.reportRecoverableError(token, fasta.messageAbstractClassMember);
+    return token.next;
+  }
+
+  Token parseClassRecovery(Token token) {
+    assert(optional('class', token));
+    parser.reportRecoverableError(token, fasta.messageClassInClass);
+    token = token.next;
+    // If the declaration appears to be a valid class declaration
+    // then skip the entire declaration so that we only generate the one
+    // error (above) rather than a plethora of unhelpful errors.
+    if (token.isIdentifier) {
+      endInvalidMemberToken = token;
+      // skip class name
       token = token.next;
+      // TODO(danrubel): consider parsing (skipping) the class header
+      // with a recovery listener so that no events are generated
+      if (optional('{', token) && token.endGroup != null) {
+        // skip class body
+        endInvalidMemberToken = token.endGroup;
+        token = endInvalidMemberToken.next;
+      }
     }
     return token;
   }
@@ -492,6 +523,28 @@ class ClassMethodModifierContext {
       parser.parseModifier(token);
       ++modifierCount;
     }
+  }
+
+  Token parseEnumRecovery(Token token) {
+    assert(optional('enum', token));
+    parser.reportRecoverableError(token, fasta.messageEnumInClass);
+    token = token.next;
+    // If the declaration appears to be a valid enum declaration
+    // then skip the entire declaration so that we only generate the one
+    // error (above) rather than a plethora of unhelpful errors.
+    if (token.isIdentifier) {
+      endInvalidMemberToken = token;
+      // skip enum name
+      token = token.next;
+      if (optional('{', token) && token.endGroup != null) {
+        // TODO(danrubel): Consider replacing this `skip enum` functionality
+        // with something that can parse and resolve the declaration
+        // even though it is in a class context
+        endInvalidMemberToken = token.endGroup;
+        token = token.next;
+      }
+    }
+    return token;
   }
 
   void parseExternalRecovery(Token token) {

@@ -131,7 +131,7 @@ abstract class BuilderHelper {
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
-  void warning(Message message, int charOffset);
+  void warning(Message message, int offset, int length);
 
   Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper});
 
@@ -977,7 +977,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         KernelInvalidTypeBuilder declaration = this.declaration;
         helper.library.addWarning(
             declaration.message, declaration.charOffset, declaration.fileUri);
-        helper.warning(declaration.message, offset);
+        helper.warning(declaration.message, offset, token.length);
         super.expression = new Throw(
             new StringLiteral(declaration.message.message)
               ..fileOffset = offsetForToken(token))

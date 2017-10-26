@@ -180,6 +180,7 @@ class SourceLoader<L> extends Loader<L> {
         Token tokens = await tokenize(part);
         if (tokens != null) {
           listener.uri = part.fileUri;
+          listener.partDirectiveIndex = 0;
           parser.parseUnit(tokens);
         }
       }
@@ -282,7 +283,10 @@ class SourceLoader<L> extends Loader<L> {
   void resolveTypes() {
     int typeCount = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
-      typeCount += library.resolveTypes(null);
+      if (library.loader == this) {
+        SourceLibraryBuilder sourceLibrary = library;
+        typeCount += sourceLibrary.resolveTypes();
+      }
     });
     ticker.logMs("Resolved $typeCount types");
   }

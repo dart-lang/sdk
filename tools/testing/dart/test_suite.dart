@@ -26,6 +26,7 @@ import 'html_test.dart' as html_test;
 import 'http_server.dart';
 import 'multitest.dart';
 import 'path.dart';
+import 'repository.dart';
 import 'runtime_updater.dart';
 import 'summary_report.dart';
 import 'test_configurations.dart';
@@ -233,7 +234,7 @@ abstract class TestSuite {
 
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
-    var d8Dir = TestUtils.dartDir.append('third_party/d8');
+    var d8Dir = Repository.dir.append('third_party/d8');
     var d8Path = d8Dir.append('${Platform.operatingSystem}/d8$suffix');
     var d8 = d8Path.toNativePath();
     TestUtils.ensureExists(d8, configuration);
@@ -243,7 +244,7 @@ abstract class TestSuite {
   String get jsShellFileName {
     var executableSuffix = getExecutableSuffix('jsshell');
     var executable = 'jsshell$executableSuffix';
-    var jsshellDir = '${TestUtils.dartDir.toNativePath()}/tools/testing/bin';
+    var jsshellDir = '${Repository.dir.toNativePath()}/tools/testing/bin';
     return '$jsshellDir/$executable';
   }
 
@@ -316,15 +317,16 @@ abstract class TestSuite {
     }
 
     // Update Summary report
-    if (configuration.printReport) {
-      if (testCase.expectCompileError &&
-          configuration.runtime.isBrowser &&
-          configuration.compilerConfiguration.hasCompiler) {
+    if (testCase.expectCompileError &&
+        configuration.runtime.isBrowser &&
+        configuration.compilerConfiguration.hasCompiler) {
+      if (configuration.printReport) {
         summaryReport.addCompileErrorSkipTest();
-        return;
-      } else {
-        summaryReport.add(testCase);
       }
+      return;
+    }
+    if (configuration.printReport) {
+      summaryReport.add(testCase);
     }
 
     // Handle skipped tests
@@ -339,7 +341,7 @@ abstract class TestSuite {
 
   String createGeneratedTestDirectoryHelper(
       String name, String dirname, Path testPath, String optionsName) {
-    Path relative = testPath.relativeTo(TestUtils.dartDir);
+    Path relative = testPath.relativeTo(Repository.dir);
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
     String testUniqueName = TestUtils.getShortName(relative.toString());
     if (!optionsName.isEmpty) {
@@ -446,7 +448,7 @@ class CCTestSuite extends TestSuite {
   CCTestSuite(Configuration configuration, String suiteName, String runnerName,
       List<String> statusFilePaths,
       {this.testPrefix: ''})
-      : dartDir = TestUtils.dartDir.toNativePath(),
+      : dartDir = Repository.dir.toNativePath(),
         super(configuration, suiteName, statusFilePaths) {
     // For running the tests we use the given '$runnerName' binary
     targetRunnerPath = '$buildDir/$runnerName';
@@ -565,18 +567,18 @@ class StandardTestSuite extends TestSuite {
   StandardTestSuite(Configuration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
       {this.isTestFilePredicate, bool recursive: false})
-      : dartDir = TestUtils.dartDir,
+      : dartDir = Repository.dir,
         listRecursively = recursive,
-        suiteDir = TestUtils.dartDir.join(suiteDirectory),
+        suiteDir = Repository.dir.join(suiteDirectory),
         extraVmOptions = configuration.vmOptions,
         super(configuration, suiteName, statusFilePaths) {
     if (!useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
-      var snapshotPath = TestUtils
-          .absolutePath(
-              new Path(buildDir).join(new Path('dart-sdk/bin/snapshots/'
-                  'utils_wrapper.dart.snapshot')))
+      var snapshotPath = new Path(buildDir)
+          .join(new Path('dart-sdk/bin/snapshots/'
+              'utils_wrapper.dart.snapshot'))
+          .absolute
           .toString();
       _dart2JsBootstrapDependencies = [
         new Uri(scheme: 'file', path: snapshotPath)
@@ -820,6 +822,13 @@ class StandardTestSuite extends TestSuite {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
+      // TODO(rnystrom): Hack. When running the 2.0 tests, always implicitly
+      // turn on reified generics in the VM.
+      // Note that VMOptions=--no-reify-generic-functions in test is ignored.
+      if (suiteName.endsWith("_2")) {
+        allVmOptions = allVmOptions.toList()..add("--reify-generic-functions");
+      }
+
       var commands =
           makeCommands(info, vmOptionsVariant, allVmOptions, commonArguments);
       enqueueNewTestCase(new TestCase(
@@ -930,11 +939,11 @@ class StandardTestSuite extends TestSuite {
    * dart/build directories).
    */
   String _createUrlPathFromFile(Path file) {
-    file = TestUtils.absolutePath(file);
+    file = file.absolute;
 
     var relativeBuildDir = new Path(configuration.buildDirectory);
-    var buildDir = TestUtils.absolutePath(relativeBuildDir);
-    var dartDir = TestUtils.absolutePath(TestUtils.dartDir);
+    var buildDir = relativeBuildDir.absolute;
+    var dartDir = Repository.dir.absolute;
 
     var fileString = file.toString();
     if (fileString.startsWith(buildDir.toString())) {
@@ -1028,12 +1037,11 @@ class StandardTestSuite extends TestSuite {
       // Synthesize an HTML file for the test.
       var scriptPath = _createUrlPathFromFile(new Path(jsWrapperFileName));
 
-      if (configuration.compiler != Compiler.dartdevc) {
+      if (configuration.compiler == Compiler.dart2js) {
         content = dart2jsHtml(fileName, scriptPath);
       } else {
-        var jsDir = new Path(compilationTempDir)
-            .relativeTo(TestUtils.dartDir)
-            .toString();
+        var jsDir =
+            new Path(compilationTempDir).relativeTo(Repository.dir).toString();
         content = dartdevcHtml(nameNoExt, jsDir, buildDir);
       }
     }
@@ -1052,6 +1060,7 @@ class StandardTestSuite extends TestSuite {
         break;
 
       case Compiler.dartdevc:
+      case Compiler.dartdevk:
         var toPath =
             new Path('$compilationTempDir/$nameNoExt.js').toNativePath();
         commands.add(configuration.compilerConfiguration.createCommand(fileName,
@@ -1075,6 +1084,7 @@ class StandardTestSuite extends TestSuite {
           break;
 
         case Compiler.dartdevc:
+        case Compiler.dartdevk:
           commands.add(configuration.compilerConfiguration.createCommand(
               fromPath.toNativePath(),
               toPath,
@@ -1147,9 +1157,9 @@ class StandardTestSuite extends TestSuite {
     var compiler = configuration.compiler;
     var runtime = configuration.runtime;
 
-    if (compiler == Compiler.dartdevc) {
+    if (compiler == Compiler.dartdevc || compiler == Compiler.dartdevk) {
       // TODO(rnystrom): Support this for dartdevc (#29919).
-      print("Ignoring $testName on dartdevc since HTML tests are not "
+      print("Ignoring $testName on ${compiler.name} since HTML tests are not "
           "implemented for that compiler yet.");
       return;
     }
@@ -1631,7 +1641,7 @@ class PKGTestSuite extends StandardTestSuite {
       super._enqueueBrowserTest(
           packageRoot, packages, info, testName, expectations);
     } else {
-      var relativeHtml = customHtmlPath.relativeTo(TestUtils.dartDir);
+      var relativeHtml = customHtmlPath.relativeTo(Repository.dir);
       var fullPath = _createUrlPathFromFile(customHtmlPath);
 
       var commands = [

@@ -17,11 +17,11 @@ import "dart:typed_data" show Int32List;
 // part "symbol_patch.dart";
 
 @patch
-List makeListFixedLength(List growableList)
+List<T> makeListFixedLength<T>(List<T> growableList)
     native "Internal_makeListFixedLength";
 
 @patch
-List makeFixedListUnmodifiable(List fixedLengthList)
+List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList)
     native "Internal_makeFixedListUnmodifiable";
 
 class VMLibraryHooks {

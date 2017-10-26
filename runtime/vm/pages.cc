@@ -6,7 +6,9 @@
 
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "vm/become.h"
 #include "vm/compiler_stats.h"
+#include "vm/gc_compactor.h"
 #include "vm/gc_marker.h"
 #include "vm/gc_sweeper.h"
 #include "vm/lockers.h"
@@ -186,6 +188,7 @@ PageSpace::PageSpace(Heap* heap,
       exec_pages_(NULL),
       exec_pages_tail_(NULL),
       large_pages_(NULL),
+      image_pages_(NULL),
       bump_top_(0),
       bump_end_(0),
       max_capacity_in_words_(max_capacity_in_words),
@@ -217,6 +220,7 @@ PageSpace::~PageSpace() {
   FreePages(pages_);
   FreePages(exec_pages_);
   FreePages(large_pages_);
+  FreePages(image_pages_);
   delete pages_lock_;
   delete tasks_lock_;
 }
@@ -467,11 +471,18 @@ class ExclusivePageIterator : ValueObject {
   explicit ExclusivePageIterator(const PageSpace* space)
       : space_(space), ml_(space->pages_lock_) {
     space_->MakeIterable();
+    list_ = kRegular;
     page_ = space_->pages_;
     if (page_ == NULL) {
+      list_ = kExecutable;
       page_ = space_->exec_pages_;
       if (page_ == NULL) {
+        list_ = kLarge;
         page_ = space_->large_pages_;
+        if (page_ == NULL) {
+          list_ = kImage;
+          page_ = space_->image_pages_;
+        }
       }
     }
   }
@@ -479,13 +490,29 @@ class ExclusivePageIterator : ValueObject {
   bool Done() const { return page_ == NULL; }
   void Advance() {
     ASSERT(!Done());
-    page_ = space_->NextPageAnySize(page_);
+    page_ = page_->next();
+    if ((page_ == NULL) && (list_ == kRegular)) {
+      list_ = kExecutable;
+      page_ = space_->exec_pages_;
+    }
+    if ((page_ == NULL) && (list_ == kExecutable)) {
+      list_ = kLarge;
+      page_ = space_->large_pages_;
+    }
+    if ((page_ == NULL) && (list_ == kLarge)) {
+      list_ = kImage;
+      page_ = space_->image_pages_;
+    }
+    ASSERT((page_ != NULL) || (list_ == kImage));
   }
 
  private:
+  enum List { kRegular, kExecutable, kLarge, kImage };
+
   const PageSpace* space_;
   MutexLocker ml_;
   NoSafepointScope no_safepoint;
+  List list_;
   HeapPage* page_;
 };
 
@@ -969,31 +996,20 @@ void PageSpace::MarkSweep() {
 
       mid3 = OS::GetCurrentMonotonicMicros();
 
-      if (!FLAG_concurrent_sweep) {
-        // Sweep all regular sized pages now.
-        prev_page = NULL;
-        page = pages_;
-        while (page != NULL) {
-          HeapPage* next_page = page->next();
-          bool page_in_use =
-              sweeper.SweepPage(page, &freelist_[page->type()], true);
-          if (page_in_use) {
-            prev_page = page;
-          } else {
-            FreePage(page, prev_page);
-          }
-          // Advance to the next page.
-          page = next_page;
-        }
-        if (FLAG_verify_after_gc) {
-          OS::PrintErr("Verifying after sweeping...");
-          heap_->VerifyGC(kForbidMarked);
-          OS::PrintErr(" done.\n");
-        }
+#if defined(TARGET_ARCH_DBC)
+      const bool dbc = true;
+#else
+      const bool dbc = false;
+#endif
+
+      if (FLAG_use_compactor_evacuating && !dbc) {
+        EvacuatingCompact(thread);
+      } else if (FLAG_use_compactor_sliding && !dbc) {
+        SlidingCompact(thread);
+      } else if (FLAG_concurrent_sweep) {
+        ConcurrentSweep(isolate);
       } else {
-        // Start the concurrent sweeper task now.
-        GCSweeper::SweepConcurrent(isolate, pages_, pages_tail_,
-                                   &freelist_[HeapPage::kData]);
+        BlockingSweep();
       }
     }
 
@@ -1041,6 +1057,89 @@ void PageSpace::MarkSweep() {
     MonitorLocker ml(tasks_lock());
     set_tasks(tasks() - 1);
     ml.NotifyAll();
+  }
+
+  if (FLAG_use_compactor_evacuating || FLAG_use_compactor_sliding) {
+    // Const object tables are hashed by address: rehash.
+    SafepointOperationScope safepoint(thread);
+    thread->isolate()->RehashConstants();
+  }
+}
+
+void PageSpace::BlockingSweep() {
+  // Sweep all regular sized pages now.
+  GCSweeper sweeper;
+  HeapPage* prev_page = NULL;
+  HeapPage* page = pages_;
+  while (page != NULL) {
+    HeapPage* next_page = page->next();
+    bool page_in_use = sweeper.SweepPage(page, &freelist_[page->type()], true);
+    if (page_in_use) {
+      prev_page = page;
+    } else {
+      FreePage(page, prev_page);
+    }
+    // Advance to the next page.
+    page = next_page;
+  }
+
+  if (FLAG_verify_after_gc) {
+    OS::PrintErr("Verifying after sweeping...");
+    heap_->VerifyGC(kForbidMarked);
+    OS::PrintErr(" done.\n");
+  }
+}
+
+void PageSpace::ConcurrentSweep(Isolate* isolate) {
+  // Start the concurrent sweeper task now.
+  GCSweeper::SweepConcurrent(isolate, pages_, pages_tail_,
+                             &freelist_[HeapPage::kData]);
+}
+
+void PageSpace::EvacuatingCompact(Thread* thread) {
+  thread->isolate()->set_compaction_in_progress(true);
+  HeapPage* pages_to_evacuate = pages_;
+  pages_ = pages_tail_ = NULL;
+
+  GCCompactor compactor(thread, heap_);
+  intptr_t moved_bytes = compactor.EvacuatePages(pages_to_evacuate);
+  usage_.used_in_words -= (moved_bytes / kWordSize);
+
+  Become::FollowForwardingPointers(thread);
+
+  {
+    MutexLocker ml(pages_lock_);
+    HeapPage* page = pages_to_evacuate;
+    while (page != NULL) {
+      HeapPage* next = page->next();
+      IncreaseCapacityInWordsLocked(-(page->memory_->size() >> kWordSizeLog2));
+      page->Deallocate();
+      page = next;
+    }
+  }
+  thread->isolate()->set_compaction_in_progress(false);
+
+  if (FLAG_verify_after_gc) {
+    OS::PrintErr("Verifying after compacting...");
+    heap_->VerifyGC(kForbidMarked);
+    OS::PrintErr(" done.\n");
+  }
+}
+
+void PageSpace::SlidingCompact(Thread* thread) {
+  thread->isolate()->set_compaction_in_progress(true);
+  GCCompactor compactor(thread, heap_);
+  {
+    MutexLocker ml(pages_lock_);
+    pages_tail_ = compactor.SlidePages(pages_, &freelist_[HeapPage::kData]);
+  }
+  compactor.ForwardPointers();
+  thread->isolate()->set_compaction_in_progress(false);
+
+  if (FLAG_verify_after_gc) {
+    OS::PrintErr("Verifying after compacting...");
+    heap_->VerifyGC(kForbidMarked);
+    OS::PrintErr(" done.\n");
   }
 }
 
@@ -1135,31 +1234,16 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->next_ = NULL;
   page->object_end_ = memory->end();
   page->used_in_bytes_ = page->object_end_ - page->object_start();
-
-  MutexLocker ml(pages_lock_);
-  HeapPage **first, **tail;
   if (is_executable) {
     ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
     page->type_ = HeapPage::kExecutable;
-    first = &exec_pages_;
-    tail = &exec_pages_tail_;
   } else {
     page->type_ = HeapPage::kData;
-    first = &pages_;
-    tail = &pages_tail_;
   }
-  if (*first == NULL) {
-    *first = page;
-  } else {
-    if (is_executable && FLAG_write_protect_code && !(*tail)->is_image_page()) {
-      (*tail)->WriteProtect(false);
-    }
-    (*tail)->set_next(page);
-    if (is_executable && FLAG_write_protect_code && !(*tail)->is_image_page()) {
-      (*tail)->WriteProtect(true);
-    }
-  }
-  (*tail) = page;
+
+  MutexLocker ml(pages_lock_);
+  page->next_ = image_pages_;
+  image_pages_ = page;
 }
 
 PageSpaceController::PageSpaceController(Heap* heap,

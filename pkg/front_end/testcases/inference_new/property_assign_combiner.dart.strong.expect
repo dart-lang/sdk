@@ -1,0 +1,65 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(core::int value) → self::C
+    return null;
+  operator *(self::D value) → self::C
+    return null;
+}
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(core::int value) → self::E
+    return null;
+  operator *(self::F value) → self::E
+    return null;
+}
+class C extends self::B {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+}
+class D extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class E extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class F extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class G extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  get target() → self::A
+    return null;
+  set target(self::B value) → void {}
+}
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method test1(self::G g) → void {
+  let final self::G #t1 = g in #t1.{self::G::target} = #t1.{self::G::target}.{self::A::*}(self::f<dynamic>());
+  self::C x = let final self::G #t2 = g in #t2.{self::G::target} = #t2.{self::G::target}.{self::A::*}(self::f<dynamic>());
+}
+static method test2(self::G g) → void {
+  let final self::G #t3 = g in #t3.{self::G::target} = #t3.{self::G::target}.{self::A::+}(1);
+  self::C x = let final self::G #t4 = g in #t4.{self::G::target} = #t4.{self::G::target}.{self::A::+}(1);
+}
+static method test3(self::G g) → void {
+  let final self::G #t5 = g in #t5.{self::G::target} = #t5.{self::G::target}.{self::A::+}(1);
+  self::A x = let final self::G #t6 = g in let final self::A #t7 = #t6.{self::G::target} in let final self::C #t8 = #t6.{self::G::target} = #t7.{self::A::+}(1) in #t7;
+}
+static method main() → dynamic {}

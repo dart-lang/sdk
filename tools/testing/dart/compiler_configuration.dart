@@ -7,6 +7,7 @@ import 'dart:io';
 import 'command.dart';
 import 'configuration.dart';
 import 'path.dart';
+import 'repository.dart';
 import 'runtime_configuration.dart';
 import 'test_suite.dart';
 import 'utils.dart';
@@ -55,6 +56,9 @@ abstract class CompilerConfiguration {
 
       case Compiler.dartdevc:
         return new DevCompilerConfiguration(configuration);
+
+      case Compiler.dartdevk:
+        return new DevKernelCompilerConfiguration(configuration);
 
       case Compiler.appJit:
         return new AppJitCompilerConfiguration(configuration);
@@ -155,6 +159,9 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
         // (see http://dartbug.com/30016 for details).
         args.add('--no-background-compilation');
       }
+    }
+    if (_isStrong) {
+      args.add('--strong');
     }
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -362,7 +369,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       CommandArtifact artifact) {
     Uri sdk = _useSdk
         ? new Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
-        : new Uri.directory(TestUtils.dartDir.toNativePath()).resolve('sdk/');
+        : new Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
     Uri preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
@@ -450,6 +457,65 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
+/// Configuration for dev-compiler with the kernel front end.
+class DevKernelCompilerConfiguration extends CompilerConfiguration {
+  DevKernelCompilerConfiguration(Configuration configuration)
+      : super._subclass(configuration);
+
+  String computeCompilerPath() => "pkg/dev_compiler/bin/dartdevk.dart";
+
+  List<String> computeCompilerArguments(
+      List<String> vmOptions, List<String> sharedOptions, List<String> args) {
+    var result = sharedOptions.toList();
+
+    // The file being compiled is the last argument.
+    result.add(args.last);
+    return result;
+  }
+
+  Command createCommand(
+      String inputFile, String outputFile, List<String> sharedOptions,
+      [Map<String, String> environment = const {}]) {
+    var args = sharedOptions.toList();
+    args.addAll([
+      "-o",
+      outputFile,
+      inputFile,
+    ]);
+
+    // TODO(rnystrom): Link to dill files for the packages used by tests.
+
+    // Use the directory containing the test as the working directory. This
+    // ensures dartdevk creates a short module named based on the test name
+    // (like "ackermann_test") and does not include any of the parent
+    // directories in the name (like "tests__language_2__ackermann_test").
+    var inputDir =
+        new Path(inputFile).append("..").canonicalize().toNativePath();
+    var compiler = Repository.dir.append(computeCompilerPath()).toNativePath();
+
+    return Command.compilation(Compiler.dartdevk.name, outputFile,
+        bootstrapDependencies(), compiler, args, environment,
+        workingDirectory: inputDir);
+  }
+
+  CommandArtifact computeCompilationArtifact(
+      String tempDir, List<String> arguments, Map<String, String> environment) {
+    // The list of arguments comes from a call to our own
+    // computeCompilerArguments(). It contains the shared options followed by
+    // the input file path.
+    // TODO(rnystrom): Jamming these into a list in order to pipe them from
+    // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
+    var sharedOptions = arguments.sublist(0, arguments.length - 1);
+    var inputFile = arguments.last;
+    var outputFile = "$tempDir/${inputFile.replaceAll('.dart', '.js')}";
+
+    return new CommandArtifact(
+        [createCommand(inputFile, outputFile, sharedOptions, environment)],
+        outputFile,
+        "application/javascript");
+  }
+}
+
 class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   final bool useDfe;
 
@@ -510,11 +576,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var args = [
       '--packages=.packages',
       'pkg/front_end/tool/_fasta/compile.dart',
-      // TODO(dartbug.com/30480): use strong-mode version of platform.dill
-      '--platform=${buildDir}/vm_platform.dill',
-      '--target=vm_precompiler',
+      '--platform=${buildDir}/vm_platform_strong.dill',
       '--strong-mode',
       '--fatal=errors',
+      '--target-options=strong-aot',
       '-o',
       tempKernelFile(tempDir),
     ];
@@ -856,8 +921,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 
     // Since this is not a real compilation, no artifacts are produced.
     return new CommandArtifact([
-      Command.specParse(
-          computeCompilerPath(), arguments, environmentOverrides)
+      Command.specParse(computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
   }
 

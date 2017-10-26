@@ -37,7 +37,7 @@ class ObjectPointerVisitor;
   V(Current, "current")                                                        \
   V(_current, "_current")                                                      \
   V(MoveNext, "moveNext")                                                      \
-  V(IsYieldEach, "isYieldEach")                                                \
+  V(_yieldEachIterable, "_yieldEachIterable")                                  \
   V(Value, "value")                                                            \
   V(_EnumHelper, "_EnumHelper")                                                \
   V(_SyncIterable, "_SyncIterable")                                            \

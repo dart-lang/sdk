@@ -3799,10 +3799,8 @@ class CodeGenerator extends Object
   Iterable<DartType> _recoverTypeArguments(FunctionType g, FunctionType f) {
     // TODO(jmesserly): this design is a bit unfortunate. It would be nice if
     // resolution could simply create a synthetic type argument list.
-    assert(identical(g.element, f.element));
     assert(g.typeFormals.isNotEmpty && f.typeFormals.isEmpty);
-    assert(g.typeFormals.length + g.typeArguments.length ==
-        f.typeArguments.length);
+    assert(g.typeFormals.length <= f.typeArguments.length);
 
     // Instantiation in Analyzer works like this:
     // Given:
@@ -3815,7 +3813,7 @@ class CodeGenerator extends Object
     //
     // Therefore, we can recover the typeArguments from our instantiated
     // function.
-    return f.typeArguments.skip(g.typeArguments.length);
+    return f.typeArguments.skip(f.typeArguments.length - g.typeFormals.length);
   }
 
   /// Emits code for the `JS(...)` macro.

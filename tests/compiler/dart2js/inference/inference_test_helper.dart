@@ -8,6 +8,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/js_model/locals.dart';
@@ -93,7 +94,10 @@ class TypeMaskAstComputer extends AstDataExtractor
     } else if (element != null && element.isParameter) {
       return computeElementValue(id, element);
     } else if (node is ast.SendSet) {
-      if (id.kind == IdKind.invoke) {
+      SendStructure sendStructure = elements.getSendStructure(node);
+      if (sendStructure?.kind == SendStructureKind.INDEX_SET) {
+        return getTypeMaskValue(result.typeOfSend(node));
+      } else if (id.kind == IdKind.invoke) {
         return getTypeMaskValue(result.typeOfOperator(node));
       } else if (id.kind == IdKind.update) {
         return getTypeMaskValue(result.typeOfSend(node));

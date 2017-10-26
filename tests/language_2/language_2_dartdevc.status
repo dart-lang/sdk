@@ -281,10 +281,7 @@ function_type/function_type50_test: RuntimeError # Issue 29920
 function_type/function_type58_test: RuntimeError # Issue 29920
 generic_instanceof2_test: RuntimeError # Issue 29920
 generic_is_check_test: RuntimeError # Issue 29920
-generic_method_types_test/01: RuntimeError
 generic_method_types_test/02: RuntimeError
-generic_method_types_test/03: RuntimeError
-generic_methods_new_test: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 identical_closure2_test: RuntimeError # Issue 29920
 infinite_switch_label_test: RuntimeError # Issue 29920

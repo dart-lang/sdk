@@ -8,6 +8,25 @@
 
 namespace dart {
 
+TEST_CASE(Utf8Encode) {
+  const intptr_t kInputLen = 3;
+  const uint16_t kInput[kInputLen] = {0xe6, 0xe7, 0xe8};  // æøå
+  const String& input = String::Handle(String::FromUTF16(kInput, kInputLen));
+  static const uintptr_t kBufferLength = 10;
+  unsigned char buffer[kBufferLength];
+  for (uintptr_t i = 0; i < kBufferLength; i++) {
+    buffer[i] = 42;
+  }
+  Utf8::Encode(input, reinterpret_cast<char*>(&buffer[0]), 10);
+  uintptr_t i;
+  for (i = 0; i < static_cast<uintptr_t>(Utf8::Length(input)); i++) {
+    EXPECT(buffer[i] > 127);
+  }
+  for (; i < kBufferLength; i++) {
+    EXPECT(buffer[i] == 42);
+  }
+}
+
 TEST_CASE(Utf8Decode) {
   // Examples from the Unicode specification, chapter 3
   {

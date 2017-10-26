@@ -2,137 +2,85 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../scanner/token.dart' show BeginToken, SimpleToken, Token;
+import '../../scanner/token.dart' show SimpleToken, Token, TokenType;
 
-import '../problems.dart' show internalProblem;
-
-import '../fasta_codes.dart' show messageInternalProblemPreviousTokenNotFound;
-
-/// Provides the capability of inserting tokens into a token stream by rewriting
-/// the previous token to point to the inserted token.
-///
-/// This class has been designed to take advantage of "previousToken" pointers
-/// when they are present, but not to depend on them.  When they are not
-/// present, it uses heuristics to try to find the find the previous token as
-/// quickly as possible by walking through tokens starting at the start of the
-/// file.
+/// Provides the capability of inserting tokens into a token stream. This
+/// implementation does this by rewriting the previous token to point to the
+/// inserted token.
 class TokenStreamRewriter {
-  /// Synthetic token whose "next" pointer points to the first token in the
-  /// stream.
-  final Token _head;
+  // TODO(brianwilkerson):
+  //
+  // When we get to the point of removing `token.previous`, the plan is to
+  // convert this into an interface and provide two implementations.
+  //
+  // One, used by Fasta, will connect the inserted tokens to the following token
+  // without modifying the previous token.
+  //
+  // The other, used by 'analyzer', will be created with the first token in the
+  // stream (actually with the BOF marker at the beginning of the stream). It
+  // will be created only when invoking 'analyzer' specific parse methods (in
+  // `Parser`), such as
+  //
+  // Token parseUnitWithRewrite(Token bof) {
+  //   rewriter = AnalyzerTokenStreamRewriter(bof);
+  //   return parseUnit(bof.next);
+  // }
+  //
 
-  /// The token whose "next" pointer was updated in the last call to
-  /// [insertTokenBefore].  This can often be used as a starting point to find
-  /// the a future insertion point quickly.
-  Token _lastPreviousToken;
+  /// Initialize a newly created re-writer.
+  TokenStreamRewriter();
 
-  /// Creates a [TokenStreamRewriter] which is prepared to rewrite the token
-  /// stream whose first token is [firstToken].
-  TokenStreamRewriter(Token firstToken)
-      : _head = firstToken.previous ?? (new Token.eof(-1)..next = firstToken);
+  /// Insert the chain of tokens starting at the [insertedToken] immediately
+  /// before the [followingToken]. The [followingToken] is assumed to be
+  /// reachable from, but not the same as, the [previousToken].
+  Token insertToken(Token insertedToken, Token followingToken) {
+    Token previous = followingToken.previous;
+    previous.next = insertedToken;
+    insertedToken.previous = previous;
 
-  /// Gets the first token in the stream (which may not be the same token that
-  /// was passed to the constructor, if something was inserted before it).
-  Token get firstToken => _head.next;
+    Token lastReplacement = _lastTokenInChain(insertedToken);
+    lastReplacement.next = followingToken;
+    followingToken.previous = lastReplacement;
 
-  /// Inserts [newToken] into the token stream just before [insertionPoint], and
-  /// fixes up all "next" and "previous" pointers. Returns [newToken].
-  ///
-  /// Caller is required to ensure that [insertionPoint] is actually present in
-  /// the token stream.
-  Token insertTokenBefore(Token newToken, Token insertionPoint) {
-    Token previous = _findPreviousToken(insertionPoint);
-    _lastPreviousToken = previous;
-    newToken.next = insertionPoint;
-    previous.next = newToken;
-    {
-      // Note: even though previousToken is deprecated, we need to hook it up in
-      // case any uses of it remain.  Once previousToken is removed it should be
-      // safe to remove this block of code.
-      insertionPoint.previous = newToken;
-      newToken.previous = previous;
-    }
-    return newToken;
+    return insertedToken;
   }
 
   /// Replace the single [replacedToken] with the chain of tokens starting at
-  /// the [replacementToken]. The replaced token is assumed to be reachable
+  /// the [replacementToken]. The [replacedToken] is assumed to be reachable
   /// from, but not the same as, the [previousToken].
-  Token replaceToken(
-      Token previousToken, Token replacedToken, Token replacementToken) {
-    _lastPreviousToken = previousToken;
-    previousToken = _findPreviousToken(replacedToken);
-    previousToken.next = replacementToken;
-    replacementToken.previous = previousToken;
+  Token replaceToken(Token replacedToken, Token replacementToken) {
+    Token previous = replacedToken.previous;
+    previous.next = replacementToken;
+    replacementToken.previous = previous;
 
     (replacementToken as SimpleToken).precedingComments =
         replacedToken.precedingComments;
 
-    Token lastReplacement = _lastReplacementToken(replacementToken);
+    Token lastReplacement = _lastTokenInChain(replacementToken);
     lastReplacement.next = replacedToken.next;
     replacedToken.next.previous = lastReplacement;
 
     return replacementToken;
   }
 
-  /// Finds the token that immediately precedes [target].
-  Token _findPreviousToken(Token target) {
-    // First see if the target has a previous token pointer.  If it does, then
-    // we can find the previous token with no extra effort.  Note: it's ok that
-    // we're accessing the deprecated member previousToken here, because we have
-    // a fallback if it is not available.  Once previousToken is removed, we can
-    // remove the "if" test below, and always use the fallback code.
-    if (target.previous != null) {
-      return target.previous;
-    }
-
-    // Look for the previous token by scanning forward from [lastPreviousToken],
-    // if it makes sense to do so.
-    if (_lastPreviousToken != null &&
-        target.charOffset >= _lastPreviousToken.charOffset) {
-      Token previous = _scanForPreviousToken(target, _lastPreviousToken);
-      if (previous != null) return previous;
-    }
-
-    // Otherwise scan forward from the start of the token stream.
-    Token previous = _scanForPreviousToken(target, _head);
-    if (previous == null) {
-      internalProblem(
-          messageInternalProblemPreviousTokenNotFound, target.charOffset, null);
-    }
-    return previous;
-  }
-
-  /// Given a chain of tokens to be inserted, return the last token in the
-  /// chain.
-  Token _lastReplacementToken(Token firstReplacementToken) {
-    while (firstReplacementToken.next != null) {
-      firstReplacementToken = firstReplacementToken.next;
-    }
-    return firstReplacementToken;
-  }
-
-  /// Searches for the token that immediately precedes [target], using [pos] as
-  /// a starting point.
+  /// Given the [firstToken] in a chain of tokens to be inserted, return the
+  /// last token in the chain.
   ///
-  /// Uses heuristics to skip matching `{}`, `[]`, `()`, and `<>` if possible.
-  ///
-  /// If no such token is found, returns `null`.
-  Token _scanForPreviousToken(Token target, Token pos) {
-    while (!identical(pos.next, target)) {
-      Token nextPos;
-      if (pos is BeginToken &&
-          pos.endGroup != null &&
-          pos.endGroup.charOffset < target.charOffset) {
-        nextPos = pos.endGroup;
-      } else {
-        nextPos = pos.next;
-        if (nextPos == null || nextPos.charOffset > target.charOffset) {
-          return null;
-        }
+  /// As a side-effect, this method also ensures that the tokens in the chain
+  /// have their `previous` pointers set correctly.
+  Token _lastTokenInChain(Token firstToken) {
+    Token previous;
+    Token current = firstToken;
+    while (current.next != null && current.next.type != TokenType.EOF) {
+      if (previous != null) {
+        current.previous = previous;
       }
-      pos = nextPos;
+      previous = current;
+      current = current.next;
     }
-    return pos;
+    if (previous != null) {
+      current.previous = previous;
+    }
+    return current;
   }
 }

@@ -1721,11 +1721,13 @@ class Element implements HasToJson {
  *   CLASS_TYPE_ALIAS
  *   COMPILATION_UNIT
  *   CONSTRUCTOR
+ *   CONSTRUCTOR_INVOCATION
  *   ENUM
  *   ENUM_CONSTANT
  *   FIELD
  *   FILE
  *   FUNCTION
+ *   FUNCTION_INVOCATION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
  *   LABEL
@@ -1755,6 +1757,9 @@ class ElementKind implements Enum {
 
   static const ElementKind CONSTRUCTOR = const ElementKind._("CONSTRUCTOR");
 
+  static const ElementKind CONSTRUCTOR_INVOCATION =
+      const ElementKind._("CONSTRUCTOR_INVOCATION");
+
   static const ElementKind ENUM = const ElementKind._("ENUM");
 
   static const ElementKind ENUM_CONSTANT = const ElementKind._("ENUM_CONSTANT");
@@ -1764,6 +1769,9 @@ class ElementKind implements Enum {
   static const ElementKind FILE = const ElementKind._("FILE");
 
   static const ElementKind FUNCTION = const ElementKind._("FUNCTION");
+
+  static const ElementKind FUNCTION_INVOCATION =
+      const ElementKind._("FUNCTION_INVOCATION");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
       const ElementKind._("FUNCTION_TYPE_ALIAS");
@@ -1807,11 +1815,13 @@ class ElementKind implements Enum {
     CLASS_TYPE_ALIAS,
     COMPILATION_UNIT,
     CONSTRUCTOR,
+    CONSTRUCTOR_INVOCATION,
     ENUM,
     ENUM_CONSTANT,
     FIELD,
     FILE,
     FUNCTION,
+    FUNCTION_INVOCATION,
     FUNCTION_TYPE_ALIAS,
     GETTER,
     LABEL,
@@ -1843,6 +1853,8 @@ class ElementKind implements Enum {
         return COMPILATION_UNIT;
       case "CONSTRUCTOR":
         return CONSTRUCTOR;
+      case "CONSTRUCTOR_INVOCATION":
+        return CONSTRUCTOR_INVOCATION;
       case "ENUM":
         return ENUM;
       case "ENUM_CONSTANT":
@@ -1853,6 +1865,8 @@ class ElementKind implements Enum {
         return FILE;
       case "FUNCTION":
         return FUNCTION;
+      case "FUNCTION_INVOCATION":
+        return FUNCTION_INVOCATION;
       case "FUNCTION_TYPE_ALIAS":
         return FUNCTION_TYPE_ALIAS;
       case "GETTER":

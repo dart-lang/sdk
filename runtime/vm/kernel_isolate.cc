@@ -68,6 +68,7 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.enable_asserts = false;
     api_flags.enable_error_on_bad_type = false;
     api_flags.enable_error_on_bad_override = false;
+    api_flags.reify_generic_functions = false;
 #if !defined(DART_PRECOMPILER)
     api_flags.use_field_guards = true;
     api_flags.use_osr = true;
@@ -331,6 +332,10 @@ class KernelCompilationRequest : public ValueObject {
     dart_incremental.type = Dart_CObject_kBool;
     dart_incremental.value.as_bool = incremental_compile;
 
+    Dart_CObject dart_strong;
+    dart_strong.type = Dart_CObject_kBool;
+    dart_strong.value.as_bool = FLAG_strong;
+
     // TODO(aam): Assert that isolate exists once we move CompileAndReadScript
     // compilation logic out of CreateIsolateAndSetupHelper and into
     // IsolateSetupHelper in main.cc.
@@ -347,17 +352,22 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
 
-    intptr_t message_len = 6;
     Dart_CObject files;
     if (source_files_count != 0) {
       files = BuildFilesPairs(source_files_count, source_files);
-      message_len++;
+    } else {
+      files.type = Dart_CObject_kNull;
     }
-    Dart_CObject* message_arr[] = {
-        &tag,        &send_port, &uri, &dart_platform_kernel, &dart_incremental,
-        &isolate_id, &files};
+    Dart_CObject* message_arr[] = {&tag,
+                                   &send_port,
+                                   &uri,
+                                   &dart_platform_kernel,
+                                   &dart_incremental,
+                                   &dart_strong,
+                                   &isolate_id,
+                                   &files};
     message.value.as_array.values = message_arr;
-    message.value.as_array.length = message_len;
+    message.value.as_array.length = ARRAY_SIZE(message_arr);
     // Send the message.
     Dart_PostCObject(kernel_port, &message);
 

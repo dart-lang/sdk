@@ -77,6 +77,7 @@ namespace dart {
   V(Developer_log, 8)                                                          \
   V(Developer_postEvent, 2)                                                    \
   V(Developer_webServerControl, 2)                                             \
+  V(Double_hashCode, 1)                                                        \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \

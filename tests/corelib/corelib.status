@@ -92,8 +92,10 @@ bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
 compare_to2_test: RuntimeError, OK    # Requires bigint support.
 string_base_vm_test: RuntimeError, OK # VM specific test.
 nan_infinity_test/01: Fail # Issue 11551
-regexp/pcre_test: Pass, Slow # Issue 21593
 regress_r21715_test: RuntimeError # Requires bigint support.
+
+[ $compiler == dart2js ]
+regexp/pcre_test: Pass, Slow # Issue 21593
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -198,19 +200,16 @@ bool_from_environment2_test/01: MissingCompileTimeError
 bool_from_environment2_test/02: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
 bool_from_environment2_test/04: MissingCompileTimeError
-bool_from_environment2_test/05: MissingCompileTimeError
 compare_to2_test: RuntimeError
 int_from_environment3_test/01: MissingCompileTimeError
 int_from_environment3_test/02: MissingCompileTimeError
 int_from_environment3_test/03: MissingCompileTimeError
 int_from_environment3_test/04: MissingCompileTimeError
-int_from_environment3_test/05: MissingCompileTimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
-string_from_environment3_test/05: MissingCompileTimeError
 string_trimlr_test/02: RuntimeError
 symbol_operator_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
@@ -300,7 +299,6 @@ big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
 bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
-const_list_literal_test: RuntimeError
 double_parse_test/01: RuntimeError
 error_stack_trace1_test: Pass # Issue 27394
 hash_set_test/01: RuntimeError
@@ -315,16 +313,14 @@ iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
 map_test: Crash # Issue 27394
 nan_infinity_test/01: RuntimeError
-queue_test: RuntimeError
-regexp/regexp_kde_test: RuntimeError
 regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-symbol_reserved_word_test/03: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply3_test: RuntimeError
@@ -346,7 +342,6 @@ big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
 bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
-const_list_literal_test: RuntimeError
 double_parse_test/01: RuntimeError
 error_stack_trace1_test: RuntimeError
 hash_set_test/01: RuntimeError
@@ -361,16 +356,14 @@ iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
 map_test: Crash # Issue 27394
 nan_infinity_test/01: RuntimeError
-queue_test: RuntimeError
-regexp/regexp_kde_test: RuntimeError
 regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_operator_test/none: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-symbol_reserved_word_test/03: RuntimeError
 

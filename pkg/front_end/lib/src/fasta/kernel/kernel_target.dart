@@ -113,8 +113,7 @@ class KernelTarget extends TargetImplementation {
 
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
-  final TypeBuilder dynamicType =
-      new KernelNamedTypeBuilder("dynamic", null, -1, null);
+  final TypeBuilder dynamicType = new KernelNamedTypeBuilder("dynamic", null);
 
   bool get strongMode => backendTarget.strongMode;
 
@@ -218,9 +217,8 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new KernelNamedTypeBuilder("Object", null,
-        builder.charOffset, builder.fileUri ?? Uri.parse(cls.fileUri))
-      ..builder = objectClassBuilder;
+    builder.supertype = new KernelNamedTypeBuilder("Object", null)
+      ..bind(objectClassBuilder);
     builder.interfaces = null;
     builder.mixedInType = null;
   }
@@ -260,8 +258,10 @@ class KernelTarget extends TargetImplementation {
       }
       loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
-      loader.prepareTopLevelInference(sourceClasses);
-      loader.performTopLevelInference(sourceClasses);
+      if (!loader.target.disableTypeInference) {
+        loader.prepareTopLevelInference(sourceClasses);
+        loader.performTopLevelInference(sourceClasses);
+      }
     } on deprecated_InputError catch (e) {
       handleInputError(e, isFullProgram: false);
     } catch (e, s) {
@@ -341,19 +341,8 @@ class KernelTarget extends TargetImplementation {
       // method. Similarly considerations apply to separate compilation. It
       // could also make sense to add a way to mark .dill files as having
       // compile-time errors.
-      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(
-          null,
-          null,
-          0,
-          null,
-          "#main",
-          null,
-          null,
-          ProcedureKind.Method,
-          library,
-          -1,
-          -1,
-          -1);
+      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
+          null, "#main", null, null, ProcedureKind.Method, library, -1, -1, -1);
       library.addBuilder(mainBuilder.name, mainBuilder, -1);
       mainBuilder.body = new Block(new List<Statement>.from(errors.map(
           (LocatedMessage message) => new ExpressionStatement(new Throw(

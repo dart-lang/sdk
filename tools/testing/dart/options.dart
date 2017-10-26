@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'configuration.dart';
 import 'path.dart';
+import 'repository.dart';
 import 'runtime_updater.dart';
 import 'utils.dart';
 
@@ -468,8 +469,7 @@ compiler.''')
       var value = data[name];
       if (data[name] == option.defaultValue ||
           (name == 'packages' &&
-              value ==
-                  TestUtils.dartDirUri.resolve('.packages').toFilePath())) {
+              value == Repository.uri.resolve('.packages').toFilePath())) {
         continue;
       }
 
@@ -490,7 +490,7 @@ compiler.''')
     // Only one value in the configuration map is mutable:
     if (selectors.containsKey('observatory_ui')) {
       if (selectors.length == 1) {
-        configuration['packages'] = TestUtils.dartDirUri
+        configuration['packages'] = Repository.uri
             .resolve('runtime/observatory/.packages')
             .toFilePath();
       } else {
@@ -506,7 +506,7 @@ compiler.''')
         selectors.remove('observatory_ui');
 
         // Set the packages flag.
-        observatoryConfiguration['packages'] = TestUtils.dartDirUri
+        observatoryConfiguration['packages'] = Repository.uri
             .resolve('runtime/observatory/.packages')
             .toFilePath();
 

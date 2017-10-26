@@ -45,9 +45,11 @@ class Command {
       String executable,
       List<String> arguments,
       Map<String, String> environment,
-      {bool alwaysCompile: false}) {
+      {bool alwaysCompile: false,
+      String workingDirectory}) {
     return new CompilationCommand._(displayName, outputFile, alwaysCompile,
-        bootstrapDependencies, executable, arguments, environment);
+        bootstrapDependencies, executable, arguments, environment,
+        workingDirectory: workingDirectory);
   }
 
   static Command kernelCompilation(
@@ -68,8 +70,7 @@ class Command {
 
   static Command specParse(String executable, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    return new SpecParseCommand._(
-        executable, arguments, environmentOverrides);
+    return new SpecParseCommand._(executable, arguments, environmentOverrides);
   }
 
   static Command vm(String executable, List<String> arguments,
@@ -231,8 +232,10 @@ class CompilationCommand extends ProcessCommand {
       this._bootstrapDependencies,
       String executable,
       List<String> arguments,
-      Map<String, String> environmentOverrides)
-      : super._(displayName, executable, arguments, environmentOverrides);
+      Map<String, String> environmentOverrides,
+      {String workingDirectory})
+      : super._(displayName, executable, arguments, environmentOverrides,
+            workingDirectory);
 
   bool get outputIsUpToDate {
     if (_alwaysCompile) return false;

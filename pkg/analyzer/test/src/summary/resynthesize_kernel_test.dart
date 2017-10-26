@@ -140,8 +140,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @override
-  test_class_setter_invalid_no_parameter() async {
-    var library = await checkLibrary('class C { void set x() {} }');
+  test_class_setter_invalid_named_parameter() async {
+    var library = await checkLibrary('class C { void set x({a}) {} }');
     checkElementText(library, r'''
 class C {
   void set x(dynamic #synthetic) {}
@@ -150,8 +150,8 @@ class C {
   }
 
   @override
-  test_class_setter_invalid_too_many_parameters() async {
-    var library = await checkLibrary('class C { void set x(a, b) {} }');
+  test_class_setter_invalid_no_parameter() async {
+    var library = await checkLibrary('class C { void set x() {} }');
     checkElementText(library, r'''
 class C {
   void set x(dynamic #synthetic) {}
@@ -170,8 +170,8 @@ class C {
   }
 
   @override
-  test_class_setter_invalid_named_parameter() async {
-    var library = await checkLibrary('class C { void set x({a}) {} }');
+  test_class_setter_invalid_too_many_parameters() async {
+    var library = await checkLibrary('class C { void set x(a, b) {} }');
     checkElementText(library, r'''
 class C {
   void set x(dynamic #synthetic) {}
@@ -338,12 +338,6 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
-  test_metadata_exportDirective() async {
-    await super.test_metadata_exportDirective();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_fieldFormalParameter() async {
     await super.test_metadata_fieldFormalParameter();
@@ -365,18 +359,6 @@ class C {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
   test_metadata_functionTypedFormalParameter_withDefault() async {
     await super.test_metadata_functionTypedFormalParameter_withDefault();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
-  test_metadata_importDirective() async {
-    await super.test_metadata_importDirective();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30284')
-  test_metadata_partDirective() async {
-    await super.test_metadata_partDirective();
   }
 
   @failingTest

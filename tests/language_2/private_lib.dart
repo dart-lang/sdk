@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing access to private fields.
 
-part of PrivateLib;
+library PrivateLib;
 
 class PrivateLib {
   final _myPrecious;

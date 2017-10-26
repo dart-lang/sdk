@@ -4,42 +4,18 @@
 
 library fasta.mixin_application_builder;
 
-import '../problems.dart' show unsupported;
-
-import 'builder.dart'
-    show Scope, TypeBuilder, TypeDeclarationBuilder, TypeVariableBuilder;
+import 'builder.dart' show TypeBuilder, TypeVariableBuilder;
 
 abstract class MixinApplicationBuilder<T extends TypeBuilder>
     extends TypeBuilder {
   final T supertype;
   final List<T> mixins;
 
-  MixinApplicationBuilder(
-      this.supertype, this.mixins, int charOffset, Uri fileUri)
-      : super(charOffset, fileUri);
+  MixinApplicationBuilder(this.supertype, this.mixins);
 
   void set typeVariables(List<TypeVariableBuilder> variables);
 
-  /// If this mixin application uses type variables, it needs a unique name
-  /// based on its subclass. If this name is provided, the name will be
-  /// `name^mixin`, otherwise it'll be `superclass&mixin`.
-  //
-  // TODO(ahe): This is to reduce diff against dartk. Consider if this is
-  // necessary.
-  void set subclassName(String value);
-
   String get name => null;
-
-  void resolveIn(Scope scope) {
-    supertype.resolveIn(scope);
-    for (T t in mixins) {
-      t.resolveIn(scope);
-    }
-  }
-
-  void bind(TypeDeclarationBuilder builder) {
-    unsupported("bind", -1, null);
-  }
 
   String get debugName => "MixinApplicationBuilder";
 

@@ -8,11 +8,8 @@ import 'package:kernel/ast.dart' show InterfaceType, Supertype;
 
 import '../problems.dart' show unsupported;
 
-import '../util/relativize.dart' show relativizeUri;
-
 import 'kernel_builder.dart'
     show
-        KernelLibraryBuilder,
         KernelTypeBuilder,
         LibraryBuilder,
         MixinApplicationBuilder,
@@ -21,36 +18,30 @@ import 'kernel_builder.dart'
 class KernelMixinApplicationBuilder
     extends MixinApplicationBuilder<KernelTypeBuilder>
     implements KernelTypeBuilder {
-  final int charOffset;
-
-  final String relativeFileUri;
-
-  final KernelLibraryBuilder library;
-
   Supertype builtType;
 
   List<TypeVariableBuilder> typeVariables;
 
-  String subclassName;
-
-  KernelMixinApplicationBuilder(KernelTypeBuilder supertype,
-      List<KernelTypeBuilder> mixins, this.library, int charOffset, Uri fileUri)
-      : charOffset = charOffset,
-        relativeFileUri = relativizeUri(fileUri),
-        super(supertype, mixins, charOffset, fileUri);
+  KernelMixinApplicationBuilder(
+      KernelTypeBuilder supertype, List<KernelTypeBuilder> mixins)
+      : super(supertype, mixins);
 
   @override
   InterfaceType build(LibraryBuilder library) {
+    int charOffset = -1; // TODO(ahe): Provide these.
+    Uri fileUri = null; // TODO(ahe): Provide these.
     return unsupported("build", charOffset, fileUri);
   }
 
   @override
   Supertype buildSupertype(LibraryBuilder library) {
+    int charOffset = -1; // TODO(ahe): Provide these.
+    Uri fileUri = null; // TODO(ahe): Provide these.
     return unsupported("buildSupertype", charOffset, fileUri);
   }
 
   @override
-  buildInvalidType() {
+  buildInvalidType(int charOffset, Uri fileUri) {
     return unsupported("buildInvalidType", charOffset, fileUri);
   }
 }

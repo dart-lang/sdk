@@ -61,6 +61,9 @@ class InstrumentationValueForForwardingStub extends InstrumentationValue {
       buffer.write(parameter.name);
     }
 
+    if (procedure.isAbstract) {
+      buffer.write('abstract ');
+    }
     var function = procedure.function;
     if (procedure.isGenericContravariant) {
       buffer.write('genericContravariant ');

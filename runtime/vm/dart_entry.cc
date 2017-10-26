@@ -40,9 +40,8 @@ class ScopedIsolateStackLimits : public ValueObject {
     // grows from high to low addresses).
     OSThread* os_thread = thread->os_thread();
     ASSERT(os_thread != NULL);
-    if (current_sp > os_thread->stack_base()) {
-      os_thread->set_stack_base(current_sp);
-    }
+    os_thread->RefineStackBoundsFromSP(current_sp);
+
     // Save the Thread's current stack limit and adjust the stack
     // limit based on the thread's stack_base.
     ASSERT(thread->isolate() == Isolate::Current());
@@ -169,13 +168,8 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
       function ^= cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
         Isolate* isolate = thread->isolate();
-        volatile uword c_stack_pos = Thread::GetCurrentStackPointer();
-        volatile uword c_stack_limit = OSThread::Current()->stack_base() -
-                                       OSThread::GetSpecifiedStackSize();
-#if !defined(USING_SIMULATOR)
-        ASSERT(c_stack_limit == thread->saved_stack_limit());
-#endif
-
+        uword c_stack_pos = Thread::GetCurrentStackPointer();
+        uword c_stack_limit = OSThread::Current()->stack_limit_with_headroom();
         if (c_stack_pos < c_stack_limit) {
           const Instance& exception =
               Instance::Handle(zone, isolate->object_store()->stack_overflow());

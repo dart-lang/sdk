@@ -193,7 +193,8 @@ class OutlineBuilder extends UnhandledListener {
         // (Assumes the import is using a single-line string.)
         addCompileTimeError(
             templateCouldNotParseUri.withArguments(uri, e.message),
-            uriOffset + 1 + (e.offset ?? -1));
+            uriOffset + 1 + (e.offset ?? -1),
+            1);
       }
     }
     checkEmpty(importKeyword.charOffset);
@@ -325,28 +326,40 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginClassOrNamedMixinApplication(Token token) {
+    debugEvent("beginClassOrNamedMixinApplication");
     library.beginNestedDeclaration("class or mixin application");
   }
 
   @override
   void beginClassDeclaration(Token begin, Token name) {
+    debugEvent("beginNamedMixinApplication");
     library.currentDeclaration.name = name.lexeme;
   }
 
   @override
   void beginNamedMixinApplication(Token beginToken, Token name) {
+    debugEvent("beginNamedMixinApplication");
     library.currentDeclaration.name = name.lexeme;
   }
 
   @override
   void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    debugEvent("handleClassImplements");
     push(popList(interfacesCount) ?? NullValue.TypeBuilderList);
   }
 
   @override
   void handleRecoverClassHeader() {
-    pop(NullValue.TypeBuilderList); // interfaces
-    pop(); // supertype
+    debugEvent("handleRecoverClassHeader");
+    pop(NullValue.TypeBuilderList); // Interfaces.
+    pop(); // Supertype offset.
+    pop(); // Supertype.
+  }
+
+  @override
+  void handleClassExtends(Token extendsKeyword) {
+    debugEvent("handleClassExtends");
+    push(extendsKeyword?.charOffset ?? -1);
   }
 
   @override
@@ -354,18 +367,18 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("endClassDeclaration");
     String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
+    int supertypeOffset = pop();
     TypeBuilder supertype = pop();
     List<TypeVariableBuilder> typeVariables = pop();
     int charOffset = pop();
     String name = pop();
     if (typeVariables != null && supertype is MixinApplicationBuilder) {
       supertype.typeVariables = typeVariables;
-      supertype.subclassName = name;
     }
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
     library.addClass(documentationComment, metadata, modifiers, name,
-        typeVariables, supertype, interfaces, charOffset);
+        typeVariables, supertype, interfaces, charOffset, supertypeOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -392,8 +405,15 @@ class OutlineBuilder extends UnhandledListener {
     int charOffset = pop();
     String name = pop();
     TypeBuilder returnType = pop();
-    int modifiers =
-        Modifier.validate(pop(), isAbstract: kind == MethodBody.Abstract);
+    bool isAbstract = kind == MethodBody.Abstract;
+    if (getOrSet != null && optional("set", getOrSet)) {
+      if (formals == null || formals.length != 1) {
+        // This isn't abstract as we'll add an error-recovery node in
+        // [BodyBuilder.finishFunction].
+        isAbstract = false;
+      }
+    }
+    int modifiers = Modifier.validate(pop(), isAbstract: isAbstract);
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
     checkEmpty(beginToken.charOffset);
@@ -503,13 +523,15 @@ class OutlineBuilder extends UnhandledListener {
             unhandled("$requiredArgumentCount", "operatorRequiredArgumentCount",
                 charOffset, uri);
         }
-        addCompileTimeError(template.withArguments(name), charOffset);
+        String string = name;
+        addCompileTimeError(
+            template.withArguments(name), charOffset, string.length);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequired) {
-              addCompileTimeError(
-                  messageOperatorWithOptionalFormals, formal.charOffset);
+              addCompileTimeError(messageOperatorWithOptionalFormals,
+                  formal.charOffset, formal.name.length);
             }
           }
         }
@@ -519,8 +541,15 @@ class OutlineBuilder extends UnhandledListener {
       kind = computeProcedureKind(getOrSet);
     }
     TypeBuilder returnType = pop();
-    int modifiers =
-        Modifier.validate(pop(), isAbstract: bodyKind == MethodBody.Abstract);
+    bool isAbstract = bodyKind == MethodBody.Abstract;
+    if (getOrSet != null && optional("set", getOrSet)) {
+      if (formals == null || formals.length != 1) {
+        // This isn't abstract as we'll add an error-recovery node in
+        // [BodyBuilder.finishFunction].
+        isAbstract = false;
+      }
+    }
+    int modifiers = Modifier.validate(pop(), isAbstract: isAbstract);
     if ((modifiers & externalMask) != 0) {
       modifiers &= ~abstractMask;
     }
@@ -608,8 +637,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     int charOffset = pop();
     String name = pop();
@@ -684,11 +713,13 @@ class OutlineBuilder extends UnhandledListener {
         if (formals[0].name != null && formals[0].name == formals[1].name) {
           addCompileTimeError(
               templateDuplicatedParameterName.withArguments(formals[1].name),
-              formals[1].charOffset);
+              formals[1].charOffset,
+              formals[1].name.length);
           addCompileTimeError(
               templateDuplicatedParameterNameCause
                   .withArguments(formals[1].name),
-              formals[0].charOffset);
+              formals[0].charOffset,
+              formals[0].name.length);
         }
       } else if (formals.length > 2) {
         Map<String, FormalParameterBuilder> seenNames =
@@ -698,10 +729,12 @@ class OutlineBuilder extends UnhandledListener {
           if (seenNames.containsKey(formal.name)) {
             addCompileTimeError(
                 templateDuplicatedParameterName.withArguments(formal.name),
-                formal.charOffset);
+                formal.charOffset,
+                formal.name.length);
             addCompileTimeError(
                 templateDuplicatedParameterNameCause.withArguments(formal.name),
-                seenNames[formal.name].charOffset);
+                seenNames[formal.name].charOffset,
+                seenNames[formal.name].name.length);
           } else {
             seenNames[formal.name] = formal;
           }
@@ -805,7 +838,8 @@ class OutlineBuilder extends UnhandledListener {
         functionType = type;
       } else {
         // TODO(ahe): Improve this error message.
-        addCompileTimeError(messageTypedefNotFunction, equals.charOffset);
+        addCompileTimeError(
+            messageTypedefNotFunction, equals.charOffset, equals.length);
       }
     }
     List<MetadataBuilder> metadata = pop();
@@ -958,6 +992,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleInvalidMember(Token endToken) {
+    debugEvent("InvalidMember");
+    pop(); // metadata star
+  }
+
+  @override
   void endMember() {
     debugEvent("Member");
     assert(nativeMethodName == null);
@@ -986,17 +1026,18 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverableError(Token token, Message message) {
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
     if (silenceParserErrors) {
       debugEvent("RecoverableError");
     } else {
-      super.handleRecoverableError(token, message);
+      super.handleRecoverableError(message, startToken, endToken);
     }
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset) {
-    library.addCompileTimeError(message, charOffset, uri);
+  void addCompileTimeError(Message message, int offset, int length) {
+    library.addCompileTimeError(message, offset, uri);
   }
 
   /// Return the documentation comment for the entity that starts at the

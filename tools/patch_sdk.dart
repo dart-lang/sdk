@@ -206,7 +206,8 @@ Future<List<Uri>> compilePlatform(
 
   var inputs = [Uri.parse('dart:core')];
   if (forFlutter && !forFlutterRelease) {
-    inputs.add(Uri.parse('dart:vmservice_sky'));
+    inputs.addAll(
+        [Uri.parse('dart:vmservice_sky'), Uri.parse('dart:diagnostic_server')]);
   }
   var result = await generateKernel(
       new ProcessedOptions(
@@ -306,6 +307,13 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
             documented: false,
             platforms: VM_PLATFORM),
 
+        "diagnostic_server": const LibraryInfo(
+            "diagnostic_server/diagnostic_server.dart",
+            categories: "Client,Server",
+            implementation: true,
+            documented: false,
+            platforms: VM_PLATFORM),
+
       ''');
     }
   }
@@ -335,16 +343,16 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
   if (forFlutter) {
     // Flutter repo has this layout:
     //  engine/src/
-    //       dart/
-    //       flutter/
-    var srcDir = path.dirname(path.dirname(path.dirname(path.absolute(base))));
-    var uiLibraryInDir =
-        new Directory(path.join(srcDir, 'flutter', 'lib', 'ui'));
-    if (!uiLibraryInDir.existsSync()) {
-      // Must be Fuchsia!
-      uiLibraryInDir = new Directory(
-          path.join(srcDir, 'third_party', 'flutter', 'lib', 'ui'));
+    //       third_party/dart/
+    //       [third_party/]flutter/
+    var srcDir = path
+        .dirname(path.dirname(path.dirname(path.dirname(path.absolute(base)))));
+    var flutterDir = new Directory(path.join(srcDir, 'flutter'));
+    if (!flutterDir.existsSync()) {
+      // In Fuchsia Flutter is under 'third_party'.
+      flutterDir = new Directory(path.join(srcDir, 'third_party', 'flutter'));
     }
+    var uiLibraryInDir = new Directory(path.join(flutterDir.path, 'lib', 'ui'));
     for (var file in uiLibraryInDir.listSync()) {
       if (!file.path.endsWith('.dart')) continue;
       var name = path.basename(file.path);
@@ -367,6 +375,13 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
           path.join('vmservice_io', 'vmservice_io.dart'));
       addLocation(
           locations, '_vmservice', path.join('vmservice', 'vmservice.dart'));
+
+      _writeSync(
+          path.join(sdkOut, 'diagnostic_server.dart'),
+          readInputFile(path.join(flutterDir.path, 'shell', 'common',
+              'diagnostic', 'diagnostic_server.dart')));
+
+      addLocation(locations, 'diagnostic_server', 'diagnostic_server.dart');
     }
   }
 }

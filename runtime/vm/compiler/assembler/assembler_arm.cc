@@ -3093,13 +3093,12 @@ void Assembler::MonomorphicCheckedEntry() {
 }
 
 #ifndef PRODUCT
-void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
-                                     Label* trace) {
-  LoadAllocationStatsAddress(temp_reg, cid);
+void Assembler::MaybeTraceAllocation(Register stats_addr_reg, Label* trace) {
+  ASSERT(stats_addr_reg != kNoRegister);
+  ASSERT(stats_addr_reg != TMP);
   const uword state_offset = ClassHeapStats::state_offset();
-  ldr(temp_reg, Address(temp_reg, state_offset));
-  tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
+  ldr(TMP, Address(stats_addr_reg, state_offset));
+  tst(TMP, Operand(ClassHeapStats::TraceAllocationMask()));
   b(trace, NE);
 }
 
@@ -3165,10 +3164,7 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(instance_reg != temp_reg);
     ASSERT(temp_reg != IP);
     ASSERT(instance_size != 0);
-    // If this allocation is traced, program will jump to failure path
-    // (i.e. the allocation stub) which will allocate the object and trace the
-    // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), temp_reg, failure));
+    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cls.id()));
     NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     ldr(instance_reg, Address(THR, Thread::top_offset()));
     // TODO(koda): Protect against unsigned overflow here.
@@ -3180,10 +3176,14 @@ void Assembler::TryAllocate(const Class& cls,
     // fail if heap end unsigned less than or equal to instance_reg.
     b(failure, LS);
 
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    NOT_IN_PRODUCT(MaybeTraceAllocation(temp_reg, failure));
+
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(THR, Thread::top_offset()));
-    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cls.id()));
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -3209,10 +3209,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register temp1,
                                  Register temp2) {
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
-    // If this allocation is traced, program will jump to failure path
-    // (i.e. the allocation stub) which will allocate the object and trace the
-    // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
+    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp1, cid));
     NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     // Potential new object start.
     ldr(instance, Address(THR, Thread::top_offset()));
@@ -3226,7 +3223,10 @@ void Assembler::TryAllocateArray(intptr_t cid,
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
-    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp2, cid));
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    NOT_IN_PRODUCT(MaybeTraceAllocation(temp1, failure));
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -3238,11 +3238,11 @@ void Assembler::TryAllocateArray(intptr_t cid,
     uint32_t tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
-    LoadImmediate(temp1, tags);
-    str(temp1, FieldAddress(instance, Array::tags_offset()));  // Store tags.
+    LoadImmediate(temp2, tags);
+    str(temp2, FieldAddress(instance, Array::tags_offset()));  // Store tags.
 
-    LoadImmediate(temp1, instance_size);
-    NOT_IN_PRODUCT(IncrementAllocationStatsWithSize(temp2, temp1, space));
+    LoadImmediate(temp2, instance_size);
+    NOT_IN_PRODUCT(IncrementAllocationStatsWithSize(temp1, temp2, space));
   } else {
     b(failure);
   }

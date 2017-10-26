@@ -31,7 +31,8 @@ import '../builder/builder.dart'
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder,
-        Unhandled;
+        Unhandled,
+        UnresolvedType;
 
 import '../combinator.dart' show Combinator;
 
@@ -124,14 +125,15 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   @override
   bool get isPatch;
 
-  List<T> get types => libraryDeclaration.types;
+  List<UnresolvedType<T>> get types => libraryDeclaration.types;
 
   T addNamedType(Object name, List<T> arguments, int charOffset);
 
   T addMixinApplication(T supertype, List<T> mixins, int charOffset);
 
-  T addType(T type) {
-    currentDeclaration.addType(type);
+  T addType(T type, int charOffset) {
+    currentDeclaration
+        .addType(new UnresolvedType<T>(type, charOffset, fileUri));
     return type;
   }
 
@@ -217,7 +219,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<TypeVariableBuilder> typeVariables,
       T supertype,
       List<T> interfaces,
-      int charOffset);
+      int charOffset,
+      int supertypeOffset);
 
   void addNamedMixinApplication(
       String documentationComment,
@@ -545,14 +548,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  int resolveTypes(_) {
+  /// Resolves all unresolved types in [types]. The list of types is cleared
+  /// when done.
+  int resolveTypes() {
     int typeCount = types.length;
-    for (T t in types) {
+    for (UnresolvedType<T> t in types) {
       t.resolveIn(scope);
     }
-    forEach((String name, Builder member) {
-      typeCount += member.resolveTypes(this);
-    });
+    types.clear();
     return typeCount;
   }
 
@@ -622,7 +625,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
 
   final Map<String, Builder> setters;
 
-  final List<T> types = <T>[];
+  final List<UnresolvedType<T>> types = <UnresolvedType<T>>[];
 
   String name;
 
@@ -647,7 +650,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
         this);
   }
 
-  void addType(T type) {
+  void addType(UnresolvedType<T> type) {
     types.add(type);
   }
 
@@ -684,8 +687,8 @@ class DeclarationBuilder<T extends TypeBuilder> {
       for (TypeVariableBuilder builder in typeVariables) {
         map[builder.name] = builder;
       }
-      for (T type in types) {
-        Object nameOrQualified = type.name;
+      for (UnresolvedType<T> type in types) {
+        Object nameOrQualified = type.builder.name;
         String name = nameOrQualified is QualifiedName
             ? nameOrQualified.prefix
             : nameOrQualified;
@@ -699,9 +702,10 @@ class DeclarationBuilder<T extends TypeBuilder> {
           parent.addType(type);
         } else if (nameOrQualified is QualifiedName) {
           // Attempt to use type variable as prefix.
-          type.bind(type.buildInvalidType());
+          type.builder.bind(
+              type.builder.buildInvalidType(type.charOffset, type.fileUri));
         } else {
-          type.bind(builder);
+          type.builder.bind(builder);
         }
       }
     }

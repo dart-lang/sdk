@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:package_resolver/package_resolver.dart';
 
 import 'configuration.dart';
+import 'repository.dart';
 import 'vendored_pkg/args/args.dart';
 import 'utils.dart';
 
@@ -61,8 +62,6 @@ const PREFIX_BUILDDIR = 'root_build';
 const PREFIX_DARTDIR = 'root_dart';
 
 void main(List<String> arguments) {
-  // This script is in [dart]/tools/testing/dart.
-  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   /** Convenience method for local testing. */
   var parser = new ArgParser();
   parser.addOption('port',
@@ -141,7 +140,7 @@ class TestingServers {
       String packages]) {
     _buildDirectory = Uri.base.resolveUri(new Uri.directory(buildDirectory));
     if (dartDirectory == null) {
-      _dartDirectory = TestUtils.dartDirUri;
+      _dartDirectory = Repository.uri;
     } else {
       _dartDirectory = Uri.base.resolveUri(new Uri.directory(dartDirectory));
     }
@@ -180,10 +179,12 @@ class TestingServers {
         port: crossOriginPort, allowedPort: _serverList[0].port);
   }
 
-  String httpServerCommandLine() {
+  /// Gets the command line string to spawn the server.
+  String get commandLine {
     var dart = Platform.resolvedExecutable;
     var script = _dartDirectory.resolve('tools/testing/dart/http_server.dart');
     var buildDirectory = _buildDirectory.toFilePath();
+
     var command = [
       dart,
       script.toFilePath(),
@@ -194,14 +195,17 @@ class TestingServers {
       '--build-directory=$buildDirectory',
       '--runtime=${runtime.name}'
     ];
+
     if (useContentSecurityPolicy) {
       command.add('--csp');
     }
+
     if (_packages != null) {
       command.add('--packages=${_packages.toFilePath()}');
     } else if (_packageRoot != null) {
       command.add('--package-root=${_packageRoot.toFilePath()}');
     }
+
     return command.join(' ');
   }
 

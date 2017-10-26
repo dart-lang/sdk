@@ -1,0 +1,20 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C extends self::B {
+  field dynamic z = null;
+  default constructor •() → void
+    : super self::B::•()
+    ;
+}
+static method test(self::B x) → void {
+  dynamic y = x is self::C ? x{self::C} : new self::C::•();
+  core::print(y.z);
+}
+static method main() → dynamic {}

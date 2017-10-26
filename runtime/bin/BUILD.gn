@@ -906,6 +906,37 @@ if (is_fuchsia) {
   #     ":hello_fuchsia_dylib($shlib_toolchain)",
   #   ]
   # }
+
+  import("//packages/package.gni")
+
+  package("package") {
+    package_name = "dart"
+
+    deps = [
+      ":dart",
+      ":dart_precompiled_runtime",
+    ]
+
+    binaries = [
+      {
+        name = "dart"
+      },
+      {
+        name = "dart_precompiled_runtime"
+      },
+    ]
+  }
+
+  package("dart_tests") {
+    deps = [ ":hello_fuchsia" ]
+
+    binaries = [
+      {
+        name = "hello_fuchsia.dart"
+      },
+    ]
+  }
+
 }
 
 executable("process_test") {

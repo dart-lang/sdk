@@ -9,6 +9,7 @@ accessors: Crash
 annotation_top: Crash
 argument_mismatch: Crash
 arithmetic: Crash
+bad_setter_abstract: Crash
 bad_store: Crash
 bug30695: Crash
 call: Crash
@@ -51,6 +52,8 @@ inference/bug30620_b: Crash
 inference/bug30620_c: Crash
 inference/bug30620_d: Crash
 inference/bug30624: Crash
+inference/bug31132: Crash
+inference/bug31133: Crash
 inference/call_corner_cases: Crash
 inference/complex_predecrement: Crash
 inference/conditional_lub: Crash
@@ -157,12 +160,8 @@ inference/infer_accessor_from_later_inferred_field: Crash
 inference/infer_assign_to_implicit_this: Crash
 inference/infer_assign_to_implicit_this_upwards: Crash
 inference/infer_assign_to_index_full: Crash
-inference/infer_assign_to_index_set_vs_get: Crash
 inference/infer_assign_to_index_super: Crash
-inference/infer_assign_to_index_super_upwards: Crash
 inference/infer_assign_to_index_this: Crash
-inference/infer_assign_to_index_this_upwards: Crash
-inference/infer_assign_to_index_upwards: Crash
 inference/infer_assign_to_local: Crash
 inference/infer_assign_to_local_upwards: Crash
 inference/infer_assign_to_property_full: Crash
@@ -341,7 +340,12 @@ inference/void_return_type_subtypes_dynamic: Crash
 inference_new/dependency_only_if_overloaded: Crash
 inference_new/downwards_inference_inside_top_level: Crash
 inference_new/field_inference_circularity: Crash
+inference_new/indexed_assign_combiner: Crash
 inference_new/infer_assign_to_index: Crash
+inference_new/infer_assign_to_index_set_vs_get: Crash
+inference_new/infer_assign_to_index_super_upwards: Crash
+inference_new/infer_assign_to_index_this_upwards: Crash
+inference_new/infer_assign_to_index_upwards: Crash
 inference_new/infer_assign_to_property: Crash
 inference_new/infer_assign_to_property_custom: Crash
 inference_new/infer_assign_to_ref: Crash
@@ -352,8 +356,9 @@ inference_new/infer_instance_accessor_ref: Crash
 inference_new/infer_instance_field_ref: Crash
 inference_new/infer_instance_field_ref_circular: Crash
 inference_new/infer_logical: Crash
-inference_new/multiple_interface_inheritance: Fail # Issue #30547
+inference_new/property_assign_combiner: Crash
 inference_new/property_get_toplevel: Crash
+inference_new/static_assign_combiner: Crash
 inference_new/strongly_connected_component: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
@@ -428,19 +433,24 @@ regress/issue_29941: Crash
 regress/issue_29942: Crash
 regress/issue_29943: Crash
 regress/issue_29944: Crash
+regress/issue_29977: Crash # Issue 30997.
 regress/issue_29978: Crash
 regress/issue_29979: Crash
 regress/issue_29981: Crash
 regress/issue_29984: Crash
 regress/issue_29985: Crash
+regress/issue_29987: Crash # Issue 30997.
 reorder_super: Crash
 runtime_checks/call_kinds: Crash
 runtime_checks/call_kinds_get: Crash
 runtime_checks/call_kinds_set: Crash
 runtime_checks/contravariant_generic_method_type_parameter: Crash
 runtime_checks/contravariant_generic_return: Crash
+runtime_checks/contravariant_generic_return_null_aware: Crash
 runtime_checks/contravariant_generic_return_tear_off: Crash
 runtime_checks/contravariant_getter: Crash
+runtime_checks/contravariant_getter_return: Crash
+runtime_checks/contravariant_getter_return_null_aware: Crash
 runtime_checks/covariant_generic_method_type_parameter: Crash
 runtime_checks/covariant_generic_parameter_in_interface: Crash
 runtime_checks/covariant_generic_parameter_tear_off: Crash
@@ -455,6 +465,10 @@ runtime_checks/forwarding_stub_with_default_values: Crash
 runtime_checks/generic_covariance_inheritance_setter_field: Crash
 runtime_checks/generic_vs_explicit_covariance: Crash
 runtime_checks_new/call_through_this: Crash
+runtime_checks_new/contravariant_combiner: Crash
+runtime_checks_new/contravariant_getter_return_compound_assign: Crash
+runtime_checks_new/contravariant_index_assign: Crash
+runtime_checks_new/contravariant_index_get: Crash
 runtime_checks_new/derived_class_typed: Crash
 runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Crash
 runtime_checks_new/field_forwarding_stub_explicit_covariant: Crash

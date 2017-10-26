@@ -150,9 +150,6 @@ void FieldHelper::ReadUntilExcluding(Field field,
       builder_->record_token_position(position_);
       builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
-    case kDocumentationCommentIndex:
-      builder_->ReadStringReference();
-      if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -222,9 +219,6 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       builder_->record_token_position(position_);
       builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
-    case kDocumentationCommentIndex:
-      builder_->ReadStringReference();
-      if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -266,9 +260,6 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
-      if (++next_read_ == field) return;
-    case kDocumentationCommentIndex:
-      builder_->ReadStringReference();
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -345,9 +336,6 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
       builder_->current_script_id_ = source_uri_index_;
       builder_->record_token_position(position_);
-      if (++next_read_ == field) return;
-    case kDocumentationCommentIndex:
-      builder_->ReadStringReference();
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -432,9 +420,6 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kName:
       name_index_ = builder_->ReadStringReference();  // read name index.
-      if (++next_read_ == field) return;
-    case kDocumentation:
-      builder_->ReadStringReference();  // read documentation comment index.
       if (++next_read_ == field) return;
     case kSourceUriIndex:
       source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
@@ -807,7 +792,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   scope_->set_end_token_pos(function.end_token_pos());
 
   // Add function type arguments variable before current context variable.
-  if (FLAG_reify_generic_functions && function.IsGeneric()) {
+  if (I->reify_generic_functions() && function.IsGeneric()) {
     LocalVariable* type_args_var = MakeVariable(
         TokenPosition::kNoSource, TokenPosition::kNoSource,
         Symbols::FunctionTypeArgumentsVar(), AbstractType::dynamic_type());
@@ -2241,17 +2226,28 @@ void StreamingDartTypeTranslator::BuildInterfaceType(bool simple) {
 
 void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
   Function& signature_function = Function::ZoneHandle(
-      Z,
-      Function::NewSignatureFunction(*active_class_->klass, Function::Handle(Z),
-                                     TokenPosition::kNoSource));
+      Z, Function::NewSignatureFunction(*active_class_->klass,
+                                        active_class_->enclosing != NULL
+                                            ? *active_class_->enclosing
+                                            : Function::Handle(Z),
+                                        TokenPosition::kNoSource));
+
+  // Suspend finalization of types inside this one. They will be finalized after
+  // the whole function type is constructed.
+  //
+  // TODO(31213): Test further when nested generic function types
+  // are supported by fasta.
+  bool finalize = finalize_;
+  finalize_ = false;
 
   if (!simple) {
     builder_->LoadAndSetupTypeParameters(active_class_, signature_function,
                                          builder_->ReadListLength(),
                                          signature_function);
   }
+
   ActiveTypeParametersScope scope(
-      active_class_,
+      active_class_, &signature_function,
       TypeArguments::Handle(Z, signature_function.type_parameters()), Z);
 
   intptr_t required_count;
@@ -2321,6 +2317,8 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
   }
   signature_function.set_result_type(result_);
 
+  finalize_ = finalize;
+
   Type& signature_type =
       Type::ZoneHandle(Z, signature_function.SignatureType());
 
@@ -2381,7 +2379,7 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        if (FLAG_reify_generic_functions) {
+        if (I->reify_generic_functions()) {
           result_ ^=
               TypeArguments::Handle(Z, active_class_->member->type_parameters())
                   .TypeAt(parameter_index);
@@ -2396,7 +2394,7 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
 
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
-      if (FLAG_reify_generic_functions) {
+      if (I->reify_generic_functions()) {
         result_ ^=
             active_class_->local_type_parameters->TypeAt(parameter_index);
       } else {
@@ -3839,7 +3837,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     // TODO(30455): Kernel generic methods undone. When generic closures are
     // supported, the type arguments passed by the caller will actually need to
     // be used here.
-    if (dart_function.IsGeneric() && FLAG_reify_generic_functions) {
+    if (dart_function.IsGeneric() && I->reify_generic_functions()) {
       LocalVariable* type_args_slot =
           parsed_function()->function_type_arguments();
       ASSERT(type_args_slot != NULL);
@@ -3849,7 +3847,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     body += Drop();
   } else if (dart_function.IsClosureFunction() && dart_function.IsGeneric() &&
              dart_function.NumParentTypeParameters() > 0 &&
-             FLAG_reify_generic_functions) {
+             I->reify_generic_functions()) {
     LocalVariable* closure =
         parsed_function()->node_sequence()->scope()->VariableAt(0);
     LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
@@ -5422,8 +5420,9 @@ Fragment StreamingFlowGraphBuilder::CheckStackOverflow() {
   return flow_graph_builder_->CheckStackOverflow();
 }
 
-Fragment StreamingFlowGraphBuilder::CloneContext() {
-  return flow_graph_builder_->CloneContext();
+Fragment StreamingFlowGraphBuilder::CloneContext(
+    intptr_t num_context_variables) {
+  return flow_graph_builder_->CloneContext(num_context_variables);
 }
 
 Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
@@ -5526,9 +5525,10 @@ Fragment StreamingFlowGraphBuilder::CheckVariableTypeInCheckedMode(
                                                              name_symbol);
 }
 
-Fragment StreamingFlowGraphBuilder::EnterScope(intptr_t kernel_offset,
-                                               bool* new_context) {
-  return flow_graph_builder_->EnterScope(kernel_offset, new_context);
+Fragment StreamingFlowGraphBuilder::EnterScope(
+    intptr_t kernel_offset,
+    intptr_t* num_context_variables) {
+  return flow_graph_builder_->EnterScope(kernel_offset, num_context_variables);
 }
 
 Fragment StreamingFlowGraphBuilder::ExitScope(intptr_t kernel_offset) {
@@ -5992,7 +5992,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
   Fragment instructions;
   intptr_t type_args_len = 0;
-  if (FLAG_reify_generic_functions) {
+  if (I->reify_generic_functions()) {
     AlternativeReadingScope alt(reader_);
     SkipExpression();                         // skip receiver
     SkipName();                               // skip method name
@@ -6105,7 +6105,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
 
   Fragment instructions;
   intptr_t type_args_len = 0;
-  if (FLAG_reify_generic_functions) {
+  if (I->reify_generic_functions()) {
     AlternativeReadingScope alt(reader_);
     SkipExpression();                         // skip receiver
     ReadCanonicalNameReference();             // skip target reference
@@ -6216,7 +6216,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     const TypeArguments& type_arguments = PeekArgumentsInstantiatedType(klass);
     instructions += TranslateInstantiatedTypeArguments(type_arguments);
     instructions += PushArgument();
-  } else if (!special_case_identical && FLAG_reify_generic_functions) {
+  } else if (!special_case_identical && I->reify_generic_functions()) {
     AlternativeReadingScope alt(reader_);
     ReadUInt();                               // read argument count.
     intptr_t list_length = ReadListLength();  // read types list length.
@@ -6887,8 +6887,11 @@ Fragment StreamingFlowGraphBuilder::BuildVectorCopy(TokenPosition* position) {
 
   Fragment instructions = BuildExpression();  // read vector expression.
   Value* context_to_copy = Pop();
+  // TODO(dartbug.com/31218) VectorCopy should contain size of the context
+  // as a constant.
   CloneContextInstr* clone_instruction =
       new (Z) CloneContextInstr(TokenPosition::kNoSource, context_to_copy,
+                                CloneContextInstr::kUnknownContextSize,
                                 Thread::Current()->GetNextDeoptId());
   instructions <<= clone_instruction;
   Push(clone_instruction);
@@ -7162,8 +7165,8 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 
   loop_depth_inc();
 
-  bool new_context = false;
-  declarations += EnterScope(offset, &new_context);
+  intptr_t num_context_variables = 0;
+  declarations += EnterScope(offset, &num_context_variables);
 
   intptr_t list_length = ReadListLength();  // read number of variables.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -7195,7 +7198,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     // the context object (at same depth) which ensures the next iteration of
     // the body gets a fresh set of [ForStatement] variables (with the old
     // (possibly updated) values).
-    if (new_context) body += CloneContext();
+    if (num_context_variables > 0) body += CloneContext(num_context_variables);
 
     body += updates;
     JoinEntryInstr* join = BuildJoinEntry();
@@ -8088,7 +8091,11 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
     Function::Cast(set_on).set_type_parameters(type_parameters);
   }
 
-  ActiveTypeParametersScope(active_class, type_parameters, Z);
+  const Function* enclosing = NULL;
+  if (!parameterized_function.IsNull()) {
+    enclosing = &parameterized_function;
+  }
+  ActiveTypeParametersScope(active_class, enclosing, type_parameters, Z);
 
   // Step b) Fill in the bounds of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
@@ -8132,7 +8139,8 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
   }
 
   ActiveTypeParametersScope scope(
-      active_class, TypeArguments::Handle(Z, function.type_parameters()), Z);
+      active_class, &function,
+      TypeArguments::Handle(Z, function.type_parameters()), Z);
 
   function_node_helper->ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);

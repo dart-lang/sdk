@@ -199,6 +199,27 @@ Future<Iterable<S>> waitWithThrottle<T, S>(
   return results;
 }
 
+/// Iterates over [items] and spawns [concurrent] x futures, by calling [f].
+/// When a future completes it will try to take the next in the list. The
+/// function will complete when all items has been processed.
+Future<Iterable<S>> waitWithThrottle2<T, S>(
+    Iterable items, int concurrent, Future<S> f(T item)) async {
+  // Listify the items, to make sure length is constant.
+  var remainingList = items.toList();
+  List<S> resultList = new List<S>(remainingList.length);
+  var finger = 0;
+  var doWork = (continuation) async {
+    if (finger >= remainingList.length) {
+      return;
+    }
+    int thisFinger = finger++;
+    resultList[thisFinger] = await f(remainingList[thisFinger]);
+    await continuation(continuation);
+  };
+  await Future.wait(new Iterable.generate(concurrent, (_) => doWork(doWork)));
+  return resultList;
+}
+
 /// Similar to Iterable.where, except, the function [f] returns a future boolean.
 Future<Iterable<T>> futureWhere<T>(
     Iterable<T> items, Future<bool> f(T item)) async {

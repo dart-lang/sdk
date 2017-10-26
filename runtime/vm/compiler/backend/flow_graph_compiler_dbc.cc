@@ -382,7 +382,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 
   const bool expect_type_arguments =
-      FLAG_reify_generic_functions && function.IsGeneric();
+      isolate()->reify_generic_functions() && function.IsGeneric();
   if (function.IsClosureFunction()) {
     // In optimized mode the register allocator expects CurrentContext in the
     // flow_graph_.num_copied_params() register at function entry, unless that
@@ -411,7 +411,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ LoadConstant(context_index, Object::empty_context());
   }
 
-  if (FLAG_reify_generic_functions) {
+  if (isolate()->reify_generic_functions()) {
     // Check for a passed type argument vector if the function is generic, or
     // check that none is passed if not generic and not already checked during
     // resolution.

@@ -57,8 +57,6 @@ var tests = [
   stoppedAtLine(LINE_E), // print(error)
   stepOver,
   hasStoppedAtBreakpoint,
-  stepOver,
-  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_F), // print(foo)
   stepOver,
   hasStoppedAtBreakpoint,

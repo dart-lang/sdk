@@ -709,7 +709,7 @@ class InterfaceResolverTest {
         supertype: a.asThisSupertype,
         implementedTypes: [b.asThisSupertype]);
     var node = getForwardingNode(c, false);
-    var stub = node.finalize() as Procedure;
+    var stub = node.finalize();
     var x = stub.function.positionalParameters[0];
     expect(x.isGenericCovariantImpl, isFalse);
     expect(x.isGenericCovariantInterface, isFalse);
@@ -753,7 +753,7 @@ class InterfaceResolverTest {
       new Supertype(b, [numType])
     ]);
     var node = getForwardingNode(c, false);
-    var stub = node.finalize() as Procedure;
+    var stub = node.finalize();
     var u = stub.function.typeParameters[0];
     expect(u.isGenericCovariantImpl, isTrue);
     expect(u.isGenericCovariantInterface, isFalse);

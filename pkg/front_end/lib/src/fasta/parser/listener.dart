@@ -227,8 +227,8 @@ class Listener {
 
   void beginFormalParameter(Token token, MemberKind kind) {}
 
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     logEvent("FormalParameter");
   }
 
@@ -614,6 +614,12 @@ class Listener {
   }
 
   void beginMember(Token token) {}
+
+  /// Handle an invalid member declaration. Substructures:
+  /// - metadata
+  void handleInvalidMember(Token endToken) {
+    logEvent("InvalidMember");
+  }
 
   /// This event is added for convenience. Normally, one should override
   /// [endMethod] or [endFields] instead.
@@ -1110,8 +1116,14 @@ class Listener {
 
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {}
 
-  void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
-      int statementCount, Token firstToken, Token endToken) {
+  void endSwitchCase(
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      Token colonAfterDefault,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
     logEvent("SwitchCase");
   }
 
@@ -1165,13 +1177,18 @@ class Listener {
     throw new ParserError.fromTokens(token, token, message);
   }
 
-  /// The parser noticed a syntax error, but was able to recover from it.
-  void handleRecoverableError(Token token, Message message) {
+  /// The parser noticed a syntax error, but was able to recover from it. The
+  /// error should be reported using the [message], and the code between the
+  /// beginning of the [startToken] and the end of the [endToken] should be
+  /// highlighted. The [startToken] and [endToken] can be the same token.
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation) {
       return;
     }
-    recoverableErrors.add(new ParserError.fromTokens(token, token, message));
+    recoverableErrors
+        .add(new ParserError.fromTokens(startToken, endToken, message));
   }
 
   /// Signals to the listener that the previous statement contained a semantic
@@ -1179,7 +1196,7 @@ class Listener {
   /// after [handleExpressionFunctionBody], in which case it signals that the
   /// implicit return statement of the function contained a semantic error.
   void handleInvalidStatement(Token token, Message message) {
-    handleRecoverableError(token, message);
+    handleRecoverableError(message, token, token);
   }
 
   void handleScript(Token token) {

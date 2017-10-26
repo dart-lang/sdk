@@ -756,10 +756,11 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     end('FormalParameter');
-    super.endFormalParameter(thisKeyword, nameToken, kind, memberKind);
+    super.endFormalParameter(
+        thisKeyword, periodAfterThis, nameToken, kind, memberKind);
   }
 
   @override
@@ -981,11 +982,17 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
-      int statementCount, Token firstToken, Token endToken) {
+  void endSwitchCase(
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      Token colonAfterDefault,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
     end('SwitchCase');
     super.endSwitchCase(labelCount, expressionCount, defaultKeyword,
-        statementCount, firstToken, endToken);
+        colonAfterDefault, statementCount, firstToken, endToken);
   }
 
   @override
@@ -1109,6 +1116,12 @@ class ForwardingTestListener extends ForwardingListener {
   void handleRecoverImport(Token semicolon) {
     expectIn('CompilationUnit');
     listener.handleRecoverImport(semicolon);
+  }
+
+  @override
+  void handleInvalidMember(Token endToken) {
+    expectIn('Member');
+    super.handleInvalidMember(endToken);
   }
 
   @override

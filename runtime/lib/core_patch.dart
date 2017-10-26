@@ -103,11 +103,11 @@ class _EnumHelper {
 // implement sync* generator functions. A sync* generator allocates
 // and returns a new _SyncIterable object.
 
-typedef bool _SyncGeneratorCallback(Iterator iterator);
+typedef bool _SyncGeneratorCallback<T>(_SyncIterator<T> iterator);
 
 class _SyncIterable<T> extends IterableBase<T> {
   // _moveNextFn is the closurized body of the generator function.
-  final _SyncGeneratorCallback _moveNextFn;
+  final _SyncGeneratorCallback<T> _moveNextFn;
 
   const _SyncIterable(this._moveNextFn);
 
@@ -115,18 +115,21 @@ class _SyncIterable<T> extends IterableBase<T> {
     // Note: _Closure._clone returns _Closure which is not related to
     // _SyncGeneratorCallback, which means we need explicit cast.
     return new _SyncIterator<T>(
-        (_moveNextFn as _Closure)._clone() as _SyncGeneratorCallback);
+        (_moveNextFn as _Closure)._clone() as _SyncGeneratorCallback<T>);
   }
 }
 
 class _SyncIterator<T> implements Iterator<T> {
-  bool isYieldEach; // Set by generated code for the yield* statement.
-  Iterator<T> yieldEachIterator;
-  T _current; // Set by generated code for the yield and yield* statement.
-  _SyncGeneratorCallback _moveNextFn;
+  _SyncGeneratorCallback<T> _moveNextFn;
+  Iterator<T> _yieldEachIterator;
+
+  // These two fields are set by generated code for the yield and yield*
+  // statement.
+  T _current;
+  Iterable<T> _yieldEachIterable;
 
   T get current =>
-      yieldEachIterator != null ? yieldEachIterator.current : _current;
+      _yieldEachIterator != null ? _yieldEachIterator.current : _current;
 
   _SyncIterator(this._moveNextFn);
 
@@ -135,23 +138,24 @@ class _SyncIterator<T> implements Iterator<T> {
       return false;
     }
     while (true) {
-      if (yieldEachIterator != null) {
-        if (yieldEachIterator.moveNext()) {
+      if (_yieldEachIterator != null) {
+        if (_yieldEachIterator.moveNext()) {
           return true;
         }
-        yieldEachIterator = null;
+        _yieldEachIterator = null;
       }
-      isYieldEach = false;
-      // _moveNextFn() will update the values of isYieldEach and _current.
+      // _moveNextFn() will update the values of _yieldEachIterable
+      //  and _current.
       if (!_moveNextFn(this)) {
         _moveNextFn = null;
         _current = null;
         return false;
       }
-      if (isYieldEach) {
+      if (_yieldEachIterable != null) {
         // Spec mandates: it is a dynamic error if the class of [the object
         // returned by yield*] does not implement Iterable.
-        yieldEachIterator = (_current as Iterable<T>).iterator;
+        _yieldEachIterator = _yieldEachIterable.iterator;
+        _yieldEachIterable = null;
         _current = null;
         continue;
       }

@@ -660,7 +660,7 @@ class ProcessStarter {
     launchpad_create(ZX_HANDLE_INVALID, program_arguments_[0], &lp);
     launchpad_set_args(lp, program_arguments_count_, program_arguments_);
     launchpad_set_environ(lp, program_environment_);
-    launchpad_clone(lp, LP_CLONE_FDIO_NAMESPACE | LP_CLONE_FDIO_CWD);
+    launchpad_clone(lp, LP_CLONE_FDIO_NAMESPACE);
     launchpad_add_pipe(lp, &write_out_, 0);
     launchpad_add_pipe(lp, &read_in_, 1);
     launchpad_add_pipe(lp, &read_err_, 2);

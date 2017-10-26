@@ -190,6 +190,7 @@ static int Main(int argc, const char** argv) {
   // Perform platform specific initialization.
   if (!dart::bin::Platform::Initialize()) {
     OS::PrintErr("Initialization failed\n");
+    return 1;
   }
 
   if (argc < 2) {

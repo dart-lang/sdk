@@ -69,7 +69,6 @@ inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_vi
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Fail # Issue #25824
-inference_new/multiple_interface_inheritance: Fail # Issue #30547
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
@@ -153,14 +152,11 @@ rasta/unsupported_platform_library: Fail
 
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Issue 29976.
-regress/issue_29982: RuntimeError # Issue 29982.
+regress/issue_29977: Crash # Issue 30997.
+regress/issue_29982: Fail # Issue 29982.
+regress/issue_29987: Crash # Issue 30997.
 
-runtime_checks/contravariant_generic_return_tear_off: Fail
-runtime_checks/contravariant_getter: Fail
-runtime_checks/field_forwarding_stub_generic_covariant: Fail
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
-runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Fail
-runtime_checks_new/field_forwarding_stub_explicit_covariant: Fail
 
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.

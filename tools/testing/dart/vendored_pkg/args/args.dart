@@ -261,7 +261,8 @@ class ArgParser {
       bool defaultsTo: false,
       bool negatable: true,
       void callback(bool value)}) {
-    _addOption(name, abbr, help, null, null, defaultsTo, callback,
+    _addOption(name, abbr, help, null, null, defaultsTo,
+        callback == null ? null : (value) => callback(value as bool),
         isFlag: true, negatable: negatable);
   }
 

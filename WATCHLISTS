@@ -56,7 +56,7 @@
   },
 
   'WATCHLISTS': {
-    'build': [ 'zra@google.com' ],
+    'build': [ 'zra@google.com', 'keertip@google.com' ],
     'front_end': [ 'dart-fe-team+reviews@google.com' ],
     'kernel': [ 'karlklose@google.com', 'jensj@google.com', 'kmillikin@google.com' ],
     'messages_review': [ 'dart-uxr+reviews@google.com' ],

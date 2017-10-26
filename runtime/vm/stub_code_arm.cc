@@ -669,7 +669,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ b(&slow_case, GT);
 
   const intptr_t cid = kArrayCid;
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R4, &slow_case));
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(R4, &slow_case));
 
   const intptr_t fixed_size_plus_alignment_padding =
       sizeof(RawArray) + kObjectAlignment - 1;
@@ -898,7 +899,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     ASSERT(kSmiTagShift == 1);
     __ bic(R2, R2, Operand(kObjectAlignment - 1));
 
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, R8, &slow_case));
+    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R8, kContextCid));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(R8, &slow_case));
     // Now allocate the object.
     // R1: number of context variables.
     // R2: object size.

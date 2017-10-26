@@ -52,6 +52,32 @@ const MessageCode messageAbstractNotSync = const MessageCode("AbstractNotSync",
     message: r"""Abstract methods can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateAbstractRedirectedClassInstantiation = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Factory redirects to class '#name', which is abstract and can't be instantiated.""",
+    withArguments: _withArgumentsAbstractRedirectedClassInstantiation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeAbstractRedirectedClassInstantiation =
+    const Code<Message Function(String name)>(
+  "AbstractRedirectedClassInstantiation",
+  templateAbstractRedirectedClassInstantiation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
+  return new Message(codeAbstractRedirectedClassInstantiation,
+      message:
+          """Factory redirects to class '$name', which is abstract and can't be instantiated.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateAccessError =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Access error: '#name'.""",
@@ -1200,6 +1226,25 @@ Message _withArgumentsExpectedString(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateExpectedToken =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Expected to find '#string'.""",
+        withArguments: _withArgumentsExpectedToken);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExpectedToken =
+    const Code<Message Function(String string)>(
+        "ExpectedToken", templateExpectedToken,
+        analyzerCode: "EXPECTED_TOKEN", dart2jsCode: "GENERIC");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedToken(String string) {
+  return new Message(codeExpectedToken,
+      message: """Expected to find '$string'.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedType =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Expected a type, but got '#lexeme'.""",
@@ -2135,9 +2180,8 @@ Message _withArgumentsInternalProblemUriMissingScheme(Uri uri_) {
 const Template<Message Function(String string)>
     templateInternalVerificationError =
     const Template<Message Function(String string)>(
-        messageTemplate:
-            r"""Verification of the generated program failed: #string.""",
-        withArguments: _withArgumentsInternalVerificationError);
+        messageTemplate: r"""Verification of the generated program failed:
+#string""", withArguments: _withArgumentsInternalVerificationError);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String string)> codeInternalVerificationError =
@@ -2149,8 +2193,8 @@ const Code<Message Function(String string)> codeInternalVerificationError =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalVerificationError(String string) {
   return new Message(codeInternalVerificationError,
-      message: """Verification of the generated program failed: $string.""",
-      arguments: {'string': string});
+      message: """Verification of the generated program failed:
+$string""", arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2349,6 +2393,19 @@ const MessageCode messageMissingExponent = const MessageCode("MissingExponent",
         r"""Make sure there is an exponent, and remove any whitespace before it.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingFunctionParameters =
+    messageMissingFunctionParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingFunctionParameters = const MessageCode(
+    "MissingFunctionParameters",
+    analyzerCode: "MISSING_FUNCTION_PARAMETERS",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""A function declaration needs an explicit list of parameters.""",
+    tip: r"""Try adding a parameter list to the function declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingInput = messageMissingInput;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2363,6 +2420,17 @@ const MessageCode messageMissingMain = const MessageCode("MissingMain",
     dart2jsCode: "MISSING_MAIN",
     message: r"""No 'main' method found.""",
     tip: r"""Try adding a method named 'main' to your program.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingMethodParameters = messageMissingMethodParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingMethodParameters = const MessageCode(
+    "MissingMethodParameters",
+    analyzerCode: "MISSING_METHOD_PARAMETERS",
+    dart2jsCode: "*fatal*",
+    message: r"""A method declaration needs an explicit list of parameters.""",
+    tip: r"""Try adding a parameter list to the method declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2399,6 +2467,17 @@ const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
     dart2jsCode: "*fatal*",
     message: r"""Deferred imports should have a prefix.""",
     tip: r"""Try adding a prefix to the import.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingTypedefParameters = messageMissingTypedefParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingTypedefParameters = const MessageCode(
+    "MissingTypedefParameters",
+    analyzerCode: "MISSING_TYPEDEF_PARAMETERS",
+    dart2jsCode: "*fatal*",
+    message: r"""A typedef needs an explicit list of parameters.""",
+    tip: r"""Try adding a parameter list to the typedef.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleExtends = messageMultipleExtends;
@@ -3018,6 +3097,19 @@ const Code<Null> codePlatformPrivateLibraryAccess =
 const MessageCode messagePlatformPrivateLibraryAccess = const MessageCode(
     "PlatformPrivateLibraryAccess",
     message: r"""Can't access platform private library.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePositionalAfterNamedArgument =
+    messagePositionalAfterNamedArgument;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePositionalAfterNamedArgument = const MessageCode(
+    "PositionalAfterNamedArgument",
+    analyzerCode: "POSITIONAL_AFTER_NAMED_ARGUMENT",
+    dart2jsCode: "*ignored*",
+    message: r"""Place positional arguments before named arguments.""",
+    tip:
+        r"""Try moving the positional argument before the named arguments, or add a name to the argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePositionalParameterWithEquals =
@@ -3700,7 +3792,7 @@ const Code<Null> codeUnsupportedPrefixPlus = messageUnsupportedPrefixPlus;
 const MessageCode messageUnsupportedPrefixPlus = const MessageCode(
     "UnsupportedPrefixPlus",
     dart2jsCode: "UNSUPPORTED_PREFIX_PLUS",
-    message: r"""'+' is not a prefix operator. """,
+    message: r"""'+' is not a prefix operator.""",
     tip: r"""Try removing '+'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

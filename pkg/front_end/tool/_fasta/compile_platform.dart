@@ -74,7 +74,8 @@ Future compilePlatformInternal(
   }
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
-  await writeProgramToFile(result.program, fullOutput);
+  await writeProgramToFile(result.program, fullOutput,
+      filter: (lib) => !lib.isExternal);
 
   c.options.ticker.logMs("Wrote program to ${fullOutput.toFilePath()}");
 

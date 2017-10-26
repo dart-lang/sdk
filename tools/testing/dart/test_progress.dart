@@ -31,19 +31,24 @@ class Formatter {
 
   /// Formats a failure message.
   String failed(String message) => message;
+
+  /// Formats a section header.
+  String section(String message) => message;
 }
 
 class _ColorFormatter extends Formatter {
-  static const _green = 32;
-  static const _red = 31;
+  static const _gray = "1;30";
+  static const _green = "32";
+  static const _red = "31";
   static const _escape = '\u001b';
 
   const _ColorFormatter() : super._();
 
   String passed(String message) => _color(message, _green);
   String failed(String message) => _color(message, _red);
+  String section(String message) => _color(message, _gray);
 
-  static String _color(String message, int color) =>
+  static String _color(String message, String color) =>
       "$_escape[${color}m$message$_escape[0m";
 }
 
@@ -389,6 +394,7 @@ class TestFailurePrinter extends EventListener {
   final Formatter _formatter;
   final _failureSummary = <String>[];
   int _failedTests = 0;
+  int _passedTests = 0;
 
   TestFailurePrinter(this._printSummary, [this._formatter = Formatter.normal]);
 
@@ -404,21 +410,27 @@ class TestFailurePrinter extends EventListener {
         _failureSummary.addAll(lines);
         _failureSummary.add('');
       }
+    } else {
+      _passedTests++;
     }
   }
 
   void allDone() {
-    if (_printSummary) {
-      if (!_failureSummary.isEmpty) {
-        print('\n=== Failure summary:\n');
-        for (var line in _failureSummary) {
-          print(line);
-        }
-        print('');
+    if (!_printSummary || _failureSummary.isEmpty) return;
 
-        print(_buildSummaryEnd(_failedTests));
-      }
+    // Don't bother showing the summary if it's longer than the number of lines
+    // of successful test output. The benefit of the summary is that it saves
+    // you from scrolling past lots of passed tests to find the few failures.
+    // If most of the output *is* failures, showing them *twice* just makes it
+    // worse.
+    if (_passedTests <= _failureSummary.length) return;
+
+    print('\n=== Failure summary:\n');
+    for (var line in _failureSummary) {
+      print(line);
     }
+    print('');
+    print(_buildSummaryEnd(_formatter, _failedTests));
   }
 }
 
@@ -553,7 +565,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
       }
       print('');
     }
-    print(_buildSummaryEnd(_failedTests));
+    print(_buildSummaryEnd(Formatter.normal, _failedTests));
   }
 }
 
@@ -563,41 +575,76 @@ String _timeString(Duration duration) {
   return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
 }
 
-List<String> _linesWithoutCarriageReturn(List<int> output) {
-  return decodeUtf8(output)
-      .replaceAll('\r\n', '\n')
-      .replaceAll('\r', '\n')
-      .split('\n');
+/// Builds and formats the failure output for a failed test.
+class OutputWriter {
+  final Formatter _formatter;
+  final List<String> _lines;
+  String _pendingSection;
+  String _pendingSubsection;
+
+  OutputWriter(this._formatter, this._lines);
+
+  void section(String name) {
+    _pendingSection = name;
+    _pendingSubsection = null;
+  }
+
+  void subsection(String name) {
+    _pendingSubsection = name;
+  }
+
+  void write(String line) {
+    _flushSection();
+    _lines.add(line);
+  }
+
+  void writeAll(Iterable<String> lines) {
+    if (lines.isEmpty) return;
+    _flushSection();
+    _lines.addAll(lines);
+  }
+
+  /// Writes the current section header.
+  void _flushSection() {
+    if (_pendingSection != null) {
+      if (_lines.isNotEmpty) _lines.add("");
+      _lines.add(_formatter.section("--- $_pendingSection:"));
+      _pendingSection = null;
+    }
+
+    if (_pendingSubsection != null) {
+      _lines.add("");
+      _lines.add(_formatter.section("$_pendingSubsection:"));
+      _pendingSubsection = null;
+    }
+  }
 }
 
 List<String> _buildFailureOutput(TestCase test,
     [Formatter formatter = Formatter.normal]) {
-  var output = [
-    '',
-    formatter.failed('FAILED: ${test.configurationString} ${test.displayName}')
-  ];
+  var lines = <String>[];
+  var output = new OutputWriter(formatter, lines);
 
-  var expected = new StringBuffer();
-  expected.write('Expected: ');
-  for (var expectation in test.expectedOutcomes) {
-    expected.write('$expectation ');
-  }
+  output.write('');
+  output.write(formatter
+      .failed('FAILED: ${test.configurationString} ${test.displayName}'));
 
-  output.add(expected.toString());
-  output.add('Actual: ${test.result}');
+  output.write('Expected: ${test.expectedOutcomes.join(" ")}');
+  output.write('Actual: ${test.result}');
+
+  var ranAllCommands = test.commandOutputs.length == test.commands.length;
   if (!test.lastCommandOutput.hasTimedOut) {
-    if (test.commandOutputs.length != test.commands.length &&
-        !test.expectCompileError) {
-      output.add('Unexpected compile-time error.');
+    if (!ranAllCommands && !test.expectCompileError) {
+      output.write('Unexpected compile error.');
     } else {
       if (test.expectCompileError) {
-        output.add('Compile-time error expected.');
+        output.write('Missing expected compile error.');
       }
       if (test.hasRuntimeError) {
-        output.add('Runtime error expected.');
+        output.write('Missing expected runtime error.');
       }
       if (test.configuration.isChecked && test.isNegativeIfChecked) {
-        output.add('Dynamic type error expected.');
+        output.write('Missing expected dynamic type error.');
       }
     }
   }
@@ -605,48 +652,22 @@ List<String> _buildFailureOutput(TestCase test,
   for (var i = 0; i < test.commands.length; i++) {
     var command = test.commands[i];
     var commandOutput = test.commandOutputs[command];
-    if (commandOutput != null) {
-      output.add("CommandOutput[${command.displayName}]:");
-      if (!commandOutput.diagnostics.isEmpty) {
-        String prefix = 'diagnostics:';
-        for (var s in commandOutput.diagnostics) {
-          output.add('$prefix ${s}');
-          prefix = '   ';
-        }
-      }
-      if (!commandOutput.stdout.isEmpty) {
-        output.add('');
-        output.add('stdout:');
-        output.addAll(_linesWithoutCarriageReturn(commandOutput.stdout));
-      }
-      if (!commandOutput.stderr.isEmpty) {
-        output.add('');
-        output.add('stderr:');
-        output.addAll(_linesWithoutCarriageReturn(commandOutput.stderr));
-      }
-    }
+    if (commandOutput == null) continue;
+
+    var time = niceTime(commandOutput.time);
+    output.section('Command "${command.displayName}" (took $time)');
+    output.write(command.toString());
+    commandOutput.describe(test.configuration.progress, output);
   }
 
-  if (test is BrowserTestCase) {
+  if (test is BrowserTestCase && ranAllCommands) {
     // Additional command for rerunning the steps locally after the fact.
-    var command = test.configuration.servers.httpServerCommandLine();
-    output.add('');
-    output.add('To retest, run:  $command');
+    output.section('To debug locally, run');
+    output.write(test.configuration.servers.commandLine);
   }
 
-  for (var i = 0; i < test.commands.length; i++) {
-    var command = test.commands[i];
-    var commandOutput = test.commandOutputs[command];
-    output.add('');
-    output.add('Command[${command.displayName}]: $command');
-    if (commandOutput != null) {
-      output.add('Took ${commandOutput.time}');
-    } else {
-      output.add('Did not run');
-    }
-  }
-
-  var arguments;
+  output.section('Re-run this test');
+  List<String> arguments;
   if (Platform.isFuchsia) {
     arguments = [Platform.executable, Platform.script.path];
   } else {
@@ -654,20 +675,18 @@ List<String> _buildFailureOutput(TestCase test,
   }
   arguments.addAll(test.configuration.reproducingArguments);
   arguments.add(test.displayName);
-  var testCommandLine = arguments.map(escapeCommandLineArgument).join(' ');
 
-  output.add('');
-  output.add('Short reproduction command (experimental):');
-  output.add("    $testCommandLine");
-  return output;
+  output.write(arguments.map(escapeCommandLineArgument).join(' '));
+  return lines;
 }
 
-String _buildSummaryEnd(int failedTests) {
+String _buildSummaryEnd(Formatter formatter, int failedTests) {
   if (failedTests == 0) {
-    return '\n===\n=== All tests succeeded\n===\n';
+    return formatter.passed('\n===\n=== All tests succeeded\n===\n');
   } else {
     var pluralSuffix = failedTests != 1 ? 's' : '';
-    return '\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n';
+    return formatter
+        .failed('\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n');
   }
 }
 
@@ -675,6 +694,14 @@ class ResultLogWriter extends EventListener {
   Map<String, Map> _configurations = {};
   List<Map> _results = [];
   String _outputDirectory;
+
+  ResultLogWriter(this._outputDirectory);
+
+  void allTestsKnown() {
+    // Write an empty result log file, that will be overwritten if any tests
+    // are actually run, when the allDone event handler is invoked.
+    writeToFile({}, []);
+  }
 
   void done(TestCase test) {
     // We try to find an existing configuration, so as to not duplicate this
@@ -725,18 +752,20 @@ class ResultLogWriter extends EventListener {
       'negative': test.isNegative,
       'commands': commands
     });
-
-    _outputDirectory ??= test.configuration.outputDirectory;
   }
 
   void allDone() {
+    writeToFile(_configurations, _results);
+  }
+
+  void writeToFile(Map<String, Map> configurations, List<Map> results) {
     if (_outputDirectory != null) {
       var path = new Path(_outputDirectory);
       var file =
           new File(path.append(TestUtils.resultLogFileName).toNativePath());
       file.createSync(recursive: true);
-      file.writeAsStringSync(JSON
-          .encode({'configurations': _configurations, 'results': _results}));
+      file.writeAsStringSync(
+          JSON.encode({'configurations': configurations, 'results': results}));
     }
   }
 }

@@ -292,7 +292,6 @@ bool_from_environment2_test/01: MissingCompileTimeError
 bool_from_environment2_test/02: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
 bool_from_environment2_test/04: MissingCompileTimeError
-bool_from_environment2_test/05: MissingCompileTimeError
 compare_to2_test: RuntimeError
 string_trimlr_test/02: RuntimeError
 symbol_operator_test/03: RuntimeError
@@ -312,7 +311,6 @@ string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
-string_from_environment3_test/05: MissingCompileTimeError
 
 [ $compiler == dartkp ]
 apply3_test: Crash
@@ -502,7 +500,6 @@ list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 apply3_test: RuntimeError
-const_list_literal_test: RuntimeError
 hash_set_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 iterable_element_at_test/static: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 iterable_mapping_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -513,23 +510,20 @@ iterable_to_set_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # type 'DillClassBuilder' is not a subtype of type 'SourceClassBuilder' of 'named' where
-queue_test: RuntimeError
-regexp/regexp_kde_test: RuntimeError
 splay_tree_from_iterable_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 splay_tree_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 splay_tree_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
+symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-symbol_reserved_word_test/03: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply3_test: RuntimeError
-const_list_literal_test: RuntimeError
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError
 hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
@@ -542,20 +536,18 @@ iterable_to_set_test: Crash # Assertion failure: Cannot find value Instance of '
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # tests/corelib_2/map_test.dart:870:7: Internal problem: Unhandled Null in installDefaultConstructor.
-queue_test: RuntimeError
-regexp/regexp_kde_test: RuntimeError
 splay_tree_from_iterable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeMap.#v), local(SplayTreeMap.#)) for j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
 splay_tree_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
 splay_tree_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-symbol_reserved_word_test/03: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [$arch == simdbc || $arch == simdbc64]
@@ -610,3 +602,31 @@ error_stack_trace1_test: Skip  # Expects unobfuscated stack trace
 
 [ $compiler == dart2js && $runtime != none && $dart2js_with_kernel ]
 list_concurrent_modify_test: Crash # Issue 30559
+
+[ $compiler == dartk && $strong ]
+collection_removes_test: RuntimeError
+date_time11_test: RuntimeError
+iterable_generate_test/01: Pass
+iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/none: RuntimeError
+iterable_to_set_test: Pass
+list_concurrent_modify_test: RuntimeError
+list_insert_all_test: RuntimeError
+main_test: RuntimeError
+map_keys2_test: Pass
+
+[ $compiler == dartkp && $strong ]
+collection_removes_test: RuntimeError
+int_parse_with_limited_ints_test: Crash
+iterable_expand_test: Crash
+iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/none: RuntimeError
+list_concurrent_modify_test: RuntimeError
+list_insert_all_test: RuntimeError
+list_insert_test: RuntimeError
+stacktrace_fromstring_test: Crash
+typed_data_with_limited_ints_test: Crash
+
+[ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug ]
+list_test/none: Crash
+list_test/01: Crash

@@ -195,6 +195,8 @@ generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30930
 generic_function_type_as_type_argument_test/03: CompileTimeError # Issue 30930
 generic_function_typedef2_test/04: MissingCompileTimeError
+generic_method_types_test/01: RuntimeError
+generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_closure_test: RuntimeError
@@ -205,6 +207,7 @@ generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30208
 generic_methods_named_parameters_test: RuntimeError
+generic_methods_new_test: RuntimeError
 generic_methods_optional_parameters_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_overriding_test/03: MissingCompileTimeError
@@ -1164,18 +1167,8 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_no_cancel2_test: RuntimeError
-async_star_no_cancel_test: RuntimeError
-async_star_regression_fisk_test: RuntimeError
-async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
-async_star_test/03: RuntimeError
-async_star_test/04: RuntimeError
-async_star_test/05: RuntimeError
-async_star_test/none: RuntimeError
-await_exceptions_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -1192,7 +1185,6 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
@@ -1279,7 +1271,6 @@ const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
@@ -1343,7 +1334,6 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/none: RuntimeError
 enum_mirror_test: RuntimeError
-execute_finally7_test: RuntimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -1439,6 +1429,7 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
+missing_part_of_tag_test/01: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
@@ -1586,6 +1577,8 @@ regress_28278_test: CompileTimeError
 regress_28341_test: RuntimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ko).
+script1_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+script2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
@@ -1614,18 +1607,8 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_no_cancel2_test: RuntimeError
-async_star_no_cancel_test: RuntimeError
-async_star_regression_fisk_test: RuntimeError
-async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
-async_star_test/03: RuntimeError
-async_star_test/04: RuntimeError
-async_star_test/05: RuntimeError
-async_star_test/none: RuntimeError
-await_exceptions_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -1642,7 +1625,6 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
@@ -1728,7 +1710,6 @@ const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
@@ -1792,7 +1773,6 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/none: RuntimeError
 enum_mirror_test: RuntimeError
-execute_finally7_test: RuntimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -1889,6 +1869,7 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
+missing_part_of_tag_test/01: Crash # Issue 30997
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
@@ -2034,6 +2015,8 @@ regress_28278_test: CompileTimeError
 regress_28341_test: RuntimeError
 regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: Crash # Issue 29784
+script1_negative_test: Crash # Issue 30997
+script2_negative_test: Crash # Issue 30997
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stack_trace_test: RuntimeError

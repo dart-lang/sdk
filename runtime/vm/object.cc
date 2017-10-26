@@ -1258,6 +1258,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     Type& type = Type::Handle(zone);
     Array& array = Array::Handle(zone);
     Library& lib = Library::Handle(zone);
+    TypeArguments& type_args = TypeArguments::Handle(zone);
 
     // All RawArray fields will be initialized to an empty array, therefore
     // initialize array class first.
@@ -1733,6 +1734,19 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     // Consider removing when/if Null becomes an ordinary class.
     type = object_store->object_type();
     cls.set_super_type(type);
+
+    // Create and cache commonly used type arguments <int> and <String>
+    type_args = TypeArguments::New(1);
+    type = object_store->int_type();
+    type_args.SetTypeAt(0, type);
+    type_args.Canonicalize();
+    object_store->set_type_argument_int(type_args);
+
+    type_args = TypeArguments::New(1);
+    type = object_store->string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.Canonicalize();
+    object_store->set_type_argument_string(type_args);
 
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
@@ -6536,7 +6550,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-  if (FLAG_reify_generic_functions) {
+  if (Isolate::Current()->reify_generic_functions()) {
     // Check the type parameters and bounds of generic functions.
     if (!HasSameTypeParametersAndBounds(other)) {
       return false;
@@ -7185,7 +7199,7 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
   Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   String& name = String::Handle(zone);
-  if (FLAG_reify_generic_functions) {
+  if (Isolate::Current()->reify_generic_functions()) {
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, type_parameters());
     if (!type_params.IsNull()) {
@@ -16868,7 +16882,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   const Function& other_sig_fun =
       Function::Handle(zone, other_type.signature());
 
-  if (FLAG_reify_generic_functions) {
+  if (Isolate::Current()->reify_generic_functions()) {
     // Compare function type parameters and their bounds.
     // Check the type parameters and bounds of generic functions.
     if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun)) {
@@ -19984,14 +19998,14 @@ RawString* String::FromUTF8(const uint8_t* utf8_array,
     if (len > 0) {
       NoSafepointScope no_safepoint;
       Utf8::DecodeToLatin1(utf8_array, array_len,
-                           OneByteString::CharAddr(strobj, 0), len);
+                           OneByteString::DataStart(strobj), len);
     }
     return strobj.raw();
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   const String& strobj = String::Handle(TwoByteString::New(len, space));
   NoSafepointScope no_safepoint;
-  Utf8::DecodeToUTF16(utf8_array, array_len, TwoByteString::CharAddr(strobj, 0),
+  Utf8::DecodeToUTF16(utf8_array, array_len, TwoByteString::DataStart(strobj),
                       len);
   return strobj.raw();
 }
@@ -20428,29 +20442,6 @@ RawString* String::SubString(Thread* thread,
 }
 
 const char* String::ToCString() const {
-  if (IsOneByteString()) {
-    // Quick conversion if OneByteString contains only ASCII characters.
-    intptr_t len = Length();
-    if (len == 0) {
-      return "";
-    }
-    Zone* zone = Thread::Current()->zone();
-    uint8_t* result = zone->Alloc<uint8_t>(len + 1);
-    NoSafepointScope no_safepoint;
-    const uint8_t* original_str = OneByteString::CharAddr(*this, 0);
-    for (intptr_t i = 0; i < len; i++) {
-      if (original_str[i] <= Utf8::kMaxOneByteChar) {
-        result[i] = original_str[i];
-      } else {
-        len = -1;
-        break;
-      }
-    }
-    if (len > 0) {
-      result[len] = 0;
-      return reinterpret_cast<const char*>(result);
-    }
-  }
   const intptr_t len = Utf8::Length(*this);
   Zone* zone = Thread::Current()->zone();
   uint8_t* result = zone->Alloc<uint8_t>(len + 1);
@@ -20460,26 +20451,6 @@ const char* String::ToCString() const {
 }
 
 char* String::ToMallocCString() const {
-  if (IsOneByteString()) {
-    // Quick conversion if OneByteString contains only ASCII characters.
-    intptr_t len = Length();
-    uint8_t* result = reinterpret_cast<uint8_t*>(malloc(len + 1));
-    NoSafepointScope no_safepoint;
-    const uint8_t* original_str = OneByteString::CharAddr(*this, 0);
-    for (intptr_t i = 0; i < len; i++) {
-      if (original_str[i] <= Utf8::kMaxOneByteChar) {
-        result[i] = original_str[i];
-      } else {
-        len = -1;
-        free(result);
-        break;
-      }
-    }
-    if (len > 0) {
-      result[len] = 0;
-      return reinterpret_cast<char*>(result);
-    }
-  }
   const intptr_t len = Utf8::Length(*this);
   uint8_t* result = reinterpret_cast<uint8_t*>(malloc(len + 1));
   ToUTF8(result, len);
@@ -20774,7 +20745,7 @@ RawOneByteString* OneByteString::New(const uint8_t* characters,
   const String& result = String::Handle(OneByteString::New(len, space));
   if (len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(CharAddr(result, 0), characters, len);
+    memmove(DataStart(result), characters, len);
   }
   return OneByteString::raw(result);
 }
@@ -20818,7 +20789,7 @@ RawOneByteString* OneByteString::New(const String& other_one_byte_string,
   ASSERT(other_one_byte_string.IsOneByteString());
   if (other_len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(OneByteString::CharAddr(result, 0),
+    memmove(OneByteString::DataStart(result),
             OneByteString::CharAddr(other_one_byte_string, other_start_index),
             other_len);
   }
@@ -20833,7 +20804,7 @@ RawOneByteString* OneByteString::New(const TypedData& other_typed_data,
   ASSERT(other_typed_data.ElementSizeInBytes() == 1);
   if (other_len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(OneByteString::CharAddr(result, 0),
+    memmove(OneByteString::DataStart(result),
             other_typed_data.DataAddr(other_start_index), other_len);
   }
   return OneByteString::raw(result);
@@ -20847,7 +20818,7 @@ RawOneByteString* OneByteString::New(const ExternalTypedData& other_typed_data,
   ASSERT(other_typed_data.ElementSizeInBytes() == 1);
   if (other_len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(OneByteString::CharAddr(result, 0),
+    memmove(OneByteString::DataStart(result),
             other_typed_data.DataAddr(other_start_index), other_len);
   }
   return OneByteString::raw(result);
@@ -20997,7 +20968,7 @@ RawTwoByteString* TwoByteString::New(const uint16_t* utf16_array,
   const String& result = String::Handle(TwoByteString::New(array_len, space));
   {
     NoSafepointScope no_safepoint;
-    memmove(CharAddr(result, 0), utf16_array, (array_len * 2));
+    memmove(DataStart(result), utf16_array, (array_len * 2));
   }
   return TwoByteString::raw(result);
 }
@@ -21040,7 +21011,7 @@ RawTwoByteString* TwoByteString::New(const TypedData& other_typed_data,
   const String& result = String::Handle(TwoByteString::New(other_len, space));
   if (other_len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(TwoByteString::CharAddr(result, 0),
+    memmove(TwoByteString::DataStart(result),
             other_typed_data.DataAddr(other_start_index),
             other_len * sizeof(uint16_t));
   }
@@ -21054,7 +21025,7 @@ RawTwoByteString* TwoByteString::New(const ExternalTypedData& other_typed_data,
   const String& result = String::Handle(TwoByteString::New(other_len, space));
   if (other_len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(TwoByteString::CharAddr(result, 0),
+    memmove(TwoByteString::DataStart(result),
             other_typed_data.DataAddr(other_start_index),
             other_len * sizeof(uint16_t));
   }
