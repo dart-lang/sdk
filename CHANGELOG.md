@@ -1,3 +1,7 @@
+# 0.1.38
+
+* `public_member_api_docs` fix for package URIs
+
 # 0.1.37
 
 * `avoid_positional_boolean_parameters` updated to allow booleans in operator declarations
