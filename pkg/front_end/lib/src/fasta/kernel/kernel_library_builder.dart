@@ -18,6 +18,7 @@ import '../fasta_codes.dart'
     show
         Message,
         messageConflictsWithTypeVariableCause,
+        messageExternalFactoryRedirection,
         messageTypeVariableDuplicatedName,
         messageTypeVariableSameNameAsEnclosing,
         templateConflictsWithTypeVariable,
@@ -680,6 +681,10 @@ class KernelLibraryBuilder
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
 
+    if (redirectionTarget != null && procedure.isExternal) {
+      addCompileTimeError(
+          messageExternalFactoryRedirection, redirectionTarget.charOffset, uri);
+    }
     currentDeclaration.addFactoryDeclaration(procedure, factoryDeclaration);
     addBuilder(procedureName, procedure, charOffset);
     if (nativeMethodName != null) {

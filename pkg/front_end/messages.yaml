@@ -1402,3 +1402,7 @@ ColonInPlaceOfIn:
   tip: "Try replacing the colon with the keyword 'in'."
   analyzerCode: COLON_IN_PLACE_OF_IN
   dart2jsCode: "*fatal*"
+
+ExternalFactoryRedirection:
+  template: "A redirecting factory can't be external."
+  tip: "Try removing the 'external' modifier."

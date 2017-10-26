@@ -1396,6 +1396,16 @@ const MessageCode messageExternalEnum = const MessageCode("ExternalEnum",
     tip: r"""Try removing the keyword 'external'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalFactoryRedirection =
+    messageExternalFactoryRedirection;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalFactoryRedirection = const MessageCode(
+    "ExternalFactoryRedirection",
+    message: r"""A redirecting factory can't be external.""",
+    tip: r"""Try removing the 'external' modifier.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalMethodWithBody = messageExternalMethodWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

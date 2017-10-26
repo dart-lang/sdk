@@ -51,7 +51,7 @@ import '../messages.dart'
         messageNonInstanceTypeVariableUse,
         warning;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unexpected;
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
@@ -74,6 +74,8 @@ import 'kernel_builder.dart'
         isRedirectingGenerativeConstructorImplementation;
 
 import 'kernel_shadow_ast.dart' show ShadowProcedure, ShadowVariableDeclaration;
+
+import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
@@ -116,6 +118,15 @@ abstract class KernelFunctionBuilder
       function.body = newBody;
       newBody?.parent = function;
     }
+  }
+
+  void setRedirectingFactoryBody(Member target) {
+    if (actualBody != null) {
+      unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
+    }
+    actualBody = new RedirectingFactoryBody(target);
+    function.body = actualBody;
+    actualBody?.parent = function;
   }
 
   Statement get body => actualBody ??= new EmptyStatement();

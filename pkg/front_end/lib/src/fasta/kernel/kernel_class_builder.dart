@@ -128,14 +128,12 @@ abstract class KernelClassBuilder
           ConstructorReferenceBuilder redirectionTarget =
               builder.redirectionTarget;
           if (redirectionTarget != null) {
-            assert(builder.actualBody == null);
             Builder targetBuilder = redirectionTarget.target;
             addRedirectingConstructor(builder, library);
             if (targetBuilder is ProcedureBuilder) {
-              Member target = targetBuilder.target;
-              builder.body = new RedirectingFactoryBody(target);
+              builder.setRedirectingFactoryBody(targetBuilder.target);
             } else if (targetBuilder is DillMemberBuilder) {
-              builder.body = new RedirectingFactoryBody(targetBuilder.member);
+              builder.setRedirectingFactoryBody(targetBuilder.member);
             } else {
               var message = templateRedirectionTargetNotFound
                   .withArguments(redirectionTarget.fullNameForErrors);
