@@ -115,10 +115,15 @@ class _Visitor extends GeneralizingAstVisitor {
   /// Return true if the given node is declared in a compilation unit that is in
   /// a `lib/` folder.
   bool _isDefinedInLib(CompilationUnit compilationUnit) {
-    Uri uri = compilationUnit?.element?.source?.uri;
+    String fullName = compilationUnit?.element?.source?.fullName;
+    if (fullName == null) {
+      return false;
+    }
 
+    // TODO(devoncarew): Change to using the resource provider on the context
+    // when that is available.
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    File file = resourceProvider.getFile(uri.toFilePath());
+    File file = resourceProvider.getFile(fullName);
     Folder folder = file.parent;
 
     // Look for a pubspec.yaml file.
