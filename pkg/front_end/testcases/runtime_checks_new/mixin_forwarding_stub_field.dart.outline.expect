@@ -1,0 +1,43 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  default constructor •() → void
+    ;
+  get x() → core::int
+    ;
+  set x(core::int value) → void
+    ;
+  get y() → core::int
+    ;
+  set y(core::int value) → void
+    ;
+}
+abstract class I<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    ;
+  abstract get x() → self::I::T;
+  abstract set x(self::I::T value) → void;
+  abstract get y() → core::Object;
+  abstract set y(covariant core::Object value) → void;
+}
+class M extends core::Object {
+  field core::int x;
+  field core::int y;
+  default constructor •() → void
+    ;
+}
+class C = self::B with self::M implements self::I<core::int> {
+  constructor •() → void
+    : super self::B::•()
+    ;
+}
+static method expectTypeError(() → void callback) → void
+  ;
+static method expect(core::Object value, core::Object expected) → void
+  ;
+static method test(self::I<core::Object> i) → void
+  ;
+static method main() → void
+  ;

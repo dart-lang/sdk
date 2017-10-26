@@ -1,0 +1,72 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → (core::int) → void {
+    throw "Should not be reached";
+  }
+  set x(core::Object value) → void {
+    throw "Should not be reached";
+  }
+}
+abstract class I<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get x() → (self::I::T) → void;
+  abstract set x(core::Object value) → void;
+}
+abstract class M<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → self::M::T
+    return this.{self::M::f}();
+  set x(core::Object value) → void {
+    throw "Should not be reached";
+  }
+  abstract method f() → self::M::T;
+}
+abstract class C<T extends core::Object> = self::B with self::M<(self::C::T) → void> implements self::I<self::C::T> {
+  constructor •() → void
+    : super self::B::•()
+    ;
+}
+class D extends self::C<core::int> {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+  method f() → (core::int) → void
+    return (core::int i) → dynamic {
+      self::expect(i, 1);
+    };
+}
+static method expectTypeError(() → void callback) → void {
+  try {
+    callback.call();
+    throw "Expected TypeError, did not occur";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+}
+static method expect(core::Object value, core::Object expected) → void {
+  if(!value.==(expected)) {
+    throw "Expected ${expected}, got ${value}";
+  }
+}
+static method test(self::I<core::Object> iObj, self::I<core::int> iInt) → void {
+  self::expectTypeError(() → dynamic {
+    dynamic x = iObj.x;
+  });
+  dynamic x = iInt.x;
+  x.call(1);
+}
+static method main() → void {
+  dynamic d = new self::D::•();
+  self::test(d, d);
+}

@@ -136,8 +136,10 @@ class MixinFullResolution {
       Procedure clone = cloner.clone(procedure);
       // Linear search for a forwarding stub with the same name.
       for (int i = 0; i < originalLength; ++i) {
-        if (class_.procedures[i].name == clone.name) {
-          FunctionNode src = class_.procedures[i].function;
+        var originalProcedure = class_.procedures[i];
+        if (originalProcedure.name == clone.name &&
+            originalProcedure.kind == clone.kind) {
+          FunctionNode src = originalProcedure.function;
           FunctionNode dst = clone.function;
           assert(src.typeParameters.length == dst.typeParameters.length);
           for (int j = 0; j < src.typeParameters.length; ++j) {

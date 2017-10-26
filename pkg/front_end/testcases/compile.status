@@ -97,6 +97,10 @@ regress/issue_29977: Crash # Issue 30997.
 regress/issue_29982: Fail # Issue 29982.
 regress/issue_29987: Crash # Issue 30997.
 
+runtime_checks_new/mixin_forwarding_stub_field: RuntimeError # Test exercises strong mode semantics
+runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Test exercises strong mode semantics
+runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises strong mode semantics
+
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
 rasta/export: RuntimeError # Expected, this file has no main method.

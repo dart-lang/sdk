@@ -157,6 +157,9 @@ regress/issue_29982: Fail # Issue 29982.
 regress/issue_29987: Crash # Issue 30997.
 
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
+runtime_checks_new/mixin_forwarding_stub_field: RuntimeError # Forwarding stub checks not yet implemented
+runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Forwarding stub checks not yet implemented
+runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Forwarding stub checks not yet implemented
 
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.

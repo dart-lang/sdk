@@ -1,0 +1,74 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → T;
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → (core::int) → core::int {
+    throw "Should not be reached";
+  }
+  set x((core::int) → core::int value) → void {
+    throw "Should not be reached";
+  }
+}
+abstract class I<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract generic-contravariant get x() → (self::I::T) → self::I::T;
+  abstract set x(generic-covariant-impl generic-covariant-interface (self::I::T) → self::I::T value) → void;
+}
+class M extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → (core::int) → core::int
+    return (core::int i) → core::int {
+      self::expect(i, 1);
+      return 2;
+    };
+  set x((core::int) → core::int value) → void {
+    self::expect(value.call(3), 4);
+  }
+}
+class C = self::B with self::M implements self::I<core::int> {
+  constructor •() → void
+    : super self::B::•()
+    ;
+}
+static method expectTypeError(() → void callback) → void {
+  try {
+    callback.call();
+    throw "Expected TypeError, did not occur";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+}
+static method expect(core::Object value, core::Object expected) → void {
+  if(!value.{core::Object::==}(expected)) {
+    throw "Expected ${expected}, got ${value}";
+  }
+}
+static method test(self::I<core::Object> iObj, self::I<core::int> iInt) → void {
+  self::expectTypeError(() → core::Null {
+    (core::Object) → core::Object x = iObj.{self::I::x} as{TypeError} (core::Object) → core::Object;
+  });
+  (core::int) → core::int x = iInt.{self::I::x} as{TypeError} (core::int) → core::int;
+  self::expect(x.call(1), 2);
+  self::expectTypeError(() → core::Null {
+    (core::int) → core::Object f = (core::int value) → core::int => 4;
+    iObj.{self::I::x} = f;
+  });
+  function g(core::int value) → core::int {
+    self::expect(value, 3);
+    return 4;
+  }
+  iInt.{self::I::x} = g;
+}
+static method main() → void {
+  self::C c = new self::C::•();
+  self::test(c, c);
+}
