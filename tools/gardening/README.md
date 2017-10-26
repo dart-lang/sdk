@@ -25,8 +25,17 @@ each test against the status files in your repository. Use it by calling:
 
 `dart results.dart get failures <argument>`
 
-The argument can be a builder-group, a specific builder, a builder and a
-build-number, a CL number and patchset, or an uri to a result.log file.
+The arguments can be one of the following:
+
+```console
+    get failures <result.log>               : for a local result.log file.
+    get failures <uri_to_result_log>        : for direct links to result.logs.
+    get failures <uri_try_bot>              : for links to try bot builders.
+    get failures <commit_number> <patchset> : for links to try bot builders (see example below).
+    get failures <builder>                  : for a builder name.
+    get failures <builder> <build_number>   : for a builder and build number.
+    get failures <builder_group>            : for a builder group.
+```
 
 Some common workflows are listed below.
 
