@@ -165,6 +165,14 @@ class KernelDriver {
       }
 
       List<LibraryCycleResult> results = [];
+
+      // Even if we don't compile SDK libraries, add them to results.
+      // We need to be able to access dart:core and dart:async classes.
+      if (_sdkOutline != null) {
+        results.add(new LibraryCycleResult(
+            new LibraryCycle(), '<sdk>', {}, _sdkOutline.libraries));
+      }
+
       _testView.compiledCycles.clear();
       await _logger.runAsync('Compute results for cycles', () async {
         for (LibraryCycle cycle in cycles) {

@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -555,6 +556,12 @@ class FileState {
   }
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
+    if (source == null) {
+      var token = new Token.eof(0);
+      return astFactory.compilationUnit(token, null, [], [], token)
+        ..lineInfo = new LineInfo(const <int>[0]);
+    }
+
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);

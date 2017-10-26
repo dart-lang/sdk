@@ -40,6 +40,7 @@ KernelDriver createKernelDriver(
     PerformanceLog logger,
     ByteStore byteStore,
     AnalysisOptions analysisOptions,
+    Folder sdkFolder,
     SourceFactory sourceFactory,
     FileSystemState fsState,
     pathos.Context pathContext) {
@@ -69,6 +70,17 @@ KernelDriver createKernelDriver(
     }
   }
 
+  // Try to find the SDK outline.
+  // It is not used for unit testing, we compile SDK sources.
+  // But for running shared tests we need the patched SDK.
+  List<int> sdkOutlineBytes;
+  if (sdkFolder != null) {
+    try {
+      sdkOutlineBytes =
+          sdkFolder.getChildAssumingFile('vm_outline.dill').readAsBytesSync();
+    } catch (_) {}
+  }
+
   var uriTranslator = new UriTranslatorImpl(
       new TargetLibrariesSpecification('none', dartLibraries), packages);
   var options = new ProcessedOptions(new CompilerOptions()
@@ -79,7 +91,8 @@ KernelDriver createKernelDriver(
     ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
     ..byteStore = byteStore);
   return new KernelDriver(options, uriTranslator,
-      metadataFactory: new AnalyzerMetadataFactory());
+      metadataFactory: new AnalyzerMetadataFactory(),
+      sdkOutlineBytes: sdkOutlineBytes);
 }
 
 /**

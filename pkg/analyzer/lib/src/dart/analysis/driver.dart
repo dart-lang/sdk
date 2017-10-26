@@ -108,6 +108,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final bool enableKernelDriver;
 
   /**
+   * The [Folder] with the `vm_platform.dill` file.
+   *
+   * We use `vm_platform.dill`, because loading patches is not yet implemented,
+   * and patches are not a part of SDK distribution.
+   */
+  final Folder kernelPlatformFolder;
+
+  /**
    * The scheduler that schedules analysis work in this, and possibly other
    * analysis drivers.
    */
@@ -340,6 +348,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       SourceFactory sourceFactory,
       this._analysisOptions,
       {this.enableKernelDriver: false,
+      this.kernelPlatformFolder,
       PackageBundle sdkBundle,
       this.disableChangesAndCacheAllResults: false,
       SummaryDataStore externalSummaries})
@@ -1326,8 +1335,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   void _createKernelDriver() {
     if (enableKernelDriver) {
-      _kernelDriver = createKernelDriver(_logger, _byteStore, analysisOptions,
-          sourceFactory, fsState, _resourceProvider.pathContext);
+      _kernelDriver = createKernelDriver(
+          _logger,
+          _byteStore,
+          analysisOptions,
+          kernelPlatformFolder,
+          sourceFactory,
+          fsState,
+          _resourceProvider.pathContext);
     }
   }
 

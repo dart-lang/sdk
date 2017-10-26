@@ -642,6 +642,14 @@ class Driver implements CommandLineStarter {
     if (options.enableNewAnalysisDriver) {
       PerformanceLog log = new PerformanceLog(null);
       AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+
+      bool enableKernelDriver = options.previewDart2;
+      file_system.Folder kernelPlatformBinariesFolder;
+      if (enableKernelDriver && options.dartSdkPlatformBinariesPath != null) {
+        kernelPlatformBinariesFolder =
+            resourceProvider.getFolder(options.dartSdkPlatformBinariesPath);
+      }
+
       analysisDriver = new AnalysisDriver(
           scheduler,
           log,
@@ -651,7 +659,8 @@ class Driver implements CommandLineStarter {
           null,
           context.sourceFactory,
           context.analysisOptions,
-          enableKernelDriver: options.previewDart2);
+          enableKernelDriver: enableKernelDriver,
+          kernelPlatformFolder: kernelPlatformBinariesFolder);
       analysisDriver.results.listen((_) {});
       analysisDriver.exceptions.listen((_) {});
       scheduler.start();
