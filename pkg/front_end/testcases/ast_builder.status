@@ -440,6 +440,7 @@ regress/issue_29981: Crash
 regress/issue_29984: Crash
 regress/issue_29985: Crash
 regress/issue_29987: Crash # Issue 30997.
+regress/issue_31155: Crash # Issue 31155.
 reorder_super: Crash
 runtime_checks/call_kinds: Crash
 runtime_checks/call_kinds_get: Crash

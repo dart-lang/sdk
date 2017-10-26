@@ -155,6 +155,7 @@ regress/issue_29976: RuntimeError # Issue 29976.
 regress/issue_29977: Crash # Issue 30997.
 regress/issue_29982: Fail # Issue 29982.
 regress/issue_29987: Crash # Issue 30997.
+regress/issue_31155: Crash # Issue 31155.
 
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
 runtime_checks_new/mixin_forwarding_stub_field: RuntimeError # Forwarding stub checks not yet implemented
