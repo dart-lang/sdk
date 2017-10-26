@@ -695,6 +695,14 @@ class ResultLogWriter extends EventListener {
   List<Map> _results = [];
   String _outputDirectory;
 
+  ResultLogWriter(this._outputDirectory);
+
+  void allTestsKnown() {
+    // Write an empty result log file, that will be overwritten if any tests
+    // are actually run, when the allDone event handler is invoked.
+    writeToFile({}, []);
+  }
+
   void done(TestCase test) {
     // We try to find an existing configuration, so as to not duplicate this
     // for each test.
@@ -744,18 +752,20 @@ class ResultLogWriter extends EventListener {
       'negative': test.isNegative,
       'commands': commands
     });
-
-    _outputDirectory ??= test.configuration.outputDirectory;
   }
 
   void allDone() {
+    writeToFile(_configurations, _results);
+  }
+
+  void writeToFile(Map<String, Map> configurations, List<Map> results) {
     if (_outputDirectory != null) {
       var path = new Path(_outputDirectory);
       var file =
           new File(path.append(TestUtils.resultLogFileName).toNativePath());
       file.createSync(recursive: true);
-      file.writeAsStringSync(JSON
-          .encode({'configurations': _configurations, 'results': _results}));
+      file.writeAsStringSync(
+          JSON.encode({'configurations': configurations, 'results': results}));
     }
   }
 }
