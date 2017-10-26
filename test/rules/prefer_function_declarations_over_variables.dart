@@ -9,6 +9,13 @@ void main() {
     print('this is good');
   }
 
+  var ok = () { // OK
+    print('this is ok');
+  };
+  ok = (){
+    print('this is still ok');
+  };
+
   var bad1 = () { // LINT
     print('this is bad');
   };
