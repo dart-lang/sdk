@@ -124,6 +124,11 @@ class ModifierContext {
         modifierCount++;
         return parser.parseModifier(token);
 
+      case MemberKind.StaticField:
+      case MemberKind.NonStaticField:
+        parser.reportRecoverableError(token, fasta.messageExternalField);
+        return token.next;
+
       default:
         parser.reportRecoverableErrorWithToken(
             token, fasta.templateExtraneousModifier);
@@ -154,18 +159,20 @@ class ModifierContext {
       parser.reportRecoverableErrorWithToken(
           token, fasta.templateExtraneousModifier);
       return token.next;
-    } else if (memberKind == MemberKind.NonStaticMethod) {
-      memberKind = MemberKind.StaticMethod;
-      modifierCount++;
-      return parser.parseModifier(token);
-    } else if (memberKind == MemberKind.NonStaticField) {
-      memberKind = MemberKind.StaticField;
-      modifierCount++;
-      return parser.parseModifier(token);
-    } else {
-      parser.reportRecoverableErrorWithToken(
-          token, fasta.templateExtraneousModifier);
-      return token.next;
+    }
+    switch (memberKind) {
+      case MemberKind.NonStaticMethod:
+        memberKind = MemberKind.StaticMethod;
+        modifierCount++;
+        return parser.parseModifier(token);
+      case MemberKind.NonStaticField:
+        memberKind = MemberKind.StaticField;
+        modifierCount++;
+        return parser.parseModifier(token);
+      default:
+        parser.reportRecoverableErrorWithToken(
+            token, fasta.templateExtraneousModifier);
+        return token.next;
     }
   }
 
@@ -362,8 +369,14 @@ class ModifierRecoveryContext extends ModifierContext {
       parser.reportRecoverableError(token, fasta.messageCovariantAndStatic);
       return token.next;
     }
-    if (finalToken != null) {
+    if (constToken != null) {
+      parser.reportRecoverableError(token, fasta.messageStaticAfterConst);
+      // fall through to parse modifier
+    } else if (finalToken != null) {
       parser.reportRecoverableError(token, fasta.messageStaticAfterFinal);
+      // fall through to parse modifier
+    } else if (varToken != null) {
+      parser.reportRecoverableError(token, fasta.messageStaticAfterVar);
       // fall through to parse modifier
     }
     return super.parseStaticOpt(token);

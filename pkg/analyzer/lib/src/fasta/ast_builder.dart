@@ -2535,6 +2535,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_ENUM, offset, length);
         return;
+      case "EXTERNAL_FIELD":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_FIELD, offset, length);
+        return;
       case "EXTERNAL_METHOD_WITH_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, offset, length);
@@ -2711,6 +2715,14 @@ class AstBuilder extends ScopeListener {
       case "STATIC_AFTER_FINAL":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_AFTER_FINAL, offset, length);
+        return;
+      case "STATIC_AFTER_VAR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.STATIC_AFTER_VAR, offset, length);
+        return;
+      case "STATIC_OPERATOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.STATIC_OPERATOR, offset, length);
         return;
       case "TOP_LEVEL_OPERATOR":
         errorReporter?.reportErrorForOffset(

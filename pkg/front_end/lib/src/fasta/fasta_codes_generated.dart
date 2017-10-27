@@ -1455,6 +1455,16 @@ const MessageCode messageExternalFactoryRedirection = const MessageCode(
     tip: r"""Try removing the 'external' modifier.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalField = messageExternalField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalField = const MessageCode("ExternalField",
+    analyzerCode: "EXTERNAL_FIELD",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message: r"""Fields can't be declared to be 'external'.""",
+    tip: r"""Try removing the keyword 'external'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalMethodWithBody = messageExternalMethodWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3440,6 +3450,26 @@ const MessageCode messageStaticAfterFinal = const MessageCode(
     message:
         r"""The modifier 'static' should be before the modifier 'final'.""",
     tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticAfterVar = messageStaticAfterVar;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticAfterVar = const MessageCode("StaticAfterVar",
+    analyzerCode: "STATIC_AFTER_VAR",
+    dart2jsCode: "*ignored*",
+    message: r"""The modifier 'static' should be before the modifier 'var'.""",
+    tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticOperator = messageStaticOperator;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
+    analyzerCode: "STATIC_OPERATOR",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message: r"""Operators can't be static.""",
+    tip: r"""Try removing the keyword 'static'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsIdentifier = messageSuperAsIdentifier;

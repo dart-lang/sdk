@@ -3210,8 +3210,7 @@ class Parser {
     if (optional('operator', name)) {
       token = parseOperatorName(name);
       if (staticModifier != null) {
-        reportRecoverableErrorWithToken(
-            staticModifier, fasta.templateExtraneousModifier);
+        reportRecoverableError(staticModifier, fasta.messageStaticOperator);
       }
     } else {
       token = ensureIdentifier(name, IdentifierContext.methodDeclaration).next;

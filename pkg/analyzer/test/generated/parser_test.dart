@@ -2913,8 +2913,9 @@ class Foo {
     createParser('external C.c() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY]);
+    listener.assertErrorsWithCodes(usingFastaParser
+        ? [ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]
+        : [ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY]);
   }
 
   void test_externalEnum() {
@@ -2926,7 +2927,12 @@ class Foo {
     createParser('external const A f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXTERNAL_FIELD]);
+    listener.assertErrorsWithCodes(usingFastaParser
+        ? [
+            ParserErrorCode.EXTERNAL_FIELD,
+            CompileTimeErrorCode.CONST_NOT_INITIALIZED
+          ]
+        : [ParserErrorCode.EXTERNAL_FIELD]);
   }
 
   void test_externalField_final() {
@@ -2961,7 +2967,9 @@ class Foo {
     createParser('external int get x {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXTERNAL_GETTER_WITH_BODY]);
+    listener.assertErrorsWithCodes(usingFastaParser
+        ? [ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]
+        : [ParserErrorCode.EXTERNAL_GETTER_WITH_BODY]);
   }
 
   void test_externalMethodWithBody() {
@@ -2975,15 +2983,18 @@ class Foo {
     createParser('external operator +(int value) {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrorsWithCodes([ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY]);
+    listener.assertErrorsWithCodes(usingFastaParser
+        ? [ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]
+        : [ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY]);
   }
 
   void test_externalSetterWithBody() {
     createParser('external set x(int value) {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXTERNAL_SETTER_WITH_BODY]);
+    listener.assertErrorsWithCodes(usingFastaParser
+        ? [ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]
+        : [ParserErrorCode.EXTERNAL_SETTER_WITH_BODY]);
   }
 
   void test_externalTypedef() {
@@ -4129,7 +4140,12 @@ class Wrong<T> {
     createParser('const static int f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.STATIC_AFTER_CONST]);
+    listener.assertErrorsWithCodes(usingFastaParser
+        ? [
+            ParserErrorCode.STATIC_AFTER_CONST,
+            CompileTimeErrorCode.CONST_NOT_INITIALIZED
+          ]
+        : [ParserErrorCode.STATIC_AFTER_CONST]);
   }
 
   void test_staticAfterVar() {

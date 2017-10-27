@@ -425,6 +425,14 @@ ExternalConstructorWithBody:
   script:
     - "class C { external factory C() {} }"
 
+ExternalField:
+  template: "Fields can't be declared to be 'external'."
+  tip: "Try removing the keyword 'external'."
+  analyzerCode: EXTERNAL_FIELD
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { external var f; }"
+
 ExtraneousModifier:
   template: "Can't have modifier '#lexeme' here."
   tip: "Try removing '#lexeme'."
@@ -495,6 +503,22 @@ StaticAfterFinal:
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
     - "class C { final static int f; }"
+
+StaticAfterVar:
+  template: "The modifier 'static' should be before the modifier 'var'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: STATIC_AFTER_VAR
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { var static f; }"
+
+StaticOperator:
+  template: "Operators can't be static."
+  tip: "Try removing the keyword 'static'."
+  analyzerCode: STATIC_OPERATOR
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { static operator +(int x) => x + 1; }"
 
 InvalidAwaitFor:
   template: "The keyword 'await' isn't allowed for a normal 'for' statement."

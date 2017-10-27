@@ -500,83 +500,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_externalConstructorWithBody_named() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, found 0
-    super.test_externalConstructorWithBody_named();
-  }
-
-  @override
-  @failingTest
-  void test_externalField_const() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_FIELD, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
-    super.test_externalField_const();
-  }
-
-  @override
-  @failingTest
-  void test_externalField_final() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_FIELD, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
-    super.test_externalField_final();
-  }
-
-  @override
-  @failingTest
-  void test_externalField_static() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_FIELD, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
-    super.test_externalField_static();
-  }
-
-  @override
-  @failingTest
-  void test_externalField_typed() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_FIELD, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
-    super.test_externalField_typed();
-  }
-
-  @override
-  @failingTest
-  void test_externalField_untyped() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_FIELD, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
-    super.test_externalField_untyped();
-  }
-
-  @override
-  @failingTest
-  void test_externalGetterWithBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, found 0
-    super.test_externalGetterWithBody();
-  }
-
-  @override
-  @failingTest
-  void test_externalOperatorWithBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, found 0
-    super.test_externalOperatorWithBody();
-  }
-
-  @override
-  @failingTest
-  void test_externalSetterWithBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, found 0
-    super.test_externalSetterWithBody();
-  }
-
-  @override
-  @failingTest
   void test_extraCommaInParameterList() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0;
@@ -1931,24 +1854,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_staticAfterFinal() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.STATIC_AFTER_CONST, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (6)
-    super.test_staticAfterFinal();
-  }
-
-  @override
-  @failingTest
-  void test_staticAfterVar() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.STATIC_AFTER_VAR, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (4)
-    super.test_staticAfterVar();
-  }
-
-  @override
-  @failingTest
   void test_staticConstructor() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.STATIC_CONSTRUCTOR, found 0
@@ -1961,24 +1866,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.STATIC_GETTER_WITHOUT_BODY, found 0
     super.test_staticGetterWithoutBody();
-  }
-
-  @override
-  @failingTest
-  void test_staticOperator_noReturnType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.STATIC_OPERATOR, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
-    super.test_staticOperator_noReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_staticOperator_returnType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.STATIC_OPERATOR, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
-    super.test_staticOperator_returnType();
   }
 
   @override
