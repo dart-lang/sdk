@@ -65,4 +65,4 @@ pause_idle_isolate_test: Skip # Flaky
 
 # Deferred loading kernel issue 28335.
 [ $compiler == dartk ]
-library_dependency_test: CompileTimeError # Deferred loading kernel issue 28335.
+library_dependency_test: Crash # Deferred loading kernel issue 28335.
