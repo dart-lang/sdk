@@ -684,8 +684,7 @@ class KernelLibraryBuilder
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
 
     if (redirectionTarget != null && procedure.isExternal) {
-      addCompileTimeError(
-          messageExternalFactoryRedirection, redirectionTarget.charOffset, uri);
+      addCompileTimeError(messageExternalFactoryRedirection, charOffset, uri);
     }
     currentDeclaration.addFactoryDeclaration(procedure, factoryDeclaration);
     addBuilder(procedureName, procedure, charOffset);
