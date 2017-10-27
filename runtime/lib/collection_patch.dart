@@ -717,7 +717,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     int oldLength = _buckets.length;
     int newLength = oldLength << 1;
     List oldBuckets = _buckets;
-    List newBuckets = new List(newLength);
+    List newBuckets = new List<_HashSetEntry<E>>(newLength);
     for (int i = 0; i < oldLength; i++) {
       _HashSetEntry<E> entry = oldBuckets[i];
       while (entry != null) {

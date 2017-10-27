@@ -8,14 +8,14 @@ static method test1() → dynamic {
   self::x1.{core::Map::[]=}(3, "z");
   self::x1.{core::Map::[]=}("hi", "w");
   self::x1.{core::Map::[]=}(4.0, "u");
-  self::x1.{core::Map::[]=}(3, 42);
+  self::x1.{core::Map::[]=}(3, 42 as{TypeError} core::String);
   core::Map<core::num, core::String> y = self::x1;
 }
 static method test2() → dynamic {
   self::x2.{core::Map::[]=}(3, "z");
   self::x2.{core::Map::[]=}("hi", "w");
   self::x2.{core::Map::[]=}(4.0, "u");
-  self::x2.{core::Map::[]=}(3, 42);
+  self::x2.{core::Map::[]=}(3, 42 as{TypeError} core::Pattern);
   core::Pattern p = null;
   self::x2.{core::Map::[]=}(2, p);
   core::Map<core::int, core::String> y = self::x2;

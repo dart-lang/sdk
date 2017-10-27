@@ -17,7 +17,9 @@ class C<T> {
   }
 }
 
-main() {
+test() {
   var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(42);
   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
 }
+
+main() {}

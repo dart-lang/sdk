@@ -781,7 +781,6 @@ type_variable_scope2_test: MissingCompileTimeError
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError
 type_variable_scope_test/02: MissingCompileTimeError
-type_variable_scope_test/03: MissingCompileTimeError
 type_variable_scope_test/04: MissingCompileTimeError
 type_variable_scope_test/05: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
@@ -961,6 +960,7 @@ library_env_test/has_no_io_support: RuntimeError, OK
 multiline_strings_test: Fail # Issue 23020
 regress_19413_test: MissingCompileTimeError
 regress_21793_test/01: MissingCompileTimeError
+type_variable_scope_test/03: MissingCompileTimeError
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 

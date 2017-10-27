@@ -13,7 +13,8 @@ class C<T extends core::Object> extends core::Object {
     return x;
   }
 }
-static method main() → dynamic {
+static method test() → dynamic {
   dynamic x = self::C::•<dynamic>(42);
   x.t = "hello";
 }
+static method main() → dynamic {}

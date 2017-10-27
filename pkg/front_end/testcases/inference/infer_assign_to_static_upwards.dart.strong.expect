@@ -13,7 +13,7 @@ static method getDouble() → core::double
   return 0.0;
 static method test1() → void {
   core::int v1 = self::topLevelInt = self::getInt();
-  core::num v2 = self::topLevelInt = self::getNum();
+  core::num v2 = self::topLevelInt = self::getNum() as{TypeError} core::int;
   core::int v4 = let final core::int #t1 = self::topLevelInt in #t1.{core::num::==}(null) ?{core::int} self::topLevelInt = self::getInt() : #t1;
   core::num v5 = let final core::int #t2 = self::topLevelInt in #t2.{core::num::==}(null) ?{core::num} self::topLevelInt = self::getNum() : #t2;
   core::int v7 = self::topLevelInt = self::topLevelInt.{core::num::+}(self::getInt());
@@ -35,7 +35,7 @@ static method test2() → void {
   core::num v11 = let final core::num #t8 = self::topLevelNum in let final core::num #t9 = self::topLevelNum = #t8.{core::num::+}(1) in #t8;
 }
 static method test3() → void {
-  core::num v2 = self::topLevelDouble = self::getNum();
+  core::num v2 = self::topLevelDouble = self::getNum() as{TypeError} core::double;
   core::double v3 = self::topLevelDouble = self::getDouble();
   core::num v5 = let final core::double #t10 = self::topLevelDouble in #t10.{core::num::==}(null) ?{core::num} self::topLevelDouble = self::getNum() : #t10;
   core::double v6 = let final core::double #t11 = self::topLevelDouble in #t11.{core::num::==}(null) ?{core::double} self::topLevelDouble = self::getDouble() : #t11;

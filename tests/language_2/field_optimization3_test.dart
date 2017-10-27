@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 // Dart test program to test type-based optimization on fields.
 
 class A {
-  var a = 0;
+  dynamic a = 0;
   var b = 0;
   foo() {
     var c = b + 27;

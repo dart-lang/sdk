@@ -1106,7 +1106,7 @@ string_split_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 switch_case_test/none: CompileTimeError
 
-vm/lazy_deopt_with_exception*: CompileTimeError
+vm/lazy_deopt_with_exception_test: CompileTimeError
 prefix6_negative_test: CompileTimeError, OK
 void_type_function_types_test/none: CompileTimeError # Issue 30177
 void_type_usage_test/param_as: CompileTimeError # Issue 30177

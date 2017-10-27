@@ -9,7 +9,7 @@ class Test1 extends core::Object {
     ;
   static method test(self::Test1 t) → void {
     core::int v1 = let final self::Test1 #t1 = t in #t1.==(null) ?{core::int} null : #t1.{self::Test1::prop} = self::getInt();
-    core::num v2 = let final self::Test1 #t2 = t in #t2.==(null) ?{core::num} null : #t2.{self::Test1::prop} = self::getNum();
+    core::num v2 = let final self::Test1 #t2 = t in #t2.==(null) ?{core::num} null : #t2.{self::Test1::prop} = self::getNum() as{TypeError} core::int;
     core::int v4 = let final self::Test1 #t3 = t in #t3.==(null) ?{core::int} null : let final core::int #t4 = #t3.{self::Test1::prop} in #t4.{core::num::==}(null) ?{core::int} #t3.{self::Test1::prop} = self::getInt() : #t4;
     core::num v5 = let final self::Test1 #t5 = t in #t5.==(null) ?{core::num} null : let final core::int #t6 = #t5.{self::Test1::prop} in #t6.{core::num::==}(null) ?{core::num} #t5.{self::Test1::prop} = self::getNum() : #t6;
     core::int v7 = let final self::Test1 #t7 = t in #t7.==(null) ?{core::int} null : #t7.{self::Test1::prop} = #t7.{self::Test1::prop}.{core::num::+}(self::getInt());
@@ -43,7 +43,7 @@ class Test3 extends core::Object {
     : super core::Object::•()
     ;
   static method test3(self::Test3 t) → void {
-    core::num v2 = let final self::Test3 #t29 = t in #t29.==(null) ?{core::num} null : #t29.{self::Test3::prop} = self::getNum();
+    core::num v2 = let final self::Test3 #t29 = t in #t29.==(null) ?{core::num} null : #t29.{self::Test3::prop} = self::getNum() as{TypeError} core::double;
     core::double v3 = let final self::Test3 #t30 = t in #t30.==(null) ?{core::double} null : #t30.{self::Test3::prop} = self::getDouble();
     core::num v5 = let final self::Test3 #t31 = t in #t31.==(null) ?{core::num} null : let final core::double #t32 = #t31.{self::Test3::prop} in #t32.{core::num::==}(null) ?{core::num} #t31.{self::Test3::prop} = self::getNum() : #t32;
     core::double v6 = let final self::Test3 #t33 = t in #t33.==(null) ?{core::double} null : let final core::double #t34 = #t33.{self::Test3::prop} in #t34.{core::num::==}(null) ?{core::double} #t33.{self::Test3::prop} = self::getDouble() : #t34;

@@ -16,7 +16,7 @@ class Test1 extends self::Base {
     ;
   method test() → void {
     core::int v1 = super.{self::Base::intProp} = self::getInt();
-    core::num v2 = super.{self::Base::intProp} = self::getNum();
+    core::num v2 = super.{self::Base::intProp} = self::getNum() as{TypeError} core::int;
     core::int v4 = let final core::int #t1 = super.{self::Base::intProp} in #t1.{core::num::==}(null) ?{core::int} super.{self::Base::intProp} = self::getInt() : #t1;
     core::num v5 = let final core::int #t2 = super.{self::Base::intProp} in #t2.{core::num::==}(null) ?{core::num} super.{self::Base::intProp} = self::getNum() : #t2;
     core::int v7 = super.{self::Base::intProp} = super.{self::Base::intProp}.{core::num::+}(self::getInt());
@@ -48,7 +48,7 @@ class Test3 extends self::Base {
     : super self::Base::•()
     ;
   method test3() → void {
-    core::num v2 = super.{self::Base::doubleProp} = self::getNum();
+    core::num v2 = super.{self::Base::doubleProp} = self::getNum() as{TypeError} core::double;
     core::double v3 = super.{self::Base::doubleProp} = self::getDouble();
     core::num v5 = let final core::double #t10 = super.{self::Base::doubleProp} in #t10.{core::num::==}(null) ?{core::num} super.{self::Base::doubleProp} = self::getNum() : #t10;
     core::double v6 = let final core::double #t11 = super.{self::Base::doubleProp} in #t11.{core::num::==}(null) ?{core::double} super.{self::Base::doubleProp} = self::getDouble() : #t11;

@@ -457,14 +457,18 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       _storeLetType(inferrer, replacedCombiner, combinedType);
     } else {
       combinedType = inferrer.inferExpression(rhs, writeContext, true);
-      _storeLetType(inferrer, rhs, combinedType);
-    }
-    if (write != null) {
-      if (this is ShadowIndexAssign) {
-        _storeLetType(inferrer, write, const VoidType());
+      var replacedRhs =
+          inferrer.checkAssignability(writeContext, combinedType, rhs);
+      if (replacedRhs == null) {
+        _storeLetType(inferrer, rhs, combinedType);
       } else {
-        _storeLetType(inferrer, write, combinedType);
+        _storeLetType(inferrer, replacedRhs, writeContext);
       }
+    }
+    if (this is ShadowIndexAssign) {
+      _storeLetType(inferrer, write, const VoidType());
+    } else {
+      _storeLetType(inferrer, write, combinedType);
     }
     return isPostIncDec ? readType : combinedType;
   }

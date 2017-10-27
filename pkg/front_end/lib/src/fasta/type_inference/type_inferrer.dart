@@ -330,6 +330,32 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inference.
   TypePromoter get typePromoter;
 
+  /// Checks whether [actualType] can be assigned to [expectedType], and inserts
+  /// an implicit downcast if appropriate.
+  Expression checkAssignability(
+      DartType expectedType, DartType actualType, Expression expression) {
+    if (expectedType == null ||
+        typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
+      // Types are compatible.
+      return null;
+    } else {
+      if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
+        // Error: not assignable.
+        // TODO(paulberry): report the error.
+      }
+      // Insert an implicit downcast.
+      if (strongMode) {
+        var parent = expression.parent;
+        var typeCheck = new ShadowAsExpression(expression, expectedType)
+          ..isTypeError = true;
+        parent.replaceChild(expression, typeCheck);
+        return typeCheck;
+      } else {
+        return null;
+      }
+    }
+  }
+
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation using [fileOffset].
   ///
