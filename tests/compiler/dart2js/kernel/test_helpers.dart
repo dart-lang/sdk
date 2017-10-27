@@ -172,9 +172,7 @@ class KernelEquivalence {
     strategy ??= defaultStrategy;
     switch (a.kind) {
       case ResolutionTypeKind.DYNAMIC:
-        return b is DynamicType ||
-            // The resolver encodes 'FutureOr' as a dynamic type!
-            (b is InterfaceType && b.element.name == 'FutureOr');
+        return b is DynamicType;
       case ResolutionTypeKind.VOID:
         return b is VoidType;
       case ResolutionTypeKind.INTERFACE:

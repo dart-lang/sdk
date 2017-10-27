@@ -3526,12 +3526,20 @@ class SsaAstGraphBuilder extends ast.Visitor
       SourceInformation sourceInformation =
           sourceInformationBuilder.buildNew(send);
       potentiallyAddTypeArguments(inputs, cls, expectedType);
-      addInlinedInstantiation(expectedType);
+      if (constructor.isGenerativeConstructor ||
+          constructor.isRedirectingFactory) {
+        // Don't register instantiations for non-redirecting factory
+        // constructors.
+        addInlinedInstantiation(expectedType);
+      }
       pushInvokeStatic(node, constructor.declaration, inputs,
           typeMask: elementType,
           instanceType: expectedType,
           sourceInformation: sourceInformation);
-      removeInlinedInstantiation(expectedType);
+      if (constructor.isGenerativeConstructor ||
+          constructor.isRedirectingFactory) {
+        removeInlinedInstantiation(expectedType);
+      }
     }
     HInstruction newInstance = stack.last;
     if (isFixedList) {
@@ -3549,7 +3557,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         (isFixedListConstructorCall ||
             isGrowableListConstructorCall ||
             isJSArrayTypedConstructor)) {
-      newInstance = handleListConstructor(type, send, pop());
+      newInstance = handleListConstructor(expectedType, send, pop());
       stack.add(newInstance);
     }
 
