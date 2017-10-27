@@ -124,7 +124,7 @@ abstract class Builder {
 
   bool get isSynthetic => false;
 
-  get target => unsupported("target", charOffset, fileUri);
+  get target => unsupported("${runtimeType}.target", charOffset, fileUri);
 
   bool get hasProblem => false;
 
