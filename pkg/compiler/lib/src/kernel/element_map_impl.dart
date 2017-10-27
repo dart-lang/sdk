@@ -2336,7 +2336,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
               memberMap,
               variable,
               variable.isConst,
-              !(variable.isFinal || variable.isConst),
+              false, // Closure field is never assigned (only box fields).
               fieldNumber);
           fieldNumber++;
         }
