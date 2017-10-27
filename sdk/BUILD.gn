@@ -63,6 +63,9 @@ declare_args() {
 #.........strong.sum
 #.........dart2js_platform.dill
 #.........vm_outline.dill
+#.........vm_outline_strong.dill
+#.........vm_platform.dill
+#.........vm_platform_strong.dill
 #.........dev_compiler/
 # ......analysis_server/
 # ......analyzer/
@@ -522,7 +525,9 @@ copy("copy_dill_files") {
   ]
   sources = [
     "$root_out_dir/vm_outline.dill",
+    "$root_out_dir/vm_outline_strong.dill",
     "$root_out_dir/vm_platform.dill",
+    "$root_out_dir/vm_platform_strong.dill",
     "$root_out_dir/vmservice_io.dill",
     "$root_out_dir/dart2js_platform.dill",
   ]
