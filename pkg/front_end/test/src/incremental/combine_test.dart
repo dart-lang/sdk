@@ -59,11 +59,15 @@ class CombineTest {
   /// For each case we validate [DirectMethodInvocation], [MethodInvocation],
   /// and [SuperMethodInvocation].
   void test_class_procedure_constructor() {
+    var nodeToNameMap = <NamedNode, String>{};
+
     var library1 = _newLibrary('test');
     var constructorA11 = _newConstructor('a1');
     var classA1 = new Class(
         name: 'A', supertype: objectSuper, constructors: [constructorA11]);
     library1.addClass(classA1);
+    nodeToNameMap[classA1] = 'A1';
+    nodeToNameMap[constructorA11] = 'A11';
 
     var library2 = _newLibrary('test');
     var constructorA12 = _newConstructor('a1');
@@ -74,8 +78,9 @@ class CombineTest {
         supertype: objectSuper,
         constructors: [constructorA12, constructorA22]);
     library2.addClass(classA2);
-    library2.addClass(new Class(
-        name: 'B', supertype: objectSuper, constructors: [constructorB11]));
+    var classB1 = new Class(
+        name: 'B', supertype: objectSuper, constructors: [constructorB11]);
+    library2.addClass(classB1);
     // Use 'A.a1' and 'A.a2' to validate later how they are rewritten.
     library2.addProcedure(_newExpressionsProcedure([
       new ConstructorInvocation(constructorA12, new Arguments.empty()),
@@ -86,13 +91,13 @@ class CombineTest {
         supertype: classA2.asThisSupertype,
         constructors: [
           new Constructor(new FunctionNode(new EmptyStatement()),
-              name: new Name('S1c1'),
+              name: new Name('c1'),
               initializers: [
                 new SuperInitializer(constructorA12, new Arguments.empty()),
                 new SuperInitializer(constructorA22, new Arguments.empty()),
               ]),
           new Constructor(new FunctionNode(new EmptyStatement()),
-              name: new Name('S1c2'),
+              name: new Name('c2'),
               initializers: [
                 new RedirectingInitializer(
                     constructorA12, new Arguments.empty()),
@@ -100,14 +105,21 @@ class CombineTest {
                     constructorA22, new Arguments.empty()),
               ]),
         ]));
+    nodeToNameMap[classA2] = 'A2';
+    nodeToNameMap[constructorA12] = 'A12';
+    nodeToNameMap[constructorA22] = 'A22';
+    nodeToNameMap[constructorB11] = 'B11';
+    nodeToNameMap[classB1] = 'B1';
+    nodeToNameMap[constructorB11] = 'B11';
 
     var library3 = _newLibrary('test');
     var constructorB12 = _newConstructor('b1');
     var constructorB22 = _newConstructor('b2');
-    library3.addClass(new Class(
+    var classB2 = new Class(
         name: 'B',
         supertype: objectSuper,
-        constructors: [constructorB12, constructorB22]));
+        constructors: [constructorB12, constructorB22]);
+    library3.addClass(classB2);
     library3.addProcedure(_newExpressionsProcedure([
       new ConstructorInvocation(constructorB12, new Arguments.empty()),
       new ConstructorInvocation(constructorB22, new Arguments.empty()),
@@ -117,13 +129,13 @@ class CombineTest {
         supertype: classA2.asThisSupertype,
         constructors: [
           new Constructor(new FunctionNode(new EmptyStatement()),
-              name: new Name('S2c1'),
+              name: new Name('c1'),
               initializers: [
                 new SuperInitializer(constructorB12, new Arguments.empty()),
                 new SuperInitializer(constructorB22, new Arguments.empty()),
               ]),
           new Constructor(new FunctionNode(new EmptyStatement()),
-              name: new Name('S2c2'),
+              name: new Name('c2'),
               initializers: [
                 new RedirectingInitializer(
                     constructorB12, new Arguments.empty()),
@@ -131,66 +143,95 @@ class CombineTest {
                     constructorB22, new Arguments.empty()),
               ]),
         ]));
+    nodeToNameMap[classB2] = 'B2';
+    nodeToNameMap[constructorB12] = 'B12';
+    nodeToNameMap[constructorB22] = 'B22';
 
     var outline1 = _newOutline([library1]);
     var outline2 = _newOutline([library2]);
     var outline3 = _newOutline([library3]);
 
+    expect(_getLibraryText(library1, nodeToNameMap), r'''
+class A[A1] {
+  constructor a1[A11]();
+}
+''');
+    expect(_getLibraryText(library2, nodeToNameMap), r'''
+class A[A2] {
+  constructor a1[A12]();
+  constructor a2[A22]();
+}
+class B[B1] {
+  constructor b1[B11]();
+}
+class S1 {
+  constructor c1() :
+      super[A12](),
+      super[A22]();
+  constructor c2() :
+      redirect[A12](),
+      redirect[A22]();
+}
+main2() {
+  ConstructorInvocation[A12]();
+  ConstructorInvocation[A22]();
+}
+''');
+    expect(_getLibraryText(library3, nodeToNameMap), r'''
+class B[B2] {
+  constructor b1[B12]();
+  constructor b2[B22]();
+}
+class S2 {
+  constructor c1() :
+      super[B12](),
+      super[B22]();
+  constructor c2() :
+      redirect[B12](),
+      redirect[B22]();
+}
+main3() {
+  ConstructorInvocation[B12]();
+  ConstructorInvocation[B22]();
+}
+''');
+
     _runCombineTest([outline1, outline2, outline3], (result) {
       var library = _getLibrary(result.program, 'test');
-
-      var classA = _getClass(library, 'A');
-      expect(_getConstructor(classA, 'a1'), same(constructorA11));
-      expect(_getConstructor(classA, 'a2'), same(constructorA22));
-
-      // main2() is updated to point to "A.a1" from library1.
-      // But "A.a2" is still from library2.
-      var main2 = _getProcedure(library, 'main2', '@methods');
-      expect(
-          (_getProcedureExpression(main2, 0) as ConstructorInvocation).target,
-          same(constructorA11));
-      expect(
-          (_getProcedureExpression(main2, 1) as ConstructorInvocation).target,
-          same(constructorA22));
-
-      // Super invocations are updated.
-      var classS1 = _getClass(library, 'S1');
-      var constructorS1c1 = classS1.constructors[0];
-      expect((constructorS1c1.initializers[0] as SuperInitializer).target,
-          same(constructorA11));
-      expect((constructorS1c1.initializers[1] as SuperInitializer).target,
-          same(constructorA22));
-      var constructorS1c2 = classS1.constructors[1];
-      expect((constructorS1c2.initializers[0] as RedirectingInitializer).target,
-          same(constructorA11));
-      expect((constructorS1c2.initializers[1] as RedirectingInitializer).target,
-          same(constructorA22));
-
-      var classB = _getClass(library, 'B');
-      expect(_getConstructor(classB, 'b1'), same(constructorB11));
-      expect(_getConstructor(classB, 'b2'), same(constructorB22));
-
-      // main3() is updated to point to "B.b1" from library2.
-      var main3 = _getProcedure(library, 'main3', '@methods');
-      expect(
-          (_getProcedureExpression(main3, 0) as ConstructorInvocation).target,
-          same(constructorB11));
-      expect(
-          (_getProcedureExpression(main3, 1) as ConstructorInvocation).target,
-          same(constructorB22));
-
-      // Super invocations are updated.
-      var classS2 = _getClass(library, 'S2');
-      var constructorS2c1 = classS2.constructors[0];
-      expect((constructorS2c1.initializers[0] as SuperInitializer).target,
-          same(constructorB11));
-      expect((constructorS2c1.initializers[1] as SuperInitializer).target,
-          same(constructorB22));
-      var constructorS2c2 = classS2.constructors[1];
-      expect((constructorS2c2.initializers[0] as RedirectingInitializer).target,
-          same(constructorB11));
-      expect((constructorS2c2.initializers[1] as RedirectingInitializer).target,
-          same(constructorB22));
+      expect(_getLibraryText(library, nodeToNameMap), r'''
+class A[A1] {
+  constructor a1[A11]();
+  constructor a2[A22]();
+}
+class B[B1] {
+  constructor b1[B11]();
+  constructor b2[B22]();
+}
+class S1 {
+  constructor c1() :
+      super[A11](),
+      super[A22]();
+  constructor c2() :
+      redirect[A11](),
+      redirect[A22]();
+}
+class S2 {
+  constructor c1() :
+      super[B11](),
+      super[B22]();
+  constructor c2() :
+      redirect[B11](),
+      redirect[B22]();
+}
+main2() {
+  ConstructorInvocation[A11]();
+  ConstructorInvocation[A22]();
+}
+main3() {
+  ConstructorInvocation[B11]();
+  ConstructorInvocation[B22]();
+}
+''');
     });
   }
 
@@ -1022,21 +1063,6 @@ class CombineTest {
     return result;
   }
 
-  /// Get a single [Constructor] with the given [name].
-  /// Throw if there is not exactly one.
-  Constructor _getConstructor(Class parent, String name) {
-    Iterable<Constructor> results = parent.constructors
-        .where((constructor) => constructor.name.name == name);
-    expect(results, hasLength(1), reason: 'Expected only one: $name');
-    Constructor result = results.first;
-    expect(result.parent, parent);
-
-    var parentName = parent.canonicalName.getChild('@constructors');
-    expect(result.canonicalName.parent, parentName);
-
-    return result;
-  }
-
   /// Get a single [Field] with the given [name].
   /// Throw if there is not exactly one.
   Field _getField(NamedNode parent, String name) {
@@ -1165,6 +1191,164 @@ class CombineTest {
     states.forEach((outline, state) {
       state.verifySame();
     });
+  }
+
+  /// Return the text presentation of the [library] that is not a normal Kernel
+  /// AST text, but includes portions that we want to test - declarations
+  /// and references.  The map [nodeToName] must have entries for all
+  /// referenced nodes, other declarations are optional.
+  static String _getLibraryText(
+      Library library, Map<NamedNode, String> nodeToName) {
+    var buffer = new StringBuffer();
+
+    String getNodeName(NamedNode node) {
+      String name = nodeToName[node];
+      if (name != null) {
+        return '[$name]';
+      } else {
+        return '';
+      }
+    }
+
+    void writeStatement(Statement node, String indent) {
+      if (node is ExpressionStatement) {
+        Expression expression = node.expression;
+        String prefix = expression.runtimeType.toString();
+        Member target;
+        if (expression is ConstructorInvocation) {
+          target = expression.target;
+        } else if (expression is DirectMethodInvocation) {
+          target = expression.target;
+        } else if (expression is MethodInvocation) {
+          target = expression.interfaceTarget;
+        } else if (expression is SuperMethodInvocation) {
+          target = expression.interfaceTarget;
+        } else {
+          var type = expression.runtimeType;
+          fail('Unsupported expression: $type');
+        }
+        String name = nodeToName[target];
+        expect(name, isNotNull, reason: target.toString());
+        buffer.writeln('$indent$prefix[$name]();');
+      } else {
+        fail('Unsupported statement: (${node.runtimeType}) $node');
+      }
+    }
+
+    void writeBody(Statement body, String indent) {
+      if (body is EmptyStatement) {
+        buffer.writeln(';');
+      } else if (body is Block) {
+        buffer.write(' {');
+        if (body.statements.isNotEmpty) {
+          buffer.writeln();
+          for (var statement in body.statements) {
+            writeStatement(statement, '$indent  ');
+          }
+          buffer.writeln('$indent}');
+        } else {
+          buffer.writeln('}');
+        }
+      } else {
+        fail('Not implemented ${body.runtimeType}');
+      }
+    }
+
+    void writeField(Field node, String indent) {
+      fail('Not implemented ${node.runtimeType}');
+    }
+
+    void writeInitializer(Initializer node, String indent) {
+      String kind;
+      Constructor target;
+      if (node is RedirectingInitializer) {
+        kind = 'redirect';
+        target = node.target;
+      } else if (node is SuperInitializer) {
+        kind = 'super';
+        target = node.target;
+      } else {
+        fail('Not implemented ${node.runtimeType}');
+      }
+      String name = nodeToName[target];
+      expect(name, isNotNull, reason: target.toString());
+      buffer.write('${indent}${kind}[$name]()');
+    }
+
+    void writeConstructor(Constructor node, String indent) {
+      String name = getNodeName(node);
+      buffer.write('${indent}constructor ${node.name}$name()');
+      List<Initializer> initializers = node.initializers;
+      if (initializers.isNotEmpty) {
+        buffer.writeln(' :');
+        for (int i = 0; i < initializers.length; i++) {
+          Initializer initializer = initializers[i];
+          writeInitializer(initializer, '      ');
+          if (i != initializers.length - 1) {
+            buffer.writeln(',');
+          }
+        }
+      }
+      writeBody(node.function.body, indent);
+    }
+
+    void writeProcedure(NamedNode parent, Procedure node, String indent) {
+      String prefixName;
+      String kindStr;
+      ProcedureKind kind = node.kind;
+      if (kind == ProcedureKind.Method) {
+        prefixName = '@methods';
+        kindStr = '';
+      } else if (kind == ProcedureKind.Getter) {
+        prefixName = '@getters';
+        kindStr = 'get ';
+      } else if (kind == ProcedureKind.Getter) {
+        prefixName = '@setters';
+        kindStr = 'set ';
+      } else {
+        fail('Unsupported kind: $kind');
+      }
+
+      // Verify canonical names linkage.
+      var parentName = parent.canonicalName.getChild(prefixName);
+      expect(node.canonicalName.parent, parentName);
+
+      String nodeName = getNodeName(node);
+      buffer.write('$indent$kindStr${node.name}$nodeName()');
+      writeBody(node.function.body, indent);
+    }
+
+    void writeClass(Class node) {
+      String nodeName = getNodeName(node);
+      buffer.write('class ${node.name}$nodeName {');
+      if (!node.members.isEmpty) {
+        buffer.writeln();
+        for (var field in node.fields) {
+          writeField(field, '  ');
+        }
+        for (var constructor in node.constructors) {
+          writeConstructor(constructor, '  ');
+        }
+        for (var procedure in node.procedures) {
+          writeProcedure(node, procedure, '  ');
+        }
+      }
+      buffer.writeln('}');
+    }
+
+    for (var node in library.fields) {
+      writeField(node, '');
+    }
+
+    for (var node in library.classes) {
+      writeClass(node);
+    }
+
+    for (var node in library.procedures) {
+      writeProcedure(library, node, '');
+    }
+
+    return buffer.toString();
   }
 }
 
