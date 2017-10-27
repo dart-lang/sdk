@@ -477,13 +477,30 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
       String inputFile, String outputFile, List<String> sharedOptions,
       [Map<String, String> environment = const {}]) {
     var args = sharedOptions.toList();
+
+    var sdkSummary = new Path(_configuration.buildDirectory)
+        .append("/gen/utils/dartdevc/ddc_sdk.dill")
+        .absolute
+        .toNativePath();
+
     args.addAll([
+      "--dart-sdk-summary",
+      sdkSummary,
       "-o",
       outputFile,
       inputFile,
     ]);
 
-    // TODO(rnystrom): Link to dill files for the packages used by tests.
+    // Link to the summaries for the available packages, so that they don't
+    // get recompiled into the test's own module.
+    for (var package in testPackages) {
+      var summary = new Path(_configuration.buildDirectory)
+          .append("/gen/utils/dartdevc/pkg/$package.dill")
+          .absolute
+          .toNativePath();
+      args.add("-s");
+      args.add(summary);
+    }
 
     // Use the directory containing the test as the working directory. This
     // ensures dartdevk creates a short module named based on the test name

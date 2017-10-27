@@ -24,7 +24,11 @@ import 'native_types.dart';
 /// Returns `true` if the program compiled without any fatal errors.
 Future<bool> compile(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
-    ..addOption('out', abbr: 'o', help: 'Output file (required).');
+    ..addOption('out', abbr: 'o', help: 'Output file (required).')
+    ..addOption('dart-sdk-summary',
+        help: 'The path to the Dart SDK summary file.', hide: true)
+    ..addOption('summary',
+        abbr: 's', help: 'summaries to link to', allowMultiple: true);
 
   addModuleFormatOptions(argParser, singleOutFile: false);
 
@@ -32,17 +36,23 @@ Future<bool> compile(List<String> args) async {
 
   var moduleFormat = parseModuleFormatOption(argResults).first;
   var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
-  var succeeded = true;
 
+  var summaries =
+      (argResults['summary'] as List<String>).map(Uri.parse).toList();
+
+  var sdkSummaryPath = argResults['dart-sdk-summary'] ??
+      path.absolute(ddcPath, 'lib', 'sdk', 'ddc_sdk.dill');
+
+  var succeeded = true;
   void errorHandler(CompilationMessage error) {
     if (error.severity == Severity.error) succeeded = false;
   }
 
   var options = new CompilerOptions()
-    ..sdkSummary =
-        path.toUri(path.absolute(ddcPath, 'lib', 'sdk', 'ddc_sdk.dill'))
+    ..sdkSummary = path.toUri(sdkSummaryPath)
     ..packagesFileUri =
         path.toUri(path.absolute(ddcPath, '..', '..', '.packages'))
+    ..inputSummaries = summaries
     ..target = new DevCompilerTarget()
     ..onError = errorHandler
     ..reportMessages = true;

@@ -87,10 +87,11 @@ dart2js_compile("stack_trace_mapper") {
   out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
 }
 
-# Builds everything needed to run dartdevc tests using test.dart.
+# Builds everything needed to run dartdevc and dartdevk tests using test.dart.
 group("dartdevc_test") {
   deps = [
     ":dartdevc",
+    ":dartdevc_sdk_kernel_summary",
     ":dartdevc_test_pkg",
     "../../sdk:create_sdk",
   ]
@@ -107,41 +108,74 @@ compiled_action("dartdevc_test_pkg") {
   tool = "../../runtime/bin:dart"
 
   deps = [
+    ":dartdevc_sdk_kernel_summary",
     ":dartdevc_files_stamp",
-    "../../pkg:pkg_files_stamp",
+    "../../pkg:pkg_files_stamp"
   ]
 
   inputs = [
+    "$target_gen_dir/ddc_sdk.dill",
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
   ]
 
   outputs = [
+    "$target_gen_dir/pkg/async_helper.dill",
     "$target_gen_dir/pkg/async_helper.js",
     "$target_gen_dir/pkg/async_helper.sum",
+    "$target_gen_dir/pkg/collection.dill",
     "$target_gen_dir/pkg/collection.js",
     "$target_gen_dir/pkg/collection.sum",
+    "$target_gen_dir/pkg/expect.dill",
     "$target_gen_dir/pkg/expect.js",
     "$target_gen_dir/pkg/expect.sum",
+    "$target_gen_dir/pkg/js.dill",
     "$target_gen_dir/pkg/js.js",
     "$target_gen_dir/pkg/js.sum",
+    "$target_gen_dir/pkg/matcher.dill",
     "$target_gen_dir/pkg/matcher.js",
     "$target_gen_dir/pkg/matcher.sum",
+    "$target_gen_dir/pkg/meta.dill",
     "$target_gen_dir/pkg/meta.js",
     "$target_gen_dir/pkg/meta.sum",
+    "$target_gen_dir/pkg/path.dill",
     "$target_gen_dir/pkg/path.js",
     "$target_gen_dir/pkg/path.sum",
+    "$target_gen_dir/pkg/stack_trace.dill",
     "$target_gen_dir/pkg/stack_trace.js",
     "$target_gen_dir/pkg/stack_trace.sum",
 
     # TODO(rnystrom): Remove this when unittest is no longer used. Also remove
     # any of the above packages that are only here because unittest uses them.
+    "$target_gen_dir/pkg/unittest.dill",
     "$target_gen_dir/pkg/unittest.js",
     "$target_gen_dir/pkg/unittest.sum",
   ]
 
   args = [
     rebase_path("../../pkg/dev_compiler/tool/build_pkgs.dart"),
-    rebase_path("$target_gen_dir/pkg"),
+    rebase_path("$target_gen_dir"),
+  ]
+}
+
+# Compiles the DDC SDK's kernel summary.
+compiled_action("dartdevc_sdk_kernel_summary") {
+  tool = "../../runtime/bin:dart"
+
+  deps = [
+    ":dartdevc_files_stamp",
+  ]
+
+  inputs = [
+    "$target_gen_dir/dartdevc_files.stamp",
+  ]
+
+  outputs = [
+    "$target_gen_dir/ddc_sdk.dill",
+  ]
+
+  args = [
+    rebase_path("../../pkg/dev_compiler/tool/kernel_sdk.dart"),
+    rebase_path("$target_gen_dir/ddc_sdk.dill"),
   ]
 }

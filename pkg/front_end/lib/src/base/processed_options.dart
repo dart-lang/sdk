@@ -197,7 +197,7 @@ class ProcessedOptions {
       // TODO(sigmund): consider validating dart/packages uri right after we
       // build the uri translator.
       if (source.scheme != 'dart' &&
-          source.scheme != 'packages' &&
+          source.scheme != 'package' &&
           !await fileSystem.entityForUri(source).exists()) {
         reportWithoutLocation(
             templateInputFileNotFound.withArguments(source), Severity.error);
