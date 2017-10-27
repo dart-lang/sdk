@@ -278,6 +278,9 @@ class BinaryBuilder {
   /// The input bytes may contain multiple files concatenated.
   void readProgram(Program program) {
     List<int> programFileSizes = _indexPrograms();
+    if (programFileSizes.length > 1) {
+      _disableLazyReading = true;
+    }
     int programFileIndex = 0;
     while (_byteOffset < _bytes.length) {
       _readOneProgram(program, programFileSizes[programFileIndex]);
@@ -380,10 +383,9 @@ class BinaryBuilder {
     program.uriToSource.addAll(uriToSource);
 
     int numberOfLibraries = index.libraryCount;
-    List<Library> libraries = new List<Library>(numberOfLibraries);
     for (int i = 0; i < numberOfLibraries; ++i) {
       _byteOffset = index.libraryOffsets[i];
-      libraries[i] = readLibrary(program, index.libraryOffsets[i + 1]);
+      readLibrary(program, index.libraryOffsets[i + 1]);
     }
 
     var mainMethod =

@@ -212,6 +212,10 @@ class BinaryPrinter extends Visitor implements BinarySink {
       _recordNodeOffsetForMetadataMappingImpl(program, programOffset);
     }
     libraryOffsets = <int>[];
+    CanonicalName main = getCanonicalNameOfMember(program.mainMethod);
+    if (main != null) {
+      checkCanonicalName(main);
+    }
     writeLibraries(program);
     writeUriToSource(program.uriToSource);
     writeLinkTable(program);

@@ -15,7 +15,7 @@ namespace dart {
 
 namespace kernel {
 
-Program* Program::ReadFrom(Reader* reader) {
+Program* Program::ReadFrom(Reader* reader, bool take_buffer_ownership) {
   uint32_t magic = reader->ReadUInt32();
   if (magic != kMagicProgramFile) FATAL("Invalid magic identifier");
 
@@ -28,6 +28,23 @@ Program* Program::ReadFrom(Reader* reader) {
   Program* program = new Program();
   program->kernel_data_ = reader->buffer();
   program->kernel_data_size_ = reader->size();
+  program->buffer_ownership_ = take_buffer_ownership;
+
+  // Dill files can be concatenated (e.g. cat a.dill b.dill > c.dill). Find out
+  // if this dill contains more than one program.
+  int subprogram_count = 0;
+  reader->set_offset(reader->size() - 4);
+  while (reader->offset() > 0) {
+    intptr_t size = reader->ReadUInt32();
+    intptr_t start = reader->offset() - size;
+    if (start < 0) {
+      FATAL("Invalid kernel binary: Indicated size is invalid.");
+    }
+    ++subprogram_count;
+    if (subprogram_count > 1) break;
+    reader->set_offset(start - 4);
+  }
+  program->single_program_ = subprogram_count == 1;
 
   // Read backwards at the end.
   program->library_count_ = reader->ReadFromIndexNoReset(

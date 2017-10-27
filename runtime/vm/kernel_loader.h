@@ -55,22 +55,20 @@ class Mapping {
 class KernelLoader {
  public:
   explicit KernelLoader(Program* program);
+  static Object& LoadEntireProgram(Program* program);
 
   // Returns the library containing the main procedure, null if there
   // was no main procedure, or a failure object if there was an error.
-  Object& LoadProgram();
+  Object& LoadProgram(bool finalize = true);
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
-  void FindModifiedLibraries(Isolate* isolate,
-                             BitVector* modified_libs,
-                             bool force_reload);
+  static void FindModifiedLibraries(Program* program,
+                                    Isolate* isolate,
+                                    BitVector* modified_libs,
+                                    bool force_reload);
 
   void LoadLibrary(intptr_t index);
-
-  const String& DartSymbol(StringIndex index) {
-    return translation_helper_.DartSymbol(index);
-  }
 
   const String& LibraryUri(intptr_t library_index) {
     return translation_helper_.DartSymbol(
@@ -100,6 +98,11 @@ class KernelLoader {
 
  private:
   friend class BuildingTranslationHelper;
+
+  void initialize_fields();
+  static void index_programs(kernel::Reader* reader,
+                             GrowableArray<intptr_t>* subprogram_file_starts);
+  void walk_incremental_kernel(BitVector* modified_libs);
 
   void LoadPreliminaryClass(ClassHelper* class_helper,
                             intptr_t type_parameter_count);

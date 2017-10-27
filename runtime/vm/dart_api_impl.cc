@@ -5016,8 +5016,7 @@ static Dart_Handle LoadKernelProgram(Thread* T,
   // NOTE: Now the VM owns the [kernel_program] memory!
   // We will promptly delete it when done.
   kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel);
-  kernel::KernelLoader loader(program);
-  const Object& tmp = loader.LoadProgram();
+  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
   delete program;
   return Api::NewHandle(T, tmp.raw());
 }
@@ -5203,8 +5202,7 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   // NOTE: Now the VM owns the [kernel_program] memory!
   // We will promptly delete it when done.
   kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel_program);
-  kernel::KernelLoader loader(program);
-  const Object& tmp = loader.LoadProgram();
+  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
   delete program;
 
   if (tmp.IsError()) {

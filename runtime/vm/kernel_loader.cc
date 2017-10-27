@@ -137,18 +137,93 @@ KernelLoader::KernelLoader(Program* program)
                program_->kernel_data(),
                program_->kernel_data_size(),
                0) {
+  if (!program->is_single_program()) {
+    FATAL(
+        "Trying to load a concatenated dill file at a time where that is "
+        "not allowed");
+  }
   T.active_class_ = &active_class_;
   T.finalize_ = false;
 
+  initialize_fields();
+}
+
+Object& KernelLoader::LoadEntireProgram(Program* program) {
+  if (program->is_single_program()) {
+    KernelLoader loader(program);
+    return loader.LoadProgram();
+  } else {
+    kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
+    GrowableArray<intptr_t> subprogram_file_starts;
+    index_programs(&reader, &subprogram_file_starts);
+
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    Library& library = Library::Handle(zone);
+    // Create "fake programs" for each sub-program.
+    intptr_t subprogram_count = subprogram_file_starts.length() - 1;
+    for (intptr_t i = 0; i < subprogram_count; ++i) {
+      intptr_t subprogram_start = subprogram_file_starts.At(i);
+      intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+      reader.set_raw_buffer(program->kernel_data() + subprogram_start);
+      reader.set_size(subprogram_end - subprogram_start);
+      reader.set_offset(0);
+      Program* subprogram = Program::ReadFrom(&reader, false);
+      ASSERT(subprogram->is_single_program());
+      KernelLoader loader(subprogram);
+      Object& load_result = loader.LoadProgram(false);
+      if (load_result.IsError()) return load_result;
+
+      if (library.IsNull() && load_result.IsLibrary()) {
+        library ^= load_result.raw();
+      }
+
+      delete subprogram;
+    }
+
+    if (!ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
+      // Class finalization failed -> sticky error would be set.
+      Error& error = Error::Handle(zone);
+      error = thread->sticky_error();
+      thread->clear_sticky_error();
+      return error;
+    }
+
+    return library;
+  }
+}
+
+void KernelLoader::index_programs(
+    kernel::Reader* reader,
+    GrowableArray<intptr_t>* subprogram_file_starts) {
+  // Dill files can be concatenated (e.g. cat a.dill b.dill > c.dill), so we
+  // need to first index the (possibly combined) file.
+  // First entry becomes last entry.
+  // Last entry is for ease of calculating size of last subprogram.
+  subprogram_file_starts->Add(reader->size());
+  reader->set_offset(reader->size() - 4);
+  while (reader->offset() > 0) {
+    intptr_t size = reader->ReadUInt32();
+    intptr_t start = reader->offset() - size;
+    if (start < 0) {
+      FATAL("Invalid kernel binary: Indicated size is invalid.");
+    }
+    subprogram_file_starts->Add(start);
+    reader->set_offset(start - 4);
+  }
+  subprogram_file_starts->Reverse();
+}
+
+void KernelLoader::initialize_fields() {
   const intptr_t source_table_size = builder_.SourceTableSize();
   const Array& scripts =
       Array::Handle(Z, Array::New(source_table_size, Heap::kOld));
   patch_classes_ = Array::New(source_table_size, Heap::kOld);
 
   // Copy the Kernel string offsets out of the binary and into the VM's heap.
-  ASSERT(program->string_table_offset() >= 0);
-  Reader reader(program->kernel_data(), program->kernel_data_size());
-  reader.set_offset(program->string_table_offset());
+  ASSERT(program_->string_table_offset() >= 0);
+  Reader reader(program_->kernel_data(), program_->kernel_data_size());
+  reader.set_offset(program_->string_table_offset());
   intptr_t count = reader.ReadUInt() + 1;
   TypedData& offsets = TypedData::Handle(
       Z, TypedData::New(kTypedDataUint32ArrayCid, count, Heap::kOld));
@@ -166,7 +241,7 @@ KernelLoader::KernelLoader(Program* program)
 
   // Copy the canonical names into the VM's heap.  Encode them as unsigned, so
   // the parent indexes are adjusted when extracted.
-  reader.set_offset(program->name_table_offset());
+  reader.set_offset(program_->name_table_offset());
   count = reader.ReadUInt() * 2;
   TypedData& names = TypedData::Handle(
       Z, TypedData::New(kTypedDataUint32ArrayCid, count, Heap::kOld));
@@ -180,8 +255,8 @@ KernelLoader::KernelLoader(Program* program)
   // Copy metadata payloads into the VM's heap
   // TODO(alexmarkov): add more info to program index instead of guessing
   // the end of metadata payloads by offsets of the libraries.
-  intptr_t metadata_payloads_end = program->source_table_offset();
-  for (intptr_t i = 0; i < program->library_count(); ++i) {
+  intptr_t metadata_payloads_end = program_->source_table_offset();
+  for (intptr_t i = 0; i < program_->library_count(); ++i) {
     metadata_payloads_end =
         Utils::Minimum(metadata_payloads_end, library_offset(i));
   }
@@ -196,7 +271,7 @@ KernelLoader::KernelLoader(Program* program)
 
   // Copy metadata mappings into the VM's heap
   const intptr_t metadata_mappings_size =
-      program->string_table_offset() - metadata_mappings_start;
+      program_->string_table_offset() - metadata_mappings_start;
   TypedData& metadata_mappings =
       TypedData::Handle(Z, TypedData::New(kTypedDataUint8ArrayCid,
                                           metadata_mappings_size, Heap::kOld));
@@ -219,7 +294,12 @@ KernelLoader::KernelLoader(Program* program)
   }
 }
 
-Object& KernelLoader::LoadProgram() {
+Object& KernelLoader::LoadProgram(bool finalize) {
+  if (!program_->is_single_program()) {
+    FATAL(
+        "Trying to load a concatenated dill file at a time where that is "
+        "not allowed");
+  }
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     intptr_t length = program_->library_count();
@@ -232,7 +312,8 @@ Object& KernelLoader::LoadProgram() {
       if (!library.Loaded()) library.SetLoaded();
     }
 
-    if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
+    if (finalize &&
+        ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
       // If 'main' is not found return a null library, this is the case
       // when bootstrapping is in progress.
       NameIndex main = program_->main_method();
@@ -242,9 +323,15 @@ Object& KernelLoader::LoadProgram() {
 
       NameIndex main_library = H.EnclosingName(main);
       Library& library = LookupLibrary(main_library);
-      // Sanity check that we can find the main entrypoint.
-      ASSERT(library.LookupObjectAllowPrivate(H.DartSymbol("main")) !=
-             Object::null());
+      return library;
+    } else if (!finalize) {
+      NameIndex main = program_->main_method();
+      if (main == -1) {
+        return Library::Handle(Z);
+      }
+
+      NameIndex main_library = H.EnclosingName(main);
+      Library& library = LookupLibrary(main_library);
       return library;
     }
   }
@@ -257,10 +344,12 @@ Object& KernelLoader::LoadProgram() {
   return error;
 }
 
-void KernelLoader::FindModifiedLibraries(Isolate* isolate,
+void KernelLoader::FindModifiedLibraries(Program* program,
+                                         Isolate* isolate,
                                          BitVector* modified_libs,
                                          bool force_reload) {
   LongJumpScope jump;
+  Zone* zone = Thread::Current()->zone();
   if (setjmp(*jump.Set()) == 0) {
     if (force_reload) {
       // If a reload is being forced we mark all libraries as having
@@ -268,7 +357,7 @@ void KernelLoader::FindModifiedLibraries(Isolate* isolate,
       const GrowableObjectArray& libs =
           GrowableObjectArray::Handle(isolate->object_store()->libraries());
       intptr_t num_libs = libs.Length();
-      Library& lib = dart::Library::Handle(Z);
+      Library& lib = dart::Library::Handle(zone);
       for (intptr_t i = 0; i < num_libs; i++) {
         lib ^= libs.At(i);
         if (!lib.is_dart_scheme()) {
@@ -277,24 +366,58 @@ void KernelLoader::FindModifiedLibraries(Isolate* isolate,
       }
       return;
     }
+
     // Now go through all the libraries that are present in the incremental
     // kernel files, these will constitute the modified libraries.
-    intptr_t length = program_->library_count();
-    for (intptr_t i = 0; i < length; i++) {
-      intptr_t kernel_offset = library_offset(i);
-      builder_.SetOffset(kernel_offset);
-      LibraryHelper library_helper(&builder_);
-      library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
-      dart::Library& lib = LookupLibrary(library_helper.canonical_name_);
-      if (!lib.IsNull() && !lib.is_dart_scheme()) {
-        // This is a library that already exists so mark it as being modified.
-        modified_libs->Add(lib.index());
+    if (program->is_single_program()) {
+      KernelLoader loader(program);
+      return loader.walk_incremental_kernel(modified_libs);
+    } else {
+      kernel::Reader reader(program->kernel_data(),
+                            program->kernel_data_size());
+      GrowableArray<intptr_t> subprogram_file_starts;
+      index_programs(&reader, &subprogram_file_starts);
+
+      // Create "fake programs" for each sub-program.
+      intptr_t subprogram_count = subprogram_file_starts.length() - 1;
+      for (intptr_t i = 0; i < subprogram_count; ++i) {
+        intptr_t subprogram_start = subprogram_file_starts.At(i);
+        intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+        reader.set_raw_buffer(program->kernel_data() + subprogram_start);
+        reader.set_size(subprogram_end - subprogram_start);
+        reader.set_offset(0);
+        Program* subprogram = Program::ReadFrom(&reader, false);
+        ASSERT(subprogram->is_single_program());
+        KernelLoader loader(subprogram);
+        loader.walk_incremental_kernel(modified_libs);
+        delete subprogram;
       }
     }
   }
 }
 
+void KernelLoader::walk_incremental_kernel(BitVector* modified_libs) {
+  intptr_t length = program_->library_count();
+  for (intptr_t i = 0; i < length; i++) {
+    intptr_t kernel_offset = library_offset(i);
+    builder_.SetOffset(kernel_offset);
+    LibraryHelper library_helper(&builder_);
+    library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
+    dart::Library& lib = LookupLibrary(library_helper.canonical_name_);
+    if (!lib.IsNull() && !lib.is_dart_scheme()) {
+      // This is a library that already exists so mark it as being modified.
+      modified_libs->Add(lib.index());
+    }
+  }
+}
+
 void KernelLoader::LoadLibrary(intptr_t index) {
+  if (!program_->is_single_program()) {
+    FATAL(
+        "Trying to load a concatenated dill file at a time where that is "
+        "not allowed");
+  }
+
   // Read library index.
   library_kernel_offset_ = library_offset(index);
   intptr_t library_end = library_offset(index + 1);
