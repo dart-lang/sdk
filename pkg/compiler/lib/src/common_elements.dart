@@ -1172,6 +1172,39 @@ class CommonElements {
     return _expectAssumeDynamicClass;
   }
 
+  static final Uri PACKAGE_META_DART2JS =
+      new Uri(scheme: 'package', path: 'meta/dart2js.dart');
+
+  bool _metaAnnotationChecked = false;
+  ClassEntity _metaNoInlineClass;
+  ClassEntity _metaTryInlineClass;
+
+  void _ensureMetaAnnotations() {
+    if (!_metaAnnotationChecked) {
+      _metaAnnotationChecked = true;
+      LibraryEntity library = _env.lookupLibrary(PACKAGE_META_DART2JS);
+      if (library != null) {
+        _metaNoInlineClass = _env.lookupClass(library, '_NoInline');
+        _metaTryInlineClass = _env.lookupClass(library, '_TryInline');
+        if (_metaNoInlineClass == null || _metaTryInlineClass == null) {
+          // This is not the package you're looking for.
+          _metaNoInlineClass = null;
+          _metaTryInlineClass = null;
+        }
+      }
+    }
+  }
+
+  ClassEntity get metaNoInlineClass {
+    _ensureMetaAnnotations();
+    return _metaNoInlineClass;
+  }
+
+  ClassEntity get metaTryInlineClass {
+    _ensureMetaAnnotations();
+    return _metaTryInlineClass;
+  }
+
   bool isForeign(MemberEntity element) => element.library == foreignLibrary;
 
   /// Returns `true` if the implementation of the 'operator ==' [function] is

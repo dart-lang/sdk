@@ -1019,12 +1019,27 @@ class JavaScriptBackend {
       return;
     }
 
+    bool hasNoInline = false;
+    bool hasForceInline = false;
+
     if (element.isFunction || element.isConstructor) {
       if (optimizerHints.noInline(
           elementEnvironment, commonElements, element)) {
+        hasNoInline = true;
         inlineCache.markAsNonInlinable(element);
       }
+      if (optimizerHints.tryInline(
+          elementEnvironment, commonElements, element)) {
+        hasForceInline = true;
+        if (hasNoInline) {
+          reporter.reportErrorMessage(element, MessageKind.GENERIC,
+              {'text': '@tryInline must not be used with @noInline.'});
+        } else {
+          inlineCache.markAsMustInline(element);
+        }
+      }
     }
+
     if (element.isField) return;
     FunctionEntity method = element;
 
@@ -1033,8 +1048,7 @@ class JavaScriptBackend {
         !canLibraryUseNative(library)) {
       return;
     }
-    bool hasNoInline = false;
-    bool hasForceInline = false;
+
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
     for (ConstantValue constantValue
