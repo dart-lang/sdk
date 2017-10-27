@@ -4,13 +4,11 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/resolution/enum_creator.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'inference_test_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    EnumCreator.matchKernelRepresentationForTesting = true;
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(
         dataDir, computeMemberAstTypeMasks, computeMemberIrTypeMasks,

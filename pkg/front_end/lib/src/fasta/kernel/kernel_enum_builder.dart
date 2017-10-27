@@ -20,9 +20,6 @@ import 'package:kernel/ast.dart'
         IntLiteral,
         InterfaceType,
         ListLiteral,
-        MapEntry,
-        MapLiteral,
-        MethodInvocation,
         ProcedureKind,
         ReturnStatement,
         StaticGet,
@@ -39,8 +36,6 @@ import '../fasta_codes.dart'
         templateEnumConstantSameNameAsEnclosing;
 
 import '../modifier.dart' show constMask, finalMask, staticMask;
-
-import '../names.dart' show indexGetName;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -68,8 +63,6 @@ class KernelEnumBuilder extends SourceClassBuilder
     implements EnumBuilder<KernelTypeBuilder, InterfaceType> {
   final List<Object> constantNamesAndOffsetsAndDocs;
 
-  final MapLiteral toStringMap;
-
   final KernelNamedTypeBuilder intType;
 
   final KernelNamedTypeBuilder stringType;
@@ -85,7 +78,6 @@ class KernelEnumBuilder extends SourceClassBuilder
       Scope constructors,
       ShadowClass cls,
       this.constantNamesAndOffsetsAndDocs,
-      this.toStringMap,
       this.intType,
       this.listType,
       this.objectType,
@@ -117,18 +109,21 @@ class KernelEnumBuilder extends SourceClassBuilder
     KernelTypeBuilder listType =
         new KernelNamedTypeBuilder("List", <KernelTypeBuilder>[selfType]);
 
-    /// From Dart Programming Language Specification 4th Edition/December 2015:
-    ///     metadata class E {
-    ///       final int index;
-    ///       const E(this.index);
-    ///       static const E id0 = const E(0);
-    ///       ...
-    ///       static const E idn-1 = const E(n - 1);
-    ///       static const List<E> values = const <E>[id0, ..., idn-1];
-    ///       String toString() => { 0: ‘E.id0’, . . ., n-1: ‘E.idn-1’}[index]
-    ///     }
+    /// metadata class E {
+    ///   final int index;
+    ///   final String _name;
+    ///   const E(this.index, this._name);
+    ///   static const E id0 = const E(0, 'E.id0');
+    ///   ...
+    ///   static const E idn-1 = const E(n - 1, 'E.idn-1');
+    ///   static const List<E> values = const <E>[id0, ..., idn-1];
+    ///   String toString() => _name;
+    /// }
+
     members["index"] = new KernelFieldBuilder(
         null, intType, "index", finalMask, parent, charOffset, null, true);
+    members["_name"] = new KernelFieldBuilder(
+        null, stringType, "_name", finalMask, parent, charOffset, null, true);
     KernelConstructorBuilder constructorBuilder = new KernelConstructorBuilder(
         null,
         constMask,
@@ -137,15 +132,15 @@ class KernelEnumBuilder extends SourceClassBuilder
         null,
         <FormalParameterBuilder>[
           new KernelFormalParameterBuilder(
-              null, 0, intType, "index", true, parent, charOffset)
+              null, 0, intType, "index", true, parent, charOffset),
+          new KernelFormalParameterBuilder(
+              null, 0, stringType, "_name", true, parent, charOffset)
         ],
         parent,
         charOffset,
         charOffset,
         charEndOffset);
     constructors[""] = constructorBuilder;
-    int index = 0;
-    List<MapEntry> toStringEntries = <MapEntry>[];
     KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(null, listType,
         "values", constMask | staticMask, parent, charOffset, null, true);
     members["values"] = valuesBuilder;
@@ -186,11 +181,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       metadataCollector?.setDocumentationComment(
           fieldBuilder.target, documentationComment);
       members[name] = fieldBuilder;
-      toStringEntries.add(new MapEntry(
-          new IntLiteral(index), new StringLiteral("$className.$name")));
-      index++;
     }
-    MapLiteral toStringMap = new MapLiteral(toStringEntries, isConst: true);
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(
         metadata,
         name,
@@ -200,7 +191,6 @@ class KernelEnumBuilder extends SourceClassBuilder
             isModifiable: false),
         cls,
         constantNamesAndOffsetsAndDocs,
-        toStringMap,
         intType,
         listType,
         objectType,
@@ -240,17 +230,14 @@ class KernelEnumBuilder extends SourceClassBuilder
     stringType.resolveIn(coreLibrary.scope, charOffset, fileUri);
     objectType.resolveIn(coreLibrary.scope, charOffset, fileUri);
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri);
-    toStringMap.keyType = intType.build(libraryBuilder);
-    toStringMap.valueType = stringType.build(libraryBuilder);
+
     KernelFieldBuilder indexFieldBuilder = this["index"];
     Field indexField = indexFieldBuilder.build(libraryBuilder);
+    KernelFieldBuilder nameFieldBuilder = this["_name"];
+    Field nameField = nameFieldBuilder.build(libraryBuilder);
     KernelProcedureBuilder toStringBuilder = this["toString"];
-    toStringBuilder.body = new ReturnStatement(new MethodInvocation(
-        toStringMap,
-        indexGetName,
-        new Arguments(<Expression>[
-          new DirectPropertyGet(new ThisExpression(), indexField)
-        ])));
+    toStringBuilder.body = new ReturnStatement(
+        new DirectPropertyGet(new ThisExpression(), nameField));
     List<Expression> values = <Expression>[];
     for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 3) {
       String name = constantNamesAndOffsetsAndDocs[i];
@@ -268,7 +255,12 @@ class KernelEnumBuilder extends SourceClassBuilder
     constructor.initializers.insert(
         0,
         new FieldInitializer(indexField,
-            new VariableGet(constructor.function.positionalParameters.single))
+            new VariableGet(constructor.function.positionalParameters[0]))
+          ..parent = constructor);
+    constructor.initializers.insert(
+        1,
+        new FieldInitializer(nameField,
+            new VariableGet(constructor.function.positionalParameters[1]))
           ..parent = constructor);
     KernelClassBuilder objectClass = objectType.builder;
     MemberBuilder superConstructor = objectClass.findConstructorOrFactory(
@@ -290,8 +282,10 @@ class KernelEnumBuilder extends SourceClassBuilder
       if (constant != null) {
         KernelFieldBuilder field = this[constant];
         field.build(libraryBuilder);
-        Arguments arguments =
-            new Arguments(<Expression>[new IntLiteral(index++)]);
+        Arguments arguments = new Arguments(<Expression>[
+          new IntLiteral(index++),
+          new StringLiteral("$name.$constant")
+        ]);
         field.initializer =
             new ConstructorInvocation(constructor, arguments, isConst: true);
       }

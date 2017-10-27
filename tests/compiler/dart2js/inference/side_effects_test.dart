@@ -13,7 +13,6 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/inferrer_engine.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
-import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:compiler/src/world.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -22,7 +21,6 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    EnumCreator.matchKernelRepresentationForTesting = true;
     InferrerEngineImpl.useSorterForTesting = true;
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('side_effects'));

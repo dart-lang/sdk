@@ -19,7 +19,6 @@ import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/resolution/class_hierarchy.dart';
-import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -383,7 +382,6 @@ Future<ResultKind> runTest(
     bool expectAstEquivalence: false,
     bool expectIdenticalOutput: true}) async {
   enableDebugMode();
-  EnumCreator.matchKernelRepresentationForTesting = true;
   Elements.usePatchedDart2jsSdkSorting = true;
   useOptimizedMixins = true;
 

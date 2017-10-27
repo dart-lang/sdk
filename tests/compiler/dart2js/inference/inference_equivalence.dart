@@ -4,14 +4,12 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/filenames.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'inference_test_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    EnumCreator.matchKernelRepresentationForTesting = true;
     Uri uri = Uri.base.resolve(nativeToUriPath(args.first));
     List<Uri> uris = <Uri>[];
     if (FileSystemEntity.isDirectorySync(args.first)) {

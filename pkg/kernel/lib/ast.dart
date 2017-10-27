@@ -681,7 +681,6 @@ class Class extends NamedNode {
   bool isAbstract;
 
   /// Whether this class is an enum.
-  @informative
   bool isEnum = false;
 
   /// Whether this class is a synthetic implementation created for each

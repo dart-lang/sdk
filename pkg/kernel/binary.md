@@ -274,7 +274,7 @@ type Class extends Node {
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  Byte flags (isAbstract, xx); // Where xx is index into ClassLevel
+  Byte flags (isAbstract, isEnum, xx); // Where xx is index into ClassLevel
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
