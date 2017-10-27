@@ -37,8 +37,9 @@ main() {
   Y y = new Y();
   Function g = y; // Should pass checked mode test
   F f0 = y; // Should pass checked mode test
-  F f1 = x; //# 00: dynamic type error, static type warning
-  G g0 = y; //# 01: dynamic type error, static type warning
+
+  F f1 = x; //# 00: compile-time error
+  G g0 = y; //# 01: compile-time error
 
   Expect.equals(f(), 42);
   Expect.equals(g(100), 187);
@@ -55,4 +56,12 @@ main() {
 
   H xx2 = new XX.named();
   Expect.equals(xx2(), 42);
+
+  Expect.throwsTypeError(() {
+    F f2 = x as dynamic;
+  });
+
+  Expect.throwsTypeError(() {
+    G g1 = y as dynamic;
+  });
 }

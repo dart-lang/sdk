@@ -30,7 +30,7 @@ typedef void BoundsCheck<T extends num>(T arg);
 
 class FunctionTypeAliasTest {
   FunctionTypeAliasTest() {}
-  static int test(CompareObj compare, Object a, Object b) {
+  static int test<T>(int compare(T a, T b), T a, T b) {
     return compare(a, b);
   }
 
@@ -49,7 +49,7 @@ class FunctionTypeAliasTest {
     Expect.isTrue(compareStrLen is Fun);
     Expect.isTrue(compareStrLen is IntFun);
     Expect.isTrue(compareStrLen is! BoolFun);
-    Expect.isTrue(compareStrLen is CompareObj);
+    Expect.isTrue(compareStrLen is! CompareObj);
     Expect.isTrue(compareStrLen is! CompareInt);
     Expect.isTrue(compareStrLen is! CompareString);
     Expect.equals(3, test(compareStrLen, "abcdef", "xyz"));
@@ -61,7 +61,7 @@ class FunctionTypeAliasTest {
     Expect.isTrue(compareStrLenSwap is Fun);
     Expect.isTrue(compareStrLenSwap is IntFun);
     Expect.isTrue(compareStrLenSwap is! BoolFun);
-    Expect.isTrue(compareStrLenSwap is CompareObj);
+    Expect.isTrue(compareStrLenSwap is! CompareObj);
     Expect.isTrue(compareStrLenSwap is! CompareInt);
     Expect.isTrue(compareStrLenSwap is CompareString);
 
@@ -72,7 +72,7 @@ class FunctionTypeAliasTest {
     Expect.isTrue(compareStrLenReverse is Fun);
     Expect.isTrue(compareStrLenReverse is IntFun);
     Expect.isTrue(compareStrLenReverse is! BoolFun);
-    Expect.isTrue(compareStrLenReverse is CompareObj);
+    Expect.isTrue(compareStrLenReverse is! CompareObj);
     Expect.isTrue(compareStrLenReverse is! CompareInt);
     Expect.isTrue(compareStrLenReverse is CompareString);
 
@@ -92,9 +92,9 @@ class FunctionTypeAliasTest {
       return a - b;
     };
     Expect.isTrue(minus is Fun);
-    Expect.isTrue(compareStrLen is IntFun);
-    Expect.isTrue(compareStrLen is! BoolFun);
-    Expect.isTrue(minus is CompareObj);
+    Expect.isTrue(minus is IntFun);
+    Expect.isTrue(minus is! BoolFun);
+    Expect.isTrue(minus is! CompareObj);
     Expect.isTrue(minus is CompareInt);
     Expect.isTrue(minus is! CompareString);
     Expect.equals(99, test(minus, 100, 1));
@@ -107,15 +107,15 @@ class FunctionTypeAliasTest {
     Expect.isTrue(plus is Fun);
     Expect.isTrue(plus is IntFun);
     Expect.isTrue(plus is! BoolFun);
-    Expect.isTrue(plus is CompareObj);
+    Expect.isTrue(plus is! CompareObj);
     Expect.isTrue(plus is CompareInt);
     Expect.isTrue(plus is! CompareString);
 
     Expect.equals(0, bar());
 
-    Function boundsTrue = (int arg) {};
+    Function boundsTrue = (num arg) {};
     Function boundsFalse = (String arg) {};
-    Expect.isTrue(boundsTrue is BoundsCheck<num>);
+    Expect.isTrue(boundsTrue is BoundsCheck<int>);
     Expect.isFalse(boundsFalse is BoundsCheck<num>);
   }
 }

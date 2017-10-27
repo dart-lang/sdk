@@ -274,6 +274,7 @@ flatten_test/09: MissingRuntimeError # Issue 29920
 flatten_test/12: MissingRuntimeError # Issue 29920
 for_variable_capture_test: RuntimeError # Issue 29920
 function_subtype_inline2_test: RuntimeError
+function_type_alias6_test/none: RuntimeError
 generic_instanceof2_test: RuntimeError # Issue 29920
 generic_is_check_test: RuntimeError # Issue 29920
 generic_method_types_test/02: RuntimeError
@@ -333,3 +334,4 @@ truncdiv_test: RuntimeError # Issue 29920
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 stacktrace_test: RuntimeError # Issue 29920
 const_evaluation_test/01: RuntimeError # Issue 29920
+asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920

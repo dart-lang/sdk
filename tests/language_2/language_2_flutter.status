@@ -322,6 +322,10 @@ vm/regress_27201_test: Fail # Flutter Issue 9110
 wrong_number_type_arguments_test/00: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
+check_method_override_test/01: CompileTimeError
+check_method_override_test/02: CompileTimeError
+function_malformed_result_type_test: CompileTimeError
+asyncstar_yield_test: Skip # Flutter Issue 9110
 
 [ $runtime == flutter && $compiler == none && $checked ]
 assert_initializer_test/4*: MissingCompileTimeError # Issue 392. The VM doesn't enforce that potentially const expressions are actually const expressions when the constructor is called with `const`.

@@ -29,7 +29,7 @@ class FunctionLiteralsTest {
     h(42); // make sure it is parsed as a function call
     Expect.equals(20, h(10));
 
-    var a = (x) {
+    dynamic a = (x) {
       return x + 2;
     };
     Expect.equals(7, a(5));

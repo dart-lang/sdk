@@ -2,6 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-foo() => 42;
+class A {
+  static var a;
+  var b;
+}
 
-class C {}
+class B extends A {}
+
+class C extends B {
+  var a; //# 01: compile-time error
+  static var b; //# 02: compile-time error
+}
+
+void main() {
+  new C();
+}

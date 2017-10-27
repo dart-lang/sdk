@@ -14,10 +14,6 @@ class Tracer {
   Tracer(this.expected, [this.name]);
 
   void trace(msg) {
-    if (name != null) {
-      // Commented out, see https://github.com/dart-lang/dev_compiler/issues/278
-      //print("Tracing $name: $msg");
-    }
     Expect.equals(expected[counter], msg);
     counter++;
   }

@@ -77,8 +77,13 @@ call_nonexistent_static_test/10: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
+callable_test/00: MissingCompileTimeError
+callable_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
+check_member_static_test/01: MissingCompileTimeError
+check_method_override_test/01: MissingCompileTimeError
+check_method_override_test/02: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
@@ -185,6 +190,13 @@ flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
+function_malformed_result_type_test/00: MissingCompileTimeError
+function_type_call_getter2_test/00: MissingCompileTimeError
+function_type_call_getter2_test/01: MissingCompileTimeError
+function_type_call_getter2_test/02: MissingCompileTimeError
+function_type_call_getter2_test/03: MissingCompileTimeError
+function_type_call_getter2_test/04: MissingCompileTimeError
+function_type_call_getter2_test/05: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
@@ -738,6 +750,7 @@ async_star_test/02: RuntimeError
 bit_operations_test: RuntimeError, OK # Issue 1533
 branch_canonicalization_test: RuntimeError # Issue 638.
 covariant_override/runtime_check_test: RuntimeError
+function_type_alias_test: RuntimeError
 generic_closure_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
@@ -946,6 +959,7 @@ final_attempt_reinitialization_test.dart: Skip # Issue 29659
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 const_dynamic_type_literal_test/03: CompileTimeError # Issue 23009
+full_stacktrace3_test: Pass, RuntimeError # Issue 12698
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
@@ -979,6 +993,7 @@ regress_28341_test: Fail # Issue 28340
 truncdiv_test: RuntimeError # Issue 15246
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
+callable_test/none: RuntimeError
 checked_setter_test: RuntimeError
 checked_setter2_test: RuntimeError
 checked_setter3_test: RuntimeError
@@ -1012,6 +1027,8 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+function_type_call_getter2_test/none: RuntimeError
+function_type_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
@@ -1614,6 +1631,7 @@ truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_mixins.dart': Failed assertion: line 673 pos 14: 'functionType.typedef != null': is not true.
 typevariable_substitution2_test/02: RuntimeError
+check_member_static_test/02: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -2070,6 +2088,8 @@ truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
 typevariable_substitution2_test/02: RuntimeError
+check_member_static_test/02: MissingCompileTimeError
+full_stacktrace3_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
 checked_setter_test: RuntimeError # Issue 31128
@@ -2115,17 +2135,30 @@ field_type_check2_test/01: MissingRuntimeError
 [ $compiler == dart2js && $checked && !$dart2js_with_kernel ]
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
+# callable_test/00: MissingCompileTimeError
+# callable_test/01: MissingCompileTimeError
+check_member_static_test/01: MissingCompileTimeError
+check_method_override_test/01: MissingCompileTimeError
+check_method_override_test/02: MissingCompileTimeError
 covariant_subtyping_test: CompileTimeError
 default_factory2_test/01: Fail # Issue 14121
+function_malformed_result_type_test/00: MissingCompileTimeError
+function_type_alias_test: RuntimeError
+function_type_call_getter2_test/00: MissingCompileTimeError
+function_type_call_getter2_test/01: MissingCompileTimeError
+function_type_call_getter2_test/02: MissingCompileTimeError
+function_type_call_getter2_test/03: MissingCompileTimeError
+function_type_call_getter2_test/04: MissingCompileTimeError
+malbounded_instantiation_test/01: Fail # Issue 12702
+malbounded_redirecting_factory_test/02: Fail # Issue 12825
+malbounded_redirecting_factory_test/03: Fail # Issue 12825
+malbounded_type_cast2_test: Fail # Issue 14121
 malbounded_type_cast_test: Fail # Issue 14121
 malbounded_type_test_test/03: Fail # Issue 14121
 malbounded_type_test_test/04: Fail # Issue 14121
-malbounded_redirecting_factory_test/02: Fail # Issue 12825
-malbounded_redirecting_factory_test/03: Fail # Issue 12825
-malbounded_instantiation_test/01: Fail # Issue 12702
-malbounded_type_cast2_test: Fail # Issue 14121
 regress_26133_test: RuntimeError # Issue 26429
 regress_29405_test: Fail # Issue 29422
+function_type_call_getter2_test/05: MissingCompileTimeError
 
 [ $compiler == dart2js && !$checked ]
 type_argument_in_super_type_test: RuntimeError

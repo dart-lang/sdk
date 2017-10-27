@@ -8,8 +8,8 @@ class A {
 }
 
 class C extends A {
-  f() {} //# 01: static type warning
-  foo(var a, [x]) {} //# 02: static type warning
+  f() {} //# 01: compile-time error
+  foo(var a, [x]) {} //# 02: compile-time error
 }
 
 main() {

@@ -800,6 +800,9 @@ function_subtype_not2_test: RuntimeError
 function_subtype_not3_test: RuntimeError
 function_subtype_simple1_test: RuntimeError
 function_subtype_top_level1_test: RuntimeError
+function_type_alias3_test: RuntimeError
+function_type_alias4_test: RuntimeError
+function_type_alias6_test/none: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError

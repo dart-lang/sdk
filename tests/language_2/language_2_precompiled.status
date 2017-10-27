@@ -84,8 +84,13 @@ call_nonexistent_static_test/10: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
+callable_test/00: MissingCompileTimeError
+callable_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
+check_member_static_test/01: MissingCompileTimeError
+check_method_override_test/01: MissingCompileTimeError
+check_method_override_test/02: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
@@ -302,6 +307,7 @@ flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
+function_malformed_result_type_test/00: MissingCompileTimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -326,6 +332,13 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+function_type_alias_test: RuntimeError
+function_type_call_getter2_test/00: MissingCompileTimeError
+function_type_call_getter2_test/01: MissingCompileTimeError
+function_type_call_getter2_test/02: MissingCompileTimeError
+function_type_call_getter2_test/03: MissingCompileTimeError
+function_type_call_getter2_test/04: MissingCompileTimeError
+function_type_call_getter2_test/05: MissingCompileTimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_closure_test: RuntimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
@@ -953,9 +966,12 @@ generic_methods_generic_function_parameter_test: Pass # Issue 25869
 assertion_initializer_const_error2_test/cc02: CompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+callable_test/none: RuntimeError
 checked_setter2_test: RuntimeError
 checked_setter3_test: RuntimeError
 checked_setter_test: RuntimeError
+function_type_call_getter2_test/none: RuntimeError
+function_type_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError
@@ -993,6 +1009,7 @@ vm/no_such_args_error_message_vm_test: Skip
 vm/no_such_method_error_message_callable_vm_test: Skip
 vm/no_such_method_error_message_vm_test: Skip
 vm/regress_28325_test:Skip
+full_stacktrace3_test: Skip
 
 [ $runtime == dart_precompiled && $mode == debug ]
 regress_29025_test: Crash  # Issue dartbug.com/29331

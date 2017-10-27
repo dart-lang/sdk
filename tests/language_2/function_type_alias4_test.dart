@@ -1,9 +1,8 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// Dart test for function type alias with a type parameter as result type.
 
+// Dart test for function type alias with a type parameter as result type.
 import "package:expect/expect.dart";
 
 typedef bool F<bool>(bool a); // 'bool' is not the boolean type.

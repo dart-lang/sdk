@@ -45,14 +45,12 @@ class FunctionLiteralsTest {
 
   void testArrow() {
     checkIntFunction(42, (x) => x, 42);
-    checkIntFunction(42, (int x) => x, 42);
+    checkIntFunction(42, (dynamic x) => x, 42);
   }
 
   void testArrowArrow() {
     checkIntFuncFunction(84, (x) => (y) => x + y, 42);
-    checkIntFuncFunction(84, (int x) => (y) => x + y, 42);
-    checkIntFuncFunction(84, (x) => (y) => x + y, 42);
-    checkIntFuncFunction(84, (int x) => (y) => x + y, 42);
+    checkIntFuncFunction(84, (dynamic x) => (y) => x + y, 42);
   }
 
   void testArrowBlock() {
@@ -84,7 +82,7 @@ class FunctionLiteralsTest {
       return (y) => x + y;
     }, 42);
     checkIntFuncFunction(84, (int x) {
-      return (y) => x + y;
+      return (y) => (x + y) as int;
     }, 42);
   }
 
