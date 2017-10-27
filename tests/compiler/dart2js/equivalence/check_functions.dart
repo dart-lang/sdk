@@ -32,12 +32,9 @@ import 'check_helpers.dart';
 
 void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
     {TestStrategy strategy: const TestStrategy(),
-    bool elementFilter(Entity element),
     bool allowExtra: false,
     bool verbose: false,
     bool allowMissingClosureClasses: false}) {
-  elementFilter ??= (_) => true;
-
   if (verbose) {
     print(closedWorld1.dump());
     print(closedWorld2.dump());
@@ -58,9 +55,6 @@ void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
   checkInterceptorData(closedWorld1.interceptorData,
       closedWorld2.interceptorData, strategy.elementEquivalence,
       verbose: verbose);
-  checkSets(closedWorld1.processedMembers, closedWorld2.processedMembers,
-      'Closedworld.processedMembers', strategy.elementEquivalence,
-      elementFilter: elementFilter, verbose: verbose);
 }
 
 void checkNativeData(NativeDataImpl data1, NativeDataImpl data2,

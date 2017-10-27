@@ -1109,7 +1109,7 @@ class FragmentEmitter {
 
     bool isIntercepted = false;
     if (method is InstanceMethod) {
-      FunctionEntity element = method.element;
+      MethodElement element = method.element;
       isIntercepted = _interceptorData.isInterceptedMethod(element);
     }
     int requiredParameterCount = 0;
@@ -1329,7 +1329,7 @@ class FragmentEmitter {
     CommonElements commonElements = _closedWorld.commonElements;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
-    List<ClassEntity> nativeClassesNeedingUnmangledName = [
+    List<ClassElement> nativeClassesNeedingUnmangledName = [
       commonElements.intClass,
       commonElements.doubleClass,
       commonElements.numClass,

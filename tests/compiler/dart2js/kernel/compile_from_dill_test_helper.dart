@@ -331,13 +331,6 @@ main() {
 }
 '''
   }, expectIdenticalOutput: true),
-  const Test(const {
-    'main.dart': '''
-class A {}
-
-main() => new List<A>() as List<Null>;
-''',
-  }),
 ];
 
 enum ResultKind { crashes, errors, warnings, success, failure }
@@ -464,19 +457,9 @@ Future<ResultKind> runTest(
       if (suffix1 + 1 < lines1.length) suffix1++;
       if (suffix2 + 1 < lines2.length) suffix2++;
       print('--- from source, lines [${prefix}-${suffix1}] ------------------');
-      if (suffix1 - prefix > 100 && !verbose) {
-        lines1.sublist(prefix, prefix + 50).forEach(print);
-        print('...');
-      } else {
-        lines1.sublist(prefix, suffix1 + 1).forEach(print);
-      }
+      lines1.sublist(prefix, suffix1 + 1).forEach(print);
       print('--- from dill, lines [${prefix}-${suffix2}] --------------------');
-      if (suffix2 - prefix > 100 && !verbose) {
-        lines2.sublist(prefix, prefix + 50).forEach(print);
-        print('...');
-      } else {
-        lines2.sublist(prefix, suffix2 + 1).forEach(print);
-      }
+      lines2.sublist(prefix, suffix2 + 1).forEach(print);
     });
   });
 
@@ -506,7 +489,6 @@ Future<ResultKind> runTest(
   print('--- checking closed worlds -----------------------------------------');
   checkClosedWorlds(closedWorld1, closedWorld2,
       strategy: equivalence1.defaultStrategy,
-      elementFilter: elementFilter,
       verbose: verbose,
       // TODO(johnniwinther,efortuna): Require closure class equivalence when
       // these are supported.

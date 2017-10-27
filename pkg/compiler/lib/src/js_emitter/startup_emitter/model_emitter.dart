@@ -36,6 +36,7 @@ import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../common_elements.dart' show CommonElements;
+import '../../elements/elements.dart' show ClassElement, MethodElement;
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
@@ -141,7 +142,7 @@ class ModelEmitter {
     return _constantOrdering.compare(a, b);
   }
 
-  js.Expression generateStaticClosureAccess(FunctionEntity element) {
+  js.Expression generateStaticClosureAccess(MethodElement element) {
     return js.js('#.#()', [
       namer.globalObjectForMember(element),
       namer.staticClosureName(element)

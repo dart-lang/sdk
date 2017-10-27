@@ -166,9 +166,7 @@ Future<ResultKind> mainInternal(List<String> args,
       verbose: arguments.verbose);
 
   checkClosedWorlds(closedWorld1, closedWorld2,
-      strategy: equivalence.defaultStrategy,
-      elementFilter: elementFilter,
-      verbose: arguments.verbose);
+      strategy: equivalence.defaultStrategy, verbose: arguments.verbose);
 
   return ResultKind.success;
 }

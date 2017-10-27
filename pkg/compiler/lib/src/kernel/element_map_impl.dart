@@ -1542,12 +1542,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   @override
   DartType visitInterfaceType(ir.InterfaceType node) {
     ClassEntity cls = elementMap.getClass(node.classNode);
-    // TODO(johnniwinther): We currently encode 'FutureOr' as a dynamic type.
-    // Update the subtyping implementations to handle 'FutureOr' correctly.
-    if (cls.name == 'FutureOr' &&
-        cls.library == elementMap.commonElements.asyncLibrary) {
-      return const DynamicType();
-    }
     return new InterfaceType(cls, visitTypes(node.typeArguments));
   }
 

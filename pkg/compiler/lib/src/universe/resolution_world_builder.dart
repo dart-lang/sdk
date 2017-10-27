@@ -398,7 +398,6 @@ abstract class ResolutionWorldBuilderBase
 
   bool isMemberProcessed(MemberEntity member) =>
       _processedMembers.contains(member);
-
   void registerProcessedMember(MemberEntity member) {
     _processedMembers.add(member);
   }
@@ -482,7 +481,7 @@ abstract class ResolutionWorldBuilderBase
         isNative ||
         // Likewise, if this registration comes from the mirror system,
         // all bets are off.
-        // TODO(herhut): Track classes required by mirrors separately.
+        // TODO(herhut): Track classes required by mirrors seperately.
         byMirrors) {
       if (isNative || byMirrors) {
         kind = Instantiation.ABSTRACTLY_INSTANTIATED;
