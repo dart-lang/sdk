@@ -40,22 +40,27 @@ class _Option {
   // TODO(rnystrom): Some string options use "" to mean "no value" and others
   // use null. Clean that up.
   _Option(this.name, this.description,
-      {String abbr, List<String> values, String defaultsTo})
+      {String abbr, List<String> values, String defaultsTo, bool hide})
       : abbreviation = abbr,
         values = values ?? [],
         defaultValue = defaultsTo,
-        type = _OptionValueType.string;
+        type = _OptionValueType.string,
+        verboseOnly = hide ?? false;
 
-  _Option.bool(this.name, this.description, [this.abbreviation])
-      : values = [],
+  _Option.bool(this.name, this.description, {String abbr, bool hide})
+      : abbreviation = abbr,
+        values = [],
         defaultValue = false,
-        type = _OptionValueType.bool;
+        type = _OptionValueType.bool,
+        verboseOnly = hide ?? false;
 
-  _Option.int(this.name, this.description, {String abbr, int defaultsTo})
+  _Option.int(this.name, this.description,
+      {String abbr, int defaultsTo, bool hide})
       : abbreviation = abbr,
         values = [],
         defaultValue = defaultsTo,
-        type = _OptionValueType.int;
+        type = _OptionValueType.int,
+        verboseOnly = hide ?? false;
 
   final String name;
   final String description;
@@ -63,6 +68,9 @@ class _Option {
   final List<String> values;
   final Object defaultValue;
   final _OptionValueType type;
+
+  /// Only show this option in the verbose help.
+  final bool verboseOnly;
 
   /// Gets the shortest command line argument used to refer to this option.
   String get shortCommand => abbreviation != null ? "-$abbreviation" : command;
@@ -83,60 +91,31 @@ class OptionsParser {
         defaultsTo: Mode.debug.name),
     new _Option(
         'compiler',
-        '''Specify any compilation step (if needed).
+        '''How the Dart code should be compiled or statically processed.
 
-none:          Do not compile the Dart code (run native Dart code
-               on the VM).
-               (Only valid with runtimes vm, flutter, or drt.)
-
+none:          Do not compile the Dart code.
 precompiler:   Compile into AOT snapshot before running the test.
-               (Only valid with runtime dart_precompiled.)
-
-dart2js:       Compile dart code to JavaScript by running dart2js.
-               (Only valid with runtimes: d8, drt, chrome, safari,
-               ie9, ie10, ie11, firefox, opera, chromeOnAndroid,
-               and none [compile only].)
-
-dart2analyzer: Perform static analysis on Dart code by running the
-               analyzer.
-               (Only valid with runtime none.)
-
-app_jit:       Compile the Dart code into an app snapshot before
-               running test.
-               (Only valid with dart_app runtime.)
-
-dartk:         Compile the Dart source into Kernel before running
-               test.
-
-dartkp:        Compile the Dart source into Kernel and then Kernel
-               into AOT snapshot before running the test.
-               (Only valid with runtime dart_precompiled.)
-
-spec_parser:   Parse Dart code by running the specification parser.
-               (Only valid with runtime none.)''',
+dart2js:       Compile to JavaScript using dart2js.
+dart2analyzer: Perform static analysis on Dart code using the analyzer.
+app_jit:       Compile the Dart code into an app snapshot.
+dartk:         Compile the Dart code into Kernel before running test.
+dartkp:        Compile the Dart code into Kernel and then Kernel into AOT
+               snapshot before running the test.
+spec_parser:   Parse Dart code using the specification parser.''',
         abbr: 'c',
-        values: Compiler.names,
-        defaultsTo: Compiler.none.name),
+        values: Compiler.names),
     new _Option(
         'runtime',
         '''Where the tests should be run.
-vm:               Run Dart code on the standalone dart vm.
-
-flutter:          Run Dart code on the flutter engine.
-
-dart_precompiled: Run a precompiled snapshot on a variant of the
-                  standalone dart VM lacking a JIT.
-
+vm:               Run Dart code on the standalone Dart VM.
+flutter:          Run Dart code on the Flutter engine.
+dart_precompiled: Run a precompiled snapshot on the VM without a JIT.
 d8:               Run JavaScript from the command line using v8.
+jsshell:          Run JavaScript from the command line using Firefox js-shell.
+drt:              Run Dart or JavaScript in the headless version of Chrome,
+                  Content shell.
 
-jsshell:          Run JavaScript from the command line using
-                  Firefox js-shell.
-
-drt:              Run Dart or JavaScript in the headless version
-                  of Chrome, Content shell.
-
-ContentShellOnAndroid: Run Dart or JavaScript in content shell
-                  on Android.
+ContentShellOnAndroid: Run Dart or JavaScript in content shell on Android.
 
 ff:
 chrome:
@@ -147,17 +126,14 @@ ie11:
 opera:
 chromeOnAndroid:  Run JavaScript in the specified browser.
 
-self_check:       Pass each test or its compiled output to every
-                  file under `pkg` whose name ends with
-                  `_self_check.dart`. Each test is given to the
-                  self_check tester as a filename on stdin using
+self_check:       Pass each test or its compiled output to every file under
+                  `pkg` whose name ends with `_self_check.dart`. Each test is
+                  given to the self_check tester as a filename on stdin using
                   the batch-mode protocol.
 
-none:             No runtime, compile only. (For example, used
-                  for dart2analyzer static analysis tests).''',
+none:             No runtime, compile only.''',
         abbr: 'r',
-        values: Runtime.names,
-        defaultsTo: Runtime.vm.name),
+        values: Runtime.names),
     new _Option(
         'arch',
         '''The architecture to run tests for.
@@ -170,134 +146,166 @@ simarm, simarmv6, simarmv5te, simarm64,
 simdbc, simdbc64''',
         abbr: 'a',
         values: ['all']..addAll(Architecture.names),
-        defaultsTo: Architecture.x64.name),
+        defaultsTo: Architecture.x64.name,
+        hide: true),
     new _Option('system', 'The operating system to run tests on.',
-        abbr: 's', values: System.names, defaultsTo: Platform.operatingSystem),
+        abbr: 's',
+        values: System.names,
+        defaultsTo: Platform.operatingSystem,
+        hide: true),
     new _Option.bool('checked', 'Run tests in checked mode.'),
     new _Option.bool('strong', 'Run tests in strong mode.'),
-    new _Option.bool('host_checked', 'Run compiler in checked mode.'),
-    new _Option.bool('minified', 'Enable minification in the compiler.'),
+    new _Option.bool('host_checked', 'Run compiler in checked mode.',
+        hide: true),
+    new _Option.bool('minified', 'Enable minification in the compiler.',
+        hide: true),
     new _Option.bool(
-        'csp', 'Run tests under Content Security Policy restrictions.'),
-    new _Option.bool(
-        'fast_startup', 'Pass the --fast-startup flag to dart2js.'),
+        'csp', 'Run tests under Content Security Policy restrictions.',
+        hide: true),
+    new _Option.bool('fast_startup', 'Pass the --fast-startup flag to dart2js.',
+        hide: true),
     new _Option.bool('enable_asserts',
         'Pass the --enable-asserts flag to dart2js or to the vm.'),
     new _Option.bool(
-        'preview_dart_2', 'Pass the --preview-dart-2 flag to analyzer.'),
+        'preview_dart_2', 'Pass the --preview-dart-2 flag to analyzer.',
+        hide: true),
     // TODO(sigmund): replace dart2js_with_kernel with preview-dart-2.
     new _Option.bool(
-        'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.'),
-    new _Option.bool('hot_reload', 'Run hot reload stress tests.'),
+        'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.',
+        hide: true),
+    new _Option.bool('hot_reload', 'Run hot reload stress tests.', hide: true),
     new _Option.bool(
-        'hot_reload_rollback', 'Run hot reload rollback stress tests.'),
-    new _Option.bool('use_blobs',
-        'Use mmap instead of shared libraries for precompilation.'),
+        'hot_reload_rollback', 'Run hot reload rollback stress tests.',
+        hide: true),
+    new _Option.bool(
+        'use_blobs', 'Use mmap instead of shared libraries for precompilation.',
+        hide: true),
     new _Option.int('timeout', 'Timeout in seconds.', abbr: 't'),
     new _Option(
         'progress',
         '''Progress indication mode.
 
 Allowed values are:
-compact, color, line, verbose, silent, status, buildbot, diff
-''',
+compact, color, line, verbose, silent, status, buildbot, diff''',
         abbr: 'p',
         values: Progress.names,
         defaultsTo: Progress.compact.name),
-    new _Option('step_name', 'Step name for use by -pbuildbot.'),
+    new _Option('step_name', 'Step name for use by -pbuildbot.', hide: true),
     new _Option.bool('report',
-        'Print a summary report of the number of tests, by expectation.'),
+        'Print a summary report of the number of tests, by expectation.',
+        hide: true),
     new _Option.int('tasks', 'The number of parallel tasks to run.',
         abbr: 'j', defaultsTo: Platform.numberOfProcessors),
     new _Option.int('shards',
         'The number of instances that the tests will be sharded over.',
-        defaultsTo: 1),
+        defaultsTo: 1, hide: true),
     new _Option.int(
         'shard', 'The index of this instance when running in sharded mode.',
-        defaultsTo: 1),
-    new _Option.bool('help', 'Print list of options.', 'h'),
-    new _Option.bool('verbose', 'Verbose output.', 'v'),
-    new _Option.bool('verify-ir', 'Verify kernel IR.'),
-    new _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.'),
+        defaultsTo: 1, hide: true),
+    new _Option.bool('help', 'Print list of options.', abbr: 'h'),
+    new _Option.bool('verbose', 'Verbose output.', abbr: 'v'),
+    new _Option.bool('verify-ir', 'Verify kernel IR.', hide: true),
+    new _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.',
+        hide: true),
     new _Option.bool('list', 'List tests only, do not run them.'),
     new _Option.bool('list_status_files',
-        'List status files for test-suites. Do not run any test suites.'),
+        'List status files for test-suites. Do not run any test suites.',
+        hide: true),
     new _Option.bool('report_in_json',
-        'When listing with --list, output result summary in JSON.'),
+        'When listing with --list, output result summary in JSON.',
+        hide: true),
     new _Option.bool('time', 'Print timing information after running tests.'),
-    new _Option('dart', 'Path to dart executable.'),
-    new _Option('flutter', 'Path to flutter executable.'),
-    new _Option('drt', 'Path to content shell executable.'),
-    new _Option('firefox', 'Path to firefox browser executable.'),
-    new _Option('chrome', 'Path to chrome browser executable.'),
-    new _Option('safari', 'Path to safari browser executable.'),
-    new _Option.bool('use_sdk', '''Use compiler or runtime from the SDK.
-
-Normally, the compiler or runtimes in PRODUCT_DIR is tested, with
-this option, the compiler or runtime in PRODUCT_DIR/dart-sdk/bin
-is tested.
-
-(Note: currently only implemented for dart2js.)'''),
+    new _Option('dart', 'Path to dart executable.', hide: true),
+    new _Option('flutter', 'Path to flutter executable.', hide: true),
+    new _Option('drt', 'Path to content shell executable.', hide: true),
+    new _Option('firefox', 'Path to firefox browser executable.', hide: true),
+    new _Option('chrome', 'Path to chrome browser executable.', hide: true),
+    new _Option('safari', 'Path to safari browser executable.', hide: true),
+    new _Option.bool('use_sdk', '''Use compiler or runtime from the SDK.'''),
     // TODO(rnystrom): This does not appear to be used. Remove?
     new _Option('build_directory',
-        'The name of the build directory, where products are placed.'),
+        'The name of the build directory, where products are placed.',
+        hide: true),
     new _Option('output_directory',
         'The name of the output directory for storing log files.',
-        defaultsTo: "logs"),
-    new _Option.bool('noBatch', 'Do not run tests in batch mode.', 'n'),
-    new _Option.bool('dart2js_batch', 'Run dart2js tests in batch mode.'),
+        defaultsTo: "logs", hide: true),
+    new _Option.bool('noBatch', 'Do not run tests in batch mode.',
+        abbr: 'n', hide: true),
+    new _Option.bool('dart2js_batch', 'Run dart2js tests in batch mode.',
+        hide: true),
     new _Option.bool(
-        'append_logs', 'Do not delete old logs but rather append to them.'),
+        'append_logs', 'Do not delete old logs but rather append to them.',
+        hide: true),
     new _Option.bool('write_debug_log',
-        'Don\'t write debug messages to stdout but rather to a logfile.'),
+        'Don\'t write debug messages to stdout but rather to a logfile.',
+        hide: true),
     new _Option.bool('write_test_outcome_log',
-        'Write test outcomes to a "${TestUtils.testOutcomeFileName}" file.'),
+        'Write test outcomes to a "${TestUtils.testOutcomeFileName}" file.',
+        hide: true),
     new _Option.bool(
         'write_result_log',
         'Write test results to a "${TestUtils.resultLogFileName}" json file '
-        'located at the debug_output_directory.'),
-    new _Option.bool('reset_browser_configuration',
+        'located at the debug_output_directory.',
+        hide: true),
+    new _Option.bool(
+        'reset_browser_configuration',
         '''Browser specific reset of configuration.
 
 Warning: Using this option may remove your bookmarks and other
-settings.'''),
-    new _Option.bool('copy_coredumps',
+settings.''',
+        hide: true),
+    new _Option.bool(
+        'copy_coredumps',
         '''If we see a crash that we did not expect, copy the core dumps to
-"/tmp".'''),
+"/tmp".''',
+        hide: true),
     new _Option(
         'local_ip',
         '''IP address the HTTP servers should listen on. This address is also
 used for browsers to connect to.''',
-        defaultsTo: '127.0.0.1'),
+        defaultsTo: '127.0.0.1',
+        hide: true),
     new _Option.int('test_server_port', 'Port for test http server.',
-        defaultsTo: 0),
+        defaultsTo: 0, hide: true),
     new _Option.int('test_server_cross_origin_port',
         'Port for test http server cross origin.',
-        defaultsTo: 0),
+        defaultsTo: 0, hide: true),
     new _Option.int('test_driver_port', 'Port for http test driver server.',
-        defaultsTo: 0),
+        defaultsTo: 0, hide: true),
     new _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
-        defaultsTo: 0),
-    new _Option('builder_tag',
+        defaultsTo: 0, hide: true),
+    new _Option(
+        'builder_tag',
         '''Machine specific options that is not captured by the regular test
-options. Used to be able to make sane updates to the status files.'''),
-    new _Option('vm_options', 'Extra options to send to the vm when running.'),
+options. Used to be able to make sane updates to the status files.''',
+        hide: true),
+    new _Option('vm_options', 'Extra options to send to the VM when running.',
+        hide: true),
     new _Option(
-        'dart2js_options', 'Extra options for dart2js compilation step.'),
+        'dart2js_options', 'Extra options for dart2js compilation step.',
+        hide: true),
     new _Option(
-        'suite_dir', 'Additional directory to add to the testing matrix.'),
-    new _Option('package_root', 'The package root to use for testing.'),
-    new _Option('packages', 'The package spec file to use for testing.'),
-    new _Option('exclude_suite',
+        'suite_dir', 'Additional directory to add to the testing matrix.',
+        hide: true),
+    new _Option('package_root', 'The package root to use for testing.',
+        hide: true),
+    new _Option('packages', 'The package spec file to use for testing.',
+        hide: true),
+    new _Option(
+        'exclude_suite',
         '''Exclude suites from default selector, only works when no selector
-has been specified on the command line.'''),
-    new _Option.bool('skip_compilation', '''
+has been specified on the command line.''',
+        hide: true),
+    new _Option.bool(
+        'skip_compilation',
+        '''
 Skip the compilation step, using the compilation artifacts left in
 the output folder from a previous run. This flag will often cause
 false positves and negatives, but can be useful for quick and
 dirty offline testing when not making changes that affect the
-compiler.''')
+compiler.''',
+        hide: true)
   ];
 
   /// For printing out reproducing command lines, we don't want to add these
@@ -335,17 +343,18 @@ compiler.''')
   /// encountering the first non-option string, the rest of the arguments are
   /// stored in the returned Map under the 'rest' key.
   List<Configuration> parse(List<String> arguments) {
+    // Help supersedes all other arguments.
+    if (arguments.contains("--help") || arguments.contains("-h")) {
+      _printHelp(
+          verbose: arguments.contains("--verbose") || arguments.contains("-v"));
+      return null;
+    }
+
     var configuration = <String, dynamic>{};
 
     // Fill in configuration with arguments passed to the test script.
     for (var i = 0; i < arguments.length; i++) {
       var arg = arguments[i];
-
-      // Help supersedes all other arguments.
-      if (arg == "--help" || arg == "-h") {
-        _printHelp();
-        return null;
-      }
 
       // Extract name and value for options.
       String command;
@@ -552,10 +561,34 @@ compiler.''')
       data['progress'] = 'verbose';
     }
 
-    // Expand runtimes.
-    for (var runtimeName in (data["runtime"] as String).split(",")) {
-      var runtime = Runtime.find(runtimeName);
+    var runtimeNames = data["runtime"] as String;
+    var runtimes = <Runtime>[];
+    if (runtimeNames != null) {
+      runtimes.addAll(runtimeNames.split(",").map(Runtime.find));
+    }
 
+    var compilerNames = data["compiler"] as String;
+    var compilers = <Compiler>[];
+    if (compilerNames != null) {
+      compilers.addAll(compilerNames.split(",").map(Compiler.find));
+    }
+
+    // Pick default compilers or runtimes if only one or the other is provided.
+    if (runtimes.isEmpty) {
+      if (compilers.isEmpty) {
+        runtimes = [Runtime.vm];
+        compilers = [Compiler.none];
+      } else {
+        // Pick a runtime for each compiler.
+        runtimes.addAll(compilers.map((compiler) => compiler.defaultRuntime));
+      }
+    } else if (compilers.isEmpty) {
+      // Pick a compiler for each runtime.
+      compilers.addAll(runtimes.map((runtime) => runtime.defaultCompiler));
+    }
+
+    // Expand runtimes.
+    for (var runtime in runtimes) {
       // Start installing the runtime if needed.
       if (runtime == Runtime.drt &&
           !(data["list"] as bool) &&
@@ -573,10 +606,7 @@ compiler.''')
         var architecture = Architecture.find(architectureName);
 
         // Expand compilers.
-        var compilers = data["compiler"] as String;
-        for (var compilerName in compilers.split(",")) {
-          var compiler = Compiler.find(compilerName);
-
+        for (var compiler in compilers) {
           // Expand modes.
           var modes = data["mode"] as String;
           if (modes == "all") modes = "debug,release,product";
@@ -707,19 +737,27 @@ compiler.''')
   }
 
   /// Print out usage information.
-  void _printHelp() {
+  void _printHelp({bool verbose}) {
     var buffer = new StringBuffer();
 
-    buffer.writeln('''usage: dart test.dart [options] [selector]
+    buffer.writeln('''The Dart SDK's internal test runner.
 
-The optional selector limits the tests that will be run.
-For example, the selector "language/issue", or equivalently
-"language/*issue*", limits to test files matching the regexp
-".*issue.*\\.dart" in the "tests/language" directory.
+    Usage: dart tools/test.dart [options] [selector]
+
+The optional selector limits the tests that will be run. For example, the
+selector "language/issue", or equivalently "language/*issue*", limits to test
+files matching the regexp ".*issue.*\\.dart" in the "tests/language" directory.
+
+If you specify only a runtime ("-r"), then an appropriate default compiler will
+be chosen for that runtime. Likewise, if you specify only a compiler ("-c"),
+then a matching runtime is chosen. If neither compiler nor runtime is selected,
+the test is run directly from source on the VM. 
 
 Options:''');
 
     for (var option in _options) {
+      if (!verbose && option.verboseOnly) continue;
+
       if (option.abbreviation != null) {
         buffer.write("-${option.abbreviation}, ");
       } else {
@@ -758,6 +796,10 @@ Options:''');
       buffer
           .writeln("      ${option.description.replaceAll('\n', '\n      ')}");
       buffer.writeln();
+    }
+
+    if (!verbose) {
+      buffer.write('Pass "--verbose" to see more options.');
     }
 
     print(buffer);

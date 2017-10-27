@@ -573,7 +573,6 @@ class Compiler {
           Runtime.safariMobileSim
         ];
 
-      case Compiler.dart2js:
       case Compiler.dartdevc:
       case Compiler.dartdevk:
         // TODO(rnystrom): Expand to support other JS execution environments
@@ -601,6 +600,32 @@ class Compiler {
           Runtime.drt,
           Runtime.contentShellOnAndroid
         ];
+    }
+
+    throw "unreachable";
+  }
+
+  /// The preferred runtime to use with this compiler if no other runtime is
+  /// specified.
+  Runtime get defaultRuntime {
+    switch (this) {
+      case Compiler.dart2js:
+        return Runtime.d8;
+      case Compiler.dartdevc:
+      case Compiler.dartdevk:
+        return Runtime.chrome;
+      case Compiler.dart2analyzer:
+        return Runtime.none;
+      case Compiler.appJit:
+      case Compiler.dartk:
+        return Runtime.vm;
+      case Compiler.precompiler:
+      case Compiler.dartkp:
+        return Runtime.dartPrecompiled;
+      case Compiler.specParser:
+        return Runtime.none;
+      case Compiler.none:
+        return Runtime.vm;
     }
 
     throw "unreachable";
@@ -745,6 +770,43 @@ class Runtime {
 
   /// If the runtime doesn't support `Window.open`, we use iframes instead.
   bool get requiresIFrame => !const [ie11, ie10].contains(this);
+
+  /// The preferred compiler to use with this runtime if no other compiler is
+  /// specified.
+  Compiler get defaultCompiler {
+    switch (this) {
+      case vm:
+      case flutter:
+      case drt:
+        return Compiler.none;
+
+      case dartPrecompiled:
+        return Compiler.precompiler;
+
+      case d8:
+      case jsshell:
+      case firefox:
+      case chrome:
+      case safari:
+      case ie9:
+      case ie10:
+      case ie11:
+      case opera:
+      case chromeOnAndroid:
+      case safariMobileSim:
+      case contentShellOnAndroid:
+        return Compiler.dart2js;
+
+      case selfCheck:
+        return Compiler.dartk;
+
+      case none:
+        // If we aren't running it, we probably just want to analyze it.
+        return Compiler.dart2analyzer;
+    }
+
+    throw "unreachable";
+  }
 
   String toString() => "Runtime($name)";
 }
