@@ -220,15 +220,15 @@ testTearOffRuntimeType() {
       'covariant params should reify with Object as their type');
 
   TearOff<num> t = new TearOff<int>();
-  expectRTTI(t.method1, '(Object) -> dynamic');
+  expectRTTI(t.method1, '(Object) => dynamic');
 
-  expectRTTI(t.method2, '((int) -> dynamic) -> dynamic');
-  expectRTTI(t.method3, '(Object) -> dynamic');
+  expectRTTI(t.method2, '((int) => dynamic) => dynamic');
+  expectRTTI(t.method3, '(Object) => dynamic');
 
-  expectRTTI(t.method4, '(Object) -> dynamic');
-  expectRTTI(t.method5, '((() -> int) -> dynamic) -> dynamic');
-  expectRTTI(t.method6, '(() -> (int) -> dynamic) -> dynamic');
-  expectRTTI(t.method7, '(Object) -> dynamic');
+  expectRTTI(t.method4, '(Object) => dynamic');
+  expectRTTI(t.method5, '((() => int) => dynamic) => dynamic');
+  expectRTTI(t.method6, '(() => (int) => dynamic) => dynamic');
+  expectRTTI(t.method7, '(Object) => dynamic');
 }
 
 main() {

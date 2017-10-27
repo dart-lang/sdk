@@ -13,7 +13,7 @@ void testInstantiateToBounds() {
   Expect.listEquals((f as dynamic)(), [num, num]);
   Expect.equals((g as dynamic)().join('|'), 'List<int>|int');
   Expect.equals((h as dynamic)(null, null),
-      '<T extends num, U extends T>(T, U) -> String');
+      '<T extends num, U extends T>(T, U) => String');
 
   i<T extends Iterable<T>>() => null;
   j<T extends Iterable<S>, S extends T>() => null;
@@ -65,9 +65,9 @@ void testToString() {
   num g<T, U>(T x, U y) => max(x as num, y as num);
   String h<T, U>(T x, U y) => h.runtimeType.toString();
   Expect.equals(
-      f.runtimeType.toString(), '<T extends num, U extends T>(T, U) -> num');
-  Expect.equals(g.runtimeType.toString(), '<T, U>(T, U) -> num');
-  Expect.equals(h(42, 123.0), '<T, U>(T, U) -> String');
+      f.runtimeType.toString(), '<T extends num, U extends T>(T, U) => num');
+  Expect.equals(g.runtimeType.toString(), '<T, U>(T, U) => num');
+  Expect.equals(h(42, 123.0), '<T, U>(T, U) => String');
 }
 
 main() {

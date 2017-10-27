@@ -406,13 +406,13 @@ class FunctionType extends AbstractFunctionType {
           buffer += ', ';
         }
         var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
-        buffer += '${JS('', '#[#]', names, i)}: $typeNameString';
+        buffer += '$typeNameString ${JS('', '#[#]', names, i)}';
       }
       buffer += '}';
     }
 
     var returnTypeName = typeName(returnType);
-    buffer += ') -> $returnTypeName';
+    buffer += ') => $returnTypeName';
     _stringValue = buffer;
     return buffer;
   }
@@ -458,9 +458,23 @@ class Typedef extends AbstractFunctionType {
 
   Typedef(this._name, this._closure) {}
 
-  toString() =>
-      JS('String', '# + "(" + #.toString() + ")"', _name, functionType);
-  get name => _name;
+  toString() {
+    var typeArgs = getGenericArgs(this);
+    if (typeArgs == null) return name;
+
+    var result = name + '<';
+    var allDynamic = true;
+    for (var i = 0, n = JS('int', '#.length', typeArgs); i < n; ++i) {
+      if (i > 0) result += ', ';
+      var typeArg = JS('', '#[#]', typeArgs, i);
+      if (JS('bool', '# !== #', typeArg, _dynamic)) allDynamic = false;
+      result += typeName(typeArg);
+    }
+    result += '>';
+    return allDynamic ? name : result;
+  }
+
+  String get name => JS('String', '#', _name);
 
   AbstractFunctionType get functionType {
     var ft = _functionType;

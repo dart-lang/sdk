@@ -4439,8 +4439,22 @@ class CodeGenerator extends Object
       }
       throw new StateError('failed to evaluate $node');
     }
-    return _emitInstanceCreationExpression(
-        element, constructor.type.type, name, node.argumentList, node.isConst);
+
+    // TODO(jmesserly): this is a workaround for Analyzer's type not
+    // correctly tracking typedefs used in type arguments.
+    DartType getType(TypeAnnotation typeNode) {
+      if (typeNode is NamedType && typeNode.typeArguments != null) {
+        var e = typeNode.name.staticElement;
+        if (e is TypeParameterizedElement) {
+          return e.type.instantiate(
+              typeNode.typeArguments.arguments.map(getType).toList());
+        }
+      }
+      return typeNode.type;
+    }
+
+    return _emitInstanceCreationExpression(element, getType(constructor.type),
+        name, node.argumentList, node.isConst);
   }
 
   bool isPrimitiveType(DartType t) => _typeRep.isPrimitive(t);
