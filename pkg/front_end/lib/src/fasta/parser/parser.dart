@@ -650,9 +650,9 @@ class Parser {
   /// ;
   /// ```
   Token parseDottedName(Token token) {
-    listener.beginDottedName(token);
     Token firstIdentifier =
         ensureIdentifier(token, IdentifierContext.dottedName);
+    listener.beginDottedName(firstIdentifier);
     token = firstIdentifier.next;
     int count = 1;
     while (optional('.', token)) {
@@ -1060,7 +1060,7 @@ class Parser {
   /// ```
   Token parseOptionalFormalParameters(
       Token token, bool isNamed, MemberKind kind) {
-    assert((isNamed && optional('{', token)) || optional('[', token));
+    assert(isNamed ? optional('{', token) : optional('[', token));
     Token begin = token;
     listener.beginOptionalFormalParameters(begin);
     int parameterCount = 0;
@@ -2956,6 +2956,7 @@ class Parser {
   }
 
   Token parseNativeClause(Token nativeToken) {
+    assert(optional('native', nativeToken));
     Token token = nativeToken.next;
     bool hasName = false;
     if (token.kind == STRING_TOKEN) {
@@ -3458,7 +3459,6 @@ class Parser {
       listener.handleNativeFunctionBodyIgnored(nativeToken, token);
       // Fall through to recover and skip function body
     }
-    token = token;
     String value = token.stringValue;
     if (identical(value, ';')) {
       if (!allowAbstract) {
