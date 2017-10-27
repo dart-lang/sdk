@@ -51,7 +51,8 @@ import 'js_typerep.dart' show JSTypeRep, JSType;
 import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'property_model.dart';
 import 'reify_coercions.dart' show CoercionReifier;
-import 'side_effect_analysis.dart' show ConstFieldVisitor, isStateless;
+import 'side_effect_analysis.dart'
+    show ConstFieldVisitor, isStateless, isPotentiallyMutated;
 
 /// The code generator for Dart Dev Compiler.
 ///
@@ -158,6 +159,7 @@ class CodeGenerator extends Object
   final InterfaceType identityHashMapImplType;
   final InterfaceType linkedHashSetImplType;
   final InterfaceType identityHashSetImplType;
+  final InterfaceType syncIterableType;
 
   ConstFieldVisitor _constants;
 
@@ -240,6 +242,8 @@ class CodeGenerator extends Object
             _getLibrary(c, 'dart:collection').getType('_HashSet').type,
         identityHashSetImplType =
             _getLibrary(c, 'dart:collection').getType('_IdentityHashSet').type,
+        syncIterableType =
+            _getLibrary(c, 'dart:_js_helper').getType('SyncIterable').type,
         dartJSLibrary = _getLibrary(c, 'dart:js') {
     _typeRep = new JSTypeRep(rules, types);
   }
@@ -2618,7 +2622,7 @@ class CodeGenerator extends Object
     var nameExpr = _emitTopLevelName(element);
     body.add(
         closureAnnotate(js.statement('# = #', [nameExpr, fn]), element, node));
-    if (!isSdkInternalRuntime(element.library)) {
+    if (_reifyFunctionType(element)) {
       body.add(_emitFunctionTagged(nameExpr, element.type, topLevel: true)
           .toStatement());
     }
@@ -2699,7 +2703,9 @@ class CodeGenerator extends Object
   JS.Expression visitFunctionExpression(FunctionExpression node) {
     assert(node.parent is! FunctionDeclaration &&
         node.parent is! MethodDeclaration);
-    return _emitFunctionTagged(_emitArrowFunction(node), getStaticType(node),
+    var fn = _emitArrowFunction(node);
+    if (!_reifyFunctionType(node.element)) return fn;
+    return _emitFunctionTagged(fn, getStaticType(node),
         topLevel: _executesAtTopLevel(node));
   }
 
@@ -2819,74 +2825,99 @@ class CodeGenerator extends Object
 
   JS.Expression _emitGeneratorFunction(ExecutableElement element,
       FormalParameterList parameters, FunctionBody body) {
-    var kind = element.isSynchronous ? 'sync' : 'async';
-    if (element.isGenerator) kind += 'Star';
-
     // Transforms `sync*` `async` and `async*` function bodies
     // using ES6 generators.
-    //
-    // `sync*` wraps a generator in a Dart Iterable<T>:
+
+    var returnType = _getExpectedReturnType(element);
+
+    emitGeneratorFn(Iterable<JS.Expression> jsParams,
+        [JS.TemporaryId asyncStar]) {
+      var savedSuperAllowed = _superAllowed;
+      var savedController = _asyncStarController;
+      _superAllowed = false;
+      _asyncStarController = asyncStar;
+
+      // Visit the body with our async* controller set.
+      //
+      // TODO(jmesserly): this will emit argument initializers (for default
+      // values) inside the generator function body. Is that the best place?
+      var jsBody = _emitFunctionBody(element, parameters, body);
+      JS.Expression gen = new JS.Fun(jsParams, jsBody,
+          isGenerator: true, returnType: emitTypeRef(returnType));
+
+      // Name the function if possible, to get better stack traces.
+      var name = element.name;
+      name = _friendlyOperatorName[name] ?? name;
+      if (name.isNotEmpty) {
+        gen = new JS.NamedFunction(new JS.Identifier(name), gen);
+      }
+      if (JS.This.foundIn(gen)) gen = js.call('#.bind(this)', gen);
+
+      _superAllowed = savedSuperAllowed;
+      _asyncStarController = savedController;
+      return gen;
+    }
+
+    if (element.isSynchronous) {
+      // `sync*` wraps a generator in a Dart Iterable<E>:
+      //
+      // function name(<args>) {
+      //   return new SyncIterator<E>(() => (function* name(<mutated args>) {
+      //     <body>
+      //   }(<mutated args>));
+      // }
+      //
+      // In the body of a `sync*`, `yield` is generated simply as `yield`.
+      //
+      // We need to include all <mutated args> as parameters of the generator,
+      // so each `.iterator` starts with the same initial values.
+      //
+      // We also need to ensure the correct `this` is available.
+      //
+      // In the future, we might be able to simplify this, see:
+      // https://github.com/dart-lang/sdk/issues/28320
+      assert(element.isGenerator);
+
+      var params = parameters?.parameters;
+
+      var jsParams = _emitFormalParameters(
+          params?.where((p) => isPotentiallyMutated(body, p.element)),
+          destructure: false);
+
+      var gen = emitGeneratorFn(jsParams);
+      if (jsParams.isNotEmpty) gen = js.call('() => #(#)', [gen, jsParams]);
+
+      var syncIterable = _emitType(syncIterableType.instantiate([returnType]));
+      return js.call('new #.new(#)', [syncIterable, gen]);
+    }
+
+    if (element.isGenerator) {
+      // `async*` uses the `dart.asyncStar` helper, and also has an extra
+      // `stream` parameter to the generator, which is used for passing values
+      // to the `_AsyncStarStreamController` implementation type.
+      //
+      // `yield` is specially generated inside `async*` by visitYieldStatement.
+      // `await` is generated as `yield`.
+      //
+      // dart:_runtime/generators.dart has an example of the generated code.
+      var asyncStarParam = new JS.TemporaryId('stream');
+      var gen = emitGeneratorFn([asyncStarParam], asyncStarParam);
+      return _callHelper('asyncStar(#, #)', [_emitType(returnType), gen]);
+    }
+
+    // `async` works similar to `sync*`:
     //
     // function name(<args>) {
-    //   return dart.syncStar(function* name(<args>) {
+    //   return async.async(E, function* name() {
     //     <body>
-    //   }, T, <args>).bind(this);
+    //   });
     // }
     //
-    // We need to include <args> in case any are mutated, so each `.iterator`
-    // gets the same initial values.
-    //
-    // TODO(jmesserly): we could omit the args for the common case where args
-    // are not mutated inside the generator.
-    //
-    // In the future, we might be able to simplify this, see:
-    // https://github.com/dart-lang/sdk/issues/28320
-    // `async` works the same, but uses the `dart.async` helper.
-    //
-    // In the body of a `sync*` and `async`, `yield`/`await` are both generated
-    // simply as `yield`.
-    //
-    // `async*` uses the `dart.asyncStar` helper, and also has an extra `stream`
-    // argument to the generator, which is used for passing values to the
-    // _AsyncStarStreamController implementation type.
-    // `yield` is specially generated inside `async*`, see visitYieldStatement.
-    // `await` is generated as `yield`.
-    // runtime/_generators.js has an example of what the code is generated as.
-    var savedController = _asyncStarController;
-    var jsParams = _emitFormalParameterList(parameters);
-    if (kind == 'asyncStar') {
-      _asyncStarController = new JS.TemporaryId('stream');
-      jsParams.insert(0, _asyncStarController);
-    } else {
-      _asyncStarController = null;
-    }
-    var savedSuperAllowed = _superAllowed;
-    _superAllowed = false;
-    // Visit the body with our async* controller set.
-    var jsBody = _emitFunctionBody(element, parameters, body);
-    _superAllowed = savedSuperAllowed;
-    _asyncStarController = savedController;
-
-    DartType returnType = _getExpectedReturnType(element);
-    JS.Expression gen = new JS.Fun(jsParams, jsBody,
-        isGenerator: true, returnType: emitTypeRef(returnType));
-
-    // Name the function if possible, to get better stack traces.
-    var name = element.name;
-    name = _friendlyOperatorName[name] ?? name;
-    if (name.isNotEmpty) {
-      gen = new JS.NamedFunction(new JS.Identifier(name), gen);
-    }
-
-    if (JS.This.foundIn(gen)) {
-      gen = js.call('#.bind(this)', gen);
-    }
-
-    var T = _emitType(returnType);
-    return _callHelper('#(#)', [
-      kind,
-      [gen, T]..addAll(_emitFormalParameterList(parameters, destructure: false))
-    ]);
+    // In the body of an `async`, `await` is generated simply as `yield`.
+    var gen = emitGeneratorFn([]);
+    var dartAsync = types.futureType.element.library;
+    return js.call('#.async(#, #)',
+        [emitLibraryName(dartAsync), _emitType(returnType), gen]);
   }
 
   @override
@@ -2907,10 +2938,11 @@ class CodeGenerator extends Object
       declareFn = new JS.FunctionDeclaration(name, fn);
     }
     var element = func.element;
-
-    return new JS.Block(
-        [declareFn, _emitFunctionTagged(name, element.type).toStatement()])
-      ..sourceInformation = node;
+    if (_reifyFunctionType(element)) {
+      declareFn = new JS.Block(
+          [declareFn, _emitFunctionTagged(name, element.type).toStatement()]);
+    }
+    return declareFn..sourceInformation = node;
   }
 
   /// Emits a simple identifier, including handling an inferred generic
@@ -3951,9 +3983,13 @@ class CodeGenerator extends Object
     return jsParams;
   }
 
-  List<JS.Parameter> _emitFormalParameterList(FormalParameterList node,
+  List<JS.Parameter> _emitFormalParameterList(FormalParameterList parameters,
+          {bool destructure: true}) =>
+      _emitFormalParameters(parameters?.parameters, destructure: destructure);
+
+  List<JS.Parameter> _emitFormalParameters(Iterable<FormalParameter> parameters,
       {bool destructure: true}) {
-    if (node == null) return [];
+    if (parameters == null) return [];
 
     destructure = destructure && options.destructureNamedParams;
 
@@ -3962,7 +3998,7 @@ class CodeGenerator extends Object
     var hasNamedArgsConflictingWithObjectProperties = false;
     var needsOpts = false;
 
-    for (FormalParameter param in node.parameters) {
+    for (var param in parameters) {
       if (param.kind == ParameterKind.NAMED) {
         if (destructure) {
           if (JS.objectProperties.contains(param.identifier.name)) {
@@ -4003,7 +4039,7 @@ class CodeGenerator extends Object
           : js.call('{}');
       result.add(new JS.DestructuredVariable(
           structure: new JS.ObjectBindingPattern(namedVars),
-          type: emitNamedParamsArgType(node.parameterElements),
+          type: emitNamedParamsArgType(parameters.map((p) => p.element)),
           defaultValue: defaultOpts));
     }
     return result;
@@ -6246,6 +6282,21 @@ bool _reifyGeneric(Element e) =>
     findAnnotation(
             e, (a) => isBuiltinAnnotation(a, '_js_helper', 'NoReifyGeneric')) ==
         null;
+
+bool _reifyFunctionType(Element e) {
+  if (e == null) return true;
+  var library = e.library;
+  if (!library.isInSdk) return true;
+  // SDK libraries can skip reification if they request it.
+  if (isSdkInternalRuntime(library)) return false;
+  noReifyFunctionTypes(DartObjectImpl a) =>
+      isBuiltinAnnotation(a, '_js_helper', 'NoReifyFunctionTypes');
+  while (e != null) {
+    if (findAnnotation(e, noReifyFunctionTypes) != null) return false;
+    e = e.enclosingElement;
+  }
+  return true;
+}
 
 final _friendlyOperatorName = {
   '<': 'lessThan',

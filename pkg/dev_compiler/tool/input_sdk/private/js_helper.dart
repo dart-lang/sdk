@@ -36,17 +36,33 @@ const _Patch patch = const _Patch();
 /// 
 /// This is the inverse of `JsIterator`, for classes where we can more
 /// efficiently obtain a JS iterator instead of a Dart one.
+/// 
+// TODO(jmesserly): this adapter is to work around
+// https://github.com/dart-lang/sdk/issues/28320
 class DartIterator<E> implements Iterator<E> {
-  DartIterator(jsIterator) {
-    JS('', 'this._current = null');
-    JS('', 'this._jsIterator = #', jsIterator);
-  }
-  E get current => JS('', 'this._current');
+  final _jsIterator;
+  E _current;
+
+  DartIterator(this._jsIterator);
+
+  E get current => _current;
+
   bool moveNext() {
-    var next = JS('', 'this._jsIterator.next()');
-    JS('', 'this._current = #.value', next);
-    return JS('bool', '!#.done', next);
+    final ret = JS('', '#.next()', _jsIterator);
+    _current = JS('', '#.value', ret);
+    return JS('bool', '!#.done', ret);
   }
+}
+
+/// Used to compile `sync*`.
+class SyncIterable<E> extends IterableBase<E> {
+  final Function() _initGenerator;
+  SyncIterable(this._initGenerator);
+
+  @JSExportName('Symbol.iterator')
+  _jsIterator() => _initGenerator();
+
+  get iterator => new DartIterator(_initGenerator());
 }
 
 class Primitives {
@@ -800,37 +816,6 @@ int random64() {
   int int32a = JS("int", "(Math.random() * 0x100000000) >>> 0");
   int int32b = JS("int", "(Math.random() * 0x100000000) >>> 0");
   return int32a + int32b * 0x100000000;
-}
-
-// TODO(jmesserly): this adapter is to work around
-// https://github.com/dart-lang/sdk/issues/28320
-class SyncIterator<E> implements Iterator<E> {
-  final dynamic _jsIterator;
-  E _current;
-
-  SyncIterator(this._jsIterator);
-
-  E get current => _current;
-
-  bool moveNext() {
-    final ret = JS('', '#.next()', _jsIterator);
-    _current = JS('', '#.value', ret);
-    return JS('bool', '!#.done', ret);
-  }
-}
-
-class SyncIterable<E> extends IterableBase<E> {
-  final dynamic _generator;
-  final dynamic _args;
-
-  SyncIterable(this._generator, this._args);
-
-  // TODO(jmesserly): this should be [Symbol.iterator]() method. Unfortunately
-  // we have no way of telling the compiler yet, so it will generate an extra
-  // layer of indirection that wraps the SyncIterator.
-  _jsIterator() => JS('', '#(...#)', _generator, _args);
-
-  Iterator<E> get iterator => new SyncIterator<E>(_jsIterator());
 }
 
 class BooleanConversionAssertionError extends AssertionError {

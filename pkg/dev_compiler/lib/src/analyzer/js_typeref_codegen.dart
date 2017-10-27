@@ -80,7 +80,7 @@ abstract class JsTypeRefCodegen {
     });
   }
 
-  JS.TypeRef emitNamedParamsArgType(List<ParameterElement> params) {
+  JS.TypeRef emitNamedParamsArgType(Iterable<ParameterElement> params) {
     if (!options.closure) return null;
 
     var namedArgs = <JS.Identifier, JS.TypeRef>{};

@@ -4,7 +4,8 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_js_helper' show patch, Primitives;
+import 'dart:_js_helper'
+    show patch, Primitives, NoReifyFunctionTypes, DartIterator;
 import 'dart:_isolate_helper'
     show
         IsolateNatives,
@@ -14,10 +15,76 @@ import 'dart:_isolate_helper'
         enterJsAsync,
         isWorker;
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JSExportName;
 
 typedef void _Callback();
 typedef void _TakeCallback(_Callback callback);
+
+@JSExportName('async')
+@NoReifyFunctionTypes()
+async_<T>(Function() initGenerator) {
+  var iter;
+  Object Function(Object) onValue;
+  Object Function(Object) onError;
+
+  onAwait(Object value) {
+    _Future f;
+    if (value is _Future) {
+      f = value;
+    } else if (value is Future) {
+      f = new _Future();
+      _Future._chainForeignFuture(value, f);
+    } else {
+      f = new _Future.value(value);
+    }
+    f = JS('', '#', f._thenNoZoneRegistration(onValue, onError));
+    return f;
+  }
+
+  onValue = (value) {
+    var iteratorResult = JS('', '#.next(#)', iter, value);
+    value = JS('', '#.value', iteratorResult);
+    return JS('bool', '#.done', iteratorResult) ? value : onAwait(value);
+  };
+
+  // If the awaited Future throws, we want to convert this to an exception
+  // thrown from the `yield` point, as if it was thrown there.
+  //
+  // If the exception is not caught inside `gen`, it will emerge here, which
+  // will send it to anyone listening on this async function's Future<T>.
+  //
+  // In essence, we are giving the code inside the generator a chance to
+  // use try-catch-finally.
+  onError = (value) {
+    var iteratorResult = JS('', '#.throw(#)', iter, value);
+    value = JS('', '#.value', iteratorResult);
+    return JS('bool', '#.done', iteratorResult) ? value : onAwait(value);
+  };
+
+  var zone = Zone.current;
+  if (zone != Zone.ROOT) {
+    onValue = zone.registerUnaryCallback(onValue);
+    onError = zone.registerUnaryCallback(onError);
+  }
+  var asyncFuture = new _Future<T>();
+  scheduleMicrotask(() {
+    try {
+      iter = JS('', '#[Symbol.iterator]()', initGenerator());
+      var iteratorValue = JS('', '#.next(null)', iter);
+      var value = JS('', '#.value', iteratorValue);
+      if (JS('bool', '#.done', iteratorValue)) {
+        // Return type is checked & cast inserted statically, we should not need
+        // a cast here.
+        asyncFuture._complete(JS('', '#', value));
+        return;
+      }
+      _Future._chainCoreFuture(onAwait(value), asyncFuture);
+    } catch (e, s) {
+      _completeWithErrorCallback(asyncFuture, e, s);
+    }
+  });
+  return asyncFuture;
+}
 
 @patch
 class _AsyncRun {
