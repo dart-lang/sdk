@@ -487,8 +487,8 @@ class ClassMethodModifierContext {
 
   Token parseClassRecovery(Token token) {
     assert(optional('class', token));
-    parser.reportRecoverableError(token, fasta.messageClassInClass);
     token = token.next;
+    parser.reportRecoverableError(token, fasta.messageClassInClass);
     // If the declaration appears to be a valid class declaration
     // then skip the entire declaration so that we only generate the one
     // error (above) rather than a plethora of unhelpful errors.

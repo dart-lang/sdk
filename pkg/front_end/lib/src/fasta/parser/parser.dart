@@ -2318,7 +2318,7 @@ class Parser {
               memberKind == MemberKind.FunctionTypeAlias ||
               memberKind == MemberKind.FunctionTypedParameter) {
             reportRecoverableError(
-                equal.next, fasta.messageFunctionTypeDefaultValue);
+                equal, fasta.messageFunctionTypeDefaultValue);
           }
         } else {
           listener.handleFormalParameterWithoutValue(token);

@@ -2314,7 +2314,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   void test_breakOutsideOfLoop_breakInIfStatement() {
     IfStatement statement = parseStatement('if (x) {break;}');
     expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.BREAK_OUTSIDE_OF_LOOP]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 8, 6)]);
   }
 
   void test_breakOutsideOfLoop_breakInSwitchStatement() {
@@ -2331,7 +2332,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_breakOutsideOfLoop_functionExpression_inALoop() {
     parseStatement("for(; x;) {() {break;};}");
-    assertErrorsWithCodes([ParserErrorCode.BREAK_OUTSIDE_OF_LOOP]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 15, 6)]);
   }
 
   void test_breakOutsideOfLoop_functionExpression_withALoop() {
@@ -2340,12 +2342,12 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_classInClass_abstract() {
     parseCompilationUnit("class C { abstract class B {} }",
-        codes: [ParserErrorCode.CLASS_IN_CLASS]);
+        errors: [expectedError(ParserErrorCode.CLASS_IN_CLASS, 25, 1)]);
   }
 
   void test_classInClass_nonAbstract() {
     parseCompilationUnit("class C { class B {} }",
-        codes: [ParserErrorCode.CLASS_IN_CLASS]);
+        errors: [expectedError(ParserErrorCode.CLASS_IN_CLASS, 16, 1)]);
   }
 
   void test_classTypeAlias_abstractAfterEq() {
@@ -2360,82 +2362,85 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_colonInPlaceOfIn() {
     parseStatement("for (var x : list) {}");
-    assertErrorsWithCodes([ParserErrorCode.COLON_IN_PLACE_OF_IN]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.COLON_IN_PLACE_OF_IN, 11, 1)]);
   }
 
   void test_constAndCovariant() {
     createParser('covariant const C f = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.CONST_AND_COVARIANT]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.CONST_AND_COVARIANT, 10, 5)]);
   }
 
   void test_constAndFinal() {
     createParser('const final int x = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.CONST_AND_FINAL]);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.CONST_AND_FINAL, 6, 5)]);
   }
 
   void test_constAndVar() {
     createParser('const var x = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.CONST_AND_VAR]);
+    listener.assertErrors([expectedError(ParserErrorCode.CONST_AND_VAR, 6, 3)]);
   }
 
   void test_constClass() {
     parseCompilationUnit("const class C {}",
-        codes: [ParserErrorCode.CONST_CLASS]);
+        errors: [expectedError(ParserErrorCode.CONST_CLASS, 0, 5)]);
   }
 
   void test_constConstructorWithBody() {
     createParser('const C() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrorsWithCodes([ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, 10, 2)]);
   }
 
   void test_constEnum() {
     parseCompilationUnit("const enum E {ONE}",
-        codes: [ParserErrorCode.CONST_ENUM]);
+        errors: [expectedError(ParserErrorCode.CONST_ENUM, 0, 5)]);
   }
 
   void test_constFactory() {
     createParser('const factory C() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.CONST_FACTORY]);
+    listener.assertErrors([expectedError(ParserErrorCode.CONST_FACTORY, 0, 5)]);
   }
 
   void test_constMethod() {
     createParser('const int m() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.CONST_METHOD]);
+    listener.assertErrors([expectedError(ParserErrorCode.CONST_METHOD, 0, 5)]);
   }
 
   void test_constructorWithReturnType() {
     createParser('C C() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrorsWithCodes([ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, 0, 1)]);
   }
 
   void test_constructorWithReturnType_var() {
     createParser('var C() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes(usingFastaParser
-        ? [ParserErrorCode.VAR_RETURN_TYPE]
-        : [ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.VAR_RETURN_TYPE, 0, 3)]
+        : [expectedError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, 0, 3)]);
   }
 
   void test_constTypedef() {
     parseCompilationUnit("const typedef F();",
-        codes: [ParserErrorCode.CONST_TYPEDEF]);
+        errors: [expectedError(ParserErrorCode.CONST_TYPEDEF, 0, 5)]);
   }
 
   void test_continueOutsideOfLoop_continueInDoStatement() {
@@ -2453,7 +2458,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   void test_continueOutsideOfLoop_continueInIfStatement() {
     IfStatement statement = parseStatement('if (x) {continue;}');
     expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 8, 9)]);
   }
 
   void test_continueOutsideOfLoop_continueInSwitchStatement() {
@@ -2471,7 +2477,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_continueOutsideOfLoop_functionExpression_inALoop() {
     parseStatement("for(; x;) {() {continue;};}");
-    assertErrorsWithCodes([ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 15, 9)]);
   }
 
   void test_continueOutsideOfLoop_functionExpression_withALoop() {
@@ -2482,8 +2489,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     SwitchStatement statement =
         parseStatement('switch (x) {case 1: continue;}');
     expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, 20, 9)]);
   }
 
   void test_continueWithoutLabelInCase_noError() {
@@ -2504,63 +2511,70 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('var covariant f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.COVARIANT_AFTER_VAR]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.COVARIANT_AFTER_VAR, 4, 9)]);
   }
 
   void test_covariantAndStatic() {
     createParser('covariant static A f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.COVARIANT_AND_STATIC]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.COVARIANT_AND_STATIC, 10, 6)]);
   }
 
   void test_covariantConstructor() {
     createParser('class C { covariant C(); }');
     ClassDeclaration member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.COVARIANT_CONSTRUCTOR]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.COVARIANT_CONSTRUCTOR, 10, 9)]);
   }
 
   void test_covariantMember_getter_noReturnType() {
     createParser('static covariant get x => 0;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.COVARIANT_MEMBER]);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.COVARIANT_MEMBER, 7, 9)]);
   }
 
   void test_covariantMember_getter_returnType() {
     createParser('static covariant int get x => 0;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.COVARIANT_MEMBER]);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.COVARIANT_MEMBER, 7, 9)]);
   }
 
   void test_covariantMember_method() {
     createParser('covariant int m() => 0;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.COVARIANT_MEMBER]);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.COVARIANT_MEMBER, 0, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_class() {
     createParser('covariant class C {}');
     ClassDeclaration member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, 0, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_enum() {
     createParser('covariant enum E { v }');
     EnumDeclaration member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, 0, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_typedef() {
-    parseCompilationUnit("covariant typedef F();",
-        codes: [ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION]);
+    parseCompilationUnit("covariant typedef F();", errors: [
+      expectedError(ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, 0, 9)
+    ]);
   }
 
   void test_defaultValueInFunctionType_named_colon() {
@@ -2568,8 +2582,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     FormalParameter parameter =
         parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 8, 1)]);
   }
 
   void test_defaultValueInFunctionType_named_equal() {
@@ -2577,8 +2591,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     FormalParameter parameter =
         parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 8, 1)]);
   }
 
   void test_defaultValueInFunctionType_positional() {
@@ -2586,22 +2600,36 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     FormalParameter parameter =
         parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 8, 1)]);
   }
 
   void test_directiveAfterDeclaration_classBeforeDirective() {
+    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
     CompilationUnit unit = parseCompilationUnit("class Foo{} library l;",
         codes: usingFastaParser
             ? [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST]
-            : [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
+            : [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION],
+        errors: usingFastaParser
+            ? [
+                expectedError(
+                    ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, 12, 10)
+              ]
+            : [
+                expectedError(
+                    ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, 12, 10)
+              ]);
     expect(unit, isNotNull);
   }
 
   void test_directiveAfterDeclaration_classBetweenDirectives() {
-    CompilationUnit unit = parseCompilationUnit(
-        "library l;\nclass Foo{}\npart 'a.dart';",
-        codes: [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
+    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    CompilationUnit unit =
+        parseCompilationUnit("library l;\nclass Foo{}\npart 'a.dart';", codes: [
+      ParserErrorCode.DIRECTIVE_AFTER_DECLARATION
+    ], errors: [
+      expectedError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, 23, 14)
+    ]);
     expect(unit, isNotNull);
   }
 
@@ -2609,57 +2637,67 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('const const m = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.DUPLICATED_MODIFIER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.DUPLICATED_MODIFIER, 6, 5)]);
   }
 
   void test_duplicatedModifier_external() {
     createParser('external external f();');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.DUPLICATED_MODIFIER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.DUPLICATED_MODIFIER, 9, 8)]);
   }
 
   void test_duplicatedModifier_factory() {
     createParser('factory factory C() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.DUPLICATED_MODIFIER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.DUPLICATED_MODIFIER, 8, 7)]);
   }
 
   void test_duplicatedModifier_final() {
     createParser('final final m = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.DUPLICATED_MODIFIER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.DUPLICATED_MODIFIER, 6, 5)]);
   }
 
   void test_duplicatedModifier_static() {
     createParser('static static var m;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.DUPLICATED_MODIFIER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.DUPLICATED_MODIFIER, 7, 6)]);
   }
 
   void test_duplicatedModifier_var() {
     createParser('var var m;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.DUPLICATED_MODIFIER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.DUPLICATED_MODIFIER, 4, 3)]);
   }
 
   void test_duplicateLabelInSwitchStatement() {
     SwitchStatement statement =
         parseStatement('switch (e) {l1: case 0: break; l1: case 1: break;}');
     expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, 31, 2)
+    ]);
   }
 
   void test_emptyEnumBody() {
     createParser('enum E {}');
     EnumDeclaration declaration = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(declaration);
+    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.EMPTY_ENUM_BODY]);
+//    listener
+//        .assertErrors([expectedError(ParserErrorCode.EMPTY_ENUM_BODY, 7, 2)]);
   }
 
   void test_enumInClass() {
@@ -2690,53 +2728,63 @@ class Foo {
   void test_expectedCaseOrDefault() {
     SwitchStatement statement = parseStatement('switch (e) {break;}');
     expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_CASE_OR_DEFAULT]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, 12, 5)]);
   }
 
   void test_expectedClassMember_inClass_afterType() {
     createParser('heart 2 heart');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_CLASS_MEMBER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 0, 5)]);
   }
 
   void test_expectedClassMember_inClass_beforeType() {
     createParser('4 score');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_CLASS_MEMBER]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 0, 1)]);
   }
 
   void test_expectedExecutable_afterAnnotation_atEOF() {
-    parseCompilationUnit('@A', codes: [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    parseCompilationUnit('@A',
+        codes: [ParserErrorCode.EXPECTED_EXECUTABLE],
+        errors: [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 1, 1)]);
   }
 
   void test_expectedExecutable_inClass_afterVoid() {
     createParser('void 2 void');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_EXECUTABLE]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 5, 1)]);
   }
 
   void test_expectedExecutable_topLevel_afterType() {
     createParser('heart 2 heart');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_EXECUTABLE]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 5)]);
   }
 
   void test_expectedExecutable_topLevel_afterVoid() {
     createParser('void 2 void');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_EXECUTABLE]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 5, 1)]);
   }
 
   void test_expectedExecutable_topLevel_beforeType() {
     createParser('4 score');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_EXECUTABLE]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1)]);
   }
 
   void test_expectedExecutable_topLevel_eof() {
@@ -2786,7 +2834,8 @@ class Foo {
   void test_expectedStringLiteral() {
     StringLiteral literal = parseStringLiteral('1');
     expectNotNullIfNoErrors(literal);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_STRING_LITERAL]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 0, 1)]);
     expect(literal.isSynthetic, isTrue);
   }
 
@@ -2794,7 +2843,8 @@ class Foo {
     createParser('(x, y z)');
     ArgumentList list = parser.parseArgumentList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]);
   }
 
   void test_expectedToken_parseStatement_afterVoid() {
@@ -2804,8 +2854,10 @@ class Foo {
   }
 
   void test_expectedToken_semicolonMissingAfterExport() {
+    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
     CompilationUnit unit = parseCompilationUnit("export '' class A {}",
-        codes: [ParserErrorCode.EXPECTED_TOKEN]);
+        codes: [ParserErrorCode.EXPECTED_TOKEN],
+        errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 2)]);
     ExportDirective directive = unit.directives[0] as ExportDirective;
     expect(directive.uri, isNotNull);
     expect(directive.uri.stringValue, '');
@@ -2820,12 +2872,17 @@ class Foo {
 
   void test_expectedToken_semicolonMissingAfterExpression() {
     parseStatement("x");
-    assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
+    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
+//    listener
+//        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 1)]);
   }
 
   void test_expectedToken_semicolonMissingAfterImport() {
+    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
     CompilationUnit unit = parseCompilationUnit("import '' class A {}",
-        codes: [ParserErrorCode.EXPECTED_TOKEN]);
+        codes: [ParserErrorCode.EXPECTED_TOKEN],
+        errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 2)]);
     ImportDirective directive = unit.directives[0] as ImportDirective;
     Token semicolon = directive.semicolon;
     expect(semicolon, isNotNull);
@@ -2833,9 +2890,9 @@ class Foo {
   }
 
   void test_expectedToken_uriAndSemicolonMissingAfterExport() {
-    CompilationUnit unit = parseCompilationUnit("export class A {}", codes: [
-      ParserErrorCode.EXPECTED_STRING_LITERAL,
-      ParserErrorCode.EXPECTED_TOKEN,
+    CompilationUnit unit = parseCompilationUnit("export class A {}", errors: [
+      expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 5),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 5),
     ]);
     ExportDirective directive = unit.directives[0] as ExportDirective;
     expect(directive.uri, isNotNull);
@@ -2851,7 +2908,8 @@ class Foo {
 
   void test_expectedToken_whileMissingInDoStatement() {
     parseStatement("do {} (x);");
-    assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
   }
 
   void test_expectedTypeName_as() {
