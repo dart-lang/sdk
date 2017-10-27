@@ -80,7 +80,7 @@ gbind(f, @rest typeArgs) {
 dload(obj, field) {
   var f = _canonicalMember(obj, field);
 
-  _trackCall(obj);
+  trackCall(obj);
   if (f != null) {
     var type = getType(obj);
 
@@ -98,7 +98,7 @@ dload(obj, field) {
 dloadMirror(obj, field) {
   var f = _canonicalMember(obj, field);
 
-  _trackCall(obj);
+  trackCall(obj);
   if (f != null) {
     var type = getType(obj);
 
@@ -123,7 +123,7 @@ _stripGenericArguments(type) {
 // PageLoader code can generate the correct reified generic types.
 dputMirror(obj, field, value) {
   var f = _canonicalMember(obj, field);
-  _trackCall(obj);
+  trackCall(obj);
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
@@ -138,7 +138,7 @@ dputMirror(obj, field, value) {
 
 dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
-  _trackCall(obj);
+  trackCall(obj);
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
@@ -250,7 +250,7 @@ extractNamedArgs(args) {
 }
 
 _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
-  $_trackCall($obj);
+  $trackCall($obj);
 
   let originalTarget = obj === void 0 ? f : obj;
 

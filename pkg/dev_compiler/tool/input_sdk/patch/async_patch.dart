@@ -5,7 +5,7 @@
 // Patch file for the dart:async library.
 
 import 'dart:_js_helper'
-    show patch, Primitives, NoReifyFunctionTypes, DartIterator;
+    show patch, Primitives, ReifyFunctionTypes, DartIterator;
 import 'dart:_isolate_helper'
     show
         IsolateNatives,
@@ -21,7 +21,7 @@ typedef void _Callback();
 typedef void _TakeCallback(_Callback callback);
 
 @JSExportName('async')
-@NoReifyFunctionTypes()
+@ReifyFunctionTypes(false)
 async_<T>(Function() initGenerator) {
   var iter;
   Object Function(Object) onValue;

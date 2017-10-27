@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@ReifyFunctionTypes(false)
 library dart._runtime;
 
 import 'dart:async';
 import 'dart:collection';
 
-import 'dart:_debugger' show stackTraceMapper;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray, jsNull, JSFunction;
 import 'dart:_js_helper'
@@ -24,7 +24,12 @@ import 'dart:_js_helper'
         StrongModeTypeError,
         JsLinkedHashMap,
         ImmutableMap,
-        PrivateSymbol;
+        PrivateSymbol,
+        ReifyFunctionTypes;
+import 'dart:_debugger' show trackCall;
+
+export 'dart:_debugger'
+    show getDynamicStats, clearDynamicStats, trackCall;
 
 part 'utils.dart';
 part 'classes.dart';
@@ -33,16 +38,13 @@ part 'types.dart';
 part 'errors.dart';
 part 'generators.dart';
 part 'operations.dart';
-part 'profile.dart';
 
 // TODO(vsm): Move polyfill code to dart:html.
 // Note, native extensions are registered onto types in dart.global.
 // This polyfill needs to run before the corresponding dart:html code is run.
 final _polyfilled = JS('', 'Symbol("_polyfilled")');
 
-bool polyfill(window) => JS(
-    '',
-    '''(() => {
+bool polyfill(window) => JS('', '''(() => {
   if ($window[$_polyfilled]) return false;
   $window[$_polyfilled] = true;
 
@@ -104,9 +106,7 @@ bool polyfill(window) => JS(
 })()''');
 
 @JSExportName('global')
-final global_ = JS(
-    '',
-    '''
+final global_ = JS('', '''
   function () {
     // Find global object.
     var globalState = (typeof window != "undefined") ? window
@@ -144,5 +144,9 @@ final global_ = JS(
     return globalState;
   }()
 ''');
+
+void trackProfile(bool flag) {
+  JS('', 'dart.__trackProfile = #', flag);
+}
 
 final JsSymbol = JS('', 'Symbol');

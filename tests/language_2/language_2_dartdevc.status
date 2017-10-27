@@ -120,7 +120,6 @@ part_refers_to_core_library_test/01: Crash
 regress_22443_test: RuntimeError
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_23408_test: CompileTimeError
-regress_25568_test: RuntimeError
 regress_27617_test/1: MissingCompileTimeError
 setter_override2_test/none: CompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 31089
@@ -164,7 +163,6 @@ regress_29025_test: CompileTimeError # Issue 29081
 regress_29349_test: CompileTimeError # Issue 31093
 regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: CompileTimeError, Crash # Issue 27809
-regress_29949_test: RuntimeError # Issue 31086
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 string_interpolation_and_buffer_test: RuntimeError
@@ -277,8 +275,6 @@ flatten_test/09: MissingRuntimeError # Issue 29920
 flatten_test/12: MissingRuntimeError # Issue 29920
 for_variable_capture_test: RuntimeError # Issue 29920
 function_subtype_inline2_test: RuntimeError
-function_type/function_type50_test: RuntimeError # Issue 29920
-function_type/function_type58_test: RuntimeError # Issue 29920
 generic_instanceof2_test: RuntimeError # Issue 29920
 generic_is_check_test: RuntimeError # Issue 29920
 generic_method_types_test/02: RuntimeError

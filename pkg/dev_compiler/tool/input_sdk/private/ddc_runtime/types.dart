@@ -1062,21 +1062,17 @@ isClassSubType(t1, t2, isCovariant) => JS('', '''(() => {
 
   if (definitive($t1.__proto__, $t2)) return true;
 
-  // Check mixins.
-  let mixins = $getMixins($t1);
-  if (mixins) {
-    for (let m1 of mixins) {
-      // TODO(jmesserly): remove the != null check once we can load core libs.
-      if (m1 != null && definitive(m1, $t2)) return true;
-    }
+  // Check mixin.
+  let m1 = $getMixin($t1);
+  if (m1 != null) {
+    if (definitive(m1, $t2)) return true;
   }
 
   // Check interfaces.
   let getInterfaces = $getImplements($t1);
   if (getInterfaces) {
     for (let i1 of getInterfaces()) {
-      // TODO(jmesserly): remove the != null check once we can load core libs.
-      if (i1 != null && definitive(i1, $t2)) return true;
+      if (definitive(i1, $t2)) return true;
     }
   }
 

@@ -125,8 +125,6 @@ class CodeGenerator extends Object
   JS.Identifier _runtimeModule;
   final namedArgumentTemp = new JS.TemporaryId('opts');
 
-  final _hasDeferredSupertype = new HashSet<ClassElement>();
-
   /// The  type provider from the current Analysis [context].
   final TypeProvider types;
 
@@ -826,7 +824,7 @@ class CodeGenerator extends Object
     JS.Expression body = closureAnnotate(
         _callHelper('typedef(#, () => #)', [
           js.string(element.name, "'"),
-          _emitType(type, nameType: false, lowerTypedef: true)
+          _emitFunctionType(type, nameType: false)
         ]),
         element,
         node);
@@ -917,19 +915,22 @@ class CodeGenerator extends Object
     var jsCtors = _defineConstructors(classElem, className, memberMap);
     var jsMethods = _emitClassMethods(classElem, members);
     _emitSuperclassCovarianceChecks(classNode, jsMethods);
-    var classExpr = _emitClassExpression(classElem, jsMethods);
 
     var body = <JS.Statement>[];
     _emitSuperHelperSymbols(body);
+    var deferredSupertypes = <JS.Statement>[];
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
-    _defineClass(classElem, className, classExpr, body);
+    _defineClass(classElem, className, jsMethods, body, deferredSupertypes);
     body.addAll(jsCtors);
 
     // Emit things that come after the ES6 `class ... { ... }`.
     var jsPeerNames = _getJSPeerNames(classElem);
-    JS.Statement deferredBaseClass =
-        _setBaseClass(classElem, className, jsPeerNames, body);
+    if (jsPeerNames.length == 1 && classElem.typeParameters.isNotEmpty) {
+      // Special handling for JSArray<E>
+      body.add(_callHelperStatement('setExtensionBaseClass(#, #.global.#);',
+          [className, _runtimeModule, jsPeerNames[0]]));
+    }
 
     var finishGenericTypeTest = _emitClassTypeTests(classElem, className, body);
 
@@ -939,34 +940,16 @@ class CodeGenerator extends Object
     _defineExtensionMembers(className, body);
     _emitClassMetadata(classNode.metadata, className, body);
 
-    JS.Statement classDef = JS.Statement.from(body);
-    if (isMixinAlias(classElem)) {
-      // Given `class C = Object with M [implements I1, I2 ...];`
-      // The resulting class C should function as a mixin.
-      // To accomplish this, we need to merge the class expression into the
-      // mixin. For example:
-      //
-      //     C = dart.mixin(Object, C.__proto__, C)
-      var oldClassName = className;
-      if (oldClassName is JS.Identifier) {
-        className = new JS.TemporaryId(classElem.name);
-      }
-      body.add(js.statement('# = #.mixin(#, #.__proto__, #)', [
-        className,
-        _runtimeModule,
-        _emitType(types.objectType),
-        oldClassName,
-        oldClassName
-      ]));
-    }
-
+    var classDef = JS.Statement.from(body);
     var typeFormals = classElem.typeParameters;
     if (typeFormals.isNotEmpty) {
       classDef = _defineClassTypeArguments(
-          classElem, typeFormals, classDef, className, deferredBaseClass);
+          classElem, typeFormals, classDef, className, deferredSupertypes);
+    } else {
+      body.addAll(deferredSupertypes);
     }
 
-    body = <JS.Statement>[classDef];
+    body = [classDef];
     _emitStaticFields(classElem, memberMap, body);
     if (finishGenericTypeTest != null) body.add(finishGenericTypeTest);
     for (var peer in jsPeerNames) {
@@ -1204,15 +1187,6 @@ class CodeGenerator extends Object
     });
   }
 
-  void _defineClass(ClassElement classElem, JS.Expression className,
-      JS.ClassExpression classExpr, List<JS.Statement> body) {
-    if (classElem.typeParameters.isNotEmpty) {
-      body.add(new JS.ClassDeclaration(classExpr));
-    } else {
-      body.add(js.statement('# = #;', [className, classExpr]));
-    }
-  }
-
   List<JS.Identifier> _emitTypeFormals(List<TypeParameterElement> typeFormals) {
     return typeFormals
         .map((t) => new JS.Identifier(t.name))
@@ -1240,7 +1214,7 @@ class CodeGenerator extends Object
   /// Wraps a possibly generic class in its type arguments.
   JS.Statement _defineClassTypeArguments(TypeDefiningElement element,
       List<TypeParameterElement> formals, JS.Statement body,
-      [JS.Expression className, JS.Statement deferredBaseClass]) {
+      [JS.Expression className, List<JS.Statement> deferredBaseClass]) {
     assert(formals.isNotEmpty);
     var typeConstructor = js.call('(#) => { #; #; return #; }', [
       _emitTypeFormals(formals),
@@ -1250,7 +1224,7 @@ class CodeGenerator extends Object
     ]);
 
     var genericArgs = [typeConstructor];
-    if (deferredBaseClass != null) {
+    if (deferredBaseClass != null && deferredBaseClass.isNotEmpty) {
       genericArgs.add(js.call('(#) => { #; }', [className, deferredBaseClass]));
     }
 
@@ -1260,72 +1234,191 @@ class CodeGenerator extends Object
         (element.name == "Future" || element.name == "_Future")) {
       genericCall = _callHelper('flattenFutures(#)', [genericCall]);
     }
-    var genericDef = js.statement(
-        '# = #;', [_emitTopLevelName(element, suffix: r'$'), genericCall]);
-    // TODO(jmesserly): this should be instantiate to bounds
-    var dynType = fillDynamicTypeArgs(element.type);
-    var genericInst = _emitType(dynType, lowerGeneric: true);
-    return js.statement(
-        '{ #; # = #; }', [genericDef, _emitTopLevelName(element), genericInst]);
+    var genericName = _emitTopLevelNameNoInterop(element, suffix: '\$');
+    return js.statement('{ # = #; # = #(); }',
+        [genericName, genericCall, _emitTopLevelName(element), genericName]);
   }
 
-  bool _deferIfNeeded(DartType type, ClassElement current) {
-    if (type is ParameterizedType) {
-      var typeArguments = type.typeArguments;
-      for (var typeArg in typeArguments) {
-        var typeElement = typeArg.element;
-        // FIXME(vsm): This does not track mutual recursive dependences.
-        if (current == typeElement || _deferIfNeeded(typeArg, current)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  JS.ClassExpression _emitClassExpression(
-      ClassElement element, List<JS.Method> methods) {
-    String name = element.name;
-    var heritage = _emitClassHeritage(element);
-    var typeParams = _emitTypeFormals(element.typeParameters);
+  JS.Statement _emitClassStatement(
+      ClassElement classElem,
+      JS.Expression className,
+      JS.Expression heritage,
+      List<JS.Method> methods) {
+    String name = classElem.name;
+    var typeParams = _emitTypeFormals(classElem.typeParameters);
 
     var jsFields = options.closure
-        ? element.fields.map(_emitTypeScriptField).toList()
+        ? classElem.fields.map(_emitTypeScriptField).toList()
         : null;
-    return new JS.ClassExpression(new JS.Identifier(name), heritage, methods,
+    var classExpr = new JS.ClassExpression(
+        new JS.Identifier(name), heritage, methods,
         typeParams: typeParams, fields: jsFields);
+    if (classElem.typeParameters.isNotEmpty) {
+      return classExpr.toStatement();
+    } else {
+      return js.statement('# = #;', [className, classExpr]);
+    }
   }
 
-  JS.Expression _emitClassHeritage(ClassElement element) {
-    var type = element.type;
-    if (type.isObject) return null;
-
-    _startTopLevelCodeForClass(element);
-
-    // List of "direct" supertypes (supertype + mixins)
-    var basetypes = [type.superclass]..addAll(type.mixins);
-
-    // If any of these are recursive (via type parameter), defer setting
-    // the real superclass.
-    if (basetypes.any((t) => _deferIfNeeded(t, element))) {
-      // Fall back to raw type
-      basetypes =
-          basetypes.map((t) => fillDynamicTypeArgs(t.element.type)).toList();
-      _hasDeferredSupertype.add(element);
+  void _defineClass(
+      ClassElement classElem,
+      JS.Expression className,
+      List<JS.Method> methods,
+      List<JS.Statement> body,
+      List<JS.Statement> deferredSupertypes) {
+    if (classElem.type.isObject) {
+      body.add(_emitClassStatement(classElem, className, null, methods));
+      return;
     }
 
-    // List of "direct" JS superclasses
-    var baseclasses = basetypes
-        .map((t) => _emitConstructorAccess(t, nameType: false))
-        .toList();
-    assert(baseclasses.isNotEmpty);
-    var heritage = (baseclasses.length == 1)
-        ? baseclasses.first
-        : _callHelper('mixin(#)', [baseclasses]);
+    emitDeferredType(DartType t) {
+      if (t is InterfaceType && t.typeArguments.isNotEmpty) {
+        if (t == classElem.type) return className;
+        return _emitGenericClassType(
+            t, t.typeArguments.map(emitDeferredType).toList());
+      }
+      return _emitType(t, nameType: false);
+    }
 
-    _finishTopLevelCodeForClass(element);
+    bool shouldDefer(DartType t) {
+      var visited = new Set<DartType>();
+      bool defer(DartType t) {
+        if (classElem == t.element) return true;
+        if (t.isObject) return false;
+        if (t is ParameterizedType) {
+          if (!visited.add(t)) return false;
+          if (t.typeArguments.any(defer)) return true;
+          if (t is InterfaceType) {
+            var e = t.element;
+            return e.mixins.any(defer) || defer(e.supertype);
+          }
+        }
+        return false;
+      }
 
-    return heritage;
+      return defer(t);
+    }
+
+    emitClassRef(InterfaceType t) {
+      // TODO(jmesserly): investigate this. It seems like `lazyJSType` is
+      // invalid for use in an `extends` clause, hence this workaround.
+      return _emitJSInterop(t.element) ?? _emitType(t, nameType: false);
+    }
+
+    getBaseClass(JS.Expression base, int count) {
+      while (--count >= 0) {
+        base = js.call('#.__proto__', [base]);
+      }
+      return base;
+    }
+
+    var supertype = classElem.supertype;
+    var hasUnnamedSuper = _hasUnnamedConstructor(supertype.element);
+    var isCallable = isCallableClass(classElem);
+
+    void emitMixinConstructors(JS.Expression className, [InterfaceType mixin]) {
+      var supertype = classElem.supertype;
+      JS.Statement mixinCtor;
+      if (mixin != null && _hasUnnamedConstructor(mixin.element)) {
+        mixinCtor = js.statement('#.#.call(this);', [
+          emitClassRef(mixin),
+          _usesMixinNew(mixin.element)
+              ? _callHelper('mixinNew')
+              : _constructorName('')
+        ]);
+      }
+
+      for (var ctor in supertype.constructors) {
+        var jsParams = _emitParametersForElement(ctor);
+        var ctorBody = <JS.Statement>[];
+        if (mixinCtor != null) ctorBody.add(mixinCtor);
+        if (ctor.name != '' || hasUnnamedSuper) {
+          ctorBody
+              .add(_emitSuperConstructorCall(className, ctor.name, jsParams));
+        }
+        body.add(_addConstructorToClass(
+            className,
+            ctor.name,
+            _finishConstructorFunction(
+                jsParams, new JS.Block(ctorBody), isCallable)));
+      }
+    }
+
+    _startTopLevelCodeForClass(classElem);
+
+    // Unroll mixins.
+    var mixinLength = classElem.mixins.length;
+    if (shouldDefer(supertype)) {
+      deferredSupertypes.add(_callHelperStatement('setBaseClass(#, #)', [
+        getBaseClass(className, isMixinAliasClass(classElem) ? 0 : mixinLength),
+        emitDeferredType(supertype),
+      ]));
+      supertype = fillDynamicTypeArgs(supertype);
+    }
+    var baseClass = emitClassRef(supertype);
+
+    // TODO(jmesserly): conceptually we could use isMixinApplication, however,
+    // avoiding the extra level of nesting is only required if the class itself
+    // is a valid mixin.
+    if (isMixinAliasClass(classElem)) {
+      // Given `class C = Object with M [implements I1, I2 ...];`
+      // The resulting class C should work as a mixin.
+      body.add(_emitClassStatement(classElem, className, baseClass, []));
+
+      var m = classElem.mixins.single;
+      bool deferMixin = shouldDefer(m);
+      var mixinBody = deferMixin ? deferredSupertypes : body;
+      var mixinClass = deferMixin ? emitDeferredType(m) : emitClassRef(m);
+
+      mixinBody.add(
+          _callHelperStatement('mixinMembers(#, #)', [className, mixinClass]));
+
+      _finishTopLevelCodeForClass(classElem);
+
+      if (methods.isNotEmpty) {
+        // However we may need to add some methods to this class that call
+        // `super` such as covariance checks.
+        //
+        // We do this with the following pattern:
+        //
+        //     mixinMembers(C, class C$ extends M { <methods>  });
+        mixinBody.add(_callHelperStatement('mixinMembers(#, #)', [
+          className,
+          new JS.ClassExpression(
+              new JS.TemporaryId(classElem.name), mixinClass, methods)
+        ]));
+      }
+
+      emitMixinConstructors(className, m);
+      return;
+    }
+
+    for (int i = 0; i < mixinLength; i++) {
+      var m = classElem.mixins[i];
+
+      var mixinId = new JS.TemporaryId(classElem.supertype.name + '_' + m.name);
+      body.add(new JS.ClassExpression(mixinId, baseClass, []).toStatement());
+      // Add constructors
+
+      emitMixinConstructors(mixinId, m);
+      hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(m.element);
+
+      if (shouldDefer(m)) {
+        deferredSupertypes.add(_callHelperStatement('mixinMembers(#, #)',
+            [getBaseClass(className, mixinLength - i), emitDeferredType(m)]));
+      } else {
+        body.add(_callHelperStatement(
+            'mixinMembers(#, #)', [mixinId, emitClassRef(m)]));
+      }
+
+      baseClass = mixinId;
+    }
+
+    _finishTopLevelCodeForClass(classElem);
+
+    body.add(_emitClassStatement(classElem, className, baseClass, methods));
+
+    if (classElem.isMixinApplication) emitMixinConstructors(className);
   }
 
   /// Provide Dart getters and setters that forward to the underlying native
@@ -1796,53 +1889,10 @@ class CodeGenerator extends Object
         'registerExtension(#, #);', [js.string(jsPeerName), className]));
   }
 
-  JS.Statement _setBaseClass(ClassElement classElem, JS.Expression className,
-      List<String> jsPeerNames, List<JS.Statement> body) {
-    var typeFormals = classElem.typeParameters;
-    if (jsPeerNames.length == 1 && typeFormals.isNotEmpty) {
-      var newBaseClass = _callHelper('global.#', jsPeerNames[0]);
-      body.add(_callHelperStatement(
-          'setExtensionBaseClass(#, #);', [className, newBaseClass]));
-    } else if (_hasDeferredSupertype.contains(classElem)) {
-      // TODO(vsm): consider just threading the deferred supertype through
-      // instead of recording classElem in a set on the class and recomputing
-      var newBaseClass = _emitType(classElem.type.superclass,
-          nameType: false, subClass: classElem, className: className);
-      if (classElem.type.mixins.isNotEmpty) {
-        var mixins = classElem.type.mixins
-            .map((t) => _emitType(t, nameType: false))
-            .toList();
-        mixins.insert(0, newBaseClass);
-        newBaseClass = _callHelper('mixin(#)', [mixins]);
-      }
-      var deferredBaseClass = _callHelperStatement(
-          'setBaseClass(#, #);', [className, newBaseClass]);
-      if (typeFormals.isNotEmpty) return deferredBaseClass;
-      body.add(deferredBaseClass);
-    }
-    return null;
-  }
-
   /// Defines all constructors for this class as ES5 constructors.
   List<JS.Statement> _defineConstructors(ClassElement classElem,
       JS.Expression className, Map<Element, Declaration> memberMap) {
-    // See if we have a "call" with a statically known function type:
-    //
-    // - if it's a method, then it does because all methods do,
-    // - if it's a getter, check the return type.
-    //
-    // Other cases like a getter returning dynamic/Object/Function will be
-    // handled at runtime by the dynamic call mechanism. So we only
-    // concern ourselves with statically known function types.
-    //
-    // We can ignore `noSuchMethod` because:
-    // * `dynamic d; d();` without a declared `call` method is handled by dcall.
-    // * for `class C implements Callable { noSuchMethod(i) { ... } }` we find
-    //   the `call` method on the `Callable` interface.
-    var callMethod = classElem.type.lookUpInheritedGetterOrMethod('call');
-    bool isCallable = callMethod is PropertyAccessorElement
-        ? callMethod.returnType is FunctionType
-        : callMethod != null;
+    var isCallable = isCallableClass(classElem);
 
     var body = <JS.Statement>[];
     if (isCallable) {
@@ -1853,32 +1903,13 @@ class CodeGenerator extends Object
           [className, _callHelper('_runtimeType'), className]));
     }
 
-    void addConstructor(String name, JS.Expression jsCtor) {
-      var ctorName = _constructorName(name);
-      if (JS.invalidStaticFieldName(name)) {
-        jsCtor =
-            _callHelper('defineValue(#, #, #)', [className, ctorName, jsCtor]);
-      } else {
-        jsCtor = js.call('#.# = #', [className, ctorName, jsCtor]);
-      }
-      body.add(js.statement('#.prototype = #.prototype;', [jsCtor, className]));
+    if (classElem.isMixinApplication) {
+      // We already handled this when we defined the class.
+      return body;
     }
 
-    if (classElem.isMixinApplication) {
-      var supertype = classElem.supertype;
-      for (var ctor in classElem.constructors) {
-        List<JS.Identifier> jsParams = _emitParametersForElement(ctor);
-        var superCtor = supertype.lookUpConstructor(ctor.name, ctor.library);
-        var superCall =
-            _superConstructorCall(classElem, className, superCtor, jsParams);
-        addConstructor(
-            ctor.name,
-            _finishConstructorFunction(
-                jsParams,
-                new JS.Block(superCall != null ? [superCall] : []),
-                isCallable));
-      }
-      return body;
+    addConstructor(String name, JS.Expression jsCtor) {
+      body.add(_addConstructorToClass(className, name, jsCtor));
     }
 
     if (classElem.isEnum) {
@@ -1897,7 +1928,7 @@ class CodeGenerator extends Object
     if (defaultCtor != null && defaultCtor.isSynthetic) {
       assert(classElem.constructors.length == 1,
           'default constructor only if no other constructors');
-      var superCall = _superConstructorCall(classElem, className);
+      var superCall = _emitSuperConstructorCallIfNeeded(classElem, className);
       var ctorBody = <JS.Statement>[_initializeFields(fields)];
       if (superCall != null) ctorBody.add(superCall);
 
@@ -1906,7 +1937,6 @@ class CodeGenerator extends Object
       return body;
     }
 
-    bool foundConstructor = false;
     for (var element in classElem.constructors) {
       if (element.isSynthetic || element.isFactory || element.isExternal) {
         continue;
@@ -1916,13 +1946,12 @@ class CodeGenerator extends Object
 
       addConstructor(
           element.name, _emitConstructor(ctor, fields, isCallable, className));
-      foundConstructor = true;
     }
 
     // If classElement has only factory constructors, and it can be mixed in,
     // then we need to emit a special hidden default constructor for use by
     // mixins.
-    if (!foundConstructor && classElem.supertype.isObject) {
+    if (_usesMixinNew(classElem)) {
       body.add(
           js.statement('(#[#] = function() { # }).prototype = #.prototype;', [
         className,
@@ -1935,6 +1964,27 @@ class CodeGenerator extends Object
     return body;
   }
 
+  /// If classElement has only factory constructors, and it can be mixed in,
+  /// then we need to emit a special hidden default constructor for use by
+  /// mixins.
+  bool _usesMixinNew(ClassElement mixin) {
+    return (mixin.supertype?.isObject ?? false) &&
+        mixin.constructors.every((c) =>
+            c.isSynthetic && c.name != '' || c.isFactory || c.isExternal);
+  }
+
+  JS.Statement _addConstructorToClass(
+      JS.Expression className, String name, JS.Expression jsCtor) {
+    var ctorName = _constructorName(name);
+    if (JS.invalidStaticFieldName(name)) {
+      jsCtor =
+          _callHelper('defineValue(#, #, #)', [className, ctorName, jsCtor]);
+    } else {
+      jsCtor = js.call('#.# = #', [className, ctorName, jsCtor]);
+    }
+    return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
+  }
+
   /// Emits static fields for a class, and initialize them eagerly if possible,
   /// otherwise define them as lazy properties.
   void _emitStaticFields(ClassElement classElem,
@@ -1944,7 +1994,7 @@ class CodeGenerator extends Object
       var type = classElem.type;
       void addField(FieldElement e, JS.Expression value) {
         var args = [
-          _emitStaticAccess(type),
+          _emitStaticAccess(classElem),
           _declareMemberName(e.getter),
           value
         ];
@@ -1962,7 +2012,7 @@ class CodeGenerator extends Object
         if (f.type != type) continue;
         // static const E id_i = const E(i);
         values.add(new JS.PropertyAccess(
-            _emitStaticAccess(type), _declareMemberName(f.getter)));
+            _emitStaticAccess(classElem), _declareMemberName(f.getter)));
         var enumValue = _callHelper('const(new (#.#)(#))', [
           _emitConstructorAccess(type),
           _constructorName(''),
@@ -2329,7 +2379,7 @@ class CodeGenerator extends Object
     // enclosing class is class Object.
     var superCallArgs =
         superCall != null ? _emitArgumentList(superCall.argumentList) : null;
-    var jsSuper = _superConstructorCall(
+    var jsSuper = _emitSuperConstructorCallIfNeeded(
         cls.element, className, superCall?.staticElement, superCallArgs);
     if (jsSuper != null) body.add(jsSuper..sourceInformation = superCall);
 
@@ -2349,7 +2399,7 @@ class CodeGenerator extends Object
     ]);
   }
 
-  JS.Statement _superConstructorCall(
+  JS.Statement _emitSuperConstructorCallIfNeeded(
       ClassElement element, JS.Expression className,
       [ConstructorElement superCtor, List<JS.Expression> args]) {
     // Get the supertype's unnamed constructor.
@@ -2365,9 +2415,13 @@ class CodeGenerator extends Object
       return null;
     }
 
-    var name = _constructorName(superCtor.name);
-    return js.statement(
-        '#.__proto__.#.call(this, #);', [className, name, args ?? []]);
+    return _emitSuperConstructorCall(className, superCtor.name, args);
+  }
+
+  JS.Statement _emitSuperConstructorCall(
+      JS.Expression className, String name, List<JS.Expression> args) {
+    return js.statement('#.__proto__.#.call(this, #);',
+        [className, _constructorName(name), args ?? []]);
   }
 
   bool _hasUnnamedSuperConstructor(ClassElement e) {
@@ -2382,7 +2436,9 @@ class CodeGenerator extends Object
 
   bool _hasUnnamedConstructor(ClassElement e) {
     if (e.type.isObject) return false;
-    if (!e.unnamedConstructor.isSynthetic) return true;
+    var ctor = e.unnamedConstructor;
+    if (ctor == null) return false;
+    if (!ctor.isSynthetic) return true;
     if (e.fields.any((f) => !f.isStatic && !f.isSynthetic)) return true;
     return _hasUnnamedSuperConstructor(e);
   }
@@ -2711,7 +2767,6 @@ class CodeGenerator extends Object
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
     JS.Fun fn = _emitFunction(node.element, node.parameters, node.body);
-
     return _toArrowFunction(fn);
   }
 
@@ -2981,7 +3036,6 @@ class CodeGenerator extends Object
     // type literal
     if (element is TypeDefiningElement) {
       _declareBeforeUse(element);
-
       var typeName = _emitType(fillDynamicTypeArgs(element.type));
 
       // If the type is a type literal expression in Dart code, wrap the raw
@@ -3004,7 +3058,8 @@ class CodeGenerator extends Object
     // call to a static from the same class.
     if (element is ClassMemberElement && element is! ConstructorElement) {
       bool isStatic = element.isStatic;
-      var type = element.enclosingElement.type;
+      var classElem = element.enclosingElement;
+      var type = classElem.type;
       var member = _emitMemberName(name,
           isStatic: isStatic, type: type, element: accessor);
 
@@ -3012,16 +3067,16 @@ class CodeGenerator extends Object
       // For method tear-offs, we ensure it's a bound method.
       if (element is MethodElement &&
           !inInvocationContext(node) &&
-          !_isJSNative(element.enclosingElement)) {
+          !_isJSNative(classElem)) {
         if (isStatic) {
           // TODO(jmesserly): instead of looking up the function type, we could
           // simply emit it here.
           return _callHelper(
-              'tagStatic(#, #)', [_emitStaticAccess(type), member]);
+              'tagStatic(#, #)', [_emitStaticAccess(classElem), member]);
         }
         return _callHelper('bind(this, #)', member);
       }
-      var target = isStatic ? _emitStaticAccess(type) : new JS.This();
+      var target = isStatic ? _emitStaticAccess(classElem) : new JS.This();
       return new JS.PropertyAccess(target, member);
     }
 
@@ -3139,7 +3194,6 @@ class CodeGenerator extends Object
   /// regular args, and optional/named args.
   JS.Expression _emitFunctionType(FunctionType type,
       {List<FormalParameter> parameters,
-      bool lowerTypedef: false,
       bool nameType: true,
       definite: false}) {
     var parameterTypes = type.normalParameterTypes;
@@ -3198,14 +3252,10 @@ class CodeGenerator extends Object
   JS.Expression _emitAnnotatedFunctionType(
       FunctionType type, List<Annotation> metadata,
       {List<FormalParameter> parameters,
-      bool lowerTypedef: false,
       bool nameType: true,
       bool definite: false}) {
     var result = _emitFunctionType(type,
-        parameters: parameters,
-        lowerTypedef: lowerTypedef,
-        nameType: nameType,
-        definite: definite);
+        parameters: parameters, nameType: nameType, definite: definite);
     return _emitAnnotatedResult(result, metadata);
   }
 
@@ -3217,28 +3267,10 @@ class CodeGenerator extends Object
     return _emitJSInterop(type.element) ?? _emitType(type, nameType: nameType);
   }
 
-  /// Emits an expression that lets you access statics on a [type] from code.
-  JS.Expression _emitStaticAccess(DartType type) {
-    // Make sure we aren't attempting to emit a static access path to a type
-    // that does not have a valid static access path.
-    assert(!type.isVoid &&
-        !type.isDynamic &&
-        !type.isBottom &&
-        type is! TypeParameterType);
-
-    // For statics, we add the raw type name, without generics or
-    // library prefix. We don't need those because static calls can't use
-    // the generic type.
-    type = fillDynamicTypeArgs(type);
-    var element = type.element;
+  /// Emits an expression that lets you access statics on an [element] from code.
+  JS.Expression _emitStaticAccess(ClassElement element) {
     _declareBeforeUse(element);
-
-    var interop = _emitJSInterop(element);
-    if (interop != null) return interop;
-
-    assert(type.name != '' && type.name != null);
-
-    return _emitTopLevelNameNoInterop(element);
+    return _emitTopLevelName(element);
   }
 
   /// Emits a Dart [type] into code.
@@ -3248,18 +3280,9 @@ class CodeGenerator extends Object
   /// will be used instead of `List`. These flags are used when generating
   /// the definitions for typedefs and generic types, respectively.
   ///
-  /// If [subClass] is set, then we are setting the base class for the given
-  /// class and should emit the given [className], which will already be
-  /// defined.
-  ///
   /// If [nameType] is true, then the type will be named.  In addition,
   /// if [hoistType] is true, then the named type will be hoisted.
-  JS.Expression _emitType(DartType type,
-      {bool lowerTypedef: false,
-      bool lowerGeneric: false,
-      bool nameType: true,
-      ClassElement subClass,
-      JS.Expression className}) {
+  JS.Expression _emitType(DartType type, {bool nameType: true}) {
     // The void and dynamic types are not defined in core.
     if (type.isVoid) {
       return _callHelper('void');
@@ -3300,12 +3323,11 @@ class CodeGenerator extends Object
     // methods? Similar issue with generic types. For all of these, we may want
     // to canonicalize them too, at least when inside the same library.
     var name = type.name;
-    if (name == '' || name == null || lowerTypedef) {
+    if (name == '' || name == null) {
       // TODO(jmesserly): should we change how typedefs work? They currently
       // go through use similar logic as generic classes. This makes them
       // different from universal function types.
-      return _emitFunctionType(type as FunctionType,
-          lowerTypedef: lowerTypedef, nameType: nameType);
+      return _emitFunctionType(type as FunctionType, nameType: nameType);
     }
 
     if (type is TypeParameterType) {
@@ -3313,25 +3335,25 @@ class CodeGenerator extends Object
       return new JS.Identifier(name);
     }
 
-    if (type == subClass?.type) return className;
-
     if (type is ParameterizedType) {
       var args = type.typeArguments;
       Iterable jsArgs = null;
       if (args.any((a) => !a.isDynamic)) {
-        jsArgs = args.map((x) => _emitType(x,
-            nameType: nameType, subClass: subClass, className: className));
-      } else if (lowerGeneric || element == subClass) {
-        jsArgs = [];
+        jsArgs = args.map((x) => _emitType(x, nameType: nameType)).toList();
       }
       if (jsArgs != null) {
-        var genericName = _emitTopLevelNameNoInterop(element, suffix: '\$');
-        var typeRep = js.call('#(#)', [genericName, jsArgs]);
+        var typeRep = _emitGenericClassType(type, jsArgs);
         return nameType ? _typeTable.nameType(type, typeRep) : typeRep;
       }
     }
 
     return _emitTopLevelNameNoInterop(element);
+  }
+
+  JS.Expression _emitGenericClassType(
+      InterfaceType t, List<JS.Expression> typeArgs) {
+    var genericName = _emitTopLevelNameNoInterop(t.element, suffix: '\$');
+    return js.call('#(#)', [genericName, typeArgs]);
   }
 
   JS.PropertyAccess _emitTopLevelName(Element e, {String suffix: ''}) {
@@ -3519,12 +3541,12 @@ class CodeGenerator extends Object
   /// Emits assignment to a static field element or property.
   JS.Expression _emitSetField(
       Expression right, FieldElement field, JS.Expression jsTarget) {
-    var type = field.enclosingElement.type;
+    var classElem = field.enclosingElement;
     var isStatic = field.isStatic;
     var member = _emitMemberName(field.name,
-        isStatic: isStatic, type: type, element: field.setter);
+        isStatic: isStatic, type: classElem.type, element: field.setter);
     jsTarget = isStatic
-        ? new JS.PropertyAccess(_emitStaticAccess(type), member)
+        ? new JS.PropertyAccess(_emitStaticAccess(classElem), member)
         : _emitTargetAccess(jsTarget, member, field.setter);
     return _visitExpression(right)
         .toAssignExpression(jsTarget..sourceInformation = field);
@@ -3619,11 +3641,11 @@ class CodeGenerator extends Object
       if (member is PropertyAccessorElement) {
         var field = member.variable;
         if (field is FieldElement) {
-          return _emitStaticAccess(field.enclosingElement.type);
+          return _emitStaticAccess(field.enclosingElement);
         }
       }
       if (member is MethodElement) {
-        return _emitStaticAccess(member.enclosingElement.type);
+        return _emitStaticAccess(member.enclosingElement);
       }
     }
     return _visitExpression(target);
@@ -6103,7 +6125,7 @@ class CodeGenerator extends Object
   @override
   visitEnumConstantDeclaration(node) => _unreachable(node); // see
 
-  /// Unused, see [_emitClassHeritage].
+  /// Unused, see [_defineClass].
   @override
   visitExtendsClause(node) => _unreachable(node);
 
@@ -6119,7 +6141,7 @@ class CodeGenerator extends Object
   @override
   visitHideCombinator(node) => _unreachable(node);
 
-  /// Unused, see [_emitClassHeritage].
+  /// Unused, see [_defineClass].
   @override
   visitImplementsClause(node) => _unreachable(node);
 
@@ -6171,7 +6193,7 @@ class CodeGenerator extends Object
   @override
   visitTypeParameterList(node) => _unreachable(node);
 
-  /// Unused, see [_emitClassHeritage].
+  /// Unused, see [_defineClass].
   @override
   visitWithClause(node) => _unreachable(node);
 }
@@ -6288,11 +6310,11 @@ bool _reifyFunctionType(Element e) {
   var library = e.library;
   if (!library.isInSdk) return true;
   // SDK libraries can skip reification if they request it.
-  if (isSdkInternalRuntime(library)) return false;
-  noReifyFunctionTypes(DartObjectImpl a) =>
-      isBuiltinAnnotation(a, '_js_helper', 'NoReifyFunctionTypes');
+  reifyFunctionTypes(DartObjectImpl a) =>
+      isBuiltinAnnotation(a, '_js_helper', 'ReifyFunctionTypes');
   while (e != null) {
-    if (findAnnotation(e, noReifyFunctionTypes) != null) return false;
+    var a = findAnnotation(e, reifyFunctionTypes);
+    if (a != null) return a.getField('value').toBoolValue();
     e = e.enclosingElement;
   }
   return true;

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This file supports profiling dynamic calls.
-part of dart._runtime;
+part of dart._debugger;
 
 class _MethodStats {
   final String typeName;
@@ -70,14 +70,14 @@ List<List<Object>> getDynamicStats() {
           return stackTraceMapper('\n${frame}');
         });
         if (!mappedFrame.contains('dart:_runtime/operations.dart') &&
-            !mappedFrame.contains('dart:_runtime/profile.dart')) {
+            !mappedFrame.contains('dart:_debugger/profile.dart')) {
           src = mappedFrame;
 
           break;
         }
       }
 
-      var actualTypeName = typeName(record.type);
+      var actualTypeName = dart.typeName(record.type);
       callMethodStats
           .putIfAbsent("$actualTypeName <$src>",
               () => new _MethodStats(actualTypeName, src))
@@ -119,11 +119,7 @@ clearDynamicStats() {
 // so we cannot use a regular Dart field.
 bool get _trackProfile => JS('bool', 'dart.__trackProfile');
 
-void trackProfile(bool flag) {
-  JS('', 'dart.__trackProfile = #', flag);
-}
-
-_trackCall(obj) {
+trackCall(obj) {
   if (JS('bool', '!#', _trackProfile)) return;
   int index = -1;
   _totalCallRecords++;
@@ -138,7 +134,7 @@ _trackCall(obj) {
     if (index >= _callMethodRecords.length) return; // don't sample
   }
   var record =
-      new _CallMethodRecord(JS('', 'new Error()'), getReifiedType(obj));
+      new _CallMethodRecord(JS('', 'new Error()'), dart.getReifiedType(obj));
   if (index == -1) {
     _callMethodRecords.add(record);
   } else {
