@@ -6,6 +6,7 @@ library fasta.verifier;
 
 import 'package:kernel/ast.dart'
     show
+        AsExpression,
         Class,
         ExpressionStatement,
         Field,
@@ -105,6 +106,14 @@ class FastaVerifyingVisitor extends VerifyingVisitor
         .withLocation(fileUri == null ? null : Uri.parse(fileUri), offset);
     CompilerContext.current.report(message, Severity.error);
     errors.add(message);
+  }
+
+  @override
+  visitAsExpression(AsExpression node) {
+    super.visitAsExpression(node);
+    if (node.fileOffset == -1) {
+      problem(node, "No offset for $node");
+    }
   }
 
   @override

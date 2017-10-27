@@ -452,13 +452,19 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       }
       var checkKind = inferrer.preCheckInvocationContravariance(read, readType,
           combinerMember, combiner, combiner.arguments, combiner);
-      var replacedCombiner = inferrer.handleInvocationContravariance(checkKind,
-          combiner, combiner.arguments, combiner, combinedType, combinerType);
+      var replacedCombiner = inferrer.handleInvocationContravariance(
+          checkKind,
+          combiner,
+          combiner.arguments,
+          combiner,
+          combinedType,
+          combinerType,
+          combiner.fileOffset);
       _storeLetType(inferrer, replacedCombiner, combinedType);
     } else {
       combinedType = inferrer.inferExpression(rhs, writeContext, true);
-      var replacedRhs =
-          inferrer.checkAssignability(writeContext, combinedType, rhs);
+      var replacedRhs = inferrer.checkAssignability(writeContext, combinedType,
+          rhs, write == null ? -1 : write.fileOffset);
       if (replacedRhs == null) {
         _storeLetType(inferrer, rhs, combinedType);
       } else {
@@ -977,7 +983,8 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
           read.arguments,
           read,
           readType,
-          calleeFunctionType);
+          calleeFunctionType,
+          read.fileOffset);
       _storeLetType(inferrer, replacedRead, readType);
     }
     var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
@@ -1479,7 +1486,7 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
           inferrer.findPropertyGetMember(receiverType, read, silent: true);
       readType = inferrer.getCalleeType(readMember, receiverType);
       inferrer.handlePropertyGetContravariance(receiver, readMember,
-          read is PropertyGet ? read : null, read, readType);
+          read is PropertyGet ? read : null, read, readType, read.fileOffset);
       _storeLetType(inferrer, read, readType);
     }
     Member writeMember;

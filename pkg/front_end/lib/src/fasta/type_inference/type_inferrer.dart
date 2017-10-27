@@ -332,8 +332,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Checks whether [actualType] can be assigned to [expectedType], and inserts
   /// an implicit downcast if appropriate.
-  Expression checkAssignability(
-      DartType expectedType, DartType actualType, Expression expression) {
+  Expression checkAssignability(DartType expectedType, DartType actualType,
+      Expression expression, int fileOffset) {
     if (expectedType == null ||
         typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
       // Types are compatible.
@@ -346,8 +346,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // Insert an implicit downcast.
       if (strongMode) {
         var parent = expression.parent;
-        var typeCheck = new ShadowAsExpression(expression, expectedType)
-          ..isTypeError = true;
+        var typeCheck = new AsExpression(expression, expectedType)
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
         parent.replaceChild(expression, typeCheck);
         return typeCheck;
       } else {
@@ -595,13 +596,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Arguments arguments,
       Expression expression,
       DartType inferredType,
-      FunctionType functionType) {
+      FunctionType functionType,
+      int fileOffset) {
     var expressionToReplace = desugaredInvocation ?? expression;
     switch (checkKind) {
       case MethodContravarianceCheckKind.checkMethodReturn:
         var parent = expressionToReplace.parent;
         var replacement = new AsExpression(expressionToReplace, inferredType)
-          ..isTypeError = true;
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
         parent.replaceChild(expressionToReplace, replacement);
         if (instrumentation != null) {
           int offset = arguments.fileOffset == -1
@@ -616,7 +619,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         var propertyGet = new PropertyGet(desugaredInvocation.receiver,
             desugaredInvocation.name, desugaredInvocation.interfaceTarget);
         var asExpression = new AsExpression(propertyGet, functionType)
-          ..isTypeError = true;
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
         var replacement = new MethodInvocation(
             asExpression, callName, desugaredInvocation.arguments);
         parent.replaceChild(expressionToReplace, replacement);
@@ -641,7 +645,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Object interfaceMember,
       PropertyGet desugaredGet,
       Expression expression,
-      DartType inferredType) {
+      DartType inferredType,
+      int fileOffset) {
     DispatchCategory callKind;
     if (receiver is ThisExpression) {
       callKind = DispatchCategory.viaThis;
@@ -661,7 +666,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       expressionToReplace.parent.replaceChild(
           expressionToReplace,
           new AsExpression(expressionToReplace, inferredType)
-            ..isTypeError = true);
+            ..isTypeError = true
+            ..fileOffset = fileOffset);
     }
     if (instrumentation != null) {
       int offset = expression.fileOffset;
@@ -1006,7 +1012,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
-        expression, inferredType, calleeType);
+        expression, inferredType, calleeType, fileOffset);
     listener.methodInvocationExit(
         expression, arguments, isImplicitCall, inferredType);
     return inferredType;
@@ -1041,8 +1047,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     var inferredType = getCalleeType(interfaceMember, receiverType);
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
-    handlePropertyGetContravariance(
-        receiver, interfaceMember, desugaredGet, expression, inferredType);
+    handlePropertyGetContravariance(receiver, interfaceMember, desugaredGet,
+        expression, inferredType, fileOffset);
     listener.propertyGetExit(expression, inferredType);
     return typeNeeded ? inferredType : null;
   }
