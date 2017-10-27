@@ -1027,6 +1027,7 @@ multiline_strings_test: Fail # Issue 23020
 regress_21793_test/01: MissingCompileTimeError
 regress_23408_test: Crash
 type_parameter_test/05: MissingCompileTimeError
+type_variable_scope_test/03: MissingCompileTimeError
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 vm/regress_27201_test: Fail
