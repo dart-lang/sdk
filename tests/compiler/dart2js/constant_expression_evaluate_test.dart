@@ -315,6 +315,7 @@ class B extends A {
  const boolean = const bool.fromEnvironment("baz", defaultValue: false);
  const not_string =
     const bool.fromEnvironment("not_string", defaultValue: false) ? '' : 0;
+ get getter => 0;
  class Class1 {
     final field;
     const Class1() : field = not_string.length;
@@ -434,6 +435,7 @@ class B extends A {
         MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
     const ConstantData('const Class1()', 'NonConstant',
         MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
+    const ConstantData('getter', 'NonConstant'),
   ]),
 ];
 
