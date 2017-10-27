@@ -245,12 +245,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       int_type.IsSubtypeOf(type, &bound_error, NULL, Heap::kOld);
   // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || bound_error.IsNull());
-  __ tsti(kInstanceReg, Immediate(kSmiTagMask));
-  if (smi_is_ok) {
-    __ b(is_instance_lbl, EQ);
-  } else {
-    __ b(is_not_instance_lbl, EQ);
-  }
+  __ BranchIfSmi(kInstanceReg,
+                 smi_is_ok ? is_instance_lbl : is_not_instance_lbl);
   // A function type test requires checking the function signature.
   if (!type.IsFunctionType()) {
     const intptr_t num_type_args = type_class.NumTypeArguments();
@@ -332,15 +328,14 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   ASSERT(type_class.NumTypeArguments() == 0);
 
   const Register kInstanceReg = R0;
-  __ tsti(kInstanceReg, Immediate(kSmiTagMask));
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
   if (smi_class.IsSubtypeOf(Object::null_type_arguments(), type_class,
                             Object::null_type_arguments(), NULL, NULL,
                             Heap::kOld)) {
-    __ b(is_instance_lbl, EQ);
+    __ BranchIfSmi(kInstanceReg, is_instance_lbl);
   } else {
-    __ b(is_not_instance_lbl, EQ);
+    __ BranchIfSmi(kInstanceReg, is_not_instance_lbl);
   }
   const Register kClassIdReg = R2;
   __ LoadClassId(kClassIdReg, kInstanceReg);
@@ -443,8 +438,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 
     // For Smi check quickly against int and num interfaces.
     Label not_smi;
-    __ tsti(R0, Immediate(kSmiTagMask));  // Value is Smi?
-    __ b(&not_smi, NE);
+    __ BranchIfNotSmi(R0, &not_smi);
     __ CompareObject(R3, Type::ZoneHandle(zone(), Type::IntType()));
     __ b(is_instance_lbl, EQ);
     __ CompareObject(R3, Type::ZoneHandle(zone(), Type::Number()));
@@ -473,8 +467,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     const Register kInstanceReg = R0;
     const Register kInstantiatorTypeArgumentsReg = R1;
     const Register kFunctionTypeArgumentsReg = R2;
-    __ tsti(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
-    __ b(is_not_instance_lbl, EQ);
+    __ BranchIfSmi(kInstanceReg, is_not_instance_lbl);  // Is instance Smi?
     __ ldp(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg,
            Address(SP, 0 * kWordSize, Address::PairOffset));
     // Uninstantiated type class is known at compile time, but the type
@@ -1438,9 +1431,11 @@ void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
 }
 
 void FlowGraphCompiler::EmitTestAndCallSmiBranch(Label* label, bool if_smi) {
-  __ tsti(R0, Immediate(kSmiTagMask));
-  // Jump if receiver is not Smi.
-  __ b(label, if_smi ? EQ : NE);
+  if (if_smi) {
+    __ BranchIfSmi(R0, label);
+  } else {
+    __ BranchIfNotSmi(R0, label);
+  }
 }
 
 void FlowGraphCompiler::EmitTestAndCallLoadCid() {

@@ -950,8 +950,7 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   ASSERT(result != object);
   Label done;
   LoadImmediate(result, kSmiCid);
-  tsti(object, Immediate(kSmiTagMask));
-  b(&done, EQ);
+  BranchIfSmi(object, &done);
   LoadClassId(result, object);
   Bind(&done);
 }
