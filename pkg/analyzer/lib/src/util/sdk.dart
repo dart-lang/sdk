@@ -12,7 +12,7 @@ String computePlatformBinariesPath(String sdkPath) {
   // Try the given SDK path.
   {
     String location = path.join(sdkPath, 'lib', '_internal');
-    if (new File(path.join(location, 'vm_platform.dill')).existsSync()) {
+    if (new File(path.join(location, 'vm_platform_strong.dill')).existsSync()) {
       return location;
     }
   }

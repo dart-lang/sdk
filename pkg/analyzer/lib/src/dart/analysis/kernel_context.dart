@@ -76,8 +76,9 @@ KernelDriver createKernelDriver(
   List<int> sdkOutlineBytes;
   if (sdkFolder != null) {
     try {
-      sdkOutlineBytes =
-          sdkFolder.getChildAssumingFile('vm_outline.dill').readAsBytesSync();
+      sdkOutlineBytes = sdkFolder
+          .getChildAssumingFile('vm_platform_strong.dill')
+          .readAsBytesSync();
     } catch (_) {}
   }
 
