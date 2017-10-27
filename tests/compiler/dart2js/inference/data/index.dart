@@ -10,7 +10,7 @@
 listIndexSingle() {
   var list = [0];
   return list
-      /*invoke: Container mask: [exact=JSUInt31] length: 1 type: [exact=JSExtendableArray]*/
+      /*Container mask: [exact=JSUInt31] length: 1 type: [exact=JSExtendableArray]*/
       [0];
 }
 
@@ -22,7 +22,7 @@ listIndexSingle() {
 listIndexMultiple() {
   var list = [0, 1, 2, 3];
   return list
-      /*invoke: Container mask: [exact=JSUInt31] length: 4 type: [exact=JSExtendableArray]*/
+      /*Container mask: [exact=JSUInt31] length: 4 type: [exact=JSExtendableArray]*/
       [2];
 }
 
@@ -34,7 +34,7 @@ listIndexMultiple() {
 listIndexBad() {
   var list = [0, 1];
   return list
-      /*invoke: Container mask: [exact=JSUInt31] length: 2 type: [exact=JSExtendableArray]*/
+      /*Container mask: [exact=JSUInt31] length: 2 type: [exact=JSExtendableArray]*/
       [3];
 }
 
@@ -46,7 +46,7 @@ listIndexBad() {
 listIndexMixed() {
   var list = [0, ''];
   return list
-      /*invoke: Container mask: Union of [[exact=JSString], [exact=JSUInt31]] length: 2 type: [exact=JSExtendableArray]*/
+      /*Container mask: Union of [[exact=JSString], [exact=JSUInt31]] length: 2 type: [exact=JSExtendableArray]*/
       [0];
 }
 
@@ -58,7 +58,7 @@ listIndexMixed() {
 mapLookupSingle() {
   var map = {0: 1};
   return map
-      /*invoke: Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
       [0];
 }
 
@@ -70,7 +70,7 @@ mapLookupSingle() {
 mapLookupMultiple() {
   var map = {0: 1, 2: 3, 4: 5};
   return map
-      /*invoke: Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
       [2];
 }
 
@@ -82,7 +82,7 @@ mapLookupMultiple() {
 mapLookupMissing() {
   var map = {0: 1};
   return map
-      /*invoke: Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
       [2];
 }
 
@@ -94,7 +94,7 @@ mapLookupMissing() {
 mapLookupMixedKeys() {
   var map = {0: 1, '': 2};
   return map
-      /*invoke: Map mask: [Union of [[exact=JSString], [exact=JSUInt31]]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map mask: [Union of [[exact=JSString], [exact=JSUInt31]]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
       [''];
 }
 
@@ -106,7 +106,7 @@ mapLookupMixedKeys() {
 mapLookupMixedValues() {
   var map = {0: 1, 2: ''};
   return map
-      /*invoke: Map mask: [[exact=JSUInt31]/Union of [[exact=JSUInt31], [null|exact=JSString]]] type: [subclass=JsLinkedHashMap]*/
+      /*Map mask: [[exact=JSUInt31]/Union of [[exact=JSUInt31], [null|exact=JSString]]] type: [subclass=JsLinkedHashMap]*/
       [2];
 }
 
@@ -118,7 +118,7 @@ mapLookupMixedValues() {
 dictionaryLookupSingle() {
   var map = {'foo': 'bar'};
   return map
-      /*invoke: Dictionary mask: [Value mask: ["foo"] type: [exact=JSString]/Value mask: ["bar"] type: [null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary mask: [Value mask: ["foo"] type: [exact=JSString]/Value mask: ["bar"] type: [null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
       ['foo'];
 }
 
@@ -130,7 +130,7 @@ dictionaryLookupSingle() {
 dictionaryLookupMultiple() {
   var map = {'foo': 'bar', 'baz': 'boz'};
   return map
-      /*invoke: Dictionary mask: [[exact=JSString]/[null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString], baz: Value mask: ["boz"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary mask: [[exact=JSString]/[null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString], baz: Value mask: ["boz"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
       ['baz'];
 }
 
@@ -142,7 +142,7 @@ dictionaryLookupMultiple() {
 dictionaryLookupMissing() {
   var map = {'foo': 'bar', 'baz': 'boz'};
   return map
-      /*invoke: Dictionary mask: [[exact=JSString]/[null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString], baz: Value mask: ["boz"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary mask: [[exact=JSString]/[null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString], baz: Value mask: ["boz"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
       ['unknown'];
 }
 
@@ -154,7 +154,7 @@ dictionaryLookupMissing() {
 intDictionaryLookupSingle() {
   var map = {'foo': 0};
   return map
-      /*invoke: Dictionary mask: [Value mask: ["foo"] type: [exact=JSString]/[null|exact=JSUInt31] with {foo: [exact=JSUInt31]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary mask: [Value mask: ["foo"] type: [exact=JSString]/[null|exact=JSUInt31] with {foo: [exact=JSUInt31]}] type: [subclass=JsLinkedHashMap]*/
       ['foo'];
 }
 

@@ -403,11 +403,17 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         case SendStructureKind.UNARY:
         case SendStructureKind.EQUALS:
         case SendStructureKind.NOT_EQUALS:
-        case SendStructureKind.INDEX:
           ast.Node position =
               computeAccessPosition(node, sendStructure.semantics);
           if (position != null) {
             computeForNode(node, createInvokeId(position));
+          }
+          break;
+        case SendStructureKind.INDEX:
+          ast.Node position =
+              computeAccessPosition(node, sendStructure.semantics);
+          if (position != null) {
+            computeForNode(node, createAccessId(position));
           }
           break;
         case SendStructureKind.SET:
@@ -430,7 +436,12 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           }
           break;
         case SendStructureKind.INDEX_SET:
-          computeForNode(node, createInvokeId(node.selector));
+          computeForNode(node, createUpdateId(node.selector));
+          break;
+        case SendStructureKind.COMPOUND_INDEX_SET:
+          computeForNode(node, createAccessId(node.selector));
+          computeForNode(node, createInvokeId(node.assignmentOperator));
+          computeForNode(node, createUpdateId(node.selector));
           break;
         case SendStructureKind.PREFIX:
         case SendStructureKind.POSTFIX:
@@ -594,6 +605,12 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
         receiver is ir.VariableGet &&
         receiver.variable.name == null) {
       // This is a desugared `?.`.
+    } else if (node.name.name == '[]') {
+      computeForNode(node, computeDefaultNodeId(node));
+      super.visitMethodInvocation(node);
+    } else if (node.name.name == '[]=') {
+      computeForNode(node, createUpdateId(node));
+      super.visitMethodInvocation(node);
     } else {
       computeForNode(node, createInvokeId(node));
       super.visitMethodInvocation(node);
