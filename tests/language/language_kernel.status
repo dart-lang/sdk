@@ -6,6 +6,7 @@
 application_negative_test: Crash # Issue 30997
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+disassemble_test: Pass, Slow
 missing_part_of_tag_test/01: Crash # Issue 30997
 script1_negative_test: Crash # Issue 30997
 script2_negative_test: Crash # Issue 30997

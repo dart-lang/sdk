@@ -100,6 +100,7 @@ deferred_type_dependency_test/as: RuntimeError
 deferred_type_dependency_test/is: RuntimeError
 deferred_type_dependency_test/none: RuntimeError
 deferred_type_dependency_test/type_annotation: RuntimeError
+disassemble_test: Pass, Slow
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
