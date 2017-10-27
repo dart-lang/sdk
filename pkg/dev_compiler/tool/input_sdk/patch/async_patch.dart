@@ -73,12 +73,29 @@ async_<T>(Function() initGenerator) {
       var iteratorValue = JS('', '#.next(null)', iter);
       var value = JS('', '#.value', iteratorValue);
       if (JS('bool', '#.done', iteratorValue)) {
-        // Return type is checked & cast inserted statically, we should not need
-        // a cast here.
-        asyncFuture._complete(JS('', '#', value));
-        return;
+        // TODO(jmesserly): this is needed to work around unsoundness in our
+        // allowed cast failures. We have async methods that return a raw Future
+        // where a Future<T> is expected. If we call:
+        //
+        //     asyncFuture._complete(value);
+        //
+        // Then it ends up interpreting these invalid Future<dynamic> as values
+        // rather than as futures (because complete checks `is Future<T>`).
+        //
+        // For now we inline `_Future._complete` and handle the unsoundness by
+        // checking against raw future types instead of the Fuutre<T> types.
+        if (value is Future) {
+          if (value is _Future) {
+            _Future._chainCoreFuture(value, asyncFuture);
+          } else {
+            _Future._chainForeignFuture(value, asyncFuture);
+          }
+        } else {
+          asyncFuture._completeWithValue(JS('', '#', value));
+        }
+      } else {
+        _Future._chainCoreFuture(onAwait(value), asyncFuture);
       }
-      _Future._chainCoreFuture(onAwait(value), asyncFuture);
     } catch (e, s) {
       _completeWithErrorCallback(asyncFuture, e, s);
     }
