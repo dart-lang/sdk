@@ -1423,7 +1423,6 @@ invocation_mirror2_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 issue_1751477_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
@@ -1877,7 +1876,6 @@ invocation_mirror_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 issue_1751477_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError

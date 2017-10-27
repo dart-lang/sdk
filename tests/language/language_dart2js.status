@@ -496,7 +496,6 @@ invocation_mirror_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.
 issue13474_test: RuntimeError
 issue21079_test: RuntimeError
 issue_1751477_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
@@ -879,7 +878,6 @@ invocation_mirror_test: RuntimeError
 issue13474_test: RuntimeError
 issue21079_test: RuntimeError
 issue_1751477_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
