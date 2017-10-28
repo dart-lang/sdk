@@ -1194,12 +1194,14 @@ bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_function_apply_test: RuntimeError
+callable_test/none: RuntimeError
 canonical_const2_test: RuntimeError
 cast_test/02: MissingRuntimeError
 cast_test/03: MissingRuntimeError
 cha_deopt1_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 cha_deopt2_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 cha_deopt3_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
@@ -1403,6 +1405,9 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+function_type_alias_test: RuntimeError
+function_type_call_getter2_test/none: RuntimeError
+function_type_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
@@ -1631,7 +1636,6 @@ truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_mixins.dart': Failed assertion: line 673 pos 14: 'functionType.typedef != null': is not true.
 typevariable_substitution2_test/02: RuntimeError
-check_member_static_test/02: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -1648,12 +1652,14 @@ bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_function_apply_test: RuntimeError
+callable_test/none: RuntimeError
 canonical_const2_test: RuntimeError
 cast_test/02: MissingRuntimeError
 cast_test/03: MissingRuntimeError
 cha_deopt1_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 cha_deopt2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 cha_deopt3_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
@@ -1835,6 +1841,7 @@ final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
+full_stacktrace3_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -1859,6 +1866,9 @@ function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+function_type_alias_test: RuntimeError
+function_type_call_getter2_test/none: RuntimeError
+function_type_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
@@ -2088,8 +2098,6 @@ truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
 typevariable_substitution2_test/02: RuntimeError
-check_member_static_test/02: MissingCompileTimeError
-full_stacktrace3_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
 checked_setter_test: RuntimeError # Issue 31128
