@@ -450,7 +450,7 @@ class CodeGenerator extends Object
   bool _isExternal(Element e) =>
       e is ExecutableElement && e.isExternal ||
       e is PropertyInducingElement &&
-          (e.getter.isExternal || e.setter.isExternal);
+          (e.getter?.isExternal ?? false || e.setter?.isExternal ?? false);
 
   bool _isJSElement(Element e) =>
       e?.library != null &&
@@ -4261,7 +4261,9 @@ class CodeGenerator extends Object
       var element = node.element;
       assert(element.getAncestor((e) => identical(e, target)) != null,
           "target is $target but enclosing element is ${element.enclosingElement}");
-      var access = _emitStaticMemberName(name);
+      var access = target is ClassElement
+          ? _emitStaticMemberName(name)
+          : (_emitJSInteropStaticMemberName(element) ?? _propertyName(name));
       accessors.add(closureAnnotate(
           new JS.Method(
               access,
