@@ -705,7 +705,7 @@ The reason for the breaking change of add is that we want to make date-time mani
 
 By giving easy access to `add(days: 1)` we make it easier for users not to run into this trap. It is also easier to read.
 
-The alternative would be to add a different `addX` method (with the same named arguments), or to add separate `addDays`, `addMonths` ... methods. This is the approach that, for example, `C#` took.
+The alternative would be to add a different `addX` method (with the same named arguments), or to add separate `addDays`, `addMonths` ... methods. This is the approach that, for example, C# took.
 
 > This change is breaking in two ways:
 > subtypes have to add the new methods.
@@ -828,7 +828,7 @@ Extensions methods (if available in Dart) could provide this functionality, but 
 The `whereNot` is clearly redundant with `where`. We have included for similar reasons as `isNotEmpty`: it is a relatively common operation and makes the code much easier to read. Especially with tear-offs the code becomes simpler:
 
 ``` dart
-it1.where((x) => !mySet.contains);  // Old.
+it1.where((x) => !mySet.contains(x));  // Old.
 it1.whereNot(mySet.contains);  // New.
 ```
 
