@@ -100,7 +100,7 @@ We renamed the `expires` field of the `Deprecated` class to `message`.
 
 We removed the `Proxy` (and `proxy`) annotation, since it is not useful in Dart 2.0 anymore.
 
-> Renaming instance members is, in theory, slightly more breaking than static elements. If a user accessed the expires field of Deprecated through dynamic, a static analysis tool would not be able to detect the breakage. This, on its own, is already very unlikely. Furthermore, this class and field not used very frequently.
+> Renaming instance members is, in theory, slightly more breaking than static elements. If a user accessed the expires field of Deprecated through dynamic, a static analysis tool would not be able to detect the breakage. This, on its own, is already very unlikely. Furthermore, this class and field is not used very frequently.
 
 #### Random
 The `Random` class was moved from `dart:math` to `dart:core`. The `int`, `double` and `bool` classes now have a static `random()` method that returns a random value of the corresponding type. The int type has two versions of the random method: `int random(int max)` and `int randomRange(int from, int to)`. (We are not yet fully sold on `randomRange`. It sounds like it would return a random range and not a value in that range).
