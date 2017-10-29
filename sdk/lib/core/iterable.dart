@@ -38,7 +38,8 @@ part of dart.core;
  *     }
  *
  * The [List] and [Set] classes are both `Iterable`,
- * as are most classes in the [dart:collection](#dart-collection) library.
+ * as are most classes in the [dart:collection](https://api.dartlang.org/stable/dart-collection/dart-collection-library.html)
+ * library.
  *
  * Some [Iterable] collections can be modified.
  * Adding an element to a `List` or `Set` will change which elements it
