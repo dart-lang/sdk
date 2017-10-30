@@ -25,6 +25,11 @@ class JSONObject;
 class ObjectPointerVisitor;
 class ObjectSet;
 
+// TODO(iposva): Determine heap sizes and tune the page size accordingly.
+static const intptr_t kPageSize = 256 * KB;
+static const intptr_t kPageSizeInWords = kPageSize / kWordSize;
+static const intptr_t kPageMask = ~(kPageSize - 1);
+
 // A page containing old generation objects.
 class HeapPage {
  public:
@@ -58,16 +63,20 @@ class HeapPage {
     return Utils::RoundUp(sizeof(HeapPage), OS::kMaxPreferredCodeAlignment);
   }
 
+  static HeapPage* Of(RawObject* obj) {
+    ASSERT(obj->IsHeapObject());
+    ASSERT(obj->IsOldObject());
+    return reinterpret_cast<HeapPage*>(reinterpret_cast<uword>(obj) &
+                                       kPageMask);
+  }
+
  private:
   void set_object_end(uword value) {
     ASSERT((value & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
     object_end_ = value;
   }
 
-  // These return NULL on OOM.
-  static HeapPage* Initialize(VirtualMemory* memory,
-                              PageType type,
-                              const char* name);
+  // Returns NULL on OOM.
   static HeapPage* Allocate(intptr_t size_in_words,
                             PageType type,
                             const char* name);
@@ -190,9 +199,6 @@ class PageSpaceController {
 
 class PageSpace {
  public:
-  // TODO(iposva): Determine heap sizes and tune the page size accordingly.
-  static const intptr_t kPageSizeInWords = 256 * KBInWords;
-
   enum GrowthPolicy { kControlGrowth, kForceGrowth };
 
   PageSpace(Heap* heap,

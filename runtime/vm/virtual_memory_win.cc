@@ -22,20 +22,50 @@ void VirtualMemory::InitOnce() {
   page_size_ = info.dwPageSize;
 }
 
-VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
-  void* address = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
+VirtualMemory* VirtualMemory::Allocate(intptr_t size,
+                                       bool is_executable,
+                                       const char* name) {
+  ASSERT(Utils::IsAligned(size, page_size_));
+  int prot = is_executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
+  void* address = VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, prot);
   if (address == NULL) {
     return NULL;
   }
   MemoryRegion region(address, size);
-  return new VirtualMemory(region);
+  return new VirtualMemory(region, region);
+}
+
+VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
+                                              intptr_t alignment,
+                                              bool is_executable,
+                                              const char* name) {
+  ASSERT(Utils::IsAligned(size, page_size_));
+  ASSERT(Utils::IsAligned(alignment, page_size_));
+  intptr_t reserved_size = size + alignment;
+  int prot = is_executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
+  void* address = VirtualAlloc(NULL, reserved_size, MEM_RESERVE, prot);
+  if (address == NULL) {
+    return NULL;
+  }
+
+  void* aligned_address = reinterpret_cast<void*>(
+      Utils::RoundUp(reinterpret_cast<uword>(address), alignment));
+  if (VirtualAlloc(aligned_address, size, MEM_COMMIT, prot) !=
+      aligned_address) {
+    VirtualFree(address, reserved_size, MEM_RELEASE);
+    return NULL;
+  }
+
+  MemoryRegion region(aligned_address, size);
+  MemoryRegion reserved(address, reserved_size);
+  return new VirtualMemory(region, reserved);
 }
 
 VirtualMemory::~VirtualMemory() {
-  if (!vm_owns_region() || (reserved_size_ == 0)) {
+  if (!vm_owns_region() || (reserved_.size() == 0)) {
     return;
   }
-  if (VirtualFree(address(), 0, MEM_RELEASE) == 0) {
+  if (VirtualFree(reserved_.pointer(), 0, MEM_RELEASE) == 0) {
     FATAL("VirtualFree failed");
   }
 }
@@ -47,20 +77,6 @@ bool VirtualMemory::FreeSubSegment(int32_t handle,
   // can be freed. Therefore we will have to waste these unused
   // virtual memory sub-segments.
   return false;
-}
-
-bool VirtualMemory::Commit(uword addr,
-                           intptr_t size,
-                           bool executable,
-                           const char* name) {
-  ASSERT(Contains(addr));
-  ASSERT(Contains(addr + size) || (addr + size == end()));
-  int prot = executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
-  if (VirtualAlloc(reinterpret_cast<void*>(addr), size, MEM_COMMIT, prot) ==
-      NULL) {
-    return false;
-  }
-  return true;
 }
 
 bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {

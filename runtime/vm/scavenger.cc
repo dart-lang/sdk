@@ -287,17 +287,17 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
     return new SemiSpace(NULL);
   } else {
     intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
-    VirtualMemory* reserved = VirtualMemory::Reserve(size_in_bytes);
     const bool kExecutable = false;
-    if ((reserved == NULL) || !reserved->Commit(kExecutable, name)) {
+    VirtualMemory* memory =
+        VirtualMemory::Allocate(size_in_bytes, kExecutable, name);
+    if (memory == NULL) {
       // TODO(koda): If cache_ is not empty, we could try to delete it.
-      delete reserved;
       return NULL;
     }
 #if defined(DEBUG)
-    memset(reserved->address(), Heap::kZapByte, size_in_bytes);
+    memset(memory->address(), Heap::kZapByte, size_in_bytes);
 #endif  // defined(DEBUG)
-    return new SemiSpace(reserved);
+    return new SemiSpace(memory);
   }
 }
 

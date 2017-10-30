@@ -29,6 +29,7 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
   while (current < end) {
     intptr_t obj_size;
     RawObject* raw_obj = RawObject::FromAddr(current);
+    ASSERT(HeapPage::Of(raw_obj) == page);
     if (raw_obj->IsMarked()) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->ClearMarkBit();
@@ -75,6 +76,7 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
 
   intptr_t words_to_end = 0;
   RawObject* raw_obj = RawObject::FromAddr(page->object_start());
+  ASSERT(HeapPage::Of(raw_obj) == page);
   if (raw_obj->IsMarked()) {
     raw_obj->ClearMarkBit();
     words_to_end = (raw_obj->Size() >> kWordSizeLog2);
