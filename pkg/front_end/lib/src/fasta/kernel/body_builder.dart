@@ -461,7 +461,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       _typeInferrer.inferMetadata(annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
-      annotations.forEach(field.addAnnotation);
+      annotations.forEach((annotation) => field.addAnnotation(annotation));
       for (int i = 1; i < fields.length; i++) {
         // We have to clone the annotations on the remaining fields.
         field = fields[i].target;

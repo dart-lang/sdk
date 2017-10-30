@@ -790,7 +790,7 @@ abstract class ParametersMixin
     if (_functionSignature == null) {
       List<Element> requiredParameters = [];
       List<Element> optionalParameters = [];
-      List orderedOptionalParameters = [];
+      List<Element> orderedOptionalParameters = [];
       int requiredParameterCount = 0;
       int optionalParameterCount = 0;
       bool optionalParametersAreNamed = false;

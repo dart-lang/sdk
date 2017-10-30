@@ -43,14 +43,18 @@ String BUILD_ID = null;
  * string argument, or the arguments iterator for multiple arguments
  * handlers.
  */
-typedef void HandleOption(data);
+typedef void HandleOption(Null data);
 
 class OptionHandler {
   final String pattern;
-  final HandleOption handle;
+  final HandleOption _handle;
   final bool multipleArguments;
 
-  OptionHandler(this.pattern, this.handle, {this.multipleArguments: false});
+  void handle(argument) {
+    (_handle as dynamic)(argument);
+  }
+
+  OptionHandler(this.pattern, this._handle, {this.multipleArguments: false});
 }
 
 /**

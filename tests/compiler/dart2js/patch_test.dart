@@ -54,7 +54,7 @@ void expectHasNoBody(compiler, ElementX element) {
   Expect.isFalse(node.hasBody);
 }
 
-Element ensure(compiler, String name, Element lookup(name),
+Element ensure(compiler, String name, Element lookup(String name),
     {bool expectIsPatched: false,
     bool expectIsPatch: false,
     bool checkHasBody: false,

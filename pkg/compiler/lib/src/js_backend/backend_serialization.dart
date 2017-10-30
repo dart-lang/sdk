@@ -231,10 +231,10 @@ class NativeBehaviorSerialization {
 
   /// Returns a list of the names of the [SpecialType]s in [types].
   static List<String> filterSpecialTypes(List types) {
-    return types
-        .where((type) => getTypeKind(type) == SPECIAL_TYPE)
-        .map((SpecialType type) => type.name)
-        .toList();
+    return types.where((type) => getTypeKind(type) == SPECIAL_TYPE).map((t) {
+      SpecialType type = t;
+      return type.name;
+    }).toList();
   }
 
   static void serializeNativeBehavior(

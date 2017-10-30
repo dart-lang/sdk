@@ -117,7 +117,7 @@ void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
       compilerNormal.enqueuer.resolution.processedEntities,
       compilerDeserialized.enqueuer.resolution.processedEntities,
       "Processed element mismatch",
-      areElementsEquivalent, onSameElement: (a, b) {
+      areEntitiesEquivalent, onSameElement: (a, b) {
     checkElements(compilerNormal, compilerDeserialized, a, b, verbose: verbose);
   }, verbose: verbose);
   Expect.equals(
@@ -205,7 +205,7 @@ void checkElements(
         '$element1.thisFieldEntity',
         closureData1.thisFieldEntity,
         closureData2.thisFieldEntity,
-        areLocalsEquivalent);
+        areCapturedVariablesEquivalent);
     if (element1 is MemberElement && element2 is MemberElement) {
       MemberElement member1 = element1.implementation;
       MemberElement member2 = element2.implementation;
@@ -233,7 +233,9 @@ void checkElements(
   checkElementOutputUnits(compiler1, compiler2, element1, element2);
 }
 
-bool areLocalsEquivalent(LocalVariable a, LocalVariable b) {
+bool areLocalsEquivalent(Local a, Local b) => areLocalVariablesEquivalent(a, b);
+
+bool areLocalVariablesEquivalent(LocalVariable a, LocalVariable b) {
   if (a == b) return true;
   if (a == null || b == null) return false;
 
@@ -250,10 +252,10 @@ bool areCapturedVariablesEquivalent(FieldEntity a, FieldEntity b) {
   if (a == null || b == null) return false;
   if (a is ClosureFieldElement && b is ClosureFieldElement) {
     return areElementsEquivalent(a.closureClass, b.closureClass) &&
-        areLocalsEquivalent(a.local, b.local);
+        areLocalVariablesEquivalent(a.local, b.local);
   } else if (a is BoxFieldElement && b is BoxFieldElement) {
     return areElementsEquivalent(a.variableElement, b.variableElement) &&
-        areLocalsEquivalent(a.box, b.box);
+        areLocalVariablesEquivalent(a.box, b.box);
   }
   return false;
 }
@@ -261,18 +263,18 @@ bool areCapturedVariablesEquivalent(FieldEntity a, FieldEntity b) {
 bool areCapturedScopesEquivalent(CapturedScope a, CapturedScope b) {
   if (a == b) return true;
   if (a == null || b == null) return false;
-  if (!areLocalsEquivalent(a.context, b.context)) {
+  if (!areLocalVariablesEquivalent(a.context, b.context)) {
     return false;
   }
-  if (!areLocalsEquivalent(a.thisLocal, b.thisLocal)) {
+  if (!areLocalVariablesEquivalent(a.thisLocal, b.thisLocal)) {
     return false;
   }
-  var aBoxed = {};
+  var aBoxed = <LocalVariable, Entity>{};
   a.forEachBoxedVariable((k, v) => aBoxed[k] = v);
-  var bBoxed = {};
+  var bBoxed = <LocalVariable, Entity>{};
   b.forEachBoxedVariable((k, v) => bBoxed[k] = v);
-  checkMaps(aBoxed, bBoxed, 'CapturedScope.boxedVariables', areLocalsEquivalent,
-      areElementsEquivalent);
+  checkMaps(aBoxed, bBoxed, 'CapturedScope.boxedVariables',
+      areLocalVariablesEquivalent, areEntitiesEquivalent);
   return true;
 }
 

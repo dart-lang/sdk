@@ -43,14 +43,14 @@ class _ConstantOrdering
     return a.accept(this, b);
   }
 
-  static int compareNullable(int compare(a, b), a, b) {
+  static int compareNullable<T>(int compare(T a, T b), T a, T b) {
     if (a == null && b == null) return 0;
     if (a == null) return -1;
     if (b == null) return 1;
     return compare(a, b);
   }
 
-  static int compareLists(int compare(a, b), List a, List b) {
+  static int compareLists<S, T>(int compare(S a, T b), List<S> a, List<T> b) {
     int r = a.length.compareTo(b.length);
     if (r != 0) return r;
     for (int i = 0; i < a.length; i++) {

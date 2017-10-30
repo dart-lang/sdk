@@ -46,7 +46,7 @@ SingleMapping convertFromHumanReadableSourceMap(String json) {
   Map inputMap = lazon.decode(json);
   Map urls = inputMap['sources'];
   List<String> sources = new List<String>.filled(urls.length, null);
-  urls.forEach((String index, String url) {
+  urls.forEach((Object index, Object url) {
     int i = int.parse(index);
     assert(sources[i] == null);
     sources[i] = url;

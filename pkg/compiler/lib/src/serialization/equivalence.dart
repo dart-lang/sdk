@@ -39,8 +39,8 @@ bool equality(a, b) => a == b;
 
 /// Returns `true` if the elements in [a] and [b] are pair-wise equivalent
 /// according to [elementEquivalence].
-bool areListsEquivalent(List a, List b,
-    [bool elementEquivalence(a, b) = equality]) {
+bool areListsEquivalent<T>(List<T> a, List<T> b,
+    [bool elementEquivalence(T a, T b) = equality]) {
   if (a.length != b.length) return false;
   for (int i = 0; i < a.length && i < b.length; i++) {
     if (!elementEquivalence(a[i], b[i])) {
@@ -52,9 +52,9 @@ bool areListsEquivalent(List a, List b,
 
 /// Returns `true` if the elements in [a] and [b] are equivalent as sets using
 /// [elementEquivalence] to determine element equivalence.
-bool areSetsEquivalent(Iterable set1, Iterable set2,
-    [bool elementEquivalence(a, b) = equality]) {
-  Set remaining = set2.toSet();
+bool areSetsEquivalent<E>(Iterable<E> set1, Iterable<E> set2,
+    [bool elementEquivalence(E a, E b) = equality]) {
+  Set<E> remaining = set2.toSet();
   for (dynamic element1 in set1) {
     bool found = false;
     for (dynamic element2 in set2) {
@@ -73,9 +73,9 @@ bool areSetsEquivalent(Iterable set1, Iterable set2,
 
 /// Returns `true` if the content of [map1] and [map2] is equivalent using
 /// [keyEquivalence] and [valueEquivalence] to determine key/value equivalence.
-bool areMapsEquivalent(Map map1, Map map2,
-    [bool keyEquivalence(a, b) = equality,
-    bool valueEquivalence(a, b) = equality]) {
+bool areMapsEquivalent<K, V>(Map<K, V> map1, Map<K, V> map2,
+    [bool keyEquivalence(K a, K b) = equality,
+    bool valueEquivalence(V a, V b) = equality]) {
   Set remaining = map2.keys.toSet();
   for (dynamic key1 in map1.keys) {
     bool found = false;
@@ -369,9 +369,9 @@ class TestStrategy {
   /// An equivalence [TestStrategy] that doesn't throw on inequivalence.
   TestStrategy get testOnly => this;
 
-  bool test(dynamic object1, dynamic object2, String property, dynamic value1,
-      dynamic value2,
-      [bool equivalence(a, b) = equality]) {
+  bool test<T>(
+      dynamic object1, dynamic object2, String property, T value1, T value2,
+      [bool equivalence(T a, T b) = equality]) {
     return equivalence(value1, value2);
   }
 
@@ -381,16 +381,16 @@ class TestStrategy {
     return areListsEquivalent(list1, list2, elementEquivalence);
   }
 
-  bool testSets(dynamic object1, dynamic object2, String property,
-      Iterable set1, Iterable set2,
-      [bool elementEquivalence(a, b) = equality]) {
+  bool testSets<E>(dynamic object1, dynamic object2, String property,
+      Iterable<E> set1, Iterable<E> set2,
+      [bool elementEquivalence(E a, E b) = equality]) {
     return areSetsEquivalent(set1, set2, elementEquivalence);
   }
 
-  bool testMaps(
-      dynamic object1, dynamic object2, String property, Map map1, Map map2,
-      [bool keyEquivalence(a, b) = equality,
-      bool valueEquivalence(a, b) = equality]) {
+  bool testMaps<K, V>(dynamic object1, dynamic object2, String property,
+      Map<K, V> map1, Map<K, V> map2,
+      [bool keyEquivalence(K a, K b) = equality,
+      bool valueEquivalence(V a, V b) = equality]) {
     return areMapsEquivalent(map1, map2, keyEquivalence, valueEquivalence);
   }
 
