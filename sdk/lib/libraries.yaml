@@ -96,6 +96,7 @@ vm:
         - "../../runtime/bin/file_system_entity_patch.dart"
         - "../../runtime/bin/filter_patch.dart"
         - "../../runtime/bin/io_service_patch.dart"
+        - "../../runtime/bin/namespace_patch.dart"
         - "../../runtime/bin/platform_patch.dart"
         - "../../runtime/bin/process_patch.dart"
         - "../../runtime/bin/socket_patch.dart"
@@ -125,7 +126,6 @@ vm:
 
     profiler:
       uri: "profiler/profiler.dart"
-      patches: "../../runtime/lib/empty_source.dart"
 
     typed_data:
       uri: "typed_data/typed_data.dart"

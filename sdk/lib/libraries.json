@@ -85,9 +85,6 @@
         ],
         "uri": "mirrors/mirrors.dart"
       },
-      "_http": {
-        "uri": "_http/http.dart"
-      },
       "io": {
         "patches": [
           "../../runtime/bin/common_patch.dart",
@@ -97,6 +94,7 @@
           "../../runtime/bin/file_system_entity_patch.dart",
           "../../runtime/bin/filter_patch.dart",
           "../../runtime/bin/io_service_patch.dart",
+          "../../runtime/bin/namespace_patch.dart",
           "../../runtime/bin/platform_patch.dart",
           "../../runtime/bin/process_patch.dart",
           "../../runtime/bin/socket_patch.dart",
@@ -119,13 +117,15 @@
         "patches": "../../runtime/lib/convert_patch.dart",
         "uri": "convert/convert.dart"
       },
+      "profiler": {
+        "uri": "profiler/profiler.dart"
+      },
       "math": {
         "patches": "../../runtime/lib/math_patch.dart",
         "uri": "math/math.dart"
       },
-      "profiler": {
-        "patches": "../../runtime/lib/empty_source.dart",
-        "uri": "profiler/profiler.dart"
+      "_http": {
+        "uri": "_http/http.dart"
       }
     }
   }
