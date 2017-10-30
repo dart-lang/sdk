@@ -1262,6 +1262,9 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   bool get isExternal => _decoder.getBool(Key.IS_EXTERNAL);
 
   @override
+  bool get isMarkedExternal => isExternal;
+
+  @override
   bool get isDefaultConstructor => false;
 
   ConstantConstructor get constantConstructor {
@@ -1518,6 +1521,9 @@ class ForwardingConstructorElementZ extends ElementZ
   bool get isExternal => false;
 
   @override
+  bool get isMarkedExternal => false;
+
+  @override
   bool get isFromEnvironmentConstructor => false;
 
   @override
@@ -1699,6 +1705,9 @@ abstract class FunctionElementZ extends DeserializedElementZ
 
   @override
   bool get isOperator => _decoder.getBool(Key.IS_OPERATOR);
+
+  @override
+  bool get isMarkedExternal => isExternal;
 }
 
 // ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
@@ -1783,6 +1792,9 @@ class LocalFunctionElementZ extends DeserializedElementZ
   AsyncMarker get asyncMarker {
     return _decoder.getEnum(Key.ASYNC_MARKER, AsyncMarker.values);
   }
+
+  @override
+  bool get isMarkedExternal => false;
 }
 
 // ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
@@ -1810,6 +1822,9 @@ abstract class GetterElementZ extends DeserializedElementZ
 
   @override
   bool get isAbstract => _decoder.getBool(Key.IS_ABSTRACT);
+
+  @override
+  bool get isMarkedExternal => isExternal;
 
   @override
   AsyncMarker get asyncMarker {
@@ -1859,6 +1874,9 @@ abstract class SetterElementZ extends DeserializedElementZ
 
   @override
   bool get isAbstract => _decoder.getBool(Key.IS_ABSTRACT);
+
+  @override
+  bool get isMarkedExternal => isExternal;
 
   @override
   AsyncMarker get asyncMarker => AsyncMarker.SYNC;

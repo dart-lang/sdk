@@ -931,7 +931,8 @@ abstract class ElementCreatorMixin {
       Name name = getName(node.name);
       bool isStatic = node.isStatic;
       bool isExternal = node.isExternal;
-      bool isAbstract = node.isAbstract;
+      // TODO(johnniwinther): Remove `&& !node.isExternal` when #31233 is fixed.
+      bool isAbstract = node.isAbstract && !node.isExternal;
       AsyncMarker asyncMarker = _getAsyncMarker(node.function);
       IndexedFunction function;
       switch (node.kind) {
