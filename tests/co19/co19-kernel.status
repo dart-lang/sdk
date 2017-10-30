@@ -134,7 +134,6 @@ LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for def
 LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
 Language/Classes/Instance_Variables/constant_t01: Crash
 
