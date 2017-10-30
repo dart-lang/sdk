@@ -25,6 +25,9 @@
         "vm-win-release-ia32",
         "vm-win-release-x64"
       ],
+      "meta": {
+        "description": "This configuration is used by the vm debug, vm product and vm release builders."
+      },
       "steps": [
         {
           "name": "build dart",
@@ -82,6 +85,9 @@
       "builders": [
         "dart-sdk-linux"
       ],
+      "meta": {
+        "description": "This configuration is used by the linux sdk builder. The difference between this configuration and the other sdk builder configuration is that this one also generates the api docs."
+      },
       "steps": [
         {
           "name": "build dart ia32",
@@ -105,6 +111,9 @@
         "dart-sdk-mac",
         "dart-sdk-win"
       ],
+      "meta": {
+        "description": "This configuration is used by the sdk-builders for windows and mac."
+      },
       "steps": [
         {
           "name": "build dart ia32",
