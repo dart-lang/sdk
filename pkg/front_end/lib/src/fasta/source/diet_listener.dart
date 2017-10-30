@@ -27,7 +27,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../parser.dart'
     show IdentifierContext, MemberKind, Parser, closeBraceTokenFor, optional;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unexpected;
 
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
@@ -726,6 +726,11 @@ class DietListener extends StackListener {
       name = nameOrQualified;
     }
     if (currentClass != null) {
+      if (uri != currentClass.fileUri) {
+        unexpected("$uri", "${currentClass.fileUri}", currentClass.charOffset,
+            currentClass.fileUri);
+      }
+
       if (getOrSet != null && optional("set", getOrSet)) {
         builder = currentClass.scope.setters[name];
       } else {
@@ -756,6 +761,11 @@ class DietListener extends StackListener {
       String errorName = suffix == null ? name : "$name.$suffix";
       return deprecated_inputError(
           uri, token.charOffset, "Duplicated name: $errorName");
+    }
+
+    if (uri != builder.fileUri) {
+      unexpected(
+          "$uri", "${builder.fileUri}", builder.charOffset, builder.fileUri);
     }
     return builder;
   }

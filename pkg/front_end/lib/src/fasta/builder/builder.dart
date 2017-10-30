@@ -83,6 +83,7 @@ abstract class Builder {
 
   Uri get fileUri => null;
 
+  // TODO(ahe): We can get rid of this if we switch to absolute URIs everywhere.
   String get relativeFileUri {
     throw "The relativeFileUri method should be only called on subclasses "
         "which have an efficient implementation of `relativeFileUri`!";

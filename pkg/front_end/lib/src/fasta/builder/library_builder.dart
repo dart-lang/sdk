@@ -25,8 +25,6 @@ import '../messages.dart'
 
 import '../severity.dart' show Severity;
 
-import '../util/relativize.dart' show relativizeUri;
-
 import 'builder.dart'
     show
         Builder,
@@ -51,10 +49,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   final List<Export> exporters = <Export>[];
 
-  final Uri fileUri;
-
-  final String relativeFileUri;
-
   LibraryBuilder partOfLibrary;
 
   /// True if a compile-time error has been reported in this library.
@@ -63,9 +57,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   bool mayImplementRestrictedTypes = false;
 
   LibraryBuilder(Uri fileUri, this.scope, this.exportScope)
-      : fileUri = fileUri,
-        relativeFileUri = relativizeUri(fileUri),
-        scopeBuilder = new ScopeBuilder(scope),
+      : scopeBuilder = new ScopeBuilder(scope),
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
@@ -202,7 +194,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   }
 
   void forEach(void f(String name, Builder builder)) {
-    scope.forEach(f);
+    scope.forEach((String name, Builder builder) {
+      if (builder.parent == this) {
+        f(name, builder);
+      }
+    });
   }
 
   /// Don't use for scope lookup. Only use when an element is known to exist

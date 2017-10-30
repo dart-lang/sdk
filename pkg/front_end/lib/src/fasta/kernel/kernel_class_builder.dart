@@ -35,7 +35,7 @@ import '../fasta_codes.dart'
         templateOverrideTypeVariablesMismatch,
         templateRedirectionTargetNotFound;
 
-import '../problems.dart' show unhandled, unimplemented;
+import '../problems.dart' show unexpected, unhandled, unimplemented;
 
 import 'kernel_builder.dart'
     show
@@ -123,6 +123,10 @@ abstract class KernelClassBuilder
       List<String> names = constructors.keys.toList();
       for (String name in names) {
         Builder builder = constructors[name];
+        if (builder.parent != this) {
+          unexpected(
+              "$fileUri", "${builder.parent.fileUri}", charOffset, fileUri);
+        }
         if (builder is KernelProcedureBuilder && builder.isFactory) {
           // Compute the immediate redirection target, not the effective.
           ConstructorReferenceBuilder redirectionTarget =

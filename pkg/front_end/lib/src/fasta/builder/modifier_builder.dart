@@ -14,13 +14,34 @@ import '../modifier.dart'
         namedMixinApplicationMask,
         staticMask;
 
+import '../util/relativize.dart' show relativizeUri;
+
 import 'builder.dart' show Builder;
+
+String relativizeUriWithParent(Uri uri, Builder parent) {
+  // TODO(ahe): We should be able to get rid of this method if relativeFileUri
+  // is removed.
+  if (parent is ModifierBuilder && uri == parent.fileUri) {
+    return parent.relativeFileUri;
+  } else {
+    uri ??= parent?.fileUri;
+    return uri == null ? null : relativizeUri(uri);
+  }
+}
 
 abstract class ModifierBuilder extends Builder {
   final int charOffset;
 
+  // TODO(ahe): This can be shared with the underlying kernel node if we switch
+  // to using URIs everywhere.
+  final Uri fileUri;
+
+  final String relativeFileUri;
+
   ModifierBuilder(Builder parent, this.charOffset, [Uri fileUri])
-      : super(parent, charOffset, fileUri ?? parent?.fileUri);
+      : fileUri = fileUri ?? parent?.fileUri,
+        relativeFileUri = relativizeUriWithParent(fileUri, parent),
+        super(parent, charOffset, fileUri ?? parent?.fileUri);
 
   int get modifiers;
 

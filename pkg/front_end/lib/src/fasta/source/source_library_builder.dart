@@ -499,6 +499,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
     part.forEach((String name, Builder builder) {
       if (builder.next != null) {
+        // TODO(ahe): This shouldn't be necessary as setters have been added to
+        // their own scope.
         assert(builder.next.next == null);
         addBuilder(name, builder.next, builder.next.charOffset);
       }
