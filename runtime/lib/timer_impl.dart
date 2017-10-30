@@ -61,7 +61,7 @@ class _TimerHeap {
   }
 
   void _resize() {
-    var newList = new List(_list.length * 2 + 1);
+    var newList = new List<_Timer>(_list.length * 2 + 1);
     newList.setRange(0, _used, _list);
     _list = newList;
   }
