@@ -274,7 +274,6 @@ if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
-implicit_downcast_during_assignment_test: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
@@ -1035,6 +1034,7 @@ generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 if_null_precedence_test/none: RuntimeError
+implicit_downcast_during_assignment_test: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 malformed2_test/00: MissingCompileTimeError
 mixin_mixin2_test: RuntimeError
@@ -2104,6 +2104,9 @@ typevariable_substitution2_test/02: RuntimeError
 checked_setter_test: RuntimeError # Issue 31128
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter3_test: RuntimeError # Issue 31128
+
+[ $compiler == dart2js && $dart2js_with_kernel && !$checked ]
+implicit_downcast_during_assignment_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
