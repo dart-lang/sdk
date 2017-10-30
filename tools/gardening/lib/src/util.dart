@@ -164,18 +164,20 @@ Iterable<T> zipWith<T, X, Y>(
   }
 }
 
-typedef T ErrorLogger<T>(e);
+typedef T ErrorLogger<T>(error, StackTrace s);
 
 /// errorLogger with a return-value, which can be used for onError and
 /// catchError in futures.
 ErrorLogger<T> errorLogger<T>(Logger logger, String message, T returnValue) {
-  return (dynamic e) {
+  return (dynamic e, StackTrace s) {
+    // TODO(mkroghj,johnniwinther): Pass [s] to [Logger.error] when in developer
+    // mode.
     logger.error(message, e);
     return returnValue;
   };
 }
 
-/// Iterates over [items] and spawns [concurrent] x futures, by calling [f].
+/// Iterates over [items] and spawns [concurrent] x futures, by calling [f].d
 /// When a future completes it will try to take the next in the list. The
 /// function will complete when all items has been processed.
 Future<Iterable<S>> waitWithThrottle<T, S>(
@@ -228,3 +230,17 @@ Future<Iterable<T>> futureWhere<T>(
   var index = 0;
   return items.where((item) => results[index++]).toList();
 }
+
+/// Run the python [script] with the provided [args].
+Future<ProcessResult> runPython(String script, List<String> args) {
+  if (Platform.isWindows) {
+    args = []
+      ..add(script)
+      ..addAll(args);
+    script = 'python.exe';
+  }
+  return Process.run(script, args);
+}
+
+/// Regular expression matches a Linux or Windows new line character.
+final RegExp newLine = new RegExp(r'\r\n|\n');

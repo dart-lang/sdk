@@ -35,7 +35,8 @@ CreateCacheFunction initCache(Uri baseUri, [Logger logger]) {
           .replaceAll(":", "")
           .replaceAll(".", "_")
           .replaceAll("?", "")
-          .replaceAll("%2F", "_");
+          .replaceAll("%2F", "_")
+          .replaceAll("*", "x");
 
       var cacheResult = await cache.read(key, duration);
       if (cacheResult.hasResult) {
