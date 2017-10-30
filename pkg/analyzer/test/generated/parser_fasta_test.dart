@@ -2853,7 +2853,8 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   ArgumentList parseArgumentList() {
-    Object result = _run((parser) => parser.parseArguments);
+    Object result =
+        _run((parser) => (token) => parser.parseArguments(token).next);
     if (result is MethodInvocation) {
       return result.argumentList;
     }
