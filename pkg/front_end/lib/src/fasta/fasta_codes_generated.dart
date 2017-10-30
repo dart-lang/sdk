@@ -2485,6 +2485,20 @@ Message _withArgumentsMethodNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingConstFinalVarOrType =
+    messageMissingConstFinalVarOrType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
+    "MissingConstFinalVarOrType",
+    analyzerCode: "MISSING_CONST_FINAL_VAR_OR_TYPE",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""Variables must be declared using the keywords 'const', 'final', 'var' or a type name.""",
+    tip:
+        r"""Try adding the name of the type of the variable or the keyword 'var'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingExponent = messageMissingExponent;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

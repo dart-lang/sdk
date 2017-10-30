@@ -2615,10 +2615,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_CLASS_BODY, offset, length);
         return;
-//      case "MISSING_CONST_FINAL_VAR_OR_TYPE":
-//        errorReporter?.reportErrorForOffset(
-//            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, offset, length);
-//        return;
+      case "MISSING_CONST_FINAL_VAR_OR_TYPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, offset, length);
+        return;
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_DIGIT, offset, length);

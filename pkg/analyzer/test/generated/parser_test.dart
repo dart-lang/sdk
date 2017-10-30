@@ -3134,8 +3134,34 @@ class Foo {
         [ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
   }
 
-  void test_finalAndCovariant() {
+  void test_covariantAndFinal() {
     createParser('covariant final f = null;');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrorsWithCodes(usingFastaParser
+        ? [
+            ParserErrorCode.FINAL_AND_COVARIANT,
+            // TODO(danrubel): Fasta
+            // 1) reports an error on the `final` modifier then skips over it,
+            // 2) expects a type because `final` was ignored
+            // 3) reports missing type even though final was specified.
+            //
+            // It would be better to omit this second error, but that may
+            // be problematic as `covariant` will have
+            // already been reported to listeners by the time `final` is
+            // encountered and listeners might get get confused if we
+            // report `final` in addition,
+            // or report `covariant` with no type.
+            //
+            // This issue does not exist if `final` is encountered first.
+            // See test_finalAndCovariant().
+            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+          ]
+        : [ParserErrorCode.FINAL_AND_COVARIANT]);
+  }
+
+  void test_finalAndCovariant() {
+    createParser('final covariant f = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrorsWithCodes([ParserErrorCode.FINAL_AND_COVARIANT]);
@@ -3684,11 +3710,8 @@ class Wrong<T> {
   }
 
   void test_missingConstFinalVarOrType_topLevel() {
-    createParser('a;');
-    FinalConstVarOrType result = parser.parseFinalConstVarOrType(false);
-    expectNotNullIfNoErrors(result);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
+    parseCompilationUnit('a;',
+        codes: [ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
   }
 
   void test_missingEnumBody() {
@@ -10054,15 +10077,27 @@ class C {
       expect(declaration.semicolon.lexeme, expectedSemicolon);
     }
 
-    CompilationUnit unit = parseCompilationUnit('String n x = "";', codes: [
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
-    ]);
+    // Fasta considers the `n` an extraneous modifier
+    // and parses this as a single top level declaration.
+    // TODO(danrubel): A better recovery
+    // would be to insert a synthetic comma after the `n`.
+    CompilationUnit unit = parseCompilationUnit('String n x = "";',
+        codes: usingFastaParser
+            ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
+            : [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+              ]);
     expect(unit, isNotNull);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    expect(declarations, hasLength(2));
-    verify(declarations[0], 'String', 'n', '');
-    verify(declarations[1], 'null', 'x', ';');
+    if (usingFastaParser) {
+      expect(declarations, hasLength(1));
+      verify(declarations[0], 'String', 'x', ';');
+    } else {
+      expect(declarations, hasLength(2));
+      verify(declarations[0], 'String', 'n', '');
+      verify(declarations[1], 'null', 'x', ';');
+    }
   }
 
   void test_multiplicativeExpression_missing_LHS() {

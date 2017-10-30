@@ -213,33 +213,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_covariantTopLevelDeclaration_class() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
-    super.test_covariantTopLevelDeclaration_class();
-  }
-
-  @override
-  @failingTest
-  void test_covariantTopLevelDeclaration_enum() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
-    super.test_covariantTopLevelDeclaration_enum();
-  }
-
-  @override
-  @failingTest
-  void test_covariantTopLevelDeclaration_typedef() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 2 (1, 11)
-    super.test_covariantTopLevelDeclaration_typedef();
-  }
-
-  @override
-  @failingTest
   void test_duplicateLabelInSwitchStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, found 0
@@ -548,14 +521,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, found 0
     super.test_fieldInitializerOutsideConstructor();
-  }
-
-  @override
-  @failingTest
-  void test_finalAndCovariant() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.FINAL_AND_COVARIANT, found 0
-    super.test_finalAndCovariant();
   }
 
   @override
@@ -1256,22 +1221,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ScannerErrorCode.EXPECTED_TOKEN, found 0
     super.test_missingClosingParenthesis();
-  }
-
-  @override
-  @failingTest
-  void test_missingConstFinalVarOrType_static() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (19)
-    super.test_missingConstFinalVarOrType_static();
-  }
-
-  @override
-  @failingTest
-  void test_missingConstFinalVarOrType_topLevel() {
-    // TODO(brianwilkerson) Test uses undefined method (parseFinalConstVarOrType).
-    super.test_missingConstFinalVarOrType_topLevel();
   }
 
   @override
@@ -2722,6 +2671,7 @@ class FastaParserTestCase extends Object
         code == ParserErrorCode.ABSTRACT_TYPEDEF ||
         code == ParserErrorCode.CONST_ENUM ||
         code == ParserErrorCode.CONST_TYPEDEF ||
+        code == ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION ||
         code == ParserErrorCode.FINAL_CLASS ||
         code == ParserErrorCode.FINAL_ENUM ||
         code == ParserErrorCode.FINAL_TYPEDEF ||
@@ -3351,16 +3301,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_missingIdentifier_afterAnnotation() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_missingIdentifier_afterAnnotation();
-  }
-
-  @override
-  @failingTest
-  void test_missingSemicolon_varialeDeclarationList() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, found 0;
-    // 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (8)
-    super.test_missingSemicolon_varialeDeclarationList();
   }
 
   @override

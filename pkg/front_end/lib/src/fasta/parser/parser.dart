@@ -2079,6 +2079,18 @@ class Parser {
     FormalParameterKind parameterKind;
     switch (continuation) {
       case TypeContinuation.Required:
+        // If the token after the type is not an identifier,
+        // the report a missing type
+        if (!token.isIdentifier) {
+          if (memberKind == MemberKind.TopLevelField ||
+              memberKind == MemberKind.NonStaticField ||
+              memberKind == MemberKind.StaticField) {
+            reportRecoverableError(
+                begin, fasta.messageMissingConstFinalVarOrType);
+            listener.handleNoType(begin);
+            return begin;
+          }
+        }
         return commitType();
 
       optional:

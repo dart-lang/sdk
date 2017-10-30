@@ -42,6 +42,10 @@ class ModifierContext {
   ModifierContext(this.parser, this.memberKind, this.parameterKind,
       this.isVarAllowed, this.typeContinuation);
 
+  bool get isCovariantFinalAllowed =>
+      memberKind != MemberKind.StaticField &&
+      memberKind != MemberKind.NonStaticField;
+
   Token parseOpt(Token token) {
     if (optional('external', token)) {
       token = parseExternalOpt(token);
@@ -52,7 +56,9 @@ class ModifierContext {
     } else if (optional('covariant', token)) {
       token = parseCovariantOpt(token);
       if (optional('final', token)) {
-        token = parseFinal(token);
+        if (isCovariantFinalAllowed) {
+          token = parseFinal(token);
+        }
       } else if (optional('var', token)) {
         token = parseVar(token);
       }
@@ -311,6 +317,10 @@ class ModifierRecoveryContext extends ModifierContext {
       parser.reportRecoverableError(token, fasta.messageCovariantAfterVar);
       // fall through to parse modifier
     } else if (finalToken != null) {
+      if (!isCovariantFinalAllowed) {
+        parser.reportRecoverableError(token, fasta.messageFinalAndCovariant);
+        return token.next;
+      }
       parser.reportRecoverableError(token, fasta.messageCovariantAfterFinal);
       // fall through to parse modifier
     }
@@ -340,7 +350,7 @@ class ModifierRecoveryContext extends ModifierContext {
       parser.reportRecoverableError(token, fasta.messageConstAndFinal);
       return token.next;
     }
-    if (covariantToken != null) {
+    if (covariantToken != null && !isCovariantFinalAllowed) {
       parser.reportRecoverableError(token, fasta.messageFinalAndCovariant);
       return token.next;
     }

@@ -251,6 +251,14 @@ ExpectedType:
   analyzerCode: EXPECTED_TYPE_NAME
   dart2jsCode: "*fatal*"
 
+MissingConstFinalVarOrType:
+  template: "Variables must be declared using the keywords 'const', 'final', 'var' or a type name."
+  tip: "Try adding the name of the type of the variable or the keyword 'var'."
+  analyzerCode: MISSING_CONST_FINAL_VAR_OR_TYPE
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { static f; }"
+
 AbstractClassMember:
   template: "Members of classes can't be declared to be 'abstract'."
   tip: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
