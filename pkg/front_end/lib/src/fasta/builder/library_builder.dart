@@ -82,8 +82,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   Uri get uri;
 
-  bool get isPatch => false;
-
   Builder addBuilder(String name, Builder builder, int charOffset);
 
   void addExporter(

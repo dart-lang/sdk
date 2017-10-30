@@ -143,14 +143,16 @@ class KernelTarget extends TargetImplementation {
     loader.read(uri, -1);
   }
 
-  LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, bool isPatch) {
+  @override
+  LibraryBuilder createLibraryBuilder(
+      Uri uri, Uri fileUri, KernelLibraryBuilder origin) {
     if (dillTarget.isLoaded) {
       var builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
     }
-    return new KernelLibraryBuilder(uri, fileUri, loader, isPatch);
+    return new KernelLibraryBuilder(uri, fileUri, loader, origin);
   }
 
   void forEachDirectSupertype(ClassBuilder cls, void f(NamedTypeBuilder type)) {
@@ -335,7 +337,7 @@ class KernelTarget extends TargetImplementation {
     Uri uri = loader.first?.uri ?? Uri.parse("error:error");
     Uri fileUri = loader.first?.fileUri ?? uri;
     KernelLibraryBuilder library =
-        new KernelLibraryBuilder(uri, fileUri, loader, false);
+        new KernelLibraryBuilder(uri, fileUri, loader, null);
     loader.first = library;
     if (isFullProgram) {
       // If this is an outline, we shouldn't add an executable main
@@ -657,6 +659,28 @@ class KernelTarget extends TargetImplementation {
   /// from sources, and not loaded from a [DillTarget].
   bool isSourceLibrary(Library library) {
     return loader.libraries.contains(library);
+  }
+
+  @override
+  void readPatchFiles(KernelLibraryBuilder library) {
+    assert(library.uri.scheme == "dart");
+    List<Uri> patches = uriTranslator.getDartPatches(library.uri.path);
+    if (patches != null) {
+      KernelLibraryBuilder first;
+      for (Uri patch in patches) {
+        if (first == null) {
+          first =
+              library.loader.read(patch, -1, fileUri: patch, origin: library);
+        } else {
+          // If there's more than one patch file, it's interpreted as a part of
+          // the patch library.
+          KernelLibraryBuilder part =
+              library.loader.read(patch, -1, fileUri: patch);
+          first.parts.add(part);
+          part.addPartOf(null, null, "${first.uri}");
+        }
+      }
+    }
   }
 }
 

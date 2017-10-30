@@ -128,6 +128,10 @@ abstract class Builder {
 
   bool get hasProblem => false;
 
+  bool get isPatch => this != origin;
+
+  Builder get origin => this;
+
   String get fullNameForErrors;
 
   Uri computeLibraryUri() {

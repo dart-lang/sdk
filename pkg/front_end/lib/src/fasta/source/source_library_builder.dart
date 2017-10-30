@@ -122,9 +122,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool get isPart => partOfName != null || partOfUri != null;
 
-  @override
-  bool get isPatch;
-
   List<UnresolvedType<T>> get types => libraryDeclaration.types;
 
   T addNamedType(Object name, List<T> arguments, int charOffset);

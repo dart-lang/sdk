@@ -70,7 +70,7 @@ abstract class Loader<L> {
   /// directive. If [accessor] isn't allowed to access [uri], it's a
   /// compile-time error.
   LibraryBuilder read(Uri uri, int charOffset,
-      {Uri fileUri, LibraryBuilder accessor, bool isPatch: false}) {
+      {Uri fileUri, LibraryBuilder accessor, LibraryBuilder origin}) {
     LibraryBuilder builder = builders.putIfAbsent(uri, () {
       if (fileUri == null) {
         switch (uri.scheme) {
@@ -85,7 +85,7 @@ abstract class Loader<L> {
         }
       }
       LibraryBuilder library =
-          target.createLibraryBuilder(uri, fileUri, isPatch);
+          target.createLibraryBuilder(uri, fileUri, origin);
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;
         target.loadExtraRequiredLibraries(this);

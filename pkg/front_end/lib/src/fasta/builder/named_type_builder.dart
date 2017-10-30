@@ -27,7 +27,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
 
   @override
   void bind(TypeDeclarationBuilder builder) {
-    this.builder = builder;
+    this.builder = builder?.origin;
   }
 
   @override

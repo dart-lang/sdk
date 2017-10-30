@@ -56,8 +56,8 @@ class DillTarget extends TargetImplementation {
     isLoaded = true;
   }
 
-  DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, bool isPatch) {
-    assert(!isPatch);
+  DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, origin) {
+    assert(origin == null);
     return new DillLibraryBuilder(uri, loader);
   }
 
