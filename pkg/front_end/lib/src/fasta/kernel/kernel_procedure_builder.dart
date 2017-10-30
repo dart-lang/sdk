@@ -46,7 +46,6 @@ import '../loader.dart' show Loader;
 import '../messages.dart'
     show
         messageConstConstructorWithBody,
-        messageExternalMethodWithBody,
         messageInternalProblemBodyOnAbstractMethod,
         messageNonInstanceTypeVariableUse,
         warning;
@@ -103,10 +102,6 @@ abstract class KernelFunctionBuilder
       if (isAbstract) {
         return internalProblem(messageInternalProblemBodyOnAbstractMethod,
             newBody.fileOffset, fileUri);
-      }
-      if (isExternal) {
-        return library.addCompileTimeError(
-            messageExternalMethodWithBody, newBody.fileOffset, fileUri);
       }
       if (isConstructor && isConst) {
         return library.addCompileTimeError(
@@ -208,7 +203,6 @@ abstract class KernelFunctionBuilder
   Member build(SourceLibraryBuilder library);
 
   void becomeNative(Loader loader) {
-    target.isExternal = true;
     Builder constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
@@ -333,6 +327,12 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
         }
       }
     }
+  }
+
+  @override
+  void becomeNative(Loader loader) {
+    procedure.isExternal = true;
+    super.becomeNative(loader);
   }
 }
 
@@ -461,5 +461,11 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     }
     initializers.add(initializer);
     initializer.parent = constructor;
+  }
+
+  @override
+  void becomeNative(Loader loader) {
+    constructor.isExternal = true;
+    super.becomeNative(loader);
   }
 }

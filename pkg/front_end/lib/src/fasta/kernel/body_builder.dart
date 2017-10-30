@@ -625,7 +625,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             body, messageSetterWithWrongNumberOfFormals);
       }
     }
-    builder.body = body;
+    if (!builder.isExternal) {
+      builder.body = body;
+    } else {
+      if (body != null) {
+        builder.body = wrapInCompileTimeErrorStatement(
+            body, fasta.messageExternalMethodWithBody);
+      }
+    }
     Member target = builder.target;
     _typeInferrer.inferMetadata(annotations);
     for (Expression annotation in annotations ?? const []) {
