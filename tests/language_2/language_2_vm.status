@@ -947,10 +947,7 @@ function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 generic_list_checked_test: RuntimeError
-getters_setters2_test/01: RuntimeError
-getters_setters2_test/none: RuntimeError
 if_null_precedence_test/none: RuntimeError
-implicit_downcast_during_assignment_test: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
@@ -958,6 +955,11 @@ tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
+
+[ $runtime == vm && !$checked && $compiler != dartk]
+getters_setters2_test/01: RuntimeError
+getters_setters2_test/none: RuntimeError
+implicit_downcast_during_assignment_test: RuntimeError
 
 [ $runtime == vm && $checked && $mode == debug ]
 tearoff_dynamic_test: Crash

@@ -257,10 +257,12 @@ assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 checked_setter_test: RuntimeError
 checked_setter3_test: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
-getters_setters2_test/01: RuntimeError
-getters_setters2_test/none: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 tearoff_dynamic_test: RuntimeError
+
+[ $compiler == dartk && $runtime == vm && !$checked && !$strong ]
+getters_setters2_test/01: RuntimeError
+getters_setters2_test/none: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && $checked ]
 assertion_initializer_const_function_test/01: RuntimeError
@@ -1011,9 +1013,6 @@ void_type_usage_test/paren_for: CompileTimeError
 void_type_usage_test/paren_stmt: CompileTimeError
 void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/none: Pass
-
-[ $compiler == dartk && $runtime == vm && $strong ]
-implicit_downcast_during_assignment_test: RuntimeError # Issue 31236
 
 [ $compiler == dartkp && $strong ]
 abstract_syntax_test/01: MissingCompileTimeError
