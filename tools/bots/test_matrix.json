@@ -83,6 +83,29 @@
     },
     {
       "builders": [
+        "app-linux-debug-x64",
+        "app-linux-product-x64",
+        "app-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm app builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--compiler=app_jit"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart-sdk-linux"
       ],
       "meta": {
