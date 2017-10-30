@@ -13,12 +13,12 @@ import 'flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FlutterUtilTest);
+    defineReflectiveTests(FlutterTest);
   });
 }
 
 @reflectiveTest
-class FlutterUtilTest extends AbstractSingleUnitTest {
+class FlutterTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
@@ -26,7 +26,7 @@ class FlutterUtilTest extends AbstractSingleUnitTest {
     packageMap['flutter'] = [libFolder];
   }
 
-  test_getFlutterWidgetPresentationText_icon() async {
+  test_getWidgetPresentationText_icon() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 var w = const Icon(Icons.book);
@@ -35,7 +35,17 @@ var w = const Icon(Icons.book);
     expect(getWidgetPresentationText(w), "Icon(Icons.book)");
   }
 
-  test_getFlutterWidgetPresentationText_notWidget() async {
+  test_getWidgetPresentationText_icon_withoutArguments() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+var w = const Icon();
+''');
+    var w = _getTopVariableCreation('w');
+    expect(getWidgetPresentationText(w), "Icon");
+  }
+
+  test_getWidgetPresentationText_notWidget() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 var w = new Object();
@@ -44,7 +54,7 @@ var w = new Object();
     expect(getWidgetPresentationText(w), isNull);
   }
 
-  test_getFlutterWidgetPresentationText_text() async {
+  test_getWidgetPresentationText_text() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 var w = const Text('foo');
@@ -53,7 +63,7 @@ var w = const Text('foo');
     expect(getWidgetPresentationText(w), "Text('foo')");
   }
 
-  test_getFlutterWidgetPresentationText_text_longText() async {
+  test_getWidgetPresentationText_text_longText() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 var w = const Text('${'abc' * 100}');
@@ -63,7 +73,17 @@ var w = const Text('${'abc' * 100}');
         getWidgetPresentationText(w), "Text('abcabcabcabcab...cabcabcabcabc')");
   }
 
-  test_getFlutterWidgetPresentationText_unresolved() async {
+  test_getWidgetPresentationText_text_withoutArguments() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+var w = const Text();
+''');
+    var w = _getTopVariableCreation('w');
+    expect(getWidgetPresentationText(w), "Text");
+  }
+
+  test_getWidgetPresentationText_unresolved() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -73,7 +93,7 @@ var w = new Foo();
     expect(getWidgetPresentationText(w), isNull);
   }
 
-  test_isFlutterWidget() async {
+  test_isWidget() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 
@@ -99,7 +119,7 @@ class NotWidget extends State {}
     expect(isWidget(notWidget), isFalse);
   }
 
-  test_isFlutterWidgetCreation() async {
+  test_isWidgetCreation() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 
