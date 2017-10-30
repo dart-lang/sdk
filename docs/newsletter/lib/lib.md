@@ -1,4 +1,7 @@
 # Dart 2.0 - Core Library Changes
+2017-10-27
+@floitschG
+
 This document provides an overview of the planned library changes for Dart 2.0.
 The proposed changes are not yet final. There are still changes that will happen.
 
@@ -11,6 +14,9 @@ The `io` library, as well as all browser related libraries (`html`, `indexed_db`
 All changes have been collected in the following CL: https://dart-review.googlesource.com/15127.
 
 The patch contains all proposed changes, but is not complete, nor error-free (and might be out-of-date in some minor details). It is intended to be a tool to help read this document by showing old and new signatures next to each other.
+
+## Updates
+* 2017-10-30: added `bufferSize` argument to `Stream.replay`.
 
 ## Preface
 Library design is opinion based, and it's impossible to get 100% agreement on what a perfect library should look like. For example, `Iterable.isNotEmpty` is a thorn in some developer's eyes; yet considered to be a great addition for others.
@@ -1434,8 +1440,14 @@ The following methods were inspired by RX.
    * Each listener of the resulting stream receives all events of this stream.
    * This means that all events must be buffered. Users need to pay attention
    * not to leak memory this way.
+   *
+   * If no [bufferSize] is provided (or it is `null`) then the
+   * returned stream is able to replay *all* previously emitted events.
+   *
+   * If [bufferSize] is provided, then only the most recent [bufferSize]
+   * events are stored and replayed.
    */
-  Stream<T> replay();
+  Stream<T> replay({int bufferSize});
 ```
 
 > All of these methods only affect subtypes of `Stream`.
