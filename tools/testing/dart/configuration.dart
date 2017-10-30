@@ -77,7 +77,8 @@ class Configuration {
       this.suiteDirectory,
       this.builderTag,
       this.outputDirectory,
-      this.reproducingArguments})
+      this.reproducingArguments,
+      this.fastTestsOnly})
       : _packages = packages,
         _timeout = timeout;
 
@@ -96,6 +97,7 @@ class Configuration {
   final bool batch;
   final bool batchDart2JS;
   final bool copyCoreDumps;
+  final bool fastTestsOnly;
   final bool hotReload;
   final bool hotReloadRollback;
   final bool isChecked;

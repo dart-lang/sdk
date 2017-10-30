@@ -164,6 +164,8 @@ simdbc, simdbc64''',
         hide: true),
     new _Option.bool('fast_startup', 'Pass the --fast-startup flag to dart2js.',
         hide: true),
+    new _Option.bool('fast_tests',
+        'Only run tests that are not marked `Slow` or `Timeout`.'),
     new _Option.bool('enable_asserts',
         'Pass the --enable-asserts flag to dart2js or to the vm.'),
     new _Option.bool(
@@ -673,7 +675,8 @@ compiler.''',
                 suiteDirectory: data["suite_dir"] as String,
                 builderTag: data["builder_tag"] as String,
                 outputDirectory: data["output_directory"] as String,
-                reproducingArguments: _reproducingCommand(data));
+                reproducingArguments: _reproducingCommand(data),
+                fastTestsOnly: data["fast_tests"] as bool);
 
             if (configuration.validate()) {
               result.add(configuration);
