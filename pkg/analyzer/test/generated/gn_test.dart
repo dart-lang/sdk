@@ -17,19 +17,6 @@ main() {
 
 @reflectiveTest
 class GnWorkspaceTest extends _BaseTest {
-  void test_find_inHost() {
-    provider.newFolder(_p('/workspace/.jiri_root'));
-    provider.newFolder(_p('/workspace/some/code'));
-    provider.newFile(_p('/workspace/some/code/pubspec.yaml'), '');
-    provider.newFile(
-        _p('/workspace/out/debug-x87_128/host_y32/gen/some/code/foo.packages'),
-        '');
-    GnWorkspace workspace =
-        GnWorkspace.find(provider, _p('/workspace/some/code'));
-    expect(workspace, isNotNull);
-    expect(workspace.root, _p('/workspace/some/code'));
-  }
-
   void test_find_noJiriRoot() {
     provider.newFolder(_p('/workspace'));
     GnWorkspace workspace = GnWorkspace.find(provider, _p('/workspace'));
@@ -46,7 +33,8 @@ class GnWorkspaceTest extends _BaseTest {
     provider.newFolder(_p('/workspace/some/code'));
     provider.newFile(_p('/workspace/some/code/pubspec.yaml'), '');
     provider.newFile(
-        _p('/workspace/out/debug-x87_128/gen/some/code/foo.packages'), '');
+        _p('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages'),
+        '');
     GnWorkspace workspace =
         GnWorkspace.find(provider, _p('/workspace/some/code'));
     expect(workspace, isNotNull);
@@ -60,7 +48,7 @@ class GnWorkspaceTest extends _BaseTest {
     String packageLocation = _p('/workspace/this/is/the/package');
     Uri packageUri = provider.pathContext.toUri(packageLocation);
     provider.newFile(
-        _p('/workspace/out/debug-x87_128/gen/some/code/foo.packages'),
+        _p('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages'),
         'flutter:$packageUri');
     GnWorkspace workspace =
         GnWorkspace.find(provider, _p('/workspace/some/code'));
@@ -77,20 +65,20 @@ class GnWorkspaceTest extends _BaseTest {
     String packageOneLocation = _p('/workspace/this/is/the/package');
     Uri packageOneUri = provider.pathContext.toUri(packageOneLocation);
     provider.newFile(
-        _p('/workspace/out/debug-x87_128/gen/some/code/foo.packages'),
+        _p('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages'),
         'flutter:$packageOneUri');
     String packageTwoLocation = _p('/workspace/this/is/the/other/package');
     Uri packageTwoUri = provider.pathContext.toUri(packageTwoLocation);
     provider.newFile(
-        _p('/workspace/out/debug-x87_128/gen/some/code/foo_test.packages'),
-        'rettluf:$packageTwoUri');
+        _p('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_test.packages'),
+        'rettulf:$packageTwoUri');
     GnWorkspace workspace =
         GnWorkspace.find(provider, _p('/workspace/some/code'));
     expect(workspace, isNotNull);
     expect(workspace.root, _p('/workspace/some/code'));
     expect(workspace.packageMap.length, 2);
     expect(workspace.packageMap['flutter'][0].path, packageOneLocation);
-    expect(workspace.packageMap['rettluf'][0].path, packageTwoLocation);
+    expect(workspace.packageMap['rettulf'][0].path, packageTwoLocation);
   }
 }
 
