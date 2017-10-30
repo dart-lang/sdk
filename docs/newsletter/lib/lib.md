@@ -565,7 +565,7 @@ class DateTime implements Comparable<DateTime> {
   DateTime.now() : this._now();
 
   // Improved to accept RFC1123 format (and more of RFC 3399).
-  // Now errors, if the entries are out of range (like a month alue of 13).
+  // Now errors, if the entries are out of range (like a month value of 13).
   // Now has an `onError` optional named argument.
   static DateTime parse(String formattedString);
 
