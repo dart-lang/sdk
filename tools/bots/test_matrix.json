@@ -47,6 +47,39 @@
     },
     {
       "builders": [
+        "vm-kernel-linux-debug-x64",
+        "vm-kernel-linux-release-x64",
+        "vm-kernel-mac-debug-x64",
+        "vm-kernel-mac-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the kernel builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime","runtime_kernel"]
+        },
+        {
+          "name": "front-end tests",
+          "arguments": ["--runtime=vm","--compiler=none","--checked"],
+          "tests": ["pkg/front_end"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--runtime=vm","--compiler=dartk"],
+          "exclude_tests": ["language_2","corelib_2","lib_2","standalone_2"]
+        },
+        {
+          "name": "checked vm tests",
+          "arguments": ["--runtime=vm","--compiler=dartk","--strong"],
+          "tests": ["language_2","corelib_2","lib_2","standalone_2"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart-sdk-linux"
       ],
       "steps": [
