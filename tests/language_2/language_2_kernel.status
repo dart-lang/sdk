@@ -1012,6 +1012,9 @@ void_type_usage_test/paren_stmt: CompileTimeError
 void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/none: Pass
 
+[ $compiler == dartk && $runtime == vm && $strong ]
+implicit_downcast_during_assignment_test: RuntimeError # Issue 31236
+
 [ $compiler == dartkp && $strong ]
 abstract_syntax_test/01: MissingCompileTimeError
 assert_message_test: Crash

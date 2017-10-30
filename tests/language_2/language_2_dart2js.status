@@ -274,6 +274,7 @@ if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
+implicit_downcast_during_assignment_test: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
