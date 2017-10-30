@@ -2242,7 +2242,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 class FastaParserTestCase extends Object
     with ParserTestHelpers
     implements AbstractParserTestCase {
+  static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
   ParserProxy _parserProxy;
+
   analyzer.Token _fastaTokens;
 
   @override
@@ -2432,9 +2434,9 @@ class FastaParserTestCase extends Object
 
   @override
   Expression parseExpression(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    return _runParser(source, (parser) => parser.parseExpression, errorCodes)
-        as Expression;
+      {List<ErrorCode> codes, List<ExpectedError> errors}) {
+    return _runParser(source, (parser) => parser.parseExpression,
+        codes: codes, errors: errors) as Expression;
   }
 
   @override
@@ -2478,7 +2480,7 @@ class FastaParserTestCase extends Object
                       ? fasta.MemberKind.GeneralizedFunctionType
                       : fasta.MemberKind.NonStaticMethod);
             },
-        errorCodes) as FormalParameterList;
+        codes: errorCodes) as FormalParameterList;
   }
 
   @override
@@ -2584,10 +2586,10 @@ class FastaParserTestCase extends Object
   @override
   Expression parsePrimaryExpression(String code) {
     return _runParser(
-        code,
-        (parser) =>
-            (token) => parser.parsePrimary(token, IdentifierContext.expression),
-        const <ErrorCode>[]) as Expression;
+            code,
+            (parser) => (token) =>
+                parser.parsePrimary(token, IdentifierContext.expression))
+        as Expression;
   }
 
   @override
@@ -2613,8 +2615,8 @@ class FastaParserTestCase extends Object
   @override
   Statement parseStatement(String source,
       [bool enableLazyAssignmentOperators]) {
-    return _runParser(source, (parser) => parser.parseStatementOpt, null)
-        as Statement;
+    return _runParser(source, (parser) => parser.parseStatementOpt,
+        codes: NO_ERROR_COMPARISON) as Statement;
   }
 
   @override
@@ -2655,11 +2657,17 @@ class FastaParserTestCase extends Object
 
   Object _runParser(
       String source, ParseFunction getParseFunction(fasta.Parser parser),
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+      {List<ErrorCode> codes, List<ExpectedError> errors}) {
     createParser(source);
     Object result = _parserProxy._run(getParseFunction);
-    if (errorCodes != null) {
-      assertErrorsWithCodes(errorCodes);
+    if (codes != null) {
+      if (!identical(codes, NO_ERROR_COMPARISON)) {
+        assertErrorsWithCodes(codes);
+      }
+    } else if (errors != null) {
+      listener.assertErrors(errors);
+    } else {
+      assertNoErrors();
     }
     return result;
   }
@@ -3053,7 +3061,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_equalityExpression_precedence_relational_left() {
     // Fasta recovers differently. It takes the `is` to be an identifier and
     // assumes that the right operand of the `==` is the only missing identifier.
-    parseExpression("is ==", [
+    parseExpression("is ==", codes: [
 //      ParserErrorCode.EXPECTED_TYPE_NAME,
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.MISSING_IDENTIFIER
@@ -3064,7 +3072,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_equalityExpression_precedence_relational_right() {
     // Fasta recovers differently. It takes the `is` to be an identifier and
     // assumes that it is the right operand of the `==`.
-    parseExpression("== is", [
+    parseExpression("== is", codes: [
 //      ParserErrorCode.EXPECTED_TYPE_NAME,
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.MISSING_IDENTIFIER
@@ -3328,7 +3336,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   @override
   void test_relationalExpression_missing_LHS_RHS() {
     // Fasta recovers differently. It takes the `is` to be an identifier.
-    parseExpression("is", [
+    parseExpression("is", codes: [
 //      ParserErrorCode.EXPECTED_TYPE_NAME,
       ParserErrorCode.MISSING_IDENTIFIER
     ]);
@@ -3338,7 +3346,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_relationalExpression_precedence_shift_right() {
     // Fasta recovers differently. It takes the `is` to be an identifier and
     // assumes that it is the right operand of the `<<`.
-    parseExpression("<< is", [
+    parseExpression("<< is", codes: [
 //      ParserErrorCode.EXPECTED_TYPE_NAME,
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.MISSING_IDENTIFIER
