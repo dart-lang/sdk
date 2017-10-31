@@ -1280,7 +1280,7 @@ class AstBuilder extends ScopeListener {
     if (message.code == codeExpectedFunctionBody) {
       if (identical('native', token.stringValue) && parser != null) {
         Token nativeKeyword = token;
-        Token semicolon = parser.parseLiteralString(token.next);
+        Token semicolon = parser.parseLiteralString(token.next).next;
         // TODO(brianwilkerson) Should this be using ensureSemicolon?
         token = parser.expectSemicolon(semicolon);
         StringLiteral name = pop();

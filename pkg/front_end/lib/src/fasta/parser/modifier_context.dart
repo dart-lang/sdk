@@ -88,7 +88,7 @@ class ModifierContext {
     }
     typeContinuation ??= TypeContinuation.Optional;
     modifierCount++;
-    return parser.parseModifier(token);
+    return parser.parseModifier(token).next;
   }
 
   Token parseCovariantOpt(Token token) {
@@ -110,7 +110,7 @@ class ModifierContext {
 
       default:
         modifierCount++;
-        return parser.parseModifier(token);
+        return parser.parseModifier(token).next;
     }
   }
 
@@ -128,7 +128,7 @@ class ModifierContext {
       case MemberKind.StaticMethod:
       case MemberKind.TopLevelMethod:
         modifierCount++;
-        return parser.parseModifier(token);
+        return parser.parseModifier(token).next;
 
       case MemberKind.StaticField:
       case MemberKind.NonStaticField:
@@ -150,7 +150,7 @@ class ModifierContext {
     }
     typeContinuation ??= TypeContinuation.Optional;
     modifierCount++;
-    return parser.parseModifier(token);
+    return parser.parseModifier(token).next;
   }
 
   Token parseStaticOpt(Token token) {
@@ -170,11 +170,11 @@ class ModifierContext {
       case MemberKind.NonStaticMethod:
         memberKind = MemberKind.StaticMethod;
         modifierCount++;
-        return parser.parseModifier(token);
+        return parser.parseModifier(token).next;
       case MemberKind.NonStaticField:
         memberKind = MemberKind.StaticField;
         modifierCount++;
-        return parser.parseModifier(token);
+        return parser.parseModifier(token).next;
       default:
         parser.reportRecoverableErrorWithToken(
             token, fasta.templateExtraneousModifier);
@@ -207,7 +207,7 @@ class ModifierContext {
         break;
     }
     modifierCount++;
-    return parser.parseModifier(token);
+    return parser.parseModifier(token).next;
   }
 }
 

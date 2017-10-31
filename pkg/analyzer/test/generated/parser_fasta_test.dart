@@ -2474,11 +2474,13 @@ class FastaParserTestCase extends Object
     return _runParser(
         code,
         (parser) => (analyzer.Token token) {
-              return parser.parseFormalParametersRequiredOpt(
-                  token,
-                  inFunctionType
-                      ? fasta.MemberKind.GeneralizedFunctionType
-                      : fasta.MemberKind.NonStaticMethod);
+              return parser
+                  .parseFormalParametersRequiredOpt(
+                      token,
+                      inFunctionType
+                          ? fasta.MemberKind.GeneralizedFunctionType
+                          : fasta.MemberKind.NonStaticMethod)
+                  .next;
             },
         codes: errorCodes) as FormalParameterList;
   }
@@ -2914,11 +2916,13 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
-    return _run((parser) => (token) => parser.parseFormalParametersRequiredOpt(
-        token,
-        inFunctionType
-            ? fasta.MemberKind.GeneralizedFunctionType
-            : fasta.MemberKind.StaticMethod)) as FormalParameterList;
+    return _run((parser) => (token) => parser
+        .parseFormalParametersRequiredOpt(
+            token,
+            inFunctionType
+                ? fasta.MemberKind.GeneralizedFunctionType
+                : fasta.MemberKind.StaticMethod)
+        .next) as FormalParameterList;
   }
 
   @override
