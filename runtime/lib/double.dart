@@ -55,8 +55,7 @@ class _Double implements double {
   double operator -() native "Double_flipSignBit";
 
   bool operator ==(other) {
-    if (!(other is num)) return false;
-    return _equal(other.toDouble());
+    return (other is num) && _equal(other.toDouble());
   }
 
   bool _equal(double other) native "Double_equal";

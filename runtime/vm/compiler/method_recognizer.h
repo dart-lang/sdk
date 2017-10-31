@@ -156,7 +156,7 @@ namespace dart {
   V(_Double, >=, Double_greaterEqualThan, Bool, 0x57491a62)                    \
   V(_Double, <, Double_lessThan, Bool, 0x2e9d61bb)                             \
   V(_Double, <=, Double_lessEqualThan, Bool, 0x099e4442)                       \
-  V(_Double, ==, Double_equal, Bool, 0x04c399a1)                               \
+  V(_Double, ==, Double_equal, Bool, 0x282bd876)                               \
   V(_Double, +, Double_add, Double, 0x0ea5f450)                                \
   V(_Double, -, Double_sub, Double, 0x76768546)                                \
   V(_Double, *, Double_mul, Double, 0x66c66e3d)                                \
@@ -467,7 +467,7 @@ namespace dart {
   V(_Double, >=, Double_greaterEqualThan, 0x57491a62)                          \
   V(_Double, <, Double_lessThan, 0x2e9d61bb)                                   \
   V(_Double, <=, Double_lessEqualThan, 0x099e4442)                             \
-  V(_Double, ==, Double_equal, 0x04c399a1)                                     \
+  V(_Double, ==, Double_equal, 0x282bd876)                                     \
   V(_Double, +, Double_add, 0x0ea5f450)                                        \
   V(_Double, -, Double_sub, 0x76768546)                                        \
   V(_Double, *, Double_mul, 0x66c66e3d)                                        \
