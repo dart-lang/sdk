@@ -40,7 +40,7 @@ class ProtectedFileByteStoreTest {
     cachePath = cacheDirectory.absolute.path;
     store = new ProtectedFileByteStore(
         cachePath, new Duration(milliseconds: 10),
-        getCurrentTime: _getTime);
+        cacheSizeBytes: 256, getCurrentTime: _getTime);
   }
 
   void tearDown() {
