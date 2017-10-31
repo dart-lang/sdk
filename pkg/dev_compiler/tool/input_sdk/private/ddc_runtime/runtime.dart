@@ -130,7 +130,7 @@ final global_ = JS('', '''
     // user code runs with the correct configuration.
     let settings = 'ddcSettings' in globalState ? globalState.ddcSettings : {};
     $trapRuntimeErrors(
-        'trapRuntimeErrors' in settings ? settings.trapRuntimeErrors : true);
+        'trapRuntimeErrors' in settings ? settings.trapRuntimeErrors : false);
     $ignoreWhitelistedErrors(
         'ignoreWhitelistedErrors' in settings ?
             settings.ignoreWhitelistedErrors : true);
