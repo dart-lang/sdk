@@ -106,6 +106,7 @@ script_snapshot_not_executed_test: SkipByDesign # Only makes sense running from 
 
 [ $hot_reload || $hot_reload_rollback ]
 script_snapshot_not_executed_test: SkipByDesign # False positive because child process doesn't execute Dart.
+io/addlatexhash_test: Pass, Crash # Issue 31252
 
 [ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
