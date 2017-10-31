@@ -118,7 +118,9 @@ class ClassSerializationCluster : public SerializationCluster {
       s->UnexpectedObject(cls, "Class with illegal cid");
     }
     s->WriteCid(class_id);
-    s->Write<int32_t>(cls->ptr()->kernel_offset_);
+    if (kind != Snapshot::kFullAOT) {
+      s->Write<int32_t>(cls->ptr()->kernel_offset_);
+    }
     s->Write<int32_t>(cls->ptr()->instance_size_in_words_);
     s->Write<int32_t>(cls->ptr()->next_field_offset_in_words_);
     s->Write<int32_t>(cls->ptr()->type_arguments_field_offset_in_words_);
@@ -177,7 +179,11 @@ class ClassDeserializationCluster : public DeserializationCluster {
       }
       intptr_t class_id = d->ReadCid();
       cls->ptr()->id_ = class_id;
-      NOT_IN_PRECOMPILED(cls->ptr()->kernel_offset_ = d->Read<int32_t>());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (kind != Snapshot::kFullAOT) {
+        cls->ptr()->kernel_offset_ = d->Read<int32_t>();
+      }
+#endif
       if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
         cls->ptr()->instance_size_in_words_ = d->Read<int32_t>();
         cls->ptr()->next_field_offset_in_words_ = d->Read<int32_t>();
@@ -214,7 +220,11 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->handle_vtable_ = fake.vtable();
 
       cls->ptr()->id_ = class_id;
-      NOT_IN_PRECOMPILED(cls->ptr()->kernel_offset_ = d->Read<int32_t>());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (kind != Snapshot::kFullAOT) {
+        cls->ptr()->kernel_offset_ = d->Read<int32_t>();
+      }
+#endif
       cls->ptr()->instance_size_in_words_ = d->Read<int32_t>();
       cls->ptr()->next_field_offset_in_words_ = d->Read<int32_t>();
       cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
