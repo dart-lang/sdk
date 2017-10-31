@@ -3394,6 +3394,22 @@ ASSEMBLER_TEST_RUN(BitTest, test) {
   EXPECT_EQ(1, reinterpret_cast<BitTest>(test->entry())());
 }
 
+ASSEMBLER_TEST_GENERATE(BitTestImmediate, assembler) {
+  __ movq(R11, Immediate(32));
+  __ btq(R11, 5);
+  Label ok;
+  __ j(CARRY, &ok);
+  __ int3();
+  __ Bind(&ok);
+  __ movq(RAX, Immediate(1));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(BitTestImmediate, test) {
+  typedef int (*BitTestImmediate)();
+  EXPECT_EQ(1, reinterpret_cast<BitTestImmediate>(test->entry())());
+}
+
 // Return 1 if equal, 0 if not equal.
 ASSEMBLER_TEST_GENERATE(ConditionalMovesEqual, assembler) {
   __ movq(RDX, CallingConventions::kArg1Reg);

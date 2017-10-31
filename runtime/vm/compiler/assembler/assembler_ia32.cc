@@ -1650,6 +1650,15 @@ void Assembler::bt(Register base, Register offset) {
   EmitRegisterOperand(offset, base);
 }
 
+void Assembler::bt(Register base, int bit) {
+  ASSERT(bit >= 0 && bit < 32);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xBA);
+  EmitRegisterOperand(4, base);
+  EmitUint8(bit);
+}
+
 void Assembler::enter(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC8);
