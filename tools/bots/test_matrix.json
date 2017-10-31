@@ -183,6 +183,56 @@
     },
     {
       "builders": [
+        "vm-reload-linux-debug-x64",
+        "vm-reload-linux-release-x64",
+        "vm-reload-mac-debug-simdbc64",
+        "vm-reload-mac-release-simdbc64"
+      ],
+      "meta": {
+        "description": "This is the configuration for the hot reload builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--hot-reload"]
+        },
+        {
+          "name": "checked vm tests",
+          "arguments": ["--checked","--hot-reload"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-reload-rollback-linux-debug-x64",
+        "vm-reload-rollback-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This is the configuration for reload rollback builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--hot-reload-rollback"]
+        },
+        {
+          "name": "checked vm tests",
+          "arguments": ["--checked","--hot-reload-rollback"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart-sdk-linux"
       ],
       "meta": {
