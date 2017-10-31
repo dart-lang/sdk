@@ -5,7 +5,7 @@
 // part of "core_patch.dart";
 
 int _getHash(obj) native "Object_getHash";
-int _setHash(obj, hash) native "Object_setHash";
+void _setHash(obj, hash) native "Object_setHash";
 
 @patch
 class Object {
