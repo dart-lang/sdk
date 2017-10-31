@@ -64,7 +64,11 @@ template("build_libdart_vm") {
     extra_configs += invoker.extra_configs
   }
   source_set(target_name) {
-    configs += [ "..:dart_config" ] + extra_configs
+    configs += [
+      "..:dart_arch_config",
+      "..:dart_config",
+      "..:dart_os_config",
+    ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
       deps = [
@@ -202,7 +206,11 @@ template("build_libdart_lib") {
     extra_sources += invoker.extra_sources
   }
   source_set(target_name) {
-    configs += [ "..:dart_config" ] + extra_configs
+    configs += [
+      "..:dart_arch_config",
+      "..:dart_config",
+      "..:dart_os_config",
+    ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }

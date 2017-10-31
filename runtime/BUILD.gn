@@ -52,7 +52,7 @@ config("dart_no_snapshot_config") {
   defines += [ "DART_NO_SNAPSHOT" ]
 }
 
-config("dart_config") {
+config("dart_os_config") {
   defines = []
 
   if (target_os == "android") {
@@ -72,6 +72,10 @@ config("dart_config") {
     print("Unknown target_os: $target_os")
     assert(false)
   }
+}
+
+config("dart_arch_config") {
+  defines = []
 
   if (dart_target_arch == "arm") {
     defines += [ "TARGET_ARCH_ARM" ]
@@ -94,6 +98,10 @@ config("dart_config") {
     print("Invalid dart_target_arch: $dart_target_arch")
     assert(false)
   }
+}
+
+config("dart_config") {
+  defines = []
 
   if (dart_debug) {
     defines += [ "DEBUG" ]
@@ -170,7 +178,11 @@ template("libdart_library") {
     extra_deps += invoker.extra_deps
   }
   static_library(target_name) {
-    configs += [ ":dart_config" ] + extra_configs
+    configs += [
+      ":dart_arch_config",
+      ":dart_config",
+      ":dart_os_config",
+    ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
