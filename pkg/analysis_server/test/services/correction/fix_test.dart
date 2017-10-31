@@ -2970,6 +2970,32 @@ class B implements A {
 ''');
   }
 
+  test_createMissingOverrides_method_notEmptyClassBody() async {
+    await resolveTestUnit('''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  void bar() {}
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MISSING_OVERRIDES, '''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  void bar() {}
+
+  @override
+  void foo() {
+    // TODO: implement foo
+  }
+}
+''');
+  }
+
   test_createMissingOverrides_operator() async {
     await resolveTestUnit('''
 abstract class A {
