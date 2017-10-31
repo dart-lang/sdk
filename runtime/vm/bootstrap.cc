@@ -222,9 +222,9 @@ static RawError* LoadPatchFiles(Thread* thread,
   return Error::null();
 }
 
-static void Finish(Thread* thread, bool from_kernel) {
+static void Finish(Thread* thread) {
   Bootstrap::SetupNativeResolver();
-  if (!ClassFinalizer::ProcessPendingClasses(from_kernel)) {
+  if (!ClassFinalizer::ProcessPendingClasses()) {
     FATAL("Error in class finalization during bootstrapping.");
   }
 
@@ -299,7 +299,7 @@ static RawError* BootstrapFromSource(Thread* thread) {
   }
 
   if (error.IsNull()) {
-    Finish(thread, /*from_kernel=*/false);
+    Finish(thread);
   }
   // Restore the library tag handler for the isolate.
   isolate->set_library_tag_handler(saved_tag_handler);
@@ -311,17 +311,7 @@ static RawError* BootstrapFromSource(Thread* thread) {
 static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
   kernel::KernelLoader loader(program);
-
   Isolate* isolate = thread->isolate();
-  // Mark the already-pending classes.  This mark bit will be used to avoid
-  // adding classes to the list more than once.
-  GrowableObjectArray& pending_classes = GrowableObjectArray::Handle(
-      zone, isolate->object_store()->pending_classes());
-  Class& pending = Class::Handle(zone);
-  for (intptr_t i = 0; i < pending_classes.Length(); ++i) {
-    pending ^= pending_classes.At(i);
-    pending.set_is_marked_for_parsing();
-  }
 
   // Load the bootstrap libraries in order (see object_store.h).
   Library& library = Library::Handle(zone);
@@ -341,7 +331,7 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   }
 
   // Finish bootstrapping, including class finalization.
-  Finish(thread, /*from_kernel=*/true);
+  Finish(thread);
 
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.

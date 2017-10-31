@@ -295,6 +295,8 @@ class TranslationHelper {
 
   void InitFromScript(const Script& script);
 
+  void InitFromKernelProgramInfo(const KernelProgramInfo& info);
+
   Thread* thread() { return thread_; }
 
   Zone* zone() { return zone_; }

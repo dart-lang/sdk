@@ -486,18 +486,21 @@ RawError* Compiler::CompileClass(const Class& cls) {
       AddRelatedClassesToList(parse_list.At(i), &parse_list, &patch_list);
     }
 
-    // Parse all the classes that have been added above.
-    for (intptr_t i = (parse_list.length() - 1); i >= 0; i--) {
-      const Class& parse_class = parse_list.At(i);
-      ASSERT(!parse_class.IsNull());
-      Parser::ParseClass(parse_class);
-    }
+    // Classes loaded from a kernel should not be parsed.
+    if (cls.kernel_offset() <= 0) {
+      // Parse all the classes that have been added above.
+      for (intptr_t i = (parse_list.length() - 1); i >= 0; i--) {
+        const Class& parse_class = parse_list.At(i);
+        ASSERT(!parse_class.IsNull());
+        Parser::ParseClass(parse_class);
+      }
 
-    // Parse all the patch classes that have been added above.
-    for (intptr_t i = 0; i < patch_list.length(); i++) {
-      const Class& parse_class = patch_list.At(i);
-      ASSERT(!parse_class.IsNull());
-      Parser::ParseClass(parse_class);
+      // Parse all the patch classes that have been added above.
+      for (intptr_t i = 0; i < patch_list.length(); i++) {
+        const Class& parse_class = patch_list.At(i);
+        ASSERT(!parse_class.IsNull());
+        Parser::ParseClass(parse_class);
+      }
     }
 
     // Finalize these classes.

@@ -2119,6 +2119,7 @@ RawClass* Class::New() {
   result.set_num_own_type_arguments(0);
   result.set_num_native_fields(0);
   result.set_token_pos(TokenPosition::kNoSource);
+  result.set_kernel_offset(-1);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -3255,6 +3256,7 @@ RawClass* Class::NewCommon(intptr_t index) {
 template <class FakeInstance>
 RawClass* Class::New(intptr_t index) {
   Class& result = Class::Handle(NewCommon<FakeInstance>(index));
+  result.set_kernel_offset(-1);
   Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
@@ -3268,6 +3270,7 @@ RawClass* Class::New(const Library& lib,
   result.set_name(name);
   result.set_script(script);
   result.set_token_pos(token_pos);
+  result.set_kernel_offset(-1);
   Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
@@ -3296,6 +3299,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
     cls.set_is_cycle_free();
+    cls.set_kernel_offset(-1);
     library.AddClass(cls);
     return cls.raw();
   } else {

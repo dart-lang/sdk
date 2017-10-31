@@ -778,6 +778,7 @@ class RawClass : public RawObject {
 
   cpp_vtable handle_vtable_;
   TokenPosition token_pos_;
+  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
   int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.

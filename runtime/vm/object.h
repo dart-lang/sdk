@@ -1321,6 +1321,20 @@ class Class : public Object {
   RawCode* allocation_stub() const { return raw_ptr()->allocation_stub_; }
   void set_allocation_stub(const Code& value) const;
 
+  intptr_t kernel_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return NULL;
+#else
+    return raw_ptr()->kernel_offset_;
+#endif
+  }
+
+  void set_kernel_offset(intptr_t offset) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    StoreNonPointer(&raw_ptr()->kernel_offset_, offset);
+#endif
+  }
+
   void DisableAllocationStub() const;
 
   RawArray* constants() const;
