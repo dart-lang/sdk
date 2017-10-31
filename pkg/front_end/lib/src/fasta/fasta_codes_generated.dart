@@ -1151,26 +1151,6 @@ Message _withArgumentsExpectedDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Token token)> templateExpectedExpression =
-    const Template<Message Function(Token token)>(
-        messageTemplate: r"""Expected an expression, but got '#lexeme'.""",
-        withArguments: _withArgumentsExpectedExpression);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Token token)> codeExpectedExpression =
-    const Code<Message Function(Token token)>(
-        "ExpectedExpression", templateExpectedExpression,
-        dart2jsCode: "*fatal*");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedExpression(Token token) {
-  String lexeme = token.lexeme;
-  return new Message(codeExpectedExpression,
-      message: """Expected an expression, but got '$lexeme'.""",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedFunctionBody =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Expected a function body, but got '#lexeme'.""",

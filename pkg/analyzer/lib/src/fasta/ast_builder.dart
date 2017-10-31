@@ -22,7 +22,6 @@ import 'package:front_end/src/fasta/messages.dart'
     show
         Code,
         Message,
-        codeExpectedExpression,
         codeExpectedFunctionBody,
         messageNativeClauseShouldBeAnnotation;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
@@ -1288,16 +1287,6 @@ class AstBuilder extends ScopeListener {
         pop(); // star
         pop(); // async
         push(ast.nativeFunctionBody(nativeKeyword, name, semicolon));
-        return token;
-      }
-    } else if (message.code == codeExpectedExpression) {
-      String lexeme = token.lexeme;
-      if (identical('async', lexeme) || identical('yield', lexeme)) {
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
-            token.charOffset,
-            token.charCount);
-        push(ast.simpleIdentifier(token));
         return token;
       }
     }

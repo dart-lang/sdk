@@ -207,10 +207,6 @@ ExpectedDeclaration:
   analyzerCode: EXPECTED_EXECUTABLE
   dart2jsCode: "*fatal*"
 
-ExpectedExpression:
-  template: "Expected an expression, but got '#lexeme'."
-  dart2jsCode: "*fatal*"
-
 ExpectedFunctionBody:
   template: "Expected a function body, but got '#lexeme'."
   analyzerCode: MISSING_FUNCTION_BODY
