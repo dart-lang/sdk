@@ -769,24 +769,36 @@ class KernelLibraryBuilder
 
   @override
   void buildBuilder(Builder builder, LibraryBuilder coreLibrary) {
+    Class cls;
+    Member member;
+    Typedef typedef;
     if (builder is SourceClassBuilder) {
-      Class cls = builder.build(this, coreLibrary);
-      library.addClass(cls);
+      cls = builder.build(this, coreLibrary);
     } else if (builder is KernelFieldBuilder) {
-      library.addMember(builder.build(this)..isStatic = true);
+      member = builder.build(this)..isStatic = true;
     } else if (builder is KernelProcedureBuilder) {
-      library.addMember(builder.build(this)..isStatic = true);
+      member = builder.build(this)..isStatic = true;
     } else if (builder is KernelFunctionTypeAliasBuilder) {
-      library.addTypedef(builder.build(this));
+      typedef = builder.build(this);
     } else if (builder is KernelEnumBuilder) {
-      library.addClass(builder.build(this, coreLibrary));
+      cls = builder.build(this, coreLibrary);
     } else if (builder is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
+      return;
     } else if (builder is BuiltinTypeBuilder) {
       // Nothing needed.
+      return;
     } else {
       unhandled("${builder.runtimeType}", "buildBuilder", builder.charOffset,
           builder.fileUri);
+      return;
+    }
+    if (cls != null) {
+      library.addClass(cls);
+    } else if (member != null) {
+      library.addMember(member);
+    } else if (typedef != null) {
+      library.addTypedef(typedef);
     }
   }
 
