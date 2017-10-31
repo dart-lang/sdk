@@ -9,7 +9,7 @@ import 'dart:core';
 import 'result_models.dart';
 import '../logger.dart';
 import '../cache_new.dart';
-import '../logdog_new.dart';
+import '../logdog.dart';
 import '../logdog_rpc.dart';
 import '../luci_api.dart';
 import '../luci.dart';

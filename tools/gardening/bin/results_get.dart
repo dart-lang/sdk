@@ -14,7 +14,7 @@ import 'package:gardening/src/util.dart';
 import 'package:gardening/src/console_table.dart';
 import 'package:gardening/src/results/result_models.dart' as models;
 import 'package:gardening/src/results/util.dart';
-import 'package:gardening/src/logdog_new.dart';
+import 'package:gardening/src/logdog.dart';
 import 'package:gardening/src/logdog_rpc.dart';
 import 'package:gardening/src/buildbucket.dart';
 import 'package:gardening/src/extended_printer.dart';
