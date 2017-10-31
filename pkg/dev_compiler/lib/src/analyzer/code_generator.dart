@@ -5724,23 +5724,18 @@ class CodeGenerator extends Object
   JS.Expression _visitTest(Expression node) {
     if (node == null) return null;
 
-    JS.Expression finish(JS.Expression result) {
-      result?.sourceInformation = node;
-      return result;
-    }
-
     if (node is PrefixExpression && node.operator.lexeme == '!') {
       // TODO(leafp): consider a peephole opt for identical
       // and == here.
-      return finish(js.call('!#', _visitTest(node.operand)));
+      return js.call('!#', _visitTest(node.operand));
     }
     if (node is ParenthesizedExpression) {
-      return finish(_visitTest(node.expression));
+      return _visitTest(node.expression);
     }
     if (node is BinaryExpression) {
       JS.Expression shortCircuit(String code) {
-        return finish(js.call(code,
-            [_visitTest(node.leftOperand), _visitTest(node.rightOperand)]));
+        return js.call(code,
+            [_visitTest(node.leftOperand), _visitTest(node.rightOperand)]);
       }
 
       var op = node.operator.type.lexeme;
@@ -5749,11 +5744,11 @@ class CodeGenerator extends Object
     }
     if (node is AsExpression && CoercionReifier.isRequiredForSoundness(node)) {
       assert(node.staticType == types.boolType);
-      return finish(_callHelper('dtest(#)', _visitExpression(node.expression)));
+      return _callHelper('dtest(#)', _visitExpression(node.expression));
     }
     var result = _visitExpression(node);
     if (isNullable(node)) result = _callHelper('test(#)', result);
-    return finish(result);
+    return result;
   }
 
   /// Like [_emitMemberName], but for declaration sites.
