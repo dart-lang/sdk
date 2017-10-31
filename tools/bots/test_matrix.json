@@ -106,6 +106,54 @@
     },
     {
       "builders": [
+        "precomp-linux-debug-x64",
+        "precomp-linux-product-x64",
+        "vm-noopt-mac-simarm64",
+        "vm-precomp-win-simarm64"
+      ],
+      "meta": {
+        "description": "This is the configuration for the vm precomp builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime","runtime_precompiled"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "--compiler=precompiler",
+            "--runtime=dart_precompiled",
+            "--use-blobs"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-precomp-android-release"
+      ],
+      "meta": {
+        "description": "This is the configuration for the android precomp builder. This has its own configuration because it needs to pass os and system as arguments."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["--os=android","runtime","runtime_precompiled"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "--compiler=precompiler",
+            "--runtime=dart_precompiled",
+            "--system=android",
+            "--use-blobs"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart-sdk-linux"
       ],
       "meta": {
