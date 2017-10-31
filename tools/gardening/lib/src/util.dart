@@ -112,7 +112,9 @@ ArgParser createArgParser() {
       help: "Use <dir> for caching test output.\n"
           "Defaults to 'temp/gardening-cache/'.");
   argParser.addFlag(Flags.logdog,
-      negatable: false, help: "Pull test results from logdog.");
+      negatable: false,
+      defaultsTo: true,
+      help: "Pull test results from logdog.");
   return argParser;
 }
 

@@ -4,11 +4,14 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:gardening/src/cache_new.dart';
+import 'package:gardening/src/logdog_rpc.dart';
+import 'package:gardening/src/results/util.dart';
+
 import 'util.dart';
 
 import 'buildbot_structures.dart';
 import 'cache.dart';
-import 'logdog.dart';
 
 const String BUILDBOT_BUILDNUMBER = ' BUILDBOT_BUILDNUMBER: ';
 const String BUILDBOT_REVISION = ' BUILDBOT_REVISION: ';
@@ -49,9 +52,10 @@ Future<BuildResult> readBuildResultFromHttp(
 ///
 /// The build number of [buildUri] most be non-negative.
 Future<BuildResult> readBuildResultFromLogDog(BuildUri buildUri) {
-  Future<String> read() async {
+  LogdogRpc logdog = new LogdogRpc();
+  Future<String> read() {
     log('Reading logdog results: $buildUri');
-    return cat(buildUri.logdogPath);
+    return logdog.get(BUILDER_PROJECT, buildUri.logdogPath, noCache()());
   }
 
   return _readBuildResult(buildUri, read);
@@ -86,7 +90,8 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
   List<TestStatus> results = <TestStatus>[];
   List<TestFailure> failures = <TestFailure>[];
   List<Timing> timings = <Timing>[];
-  for (String line in text.split('\n')) {
+  List<String> strings = text.split('\n');
+  for (String line in strings) {
     if (line.startsWith(BUILDBOT_BUILDNUMBER)) {
       buildNumber =
           int.parse(line.substring(BUILDBOT_BUILDNUMBER.length).trim());
