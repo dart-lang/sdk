@@ -15,7 +15,9 @@ double topLevelDouble;
 
 void test1() {
   var /*@type=int*/ v1 = topLevelInt = getInt();
+  var /*@type=int*/ v2 = topLevelInt = getNum();
   var /*@type=int*/ v4 = topLevelInt ??= getInt();
+  var /*@type=int*/ v5 = topLevelInt ??= getNum();
   var /*@type=int*/ v7 = topLevelInt += getInt();
   var /*@type=num*/ v8 = topLevelInt += getNum();
   var /*@type=int*/ v10 = ++topLevelInt;
@@ -37,7 +39,9 @@ void test2() {
 }
 
 void test3() {
+  var /*@type=double*/ v2 = topLevelDouble = getNum();
   var /*@type=double*/ v3 = topLevelDouble = getDouble();
+  var /*@type=double*/ v5 = topLevelDouble ??= getNum();
   var /*@type=double*/ v6 = topLevelDouble ??= getDouble();
   var /*@type=double*/ v7 = topLevelDouble += getInt();
   var /*@type=double*/ v8 = topLevelDouble += getNum();

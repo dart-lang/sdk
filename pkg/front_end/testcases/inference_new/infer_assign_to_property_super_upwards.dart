@@ -18,8 +18,11 @@ class Base {
 class Test1 extends Base {
   void test() {
     var /*@type=int*/ v1 = super. /*@target=Base::intProp*/ intProp = getInt();
+    var /*@type=int*/ v2 = super. /*@target=Base::intProp*/ intProp = getNum();
     var /*@type=int*/ v4 =
         super. /*@target=Base::intProp*/ intProp ??= getInt();
+    var /*@type=int*/ v5 =
+        super. /*@target=Base::intProp*/ intProp ??= getNum();
     var /*@type=int*/ v7 = super. /*@target=Base::intProp*/ intProp += getInt();
     var /*@type=num*/ v8 = super. /*@target=Base::intProp*/ intProp += getNum();
     var /*@type=int*/ v10 = ++super. /*@target=Base::intProp*/ intProp;
@@ -50,8 +53,12 @@ class Test2 extends Base {
 
 class Test3 extends Base {
   void test3() {
+    var /*@type=double*/ v2 =
+        super. /*@target=Base::doubleProp*/ doubleProp = getNum();
     var /*@type=double*/ v3 =
         super. /*@target=Base::doubleProp*/ doubleProp = getDouble();
+    var /*@type=double*/ v5 =
+        super. /*@target=Base::doubleProp*/ doubleProp ??= getNum();
     var /*@type=double*/ v6 =
         super. /*@target=Base::doubleProp*/ doubleProp ??= getDouble();
     var /*@type=double*/ v7 =

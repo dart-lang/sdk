@@ -411,21 +411,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
   DartType _inferRhs(
       ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
     DartType combinedType;
-    if (nullAwareCombiner != null) {
-      var rhsType = inferrer.inferExpression(rhs, writeContext, true);
-      _storeLetType(inferrer, rhs, rhsType);
-      MethodInvocation equalsInvocation = nullAwareCombiner.condition;
-      inferrer.findMethodInvocationMember(writeContext, equalsInvocation,
-          silent: true);
-      // Note: the case of readType=null only happens for erroneous code.
-      combinedType = readType == null
-          ? rhsType
-          : inferrer.typeSchemaEnvironment
-              .getLeastUpperBound(readType, rhsType);
-      if (inferrer.strongMode) {
-        nullAwareCombiner.staticType = combinedType;
-      }
-    } else if (combiner != null) {
+    if (combiner != null) {
       bool isOverloadedArithmeticOperator = false;
       var combinerMember =
           inferrer.findMethodInvocationMember(readType, combiner, silent: true);
@@ -462,13 +448,27 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
           combiner.fileOffset);
       _storeLetType(inferrer, replacedCombiner, combinedType);
     } else {
-      combinedType = inferrer.inferExpression(rhs, writeContext, true);
-      var replacedRhs = inferrer.checkAssignability(writeContext, combinedType,
-          rhs, write == null ? -1 : write.fileOffset);
-      if (replacedRhs == null) {
-        _storeLetType(inferrer, rhs, combinedType);
+      var rhsType = inferrer.inferExpression(rhs, writeContext, true);
+      var replacedRhs = inferrer.checkAssignability(
+          writeContext, rhsType, rhs, write == null ? -1 : write.fileOffset);
+      if (replacedRhs != null) {
+        rhsType = writeContext;
+      }
+      _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
+      if (nullAwareCombiner != null) {
+        MethodInvocation equalsInvocation = nullAwareCombiner.condition;
+        inferrer.findMethodInvocationMember(writeContext, equalsInvocation,
+            silent: true);
+        // Note: the case of readType=null only happens for erroneous code.
+        combinedType = readType == null
+            ? rhsType
+            : inferrer.typeSchemaEnvironment
+                .getLeastUpperBound(readType, rhsType);
+        if (inferrer.strongMode) {
+          nullAwareCombiner.staticType = combinedType;
+        }
       } else {
-        _storeLetType(inferrer, replacedRhs, writeContext);
+        combinedType = rhsType;
       }
     }
     if (this is ShadowIndexAssign) {

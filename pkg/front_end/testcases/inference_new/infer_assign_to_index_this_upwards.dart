@@ -15,9 +15,9 @@ abstract class Test1 {
 
   void test() {
     var /*@type=int*/ v1 = this /*@target=Test1::[]=*/ ['x'] = getInt();
-    var /*@type=num*/ v2 = this /*@target=Test1::[]=*/ ['x'] = getNum();
+    var /*@type=int*/ v2 = this /*@target=Test1::[]=*/ ['x'] = getNum();
     var /*@type=int*/ v4 = this /*@target=Test1::[]=*/ ['x'] ??= getInt();
-    var /*@type=num*/ v5 = this /*@target=Test1::[]=*/ ['x'] ??= getNum();
+    var /*@type=int*/ v5 = this /*@target=Test1::[]=*/ ['x'] ??= getNum();
     var /*@type=int*/ v7 = this /*@target=Test1::[]=*/ ['x'] += getInt();
     var /*@type=num*/ v8 = this /*@target=Test1::[]=*/ ['x'] += getNum();
     var /*@type=int*/ v10 = ++this /*@target=Test1::[]=*/ ['x'];
@@ -49,7 +49,7 @@ abstract class Test3 {
   void operator []=(String s, double v);
 
   void test() {
-    var /*@type=num*/ v2 = this /*@target=Test3::[]=*/ ['x'] = getNum();
+    var /*@type=double*/ v2 = this /*@target=Test3::[]=*/ ['x'] = getNum();
     var /*@type=double*/ v3 = this /*@target=Test3::[]=*/ ['x'] = getDouble();
     var /*@type=num*/ v5 = this /*@target=Test3::[]=*/ ['x'] ??= getNum();
     var /*@type=num*/ v6 = this /*@target=Test3::[]=*/ ['x'] ??= getDouble();
@@ -67,7 +67,7 @@ abstract class Test4 {
 
   void test() {
     var /*@type=int*/ v1 = this /*@target=Test4::[]=*/ ['x'] = getInt();
-    var /*@type=num*/ v2 = this /*@target=Test4::[]=*/ ['x'] = getNum();
+    var /*@type=int*/ v2 = this /*@target=Test4::[]=*/ ['x'] = getNum();
     var /*@type=num*/ v4 = this /*@target=Test4::[]=*/ ['x'] ??= getInt();
     var /*@type=num*/ v5 = this /*@target=Test4::[]=*/ ['x'] ??= getNum();
     var /*@type=num*/ v7 = this /*@target=Test4::[]=*/ ['x'] += getInt();
@@ -101,7 +101,7 @@ abstract class Test6 {
   void operator []=(String s, double v);
 
   void test() {
-    var /*@type=num*/ v2 = this /*@target=Test6::[]=*/ ['x'] = getNum();
+    var /*@type=double*/ v2 = this /*@target=Test6::[]=*/ ['x'] = getNum();
     var /*@type=double*/ v3 = this /*@target=Test6::[]=*/ ['x'] = getDouble();
     var /*@type=num*/ v5 = this /*@target=Test6::[]=*/ ['x'] ??= getNum();
     var /*@type=num*/ v6 = this /*@target=Test6::[]=*/ ['x'] ??= getDouble();
@@ -119,7 +119,7 @@ abstract class Test7 {
 
   void test() {
     var /*@type=int*/ v1 = this /*@target=Test7::[]=*/ ['x'] = getInt();
-    var /*@type=num*/ v2 = this /*@target=Test7::[]=*/ ['x'] = getNum();
+    var /*@type=int*/ v2 = this /*@target=Test7::[]=*/ ['x'] = getNum();
     var /*@type=num*/ v4 = this /*@target=Test7::[]=*/ ['x'] ??= getInt();
     var /*@type=num*/ v5 = this /*@target=Test7::[]=*/ ['x'] ??= getNum();
     var /*@type=double*/ v7 = this /*@target=Test7::[]=*/ ['x'] += getInt();
@@ -153,9 +153,9 @@ abstract class Test9 {
   void operator []=(String s, double v);
 
   void test() {
-    var /*@type=num*/ v2 = this /*@target=Test9::[]=*/ ['x'] = getNum();
+    var /*@type=double*/ v2 = this /*@target=Test9::[]=*/ ['x'] = getNum();
     var /*@type=double*/ v3 = this /*@target=Test9::[]=*/ ['x'] = getDouble();
-    var /*@type=num*/ v5 = this /*@target=Test9::[]=*/ ['x'] ??= getNum();
+    var /*@type=double*/ v5 = this /*@target=Test9::[]=*/ ['x'] ??= getNum();
     var /*@type=double*/ v6 = this /*@target=Test9::[]=*/ ['x'] ??= getDouble();
     var /*@type=double*/ v7 = this /*@target=Test9::[]=*/ ['x'] += getInt();
     var /*@type=double*/ v8 = this /*@target=Test9::[]=*/ ['x'] += getNum();

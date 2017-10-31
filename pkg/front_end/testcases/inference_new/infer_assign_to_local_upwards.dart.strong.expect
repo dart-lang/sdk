@@ -10,32 +10,36 @@ static method getDouble() → core::double
   return 0.0;
 static method test1(core::int t) → void {
   core::int v1 = t = self::getInt();
+  core::int v2 = t = self::getNum() as{TypeError} core::int;
   core::int v4 = let final core::int #t1 = t in #t1.{core::num::==}(null) ?{core::int} t = self::getInt() : #t1;
+  core::int v5 = let final core::int #t2 = t in #t2.{core::num::==}(null) ?{core::int} t = self::getNum() as{TypeError} core::int : #t2;
   core::int v7 = t = t.{core::num::+}(self::getInt());
   core::num v8 = t = t.{core::num::+}(self::getNum());
   core::int v10 = t = t.{core::num::+}(1);
-  core::int v11 = let final core::int #t2 = t in let final core::int #t3 = t = #t2.{core::num::+}(1) in #t2;
+  core::int v11 = let final core::int #t3 = t in let final core::int #t4 = t = #t3.{core::num::+}(1) in #t3;
 }
 static method test2(core::num t) → void {
   core::int v1 = t = self::getInt();
   core::num v2 = t = self::getNum();
   core::double v3 = t = self::getDouble();
-  core::num v4 = let final core::num #t4 = t in #t4.{core::num::==}(null) ?{core::num} t = self::getInt() : #t4;
-  core::num v5 = let final core::num #t5 = t in #t5.{core::num::==}(null) ?{core::num} t = self::getNum() : #t5;
-  core::num v6 = let final core::num #t6 = t in #t6.{core::num::==}(null) ?{core::num} t = self::getDouble() : #t6;
+  core::num v4 = let final core::num #t5 = t in #t5.{core::num::==}(null) ?{core::num} t = self::getInt() : #t5;
+  core::num v5 = let final core::num #t6 = t in #t6.{core::num::==}(null) ?{core::num} t = self::getNum() : #t6;
+  core::num v6 = let final core::num #t7 = t in #t7.{core::num::==}(null) ?{core::num} t = self::getDouble() : #t7;
   core::num v7 = t = t.{core::num::+}(self::getInt());
   core::num v8 = t = t.{core::num::+}(self::getNum());
   core::num v9 = t = t.{core::num::+}(self::getDouble());
   core::num v10 = t = t.{core::num::+}(1);
-  core::num v11 = let final core::num #t7 = t in let final core::num #t8 = t = #t7.{core::num::+}(1) in #t7;
+  core::num v11 = let final core::num #t8 = t in let final core::num #t9 = t = #t8.{core::num::+}(1) in #t8;
 }
 static method test3(core::double t) → void {
+  core::double v2 = t = self::getNum() as{TypeError} core::double;
   core::double v3 = t = self::getDouble();
-  core::double v6 = let final core::double #t9 = t in #t9.{core::num::==}(null) ?{core::double} t = self::getDouble() : #t9;
+  core::double v5 = let final core::double #t10 = t in #t10.{core::num::==}(null) ?{core::double} t = self::getNum() as{TypeError} core::double : #t10;
+  core::double v6 = let final core::double #t11 = t in #t11.{core::num::==}(null) ?{core::double} t = self::getDouble() : #t11;
   core::double v7 = t = t.{core::double::+}(self::getInt());
   core::double v8 = t = t.{core::double::+}(self::getNum());
   core::double v9 = t = t.{core::double::+}(self::getDouble());
   core::double v10 = t = t.{core::double::+}(1);
-  core::double v11 = let final core::double #t10 = t in let final core::double #t11 = t = #t10.{core::double::+}(1) in #t10;
+  core::double v11 = let final core::double #t12 = t in let final core::double #t13 = t = #t12.{core::double::+}(1) in #t12;
 }
 static method main() → dynamic {}

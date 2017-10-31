@@ -13,32 +13,36 @@ static method getDouble() → core::double
   return 0.0;
 static method test1() → void {
   dynamic v1 = self::topLevelInt = self::getInt();
+  dynamic v2 = self::topLevelInt = self::getNum();
   dynamic v4 = let final dynamic #t1 = self::topLevelInt in #t1.==(null) ? self::topLevelInt = self::getInt() : #t1;
+  dynamic v5 = let final dynamic #t2 = self::topLevelInt in #t2.==(null) ? self::topLevelInt = self::getNum() : #t2;
   dynamic v7 = self::topLevelInt = self::topLevelInt.+(self::getInt());
   dynamic v8 = self::topLevelInt = self::topLevelInt.+(self::getNum());
   dynamic v10 = self::topLevelInt = self::topLevelInt.+(1);
-  dynamic v11 = let final dynamic #t2 = self::topLevelInt in let final dynamic #t3 = self::topLevelInt = #t2.+(1) in #t2;
+  dynamic v11 = let final dynamic #t3 = self::topLevelInt in let final dynamic #t4 = self::topLevelInt = #t3.+(1) in #t3;
 }
 static method test2() → void {
   dynamic v1 = self::topLevelNum = self::getInt();
   dynamic v2 = self::topLevelNum = self::getNum();
   dynamic v3 = self::topLevelNum = self::getDouble();
-  dynamic v4 = let final dynamic #t4 = self::topLevelNum in #t4.==(null) ? self::topLevelNum = self::getInt() : #t4;
-  dynamic v5 = let final dynamic #t5 = self::topLevelNum in #t5.==(null) ? self::topLevelNum = self::getNum() : #t5;
-  dynamic v6 = let final dynamic #t6 = self::topLevelNum in #t6.==(null) ? self::topLevelNum = self::getDouble() : #t6;
+  dynamic v4 = let final dynamic #t5 = self::topLevelNum in #t5.==(null) ? self::topLevelNum = self::getInt() : #t5;
+  dynamic v5 = let final dynamic #t6 = self::topLevelNum in #t6.==(null) ? self::topLevelNum = self::getNum() : #t6;
+  dynamic v6 = let final dynamic #t7 = self::topLevelNum in #t7.==(null) ? self::topLevelNum = self::getDouble() : #t7;
   dynamic v7 = self::topLevelNum = self::topLevelNum.+(self::getInt());
   dynamic v8 = self::topLevelNum = self::topLevelNum.+(self::getNum());
   dynamic v9 = self::topLevelNum = self::topLevelNum.+(self::getDouble());
   dynamic v10 = self::topLevelNum = self::topLevelNum.+(1);
-  dynamic v11 = let final dynamic #t7 = self::topLevelNum in let final dynamic #t8 = self::topLevelNum = #t7.+(1) in #t7;
+  dynamic v11 = let final dynamic #t8 = self::topLevelNum in let final dynamic #t9 = self::topLevelNum = #t8.+(1) in #t8;
 }
 static method test3() → void {
+  dynamic v2 = self::topLevelDouble = self::getNum();
   dynamic v3 = self::topLevelDouble = self::getDouble();
-  dynamic v6 = let final dynamic #t9 = self::topLevelDouble in #t9.==(null) ? self::topLevelDouble = self::getDouble() : #t9;
+  dynamic v5 = let final dynamic #t10 = self::topLevelDouble in #t10.==(null) ? self::topLevelDouble = self::getNum() : #t10;
+  dynamic v6 = let final dynamic #t11 = self::topLevelDouble in #t11.==(null) ? self::topLevelDouble = self::getDouble() : #t11;
   dynamic v7 = self::topLevelDouble = self::topLevelDouble.+(self::getInt());
   dynamic v8 = self::topLevelDouble = self::topLevelDouble.+(self::getNum());
   dynamic v9 = self::topLevelDouble = self::topLevelDouble.+(self::getDouble());
   dynamic v10 = self::topLevelDouble = self::topLevelDouble.+(1);
-  dynamic v11 = let final dynamic #t10 = self::topLevelDouble in let final dynamic #t11 = self::topLevelDouble = #t10.+(1) in #t10;
+  dynamic v11 = let final dynamic #t12 = self::topLevelDouble in let final dynamic #t13 = self::topLevelDouble = #t12.+(1) in #t12;
 }
 static method main() → dynamic {}
