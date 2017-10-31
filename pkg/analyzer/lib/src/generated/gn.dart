@@ -237,7 +237,11 @@ class GnWorkspace extends Workspace {
       Match match = new RegExp(r'^FUCHSIA_BUILD_DIR="(.+)"$', multiLine: true)
           .firstMatch(content);
       if (match != null) {
-        return provider.getFolder(match.group(1));
+        String path = match.group(1);
+        if (pathContext.isRelative(path)) {
+          path = pathContext.join(root, path);
+        }
+        return provider.getFolder(path);
       }
     }
     Folder outDirectory = provider.getFolder(pathContext.join(root, 'out'));
