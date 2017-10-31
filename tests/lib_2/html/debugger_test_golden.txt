@@ -353,34 +353,6 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "==: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
             "add: "
         ],
         [
@@ -1614,6 +1586,34 @@ Value:
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
             "where: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "_equals: "
         ],
         [
             "span",
@@ -1951,34 +1951,6 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "==: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
             "add: "
         ],
         [
@@ -3212,6 +3184,34 @@ Value:
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
             "where: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "_equals: "
         ],
         [
             "span",
@@ -3561,7 +3561,7 @@ Value:
     {
         "style": "background-color: #d9edf7;"
     },
-    "_LinkedHashSet length 3"
+    "_HashSet length 3"
 ]
 -----------------------------------
 Test: Set instance body
@@ -3680,7 +3680,7 @@ Value:
     {
         "style": "background-color: #d9edf7;"
     },
-    "_LinkedHashSet implements LinkedHashSet"
+    "_HashSet implements LinkedHashSet"
 ]
 -----------------------------------
 Test: Set definition formatting body
@@ -3717,119 +3717,7 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "_deleteTableEntry: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_isNumericElement: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_isStringElement: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_newHashTable: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_setTableEntry: "
+            "setToString: "
         ],
         [
             "span",
@@ -3902,7 +3790,7 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "contains: "
+            "addAll: "
         ],
         [
             "span",
@@ -3930,7 +3818,7 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "forEach: "
+            "contains: "
         ],
         [
             "span",
@@ -4014,427 +3902,7 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "_add: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_addHashTableEntry: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_computeHashCode: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_contains: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_filterWhere: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_findBucketIndex: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_getBucket: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_getTableEntry: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_lookup: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_modified: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_newLinkedCell: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
             "_newSet: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_remove: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_removeHashTableEntry: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_unlinkCell: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_unsupported: "
         ],
         [
             "span",
@@ -4489,7 +3957,7 @@ Value:
     {
         "style": "background-color: #d9edf7;"
     },
-    "JsLinkedHashMap<String, int> length 3"
+    "IdentityMap<String, int> length 3"
 ]
 -----------------------------------
 Test: Map<String, int> formatting body
@@ -4620,7 +4088,7 @@ Value:
     {
         "style": "background-color: #d9edf7;"
     },
-    "JsLinkedHashMap length 3"
+    "LinkedMap length 3"
 ]
 -----------------------------------
 Test: Map<dynamic, dynamic> instance body
@@ -4751,7 +4219,7 @@ Value:
     {
         "style": "background-color: #d9edf7;"
     },
-    "JsLinkedHashMap implements LinkedHashMap, InternalMap"
+    "LinkedMap"
 ]
 -----------------------------------
 Test: Map<dynamic, dynamic> definition formatting body
@@ -4761,79 +4229,6 @@ Value:
     {
         "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
     },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "[[Static members]]"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_isNumericKey: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_isStringKey: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
     [
         "li",
         {
@@ -4973,202 +4368,6 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "forEach: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "internalComputeHashCode: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "internalContainsKey: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "internalFindBucketIndex: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "internalGet: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "internalRemove: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "internalSet: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
             "putIfAbsent: "
         ],
         [
@@ -5253,90 +4452,6 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "_addHashTableEntry: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_containsTableEntry: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_deleteTableEntry: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
             "_get: "
         ],
         [
@@ -5365,259 +4480,7 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "_getBucket: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_getTableBucket: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_getTableCell: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_modified: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_newHashTable: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_newLinkedCell: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_removeHashTableEntry: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
             "_set: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_setTableEntry: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_unlinkCell: "
         ],
         [
             "span",
@@ -5950,7 +4813,7 @@ Value:
     {
         "style": "background-color: #d9edf7;"
     },
-    "Library Module: lib/html/debugger_test"
+    "Library Module: tests_lib_2_html_debugger_test/debugger_test"
 ]
 -----------------------------------
 Test: Test library Module body
@@ -6341,7 +5204,92 @@ Value:
                 {
                     "style": ""
                 },
-                "Generator.next (<anonymous>)"
+                "main.next (<anonymous>)"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": ""
+                },
+                "<DART_SDK>"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": ""
+                },
+                "<DART_SDK>"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": ""
+                },
+                "<DART_SDK>"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": ""
+                },
+                "<DART_SDK>"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": ""
+                },
+                "<DART_SDK>"
             ]
         ]
     ],
@@ -6878,6 +5826,30 @@ Value:
                 {
                     "style": "color: rgb(136, 19, 145); margin-right: -13px"
                 },
+                "bubbles: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "true"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
                 "button: "
             ],
             [
@@ -6910,6 +5882,30 @@ Value:
                     "style": "margin-left: 13px"
                 },
                 "0"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "cancelable: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "true"
             ]
         ]
     ],
@@ -6996,6 +5992,78 @@ Value:
         },
         [
             "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "defaultPrevented: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "false"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "detail: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "0"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "eventPhase: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "0"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
@@ -7014,6 +6082,30 @@ Value:
                         "name": "none"
                     }
                 }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "isTrusted: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "false"
             ]
         ]
     ],
@@ -7156,6 +6248,34 @@ Value:
         },
         [
             "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "path: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
             {},
             [
                 "span",
@@ -7198,6 +6318,30 @@ Value:
                         "name": "none"
                     }
                 }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "scoped: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "null"
             ]
         ]
     ],
@@ -7263,6 +6407,58 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
+            "sourceCapabilities: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "timeStamp: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "5099.7300000000005"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
             "toElement: "
         ],
         [
@@ -7278,6 +6474,30 @@ Value:
                         "name": "none"
                     }
                 }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "type: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "click"
             ]
         ]
     ],
@@ -7339,7 +6559,91 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
+            "_get_currentTarget: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
             "_get_relatedTarget: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "_get_target: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "_get_view: "
         ],
         [
             "span",
@@ -7546,6 +6850,54 @@ Value:
                     "style": "margin-left: 13px"
                 },
                 "0"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "_selector: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "null"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "_which: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "1"
             ]
         ]
     ],
@@ -8640,6 +7992,34 @@ Value:
         },
         [
             "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "runtimeType: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
             {},
             [
                 "span",
@@ -8711,6 +8091,107 @@ Value:
         },
         [
             "span",
+            {},
+            [
+                "span",
+                {
+                    "style": ""
+                },
+                "[[Instance Methods]]"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "noSuchMethod: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "toString: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "_equals: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
@@ -8751,6 +8232,34 @@ Value:
     {
         "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
     },
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "runtimeType: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
     [
         "li",
         {
@@ -8826,6 +8335,107 @@ Value:
     {
         "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
     },
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": ""
+                },
+                "[[Instance Methods]]"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "noSuchMethod: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "toString: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "_equals: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
     [
         "li",
         {

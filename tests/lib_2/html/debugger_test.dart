@@ -127,8 +127,8 @@ main() async {
   // Cache blocker is a workaround for:
   // https://code.google.com/p/dart/issues/detail?id=11834
   var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
-  var goldenUrl =
-      '/root_dart/tests/lib/html/debugger_test_golden.txt?cacheBlock=$cacheBlocker';
+  var goldenUrl = '/root_dart/tests/lib_2/html/debugger_test_golden.txt'
+      '?cacheBlock=$cacheBlocker';
 
   String golden;
   try {
@@ -279,7 +279,7 @@ window.ExampleJSClass = function ExampleJSClass(x) {
 
   group('Module formatting', () {
     var moduleNames = _debugger.getModuleNames();
-    var testModuleName = "lib/html/debugger_test";
+    var testModuleName = "tests_lib_2_html_debugger_test/debugger_test";
     expect(moduleNames.contains(testModuleName), isTrue);
 
     addAllNestedFormatterGoldens(
