@@ -455,18 +455,10 @@ static void UpdateTypeTestCache(
     return;
   }
   // If the type is uninstantiated and refers to parent function type
-  // parameters, the function_type_arguments may not have been canonicalized
-  // when concatenated. The optimization still works, but the cache could grow
-  // uncontrollably. For now, do not update the cache in this case.
-  // TODO(regis): Revisit.
-  if (!function_type_arguments.IsNull() &&
-      !function_type_arguments.IsCanonical()) {
-    if (FLAG_trace_type_checks) {
-      OS::Print(
-          "UpdateTypeTestCache: function_type_arguments is not canonical\n");
-    }
-    return;
-  }
+  // parameters, the function_type_arguments have been canonicalized
+  // when concatenated.
+  ASSERT(function_type_arguments.IsNull() ||
+         function_type_arguments.IsCanonical());
   const Class& instance_class = Class::Handle(instance.clazz());
   Object& instance_class_id_or_function = Object::Handle();
   TypeArguments& instance_type_arguments = TypeArguments::Handle();

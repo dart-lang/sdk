@@ -2693,7 +2693,9 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
     // Make dispatcher function generic, since type arguments are passed.
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, TypeArguments::New(desc.TypeArgsLen()));
-    // TODO(regis): Can we leave the array uninitialized to save memory?
+    // The presence of a type parameter array is enough to mark this dispatcher
+    // as generic. To save memory, we do not copy the type parameters to the
+    // array (they are not accessed), but leave it as an array of null objects.
     invocation.set_type_parameters(type_params);
   }
 
@@ -4967,9 +4969,6 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   ASSERT(!IsInstantiated());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsCanonical());
-  // TODO(regis): It is not clear yet whether we will canonicalize the result
-  // of the concatenation of function_type_arguments in a nested generic
-  // function. Leave the assert for now to be safe, but plan on revisiting.
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
   // Lookup instantiator and, if found, return paired instantiated result.
