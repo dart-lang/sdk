@@ -1960,6 +1960,8 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
 }
 
 void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
+  ASSERT(Utils::IsAligned(first, sizeof(*first)));
+  ASSERT(Utils::IsAligned(last, sizeof(*last)));
   for (RawObject** current = first; current <= last; current++) {
     RawObject* raw_obj = *current;
     writer_->WriteObjectImpl(raw_obj, as_references_);

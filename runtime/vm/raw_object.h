@@ -15,6 +15,9 @@
 
 namespace dart {
 
+// For now there are no compressed pointers.
+typedef RawObject* RawCompressed;
+
 // Macrobatics to define the Object hierarchy of VM implementation classes.
 #define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
   V(Class)                                                                     \
@@ -193,6 +196,28 @@ enum ClassId {
 
   kNumPredefinedCids,
 };
+
+#define VISIT_FROM(type, first)                                                \
+  type* from() { return reinterpret_cast<type*>(&ptr()->first); }
+
+#define VISIT_TO(type, last)                                                   \
+  type* to() { return reinterpret_cast<type*>(&ptr()->last); }
+
+#define VISIT_TO_LENGTH(type, last)                                            \
+  type* to(intptr_t length) { return reinterpret_cast<type*>(last); }
+
+#define VISIT_NOTHING() int NothingToVisit();
+
+#define ASSERT_UNCOMPRESSED(Type)                                              \
+  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Raw##Type, from) == kWordSize)
+
+// For now there are no compressed pointers, so this assert is the same as
+// the above.
+#define ASSERT_COMPRESSED(Type)                                                \
+  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Raw##Type, from) == kWordSize)
+
+#define ASSERT_NOTHING_TO_VISIT(Type)                                          \
+  ASSERT(SIZE_OF_RETURNED_VALUE(Raw##Type, NothingToVisit) == sizeof(int))
 
 enum ObjectAlignment {
   // Alignment offsets are used to determine object age.
@@ -714,7 +739,7 @@ class RawClass : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Class);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
+  VISIT_FROM(RawObject*, name_);
   RawString* name_;
   RawString* user_name_;
   RawArray* functions_;
@@ -734,9 +759,7 @@ class RawClass : public RawObject {
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
   RawArray* dependent_code_;                   // CHA optimized codes.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
-  }
+  VISIT_TO(RawObject*, dependent_code_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -778,13 +801,11 @@ class RawClass : public RawObject {
 class RawUnresolvedClass : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->library_or_library_prefix_);
-  }
+  VISIT_FROM(RawObject*, library_or_library_prefix_);
   RawObject* library_or_library_prefix_;  // Library or library prefix qualifier
                                           // for the ident.
   RawString* ident_;                      // Name of the unresolved identifier.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->ident_); }
+  VISIT_TO(RawObject*, ident_);
   TokenPosition token_pos_;
 };
 
@@ -792,16 +813,13 @@ class RawPatchClass : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PatchClass);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->patched_class_);
-  }
+  VISIT_FROM(RawObject*, patched_class_);
   RawClass* patched_class_;
   RawClass* origin_class_;
   RawScript* script_;
   RawTypedData* library_kernel_data_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->library_kernel_data_);
-  }
+  VISIT_TO(RawObject*, library_kernel_data_);
+
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -866,7 +884,7 @@ class RawFunction : public RawObject {
 
   uword entry_point_;  // Accessed from generated code.
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
+  VISIT_FROM(RawObject*, name_);
   RawString* name_;
   RawObject* owner_;  // Class or patch class or mixin class
                       // where this function is defined.
@@ -897,13 +915,11 @@ class RawFunction : public RawObject {
   RawCode* code_;  // Currently active code. Accessed from generated code.
   NOT_IN_PRECOMPILED(RawCode* unoptimized_code_);  // Unoptimized code, keep it
                                                    // after optimization.
-  RawObject** to() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return reinterpret_cast<RawObject**>(&ptr()->code_);
+  VISIT_TO(RawObject*, code_);
 #else
-    return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
+  VISIT_TO(RawObject*, unoptimized_code_);
 #endif
-  }
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
@@ -933,17 +949,12 @@ class RawClosureData : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ClosureData);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->context_scope_);
-  }
+  VISIT_FROM(RawObject*, context_scope_);
   RawContextScope* context_scope_;
   RawFunction* parent_function_;  // Enclosing function of this local function.
   RawType* signature_type_;
   RawInstance* closure_;  // Closure object for static implicit closures.
-  RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->closure_);
-  }
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->closure_); }
+  VISIT_TO(RawObject*, closure_);
 
   friend class Function;
 };
@@ -952,14 +963,10 @@ class RawSignatureData : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(SignatureData);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->parent_function_);
-  }
+  VISIT_FROM(RawObject*, parent_function_);
   RawFunction* parent_function_;  // Enclosing function of this sig. function.
   RawType* signature_type_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->signature_type_);
-  }
+  VISIT_TO(RawObject*, signature_type_);
 
   friend class Function;
 };
@@ -968,17 +975,17 @@ class RawRedirectionData : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(RedirectionData);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->type_); }
+  VISIT_FROM(RawObject*, type_);
   RawType* type_;
   RawString* identifier_;
   RawFunction* target_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->target_); }
+  VISIT_TO(RawObject*, target_);
 };
 
 class RawField : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Field);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
+  VISIT_FROM(RawObject*, name_);
   RawString* name_;
   RawObject* owner_;  // Class or patch class or mixin class
                       // where this field is defined or original field.
@@ -998,9 +1005,7 @@ class RawField : public RawObject {
   } initializer_;
   RawSmi* guarded_list_length_;
   RawArray* dependent_code_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
-  }
+  VISIT_TO(RawObject*, dependent_code_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -1038,10 +1043,10 @@ class RawField : public RawObject {
 class RawLiteralToken : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LiteralToken);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->literal_); }
+  VISIT_FROM(RawObject*, literal_);
   RawString* literal_;  // Literal characters as they appear in source text.
   RawObject* value_;    // The actual object corresponding to the token.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }
+  VISIT_TO(RawObject*, value_);
   Token::Kind kind_;  // The literal kind (string, integer, double).
 
   friend class SnapshotReader;
@@ -1050,13 +1055,11 @@ class RawLiteralToken : public RawObject {
 class RawTokenStream : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TokenStream);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->private_key_);
-  }
+  VISIT_FROM(RawObject*, private_key_);
   RawString* private_key_;  // Key used for private identifiers.
   RawGrowableObjectArray* token_objects_;
   RawExternalTypedData* stream_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->stream_); }
+  VISIT_TO(RawObject*, stream_);
 
   friend class SnapshotReader;
 };
@@ -1075,7 +1078,7 @@ class RawScript : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Script);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->url_); }
+  VISIT_FROM(RawObject*, url_);
   RawString* url_;
   RawString* resolved_url_;
   RawArray* compile_time_constants_;
@@ -1085,7 +1088,7 @@ class RawScript : public RawObject {
   RawKernelProgramInfo* kernel_program_info_;
   RawTokenStream* tokens_;
   RawString* source_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
+  VISIT_TO(RawObject*, source_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -1121,7 +1124,7 @@ class RawLibrary : public RawObject {
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
+  VISIT_FROM(RawObject*, name_);
   RawString* name_;
   RawString* url_;
   RawString* private_key_;
@@ -1152,9 +1155,7 @@ class RawLibrary : public RawObject {
   RawArray* resolved_names_;  // Cache of resolved names in library scope.
   RawArray* exported_names_;  // Cache of exported names by library.
   RawArray* loaded_scripts_;  // Array of scripts loaded in this library.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
-  }
+  VISIT_TO(RawObject*, loaded_scripts_);
 
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
@@ -1175,32 +1176,26 @@ class RawLibrary : public RawObject {
 class RawNamespace : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Namespace);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->library_); }
+  VISIT_FROM(RawObject*, library_);
   RawLibrary* library_;       // library with name dictionary.
   RawArray* show_names_;      // list of names that are exported.
   RawArray* hide_names_;      // blacklist of names that are not exported.
   RawField* metadata_field_;  // remembers the token pos of metadata if any,
                               // and the metadata values if computed.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->metadata_field_);
-  }
+  VISIT_TO(RawObject*, metadata_field_);
 };
 
 class RawKernelProgramInfo : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->string_offsets_);
-  }
-
+  VISIT_FROM(RawObject*, string_offsets_);
   RawTypedData* string_offsets_;
   RawTypedData* string_data_;
   RawTypedData* canonical_names_;
   RawTypedData* metadata_payloads_;
   RawTypedData* metadata_mappings_;
   RawArray* scripts_;
-
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->scripts_); }
+  VISIT_TO(RawObject*, scripts_);
 };
 
 class RawCode : public RawObject {
@@ -1209,9 +1204,7 @@ class RawCode : public RawObject {
   uword entry_point_;          // Accessed from generated code.
   uword checked_entry_point_;  // Accessed from generated code (AOT only).
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->object_pool_);
-  }
+  VISIT_FROM(RawObject*, object_pool_);
   RawObjectPool* object_pool_;     // Accessed from generated code.
   RawInstructions* instructions_;  // Accessed from generated code.
   // If owner_ is Function::null() the owner is a regular stub.
@@ -1237,13 +1230,11 @@ class RawCode : public RawObject {
   NOT_IN_PRECOMPILED(RawObject* return_address_metadata_);
   NOT_IN_PRECOMPILED(RawLocalVarDescriptors* var_descriptors_);
   NOT_IN_PRECOMPILED(RawArray* comments_);
-  RawObject** to() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return reinterpret_cast<RawObject**>(&ptr()->code_source_map_);
+  VISIT_TO(RawObject*, code_source_map_);
 #else
-    return reinterpret_cast<RawObject**>(&ptr()->comments_);
+  VISIT_TO(RawObject*, comments_);
 #endif
-  }
 
   // Compilation timestamp.
   NOT_IN_PRECOMPILED(int64_t compile_timestamp_);
@@ -1273,7 +1264,10 @@ class RawObjectPool : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ObjectPool);
 
   intptr_t length_;
+
+  VISIT_FROM(RawObject*, info_array_);
   RawTypedData* info_array_;
+  VISIT_TO(RawObject*, info_array_);
 
   struct Entry {
     union {
@@ -1291,6 +1285,7 @@ class RawObjectPool : public RawObject {
 
 class RawInstructions : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
+  VISIT_NOTHING();
 
   // Instructions size in bytes and flags.
   // Currently, only flag indicates 1 or 2 entry points.
@@ -1363,6 +1358,7 @@ class RawPcDescriptors : public RawObject {
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
+  VISIT_NOTHING();
 
   // Number of descriptors.  This only needs to be an int32_t, but we make it a
   // uword so that the variable length data is 64 bit aligned on 64 bit
@@ -1381,6 +1377,7 @@ class RawPcDescriptors : public RawObject {
 class RawCodeSourceMap : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap);
+  VISIT_NOTHING();
 
   // Length in bytes.  This only needs to be an int32_t, but we make it a uword
   // so that the variable length data is 64 bit aligned on 64 bit platforms.
@@ -1401,6 +1398,7 @@ class RawCodeSourceMap : public RawObject {
 // any upper bound.
 class RawStackMap : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(StackMap);
+  VISIT_NOTHING();
 
   // Regarding changing this to a bitfield: ARM64 requires register_bit_count_
   // to be as large as 96, meaning 7 bits, leaving 25 bits for the length, or
@@ -1470,18 +1468,13 @@ class RawLocalVarDescriptors : public RawObject {
   // platforms.
   uword num_entries_;
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->names()[0]);
-  }
+  VISIT_FROM(RawObject*, names()[0]);
   RawString** names() {
     // Array of [num_entries_] variable names.
     OPEN_ARRAY_START(RawString*, RawString*);
   }
   RawString** nameAddrAt(intptr_t i) { return &(ptr()->names()[i]); }
-
-  RawObject** to(intptr_t num_entries) {
-    return reinterpret_cast<RawObject**>(nameAddrAt(num_entries - 1));
-  }
+  VISIT_TO_LENGTH(RawObject*, nameAddrAt(length - 1));
 
   // Variable info with [num_entries_] entries.
   VarInfo* data() {
@@ -1500,7 +1493,9 @@ class RawExceptionHandlers : public RawObject {
 
   // Array with [num_entries_] entries. Each entry is an array of all handled
   // exception types.
+  VISIT_FROM(RawObject*, handled_types_data_)
   RawArray* handled_types_data_;
+  VISIT_TO_LENGTH(RawObject*, &ptr()->handled_types_data_);
 
   // Exception handler info of length [num_entries_].
   const ExceptionHandlerInfo* data() const {
@@ -1518,15 +1513,13 @@ class RawContext : public RawObject {
 
   int32_t num_variables_;
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->parent_); }
+  VISIT_FROM(RawObject*, parent_);
   RawContext* parent_;
 
   // Variable length data follows here.
   RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
   RawObject* const* data() const { OPEN_ARRAY_START(RawObject*, RawObject*); }
-  RawObject** to(intptr_t num_vars) {
-    return reinterpret_cast<RawObject**>(&ptr()->data()[num_vars - 1]);
-  }
+  VISIT_TO_LENGTH(RawObject*, &ptr()->data()[length - 1]);
 
   friend class Object;
   friend class SnapshotReader;
@@ -1578,9 +1571,9 @@ class RawContextScope : public RawObject {
 
 class RawSingleTargetCache : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache);
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->target_); }
+  VISIT_FROM(RawObject*, target_);
   RawCode* target_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->target_); }
+  VISIT_TO(RawObject*, target_);
   uword entry_point_;
   classid_t lower_limit_;
   classid_t upper_limit_;
@@ -1588,25 +1581,21 @@ class RawSingleTargetCache : public RawObject {
 
 class RawUnlinkedCall : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall);
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->target_name_);
-  }
+  VISIT_FROM(RawObject*, target_name_);
   RawString* target_name_;
   RawArray* args_descriptor_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
-  }
+  VISIT_TO(RawObject*, args_descriptor_);
 };
 
 class RawICData : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->ic_data_); }
+  VISIT_FROM(RawObject*, ic_data_);
   RawArray* ic_data_;          // Contains class-ids, target and count.
   RawString* target_name_;     // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
   RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->owner_); }
+  VISIT_TO(RawObject*, owner_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -1634,21 +1623,21 @@ class RawICData : public RawObject {
 class RawMegamorphicCache : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->buckets_); }
+  VISIT_FROM(RawObject*, buckets_)
   RawArray* buckets_;
   RawSmi* mask_;
   RawString* target_name_;     // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
-  }
+  VISIT_TO(RawObject*, args_descriptor_)
 
   int32_t filled_entry_count_;
 };
 
 class RawSubtypeTestCache : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache);
+  VISIT_FROM(RawObject*, cache_);
   RawArray* cache_;
+  VISIT_TO(RawObject*, cache_);
 };
 
 class RawError : public RawObject {
@@ -1658,24 +1647,20 @@ class RawError : public RawObject {
 class RawApiError : public RawError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ApiError);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->message_); }
+  VISIT_FROM(RawObject*, message_)
   RawString* message_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->message_); }
+  VISIT_TO(RawObject*, message_)
 };
 
 class RawLanguageError : public RawError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LanguageError);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->previous_error_);
-  }
+  VISIT_FROM(RawObject*, previous_error_)
   RawError* previous_error_;  // May be null.
   RawScript* script_;
   RawString* message_;
   RawString* formatted_message_;  // Incl. previous error's formatted message.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->formatted_message_);
-  }
+  VISIT_TO(RawObject*, formatted_message_)
   TokenPosition token_pos_;  // Source position in script_.
   bool report_after_token_;  // Report message at or after the token.
   int8_t kind_;              // Of type Report::Kind.
@@ -1684,22 +1669,18 @@ class RawLanguageError : public RawError {
 class RawUnhandledException : public RawError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnhandledException);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->exception_);
-  }
+  VISIT_FROM(RawObject*, exception_)
   RawInstance* exception_;
   RawInstance* stacktrace_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->stacktrace_);
-  }
+  VISIT_TO(RawObject*, stacktrace_)
 };
 
 class RawUnwindError : public RawError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnwindError);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->message_); }
+  VISIT_FROM(RawObject*, message_)
   RawString* message_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->message_); }
+  VISIT_TO(RawObject*, message_)
   bool is_user_initiated_;
 };
 
@@ -1710,15 +1691,13 @@ class RawInstance : public RawObject {
 class RawLibraryPrefix : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
+  VISIT_FROM(RawObject*, name_)
   RawString* name_;           // Library prefix name.
   RawLibrary* importer_;      // Library which declares this prefix.
   RawArray* imports_;         // Libraries imported with this prefix.
   RawArray* dependent_code_;  // Code that refers to deferred, unloaded
                               // library prefix.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
-  }
+  VISIT_TO(RawObject*, dependent_code_)
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -1744,16 +1723,13 @@ class RawTypeArguments : public RawInstance {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeArguments);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->instantiations_);
-  }
+  VISIT_FROM(RawObject*, instantiations_)
   // The instantiations_ array remains empty for instantiated type arguments.
   RawArray* instantiations_;  // Array of paired canonical vectors:
                               // Even index: instantiator.
                               // Odd index: instantiated (without bound error).
   // Instantiations leading to bound errors do not get cached.
   RawSmi* length_;
-
   RawSmi* hash_;
 
   // Variable length data follows here.
@@ -1791,9 +1767,7 @@ class RawType : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->type_class_id_);
-  }
+  VISIT_FROM(RawObject*, type_class_id_)
   // Either the id of the resolved class as a Smi or an UnresolvedClass.
   RawObject* type_class_id_;
   RawTypeArguments* arguments_;
@@ -1808,9 +1782,7 @@ class RawType : public RawAbstractType {
     RawFunction* signature_;   // If not null, this type is a function type.
     RawLanguageError* error_;  // If not null, type is malformed or malbounded.
   } sig_or_err_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->sig_or_err_.error_);
-  }
+  VISIT_TO(RawObject*, sig_or_err_.error_)
   TokenPosition token_pos_;
   int8_t type_state_;
 
@@ -1822,23 +1794,21 @@ class RawTypeRef : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->type_); }
+  VISIT_FROM(RawObject*, type_)
   RawAbstractType* type_;  // The referenced type.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->type_); }
+  VISIT_TO(RawObject*, type_)
 };
 
 class RawTypeParameter : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
+  VISIT_FROM(RawObject*, name_)
   RawString* name_;
   RawSmi* hash_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
   RawFunction* parameterized_function_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->parameterized_function_);
-  }
+  VISIT_TO(RawObject*, parameterized_function_)
   classid_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
@@ -1851,50 +1821,40 @@ class RawBoundedType : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(BoundedType);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->type_); }
+  VISIT_FROM(RawObject*, type_);
   RawAbstractType* type_;
   RawAbstractType* bound_;
   RawSmi* hash_;
   RawTypeParameter* type_parameter_;  // For more detailed error reporting.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->type_parameter_);
-  }
+  VISIT_TO(RawObject*, type_parameter_);
 };
 
 class RawMixinAppType : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(MixinAppType);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->super_type_);
-  }
+  VISIT_FROM(RawObject*, super_type_);
   RawAbstractType* super_type_;
   RawArray* mixin_types_;  // Array of AbstractType.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);
-  }
+  VISIT_TO(RawObject*, mixin_types_);
 };
 
 class RawClosure : public RawInstance {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->instantiator_type_arguments_);
-  }
-
   // No instance fields should be declared before the following fields whose
   // offsets must be identical in Dart and C++.
 
   // The following fields are also declared in the Dart source of class
   // _Closure.
+  VISIT_FROM(RawCompressed, instantiator_type_arguments_)
   RawTypeArguments* instantiator_type_arguments_;
   RawTypeArguments* function_type_arguments_;
   RawFunction* function_;
   RawContext* context_;
   RawSmi* hash_;
-
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
+  VISIT_TO(RawCompressed, hash_)
 
   // Note that instantiator_type_arguments_ and function_type_arguments_ are
   // used to instantiate the signature of function_ when this closure is
@@ -1926,6 +1886,7 @@ class RawSmi : public RawInteger {
 
 class RawMint : public RawInteger {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Mint);
+  VISIT_NOTHING();
 
   ALIGN8 int64_t value_;
 
@@ -1937,15 +1898,16 @@ COMPILE_ASSERT(sizeof(RawMint) == 16);
 class RawBigint : public RawInteger {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bigint);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->neg_); }
+  VISIT_FROM(RawObject*, neg_)
   RawBool* neg_;
   RawSmi* used_;
   RawTypedData* digits_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->digits_); }
+  VISIT_TO(RawObject*, digits_)
 };
 
 class RawDouble : public RawNumber {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Double);
+  VISIT_NOTHING();
 
   ALIGN8 double value_;
 
@@ -1958,13 +1920,13 @@ class RawString : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(String);
 
  protected:
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+  VISIT_FROM(RawObject*, length_)
   RawSmi* length_;
 #if !defined(HASH_IN_OBJECT_HEADER)
   RawSmi* hash_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
+  VISIT_TO(RawObject*, hash_)
 #else
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+  VISIT_TO(RawObject*, length_)
 #endif
 
  private:
@@ -1978,6 +1940,7 @@ class RawString : public RawInstance {
 
 class RawOneByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(OneByteString);
+  VISIT_NOTHING();
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
@@ -1991,6 +1954,7 @@ class RawOneByteString : public RawString {
 
 class RawTwoByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TwoByteString);
+  VISIT_NOTHING();
 
   // Variable length data follows here.
   uint16_t* data() { OPEN_ARRAY_START(uint16_t, uint16_t); }
@@ -2049,6 +2013,7 @@ class RawExternalTwoByteString : public RawString {
 
 class RawBool : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bool);
+  VISIT_NOTHING();
 
   bool value_;
 };
@@ -2056,17 +2021,13 @@ class RawBool : public RawInstance {
 class RawArray : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Array);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
-  }
+  VISIT_FROM(RawCompressed, type_arguments_)
   RawTypeArguments* type_arguments_;
   RawSmi* length_;
   // Variable length data follows here.
   RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
   RawObject* const* data() const { OPEN_ARRAY_START(RawObject*, RawObject*); }
-  RawObject** to(intptr_t length) {
-    return reinterpret_cast<RawObject**>(&ptr()->data()[length - 1]);
-  }
+  VISIT_TO_LENGTH(RawCompressed, &ptr()->data()[length - 1])
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
@@ -2091,13 +2052,11 @@ class RawImmutableArray : public RawArray {
 class RawGrowableObjectArray : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
-  }
+  VISIT_FROM(RawCompressed, type_arguments_)
   RawTypeArguments* type_arguments_;
   RawSmi* length_;
   RawArray* data_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->data_); }
+  VISIT_TO(RawCompressed, data_)
 
   friend class SnapshotReader;
 };
@@ -2105,24 +2064,21 @@ class RawGrowableObjectArray : public RawInstance {
 class RawLinkedHashMap : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
-  }
+  VISIT_FROM(RawCompressed, type_arguments_)
   RawTypeArguments* type_arguments_;
   RawTypedData* index_;
   RawSmi* hash_mask_;
   RawArray* data_;
   RawSmi* used_data_;
   RawSmi* deleted_keys_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->deleted_keys_);
-  }
+  VISIT_TO(RawCompressed, deleted_keys_)
 
   friend class SnapshotReader;
 };
 
 class RawFloat32x4 : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float32x4);
+  VISIT_NOTHING();
 
   ALIGN8 float value_[4];
 
@@ -2138,6 +2094,7 @@ COMPILE_ASSERT(sizeof(RawFloat32x4) == 24);
 
 class RawInt32x4 : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Int32x4);
+  VISIT_NOTHING();
 
   ALIGN8 int32_t value_[4];
 
@@ -2153,6 +2110,7 @@ COMPILE_ASSERT(sizeof(RawInt32x4) == 24);
 
 class RawFloat64x2 : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float64x2);
+  VISIT_NOTHING();
 
   ALIGN8 double value_[2];
 
@@ -2179,12 +2137,12 @@ class RawTypedData : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedData);
 
  protected:
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+  VISIT_FROM(RawCompressed, length_)
   RawSmi* length_;
+  VISIT_TO_LENGTH(RawCompressed, &ptr()->length_)
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
 
   friend class Api;
   friend class Object;
@@ -2200,9 +2158,9 @@ class RawExternalTypedData : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData);
 
  protected:
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+  VISIT_FROM(RawCompressed, length_)
   RawSmi* length_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+  VISIT_TO(RawCompressed, length_)
 
   uint8_t* data_;
 
@@ -2213,11 +2171,13 @@ class RawExternalTypedData : public RawInstance {
 // VM implementations of the basic types in the isolate.
 class RawCapability : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Capability);
+  VISIT_NOTHING();
   uint64_t id_;
 };
 
 class RawSendPort : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SendPort);
+  VISIT_NOTHING();
   Dart_Port id_;
   Dart_Port origin_id_;
 
@@ -2227,12 +2187,10 @@ class RawSendPort : public RawInstance {
 class RawReceivePort : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ReceivePort);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->send_port_);
-  }
+  VISIT_FROM(RawObject*, send_port_)
   RawSendPort* send_port_;
   RawInstance* handler_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->handler_); }
+  VISIT_TO(RawObject*, handler_)
 };
 
 // VM type for capturing stacktraces when exceptions are thrown,
@@ -2242,15 +2200,12 @@ class RawReceivePort : public RawInstance {
 class RawStackTrace : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(StackTrace);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->async_link_);
-  }
+  VISIT_FROM(RawObject*, async_link_)
   RawStackTrace* async_link_;  // Link to parent async stack trace.
   RawArray* code_array_;       // Code object for each frame in the stack trace.
   RawArray* pc_offset_array_;  // Offset of PC for each frame.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->pc_offset_array_);
-  }
+  VISIT_TO(RawObject*, pc_offset_array_)
+
   // False for pre-allocated stack trace (used in OOM and Stack overflow).
   bool expand_inlined_;
 };
@@ -2259,9 +2214,7 @@ class RawStackTrace : public RawInstance {
 class RawRegExp : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(RegExp);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->num_bracket_expressions_);
-  }
+  VISIT_FROM(RawObject*, num_bracket_expressions_)
   RawSmi* num_bracket_expressions_;
   RawString* pattern_;  // Pattern to be used for matching.
   union {
@@ -2284,10 +2237,7 @@ class RawRegExp : public RawInstance {
   } two_byte_sticky_;
   RawFunction* external_one_byte_sticky_function_;
   RawFunction* external_two_byte_sticky_function_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(
-        &ptr()->external_two_byte_sticky_function_);
-  }
+  VISIT_TO(RawObject*, external_two_byte_sticky_function_)
 
   intptr_t num_registers_;
 
@@ -2300,10 +2250,10 @@ class RawRegExp : public RawInstance {
 class RawWeakProperty : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakProperty);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->key_); }
+  VISIT_FROM(RawObject*, key_)
   RawObject* key_;
   RawObject* value_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }
+  VISIT_TO(RawObject*, value_)
 
   // Linked list is chaining all pending weak properties.
   // Untyped to make it clear that it is not to be visited by GC.
@@ -2321,22 +2271,18 @@ class RawWeakProperty : public RawInstance {
 class RawMirrorReference : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MirrorReference);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->referent_);
-  }
+  VISIT_FROM(RawObject*, referent_)
   RawObject* referent_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->referent_); }
+  VISIT_TO(RawObject*, referent_)
 };
 
 // UserTag are used by the profiler to track Dart script state.
 class RawUserTag : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UserTag);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->label_); }
-
+  VISIT_FROM(RawObject*, label_)
   RawString* label_;
-
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->label_); }
+  VISIT_TO(RawObject*, label_)
 
   // Isolate unique tag.
   uword tag_;

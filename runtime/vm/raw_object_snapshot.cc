@@ -585,7 +585,7 @@ RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to_snapshot(),
+  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to(),
                      kAsInlinedObject);
 
   return data.raw();

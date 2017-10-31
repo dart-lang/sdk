@@ -74,6 +74,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         visiting_old_object_(NULL) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
+    ASSERT(Utils::IsAligned(first, sizeof(*first)));
+    ASSERT(Utils::IsAligned(last, sizeof(*last)));
     if (FLAG_verify_gc_contains) {
       ASSERT((visiting_old_object_ != NULL) ||
              scavenger_->Contains(reinterpret_cast<uword>(first)) ||
