@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:front_end/src/fasta/scanner/abstract_scanner.dart';
 import 'package:front_end/src/scanner/scanner.dart' as fe;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -5628,13 +5629,15 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseExpression_assign_compound() {
-    enableLazyAssignmentOperators = true;
-    Expression expression = parseExpression('x ||= y');
-    var assignmentExpression = expression as AssignmentExpression;
-    expect(assignmentExpression.leftHandSide, isNotNull);
-    expect(assignmentExpression.operator, isNotNull);
-    expect(assignmentExpression.operator.type, TokenType.BAR_BAR_EQ);
-    expect(assignmentExpression.rightHandSide, isNotNull);
+    if (usingFastaParser && AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
+      enableLazyAssignmentOperators = true;
+      Expression expression = parseExpression('x ||= y');
+      var assignmentExpression = expression as AssignmentExpression;
+      expect(assignmentExpression.leftHandSide, isNotNull);
+      expect(assignmentExpression.operator, isNotNull);
+      expect(assignmentExpression.operator.type, TokenType.BAR_BAR_EQ);
+      expect(assignmentExpression.rightHandSide, isNotNull);
+    }
   }
 
   void test_parseExpression_comparison() {

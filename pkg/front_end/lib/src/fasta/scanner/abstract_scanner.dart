@@ -32,6 +32,14 @@ import 'token_constants.dart';
 import 'characters.dart';
 
 abstract class AbstractScanner implements Scanner {
+  /**
+   * A flag indicating whether character sequences `&&=` and `||=`
+   * should be tokenized as the assignment operators
+   * [AMPERSAND_AMPERSAND_EQ_TOKEN] and [BAR_BAR_EQ_TOKEN] respectively.
+   * See issue https://github.com/dart-lang/sdk/issues/30340
+   */
+  static const bool LAZY_ASSIGNMENT_ENABLED = false;
+
   final bool includeComments;
 
   /**
@@ -510,7 +518,7 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (identical(next, $BAR)) {
       next = advance();
-      if (identical(next, $EQ)) {
+      if (LAZY_ASSIGNMENT_ENABLED && identical(next, $EQ)) {
         appendPrecedenceToken(TokenType.BAR_BAR_EQ);
         return advance();
       }
@@ -530,7 +538,7 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (identical(next, $AMPERSAND)) {
       next = advance();
-      if (identical(next, $EQ)) {
+      if (LAZY_ASSIGNMENT_ENABLED && identical(next, $EQ)) {
         appendPrecedenceToken(TokenType.AMPERSAND_AMPERSAND_EQ);
         return advance();
       }
