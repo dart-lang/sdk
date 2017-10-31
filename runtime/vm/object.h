@@ -3673,6 +3673,9 @@ class Library : public Object {
                           TokenPosition token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 TokenPosition token_pos) const;
+  void CloneMetadataFrom(const Library& from_library,
+                         const Function& from_fun,
+                         const Function& to_fun) const;
   RawObject* GetMetadata(const Object& obj) const;
 
   RawClass* toplevel_class() const { return raw_ptr()->toplevel_class_; }
@@ -8382,6 +8385,7 @@ class LinkedHashMap : public Instance {
 
   RawTypedData* index() const { return raw_ptr()->index_; }
   void SetIndex(const TypedData& value) const {
+    ASSERT(!value.IsNull());
     StorePointer(&raw_ptr()->index_, value.raw());
   }
   static intptr_t index_offset() { return OFFSET_OF(RawLinkedHashMap, index_); }
