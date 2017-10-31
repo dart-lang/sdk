@@ -213,7 +213,9 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
           (Snapshot::IsFull(kind))
               ? Object::vm_isolate_snapshot_object_table().Length()
               : 0),
-      backward_references_(backward_refs) {}
+      backward_references_(backward_refs),
+      objects_to_rehash_(
+          GrowableObjectArray::Handle(zone_, GrowableObjectArray::New())) {}
 
 RawObject* SnapshotReader::ReadObject() {
   // Setup for long jump in case there is an exception while reading.
@@ -227,21 +229,48 @@ RawObject* SnapshotReader::ReadObject() {
         (*backward_references_)[i].set_state(kIsDeserialized);
       }
     }
+    Object& result = Object::Handle(zone_);
     if (backward_references_->length() > 0) {
       ProcessDeferredCanonicalizations();
       if (kind() == Snapshot::kScript) {
         FixSubclassesAndImplementors();
       }
-      return (*backward_references_)[0].reference()->raw();
+      result = (*backward_references_)[0].reference()->raw();
     } else {
-      return obj.raw();
+      result = obj.raw();
     }
+    const Object& ok = Object::Handle(zone_, RunDelayedRehashingOfMaps());
+    if (!ok.IsNull()) {
+      return ok.raw();
+    }
+    return result.raw();
   } else {
     // An error occurred while reading, return the error object.
     const Error& err = Error::Handle(thread()->sticky_error());
     thread()->clear_sticky_error();
     return err.raw();
   }
+}
+
+void SnapshotReader::EnqueueRehashingOfMap(const LinkedHashMap& map) {
+  objects_to_rehash_.Add(map, Heap::kNew);
+}
+
+RawObject* SnapshotReader::RunDelayedRehashingOfMaps() {
+  if (objects_to_rehash_.Length() > 0) {
+    const Library& collections_lib =
+        Library::Handle(zone_, Library::CollectionLibrary());
+    const Function& rehashing_function = Function::Handle(
+        zone_,
+        collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
+    ASSERT(!rehashing_function.IsNull());
+
+    const Array& arguments = Array::Handle(zone_, Array::New(1));
+    arguments.SetAt(0, objects_to_rehash_);
+
+    return DartEntry::InvokeFunction(rehashing_function, arguments);
+  }
+  return Object::null();
 }
 
 RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {

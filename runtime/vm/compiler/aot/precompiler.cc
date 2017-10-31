@@ -637,6 +637,7 @@ static Dart_QualifiedFunctionName vm_entry_points[] = {
     {"dart:core", "_InternalError", "_InternalError."},
     {"dart:core", "_InvocationMirror", "_allocateInvocationMirror"},
     {"dart:core", "_TypeError", "_TypeError._create"},
+    {"dart:collection", "::", "_rehashObjects"},
     {"dart:isolate", "IsolateSpawnException", "IsolateSpawnException."},
     {"dart:isolate", "::", "_startIsolate"},
     {"dart:isolate", "_RawReceivePortImpl", "_handleMessage"},

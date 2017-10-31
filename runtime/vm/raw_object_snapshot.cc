@@ -2352,6 +2352,8 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
   ASSERT(reader->isolate() != Dart::vm_isolate());
   map.SetHashMask(0);  // Prefer sentinel 0 over null for better type feedback.
 
+  reader->EnqueueRehashingOfMap(map);
+
   // Read the keys and values.
   bool read_as_reference = RawObject::IsCanonical(tags) ? false : true;
   for (intptr_t i = 0; i < used_data; i++) {

@@ -31,6 +31,7 @@ class Heap;
 class Instructions;
 class LanguageError;
 class Library;
+class LinkedHashMap;
 class Object;
 class PassiveObject;
 class ObjectStore;
@@ -396,6 +397,9 @@ class SnapshotReader : public BaseReader {
   PageSpace* old_space() const { return old_space_; }
 
  private:
+  void EnqueueRehashingOfMap(const LinkedHashMap& map);
+  RawObject* RunDelayedRehashingOfMaps();
+
   RawClass* ReadClassId(intptr_t object_id);
   RawFunction* ReadFunctionId(intptr_t object_id);
   RawObject* ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
@@ -472,6 +476,7 @@ class SnapshotReader : public BaseReader {
   UnhandledException& error_;      // Error handle.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;
+  GrowableObjectArray& objects_to_rehash_;
 
   friend class ApiError;
   friend class Array;
