@@ -1061,6 +1061,13 @@ part of 'foo.dart';
 ''');
   }
 
+  test_convertToBlockBody_BAD_inExpression() async {
+    await resolveTestUnit('''
+main() => 123;
+''');
+    await assertNoAssistAt('123;', DartAssistKind.CONVERT_INTO_BLOCK_BODY);
+  }
+
   test_convertToBlockBody_BAD_noEnclosingFunction() async {
     await resolveTestUnit('''
 var v = 123;
@@ -1170,22 +1177,22 @@ class A {
 ''');
   }
 
-  test_convertToBlockBody_OK_onName() async {
+  test_convertToBlockBody_OK_onArrow() async {
     await resolveTestUnit('''
 fff() => 123;
 ''');
-    await assertHasAssistAt('fff()', DartAssistKind.CONVERT_INTO_BLOCK_BODY, '''
+    await assertHasAssistAt('=>', DartAssistKind.CONVERT_INTO_BLOCK_BODY, '''
 fff() {
   return 123;
 }
 ''');
   }
 
-  test_convertToBlockBody_OK_onValue() async {
+  test_convertToBlockBody_OK_onName() async {
     await resolveTestUnit('''
 fff() => 123;
 ''');
-    await assertHasAssistAt('23;', DartAssistKind.CONVERT_INTO_BLOCK_BODY, '''
+    await assertHasAssistAt('fff()', DartAssistKind.CONVERT_INTO_BLOCK_BODY, '''
 fff() {
   return 123;
 }
@@ -1198,6 +1205,15 @@ fff() => 42;
 ''');
     await assertNoAssistAt(
         'fff()', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  test_convertToExpressionBody_BAD_inExpression() async {
+    await resolveTestUnit('''
+main() {
+  return 42;
+}
+''');
+    await assertNoAssistAt('42;', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
   test_convertToExpressionBody_BAD_moreThanOneStatement() async {
@@ -1264,7 +1280,7 @@ main() {
 }
 ''');
     await assertHasAssistAt(
-        '42;', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY, '''
+        'return', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY, '''
 setup(x) {}
 main() {
   setup(() => 42);
@@ -1276,16 +1292,16 @@ main() {
     await resolveTestUnit('''
 setup(x) {}
 main() {
-  setup(() {
+  setup((_) {
     print('test');
   });
 }
 ''');
     await assertHasAssistAt(
-        'print(', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY, '''
+        '(_) {', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY, '''
 setup(x) {}
 main() {
-  setup(() => print('test'));
+  setup((_) => print('test'));
 }
 ''');
   }
