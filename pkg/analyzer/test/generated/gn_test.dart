@@ -32,6 +32,9 @@ class GnWorkspaceTest extends _BaseTest {
     provider.newFolder(_p('/workspace/.jiri_root'));
     provider.newFolder(_p('/workspace/some/code'));
     provider.newFile(_p('/workspace/some/code/pubspec.yaml'), '');
+    String buildDir = _p('/workspace/out/debug-x87_128');
+    provider.newFile(_p('/workspace/.config'),
+        'FOO=foo\n' + 'FUCHSIA_BUILD_DIR="$buildDir"\n' + 'BAR=bar\n');
     provider.newFile(
         _p('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages'),
         '');
@@ -42,6 +45,51 @@ class GnWorkspaceTest extends _BaseTest {
   }
 
   void test_packages() {
+    provider.newFolder(_p('/workspace/.jiri_root'));
+    provider.newFolder(_p('/workspace/some/code'));
+    provider.newFile(_p('/workspace/some/code/pubspec.yaml'), '');
+    String buildDir = _p('/workspace/out/debug-x87_128');
+    provider.newFile(_p('/workspace/.config'),
+        'FOO=foo\n' + 'FUCHSIA_BUILD_DIR="$buildDir"\n' + 'BAR=bar\n');
+    String packageLocation = _p('/workspace/this/is/the/package');
+    Uri packageUri = provider.pathContext.toUri(packageLocation);
+    provider.newFile(
+        _p('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages'),
+        'flutter:$packageUri');
+    GnWorkspace workspace =
+        GnWorkspace.find(provider, _p('/workspace/some/code'));
+    expect(workspace, isNotNull);
+    expect(workspace.root, _p('/workspace/some/code'));
+    expect(workspace.packageMap.length, 1);
+    expect(workspace.packageMap['flutter'][0].path, packageLocation);
+  }
+
+  void test_packages_multipleCandidates() {
+    provider.newFolder(_p('/workspace/.jiri_root'));
+    provider.newFolder(_p('/workspace/some/code'));
+    provider.newFile(_p('/workspace/some/code/pubspec.yaml'), '');
+    String buildDir = _p('/workspace/out/release-y22_256');
+    provider.newFile(_p('/workspace/.config'),
+        'FOO=foo\n' + 'FUCHSIA_BUILD_DIR="$buildDir"\n' + 'BAR=bar\n');
+    String packageLocation = _p('/workspace/this/is/the/package');
+    Uri packageUri = provider.pathContext.toUri(packageLocation);
+    provider.newFile(
+        _p('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages'),
+        'flutter:$packageUri');
+    String otherPackageLocation = _p('/workspace/here/too');
+    Uri otherPackageUri = provider.pathContext.toUri(otherPackageLocation);
+    provider.newFile(
+        _p('/workspace/out/release-y22_256/dartlang/gen/some/code/foo.packages'),
+        'rettulf:$otherPackageUri');
+    GnWorkspace workspace =
+        GnWorkspace.find(provider, _p('/workspace/some/code'));
+    expect(workspace, isNotNull);
+    expect(workspace.root, _p('/workspace/some/code'));
+    expect(workspace.packageMap.length, 1);
+    expect(workspace.packageMap['rettulf'][0].path, otherPackageLocation);
+  }
+
+  void test_packages_fallbackBuildDir() {
     provider.newFolder(_p('/workspace/.jiri_root'));
     provider.newFolder(_p('/workspace/some/code'));
     provider.newFile(_p('/workspace/some/code/pubspec.yaml'), '');
@@ -62,6 +110,9 @@ class GnWorkspaceTest extends _BaseTest {
     provider.newFolder(_p('/workspace/.jiri_root'));
     provider.newFolder(_p('/workspace/some/code'));
     provider.newFile(_p('/workspace/some/code/pubspec.yaml'), '');
+    String buildDir = _p('/workspace/out/debug-x87_128');
+    provider.newFile(_p('/workspace/.config'),
+        'FOO=foo\n' + 'FUCHSIA_BUILD_DIR=$buildDir\n' + 'BAR=bar\n');
     String packageOneLocation = _p('/workspace/this/is/the/package');
     Uri packageOneUri = provider.pathContext.toUri(packageOneLocation);
     provider.newFile(
