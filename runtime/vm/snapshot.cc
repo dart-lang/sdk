@@ -214,13 +214,14 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
               ? Object::vm_isolate_snapshot_object_table().Length()
               : 0),
       backward_references_(backward_refs),
-      objects_to_rehash_(
-          GrowableObjectArray::Handle(zone_, GrowableObjectArray::New())) {}
+      objects_to_rehash_(GrowableObjectArray::Handle(zone_)) {}
 
 RawObject* SnapshotReader::ReadObject() {
   // Setup for long jump in case there is an exception while reading.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    objects_to_rehash_ = GrowableObjectArray::New(HEAP_SPACE(kind_));
+
     PassiveObject& obj =
         PassiveObject::Handle(zone(), ReadObjectImpl(kAsInlinedObject));
     for (intptr_t i = 0; i < backward_references_->length(); i++) {
@@ -240,6 +241,7 @@ RawObject* SnapshotReader::ReadObject() {
       result = obj.raw();
     }
     const Object& ok = Object::Handle(zone_, RunDelayedRehashingOfMaps());
+    objects_to_rehash_ = GrowableObjectArray::null();
     if (!ok.IsNull()) {
       return ok.raw();
     }
@@ -253,7 +255,7 @@ RawObject* SnapshotReader::ReadObject() {
 }
 
 void SnapshotReader::EnqueueRehashingOfMap(const LinkedHashMap& map) {
-  objects_to_rehash_.Add(map, Heap::kNew);
+  objects_to_rehash_.Add(map, HEAP_SPACE(kind_));
 }
 
 RawObject* SnapshotReader::RunDelayedRehashingOfMaps() {
@@ -265,7 +267,8 @@ RawObject* SnapshotReader::RunDelayedRehashingOfMaps() {
         collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
     ASSERT(!rehashing_function.IsNull());
 
-    const Array& arguments = Array::Handle(zone_, Array::New(1));
+    const Array& arguments =
+        Array::Handle(zone_, Array::New(1, HEAP_SPACE(kind_)));
     arguments.SetAt(0, objects_to_rehash_);
 
     return DartEntry::InvokeFunction(rehashing_function, arguments);
