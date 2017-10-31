@@ -47,7 +47,7 @@ import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_InputError;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
-    show MatchExpectation, Print, Verify, WriteDill;
+    show MatchExpectation, Print, TypeCheck, Verify, WriteDill;
 
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
@@ -82,6 +82,10 @@ const String EXPECTATIONS = '''
 [
   {
     "name": "VerificationError",
+    "group": "Fail"
+  },
+  {
+    "name": "TypeCheckError",
     "group": "Fail"
   }
 ]
@@ -138,6 +142,9 @@ class FastaContext extends ChainContext {
                 ? ".${generateExpectationName(strongMode)}.expect"
                 : ".outline.expect",
             updateExpectations: updateExpectations));
+      }
+      if (strongMode) {
+        steps.add(const TypeCheck());
       }
       if (fullCompile && !skipVm) {
         steps.add(const Transform());
