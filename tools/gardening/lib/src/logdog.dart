@@ -37,7 +37,6 @@ Future<Map<String, int>> latestBuildNumbersForBuilders(
   // last step of any recipe. The ** searches the last incoming commits that
   // fits the scheme.
   // TODO(mkroghj): Give project as an option to allow for FYI.
-  var buildNumberInPathRegExp = new RegExp(r"^.*\/.*\/(.*)\/(\d*)\/\+");
   return Future.wait(builders.map((String builder) {
     return logdog
         .query(
@@ -47,8 +46,7 @@ Future<Map<String, int>> latestBuildNumbersForBuilders(
             maxResults: 1)
         .then((logdogStream) {
       // All logs have the build-number in their path, so we just get it out.
-      var match = buildNumberInPathRegExp.firstMatch(logdogStream.first.path);
-      return int.parse(match.group(2));
+      return _buildNumberFromLogdogPath(logdogStream.first.path);
     }).catchError((e) => 0);
   })).then((List<int> numbers) => new Map.fromIterables(builders, numbers));
 }
@@ -59,7 +57,6 @@ Future<List<int>> latestBuildNumbersForBuilder(String name, int maxResults) {
   // last step of any recipe. The ** searches the last incoming commits that
   // fits the scheme.
   // TODO(mkroghj): Give project as an option to allow for FYI.
-  var buildNumberInPathRegExp = new RegExp(r"^.*\/.*\/(.*)\/(\d*)\/\+");
   return logdog
       .query(
           "chromium",
@@ -68,7 +65,10 @@ Future<List<int>> latestBuildNumbersForBuilder(String name, int maxResults) {
           maxResults: maxResults)
       .then((List<LogdogStream> logdogStreams) =>
           logdogStreams.map((logdogStream) {
-            var match = buildNumberInPathRegExp.firstMatch(logdogStream.path);
-            return int.parse(match.group(2));
+            return _buildNumberFromLogdogPath(logdogStream.path);
           }).toList());
+}
+
+int _buildNumberFromLogdogPath(String path) {
+  return int.parse(path.split('/')[3]);
 }

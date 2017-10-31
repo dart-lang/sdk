@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:gardening/src/logdog.dart';
+import 'logdog.dart';
 import 'buildbot_structures.dart';
 
 /// Data describing the steps of the buildbots.
@@ -893,8 +893,8 @@ String getLogDogPath(String botName) {
 
 /// Pulls the list of the build numbers (in decreasing order) of the available
 /// builds for [botName] using logdog.
-Future<List<int>> lookupBotBuildNumbers(String botName) {
-  return latestBuildNumbersForBuilder(botName, 20);
+Future<List<int>> lookupBotBuildNumbers(String botName, {int count = 20}) {
+  return latestBuildNumbersForBuilder(botName, count);
 }
 
 /// Returns the index of [buildNumber] in the decreasing list of

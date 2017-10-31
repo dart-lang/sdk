@@ -4,9 +4,9 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'package:gardening/src/cache_new.dart';
-import 'package:gardening/src/logdog_rpc.dart';
-import 'package:gardening/src/results/util.dart';
+import 'cache_new.dart';
+import 'logdog_rpc.dart';
+import 'results/util.dart';
 
 import 'util.dart';
 

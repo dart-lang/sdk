@@ -77,15 +77,16 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
       buildUriList.addAll(buildGroup
           .createUris(bot.mostRecentBuildNumber)
           .map(updateWithCommit));
-    }
-    for (BuildSubgroup subGroup in buildGroup.subgroups) {
-      for (String arg in args) {
-        if (subGroup.shardNames.contains(arg)) {
-          buildUriList.addAll(subGroup
-              .createUris(bot.mostRecentBuildNumber)
-              .map(updateWithCommit));
-          // Break out to not include more from same group.
-          break;
+    } else {
+      for (BuildSubgroup subGroup in buildGroup.subgroups) {
+        for (String arg in args) {
+          if (subGroup.shardNames.contains(arg)) {
+            buildUriList.addAll(subGroup
+                .createUris(bot.mostRecentBuildNumber)
+                .map(updateWithCommit));
+            // Break out to not include more from same group.
+            break;
+          }
         }
       }
     }
