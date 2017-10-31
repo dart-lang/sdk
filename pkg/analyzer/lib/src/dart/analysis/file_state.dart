@@ -34,6 +34,12 @@ import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:meta/meta.dart';
 
 /**
+ * The type of the function that is notified about an error during parsing.
+ */
+typedef void FileParseExceptionHandler(
+    FileState file, exception, StackTrace stackTrace);
+
+/**
  * [FileContentOverlay] is used to temporary override content of files.
  */
 class FileContentOverlay {
@@ -382,11 +388,20 @@ class FileState {
 
   /**
    * Return a new parsed unresolved [CompilationUnit].
+   *
+   * If an exception happens during parsing, an empty unit is returned.
    */
   CompilationUnit parse(AnalysisErrorListener errorListener) {
-    return PerformanceStatistics.parse.makeCurrentWhile(() {
-      return _parse(errorListener);
-    });
+    try {
+      return PerformanceStatistics.parse.makeCurrentWhile(() {
+        return _parse(errorListener);
+      });
+    } catch (exception, stackTrace) {
+      if (_fsState.parseExceptionHandler != null) {
+        _fsState.parseExceptionHandler(this, exception, stackTrace);
+      }
+      return _createEmptyCompilationUnit();
+    }
   }
 
   /**
@@ -536,6 +551,12 @@ class FileState {
   @override
   String toString() => path;
 
+  CompilationUnit _createEmptyCompilationUnit() {
+    var token = new Token.eof(0);
+    return astFactory.compilationUnit(token, null, [], [], token)
+      ..lineInfo = new LineInfo(const <int>[0]);
+  }
+
   /**
    * Return the [FileState] for the given [relativeUri], maybe "unresolved"
    * file if the URI cannot be parsed, cannot correspond any file, etc.
@@ -557,9 +578,7 @@ class FileState {
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
     if (source == null) {
-      var token = new Token.eof(0);
-      return astFactory.compilationUnit(token, null, [], [], token)
-        ..lineInfo = new LineInfo(const <int>[0]);
+      return _createEmptyCompilationUnit();
     }
 
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
@@ -638,6 +657,15 @@ class FileSystemState {
   final SummaryDataStore externalSummaries;
 
   /**
+   * The optional handler for scanning and parsing exceptions.
+   *
+   * We hope that these exceptions never happen, but we might need to get
+   * additional information if there are exception when we are replacing
+   * Analyzer's scanner and parser with implementations from FrontEnd.
+   */
+  final FileParseExceptionHandler parseExceptionHandler;
+
+  /**
    * Mapping from a URI to the corresponding [FileState].
    */
   final Map<Uri, FileState> _uriToFile = {};
@@ -682,7 +710,8 @@ class FileSystemState {
       this._sourceFactory,
       this._analysisOptions,
       this._salt,
-      {this.externalSummaries}) {
+      {this.externalSummaries,
+      this.parseExceptionHandler}) {
     _testView = new FileSystemStateTestView(this);
   }
 
