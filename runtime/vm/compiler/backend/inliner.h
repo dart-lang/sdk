@@ -113,12 +113,14 @@ class FlowGraphInliner : ValueObject {
   static bool TryReplaceInstanceCallWithInline(
       FlowGraph* flow_graph,
       ForwardInstructionIterator* iterator,
-      InstanceCallInstr* call);
+      InstanceCallInstr* call,
+      SpeculativeInliningPolicy* policy);
 
   static bool TryReplaceStaticCallWithInline(
       FlowGraph* flow_graph,
       ForwardInstructionIterator* iterator,
-      StaticCallInstr* call);
+      StaticCallInstr* call,
+      SpeculativeInliningPolicy* policy);
 
   static bool TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                         intptr_t receiver_cid,
@@ -128,7 +130,8 @@ class FlowGraphInliner : ValueObject {
                                         TokenPosition token_pos,
                                         const ICData* ic_data,
                                         TargetEntryInstr** entry,
-                                        Definition** last);
+                                        Definition** last,
+                                        SpeculativeInliningPolicy* policy);
 
  private:
   friend class CallSiteInliner;

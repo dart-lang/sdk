@@ -387,7 +387,7 @@ bool CallSpecializer::TryReplaceWithIndexedOp(InstanceCallInstr* call,
     return false;
   }
   return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-      flow_graph_, current_iterator(), call);
+      flow_graph_, current_iterator(), call, speculative_policy_);
 }
 
 // Return true if d is a string of length one (a constant or result from
@@ -1117,7 +1117,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   }
 
   return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-      flow_graph_, current_iterator(), call);
+      flow_graph_, current_iterator(), call, speculative_policy_);
 }
 
 // If type tests specified by 'ic_data' do not depend on type arguments,
@@ -1473,6 +1473,11 @@ void CallSpecializer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 }
 
 void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
+  if (FlowGraphInliner::TryReplaceStaticCallWithInline(
+          flow_graph_, current_iterator(), call, speculative_policy_)) {
+    return;
+  }
+
   if (speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
     // Only if speculative inlining is enabled.
 
@@ -1538,11 +1543,6 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
 
       default:
         break;
-    }
-
-    if (FlowGraphInliner::TryReplaceStaticCallWithInline(
-            flow_graph_, current_iterator(), call)) {
-      return;
     }
   }
 
