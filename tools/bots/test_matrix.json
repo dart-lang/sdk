@@ -50,6 +50,43 @@
     },
     {
       "builders": [
+        "vm-asan-linux-release-ia32",
+        "vm-asan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm builders with address sanitizing (asan). We have to run gn.py with the DART_USE_ASAN options, which we do by running generate_buildfiles."
+      },
+      "steps": [
+        {
+          "name": "generate build files with ASAN_USE_DART=1",
+          "script": "tools/generate_buildfiles.py",
+          "environment": {"DART_USE_ASAN": 1}
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["-v", "runtime"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--timeout=240"],
+          "environment": {
+            "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0",
+            "ASAN_SYMBOLIZER_PATH": "buildtools/toolchain/clang+llvm-x86_64-linux/bin/llvm-symbolizer"
+          }
+        },
+        {
+          "name": "checked vm tests",
+          "arguments": ["--checked","--timeout=240"],
+          "environment": {
+            "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0",
+            "ASAN_SYMBOLIZER_PATH": "buildtools/toolchain/clang+llvm-x86_64-linux/bin/llvm-symbolizer"
+          }
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-linux-debug-x64",
         "vm-kernel-linux-release-x64",
         "vm-kernel-mac-debug-x64",
