@@ -139,6 +139,10 @@ consistent_index_error_string_test: Pass, Slow # Issue 25940
 [ $compiler == dart2js ]
 mirror_printer_test: Pass, Slow # Issue 25940, 16473
 
+[ $compiler == dart2js && !$dart2js_with_kernel ]
+expose_this1_test: RuntimeError # Issue 31254
+expose_this2_test: RuntimeError # Issue 31254
+
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 21666_test: RuntimeError
 closure_capture2_test: RuntimeError

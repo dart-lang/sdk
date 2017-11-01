@@ -719,8 +719,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         return _types.boolType;
       }
     }
-    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
-      _checkIfExposesThis(selector, mask);
+    if (node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(
+          selector, _types.newTypedSelector(receiverType, mask));
     }
     return handleDynamicInvoke(
         CallType.access, node, selector, mask, receiverType, arguments);
@@ -1143,8 +1144,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeMask mask = _memberData.typeOfSend(node);
     // TODO(johnniwinther): Use `node.interfaceTarget` to narrow the receiver
     // type for --trust-type-annotations/strong-mode.
-    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
-      _checkIfExposesThis(selector, mask);
+    if (node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(
+          selector, _types.newTypedSelector(receiverType, mask));
     }
     return handleDynamicGet(node, selector, mask, receiverType);
   }
@@ -1156,9 +1158,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeMask mask = _memberData.typeOfSend(node);
     // TODO(johnniwinther): Use `node.target` to narrow the receiver type.
     Selector selector = new Selector.getter(member.memberName);
-    if (!_isThisExposed) {
-      _checkIfExposesThis(selector, mask);
-    }
+    _checkIfExposesThis(selector, _types.newTypedSelector(receiverType, mask));
     return handleDynamicGet(node, selector, mask, receiverType);
   }
 
@@ -1186,8 +1186,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         }
       }
     }
-    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
-      _checkIfExposesThis(selector, mask);
+    if (node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(
+          selector, _types.newTypedSelector(receiverType, mask));
     }
     handleDynamicSet(node, selector, mask, receiverType, rhsType);
     return rhsType;
