@@ -1298,6 +1298,16 @@ class CallSiteInliner : public ValueObject {
     TRACE_INLINING(THR_Print("  Static Calls (%" Pd ")\n", call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       StaticCallInstr* call = call_info[call_idx].call;
+
+      if (inliner_->speculative_policy_->IsAllowedForInlining(
+              call->deopt_id())) {
+        if (FlowGraphInliner::TryReplaceStaticCallWithInline(
+                inliner_->flow_graph(), NULL, call)) {
+          inlined = true;
+          continue;
+        }
+      }
+
       const Function& target = call->function();
       if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
@@ -1311,6 +1321,7 @@ class CallSiteInliner : public ValueObject {
                             &call->function(), call);
         continue;
       }
+
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->PushArgumentAt(i)->value());
@@ -1663,7 +1674,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           owner_->caller_graph(), receiver_cid, target, call_, redefinition,
           call_->instance_call()->token_pos(),
-          *call_->instance_call()->ic_data(), &entry, &last)) {
+          call_->instance_call()->ic_data(), &entry, &last)) {
     // Create a graph fragment.
     redefinition->InsertAfter(entry);
     InlineExitCollector* exit_collector =
@@ -2877,7 +2888,7 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
   Definition* last;
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           flow_graph, receiver_cid, target, call, call->ArgumentAt(0),
-          call->token_pos(), *call->ic_data(), &entry, &last)) {
+          call->token_pos(), call->ic_data(), &entry, &last)) {
     // Insert receiver class check if needed.
     if (MethodRecognizer::PolymorphicTarget(target) ||
         flow_graph->InstanceCallNeedsClassCheck(call, target.kind())) {
@@ -2931,7 +2942,7 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
   }
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           flow_graph, receiver_cid, call->function(), call, receiver,
-          call->token_pos(), *call->ic_data(), &entry, &last)) {
+          call->token_pos(), call->ic_data(), &entry, &last)) {
     // Remove the original push arguments.
     for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
       PushArgumentInstr* push = call->PushArgumentAt(i);
@@ -2952,10 +2963,12 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
       last->LinkTo(call);
     }
     // Remove through the iterator.
-    ASSERT(iterator->Current() == call);
-    iterator->RemoveCurrentFromGraph();
-    call->set_previous(NULL);
-    call->set_next(NULL);
+    if (iterator != NULL) {
+      ASSERT(iterator->Current() == call);
+      iterator->RemoveCurrentFromGraph();
+    } else {
+      call->RemoveFromGraph();
+    }
     return true;
   }
   return false;
@@ -3090,7 +3103,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                                  Definition* call,
                                                  Definition* receiver,
                                                  TokenPosition token_pos,
-                                                 const ICData& ic_data,
+                                                 const ICData* ic_data,
                                                  TargetEntryInstr** entry,
                                                  Definition** last) {
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
@@ -3142,7 +3155,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kInt16ArraySetIndexed:
     case MethodRecognizer::kUint16ArraySetIndexed: {
       // Optimistically assume Smi.
-      if (ic_data.HasDeoptReason(ICData::kDeoptCheckSmi)) {
+      if (ic_data != NULL && ic_data->HasDeoptReason(ICData::kDeoptCheckSmi)) {
         // Optimistic assumption failed at least once.
         return false;
       }
@@ -3315,14 +3328,16 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kGrowableArraySetData:
       ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
              ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
-      ASSERT(call->IsStaticCall() || ic_data.NumberOfChecksIs(1));
+      ASSERT(call->IsStaticCall() ||
+             (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
           flow_graph, GrowableObjectArray::data_offset(), kEmitStoreBarrier,
           call, receiver, entry, last);
     case MethodRecognizer::kGrowableArraySetLength:
       ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
              ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
-      ASSERT(call->IsStaticCall() || ic_data.NumberOfChecksIs(1));
+      ASSERT(call->IsStaticCall() ||
+             (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
           flow_graph, GrowableObjectArray::length_offset(), kNoStoreBarrier,
           call, receiver, entry, last);

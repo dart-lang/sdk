@@ -126,7 +126,7 @@ class FlowGraphInliner : ValueObject {
                                         Definition* call,
                                         Definition* receiver,
                                         TokenPosition token_pos,
-                                        const ICData& ic_data,
+                                        const ICData* ic_data,
                                         TargetEntryInstr** entry,
                                         Definition** last);
 
