@@ -120,7 +120,8 @@ namespace dart {
   V(_Bigint, get:_neg, Bigint_getNeg, Bool, 0x356019c4)                        \
   V(_Bigint, get:_used, Bigint_getUsed, Smi, 0x33ba5131)                       \
   V(_Bigint, get:_digits, Bigint_getDigits, TypedDataUint32Array, 0x68defc99)  \
-  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, Dynamic, 0x0246fcf8)      \
+  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, TypedDataUint32Array,     \
+      0x0246fcf8)                                                              \
   V(_HashVMBase, set:_index, LinkedHashMap_setIndex, Dynamic, 0x53a33a00)      \
   V(_HashVMBase, get:_data, LinkedHashMap_getData, Array, 0x2d79fc4d)          \
   V(_HashVMBase, set:_data, LinkedHashMap_setData, Dynamic, 0x129a9708)        \

@@ -1833,7 +1833,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
     case MethodRecognizer::kLinkedHashMap_getIndex:
       body += LoadLocal(scopes_->this_variable);
       body += LoadNativeField(kind, LinkedHashMap::index_offset(),
-                              Object::dynamic_type(), kDynamicCid);
+                              Object::dynamic_type(), kTypedDataUint32ArrayCid);
       break;
     case MethodRecognizer::kLinkedHashMap_setIndex:
       body += LoadLocal(scopes_->this_variable);
