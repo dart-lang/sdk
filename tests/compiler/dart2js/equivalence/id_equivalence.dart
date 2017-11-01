@@ -313,7 +313,10 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         break;
       }
     }
-    return computeDefaultNodeId(position);
+    if (position != null) {
+      return computeDefaultNodeId(position);
+    }
+    return null;
   }
 
   void run() {
@@ -332,14 +335,21 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   visitVariableDefinitions(ast.VariableDefinitions node) {
     for (ast.Node child in node.definitions) {
+      if (child == null) continue;
       AstElement element = elements[child];
       if (element == null) {
         reportHere(reporter, child, 'No element for variable.');
+      } else if (element.isField) {
+        if (element == elements.analyzedElement) {
+          computeForElement(element);
+        }
       } else if (!element.isLocal) {
         computeForElement(element);
       } else if (element.isInitializingFormal) {
         ast.Send send = child;
         computeForNode(child, computeDefaultNodeId(send.selector), element);
+      } else if (child is ast.FunctionExpression) {
+        computeForNode(child, computeDefaultNodeId(child.name), element);
       } else {
         computeForNode(child, computeDefaultNodeId(child), element);
       }
@@ -349,12 +359,14 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   visitFunctionExpression(ast.FunctionExpression node) {
     AstElement element = elements.getFunctionDefinition(node);
-    if (element != null && !element.isLocal) {
-      computeForElement(element);
-    } else {
-      computeForNode(node, computeDefaultNodeId(node), element);
+    if (element != null) {
+      if (!element.isLocal) {
+        computeForElement(element);
+      } else {
+        computeForNode(node, computeDefaultNodeId(node), element);
+      }
+      visitNode(node);
     }
-    visitNode(node);
   }
 
   visitSend(ast.Send node) {
@@ -705,7 +717,9 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitSwitchCase(ir.SwitchCase node) {
-    computeForNode(node, createSwitchCaseId(node));
+    if (node.expressionOffsets.isNotEmpty) {
+      computeForNode(node, createSwitchCaseId(node));
+    }
     super.visitSwitchCase(node);
   }
 
