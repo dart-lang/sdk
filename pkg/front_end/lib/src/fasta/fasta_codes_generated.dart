@@ -2247,6 +2247,34 @@ $string""", arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateInvalidAssignment = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""A value of type '#name' can't be assigned to a variable of type '#name2'.""",
+    tipTemplate:
+        r"""Try changing the type of the left hand side, or casting the right hand side to '#name2'.""",
+    withArguments: _withArgumentsInvalidAssignment);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)> codeInvalidAssignment =
+    const Code<Message Function(String name, String name2)>(
+        "InvalidAssignment", templateInvalidAssignment,
+        analyzerCode: "INVALID_ASSIGNMENT");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidAssignment(String name, String name2) {
+  return new Message(codeInvalidAssignment,
+      message:
+          """A value of type '$name' can't be assigned to a variable of type '$name2'.""",
+      tip: """Try changing the type of the left hand side, or casting the right hand side to '$name2'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidAwaitFor = messageInvalidAwaitFor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -523,7 +523,8 @@ class DietListener extends StackListener {
     }
     var typeInferrer = library.disableTypeInference
         ? typeInferenceEngine.createDisabledTypeInferrer()
-        : typeInferenceEngine.createLocalTypeInferrer(uri, listener, thisType);
+        : typeInferenceEngine.createLocalTypeInferrer(
+            uri, listener, thisType, library);
     return new BodyBuilder(library, builder, memberScope, formalParameterScope,
         hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)
       ..constantExpressionRequired = builder.isConstructor && builder.isConst;

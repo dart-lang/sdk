@@ -19,6 +19,7 @@
 /// with the same kind of root node.
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
@@ -1966,16 +1967,19 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
 
   @override
   ShadowTypeInferrer createLocalTypeInferrer(
-      Uri uri, TypeInferenceListener listener, InterfaceType thisType) {
+      Uri uri,
+      TypeInferenceListener listener,
+      InterfaceType thisType,
+      SourceLibraryBuilder library) {
     return new ShadowTypeInferrer._(
-        this, uri.toString(), listener, false, thisType);
+        this, uri.toString(), listener, false, thisType, library);
   }
 
   @override
   ShadowTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
       InterfaceType thisType, ShadowField field) {
-    return field._typeInferrer =
-        new ShadowTypeInferrer._(this, field.fileUri, listener, true, thisType);
+    return field._typeInferrer = new ShadowTypeInferrer._(
+        this, field.fileUri, listener, true, thisType, null);
   }
 
   @override
@@ -1990,10 +1994,15 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
   final typePromoter;
 
-  ShadowTypeInferrer._(ShadowTypeInferenceEngine engine, String uri,
-      TypeInferenceListener listener, bool topLevel, InterfaceType thisType)
+  ShadowTypeInferrer._(
+      ShadowTypeInferenceEngine engine,
+      String uri,
+      TypeInferenceListener listener,
+      bool topLevel,
+      InterfaceType thisType,
+      SourceLibraryBuilder library)
       : typePromoter = new ShadowTypePromoter(engine.typeSchemaEnvironment),
-        super(engine, uri, listener, topLevel, thisType);
+        super(engine, uri, listener, topLevel, thisType, library);
 
   @override
   Expression getFieldInitializer(ShadowField field) {

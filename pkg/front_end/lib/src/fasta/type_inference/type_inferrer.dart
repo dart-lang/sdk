@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/names.dart' show callName;
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
@@ -313,12 +315,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final InterfaceType thisType;
 
+  final SourceLibraryBuilder library;
+
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   ClosureContext closureContext;
 
-  TypeInferrerImpl(
-      this.engine, this.uri, this.listener, bool topLevel, this.thisType)
+  TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
+      this.thisType, this.library)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
@@ -339,12 +343,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // Types are compatible.
       return null;
     } else {
-      if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
-        // Error: not assignable.
-        // TODO(paulberry): report the error.
-      }
       // Insert an implicit downcast.
       if (strongMode) {
+        if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
+          // Error: not assignable.
+          // TODO(paulberry): Calling toString() on the types seems suboptimal.
+          library.addWarning(
+              templateInvalidAssignment.withArguments(
+                  actualType.toString(), expectedType.toString()),
+              fileOffset,
+              Uri.parse(uri));
+        }
         var parent = expression.parent;
         var typeCheck = new AsExpression(expression, expectedType)
           ..isTypeError = true
