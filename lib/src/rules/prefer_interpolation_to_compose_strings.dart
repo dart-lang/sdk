@@ -48,21 +48,6 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
-    if (skippedNodes.contains(node)) {
-      return;
-    }
-    if (node.operator.type == TokenType.PLUS_EQ &&
-        (DartTypeUtilities.isClass(
-                node.leftHandSide.bestType, 'String', 'dart.core') ||
-            DartTypeUtilities.isClass(
-                node.rightHandSide.bestType, 'String', 'dart.core'))) {
-      DartTypeUtilities.traverseNodesInDFS(node).forEach(skippedNodes.add);
-      rule.reportLint(node);
-    }
-  }
-
-  @override
   visitBinaryExpression(BinaryExpression node) {
     if (skippedNodes.contains(node)) {
       return;

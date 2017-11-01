@@ -14,7 +14,7 @@ void main() {
       '! You are ' +
       (year - birth).toString() +
       ' years old.';
-  name += 'casanueva'; // LINT
+  name += 'casanueva'; // OK (#813)
 
   int width = 10;
   String pad = '';
