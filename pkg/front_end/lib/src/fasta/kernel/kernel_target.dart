@@ -390,6 +390,8 @@ class KernelTarget extends TargetImplementation {
           Class cls = builder.target;
           if (cls != objectClass) {
             cls.supertype ??= objectClass.asRawSupertype;
+            builder.supertype ??= new KernelNamedTypeBuilder("Object", null)
+              ..bind(objectClassBuilder);
           }
           if (builder.isMixinApplication) {
             cls.mixedInType = builder.mixedInType.buildSupertype(library);
