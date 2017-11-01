@@ -511,7 +511,7 @@ class Parser {
     assert(optional('import', token));
     Token importKeyword = token;
     listener.beginImport(importKeyword);
-    token = parseLiteralStringOrRecoverExpression(token.next);
+    token = parseLiteralStringOrRecoverExpression(token);
     Token afterUri = token;
     token = parseConditionalUris(token);
     token = parseImportPrefixOpt(token);
@@ -662,9 +662,9 @@ class Parser {
     Token equalitySign;
     if (optional('==', token)) {
       equalitySign = token;
-      token = parseLiteralStringOrRecoverExpression(token.next);
+      token = parseLiteralStringOrRecoverExpression(token);
     }
-    token = expect(')', token);
+    expect(')', token);
     token = parseLiteralStringOrRecoverExpression(token);
     listener.endConditionalUri(ifKeyword, leftParen, equalitySign);
     return token;
@@ -821,7 +821,7 @@ class Parser {
     assert(optional('part', token));
     Token partKeyword = token;
     listener.beginPart(token);
-    token = parseLiteralStringOrRecoverExpression(token.next);
+    token = parseLiteralStringOrRecoverExpression(token);
     token = ensureSemicolon(token);
     listener.endPart(partKeyword, token);
     return token;
@@ -839,14 +839,13 @@ class Parser {
     listener.beginPartOf(token);
     Token partKeyword = token;
     Token ofKeyword = token.next;
-    token = ofKeyword.next;
-    bool hasName = token.isIdentifier;
+    bool hasName = ofKeyword.next.isIdentifier;
     if (hasName) {
-      token = parseQualified(token, IdentifierContext.partName,
+      token = parseQualified(ofKeyword.next, IdentifierContext.partName,
               IdentifierContext.partNameContinuation)
           .next;
     } else {
-      token = parseLiteralStringOrRecoverExpression(token);
+      token = parseLiteralStringOrRecoverExpression(ofKeyword);
     }
     token = ensureSemicolon(token);
     listener.endPartOf(partKeyword, ofKeyword, token, hasName);
@@ -2980,16 +2979,16 @@ class Parser {
   }
 
   Token parseLiteralStringOrRecoverExpression(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    if (identical(token.kind, STRING_TOKEN)) {
-      return parseLiteralString(token).next;
-    } else if (token is ErrorToken) {
-      return reportErrorToken(token, false);
+    Token next = token.next;
+    if (identical(next.kind, STRING_TOKEN)) {
+      return parseLiteralString(next).next;
+    } else if (next is ErrorToken) {
+      return reportErrorToken(next, false);
     } else {
-      reportRecoverableErrorWithToken(token, fasta.templateExpectedString);
+      reportRecoverableErrorWithToken(next, fasta.templateExpectedString);
       return parseRecoverExpression(
-          token, fasta.templateExpectedString.withArguments(token));
+          token, fasta.templateExpectedString.withArguments(next));
     }
   }
 
@@ -4024,9 +4023,8 @@ class Parser {
   }
 
   Token parseRecoverExpression(Token token, Message message) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    return parseExpression(token);
+    return parseExpression(token.next);
   }
 
   int expressionDepth = 0;
