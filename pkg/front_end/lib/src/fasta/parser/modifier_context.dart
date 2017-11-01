@@ -710,13 +710,15 @@ class TopLevelMethodModifierContext {
 
   TopLevelMethodModifierContext(this.parser);
 
-  /// Parse modifiers from [token] up to but not including [afterModifiers].
-  /// If a new declaration start is found in the sequence of tokens,
-  /// then set [endInvalidTopLevelDeclarationToken] to be the last token
-  /// in the current declaration
-  /// and return the first token in the new declaration.
+  /// Parse modifiers from the token following [token] up to but not including
+  /// [afterModifiers]. If a new declaration start is found in the sequence of
+  /// tokens, then set [endInvalidTopLevelDeclarationToken] to be the last token
+  /// in the current declaration and return the token immediately preceding the
+  /// new declaration.
   Token parseRecovery(Token token, Token afterModifiers) {
-    while (token != afterModifiers) {
+    assert(token != afterModifiers && token.next != afterModifiers);
+    while (token.next != afterModifiers) {
+      token = token.next;
       if (optional('external', token)) {
         if (externalToken == null) {
           externalToken = token;
@@ -731,7 +733,7 @@ class TopLevelMethodModifierContext {
         // parsed as a new top level declaration.
         if (token.next.isTopLevelKeyword) {
           endInvalidTopLevelDeclarationToken = token;
-          return token.next;
+          return token;
         }
       } else if (optional('factory', token)) {
         parser.reportRecoverableError(
@@ -739,13 +741,12 @@ class TopLevelMethodModifierContext {
         // Indicate to the caller that the next token should be
         // parsed as a new top level declaration.
         endInvalidTopLevelDeclarationToken = token;
-        return token.next;
+        return token;
       } else {
         // TODO(danrubel): report more specific analyzer error codes
         parser.reportRecoverableErrorWithToken(
             token, fasta.templateExtraneousModifier);
       }
-      token = token.next;
     }
     return token;
   }

@@ -2540,7 +2540,7 @@ class Parser {
         identifiers.isNotEmpty ? identifiers.head.next : start;
     return isField
         ? parseFields(start, identifiers.reverse(), type, name, true).next
-        : parseTopLevelMethod(start, afterModifiers, type, getOrSet, name);
+        : parseTopLevelMethod(start, afterModifiers, type, getOrSet, name).next;
   }
 
   Token parseFields(Token start, Link<Token> modifiers, Token type, Token name,
@@ -2589,7 +2589,6 @@ class Parser {
   Token parseTopLevelMethod(Token start, Token afterModifiers, Token type,
       Token getOrSet, Token name) {
     // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     Token token = start;
 
     // Parse modifiers
@@ -2607,8 +2606,10 @@ class Parser {
       // If there are modifiers other than or in addition to `external`
       // then we need to recover.
       final context = new TopLevelMethodModifierContext(this);
-      token = context.parseRecovery(token, afterModifiers);
-
+      // TODO(brianwilkerson): This use of `syntheticPreviousToken` should be
+      // removed when `parseTopLevelMethod` accepts the last consumed token.
+      token =
+          context.parseRecovery(syntheticPreviousToken(token), afterModifiers);
       // If the modifiers form a partial top level directive or declaration
       // and we have found the start of a new top level declaration
       // then return to parse that new declaration.
@@ -2656,7 +2657,7 @@ class Parser {
     token = parseFunctionBody(token, false, externalToken != null);
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(start, getOrSet, token);
-    return token.next;
+    return token;
   }
 
   void checkFormals(bool isGetter, Token name, Token token) {
