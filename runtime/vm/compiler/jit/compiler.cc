@@ -773,7 +773,10 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   volatile bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;
-  const bool use_speculative_inlining = false;
+
+  // In the JIT case we allow speculative inlining and have no need for a
+  // blacklist, since we don't restart optimization.
+  SpeculativeInliningPolicy speculative_policy(/* enable_blacklist= */ false);
 
   Code* volatile result = &Code::ZoneHandle(zone);
   while (!done) {
@@ -887,7 +890,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
-        JitCallSpecializer call_specializer(flow_graph);
+        JitCallSpecializer call_specializer(flow_graph, &speculative_policy);
 
         {
           NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
@@ -921,8 +924,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           FlowGraphInliner inliner(flow_graph, &inline_id_to_function,
                                    &inline_id_to_token_pos, &caller_inline_id,
-                                   use_speculative_inlining,
-                                   /*inlining_black_list=*/NULL,
+                                   &speculative_policy,
                                    /*precompiler=*/NULL);
           inlining_depth = inliner.Inline();
           // Use lists are maintained and validated by the inliner.
@@ -1186,8 +1188,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       Assembler assembler(use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
-          use_speculative_inlining, inline_id_to_function,
-          inline_id_to_token_pos, caller_inline_id);
+          &speculative_policy, inline_id_to_function, inline_id_to_token_pos,
+          caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
         NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,

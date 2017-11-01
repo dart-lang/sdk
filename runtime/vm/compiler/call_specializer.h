@@ -10,6 +10,8 @@
 
 namespace dart {
 
+class SpeculativeInliningPolicy;
+
 // Call specialization pass is responsible for replacing instance calls by
 // faster alternatives based on type feedback (JIT), type speculations (AOT),
 // locally propagated type information or global type information.
@@ -27,8 +29,11 @@ namespace dart {
 // optimizations and AotCallSpecializer for AOT specific optimizations.
 class CallSpecializer : public FlowGraphVisitor {
  public:
-  CallSpecializer(FlowGraph* flow_graph, bool should_clone_fields)
+  CallSpecializer(FlowGraph* flow_graph,
+                  SpeculativeInliningPolicy* speculative_policy,
+                  bool should_clone_fields)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
+        speculative_policy_(speculative_policy),
         flow_graph_(flow_graph),
         should_clone_fields_(should_clone_fields) {}
 
@@ -103,9 +108,10 @@ class CallSpecializer : public FlowGraphVisitor {
   virtual bool TryReplaceTypeCastWithRangeCheck(InstanceCallInstr* call,
                                                 const AbstractType& type);
 
-  virtual bool IsAllowedForInlining(intptr_t deopt_id) const = 0;
-
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call) = 0;
+
+ protected:
+  SpeculativeInliningPolicy* speculative_policy_;
 
  private:
   bool TypeCheckAsClassEquality(const AbstractType& type);

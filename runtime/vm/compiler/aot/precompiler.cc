@@ -2840,9 +2840,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;
-  volatile bool use_speculative_inlining =
-      FLAG_max_speculative_inlining_attempts > 0;
-  GrowableArray<intptr_t> inlining_black_list;
+  SpeculativeInliningPolicy speculative_policy(
+      true, FLAG_max_speculative_inlining_attempts);
 
   while (!done) {
     const intptr_t prev_deopt_id = thread()->deopt_id();
@@ -2929,8 +2928,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
         AotCallSpecializer call_specializer(precompiler_, flow_graph,
-                                            use_speculative_inlining,
-                                            &inlining_black_list);
+                                            &speculative_policy);
 
         call_specializer.ApplyClassIds();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -2964,8 +2962,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           FlowGraphInliner inliner(flow_graph, &inline_id_to_function,
                                    &inline_id_to_token_pos, &caller_inline_id,
-                                   use_speculative_inlining,
-                                   &inlining_black_list, precompiler_);
+                                   &speculative_policy, precompiler_);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -3246,8 +3243,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       Assembler assembler(use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
-          use_speculative_inlining, inline_id_to_function,
-          inline_id_to_token_pos, caller_inline_id);
+          &speculative_policy, inline_id_to_function, inline_id_to_token_pos,
+          caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
 #ifndef PRODUCT
@@ -3281,22 +3278,14 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // The return value of setjmp is the deopt id of the check instruction
         // that caused the bailout.
         done = false;
-        if (!use_speculative_inlining) {
+        if (!speculative_policy.AllowsSpeculativeInlining()) {
           // Assert that we don't repeatedly retry speculation.
           UNREACHABLE();
         }
-#if defined(DEBUG)
-        for (intptr_t i = 0; i < inlining_black_list.length(); ++i) {
-          ASSERT(inlining_black_list[i] != val);
-        }
-#endif
-        inlining_black_list.Add(val);
-        const intptr_t max_attempts = FLAG_max_speculative_inlining_attempts;
-        if (inlining_black_list.length() >= max_attempts) {
-          use_speculative_inlining = false;
+        if (!speculative_policy.AddBlockedDeoptId(val)) {
           if (FLAG_trace_compiler || FLAG_trace_optimizing_compiler) {
             THR_Print("Disabled speculative inlining after %" Pd " attempts.\n",
-                      inlining_black_list.length());
+                      speculative_policy.length());
           }
         }
       } else {

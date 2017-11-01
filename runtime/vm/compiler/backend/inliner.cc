@@ -1013,10 +1013,9 @@ class CallSiteInliner : public ValueObject {
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
 #ifdef DART_PRECOMPILER
-            AotCallSpecializer call_specializer(
-                inliner_->precompiler_, callee_graph,
-                inliner_->use_speculative_inlining_,
-                inliner_->inlining_black_list_);
+            AotCallSpecializer call_specializer(inliner_->precompiler_,
+                                                callee_graph,
+                                                inliner_->speculative_policy_);
 
             call_specializer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
@@ -1035,7 +1034,8 @@ class CallSiteInliner : public ValueObject {
             UNREACHABLE();
 #endif  // DART_PRECOMPILER
           } else {
-            JitCallSpecializer call_specializer(callee_graph);
+            JitCallSpecializer call_specializer(callee_graph,
+                                                inliner_->speculative_policy_);
 
             call_specializer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
@@ -1610,7 +1610,7 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   if ((!FLAG_precompiled_mode ||
-       owner_->inliner_->use_speculative_inlining()) &&
+       owner_->inliner_->speculative_policy()->AllowsSpeculativeInlining()) &&
       target_info.IsSingleCid() &&
       TryInlineRecognizedMethod(target_info.cid_start, *target_info.target)) {
     owner_->inlined_ = true;
@@ -2043,19 +2043,15 @@ FlowGraphInliner::FlowGraphInliner(
     GrowableArray<const Function*>* inline_id_to_function,
     GrowableArray<TokenPosition>* inline_id_to_token_pos,
     GrowableArray<intptr_t>* caller_inline_id,
-    bool use_speculative_inlining,
-    GrowableArray<intptr_t>* inlining_black_list,
+    SpeculativeInliningPolicy* speculative_policy,
     Precompiler* precompiler)
     : flow_graph_(flow_graph),
       inline_id_to_function_(inline_id_to_function),
       inline_id_to_token_pos_(inline_id_to_token_pos),
       caller_inline_id_(caller_inline_id),
       trace_inlining_(ShouldTraceInlining(flow_graph)),
-      use_speculative_inlining_(use_speculative_inlining),
-      inlining_black_list_(inlining_black_list),
-      precompiler_(precompiler) {
-  ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
-}
+      speculative_policy_(speculative_policy),
+      precompiler_(precompiler) {}
 
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
   const Function& function = flow_graph->function();

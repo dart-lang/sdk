@@ -36,8 +36,10 @@ static bool ShouldCloneFields() {
          FLAG_force_clone_compiler_objects;
 }
 
-JitCallSpecializer::JitCallSpecializer(FlowGraph* flow_graph)
-    : CallSpecializer(flow_graph, ShouldCloneFields()) {}
+JitCallSpecializer::JitCallSpecializer(
+    FlowGraph* flow_graph,
+    SpeculativeInliningPolicy* speculative_policy)
+    : CallSpecializer(flow_graph, speculative_policy, ShouldCloneFields()) {}
 
 bool JitCallSpecializer::IsAllowedForInlining(intptr_t deopt_id) const {
   return true;

@@ -1328,7 +1328,8 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     if (as_bool.IsNull() || FLAG_precompiled_mode) {
       if (results->length() == number_of_checks * 2) {
         const bool can_deopt = SpecializeTestCidsForNumericTypes(results, type);
-        if (can_deopt && !IsAllowedForInlining(call->deopt_id())) {
+        if (can_deopt &&
+            !speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
           // Guard against repeated speculative inlining.
           return;
         }
@@ -1446,7 +1447,7 @@ void CallSpecializer::ReplaceWithTypeCast(InstanceCallInstr* call) {
         Bool::ZoneHandle(Z, InstanceOfAsBool(unary_checks, type, results));
     if (as_bool.raw() == Bool::True().raw()) {
       // Guard against repeated speculative inlining.
-      if (!IsAllowedForInlining(call->deopt_id())) {
+      if (!speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
         return;
       }
 
@@ -1472,7 +1473,7 @@ void CallSpecializer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 }
 
 void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
-  if (IsAllowedForInlining(call->deopt_id())) {
+  if (speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
     // Only if speculative inlining is enabled.
 
     MethodRecognizer::Kind recognized_kind =

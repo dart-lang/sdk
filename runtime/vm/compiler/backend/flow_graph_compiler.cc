@@ -8,6 +8,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/cha.h"
@@ -96,7 +97,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     FlowGraph* flow_graph,
     const ParsedFunction& parsed_function,
     bool is_optimizing,
-    bool use_speculative_inlining,
+    SpeculativeInliningPolicy* speculative_policy,
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<intptr_t>& caller_inline_id)
@@ -116,7 +117,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       deopt_infos_(),
       static_calls_target_table_(),
       is_optimizing_(is_optimizing),
-      use_speculative_inlining_(use_speculative_inlining),
+      speculative_policy_(speculative_policy),
       may_reoptimize_(false),
       intrinsic_mode_(false),
       double_class_(
@@ -820,7 +821,7 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
           "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
           parsed_function_.function().ToFullyQualifiedCString(), deopt_id);
     }
-    ASSERT(use_speculative_inlining_);
+    ASSERT(speculative_policy_->AllowsSpeculativeInlining());
     ASSERT(deopt_id != 0);  // longjmp must return non-zero value.
     Thread::Current()->long_jump_base()->Jump(
         deopt_id, Object::speculative_inlining_error());

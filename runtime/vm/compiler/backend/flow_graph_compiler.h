@@ -22,6 +22,7 @@ class Function;
 template <typename T>
 class GrowableArray;
 class ParsedFunction;
+class SpeculativeInliningPolicy;
 
 class ParallelMoveResolver : public ValueObject {
  public:
@@ -268,7 +269,7 @@ class FlowGraphCompiler : public ValueObject {
                     FlowGraph* flow_graph,
                     const ParsedFunction& parsed_function,
                     bool is_optimizing,
-                    bool use_speculative_inlining,
+                    SpeculativeInliningPolicy* speculative_policy,
                     const GrowableArray<const Function*>& inline_id_to_function,
                     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
                     const GrowableArray<intptr_t>& caller_inline_id);
@@ -809,7 +810,7 @@ class FlowGraphCompiler : public ValueObject {
   // separate table?
   GrowableArray<StaticCallsStruct*> static_calls_target_table_;
   const bool is_optimizing_;
-  const bool use_speculative_inlining_;
+  SpeculativeInliningPolicy* speculative_policy_;
   // Set to true if optimized code has IC calls.
   bool may_reoptimize_;
   // True while emitting intrinsic code.
