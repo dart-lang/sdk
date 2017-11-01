@@ -6,16 +6,17 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Separate the control structure expression from its statement.';
+const _desc = r'Separate the control structure expression from its statement.';
 
-const details = '''
+const _details = r'''
+
 From the [flutter style guide](https://flutter.io/style-guide/):
 
-**DO** Separate the control structre expression from its statement.
+**DO** separate the control structure expression from its statement.
 
 Don't put the statement part of an `if`, `for`, `while`, `do` on the same line
-as the expression, even if it is short. (Doing so makes it unobvious that there
-is relevant code there. This is especially important for early returns.)
+as the expression, even if it is short.  Doing so makes it unclear that there
+is relevant code there.  This is especially important for early returns.
 
 **GOOD:**
 ```
@@ -41,14 +42,15 @@ else print('ok')
 
 while (condition) i += 1;
 ```
+
 ''';
 
 class AlwaysPutControlBodyOnNewLine extends LintRule {
   AlwaysPutControlBodyOnNewLine()
       : super(
             name: 'always_put_control_body_on_new_line',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

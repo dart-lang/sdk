@@ -7,32 +7,33 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = "Don't import implementation files from another package.";
+const _desc = r"Don't import implementation files from another package.";
 
-const details = '''
-**DON'T** import implementation files from another package.
+const _details = r'''
 
 From the the [pub package layout doc]
 (https://www.dartlang.org/tools/pub/package-layout.html#implementation-files):
 
+**DON'T** import implementation files from another package.
+
 The libraries inside `lib` are publicly visible: other packages are free to
-import them. But much of a package's code is internal implementation libraries
-that should only be imported and used by the package itself. Those go inside a
-subdirectory of `lib` called `src`. You can create subdirectories in there if
+import them.  But much of a package's code is internal implementation libraries
+that should only be imported and used by the package itself.  Those go inside a
+subdirectory of `lib` called `src`.  You can create subdirectories in there if
 it helps you organize things.
 
 You are free to import libraries that live in `lib/src` from within other Dart
 code in the same package (like other libraries in `lib`, scripts in `bin`,
 and tests) but you should never import from another package's `lib/src`
-directory. Those files are not part of the package’s public API, and they
+directory.  Those files are not part of the package's public API, and they
 might change in ways that could break your code.
 
-**Bad:**
-
+**BAD:**
 ```
 // In 'road_runner'
 import 'package:acme/lib/src/internals.dart;
 ```
+
 ''';
 
 bool isImplementation(Uri uri) {
@@ -60,8 +61,8 @@ class ImplementationImports extends LintRule {
   ImplementationImports()
       : super(
             name: 'implementation_imports',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

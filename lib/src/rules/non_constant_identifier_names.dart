@@ -7,9 +7,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/utils.dart';
 
-const desc = r'Name non-constant identifiers using lowerCamelCase.';
+const _desc = r'Name non-constant identifiers using lowerCamelCase.';
 
-const details = r'''
+const _details = r'''
+
 **DO** name non-constant identifiers using lowerCamelCase.
 
 Class members, top-level definitions, variables, parameters, named parameters
@@ -17,7 +18,6 @@ and named constructors should capitalize the first letter of each word
 except the first word, and use no separators.
 
 **GOOD:**
-
 ```
 var item;
 
@@ -27,14 +27,15 @@ align(clearItems) {
   // ...
 }
 ```
+
 ''';
 
 class NonConstantIdentifierNames extends LintRule {
   NonConstantIdentifierNames()
       : super(
             name: 'non_constant_identifier_names',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

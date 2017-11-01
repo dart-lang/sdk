@@ -7,18 +7,18 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/utils.dart';
 
-const desc = 'Name types using UpperCamelCase.';
+const _desc = r'Name types using UpperCamelCase.';
 
-const details = '''
+const _details = r'''
+
 From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **DO** name types using UpperCamelCase.
 
-Classes and typedefs should capitalize the first letter of each word
-(including the first word), and use no separators.
+Classes and typedefs should capitalize the first letter of each word (including
+the first word), and use no separators.
 
 **GOOD:**
-
 ```
 class SliderMenu {
   // ...
@@ -30,14 +30,15 @@ class HttpRequest {
 
 typedef num Adder(num x, num y);
 ```
+
 ''';
 
 class CamelCaseTypes extends LintRule {
   CamelCaseTypes()
       : super(
             name: 'camel_case_types',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

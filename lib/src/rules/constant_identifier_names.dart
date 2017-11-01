@@ -7,16 +7,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/utils.dart';
 
-const desc = r'Prefer using lowerCamelCase for constant names.';
+const _desc = r'Prefer using lowerCamelCase for constant names.';
 
-const details = r'''
+const _details = r'''
+
 **PREFER** using lowerCamelCase for constant names.
 
 In new code, use `lowerCamelCase` for constant variables, including enum values.
 
 In existing code that uses `ALL_CAPS_WITH_UNDERSCORES` for constants, you may
 continue to use all caps to stay consistent.
-
 
 **GOOD:**
 ```
@@ -38,15 +38,17 @@ final URL_SCHEME = new RegExp('^([a-z]+):');
 class Dice {
   static final NUMBER_GENERATOR = new Random();
 }
+
 ```
+
 ''';
 
 class ConstantIdentifierNames extends LintRule {
   ConstantIdentifierNames()
       : super(
             name: 'constant_identifier_names',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

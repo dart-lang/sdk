@@ -19,16 +19,17 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/utils.dart';
 
-const desc = 'Specify type annotations.';
+const _desc = r'Specify type annotations.';
 
-const details = '''
+const _details = r'''
+
 From the [flutter style guide](https://flutter.io/style-guide/):
 
 **DO** specify type annotations.
 
 Avoid `var` when specifying that a type is unknown and short-hands that elide
 type annotations.  Use `dynamic` if you are being explicit that the type is
-unknown. Use `Object` if you are being explicit that you want an object that
+unknown.  Use `Object` if you are being explicit that you want an object that
 implements `==` and `hashCode`.
 
 **GOOD:**
@@ -64,6 +65,7 @@ main() {
   Key s = new Key(); // OK!
 }
 ```
+
 ''';
 
 /// The name of `meta` library, used to define analysis annotations.
@@ -91,8 +93,8 @@ class AlwaysSpecifyTypes extends LintRule {
   AlwaysSpecifyTypes()
       : super(
             name: 'always_specify_types',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

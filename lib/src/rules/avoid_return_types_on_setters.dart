@@ -6,10 +6,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Avoid return types on setters.';
+const _desc = r'Avoid return types on setters.';
 
-const details = r'''
+const _details = r'''
+
 **AVOID** return types on setters.
+
+As setters do not return a value, declaring the return type of one is redundant.
 
 **GOOD:**
 ```
@@ -20,14 +23,15 @@ set speed(int ms);
 ```
 void set speed(int ms);
 ```
+
 ''';
 
 class AvoidReturnTypesOnSetters extends LintRule {
   AvoidReturnTypesOnSetters()
       : super(
             name: 'avoid_return_types_on_setters',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

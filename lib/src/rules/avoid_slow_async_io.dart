@@ -9,12 +9,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const _desc = r'Avoid slow async dart:io methods.';
+const _desc = r'Avoid slow async `dart:io` methods.';
 
 const _details = r'''
 
-**AVOID** using the following asynchronous file I/O methods
-because they are much slower than their synchronous counterparts.
+**AVOID** using the following asynchronous file I/O methods because they are
+much slower than their synchronous counterparts.
 
 * `File.lastModified`
 * `File.exists`
@@ -47,6 +47,7 @@ Future<Null> someFunction() async {
   if (file.lastModifiedSync().isBefore(now)) print('before'); // OK
 }
 ```
+
 ''';
 
 class AvoidSlowAsyncIo extends LintRule {

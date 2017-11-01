@@ -7,10 +7,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 
-const desc =
-    'Prefer using a public final field instead of a private field with a public getter.';
+const _desc =
+    r'Prefer using a public final field instead of a private field with a public'
+    r'getter.';
 
-const details = '''
+const _details = r'''
+
 From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **PREFER** using a public final field instead of a private field with a public
@@ -21,7 +23,6 @@ If you have a field that outside code should be able to see but not assign to
 that works in many cases is to just mark it `final`.
 
 **GOOD:**
-
 ```
 class Box {
   final contents = [];
@@ -29,21 +30,21 @@ class Box {
 ```
 
 **BAD:**
-
 ```
 class Box {
   var _contents;
   get contents => _contents;
 }
 ```
+
 ''';
 
 class UnnecessaryGetters extends LintRule {
   UnnecessaryGetters()
       : super(
             name: 'unnecessary_getters',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

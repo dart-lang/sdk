@@ -14,6 +14,9 @@ const _details = r'''
 
 **AVOID** returning this from methods just to enable a fluent interface.
 
+Returning `this` from a method is redundant; Dart has a cascade operator which
+allows method chaining universally.
+
 **BAD:**
 ```
 var buffer = new StringBuffer()

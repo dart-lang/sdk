@@ -14,6 +14,10 @@ const _details = r'''
 
 **AVOID** positional boolean parameters.
 
+Positional boolean parameters are a bad practice because they are very
+ambiguous.  Using named boolean parameters is much more readable because it
+inherently describes what the boolean value represents.
+
 **BAD:**
 ```
 new Task(true);

@@ -13,7 +13,7 @@ const _desc = r"Don't create a lambda when a tear-off will do.";
 
 const _details = r'''
 
-**DON’T** create a lambda when a tear-off will do.
+**DON'T** create a lambda when a tear-off will do.
 
 **BAD:**
 ```

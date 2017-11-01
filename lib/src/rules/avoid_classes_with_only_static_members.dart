@@ -13,6 +13,10 @@ const _details = r'''
 
 **AVOID** defining a class that contains only static members.
 
+Creating classes with the sole purpose of providing utility or otherwise static
+methods is discouraged.  Dart allows functions to exist outside of classes for
+this very reason.
+
 **BAD:**
 ```
 class DateUtils {

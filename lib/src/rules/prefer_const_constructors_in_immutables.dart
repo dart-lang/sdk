@@ -13,9 +13,15 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Prefer declare const constructors on @immutable classes.';
+const _desc = r'Prefer declare const constructors on `@immutable` classes.';
 
-const details = '''
+const _details = r'''
+
+**PREFER** declaring const constructors on `@immutable` classes.
+
+If a class is immutable, it is usually a good idea to make its constructor a
+const constructor.
+
 **GOOD:**
 ```
 @immutable
@@ -33,6 +39,7 @@ class A {
   A(this.a);
 }
 ```
+
 ''';
 
 /// The name of `meta` library, used to define analysis annotations.
@@ -50,8 +57,8 @@ class PreferConstConstructorsInImmutables extends LintRule {
   PreferConstConstructorsInImmutables()
       : super(
             name: 'prefer_const_constructors_in_immutables',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

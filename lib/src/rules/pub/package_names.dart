@@ -5,26 +5,27 @@
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/utils.dart';
 
-const desc = 'Use `lowercase_with_underscores` for package names.';
+const _desc = r'Use `lowercase_with_underscores` for package names.';
 
-const details = '''
+const _details = r'''
+
+From the [Pubspec format description](https://www.dartlang.org/tools/pub/pubspec.html):
+
 **DO** use `lowercase_with_underscores` for package names.
 
-From the [Pubspec format description]
-(https://www.dartlang.org/tools/pub/pubspec.html):
-
 Package names should be all lowercase, with underscores to separate words,
-`just_like_this`. Use only basic Latin letters and Arabic digits: [a-z0-9_].
+`just_like_this`.  Use only basic Latin letters and Arabic digits: [a-z0-9_].
 Also, make sure the name is a valid Dart identifier -- that it doesn't start
 with digits and isn't a reserved word.
+
 ''';
 
 class PubPackageNames extends LintRule {
   PubPackageNames()
       : super(
             name: 'package_names',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.pub);
 
   @override

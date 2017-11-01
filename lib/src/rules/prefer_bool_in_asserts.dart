@@ -8,10 +8,14 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const desc = 'Prefer bool as assert condition.';
+const _desc = r'Prefer using a boolean as the assert condition.';
 
-const details = '''
-**DO** use bool as assert condition.
+const _details = r'''
+
+**DO** use a boolean for assert conditions.
+
+Not using booleans in assert conditions can lead to code where it isn't clear
+what the intention of the assert statement is.
 
 **BAD:**
 ```
@@ -28,14 +32,15 @@ assert(() {
   return true;
 }());
 ```
+
 ''';
 
 class PreferBoolInAsserts extends LintRule {
   PreferBoolInAsserts()
       : super(
             name: 'prefer_bool_in_asserts',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

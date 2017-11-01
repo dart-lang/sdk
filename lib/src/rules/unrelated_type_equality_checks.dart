@@ -9,14 +9,15 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const String _desc = r'Equality operator (==) invocation with references of'
-    r' unrelated types.';
+const _desc =
+    r'Equality operator `==` invocation with references of unrelated types.';
 
-const String _details = r'''
+const _details = r'''
 
 **DON'T** Compare references of unrelated types for equality.
+
 Comparing references of a type where neither is a subtype of the other most
-likely will return false and might not reflect programmer's intent.
+likely will return `false` and might not reflect programmer's intent.
 
 **BAD:**
 ```
@@ -122,6 +123,7 @@ abstract class Mixin {}
 
 class DerivedClass2 extends ClassBase with Mixin {}
 ```
+
 ''';
 
 bool _hasNonComparableOperands(BinaryExpression node) =>

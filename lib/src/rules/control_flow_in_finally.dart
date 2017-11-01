@@ -6,11 +6,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Avoid control flow in `finally` block.';
+const _desc = r'Avoid control flow in finally blocks.';
 
-const details = r'''
-**AVOID** control flow leaving finally blocks. This will cause unexpected
-behavior that is hard to debug.
+const _details = r'''
+
+**AVOID** control flow leaving finally blocks.
+
+Using control flow in finally blocks will inevitably cause unexpected behavior
+that is hard to debug.
 
 **GOOD:**
 ```
@@ -77,6 +80,7 @@ class BadBreak {
   }
 }
 ```
+
 ''';
 
 class ControlFlowInFinally extends LintRule {
@@ -85,8 +89,8 @@ class ControlFlowInFinally extends LintRule {
   ControlFlowInFinally()
       : super(
             name: 'control_flow_in_finally',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors) {
     _visitor = new _Visitor(this);
   }

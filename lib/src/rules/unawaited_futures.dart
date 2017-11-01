@@ -6,18 +6,18 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc =
-    'Await for future expression statements inside async function bodies.';
+const _desc =
+    r'Await future-returning functions inside async function bodies.';
 
-const details = r'''
-**DO** await for Future return value of expression statements, or explicitly
-ignore those cases.
+const _details = r'''
+
+**DO** await functions that return a `Future` inside of an async function body.
 
 It's easy to forget await in async methods as naming conventions usually don't
 tell us if a method is sync or async (except for some in `dart:io`).
 
 **GOOD:**
-```dart
+```
 Future doSomething() => ...;
 
 void main() async {
@@ -29,19 +29,20 @@ void main() async {
 ```
 
 **BAD:**
-```dart
+```
 void main() async {
   doSomething(); // Likely a bug.
 }
 ```
+
 ''';
 
 class UnawaitedFutures extends LintRule {
   UnawaitedFutures()
       : super(
             name: 'unawaited_futures',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

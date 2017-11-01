@@ -12,22 +12,18 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Use isEmpty for Iterables and Maps.';
+const _desc = r'Use `isEmpty` for Iterables and Maps.';
 
-const useIsNotEmpty = 'Use isNotEmpty instead of length';
-const useIsEmpty = 'Use isEmpty instead of length';
-const alwaysFalse = 'Always false because length is always greater or equal 0.';
-const alwaysTrue = 'Always true because length is always greater or equal 0.';
+const _details = r'''
 
-const details = '''
-**DO NOT** use `.length` to see if a collection is empty.
+**DON'T** use `length` to see if a collection is empty.
 
 The `Iterable` contract does not require that a collection know its length or be
-able to provide it in constant time. Calling `.length` just to see if the
+able to provide it in constant time.  Calling `length` just to see if the
 collection contains anything can be painfully slow.
 
-Instead, there are faster and more readable getters: `.isEmpty` and
-`.isNotEmpty`. Use the one that doesn’t require you to negate the result.
+Instead, there are faster and more readable getters: `isEmpty` and
+`isNotEmpty`.  Use the one that doesn't require you to negate the result.
 
 **GOOD:**
 ```
@@ -40,7 +36,13 @@ if (words.isNotEmpty) return words.join(' ');
 if (lunchBox.length == 0) return 'so hungry...';
 if (words.length != 0) return words.join(' ');
 ```
+
 ''';
+
+const useIsNotEmpty = 'Use isNotEmpty instead of length';
+const useIsEmpty = 'Use isEmpty instead of length';
+const alwaysFalse = 'Always false because length is always greater or equal 0.';
+const alwaysTrue = 'Always true because length is always greater or equal 0.';
 
 class _LintCode extends LintCode {
   static final registry = <String, LintCode>{};
@@ -55,8 +57,8 @@ class PreferIsEmpty extends LintRule {
   PreferIsEmpty()
       : super(
             name: 'prefer_is_empty',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

@@ -6,14 +6,15 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Do not use adjacent strings in list.';
+const _desc = r"Don't use adjacent strings in list.";
 
-const details = r'''
-**DO NOT** use adjacent strings in list. This can be
-sign of forgotten comma.
+const _details = r'''
+
+**DON'T** use adjacent strings in list.
+
+This can be sign of forgotten comma.
 
 **GOOD:**
-
 ```
 List<String> list = <String>[
   'a' +
@@ -23,7 +24,6 @@ List<String> list = <String>[
 ```
 
 **BAD:**
-
 ```
 List<String> list = <String>[
   'a'
@@ -31,14 +31,15 @@ List<String> list = <String>[
   'c',
 ];
 ```
+
 ''';
 
 class NoAdjacentStringsInList extends LintRule {
   NoAdjacentStringsInList()
       : super(
             name: 'no_adjacent_strings_in_list',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors);
 
   @override

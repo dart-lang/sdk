@@ -9,10 +9,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const desc = 'Await only futures.';
+const _desc = r'Await only futures.';
 
-const details = '''
-**AVOID** await on anything other than a future.
+const _details = r'''
+
+**AVOID** using await on anything other than a future.
 
 **BAD:**
 ```
@@ -27,6 +28,7 @@ main() async {
   print(await new Future.value(23));
 }
 ```
+
 ''';
 
 class AwaitOnlyFutures extends LintRule {
@@ -35,8 +37,8 @@ class AwaitOnlyFutures extends LintRule {
   AwaitOnlyFutures()
       : super(
             name: 'await_only_futures',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style) {
     _visitor = new _Visitor(this);
   }

@@ -6,14 +6,15 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Avoid empty statements.';
+const _desc = r'Avoid empty statements.';
 
-const details = r'''
+const _details = r'''
+
 **AVOID** empty statments.
 
-Empty statements are almost always indicate a bug.
+Empty statements almost always indicate a bug.
 
-For example.
+For example,
 
 **BAD:**
 ```
@@ -36,14 +37,15 @@ Better to avoid the empty statement altogether.
 if (complicated.expression.foo())
   bar();
 ```
+
 ''';
 
 class EmptyStatements extends LintRule {
   EmptyStatements()
       : super(
             name: 'empty_statements',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors);
 
   @override

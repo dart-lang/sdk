@@ -7,14 +7,14 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/utils.dart';
 
-const desc =
+const _desc =
     r'Use `lowercase_with_underscores` when specifying a library prefix.';
 
-const details = r'''
+const _details = r'''
+
 **DO** use `lowercase_with_underscores` when specifying a library prefix.
 
 **GOOD:**
-
 ```
 import 'dart:math' as math;
 import 'dart:json' as json;
@@ -23,21 +23,21 @@ import 'package:javascript_utils/javascript_utils.dart' as js_utils;
 ```
 
 **BAD:**
-
 ```
 import 'dart:math' as Math;
 import 'dart:json' as JSON;
 import 'package:js/js.dart' as JS;
 import 'package:javascript_utils/javascript_utils.dart' as jsUtils;
 ```
+
 ''';
 
 class LibraryPrefixes extends LintRule {
   LibraryPrefixes()
       : super(
             name: 'library_prefixes',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

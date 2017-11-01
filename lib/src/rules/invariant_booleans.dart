@@ -14,24 +14,25 @@ import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:linter/src/util/tested_expressions.dart';
 
 const _desc =
-    r'Conditions should not unconditionally evaluate to "TRUE" or to "FALSE".';
+    r'Conditions should not unconditionally evaluate to `true` or to `false`.';
 
 const _details = r'''
 
 **DON'T** test for conditions that can be inferred at compile time or test the
 same condition twice.
-Conditional statements using a condition which cannot be anything but FALSE have
-the effect of making blocks of code non-functional. If the condition cannot
-evaluate to anything but TRUE, the conditional statement is completely
+
+Conditional statements using a condition which cannot be anything but `false`
+have the effect of making blocks of code non-functional.  If the condition
+cannot evaluate to anything but `true`, the conditional statement is completely
 redundant, and makes the code less readable.
 It is quite likely that the code does not match the programmer's intent.
 Either the condition should be removed or it should be updated so that it does
-not always evaluate to TRUE or FALSE and does not perform redundant tests.
+not always evaluate to `true` or `false` and does not perform redundant tests.
 This rule will hint to the test conflicting with the linted one.
 
 **BAD:**
 ```
-//foo can't be both equal and not equal to bar in the same expression
+// foo can't be both equal and not equal to bar in the same expression
 if(foo == bar && something && foo != bar) {...}
 ```
 
@@ -40,7 +41,7 @@ if(foo == bar && something && foo != bar) {...}
 void compute(int foo) {
   if (foo == 4) {
     doSomething();
-    // We know foo is equal to 4 at this point, so the next condition is always false
+    // we know foo is equal to 4 at this point, so the next condition is always false
     if (foo > 4) {...}
     ...
   }

@@ -8,32 +8,34 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const desc = 'Avoid null in if null operator.';
+const _desc = r'Avoid using `null` in `if null` operators.';
 
-const details = '''
-Avoid null as operand in if null operator. `a ?? null` and `null ?? a` can both
-be replaced by `a`.
+const _details = r'''
+
+**AVOID** using `null` as an operand in `if null` operators.
+
+Using `null` in an `if null` operator is redundant, regardless of which side
+`null` is used on.
 
 **GOOD:**
-
 ```
 var x = a ?? 1;
 ```
 
 **BAD:**
-
 ```
 var x = a ?? null;
 var y = null ?? 1;
 ```
+
 ''';
 
 class UnnecessaryNullInIfNullOperators extends LintRule {
   UnnecessaryNullInIfNullOperators()
       : super(
             name: 'unnecessary_null_in_if_null_operators',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

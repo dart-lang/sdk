@@ -14,6 +14,9 @@ const _details = r'''
 
 **PREFER** using interpolation to compose strings and values.
 
+Using interpolation when composing strings and values is usually easier to write
+and read than concatenation.
+
 **BAD:**
 ```
 'Hello, ' + name + '! You are ' + (year - birth) + ' years old.';

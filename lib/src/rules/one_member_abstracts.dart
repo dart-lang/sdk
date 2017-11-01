@@ -6,17 +6,18 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc =
-    'Avoid defining a one-member abstract class when a simple function will do.';
+const _desc =
+    r'Avoid defining a one-member abstract class when a simple function will do.';
 
-const details = '''
+const _details = r'''
+
 From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **AVOID** defining a one-member abstract class when a simple function will do.
 
 Unlike Java, Dart has first-class functions, closures, and a nice light syntax
-for using them. If all you need is something like a callback, just use a
-function. If you're defining an class and it only has a single abstract member
+for using them.  If all you need is something like a callback, just use a
+function.  If you're defining an class and it only has a single abstract member
 with a meaningless name like `call` or `invoke`, there is a good chance
 you just want a function.
 
@@ -31,14 +32,15 @@ abstract class Predicate {
   bool test(item);
 }
 ```
+
 ''';
 
 class OneMemberAbstracts extends LintRule {
   OneMemberAbstracts()
       : super(
             name: 'one_member_abstracts',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

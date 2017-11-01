@@ -6,19 +6,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Use `;` instead of `{}` for empty constructor bodies.';
+const _desc = r'Use `;` instead of `{}` for empty constructor bodies.';
 
-const details = '''
+const _details = r'''
+
 From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
-**DO** use ; instead of {} for empty constructor bodies.
+**DO** use `;` instead of `{}` for empty constructor bodies.
 
 In Dart, a constructor with an empty body can be terminated with just a
-semicolon. This is required for const constructors. For consistency and
+semicolon.  This is required for const constructors.  For consistency and
 brevity, other constructors should also do this.
 
 **GOOD:**
-
 ```
 class Point {
   int x, y;
@@ -27,21 +27,21 @@ class Point {
 ```
 
 **BAD:**
-
 ```
 class Point {
   int x, y;
   Point(this.x, this.y) {}
 }
 ```
+
 ''';
 
 class EmptyConstructorBodies extends LintRule {
   EmptyConstructorBodies()
       : super(
             name: 'empty_constructor_bodies',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

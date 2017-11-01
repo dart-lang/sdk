@@ -7,9 +7,10 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Only reference in scope identifiers in doc comments.';
+const _desc = r'Only reference in scope identifiers in doc comments.';
 
-const details = r'''
+const _details = r'''
+
 **DO** reference only in scope identifiers in doc comments.
 
 If you surround things like variable, method, or type names in square brackets,
@@ -31,14 +32,15 @@ On the other hand, assuming `outOfScopeId` is out of scope:
 ```
 void f(int outOfScopeId) { ... }
 ```
+
 ''';
 
 class CommentReferences extends LintRule {
   CommentReferences()
       : super(
             name: 'comment_references',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors);
 
   @override

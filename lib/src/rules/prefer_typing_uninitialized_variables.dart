@@ -9,8 +9,11 @@ import 'package:linter/src/analyzer.dart';
 const _desc = r'Prefer typing uninitialized variables and fields.';
 
 const _details = r'''
-**PREFER** specifying a type annotation for uninitialized variables
- and fields.
+
+**PREFER** specifying a type annotation for uninitialized variables and fields.
+
+Forgoing type annotations for uninitialized variables is a bad practice because
+you may accidentally assign them to a type that you didn't originally intend to.
 
 **BAD:**
 ```
@@ -49,6 +52,7 @@ class GoodClass {
   }
 }
 ```
+
 ''';
 
 class PreferTypingUninitializedVariables extends LintRule {

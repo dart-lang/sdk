@@ -15,6 +15,9 @@ const _details = r'''
 
 **DO** use string buffer to compose strings.
 
+In most cases, using a string buffer is preferred for composing strings due to
+its improved performance.
+
 **BAD:**
 ```
 String foo() {

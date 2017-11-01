@@ -13,9 +13,12 @@ import 'package:linter/src/analyzer.dart';
 const _desc = r'Prefer const with constant constructors.';
 
 const _details = r'''
-**DO** prefer `const` for instantiating constant constructors.
 
-**GOOD**
+**PREFER** using `const` for instantiating constant constructors.
+
+If a const constructor is available, it is preferable to use it.
+
+**GOOD:**
 ```
 class A {
   const A();
@@ -26,7 +29,7 @@ void accessA() {
 }
 ```
 
-**GOOD**
+**GOOD:**
 ```
 class A {
   final int x;
@@ -37,7 +40,7 @@ class A {
 A foo(int x) => new A(x);
 ```
 
-**BAD**
+**BAD:**
 ```
 class A {
   const A();
@@ -47,6 +50,7 @@ void accessA() {
   A a = new A();
 }
 ```
+
 ''';
 
 class PreferConstConstructors extends LintRule {

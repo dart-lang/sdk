@@ -8,12 +8,14 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Test type arguments in operator ==(Object other).';
+const _desc = r'Test type arguments in operator ==(Object other).';
 
-const details = r'''
-**ALWAYS** test type arguments in operator ==(Object other).
-Not doing so might result in Null Pointer Exceptions which will be unexpected
-for consumers of your class.
+const _details = r'''
+
+**DO** test type arguments in operator ==(Object other).
+
+Not testing types so might result in null pointer exceptions which will be
+unexpected for consumers of your class.
 
 **GOOD:**
 ```
@@ -64,14 +66,15 @@ class Bad {
   }
 }
 ```
+
 ''';
 
 class TestTypesInEquals extends LintRule {
   TestTypesInEquals()
       : super(
             name: 'test_types_in_equals',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors);
 
   @override

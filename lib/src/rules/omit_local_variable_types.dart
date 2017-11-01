@@ -8,11 +8,14 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const _desc = r'Omit the types for local variables.';
+const _desc = r'Omit type annotations for local variables.';
 
 const _details = r'''
 
-**CONSIDER** omitting the types for local variables.
+**CONSIDER** omitting type annotations for local variables.
+
+Usually, the types of local variables can be easily inferred, so it isn't
+necessary to annotate them.
 
 **BAD:**
 ```

@@ -8,27 +8,30 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const _desc = r'Property getter recursivlely returns itself.';
+const _desc = r'Property getter recursively returns itself.';
 
 const _details = r'''
 
-**DON'T** Return the property itself in a getter body, this can be due to a typo.
+**DON'T** create recursive getters.
+
+Recursive getters are getters which return themselves as a value.  This is
+usually a typo.
 
 **BAD:**
 ```
-  int get field => field; // LINT
+int get field => field; // LINT
 ```
 
 **BAD:**
 ```
-  int get otherField {
-    return otherField; // LINT
-  }
+int get otherField {
+  return otherField; // LINT
+}
 ```
 
 **GOOD:**
 ```
-  int get field => _field;
+int get field => _field;
 ```
 
 ''';

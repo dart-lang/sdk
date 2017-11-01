@@ -10,9 +10,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const desc = 'Use @required.';
+const _desc = r'Use @required.';
 
-const details = '''
+const _details = r'''
+
 **DO** specify `@required` on named parameter without default value on which an
 assert(param != null) is done.
 
@@ -35,6 +36,7 @@ m1({a}) {
 ```
 
 NOTE: Only asserts at the start of the bodies will be taken into account.
+
 ''';
 
 /// The name of `meta` library, used to define analysis annotations.
@@ -52,8 +54,8 @@ class AlwaysRequireNonNullNamedParameters extends LintRule {
   AlwaysRequireNonNullNamedParameters()
       : super(
             name: 'always_require_non_null_named_parameters',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

@@ -8,16 +8,15 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:linter/src/util/unrelated_types_visitor.dart';
 
-const _desc = r'Invocation of List<E>.remove with references of unrelated'
-    r' types.';
+const _desc = r'Invocation of `remove` with references of unrelated types.';
 
 const _details = r'''
 
-**DON'T** Invoke `remove` on `List` with an instance of different type than
-the parameter type since it will invoke `==` on its elements and most likely will
-return `false`. Strictly speaking it could evaluate to true since in Dart it
-is possible for an List to contain elements of type unrelated to its
-parameter type, but this practice also should be avoided.
+**DON'T** invoke `remove` on `List` with an instance of different type than
+the parameter type.
+
+Doing this will invoke `==` on its elements and most likely will
+return `false`.
 
 **BAD:**
 ```
@@ -119,6 +118,7 @@ abstract class Mixin {}
 
 class DerivedClass3 extends ClassBase implements Mixin {}
 ```
+
 ''';
 
 class ListRemoveUnrelatedType extends LintRule {

@@ -6,11 +6,15 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Avoid annotating types on function expression parameters.';
+const _desc = r'Avoid annotating types for function expression parameters.';
 
 const _details = r'''
 
-**AVOID** annotating types on function expressions.
+**AVOID** annotating types for function expression paremeters.
+
+Annotating types for function expression parameters is usually unnecessary
+because the parameter types can almost always be inferred from the context,
+thus making the practice redundant.
 
 **BAD:**
 ```

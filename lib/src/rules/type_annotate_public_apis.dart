@@ -8,9 +8,10 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/utils.dart';
 
-const desc = r'Type annotate public APIs.';
+const _desc = r'Type annotate public APIs.';
 
-const details = r'''
+const _details = r'''
+
 From [effective dart](https://www.dartlang.org/effective-dart/design/#do-type-annotate-public-apis):
 
 **DO** type annotate public APIs.
@@ -20,7 +21,7 @@ Annotating the parameter and return types of public methods and functions helps
 users understand what the API expects and what it provides.
 
 Note that if a public API accepts a range of values that Dart's type system
-cannot express, then it is acceptable to leave that untyped. In that case, the
+cannot express, then it is acceptable to leave that untyped.  In that case, the
 implicit `dynamic` is the correct type for the API.
 
 For code internal to a library (either private, or things like nested functions)
@@ -33,12 +34,10 @@ install(id, destination) {
 }
 ```
 
-Here, it's unclear what `id` is. A string? And what is `destination`? A string
+Here, it's unclear what `id` is.  A string? And what is `destination`? A string
 or a `File` object? Is this method synchronous or asynchronous?
 
-
 **GOOD:**
-
 ```
 Future<bool> install(PackageId id, String destination) {
   // ...
@@ -46,14 +45,15 @@ Future<bool> install(PackageId id, String destination) {
 ```
 
 With types, all of this is clarified.
+
 ''';
 
 class TypeAnnotatePublicApis extends LintRule {
   TypeAnnotatePublicApis()
       : super(
             name: 'type_annotate_public_apis',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

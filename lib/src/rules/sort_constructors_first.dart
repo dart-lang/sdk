@@ -6,9 +6,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Sort constructor declarations before method declarations.';
+const _desc = r'Sort constructor declarations before method declarations.';
 
-const details = r'''
+const _details = r'''
 
 **DO** sort constructor declarations before method declarations.
 
@@ -27,14 +27,15 @@ abstract class Visitor {
   Visitor();
 }
 ```
+
 ''';
 
 class SortConstructorsFirst extends LintRule {
   SortConstructorsFirst()
       : super(
             name: 'sort_constructors_first',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

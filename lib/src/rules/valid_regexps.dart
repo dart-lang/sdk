@@ -8,9 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Use valid regular expression syntax.';
+const _desc = r'Use valid regular expression syntax.';
 
-const details = r'''
+const _details = r'''
+
 **DO** use valid regular expression syntax when creating regular expression
 instances.
 
@@ -19,21 +20,22 @@ at runtime so should be avoided.
 
 **BAD:**
 ```
-print(new RegExp('(').hasMatch('foo()')); //u-oh
+print(new RegExp('(').hasMatch('foo()'));
 ```
 
 **GOOD:**
 ```
-print(new RegExp('[(]').hasMatch('foo()')); //ok
+print(new RegExp('[(]').hasMatch('foo()'));
 ```
+
 ''';
 
 class ValidRegExps extends LintRule {
   ValidRegExps()
       : super(
             name: 'valid_regexps',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors);
 
   @override

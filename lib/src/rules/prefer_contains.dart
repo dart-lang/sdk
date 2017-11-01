@@ -13,17 +13,16 @@ import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const alwaysFalse =
-    'Always false because indexOf is always greater or equal -1.';
-const alwaysTrue = 'Always true because indexOf is always greater or equal -1.';
+const _desc = r'Use contains for `List` and `String` instances.';
 
-const desc = 'Use contains for Lists and Strings.';
-const details = '''
-**DO NOT** use `.indexOf` to see if a collection contains an element.
+const _details = r'''
 
-Calling `.indexOf` to see if a collection contains something is difficult to read and may have poor performance.
+**DON'T** use `indexOf` to see if a collection contains an element.
 
-Instead, prefer `.contains`.
+Calling `indexOf` to see if a collection contains something is difficult to read
+and may have poor performance.
+
+Instead, prefer `contains`.
 
 **GOOD:**
 ```
@@ -34,7 +33,12 @@ if (!lunchBox.contains('sandwich') return 'so hungry...';
 ```
 if (lunchBox.indexOf('sandwich') == -1 return 'so hungry...';
 ```
+
 ''';
+
+const alwaysFalse =
+    'Always false because indexOf is always greater or equal -1.';
+const alwaysTrue = 'Always true because indexOf is always greater or equal -1.';
 
 const useContains = 'Use contains instead of indexOf';
 
@@ -42,8 +46,8 @@ class PreferContainsOverIndexOf extends LintRule {
   PreferContainsOverIndexOf()
       : super(
             name: 'prefer_contains',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

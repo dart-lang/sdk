@@ -7,11 +7,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const _desc = r'Avoid using Iterable.forEach() with a function literal.';
+const _desc = r'Avoid using `forEach` with a function literal.';
 
 const _details = r'''
 
-**AVOID** using Iterable.forEach() with a function literal.
+**AVOID** using `forEach` with a function literal.
 
 **BAD:**
 ```
@@ -26,14 +26,8 @@ for (var person in people) {
   ...
 }
 ```
-
-**GOOD:**
-```
-for (var person in people) {
-  ...
-}
-```
 people.forEach(print);
+
 ''';
 
 class AvoidFunctionLiteralInForeachMethod extends LintRule {

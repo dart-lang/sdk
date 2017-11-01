@@ -8,10 +8,14 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Annotate overridden members.';
+const _desc = r'Annotate overridden members.';
 
-const details = r'''
+const _details = r'''
+
 **DO** annotate overridden methods and fields.
+
+This practice improves code readability and helps protect against
+unintentionally overriding superclass members.
 
 **GOOD:**
 ```
@@ -38,14 +42,15 @@ class Lucky extends Cat {
   final int lives = 14;
 }
 ```
+
 ''';
 
 class AnnotateOverrides extends LintRule {
   AnnotateOverrides()
       : super(
             name: 'annotate_overrides',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

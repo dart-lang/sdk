@@ -8,32 +8,35 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const desc = 'Avoid null in null-aware assignment.';
+const _desc = r'Avoid null in null-aware assignment.';
 
-const details = '''
-Avoid null in null-aware assignment. `a ??= null` can be removed.
+const _details = r'''
+
+**AVOID** `null` in null-aware assignment.
+
+Using `null` on the right-hand side of a null-aware assignment effectively makes
+the assignment redundant.
 
 **GOOD:**
-
 ```
 var x;
 x ??= 1;
 ```
 
 **BAD:**
-
 ```
 var x;
 x ??= null;
 ```
+
 ''';
 
 class UnnecessaryNullAwareAssignments extends LintRule {
   UnnecessaryNullAwareAssignments()
       : super(
             name: 'unnecessary_null_aware_assignments',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

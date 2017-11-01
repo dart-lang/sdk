@@ -7,15 +7,15 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/utils.dart';
 
-const desc = r'Avoid empty catch blocks.';
+const _desc = r'Avoid empty catch blocks.';
 
-const details = r'''
+const _details = r'''
 
 **AVOID** empty catch blocks.
 
-In general empty catch blocks should be avoided.  In cases where they are
+In general, empty catch blocks should be avoided.  In cases where they are
 intended, a comment should be provided to explain why exceptions are being
-caught and suppressed. Alternatively, the exception identifier can be named with
+caught and suppressed.  Alternatively, the exception identifier can be named with
 underscores (e.g., `_`) to indicate that we intend to skip it.
 
 **BAD:**
@@ -45,14 +45,15 @@ try {
   doSomething(e);
 }
 ```
+
 ''';
 
 class EmptyCatches extends LintRule {
   EmptyCatches()
       : super(
             name: 'empty_catches',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

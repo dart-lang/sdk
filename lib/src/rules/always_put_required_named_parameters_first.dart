@@ -8,9 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Put @required named parameters first.';
+const _desc = r'Put @required named parameters first.';
 
-const details = '''
+const _details = r'''
+
 **DO** specify `@required` on named parameter before other named parameters.
 
 **GOOD:**
@@ -22,6 +23,7 @@ m({@required a, b, c}) ;
 ```
 m({b, c, @required a}) ;
 ```
+
 ''';
 
 /// The name of `meta` library, used to define analysis annotations.
@@ -39,8 +41,8 @@ class AlwaysPutRequiredNamedParametersFirst extends LintRule {
   AlwaysPutRequiredNamedParametersFirst()
       : super(
             name: 'always_put_required_named_parameters_first',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

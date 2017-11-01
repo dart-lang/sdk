@@ -11,17 +11,15 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Do not use more than one case with same value.';
+const _desc = r"Don't use more than one case with same value.";
 
-String message(String value1, String value2) =>
-    'Do not use more than one case with same value ($value1 and $value2)';
+const _details = r'''
 
-const details = r'''
-**DO NOT** use more than one case with same value. This can be
-of typo or changed value of constant.
+**DON'T** use more than one case with same value.
+
+This is usually a typo or changed value of constant.
 
 **GOOD:**
-
 ```
 const int A = 1;
 switch (v) {
@@ -31,7 +29,6 @@ switch (v) {
 ```
 
 **BAD:**
-
 ```
 const int A = 1;
 switch (v) {
@@ -41,14 +38,18 @@ switch (v) {
   case 2:
 }
 ```
+
 ''';
+
+String message(String value1, String value2) =>
+    'Do not use more than one case with same value ($value1 and $value2)';
 
 class NoDuplicateCaseValues extends LintRule {
   NoDuplicateCaseValues()
       : super(
             name: 'no_duplicate_case_values',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors);
 
   @override

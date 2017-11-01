@@ -7,11 +7,14 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules/control_flow_in_finally.dart';
 
-const desc = r'Avoid `throw` in finally block.';
+const _desc = r'Avoid `throw` in finally block.';
 
-const details = r'''
-**AVOID** throwing exceptions in finally blocks. This will cause unexpected
-behavior that is hard to debug.
+const _details = r'''
+
+**AVOID** throwing exceptions in finally blocks.
+
+Throwing exceptions in finally blocks will inevitably cause unexpected behavior
+that is hard to debug.
 
 **GOOD:**
 ```
@@ -42,6 +45,7 @@ class BadThrow {
   }
 }
 ```
+
 ''';
 
 class ThrowInFinally extends LintRule {
@@ -50,8 +54,8 @@ class ThrowInFinally extends LintRule {
   ThrowInFinally()
       : super(
             name: 'throw_in_finally',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors) {
     _visitor = new _Visitor(this);
   }

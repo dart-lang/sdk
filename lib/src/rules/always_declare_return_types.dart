@@ -8,12 +8,16 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Declare method return types.';
+const _desc = r'Declare method return types.';
 
-const details = '''
+const _details = r'''
+
 **DO** declare method return types.
 
 When declaring a method or function *always* specify a return type.
+Declaring return types for functions helps improve your codebase by allowing the
+analyzer to more adequately check your code for errors that could occur during
+runtime.
 
 **BAD:**
 ```
@@ -38,14 +42,15 @@ class _Foo {
 
 typedef bool predicate(Object o);
 ```
+
 ''';
 
 class AlwaysDeclareReturnTypes extends LintRule {
   AlwaysDeclareReturnTypes()
       : super(
             name: 'always_declare_return_types',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

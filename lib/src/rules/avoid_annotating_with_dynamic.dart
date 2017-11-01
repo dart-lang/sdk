@@ -12,6 +12,9 @@ const _details = r'''
 
 **AVOID** annotating with dynamic when not required.
 
+As `dynamic` is the assumed return value of a function or method, it is usually
+not necessary to annotate it.
+
 **BAD:**
 ```
 dynamic lookUpOrDefault(String name, Map map, dynamic defaultValue) {

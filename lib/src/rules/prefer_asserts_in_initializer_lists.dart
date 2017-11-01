@@ -10,9 +10,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Prefer put asserts in initializer list.';
+const _desc = r'Prefer putting asserts in initializer list.';
 
-const details = '''
+const _details = r'''
+
 **WARNING** Putting asserts in initializer lists is only possible using an
 experimental language feature that might be removed.
 
@@ -34,14 +35,15 @@ class A {
   }
 }
 ```
+
 ''';
 
 class PreferAssertsInInitializerLists extends LintRule {
   PreferAssertsInInitializerLists()
       : super(
             name: 'prefer_asserts_in_initializer_lists',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

@@ -7,9 +7,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 
-const desc = r'Provide doc comments for all public APIs.';
+const _desc = r'Provide doc comments for all public APIs.';
 
-const details = r'''
+const _details = r'''
+
 **DO** provide doc comments for all public APIs.
 
 As described in the [pub package layout doc]
@@ -27,7 +28,7 @@ class Foo { }
 
 class _Foo { }
 ```
-it's API includes:
+its API includes:
 
 * `Foo` (but not `_Foo`)
 * `Bar` (exported) and
@@ -35,7 +36,7 @@ it's API includes:
 
 All public API members should be documented with `///` doc-style comments.
 
-**Good:**
+**GOOD:**
 ```
 /// A Foo.
 abstract class Foo {
@@ -46,7 +47,7 @@ abstract class Foo {
 }
 ```
 
-**Bad:**
+**BAD:**
 ```
 class Bar {
   void bar();
@@ -56,6 +57,7 @@ class Bar {
 Advice for writing good doc comments can be found in the
 [Doc Writing Guidelines]
 (https://www.dartlang.org/articles/doc-comment-guidelines).
+
 ''';
 
 class PackageApiDocs extends LintRule implements ProjectVisitor {
@@ -64,8 +66,8 @@ class PackageApiDocs extends LintRule implements ProjectVisitor {
   PackageApiDocs()
       : super(
             name: 'package_api_docs',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

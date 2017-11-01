@@ -6,15 +6,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Statements should have a clear effect.';
+const _desc = r'Avoid using unnecessary statements.';
 
-const details = r'''
-**AVOID** unnecessary statements.
+const _details = r'''
+
+**AVOID** using unnecessary statements.
 
 Statements which have no clear effect are usually unnecessary, or should be
 broken up.
 
-For example.
+For example,
 
 **BAD:**
 ```
@@ -25,11 +26,11 @@ methodOne() + methodTwo();
 foo ? bar : baz;
 ```
 
-While the getter may trigger a side-effect, it is not usually obvious. And while
+While the getter may trigger a side-effect, it is not usually obvious.  Though
 the added methods have a clear effect, the addition itself does not unless there
 is some magical overload of the + operator.
 
-Usually code like this indicates an incomplete thought, and is a bug. For
+Usually code like this indicates an incomplete thought, and is a bug.  For
 instance, the getter was likely supposed to be a function call.
 
 **GOOD:**
@@ -41,14 +42,15 @@ methodTwo();
 foo ? bar() : baz();
 return myvar;
 ```
+
 ''';
 
 class UnnecessaryStatements extends LintRule {
   UnnecessaryStatements()
       : super(
             name: 'unnecessary_statements',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors);
 
   @override

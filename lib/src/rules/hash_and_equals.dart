@@ -7,11 +7,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 
-const desc = r'Always override `hashCode` if overriding `==`.';
+const _desc = r'Always override `hashCode` if overriding `==`.';
 
-const details = r'''
+const _details = r'''
 
 **DO** override `hashCode` if overriding `==`.
+
+Every object in Dart has a `hashCode`.  Both the `==` operator and the
+`hashCode` property of objects must be consistent in order for a common hash
+map implementation to function properly.  Thus, when overriding `==`, the
+`hashCode` should also be overriden to maintain consistency.
 
 **BAD:**
 ```
@@ -44,8 +49,8 @@ class HashAndEquals extends LintRule {
   HashAndEquals()
       : super(
             name: 'hash_and_equals',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors);
 
   @override

@@ -9,11 +9,14 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const _desc = r'Prefer ??= over testing for null.';
+const _desc = r'Prefer using `??=` over testing for null.';
 
 const _details = r'''
 
-**PREFER** ??= over testing for null.
+**PREFER** using `??=` over testing for null.
+
+As Dart has the `??=` operator, it is advisable to use it where applicable to
+improve the brevity of your code.
 
 **BAD:**
 ```

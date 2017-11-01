@@ -12,15 +12,16 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:path/path.dart' as path;
 
-const desc = r'Document all public members.';
+const _desc = r'Document all public members.';
 
-const details = r'''
+const _details = r'''
+
 **DO** document all public members.
 
 All non-overriding public members should be documented with `///` doc-style
 comments.
 
-**Good:**
+**GOOD:**
 ```
 /// A good thing.
 abstract class Good {
@@ -31,7 +32,7 @@ abstract class Good {
 }
 ```
 
-**Bad:**
+**BAD:**
 ```
 class Bad {
   void meh() { }
@@ -42,7 +43,7 @@ In case a public member overrides a member it is up to the declaring member
 to provide documentation.  For example, in the following, `Sub` needn't
 document `init` (though it certainly may, if there's need).
 
-**Good:**
+**GOOD:**
 ```
 /// Base of all things.
 abstract class Base {
@@ -58,8 +59,9 @@ class Sub extends Base {
 ```
 
 Note that consistent with `dartdoc`, an exception to the rule is made when
-documented getters have corresponding undocumented setters. In this case the
+documented getters have corresponding undocumented setters.  In this case the
 setters inherit the docs from the getters.
+
 ''';
 
 // TODO(devoncarew): This lint is very slow - we should profile and optimize it.
@@ -72,8 +74,8 @@ class PublicMemberApiDocs extends LintRule {
   PublicMemberApiDocs()
       : super(
             name: 'public_member_api_docs',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

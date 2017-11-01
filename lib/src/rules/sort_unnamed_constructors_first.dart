@@ -6,12 +6,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Sort unnamed constructor declarations first.';
+const _desc = r'Sort unnamed constructor declarations first.';
 
-const details = r'''
+const _details = r'''
+
 **DO** sort unnamed constructor declarations first, before named ones.
 
-**Good:**
+**GOOD:**
 ```
 abstract class CancelableFuture<T> implements Future<T>  {
   factory CancelableFuture(computation()) => ...
@@ -20,23 +21,23 @@ abstract class CancelableFuture<T> implements Future<T>  {
 }
 ```
 
-**Bad:**
+**BAD:**
 ```
 class _PriorityItem {
   factory _PriorityItem.forName(bool isStatic, String name, _MemberKind kind) => ...
   _PriorityItem(this.isStatic, this.kind, this.isPrivate);
   ...
 }
-
 ```
+
 ''';
 
 class SortUnnamedConstructorsFirst extends LintRule {
   SortUnnamedConstructorsFirst()
       : super(
             name: 'sort_unnamed_constructors_first',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

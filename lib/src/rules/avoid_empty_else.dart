@@ -6,10 +6,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Avoid empty else statements.';
+const _desc = r'Avoid empty else statements.';
 
-const details = r'''
-Avoid empty else statements.
+const _details = r'''
+
+**AVOID** empty else statements.
 
 **BAD:**
 ```
@@ -18,14 +19,15 @@ if (x > y)
 else ;
   print("2");
 ```
+
 ''';
 
 class AvoidEmptyElse extends LintRule {
   AvoidEmptyElse()
       : super(
             name: 'avoid_empty_else',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.errors);
 
   @override

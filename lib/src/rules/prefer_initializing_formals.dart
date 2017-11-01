@@ -14,6 +14,8 @@ const _details = r'''
 
 **DO** use initializing formals when possible.
 
+Using initializing formals when possible makes your code more terse.
+
 **BAD:**
 ```
 class Point {

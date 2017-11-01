@@ -9,7 +9,8 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc =
-    r"Don't override a method to do a super method invocation with the same parameters.";
+    r"Don't override a method to do a super method invocation with the same"
+    r" parameters.";
 
 const _details = r'''
 
@@ -43,6 +44,7 @@ super method,
 * if documentation comments are present on the method.
 
 `noSuchMethod` is a special method and is not checked by this rule.
+
 ''';
 
 class UnnecessaryOverrides extends LintRule {

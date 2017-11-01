@@ -9,11 +9,17 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc =
-    r'Avoid returning null from members whose return type is bool, double, int, or num.';
+    r'Avoid returning null from members whose return type is bool, double, int,'
+    r' or num.';
 
 const _details = r'''
 
-**AVOID** returning null from members whose return type is bool, double, int, or num.
+**AVOID** returning null from members whose return type is bool, double, int,
+or num.
+
+Functions that return primitive types such as bool, double, int, and num are
+generally expected to return non-nullable values.  Thus, returning null where a
+primitive type was expected can lead to runtime exceptions.
 
 **BAD:**
 ```

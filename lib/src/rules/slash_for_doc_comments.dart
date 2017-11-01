@@ -6,12 +6,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Prefer to use /// for doc comments.';
+const _desc = r'Prefer using /// for doc comments.';
 
-const details = r'''
+const _details = r'''
+
 From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
-**PREFER** to use `///` for doc comments.
+**PREFER** using `///` for doc comments.
 
 Although Dart supports two syntaxes of doc comments (`///` and `/**`), we
 prefer using `///` for doc comments.
@@ -27,7 +28,9 @@ void parse(List options) {
   // ...
 }
 ```
+
 Within a doc comment, you can use markdown for formatting.
+
 ''';
 
 bool isJavaStyle(Comment comment) {
@@ -43,8 +46,8 @@ class SlashForDocComments extends LintRule {
   SlashForDocComments()
       : super(
             name: 'slash_for_doc_comments',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

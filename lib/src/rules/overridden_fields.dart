@@ -8,11 +8,14 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Do not override fields.';
+const _desc = r"Don't override fields.";
 
-const details = r'''
+const _details = r'''
 
-**DO** Do not override fields.
+**DON'T** override fields.
+
+Overriding fields is almost always done unintentionally.  Regardless, it is a
+bad practice to do so.
 
 **BAD:**
 ```
@@ -59,6 +62,7 @@ class LogPrintHandler implements BaseLoggingHandler {
   Derived transformer; // OK
 }
 ```
+
 ''';
 
 Iterable<InterfaceType> _findAllSupertypesAndMixins(
@@ -83,8 +87,8 @@ class OverriddenFields extends LintRule {
   OverriddenFields()
       : super(
             name: 'overridden_fields',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style) {
     _visitor = new _Visitor(this);
   }

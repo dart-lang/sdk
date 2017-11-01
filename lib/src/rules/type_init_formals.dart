@@ -6,14 +6,15 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = "Don't type annotate initializing formals.";
+const _desc = "Don't type annotate initializing formals.";
 
-const details = r'''
+const _details = r'''
+
 From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **DON'T** type annotate initializing formals.
 
-If a constructor parameter is using `this`. to initialize a field, then the
+If a constructor parameter is using `this.x` to initialize a field, then the
 type of the parameter is understood to be the same type as the field.
 
 **GOOD:**
@@ -31,14 +32,15 @@ class Point {
   Point(int this.x, int this.y);
 }
 ```
+
 ''';
 
 class TypeInitFormals extends LintRule {
   TypeInitFormals()
       : super(
             name: 'type_init_formals',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

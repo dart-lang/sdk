@@ -8,8 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Adhere to Effective Dart Guide directives sorting conventions.';
-const _details =
-    r'''**DO** follow the conventions in the [Effective Dart Guide](https://www.dartlang.org/guides/language/effective-dart/style#ordering)
+const _details = r'''
+
+**DO** follow the conventions in the [Effective Dart Guide]
+(https://www.dartlang.org/guides/language/effective-dart/style#ordering)
 
 **DO** place “dart:” imports before other imports.
 

@@ -7,19 +7,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const desc = r"Don't explicitly initialize variables to null.";
+const _desc = r"Don't explicitly initialize variables to null.";
 
-const details = r'''
+const _details = r'''
+
 From [effective dart]
 (https://www.dartlang.org/effective-dart/usage/#dont-explicitly-initialize-variables-to-null):
 
 **DON'T** explicitly initialize variables to null.
 
 In Dart, a variable or field that is not explicitly initialized automatically
-gets initialized to null. This is reliably specified by the language. There's
-no concept of "uninitialized memory" in Dart. Adding `= null` is redundant and
+gets initialized to null.  This is reliably specified by the language.  There's
+no concept of "uninitialized memory" in Dart.  Adding `= null` is redundant and
 unneeded.
-
 
 **GOOD:**
 ```
@@ -59,8 +59,8 @@ class AvoidInitToNull extends LintRule {
   AvoidInitToNull()
       : super(
             name: 'avoid_init_to_null',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override

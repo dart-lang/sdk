@@ -13,11 +13,10 @@ const _desc = r'Invocation of Iterable<E>.contains with references of unrelated'
 
 const _details = r'''
 
-**DON'T** Invoke `contains` on `Iterable` with an instance of different type than
-the parameter type since it will invoke `==` on its elements and most likely will
-return `false`. Strictly speaking it could evaluate to true since in Dart it
-is possible for an Iterable to contain elements of type unrelated to its
-parameter type, but this practice also should be avoided.
+**DON'T** invoke `contains` on `Iterable` with an instance of different type
+than the parameter type.
+
+Doing this will invoke `==` on its elements and most likely will return `false`.
 
 **BAD:**
 ```
@@ -119,6 +118,7 @@ abstract class Mixin {}
 
 class DerivedClass3 extends ClassBase implements Mixin {}
 ```
+
 ''';
 
 class IterableContainsUnrelatedType extends LintRule {
