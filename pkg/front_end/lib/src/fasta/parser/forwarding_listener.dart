@@ -215,11 +215,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginIdentifierList(Token token) {
-    listener?.beginIdentifierList(token);
-  }
-
-  @override
   void beginIfStatement(Token token) {
     listener?.beginIfStatement(token);
   }
@@ -647,11 +642,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endIdentifierList(int count) {
-    listener?.endIdentifierList(count);
-  }
-
-  @override
   void endIfStatement(Token ifToken, Token elseToken) {
     listener?.endIfStatement(ifToken, elseToken);
   }
@@ -989,6 +979,11 @@ class ForwardingListener implements Listener {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     listener?.handleIdentifier(token, context);
+  }
+
+  @override
+  void handleIdentifierList(int count) {
+    listener?.handleIdentifierList(count);
   }
 
   @override

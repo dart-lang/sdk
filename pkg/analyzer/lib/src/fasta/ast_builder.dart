@@ -1531,7 +1531,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
 
     push(popList(count) ?? NullValue.IdentifierList);

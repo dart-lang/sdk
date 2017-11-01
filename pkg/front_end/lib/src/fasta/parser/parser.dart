@@ -772,13 +772,12 @@ class Parser {
   Token parseIdentifierList(Token token) {
     // TODO(brianwilkerson) Accept the last consumed token.
     token = ensureIdentifier(token, IdentifierContext.combinator);
-    listener.beginIdentifierList(token);
     int count = 1;
     while (optional(',', token.next)) {
       token = ensureIdentifier(token.next.next, IdentifierContext.combinator);
       count++;
     }
-    listener.endIdentifierList(count);
+    listener.handleIdentifierList(count);
     return token;
   }
 

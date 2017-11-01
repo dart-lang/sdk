@@ -296,7 +296,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     debugEvent("endIdentifierList");
     push(popIdentifierList(count) ?? NullValue.IdentifierList);
   }

@@ -301,12 +301,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginIdentifierList(Token token) {
-    super.beginIdentifierList(token);
-    begin('IdentifierList');
-  }
-
-  @override
   void beginIfStatement(Token token) {
     super.beginIfStatement(token);
     begin('IfStatement');
@@ -814,12 +808,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endIdentifierList(int count) {
-    end('IdentifierList');
-    super.endIdentifierList(count);
-  }
-
-  @override
   void endIfStatement(Token ifToken, Token elseToken) {
     end('IfStatement');
     super.endIfStatement(ifToken, elseToken);
@@ -1104,6 +1092,12 @@ class ForwardingTestListener extends ForwardingListener {
   void handleClassImplements(Token implementsKeyword, int interfacesCount) {
     expectIn('ClassDeclaration');
     listener.handleClassImplements(implementsKeyword, interfacesCount);
+  }
+
+  @override
+  void handleIdentifierList(int count) {
+    expectInOneOf(['Hide', 'Show']);
+    super.handleIdentifierList(count);
   }
 
   @override

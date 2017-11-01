@@ -347,7 +347,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
     discard(count);
   }

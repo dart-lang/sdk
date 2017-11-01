@@ -426,9 +426,7 @@ class Listener {
     logEvent("Hide");
   }
 
-  void beginIdentifierList(Token token) {}
-
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     logEvent("IdentifierList");
   }
 

@@ -245,7 +245,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     pushNode(makeNodeList(count, null, null, ","));
   }
 
