@@ -875,6 +875,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
 
   visitDirectMethodInvocation(DirectMethodInvocation node) {
     writeByte(Tag.DirectMethodInvocation);
+    writeOffset(node.fileOffset);
     writeByte(node.flags);
     writeNode(node.receiver);
     writeReference(node.targetReference);

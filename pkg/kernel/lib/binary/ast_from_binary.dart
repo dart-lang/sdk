@@ -1069,9 +1069,11 @@ class BinaryBuilder {
             readName(), readArguments(), readMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.DirectMethodInvocation:
+        int offset = readOffset();
         int flags = readByte();
         return new DirectMethodInvocation.byReference(
             readExpression(), readMemberReference(), readArguments())
+          ..fileOffset = offset
           ..flags = flags;
       case Tag.StaticInvocation:
         int offset = readOffset();

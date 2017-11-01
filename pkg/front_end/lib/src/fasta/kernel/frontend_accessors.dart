@@ -516,7 +516,8 @@ class ThisIndexAccessor extends Accessor {
   Expression _makeSimpleRead() {
     return new ShadowMethodInvocation(new ShadowThisExpression(), indexGetName,
         new ShadowArguments(<Expression>[index]),
-        interfaceTarget: getter);
+        interfaceTarget: getter)
+      ..fileOffset = offsetForToken(token);
   }
 
   Expression _makeSimpleWrite(Expression value, bool voidContext,

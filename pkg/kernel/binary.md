@@ -566,6 +566,7 @@ type SuperMethodInvocation extends Expression {
 
 type DirectMethodInvocation extends Expression {
   Byte tag = 17; // Note: tag is out of order
+  FileOffset fileOffset;
   Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   MemberReference target;
