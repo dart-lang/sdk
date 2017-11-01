@@ -8494,6 +8494,20 @@ abstract class FormalParameterParserTestMixin
     expect(functionParameter.question, isNull);
   }
 
+  void test_parseNormalFormalParameter_function_typeVoid_covariant() {
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter('covariant void a()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.covariantKeyword, isNotNull);
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+  }
+
   void test_parseNormalFormalParameter_function_void() {
     NormalFormalParameter parameter = parseNormalFormalParameter('void a()');
     expect(parameter, isNotNull);

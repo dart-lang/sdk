@@ -4281,6 +4281,7 @@ class Parser {
           _tokenMatchesKeyword(next, Keyword.CONST) ||
           _tokenMatchesKeyword(next, Keyword.VAR) ||
           _tokenMatchesKeyword(next, Keyword.THIS) ||
+          _tokenMatchesKeyword(next, Keyword.VOID) ||
           _tokenMatchesIdentifier(next)) {
         covariantKeyword = getAndAdvance();
       }
