@@ -1299,13 +1299,6 @@ class CallSiteInliner : public ValueObject {
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       StaticCallInstr* call = call_info[call_idx].call;
 
-      if (FlowGraphInliner::TryReplaceStaticCallWithInline(
-              inliner_->flow_graph(), NULL, call,
-              inliner_->speculative_policy_)) {
-        inlined = true;
-        continue;
-      }
-
       const Function& target = call->function();
       if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
