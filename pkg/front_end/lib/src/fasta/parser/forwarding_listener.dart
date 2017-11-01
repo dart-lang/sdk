@@ -115,11 +115,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginDottedName(Token token) {
-    listener?.beginDottedName(token);
-  }
-
-  @override
   void beginElseStatement(Token token) {
     listener?.beginElseStatement(token);
   }
@@ -521,11 +516,6 @@ class ForwardingListener implements Listener {
   @override
   void endDoWhileStatementBody(Token token) {
     listener?.endDoWhileStatementBody(token);
-  }
-
-  @override
-  void endDottedName(int count, Token firstIdentifier) {
-    listener?.endDottedName(count, firstIdentifier);
   }
 
   @override
@@ -939,6 +929,11 @@ class ForwardingListener implements Listener {
   void handleContinueStatement(
       bool hasTarget, Token continueKeyword, Token endToken) {
     listener?.handleContinueStatement(hasTarget, continueKeyword, endToken);
+  }
+
+  @override
+  void handleDottedName(int count, Token firstIdentifier) {
+    listener?.handleDottedName(count, firstIdentifier);
   }
 
   @override

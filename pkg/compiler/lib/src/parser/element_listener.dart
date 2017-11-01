@@ -181,7 +181,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endDottedName(int count, Token token) {
+  void handleDottedName(int count, Token token) {
     NodeList identifiers = makeNodeList(count, null, null, '.');
     pushNode(new DottedName(token, identifiers));
   }

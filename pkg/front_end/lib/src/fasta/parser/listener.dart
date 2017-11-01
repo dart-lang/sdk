@@ -501,9 +501,7 @@ class Listener {
     logEvent("ConditionalUri");
   }
 
-  void beginDottedName(Token token) {}
-
-  void endDottedName(int count, Token firstIdentifier) {
+  void handleDottedName(int count, Token firstIdentifier) {
     logEvent("DottedName");
   }
 

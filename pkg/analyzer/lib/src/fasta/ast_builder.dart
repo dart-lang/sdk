@@ -1480,7 +1480,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endDottedName(int count, Token firstIdentifier) {
+  void handleDottedName(int count, Token firstIdentifier) {
     assert(firstIdentifier.isIdentifier);
     debugEvent("DottedName");
 

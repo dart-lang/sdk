@@ -68,7 +68,7 @@ abstract class UnhandledListener extends StackListener {
   }
 
   @override
-  void endDottedName(int count, Token firstIdentifier) {
+  void handleDottedName(int count, Token firstIdentifier) {
     debugEvent("DottedName");
     popIdentifierList(count);
     push(Unhandled.DottedName);

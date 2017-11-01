@@ -679,14 +679,13 @@ class Parser {
     // TODO(brianwilkerson) Accept the last consumed token.
     token = ensureIdentifier(token, IdentifierContext.dottedName);
     Token firstIdentifier = token;
-    listener.beginDottedName(firstIdentifier);
     int count = 1;
     while (optional('.', token.next)) {
       token = ensureIdentifier(
           token.next.next, IdentifierContext.dottedNameContinuation);
       count++;
     }
-    listener.endDottedName(count, firstIdentifier);
+    listener.handleDottedName(count, firstIdentifier);
     return token;
   }
 
