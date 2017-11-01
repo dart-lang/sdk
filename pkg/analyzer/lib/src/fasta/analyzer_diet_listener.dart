@@ -195,7 +195,7 @@ class AnalyzerDietListener extends DietListener {
       // There's a slight asymmetry between [parseTopLevelMember] and
       // [parseMember] because the former doesn't call `parseMetadataStar`.
       token = parser.parseMetadataStar(metadata ?? token);
-      token = parser.parseTopLevelMember(token);
+      token = parser.parseTopLevelMember(token).next;
     } else {
       token = parser.parseMember(metadata ?? token).next;
     }

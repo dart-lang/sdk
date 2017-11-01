@@ -298,7 +298,8 @@ class Parser {
     while (!token.isEof) {
       Token start = token;
       token = parseTopLevelDeclarationImpl(
-          syntheticPreviousToken(token), directiveState);
+              syntheticPreviousToken(token), directiveState)
+          .next;
       listener.endTopLevelDeclaration(token);
       count++;
       if (start == token) {
@@ -319,7 +320,8 @@ class Parser {
   }
 
   Token parseTopLevelDeclaration(Token token) {
-    token = parseTopLevelDeclarationImpl(syntheticPreviousToken(token), null);
+    token =
+        parseTopLevelDeclarationImpl(syntheticPreviousToken(token), null).next;
     listener.endTopLevelDeclaration(token);
     return token;
   }
@@ -341,10 +343,9 @@ class Parser {
   /// ```
   Token parseTopLevelDeclarationImpl(
       Token token, DirectiveContext directiveState) {
-    // TODO(brianwilkerson) Return the last consumed token.
     if (identical(token.next.type, TokenType.SCRIPT_TAG)) {
       directiveState?.checkScriptTag(this, token.next);
-      return parseScript(token).next;
+      return parseScript(token);
     }
     token = parseMetadataStar(token.next);
     if (token.isTopLevelKeyword) {
@@ -384,7 +385,7 @@ class Parser {
     // Ignore any preceding modifiers and just report the unexpected token
     reportRecoverableErrorWithToken(token, fasta.templateExpectedDeclaration);
     listener.handleInvalidTopLevelDeclaration(token);
-    return token.next;
+    return token;
   }
 
   // Report an error for the given modifier preceding a top level keyword
@@ -413,20 +414,19 @@ class Parser {
   Token parseTopLevelKeywordDeclaration(
       Token abstractToken, Token token, DirectiveContext directiveState) {
     // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     assert(token.isTopLevelKeyword);
     final String value = token.stringValue;
     if (identical(value, 'class')) {
       directiveState?.checkDeclaration();
-      return parseClassOrNamedMixinApplication(abstractToken, token).next;
+      return parseClassOrNamedMixinApplication(abstractToken, token);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
-      return parseEnum(token).next;
+      return parseEnum(token);
     } else if (identical(value, 'typedef')) {
       Token next = token.next;
       if (next.isIdentifier || optional("void", next)) {
         directiveState?.checkDeclaration();
-        return parseTypedef(token).next;
+        return parseTypedef(token);
       } else {
         directiveState?.checkDeclaration();
         return parseTopLevelMember(token);
@@ -441,15 +441,15 @@ class Parser {
         return parseTopLevelMember(token);
       } else if (identical(value, 'library')) {
         directiveState?.checkLibrary(this, token);
-        return parseLibraryName(token).next;
+        return parseLibraryName(token);
       } else if (identical(value, 'import')) {
         directiveState?.checkImport(this, token);
-        return parseImport(token).next;
+        return parseImport(token);
       } else if (identical(value, 'export')) {
         directiveState?.checkExport(this, token);
-        return parseExport(token).next;
+        return parseExport(token);
       } else if (identical(value, 'part')) {
-        return parsePartOrPartOf(token, directiveState).next;
+        return parsePartOrPartOf(token, directiveState);
       }
     }
 
@@ -2471,23 +2471,20 @@ class Parser {
 
   Token parseTopLevelMember(Token token) {
     // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     Token start = token;
     listener.beginTopLevelMember(token);
 
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorWithToken(
-              start, fasta.templateExpectedDeclaration)
-          .next;
+          start, fasta.templateExpectedDeclaration);
     }
     Token afterName = identifiers.head;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorWithToken(
-              start, fasta.templateExpectedDeclaration)
-          .next;
+          start, fasta.templateExpectedDeclaration);
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
@@ -2532,15 +2529,15 @@ class Parser {
         }
         break;
       } else {
-        token = reportUnexpectedToken(token).next;
-        if (identical(token.kind, EOF_TOKEN)) return token;
+        token = reportUnexpectedToken(token);
+        if (identical(token.next.kind, EOF_TOKEN)) return token;
       }
     }
     Token afterModifiers =
         identifiers.isNotEmpty ? identifiers.head.next : start;
     return isField
-        ? parseFields(start, identifiers.reverse(), type, name, true).next
-        : parseTopLevelMethod(start, afterModifiers, type, getOrSet, name).next;
+        ? parseFields(start, identifiers.reverse(), type, name, true)
+        : parseTopLevelMethod(start, afterModifiers, type, getOrSet, name);
   }
 
   Token parseFields(Token start, Link<Token> modifiers, Token type, Token name,
