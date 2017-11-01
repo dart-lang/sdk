@@ -162,6 +162,8 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
         case SendStructureKind.INDEX_SET:
           return computeSetName('[]=');
         case SendStructureKind.COMPOUND_INDEX_SET:
+        case SendStructureKind.INDEX_PREFIX:
+        case SendStructureKind.INDEX_POSTFIX:
           if (id.kind == IdKind.update) {
             return computeSetName('[]=');
           } else if (id.kind == IdKind.invoke) {

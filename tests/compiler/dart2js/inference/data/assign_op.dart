@@ -8,6 +8,8 @@ main() {
   assignAnd();
   assignIndexPlus();
   assignIndexAnd();
+  assignIndexInc();
+  assignIndexDec();
 }
 
 /*element: assignPlus:[subclass=JSUInt32]*/
@@ -38,4 +40,23 @@ assignIndexAnd() {
       /*Container mask: [exact=JSUInt31] length: 1 type: [exact=JSExtendableArray]*/
       /*update: Container mask: [exact=JSUInt31] length: 1 type: [exact=JSExtendableArray]*/
       [0] /*invoke: [exact=JSUInt31]*/ &= 42;
+}
+
+/*element: assignIndexInc:[subclass=JSPositiveInt]*/
+assignIndexInc() {
+  var i = [87];
+  return i
+      /*Container mask: [subclass=JSPositiveInt] length: 1 type: [exact=JSExtendableArray]*/
+      /*update: Container mask: [subclass=JSPositiveInt] length: 1 type: [exact=JSExtendableArray]*/
+      [0] /*invoke: [subclass=JSPositiveInt]*/ ++;
+}
+
+/*element: assignIndexDec:[subclass=JSInt]*/
+assignIndexDec() {
+  var i = [87];
+  return
+      /*invoke: [subclass=JSInt]*/ --i
+          /*Container mask: [subclass=JSInt] length: 1 type: [exact=JSExtendableArray]*/
+          /*update: Container mask: [subclass=JSInt] length: 1 type: [exact=JSExtendableArray]*/
+          [0];
 }

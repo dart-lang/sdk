@@ -439,6 +439,8 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           computeForNode(node, createUpdateId(node.selector));
           break;
         case SendStructureKind.COMPOUND_INDEX_SET:
+        case SendStructureKind.INDEX_PREFIX:
+        case SendStructureKind.INDEX_POSTFIX:
           computeForNode(node, createAccessId(node.selector));
           computeForNode(node, createInvokeId(node.assignmentOperator));
           computeForNode(node, createUpdateId(node.selector));
