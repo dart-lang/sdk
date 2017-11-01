@@ -197,7 +197,7 @@ class AnalyzerDietListener extends DietListener {
       token = parser.parseMetadataStar(metadata ?? token);
       token = parser.parseTopLevelMember(token);
     } else {
-      token = parser.parseMember(metadata ?? token);
+      token = parser.parseMember(metadata ?? token).next;
     }
     _bodyBuilder.finishFields();
     _bodyBuilder.checkEmpty(token.charOffset);

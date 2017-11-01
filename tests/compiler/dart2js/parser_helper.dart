@@ -107,7 +107,7 @@ Node parseBodyCode(String text, Function parseMethod,
       reporter,
       library.entryCompilationUnit);
   Parser parser = new Parser(listener);
-  Token endToken = parseMethod(parser, tokens);
+  Token endToken = parseMethod(parser, tokens).next;
   assert(endToken.kind == EOF_TOKEN);
   Node node = listener.popNode();
   Expect.isNotNull(node);

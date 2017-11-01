@@ -2652,7 +2652,8 @@ class FastaParserTestCase extends Object
   @override
   Statement parseStatement(String source,
       [bool enableLazyAssignmentOperators]) {
-    return _runParser(source, (parser) => parser.parseStatementOpt,
+    return _runParser(
+        source, (parser) => (token) => parser.parseStatementOpt(token).next,
         codes: NO_ERROR_COMPARISON) as Statement;
   }
 
@@ -2925,7 +2926,7 @@ class ParserProxy implements analyzer.Parser {
       null, // rightBracket
     );
     _eventListener.begin('CompilationUnit');
-    _run((parser) => parser.parseMember, nodeCount: 0);
+    _run((parser) => (token) => parser.parseMember(token).next, nodeCount: 0);
     _eventListener.end('CompilationUnit');
     ClassDeclaration declaration = _astBuilder.classDeclaration;
     _astBuilder.classDeclaration = null;
@@ -2978,7 +2979,8 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   Statement parseStatement2() {
-    return _run((parser) => parser.parseStatementOpt) as Statement;
+    return _run((parser) => (token) => parser.parseStatementOpt(token).next)
+        as Statement;
   }
 
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
@@ -3002,7 +3004,8 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   TypeArgumentList parseTypeArgumentList() {
-    return _run((parser) => parser.parseTypeArgumentsOpt) as TypeArgumentList;
+    return _run((parser) => (token) => parser.parseTypeArgumentsOpt(token))
+        as TypeArgumentList;
   }
 
   @override
@@ -3017,7 +3020,8 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   TypeParameterList parseTypeParameterList() {
-    return _run((parser) => parser.parseTypeVariablesOpt) as TypeParameterList;
+    return _run((parser) => (token) => parser.parseTypeVariablesOpt(token))
+        as TypeParameterList;
   }
 
   /**
