@@ -3840,16 +3840,14 @@ class Parser {
   /// ```
   Token parseYieldStatement(Token token) {
     // TODO(brianwilkerson) Accept the last consumed token.
-    assert(identical('yield', token.stringValue));
+    assert(optional('yield', token));
     Token begin = token;
     listener.beginYieldStatement(begin);
-    token = token.next;
     Token starToken;
-    if (optional('*', token)) {
-      starToken = token;
-      token = token.next;
+    if (optional('*', token.next)) {
+      starToken = token = token.next;
     }
-    token = parseExpression(token);
+    token = parseExpression(token.next);
     token = ensureSemicolon(token);
     listener.endYieldStatement(begin, starToken, token);
     return token;
@@ -3866,12 +3864,12 @@ class Parser {
     Token begin = token;
     listener.beginReturnStatement(begin);
     assert(optional('return', token));
-    token = token.next;
-    if (optional(';', token)) {
-      listener.endReturnStatement(false, begin, token);
-      return token;
+    Token next = token.next;
+    if (optional(';', next)) {
+      listener.endReturnStatement(false, begin, next);
+      return next;
     }
-    token = parseExpression(token);
+    token = parseExpression(token.next);
     token = ensureSemicolon(token);
     listener.endReturnStatement(true, begin, token);
     if (inGenerator) {
@@ -4463,7 +4461,7 @@ class Parser {
         token = token.next;
         break;
       }
-      token = parseMapLiteralEntry(token.next);
+      token = parseMapLiteralEntry(token);
       ++count;
     } while (optional(',', token));
     mayParseFunctionExpressions = old;
@@ -4531,16 +4529,15 @@ class Parser {
   /// ;
   /// ```
   Token parseMapLiteralEntry(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    listener.beginLiteralMapEntry(token);
+    listener.beginLiteralMapEntry(token.next);
     // Assume the listener rejects non-string keys.
     // TODO(brianwilkerson): Change the assumption above by moving error
     // checking into the parser, making it possible to recover.
-    token = parseExpression(token);
+    token = parseExpression(token.next);
     Token colon = token;
-    token = expect(':', token);
-    token = parseExpression(token);
+    expect(':', token);
+    token = parseExpression(token.next);
     listener.endLiteralMapEntry(colon, token);
     return token;
   }
@@ -4825,24 +4822,22 @@ class Parser {
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     do {
-      token = token.next;
-      if (optional(')', token)) {
+      Token next = token.next;
+      if (optional(')', next)) {
+        token = next;
         break;
       }
       Token colon = null;
-      if (optional(':', token.next)) {
-        token =
-            ensureIdentifier(token, IdentifierContext.namedArgumentReference)
-                .next;
+      if (optional(':', next.next)) {
+        token = ensureIdentifier(next, IdentifierContext.namedArgumentReference)
+            .next;
         colon = token;
-        token = token.next;
         hasSeenNamedArgument = true;
       } else if (hasSeenNamedArgument) {
         // Positional argument after named argument.
-        reportRecoverableError(
-            token, fasta.messagePositionalAfterNamedArgument);
+        reportRecoverableError(next, fasta.messagePositionalAfterNamedArgument);
       }
-      token = parseExpression(token);
+      token = parseExpression(token.next);
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
     } while (optional(',', token));
@@ -5103,9 +5098,8 @@ class Parser {
     // TODO(brianwilkerson) Accept the last consumed token.
     assert(optional('in', token) || optional(':', token));
     Token inKeyword = token;
-    token = token.next;
-    listener.beginForInExpression(token);
-    token = parseExpression(token);
+    listener.beginForInExpression(token.next);
+    token = parseExpression(token.next);
     listener.endForInExpression(token);
     token = expect(')', token);
     listener.beginForInBody(token);
@@ -5144,9 +5138,8 @@ class Parser {
     assert(optional('do', token));
     Token doToken = token;
     listener.beginDoWhileStatement(doToken);
-    token = token.next;
-    listener.beginDoWhileStatementBody(token);
-    token = parseStatementOpt(token).next;
+    listener.beginDoWhileStatementBody(token.next);
+    token = parseStatementOpt(token.next).next;
     listener.endDoWhileStatementBody(token);
     Token whileToken = token;
     token = expect('while', token);
@@ -5505,17 +5498,16 @@ class Parser {
     Token commaToken = null;
     token = expect('assert', token);
     Token leftParenthesis = token;
-    token = expect('(', token);
+    expect('(', token);
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseExpression(token);
+    token = parseExpression(token.next);
     if (optional(',', token)) {
-      commaToken = token;
-      token = token.next;
-      if (optional(')', token)) {
-        commaToken = null;
+      if (optional(')', token.next)) {
+        token = token.next;
       } else {
-        token = parseExpression(token);
+        commaToken = token;
+        token = parseExpression(token.next);
       }
     }
     if (optional(',', token)) {
@@ -5524,9 +5516,8 @@ class Parser {
         token = firstExtra;
       } else {
         while (optional(',', token)) {
-          token = token.next;
-          Token begin = token;
-          token = parseExpression(token);
+          Token begin = token.next;
+          token = parseExpression(token.next);
           listener.handleExtraneousExpression(
               begin, fasta.messageAssertExtraneousArgument);
         }
