@@ -73,7 +73,7 @@ class MirrorSystem {
 
   @patch
   static String getName(Symbol symbol) {
-    return internal.Symbol.getUnmangledName(symbol);
+    return internal.Symbol.computeUnmangledName(symbol);
   }
 
   @patch

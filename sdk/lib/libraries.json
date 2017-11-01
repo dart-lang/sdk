@@ -109,9 +109,10 @@
       "_internal": {
         "patches": [
           "../../runtime/lib/internal_patch.dart",
-          "../../runtime/lib/class_id.dart",
+          "../../runtime/lib/class_id_fasta.dart",
           "../../runtime/lib/print_patch.dart",
-          "../../runtime/lib/symbol_patch.dart"
+          "../../runtime/lib/symbol_patch.dart",
+          "internal/patch.dart"
         ],
         "uri": "internal/internal.dart"
       },

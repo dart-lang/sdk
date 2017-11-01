@@ -20,9 +20,10 @@ vm:
       uri: "internal/internal.dart"
       patches:
         - "../../runtime/lib/internal_patch.dart"
-        - "../../runtime/lib/class_id.dart"
+        - "../../runtime/lib/class_id_fasta.dart"
         - "../../runtime/lib/print_patch.dart"
         - "../../runtime/lib/symbol_patch.dart"
+        - "internal/patch.dart"
 
     async:
       uri: "async/async.dart"
