@@ -3570,6 +3570,25 @@ class Wrong<T> {
     listener.assertErrorsWithCodes([ParserErrorCode.INVALID_SYNC]);
   }
 
+  void test_invalidTopLevelVar() {
+    parseCompilationUnit("var Function(var arg);", errors: [
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 21, 2),
+      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 21, 2),
+    ]);
+  }
+
+  void test_invalidTypedef() {
+    parseCompilationUnit("typedef var Function(var arg);",
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.VAR_AS_TYPE_NAME, 8, 3)]
+            : [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 3),
+                expectedError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 8, 3),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 29, 2),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 29, 2),
+              ]);
+  }
+
   void test_invalidUnicodeEscape_incomplete_noDigits() {
     Expression expression = parseStringLiteral("'\\u{'");
     expectNotNullIfNoErrors(expression);

@@ -911,6 +911,41 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
+  void test_invalidTopLevelVar() {
+    // TODO(danrubel) Does not recover.
+    //  'package:analyzer/src/fasta/ast_builder.dart': Failed assertion:
+    //      line 238 pos 12: 'token.isKeywordOrIdentifier': is not true.
+    //  dart:core-patch/errors_patch.dart 35                               _AssertionError._doThrowNew
+    //  dart:core-patch/errors_patch.dart 31                               _AssertionError._throwNew
+    //  package:analyzer/src/fasta/ast_builder.dart 238:12                 AstBuilder.handleIdentifier
+    //  package:front_end/src/fasta/parser/parser.dart 1639:14             Parser.ensureIdentifier
+    //  package:front_end/src/fasta/parser/parser.dart 2594:13             Parser.parseFields
+    //  package:front_end/src/fasta/parser/parser.dart 2565:11             Parser.parseTopLevelMember
+    //  package:front_end/src/fasta/parser/parser.dart 377:14              Parser.parseTopLevelDeclarationImpl
+    //  package:front_end/src/fasta/parser/parser.dart 300:15              Parser.parseUnit
+    //  package:analyzer/src/generated/parser_fasta.dart 85:33             _Parser2.parseCompilationUnit2
+    super.test_invalidTopLevelVar();
+  }
+
+  @failingTest
+  void test_invalidTypedef() {
+    // TODO(danrubel) Does not recover.
+    //  'package:analyzer/src/fasta/ast_builder.dart': Failed assertion:
+    //      line 238 pos 12: 'token.isKeywordOrIdentifier': is not true.
+    //  dart:core-patch/errors_patch.dart 35                               _AssertionError._doThrowNew
+    //  dart:core-patch/errors_patch.dart 31                               _AssertionError._throwNew
+    //  package:analyzer/src/fasta/ast_builder.dart 238:12                 AstBuilder.handleIdentifier
+    //  package:front_end/src/fasta/parser/parser.dart 1639:14             Parser.ensureIdentifier
+    //  package:front_end/src/fasta/parser/parser.dart 2594:13             Parser.parseFields
+    //  package:front_end/src/fasta/parser/parser.dart 2565:11             Parser.parseTopLevelMember
+    //  package:front_end/src/fasta/parser/parser.dart 377:14              Parser.parseTopLevelDeclarationImpl
+    //  package:front_end/src/fasta/parser/parser.dart 300:15              Parser.parseUnit
+    //  package:analyzer/src/generated/parser_fasta.dart 85:33             _Parser2.parseCompilationUnit2
+    super.test_invalidTypedef();
+  }
+
+  @override
+  @failingTest
   void test_invalidUnicodeEscape_incomplete_noDigits() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.
