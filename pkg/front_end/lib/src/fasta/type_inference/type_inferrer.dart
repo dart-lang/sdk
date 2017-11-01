@@ -347,10 +347,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       if (strongMode) {
         if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
           // Error: not assignable.
-          // TODO(paulberry): Calling toString() on the types seems suboptimal.
           library.addWarning(
-              templateInvalidAssignment.withArguments(
-                  actualType.toString(), expectedType.toString()),
+              templateInvalidAssignment.withArguments(actualType, expectedType),
               fileOffset,
               Uri.parse(uri));
         }

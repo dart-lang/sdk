@@ -113,6 +113,16 @@ String compileTemplate(String name, String template, String tip,
         arguments.add("'string2': string2");
         break;
 
+      case "#type":
+        parameters.add("DartType type");
+        arguments.add("'type': type");
+        break;
+
+      case "#type2":
+        parameters.add("DartType type2");
+        arguments.add("'type2': type2");
+        break;
+
       case "#uri":
         parameters.add("Uri uri_");
         conversions.add("String uri = relativizeUri(uri_);");

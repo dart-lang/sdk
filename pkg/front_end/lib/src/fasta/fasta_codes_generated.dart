@@ -2249,29 +2249,30 @@ $string""", arguments: {'string': string});
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
-        String name,
-        String
-            name2)> templateInvalidAssignment = const Template<
-        Message Function(String name, String name2)>(
+        DartType type,
+        DartType
+            type2)> templateInvalidAssignment = const Template<
+        Message Function(DartType type, DartType type2)>(
     messageTemplate:
-        r"""A value of type '#name' can't be assigned to a variable of type '#name2'.""",
+        r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
     tipTemplate:
-        r"""Try changing the type of the left hand side, or casting the right hand side to '#name2'.""",
+        r"""Try changing the type of the left hand side, or casting the right hand side to '#type2'.""",
     withArguments: _withArgumentsInvalidAssignment);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)> codeInvalidAssignment =
-    const Code<Message Function(String name, String name2)>(
+const Code<Message Function(DartType type, DartType type2)>
+    codeInvalidAssignment =
+    const Code<Message Function(DartType type, DartType type2)>(
         "InvalidAssignment", templateInvalidAssignment,
-        analyzerCode: "INVALID_ASSIGNMENT");
+        analyzerCode: "INVALID_ASSIGNMENT", dart2jsCode: "*ignored*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidAssignment(String name, String name2) {
+Message _withArgumentsInvalidAssignment(DartType type, DartType type2) {
   return new Message(codeInvalidAssignment,
       message:
-          """A value of type '$name' can't be assigned to a variable of type '$name2'.""",
-      tip: """Try changing the type of the left hand side, or casting the right hand side to '$name2'.""",
-      arguments: {'name': name, 'name2': name2});
+          """A value of type '$type' can't be assigned to a variable of type '$type2'.""",
+      tip: """Try changing the type of the left hand side, or casting the right hand side to '$type2'.""",
+      arguments: {'type': type, 'type2': type2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -1475,8 +1475,8 @@ ExternalFactoryRedirection:
   tip: "Try removing the 'external' modifier."
 
 InvalidAssignment:
-  template: "A value of type '#name' can't be assigned to a variable of type '#name2'."
-  tip: "Try changing the type of the left hand side, or casting the right hand side to '#name2'."
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
+  tip: "Try changing the type of the left hand side, or casting the right hand side to '#type2'."
   analyzerCode: INVALID_ASSIGNMENT
   dart2jsCode: "*ignored*"
   script: >
