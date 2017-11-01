@@ -1,4 +1,6 @@
 {
+  "comment:0": "NOTE: THIS FILE IS GENERATED. DO NOT EDIT.",
+  "comment:1": "Instead modify 'sdk/lib/libraries.yaml' and follow the instructions therein.",
   "vm": {
     "libraries": {
       "_builtin": {
