@@ -400,7 +400,7 @@ class C {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31213')
   test_typedef_generic_asFieldType() async {
     await super.test_typedef_generic_asFieldType();
   }
