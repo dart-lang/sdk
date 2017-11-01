@@ -911,8 +911,8 @@ class AstBuilder extends ScopeListener {
   @override
   void endOptionalFormalParameters(
       int count, Token leftDelimeter, Token rightDelimeter) {
-    assert(optional('[', leftDelimeter) || optional('{', leftDelimeter));
-    assert(optional(']', rightDelimeter) || optional('}', rightDelimeter));
+    assert((optional('[', leftDelimeter) && optional(']', rightDelimeter)) ||
+        (optional('{', leftDelimeter) && optional('}', rightDelimeter)));
     debugEvent("OptionalFormalParameters");
 
     push(new _OptionalFormalParameters(
