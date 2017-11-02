@@ -20,6 +20,7 @@
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/heap.h"
+#include "vm/image_snapshot.h"
 #include "vm/isolate_reload.h"
 #include "vm/lockers.h"
 #include "vm/log.h"

@@ -6,13 +6,9 @@
 
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
-#include "vm/class_finalizer.h"
 #include "vm/dart.h"
-#include "vm/dart_entry.h"
-#include "vm/exceptions.h"
 #include "vm/heap.h"
-#include "vm/lockers.h"
-#include "vm/longjump.h"
+#include "vm/image_snapshot.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -4686,6 +4682,20 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
+int32_t Serializer::GetTextOffset(RawInstructions* instr, RawCode* code) const {
+  intptr_t offset = heap_->GetObjectId(instr);
+  if (offset == 0) {
+    offset = image_writer_->GetTextOffsetFor(instr, code);
+    ASSERT(offset != 0);
+    heap_->SetObjectId(instr, offset);
+  }
+  return offset;
+}
+
+int32_t Serializer::GetDataOffset(RawObject* object) const {
+  return image_writer_->GetDataOffsetFor(object);
+}
+
 void Serializer::Push(RawObject* object) {
   if (!object->IsHeapObject()) {
     RawSmi* smi = Smi::RawCast(object);
@@ -5225,6 +5235,14 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
   return ApiError::null();
 }
 
+RawInstructions* Deserializer::GetInstructionsAt(int32_t offset) const {
+  return image_reader_->GetInstructionsAt(offset);
+}
+
+RawObject* Deserializer::GetObjectAt(int32_t offset) const {
+  return image_reader_->GetObjectAt(offset);
+}
+
 void Deserializer::Prepare() {
   num_base_objects_ = Read<int32_t>();
   num_objects_ = Read<int32_t>();
@@ -5481,8 +5499,6 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
       mapped_data_size_(0),
       mapped_instructions_size_(0) {
   ASSERT(alloc_ != NULL);
-  ASSERT(isolate() != NULL);
-  ASSERT(ClassFinalizer::AllClassesFinalized());
   ASSERT(isolate() != NULL);
   ASSERT(heap() != NULL);
   ObjectStore* object_store = isolate()->object_store();

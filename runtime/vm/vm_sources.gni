@@ -120,6 +120,8 @@ vm_sources = [
   "hash_table.h",
   "heap.cc",
   "heap.h",
+  "image_snapshot.cc",
+  "image_snapshot.h",
   "instructions.h",
   "instructions_arm.cc",
   "instructions_arm.h",

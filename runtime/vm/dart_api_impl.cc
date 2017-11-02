@@ -25,6 +25,7 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
+#include "vm/image_snapshot.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
