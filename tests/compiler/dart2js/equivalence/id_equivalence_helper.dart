@@ -24,6 +24,16 @@ bool useColors = stdout.supportsAnsiEscapes;
 
 /// Colorize diffs [left] and [right] and [delimiter], if ANSI colors are
 /// supported.
+String colorizeMatch(String text) {
+  if (useColors) {
+    return '${colors.blue(text)}';
+  } else {
+    return text;
+  }
+}
+
+/// Colorize diffs [left] and [right] and [delimiter], if ANSI colors are
+/// supported.
 String colorizeDiff(String left, String delimiter, String right) {
   if (useColors) {
     return '${colors.green(left)}'
@@ -135,18 +145,23 @@ class CompiledData {
       this.compiler, this.elementEnvironment, this.mainUri, this.actualMaps);
 
   Map<int, List<String>> computeDiffAnnotationsAgainst(
-      Uri uri, CompiledData other) {
+      Uri uri, CompiledData other,
+      {bool includeMatches: false}) {
     Map<Id, ActualData> thisMap = actualMaps[uri];
     Map<Id, ActualData> otherMap = other.actualMaps[uri];
     Map<int, List<String>> annotations = <int, List<String>>{};
     thisMap.forEach((Id id, ActualData data1) {
       ActualData data2 = otherMap[id];
+      String value1 = '${data1.value}';
       if (data1.value != data2?.value) {
-        String value1 = '${data1.value}';
         String value2 = '${data2?.value ?? '---'}';
         annotations
             .putIfAbsent(data1.sourceSpan.begin, () => [])
             .add(colorizeDiff(value1, ' | ', value2));
+      } else if (includeMatches) {
+        annotations
+            .putIfAbsent(data1.sourceSpan.begin, () => [])
+            .add(colorizeMatch(value1));
       }
     });
     otherMap.forEach((Id id, ActualData data2) {
@@ -438,7 +453,8 @@ Future<bool> compareData(
     {List<String> options: const <String>[],
     bool forMainLibraryOnly: true,
     bool skipUnprocessedMembers: false,
-    bool skipFailedCompilations: false}) async {
+    bool skipFailedCompilations: false,
+    bool verbose: false}) async {
   CompiledData data1 = await computeData(
       entryPoint, memorySourceFiles, computeAstData,
       options: options,
@@ -453,12 +469,13 @@ Future<bool> compareData(
       skipUnprocessedMembers: skipUnprocessedMembers,
       skipFailedCompilations: skipFailedCompilations);
   if (data2 == null) return false;
-  await compareCompiledData(data1, data2, skipMissingUris: !forMainLibraryOnly);
+  await compareCompiledData(data1, data2,
+      skipMissingUris: !forMainLibraryOnly, verbose: verbose);
   return true;
 }
 
 Future compareCompiledData(CompiledData data1, CompiledData data2,
-    {bool skipMissingUris: false}) async {
+    {bool skipMissingUris: false, bool verbose: false}) async {
   bool hasErrors = false;
   for (Uri uri in data1.actualMaps.keys) {
     bool hasErrorsInUri = false;
@@ -470,7 +487,6 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
     SourceFileProvider provider = data1.compiler.provider;
     String sourceCode = (await provider.getUtf8SourceFile(uri)).slowText();
     actualMap1.forEach((Id id, ActualData actualData1) {
-      //if (hasErrorsInUri) return;
       IdValue value1 = actualData1.value;
       IdValue value2 = actualMap2[id]?.value;
       if (value1 != value2) {
@@ -478,11 +494,8 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
             '$id: from source:${value1},from dill:${value2}');
         hasErrors = hasErrorsInUri = true;
       }
-      //Expect.equals(value1, value2, 'Value mismatch for $id');
     });
-    //if (hasErrorsInUri) continue;
     actualMap2.forEach((Id id, ActualData actualData2) {
-      //if (hasErrorsInUri) return;
       IdValue value2 = actualData2.value;
       IdValue value1 = actualMap1[id]?.value;
       if (value1 != value2) {
@@ -490,12 +503,13 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
             '$id: from source:${value1},from dill:${value2}');
         hasErrors = hasErrorsInUri = true;
       }
-      //Expect.equals(value1, value2, 'Unexpected data for $id');
     });
     if (hasErrorsInUri) {
       print('--annotations diff $uri---------------------------------------');
       print(withAnnotations(
-          sourceCode, data1.computeDiffAnnotationsAgainst(uri, data2)));
+          sourceCode,
+          data1.computeDiffAnnotationsAgainst(uri, data2,
+              includeMatches: verbose)));
       print('----------------------------------------------------------');
     }
   }

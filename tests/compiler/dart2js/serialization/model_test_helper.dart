@@ -169,12 +169,12 @@ void checkElements(
   if (element1.isFunction ||
       element1.isConstructor ||
       (element1.isField && element1.isInstanceMember)) {
-    ClosureRepresentationInfo closureData1 = compiler1
-        .backendStrategy.closureDataLookup
-        .getClosureInfoForMember(element1 as MemberElement);
-    ClosureRepresentationInfo closureData2 = compiler2
-        .backendStrategy.closureDataLookup
-        .getClosureInfoForMember(element2 as MemberElement);
+    ClosureTask closureTask1 = compiler1.backendStrategy.closureDataLookup;
+    ClosureRepresentationInfo closureData1 =
+        closureTask1.getClosureInfoForMember(element1 as MemberElement);
+    ClosureTask closureTask2 = compiler2.backendStrategy.closureDataLookup;
+    ClosureRepresentationInfo closureData2 =
+        closureTask2.getClosureInfoForMember(element2 as MemberElement);
 
     checkElementIdentities(
         closureData1,

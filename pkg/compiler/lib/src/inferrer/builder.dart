@@ -4,7 +4,7 @@
 
 library simple_types_inferrer;
 
-import '../closure.dart' show ClosureRepresentationInfo;
+import '../closure.dart' show ClosureRepresentationInfo, ScopeInfo;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
@@ -914,10 +914,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureRepresentationInfo closureData = compiler
-        .backendStrategy.closureDataLookup
-        .getClosureInfoForMember(analyzedElement);
-    closureData.forEachBoxedVariable((variable, field) {
+    ScopeInfo scopeInfo = compiler.backendStrategy.closureDataLookup
+        .getScopeInfo(analyzedElement);
+    scopeInfo.forEachBoxedVariable((variable, field) {
       locals.setCapturedAndBoxed(variable, field);
     });
     if (analyzedElement.isField) {

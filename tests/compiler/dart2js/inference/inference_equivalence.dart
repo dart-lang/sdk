@@ -13,11 +13,13 @@ import 'inference_test_helper.dart';
 
 main(List<String> args) {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);
+  argParser.addFlag('verbose', negatable: true, defaultsTo: false);
   argParser.addFlag('colors', negatable: true);
   ArgResults argResults = argParser.parse(args);
   if (argResults['colors'] != null) {
     useColors = argResults['colors'];
   }
+  bool verbose = argResults['verbose'];
 
   InferrerEngineImpl.useSorterForTesting = true;
   asyncTest(() async {
@@ -46,7 +48,8 @@ main(List<String> args) {
                 options: [stopAfterTypeInference],
                 forMainLibraryOnly: false,
                 skipUnprocessedMembers: true,
-                skipFailedCompilations: true);
+                skipFailedCompilations: true,
+                verbose: verbose);
           }, zoneSpecification: specification);
           if (!isSuccess) {
             print('  skipped due to compile-time errors');
