@@ -189,6 +189,9 @@ abstract class TypeInferenceEngine {
 
   CoreTypes get coreTypes;
 
+  /// Indicates when top level type inference is fully completed.
+  void set isTopLevelInferenceComplete(bool value);
+
   /// Indicates whether the "prepare" phase of type inference is complete.
   void set isTypeInferencePrepared(bool value);
 
@@ -255,6 +258,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   @override
   bool isTypeInferencePrepared = false;
+
+  @override
+  bool isTopLevelInferenceComplete = false;
 
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
 

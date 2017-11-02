@@ -556,6 +556,7 @@ class SourceLoader<L> extends Loader<L> {
     // inference info?
     typeInferenceEngine.classHierarchy =
         hierarchy = new IncrementalClassHierarchy();
+    typeInferenceEngine.isTopLevelInferenceComplete = true;
     ticker.logMs("Performed top level inference");
   }
 
