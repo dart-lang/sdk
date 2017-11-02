@@ -295,24 +295,24 @@ class Parser {
     listener.beginCompilationUnit(token);
     int count = 0;
     DirectiveContext directiveState = new DirectiveContext();
-    while (!token.isEof) {
-      Token start = token;
-      token = parseTopLevelDeclarationImpl(
-              syntheticPreviousToken(token), directiveState)
-          .next;
-      listener.endTopLevelDeclaration(token);
+    token = syntheticPreviousToken(token);
+    while (!token.next.isEof) {
+      Token start = token.next;
+      token = parseTopLevelDeclarationImpl(token, directiveState);
+      listener.endTopLevelDeclaration(token.next);
       count++;
-      if (start == token) {
+      if (start == token.next) {
         // If progress has not been made reaching the end of the token stream,
         // then report an error and skip the current token.
+        token = token.next;
         reportRecoverableErrorWithToken(
             token, fasta.templateExpectedDeclaration);
         listener.handleInvalidTopLevelDeclaration(token);
-        token = token.next;
-        listener.endTopLevelDeclaration(token);
+        listener.endTopLevelDeclaration(token.next);
         count++;
       }
     }
+    token = token.next;
     listener.endCompilationUnit(count, token);
     // Clear fields that could lead to memory leak.
     cachedRewriter = null;
