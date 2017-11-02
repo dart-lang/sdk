@@ -5,7 +5,7 @@ import "dart:core" as core;
 static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:9:74: Error: Previous use of 'g'.\n  /*@returnType=dynamic*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();\n                                                                         ^"]/* from null */;
 static method test() → dynamic {
   function f() → dynamic
-    return throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#g, 32, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
+    return throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#g, 32, <dynamic>[].toList(growable: false), <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
   const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:14:3: Error: Can't declare 'g' because it was already used in this scope.\n  g() => 0;\n  ^"));
   () → dynamic v = f;
 }

@@ -57,8 +57,8 @@ class CoreTypes {
   Class _invocationClass;
   Constructor _externalNameDefaultConstructor;
   Class _invocationMirrorClass;
-  Constructor _invocationMirrorDefaultConstructor;
   Constructor _invocationMirrorWithTypeConstructor;
+  Constructor _invocationMirrorWithoutTypeConstructor;
   Class _noSuchMethodErrorClass;
   Constructor _noSuchMethodErrorDefaultConstructor;
   Procedure _listFromConstructor;
@@ -229,14 +229,14 @@ class CoreTypes {
         _index.getClass('dart:core', '_InvocationMirror');
   }
 
-  Constructor get invocationMirrorDefaultConstructor {
-    return _invocationMirrorDefaultConstructor ??=
-        _index.getMember('dart:core', '_InvocationMirror', '');
-  }
-
   Constructor get invocationMirrorWithTypeConstructor {
     return _invocationMirrorWithTypeConstructor ??=
         _index.getMember('dart:core', '_InvocationMirror', '_withType');
+  }
+
+  Constructor get invocationMirrorWithoutTypeConstructor {
+    return _invocationMirrorWithoutTypeConstructor ??=
+        _index.getMember('dart:core', '_InvocationMirror', '_withoutType');
   }
 
   Class get iterableClass {

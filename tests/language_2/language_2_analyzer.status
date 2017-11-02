@@ -464,6 +464,9 @@ mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
 
+[ $compiler == dart2analyzer ]
+generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
+
 [ $compiler == dart2analyzer && ! $strong && $checked ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError

@@ -1086,3 +1086,6 @@ deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
 deferred_not_loaded_check_test: RuntimeError
+
+[ $runtime == vm && $compiler != dartk ]
+generic_no_such_method_dispatcher_simple_test: Skip # This test is only for kernel.
