@@ -1096,8 +1096,8 @@ class Parser {
   /// ```
   Token parseOptionalFormalParameters(
       Token token, bool isNamed, MemberKind kind) {
-    assert(isNamed ? optional('{', token.next) : optional('[', token.next));
     Token begin = token = token.next;
+    assert(isNamed ? optional('{', token) : optional('[', token));
     listener.beginOptionalFormalParameters(begin);
     int parameterCount = 0;
     do {
@@ -4682,16 +4682,15 @@ class Parser {
     assert(optional('#', token));
     Token hashToken = token;
     listener.beginLiteralSymbol(hashToken);
-    if (token.next.isUserDefinableOperator) {
-      token = token.next;
-      listener.handleOperator(token);
+    Token next = token.next;
+    if (next.isUserDefinableOperator) {
+      listener.handleOperator(next);
       listener.endLiteralSymbol(hashToken, 1);
-      return token;
-    } else if (optional('void', token.next)) {
-      token = token.next;
-      listener.handleSymbolVoid(token);
+      return next;
+    } else if (optional('void', next)) {
+      listener.handleSymbolVoid(next);
       listener.endLiteralSymbol(hashToken, 1);
-      return token;
+      return next;
     } else {
       int count = 1;
       token = ensureIdentifier(token.next, IdentifierContext.literalSymbol);
