@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import("../../build/dart_host_sdk_toolchain.gni")
 import("../../build/executable_suffix.gni")
 import("../../build/prebuilt_dart_sdk.gni")
 import("observatory_sources.gni")
@@ -11,10 +10,10 @@ import("observatory_sources.gni")
 pub_build_deps = []
 pub_build_args = []
 if (!prebuilt_dart_exe_works) {
-  pub_build_deps += [ "../bin:dart_bootstrap($dart_host_toolchain)" ]
+  pub_build_deps += [ "../bin:dart_bootstrap($host_toolchain)" ]
 
-  dart_out_dir = get_label_info("../bin:dart_bootstrap($dart_host_toolchain)",
-                                "root_out_dir")
+  dart_out_dir =
+      get_label_info("../bin:dart_bootstrap($host_toolchain)", "root_out_dir")
   dart_bootstrap = rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
 
   pub_build_args = [

@@ -66,8 +66,6 @@
 # saves unnecessarily compiling your tool for the target platform. But if you
 # need a target build of your tool as well, just leave off the if statement.
 
-import("dart_host_sdk_toolchain.gni")
-
 if (host_os == "win") {
   _host_executable_suffix = ".exe"
 } else {
@@ -99,7 +97,7 @@ template("compiled_action") {
     outputs = invoker.outputs
 
     # Constuct the host toolchain version of the tool.
-    host_tool = invoker.tool + "($dart_host_toolchain)"
+    host_tool = invoker.tool + "($host_toolchain)"
 
     # Get the path to the executable. Currently, this assumes that the tool
     # does not specify output_name so that the target name is the name to use.
@@ -152,7 +150,7 @@ template("compiled_action_foreach") {
     outputs = invoker.outputs
 
     # Constuct the host toolchain version of the tool.
-    host_tool = invoker.tool + "($dart_host_toolchain)"
+    host_tool = invoker.tool + "($host_toolchain)"
 
     # Get the path to the executable. Currently, this assumes that the tool
     # does not specify output_name so that the target name is the name to use.
