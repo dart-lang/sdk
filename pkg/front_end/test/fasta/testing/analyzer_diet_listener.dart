@@ -10,6 +10,8 @@ import 'package:analyzer/dart/element/type.dart' as ast show DartType;
 
 import 'package:analyzer/src/dart/element/type.dart';
 
+import 'package:analyzer/src/fasta/ast_builder.dart' show AstBuilder;
+
 import 'package:analyzer/src/fasta/resolution_applier.dart'
     show ValidatingResolutionApplier;
 
@@ -46,8 +48,6 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/kernel.dart' as kernel show DartType;
-
-import 'ast_builder.dart' show AstBuilder;
 
 class AnalyzerDietListener extends DietListener {
   /// The body builder for the method currently being compiled, or `null` if no

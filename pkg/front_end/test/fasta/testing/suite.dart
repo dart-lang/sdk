@@ -53,8 +53,6 @@ import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
-import 'package:analyzer/src/fasta/analyzer_target.dart' show AnalyzerTarget;
-
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
@@ -71,6 +69,8 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 export 'package:testing/testing.dart' show Chain, runMe;
+
+import 'analyzer_target.dart' show AnalyzerTarget;
 
 const String STRONG_MODE = " strong mode ";
 
