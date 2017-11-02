@@ -1599,8 +1599,11 @@ class BinaryBuilder {
         type: readDartType(), initializer: readExpressionOption(), flags: flags)
       ..fileOffset = offset
       ..fileEqualsOffset = fileEqualsOffset;
-    for (var annotation in annotations) {
-      annotation.parent = node;
+    if (annotations.isNotEmpty) {
+      for (int i = 0; i < annotations.length; ++i) {
+        var annotation = annotations[i];
+        annotation.parent = node;
+      }
     }
     return node;
   }
