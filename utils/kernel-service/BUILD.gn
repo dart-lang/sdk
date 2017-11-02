@@ -2,12 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/dart_host_sdk_toolchain.gni")
 import("../application_snapshot.gni")
 
 application_snapshot("kernel-service") {
   dfe_script = "kernel-service.dart"
   deps = [
-    "../../runtime/vm:kernel_platform_files($host_toolchain)",
+    "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
   ]
   main_dart = dfe_script
   training_args = [
