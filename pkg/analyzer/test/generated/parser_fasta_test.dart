@@ -3015,7 +3015,9 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   TypeParameter parseTypeParameter() {
-    return _run((parser) => parser.parseTypeVariable) as TypeParameter;
+    return _run((parser) => (token) =>
+            parser.parseTypeVariable(parser.syntheticPreviousToken(token)))
+        as TypeParameter;
   }
 
   @override
