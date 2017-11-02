@@ -159,7 +159,12 @@ class BinaryBuilder {
   }
 
   List<String> readStringReferenceList() {
-    return new List<String>.generate(readUInt(), (i) => readStringReference());
+    int length = readUInt();
+    List<String> result = new List<String>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readStringReference();
+    }
+    return result;
   }
 
   String readStringOrNullIfEmpty() {
@@ -607,7 +612,12 @@ class BinaryBuilder {
   }
 
   List<Combinator> readCombinatorList() {
-    return new List<Combinator>.generate(readUInt(), (i) => readCombinator());
+    int length = readUInt();
+    List<Combinator> result = new List<Combinator>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readCombinator();
+    }
+    return result;
   }
 
   void _readLibraryParts(Library library) {
@@ -974,7 +984,12 @@ class BinaryBuilder {
   }
 
   List<Expression> readExpressionList() {
-    return new List<Expression>.generate(readUInt(), (i) => readExpression());
+    int length = readUInt();
+    List<Expression> result = new List<Expression>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readExpression();
+    }
+    return result;
   }
 
   Expression readExpressionOption() {
@@ -1219,7 +1234,12 @@ class BinaryBuilder {
   }
 
   List<MapEntry> readMapEntryList() {
-    return new List<MapEntry>.generate(readUInt(), (i) => readMapEntry());
+    int length = readUInt();
+    List<MapEntry> result = new List<MapEntry>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readMapEntry();
+    }
+    return result;
   }
 
   MapEntry readMapEntry() {
@@ -1227,7 +1247,12 @@ class BinaryBuilder {
   }
 
   List<Statement> readStatementList() {
-    return new List<Statement>.generate(readUInt(), (i) => readStatement());
+    int length = readUInt();
+    List<Statement> result = new List<Statement>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readStatement();
+    }
+    return result;
   }
 
   Statement readStatementOrNullIfEmpty() {
@@ -1305,8 +1330,10 @@ class BinaryBuilder {
         var offset = readOffset();
         var expression = readExpression();
         int count = readUInt();
-        List<SwitchCase> cases =
-            new List<SwitchCase>.generate(count, (i) => new SwitchCase.empty());
+        List<SwitchCase> cases = new List<SwitchCase>(count);
+        for (int i = 0; i < count; ++i) {
+          cases[i] = new SwitchCase.empty();
+        }
         switchCaseStack.addAll(cases);
         for (int i = 0; i < cases.length; ++i) {
           readSwitchCaseInto(cases[i]);
@@ -1367,7 +1394,12 @@ class BinaryBuilder {
   }
 
   List<Catch> readCatchList() {
-    return new List<Catch>.generate(readUInt(), (i) => readCatch());
+    int length = readUInt();
+    List<Catch> result = new List<Catch>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readCatch();
+    }
+    return result;
   }
 
   Catch readCatch() {
@@ -1397,15 +1429,30 @@ class BinaryBuilder {
   }
 
   List<Supertype> readSupertypeList() {
-    return new List<Supertype>.generate(readUInt(), (i) => readSupertype());
+    int length = readUInt();
+    List<Supertype> result = new List<Supertype>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readSupertype();
+    }
+    return result;
   }
 
   List<DartType> readDartTypeList() {
-    return new List<DartType>.generate(readUInt(), (i) => readDartType());
+    int length = readUInt();
+    List<DartType> result = new List<DartType>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readDartType();
+    }
+    return result;
   }
 
   List<NamedType> readNamedTypeList() {
-    return new List<NamedType>.generate(readUInt(), (i) => readNamedType());
+    int length = readUInt();
+    List<NamedType> result = new List<NamedType>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readNamedType();
+    }
+    return result;
   }
 
   NamedType readNamedType() {
@@ -1476,8 +1523,10 @@ class BinaryBuilder {
     int length = readUInt();
     if (length == 0) return list ?? <TypeParameter>[];
     if (list == null) {
-      list = new List<TypeParameter>.generate(
-          length, (i) => new TypeParameter(null, null)..parent = parent);
+      list = new List<TypeParameter>(length);
+      for (int i = 0; i < length; ++i) {
+        list[i] = new TypeParameter(null, null)..parent = parent;
+      }
     } else if (list.length != length) {
       list.length = length;
       for (int i = 0; i < length; ++i) {
@@ -1508,8 +1557,12 @@ class BinaryBuilder {
   }
 
   List<NamedExpression> readNamedExpressionList() {
-    return new List<NamedExpression>.generate(
-        readUInt(), (i) => readNamedExpression());
+    int length = readUInt();
+    List<NamedExpression> result = new List<NamedExpression>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readNamedExpression();
+    }
+    return result;
   }
 
   NamedExpression readNamedExpression() {
@@ -1517,8 +1570,12 @@ class BinaryBuilder {
   }
 
   List<VariableDeclaration> readAndPushVariableDeclarationList() {
-    return new List<VariableDeclaration>.generate(
-        readUInt(), (i) => readAndPushVariableDeclaration());
+    int length = readUInt();
+    List<VariableDeclaration> result = new List<VariableDeclaration>(length);
+    for (int i = 0; i < length; ++i) {
+      result[i] = readAndPushVariableDeclaration();
+    }
+    return result;
   }
 
   VariableDeclaration readAndPushVariableDeclarationOption() {
