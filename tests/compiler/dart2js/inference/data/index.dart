@@ -158,6 +158,35 @@ intDictionaryLookupSingle() {
       ['foo'];
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Index access on custom class.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Class1.:[exact=Class1]*/
+class Class1 {
+  /*element: Class1.[]:[exact=JSUInt31]*/
+  operator [](/*[exact=JSUInt31]*/ index) => index;
+}
+
+/*element: customIndex:[exact=JSUInt31]*/
+customIndex() => new Class1() /*[exact=Class1]*/ [42];
+
+////////////////////////////////////////////////////////////////////////////////
+// Index access on custom class through `this`.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Class2.:[exact=Class2]*/
+class Class2 {
+  /*element: Class2.[]:[exact=JSUInt31]*/
+  operator [](/*[exact=JSUInt31]*/ index) => index;
+
+  /*element: Class2.method:[exact=JSUInt31]*/
+  method() => this /*[exact=Class2]*/ [42];
+}
+
+/*element: customIndexThis:[exact=JSUInt31]*/
+customIndexThis() => new Class2(). /*invoke: [exact=Class2]*/ method();
+
 /*element: main:[null]*/
 main() {
   listIndexSingle();
@@ -176,4 +205,7 @@ main() {
   dictionaryLookupMissing();
 
   intDictionaryLookupSingle();
+
+  customIndex();
+  customIndexThis();
 }
