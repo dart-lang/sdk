@@ -492,12 +492,14 @@ type PropertySet extends Expression {
 
 type SuperPropertyGet extends Expression {
   Byte tag = 24;
+  FileOffset fileOffset;
   Name name;
   MemberReference interfaceTarget; // May be NullReference.
 }
 
 type SuperPropertySet extends Expression {
   Byte tag = 25;
+  FileOffset fileOffset;
   Name name;
   Expression value;
   MemberReference interfaceTarget; // May be NullReference.

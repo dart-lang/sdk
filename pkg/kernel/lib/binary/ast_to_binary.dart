@@ -815,12 +815,14 @@ class BinaryPrinter extends Visitor implements BinarySink {
 
   visitSuperPropertyGet(SuperPropertyGet node) {
     writeByte(Tag.SuperPropertyGet);
+    writeOffset(node.fileOffset);
     writeName(node.name);
     writeReference(node.interfaceTargetReference);
   }
 
   visitSuperPropertySet(SuperPropertySet node) {
     writeByte(Tag.SuperPropertySet);
+    writeOffset(node.fileOffset);
     writeName(node.name);
     writeNode(node.value);
     writeReference(node.interfaceTargetReference);
