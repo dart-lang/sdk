@@ -924,6 +924,8 @@ if (is_fuchsia) {
   import("//packages/package.gni")
 
   package("package") {
+    system_image = true
+
     package_name = "dart"
 
     deps = [
@@ -942,6 +944,8 @@ if (is_fuchsia) {
   }
 
   package("dart_tests") {
+    system_image = true
+
     deps = [ ":hello_fuchsia" ]
 
     binaries = [
