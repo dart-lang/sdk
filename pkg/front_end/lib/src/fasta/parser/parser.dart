@@ -466,7 +466,7 @@ class Parser {
     assert(optional('library', token));
     Token libraryKeyword = token;
     listener.beginLibraryName(libraryKeyword);
-    token = parseQualified(token.next, IdentifierContext.libraryName,
+    token = parseQualified(token, IdentifierContext.libraryName,
             IdentifierContext.libraryNameContinuation)
         .next;
     token = ensureSemicolon(token);
@@ -657,7 +657,7 @@ class Parser {
     Token ifKeyword = token;
     token = expect('if', token);
     Token leftParen = token;
-    token = expect('(', token);
+    expect('(', token);
     token = parseDottedName(token).next;
     Token equalitySign;
     if (optional('==', token)) {
@@ -676,8 +676,7 @@ class Parser {
   /// ;
   /// ```
   Token parseDottedName(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    token = ensureIdentifier(token, IdentifierContext.dottedName);
+    token = ensureIdentifier(token.next, IdentifierContext.dottedName);
     Token firstIdentifier = token;
     int count = 1;
     while (optional('.', token.next)) {
@@ -699,8 +698,8 @@ class Parser {
     assert(optional('export', token));
     Token exportKeyword = token;
     listener.beginExport(exportKeyword);
-    token = ensureParseLiteralString(token.next).next;
-    token = parseConditionalUris(token);
+    token = ensureParseLiteralString(token.next);
+    token = parseConditionalUris(token.next);
     token = parseCombinators(token);
     token = ensureSemicolon(token);
     listener.endExport(exportKeyword, token);
@@ -743,7 +742,7 @@ class Parser {
     assert(optional('hide', token));
     Token hideKeyword = token;
     listener.beginHide(hideKeyword);
-    token = parseIdentifierList(token.next);
+    token = parseIdentifierList(token);
     listener.endHide(hideKeyword);
     return token;
   }
@@ -758,7 +757,7 @@ class Parser {
     assert(optional('show', token));
     Token showKeyword = token;
     listener.beginShow(showKeyword);
-    token = parseIdentifierList(token.next);
+    token = parseIdentifierList(token);
     listener.endShow(showKeyword);
     return token;
   }
@@ -769,8 +768,7 @@ class Parser {
   /// ;
   /// ```
   Token parseIdentifierList(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    token = ensureIdentifier(token, IdentifierContext.combinator);
+    token = ensureIdentifier(token.next, IdentifierContext.combinator);
     int count = 1;
     while (optional(',', token.next)) {
       token = ensureIdentifier(token.next.next, IdentifierContext.combinator);
@@ -786,10 +784,9 @@ class Parser {
   /// ;
   /// ```
   Token parseTypeList(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    listener.beginTypeList(token);
-    token = parseType(token);
+    listener.beginTypeList(token.next);
+    token = parseType(token.next);
     int count = 1;
     while (optional(',', token)) {
       token = parseType(token.next);
@@ -841,7 +838,7 @@ class Parser {
     Token ofKeyword = token.next;
     bool hasName = ofKeyword.next.isIdentifier;
     if (hasName) {
-      token = parseQualified(ofKeyword.next, IdentifierContext.partName,
+      token = parseQualified(ofKeyword, IdentifierContext.partName,
               IdentifierContext.partNameContinuation)
           .next;
     } else {
@@ -947,9 +944,8 @@ class Parser {
       token = expect('=', token);
       token = parseType(token);
     } else {
-      token = ensureIdentifier(afterType, IdentifierContext.typedefDeclaration)
-          .next;
-      token = parseTypeVariablesOpt(token);
+      token = ensureIdentifier(afterType, IdentifierContext.typedefDeclaration);
+      token = parseTypeVariablesOpt(token.next);
       token =
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias)
               .next;
@@ -966,7 +962,7 @@ class Parser {
     // TODO(brianwilkerson) Return the last consumed token.
     listener.beginMixinApplication(token);
     Token withKeyword = token;
-    token = expect('with', token);
+    expect('with', token);
     token = parseTypeList(token);
     listener.endMixinApplication(withKeyword);
     return token;
@@ -1029,10 +1025,10 @@ class Parser {
       ++parameterCount;
       String value = next.stringValue;
       if (identical(value, '[')) {
-        token = parseOptionalFormalParameters(token.next, false, kind).next;
+        token = parseOptionalFormalParameters(token, false, kind).next;
         break;
       } else if (identical(value, '{')) {
-        token = parseOptionalFormalParameters(token.next, true, kind).next;
+        token = parseOptionalFormalParameters(token, true, kind).next;
         break;
       } else if (identical(value, '[]')) {
         --parameterCount;
@@ -1100,9 +1096,8 @@ class Parser {
   /// ```
   Token parseOptionalFormalParameters(
       Token token, bool isNamed, MemberKind kind) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(isNamed ? optional('{', token) : optional('[', token));
-    Token begin = token;
+    assert(isNamed ? optional('{', token.next) : optional('[', token.next));
+    Token begin = token = token.next;
     listener.beginOptionalFormalParameters(begin);
     int parameterCount = 0;
     do {
@@ -1233,8 +1228,7 @@ class Parser {
   /// ```
   Token parseQualified(Token token, IdentifierContext context,
       IdentifierContext continuationContext) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    token = ensureIdentifier(token, context);
+    token = ensureIdentifier(token.next, context);
     while (optional('.', token.next)) {
       token = parseQualifiedRest(token, continuationContext);
     }
@@ -1338,9 +1332,9 @@ class Parser {
       listener.handleModifiers(0);
     }
     Token classKeyword = token;
-    token = expect("class", token);
-    Token name =
-        ensureIdentifier(token, IdentifierContext.classOrNamedMixinDeclaration);
+    expect("class", token);
+    Token name = ensureIdentifier(
+        token.next, IdentifierContext.classOrNamedMixinDeclaration);
     token = parseTypeVariablesOpt(name.next);
     if (optional('=', token)) {
       listener.beginNamedMixinApplication(begin, name);
@@ -1361,7 +1355,7 @@ class Parser {
     Token implementsKeyword = null;
     if (optional('implements', token)) {
       implementsKeyword = token;
-      token = parseTypeList(token.next);
+      token = parseTypeList(token);
     }
     token = ensureSemicolon(token);
     listener.endNamedMixinApplication(
@@ -1561,6 +1555,7 @@ class Parser {
   /// message based on the given [context]. Return the synthetic identifier that
   /// was inserted.
   Token insertSyntheticIdentifier(Token token, IdentifierContext context) {
+    // TODO(brianwilkerson) Accept the last consumed token.
     Message message = context.recoveryTemplate.withArguments(token);
     Token identifier =
         new SyntheticStringToken(TokenType.IDENTIFIER, '', token.charOffset, 0);
@@ -1574,6 +1569,7 @@ class Parser {
   /// identifier in the given [context], create a synthetic identifier, report
   /// an error, and return the synthetic identifier.
   Token ensureIdentifier(Token token, IdentifierContext context) {
+    // TODO(brianwilkerson) Accept the last consumed token.
     if (!token.isIdentifier) {
       if (optional("void", token)) {
         reportRecoverableError(token, fasta.messageInvalidVoid);
@@ -1903,8 +1899,7 @@ class Parser {
         // analyze the tokens following the const keyword.
         assert(optional("const", token));
         begin = token;
-        token = token.next;
-        token = listener.injectGenericCommentTypeAssign(token);
+        token = listener.injectGenericCommentTypeAssign(token.next);
         assert(begin.next == token);
       } else {
         // Modify [begin] in case generic type are injected from a comment.
@@ -2009,13 +2004,12 @@ class Parser {
       for (int i = 0; i < functionTypes; i++) {
         assert(optional('Function', token));
         Token functionToken = token;
-        token = token.next;
-        if (optional("<", token)) {
+        if (optional("<", token.next)) {
           // Skip type parameters, they were parsed above.
-          token = closeBraceTokenFor(token).next;
+          token = closeBraceTokenFor(token.next);
         }
         token = parseFormalParametersRequiredOpt(
-                token, MemberKind.GeneralizedFunctionType)
+                token.next, MemberKind.GeneralizedFunctionType)
             .next;
         listener.endFunctionType(functionToken, token);
       }
@@ -2959,6 +2953,7 @@ class Parser {
   }
 
   Token rewriteAndRecover(Token token, Message message, Token newToken) {
+    // TODO(brianwilkerson) Accept the last consumed token.
     reportRecoverableError(token, message);
     return rewriter.insertToken(newToken, token);
   }
@@ -4687,18 +4682,19 @@ class Parser {
     assert(optional('#', token));
     Token hashToken = token;
     listener.beginLiteralSymbol(hashToken);
-    token = token.next;
-    if (token.isUserDefinableOperator) {
+    if (token.next.isUserDefinableOperator) {
+      token = token.next;
       listener.handleOperator(token);
       listener.endLiteralSymbol(hashToken, 1);
       return token;
-    } else if (identical(token.stringValue, 'void')) {
+    } else if (optional('void', token.next)) {
+      token = token.next;
       listener.handleSymbolVoid(token);
       listener.endLiteralSymbol(hashToken, 1);
       return token;
     } else {
       int count = 1;
-      token = ensureIdentifier(token, IdentifierContext.literalSymbol);
+      token = ensureIdentifier(token.next, IdentifierContext.literalSymbol);
       while (optional('.', token.next)) {
         count++;
         token = ensureIdentifier(
@@ -4829,7 +4825,8 @@ class Parser {
       }
       Token colon = null;
       if (optional(':', next.next)) {
-        token = ensureIdentifier(next, IdentifierContext.namedArgumentReference)
+        token = ensureIdentifier(
+                token.next, IdentifierContext.namedArgumentReference)
             .next;
         colon = token;
         hasSeenNamedArgument = true;
@@ -5158,19 +5155,20 @@ class Parser {
     Token begin = token;
     listener.beginBlock(begin);
     int statementCount = 0;
-    token = expect('{', token);
-    while (notEofOrValue('}', token)) {
-      Token startToken = token;
-      token = parseStatementOpt(token).next;
-      if (identical(token, startToken)) {
+    expect('{', token);
+    while (notEofOrValue('}', token.next)) {
+      Token startToken = token.next;
+      token = parseStatementOpt(token.next);
+      if (identical(token.next, startToken)) {
         // No progress was made, so we report the current token as being invalid
         // and move forward.
+        token = token.next;
         reportRecoverableError(
             token, fasta.templateUnexpectedToken.withArguments(token));
-        token = token.next;
       }
       ++statementCount;
     }
+    token = token.next;
     listener.endBlock(statementCount, begin, token);
     expect('}', token);
     return token;
@@ -5470,13 +5468,12 @@ class Parser {
     // TODO(brianwilkerson) Accept the last consumed token.
     assert(optional('break', token));
     Token breakKeyword = token;
-    token = token.next;
     bool hasTarget = false;
-    if (token.isIdentifier) {
-      token = ensureIdentifier(token, IdentifierContext.labelReference).next;
+    if (token.next.isIdentifier) {
+      token = ensureIdentifier(token.next, IdentifierContext.labelReference);
       hasTarget = true;
     }
-    token = ensureSemicolon(token);
+    token = ensureSemicolon(token.next);
     listener.handleBreakStatement(hasTarget, breakKeyword, token);
     return token;
   }
@@ -5554,13 +5551,12 @@ class Parser {
     // TODO(brianwilkerson) Accept the last consumed token.
     assert(optional('continue', token));
     Token continueKeyword = token;
-    token = token.next;
     bool hasTarget = false;
-    if (token.isIdentifier) {
-      token = ensureIdentifier(token, IdentifierContext.labelReference).next;
+    if (token.next.isIdentifier) {
+      token = ensureIdentifier(token.next, IdentifierContext.labelReference);
       hasTarget = true;
     }
-    token = ensureSemicolon(token);
+    token = ensureSemicolon(token.next);
     listener.handleContinueStatement(hasTarget, continueKeyword, token);
     return token;
   }
