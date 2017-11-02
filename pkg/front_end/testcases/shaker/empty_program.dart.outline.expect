@@ -202,7 +202,7 @@ class _SyncIterator<T extends self::Object> extends self::Object implements self
   method moveNext() → self::bool;
 }
 class _InvocationMirror extends self::Object implements self::Invocation {
-  constructor _withoutType(self::String _functionName, self::List<self::Type> _typeArguments, self::List<dynamic> _positionalArguments, self::Map<self::Symbol, dynamic> _namedArguments, self::bool _isSuperInvocation) → void;
+  constructor •(self::String _functionName, self::List<dynamic> _argumentsDescriptor, self::List<dynamic> _arguments, self::bool _isSuperInvocation) → void;
   get memberName() → self::Symbol;
   get typeArguments() → self::List<self::Type>;
   get positionalArguments() → self::List<dynamic>;

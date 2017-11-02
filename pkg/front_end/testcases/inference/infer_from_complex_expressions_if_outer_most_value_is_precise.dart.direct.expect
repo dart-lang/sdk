@@ -16,8 +16,8 @@ class B extends self::A {
     ;
 }
 static field dynamic a = new self::A::•();
-static field dynamic b = new self::B::•(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, <dynamic>[].toList(growable: false), <dynamic>[].toList(growable: false), <dynamic, dynamic>{})));
-static field dynamic c1 = <dynamic>[throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, <dynamic>[].toList(growable: false), <dynamic>[].toList(growable: false), <dynamic, dynamic>{}))];
+static field dynamic b = new self::B::•(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{})));
+static field dynamic c1 = <dynamic>[throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}))];
 static field dynamic c2 = const <dynamic>[];
 static field dynamic d = <dynamic, dynamic>{"a": "b"};
 static field dynamic e = let final dynamic #t1 = new self::A::•() in let final dynamic #t2 = #t1.x = 3 in #t1;
