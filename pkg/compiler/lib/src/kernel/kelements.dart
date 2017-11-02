@@ -35,6 +35,16 @@ class KClass extends IndexedClass {
   String toString() => '${kElementPrefix}class($name)';
 }
 
+class KTypedef extends IndexedTypedef {
+  final KLibrary library;
+
+  final String name;
+
+  KTypedef(this.library, this.name);
+
+  String toString() => '${kElementPrefix}typedef($name)';
+}
+
 abstract class KMember extends IndexedMember {
   final KLibrary library;
   final KClass enclosingClass;

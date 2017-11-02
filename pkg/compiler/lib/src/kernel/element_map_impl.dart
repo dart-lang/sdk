@@ -1052,7 +1052,7 @@ abstract class KElementCreatorMixin implements ElementCreatorMixin {
 
   @override
   IndexedTypedef createTypedef(LibraryEntity library, String name) {
-    throw new UnsupportedError('KElementCreatorMixin.createTypedef');
+    return new KTypedef(library, name);
   }
 
   TypeVariableEntity createTypeVariable(
