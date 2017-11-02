@@ -6,11 +6,15 @@
 main() {
   assignPlus();
   assignAnd();
+  instanceAssignPlus();
+  instanceAssignAnd();
   assignIndexPlus();
   assignIndexAnd();
   assignIndexInc();
   assignIndexDec();
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 /*element: assignPlus:[subclass=JSUInt32]*/
 assignPlus() {
@@ -22,6 +26,34 @@ assignPlus() {
 assignAnd() {
   var i = 87;
   return i /*invoke: [exact=JSUInt31]*/ &= 42;
+}
+
+/*element: Class1.:[exact=Class1]*/
+class Class1 {
+  /*element: Class1.field:[subclass=JSPositiveInt]*/
+  var field = 87;
+}
+
+/*element: instanceAssignPlus:[subclass=JSPositiveInt]*/
+instanceAssignPlus() {
+  var c = new Class1();
+  return c.
+          /*[exact=Class1]*/ /*update: [exact=Class1]*/ field
+      /*invoke: [subclass=JSPositiveInt]*/ += 42;
+}
+
+/*element: Class2.:[exact=Class2]*/
+class Class2 {
+  /*element: Class2.field:[exact=JSUInt31]*/
+  var field = 87;
+}
+
+/*element: instanceAssignAnd:[exact=JSUInt31]*/
+instanceAssignAnd() {
+  var c = new Class2();
+  return c.
+          /*[exact=Class2]*/ /*update: [exact=Class2]*/ field
+      /*invoke: [exact=JSUInt31]*/ &= 42;
 }
 
 /*element: assignIndexPlus:[subclass=JSPositiveInt]*/

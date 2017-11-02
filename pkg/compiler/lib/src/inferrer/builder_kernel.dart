@@ -695,12 +695,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
 
-    ArgumentsTypes arguments = analyzeArguments(node.arguments);
-
     ir.TreeNode receiver = node.receiver;
     if (receiver is ir.VariableGet &&
         receiver.variable.parent is ir.FunctionDeclaration) {
       // This is an invocation of a named local function.
+      ArgumentsTypes arguments = analyzeArguments(node.arguments);
       ClosureRepresentationInfo info =
           _closureDataLookup.getClosureInfo(receiver.variable.parent);
       return handleStaticInvoke(
@@ -708,6 +707,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
 
     TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (selector.name == '==') {
       if (_types.isNull(receiverType)) {
         // null == o

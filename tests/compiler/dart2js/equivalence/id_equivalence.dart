@@ -76,6 +76,7 @@ class IdValue {
     if (text.startsWith(elementPrefix)) {
       text = text.substring(elementPrefix.length);
       int colonPos = text.indexOf(':');
+      if (colonPos == -1) throw "Invalid element id: '$text'";
       id = new ElementId(text.substring(0, colonPos));
       expected = text.substring(colonPos + 1);
     } else if (text.startsWith(invokePrefix)) {
