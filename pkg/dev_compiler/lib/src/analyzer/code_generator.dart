@@ -2900,11 +2900,14 @@ class CodeGenerator extends Object
       JS.Expression gen = new JS.Fun(jsParams, jsBody,
           isGenerator: true, returnType: emitTypeRef(returnType));
 
-      // Name the function if possible, to get better stack traces.
       var name = element.name;
       name = _friendlyOperatorName[name] ?? name;
       if (name.isNotEmpty) {
-        gen = new JS.NamedFunction(new JS.Identifier(name), gen);
+        // Name the function if possible, to get better stack traces.
+        //
+        // Also use a temporary ID so we don't conflict with the function
+        // itself, for recursive calls.
+        gen = new JS.NamedFunction(new JS.TemporaryId(name), gen);
       }
       if (JS.This.foundIn(gen)) gen = js.call('#.bind(this)', gen);
 
