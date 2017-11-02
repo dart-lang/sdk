@@ -1,3 +1,10 @@
+# 0.1.39
+
+* `prefer_interpolation_to_compose_strings` updated to allow concatenation of two non-literal strings
+* `prefer_interpolation_to_compose_strings` updated to allow `+=`
+* lots of rule documentation fixes and enhancements
+* fix for `prefer_const_constructors_in_immutables` false positive with redirecting factory constructors
+
 # 0.1.38
 
 * `public_member_api_docs` fix for package URIs
