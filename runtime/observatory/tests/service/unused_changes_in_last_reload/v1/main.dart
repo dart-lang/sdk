@@ -21,8 +21,15 @@ class C {
   function() => "original value";
 }
 
+class S {}
+class M {}
+class MA1 extends S with M {}
+class MA2 = S with M;
+
 main() {
   new RawReceivePort();  // Keep alive.
   print(function());
   print(initializedField);
+  print(new MA1());
+  print(new MA2());
 }
