@@ -53,6 +53,12 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
     if (node.operator.type == TokenType.PLUS) {
+      //OK(#735): str1 + str2
+      if (node.leftOperand is! StringLiteral &&
+          node.rightOperand is! StringLiteral) {
+        return;
+      }
+      //OK: 'foo' + 'bar'
       if (node.leftOperand is StringLiteral &&
           node.rightOperand is StringLiteral) {
         return;
