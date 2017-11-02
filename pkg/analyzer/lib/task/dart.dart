@@ -102,7 +102,7 @@ final ResultDescriptor<CompilationUnit> PARSED_UNIT =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT', null,
-        cachingPolicy: AST_RESOLVED_CACHING_POLICY);
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The kind of a [Source].
