@@ -1164,14 +1164,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitPropertySet(ir.PropertySet node) {
+    TypeInformation receiverType = visit(node.receiver);
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+
     TypeInformation rhsType = visit(node.value);
     if (node.value is ir.ThisExpression) {
       _markThisAsExposed();
     }
 
-    TypeInformation receiverType = visit(node.receiver);
-    Selector selector = _elementMap.getSelector(node);
-    TypeMask mask = _memberData.typeOfSend(node);
     if (_inGenerativeConstructor && node.receiver is ir.ThisExpression) {
       Iterable<MemberEntity> targets = _closedWorld.locateMembers(
           selector, _types.newTypedSelector(receiverType, mask));

@@ -10,6 +10,7 @@ main() {
   forInReturnRefined();
   testInForIn();
   operatorInForIn();
+  updateInForIn();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -140,4 +141,34 @@ _operatorInForIn(
 /*element: operatorInForIn:[null]*/
 operatorInForIn() {
   _operatorInForIn([new Class2(), new Class2()]);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Refine element through operator and return it from a for-in loop on known
+// list type.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Class3.:[exact=Class3]*/
+class Class3 {
+  /*element: Class3.field3a:[exact=JSUInt31]*/
+  var field3a = 42;
+  /*element: Class3.field3b:[exact=JSUInt31]*/
+  var field3b = 42;
+}
+
+/*element: _updateInForIn:[null]*/
+_updateInForIn(
+    /*Container mask: [exact=Class3] length: 2 type: [exact=JSExtendableArray]*/ list) {
+  /*iterator: Container mask: [exact=Class3] length: 2 type: [exact=JSExtendableArray]*/
+  /*current: [exact=ArrayIterator]*/
+  /*moveNext: [exact=ArrayIterator]*/
+  for (var t in list) {
+    t.field3b = t.field3a;
+    t. /*update: [exact=Class3]*/ field3a = 87;
+  }
+}
+
+/*element: updateInForIn:[null]*/
+updateInForIn() {
+  _updateInForIn([new Class3(), new Class3()]);
 }
